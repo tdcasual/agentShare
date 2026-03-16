@@ -2,6 +2,37 @@
 
 Human-and-agent control plane for secret-backed capabilities, lightweight tasks, and reusable playbooks.
 
+## Quick Start
+
+1. Copy `.env.example` into your local shell environment or preferred env file.
+2. Start the local dependencies:
+
+```bash
+docker compose up -d openbao postgres redis
+```
+
+3. Install the API and web dependencies:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e 'apps/api[dev]'
+cd apps/web && npm install
+```
+
+4. Start the API and web apps:
+
+```bash
+SECRET_BACKEND=openbao OPENBAO_ADDR=http://127.0.0.1:8200 OPENBAO_TOKEN=root .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
+cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
+```
+
+5. Run verification locally:
+
+```bash
+.venv/bin/pytest apps/api/tests -q
+cd apps/web && npm run build && npx playwright test
+```
+
 ## Secret Backend Modes
 
 The API now supports two secret backend modes:
