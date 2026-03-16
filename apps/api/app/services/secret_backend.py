@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+import httpx
+
+from app.config import Settings
+from app.store import next_id, store
+
+
+class SecretBackend:
+    backend_name = "base"
+
+    def __init__(self, settings: Settings | None = None) -> None:
+        self.settings = settings or Settings()
+
+    def write_secret(self, value: str) -> tuple[str, str]:
+        raise NotImplementedError
+
+    def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
+        raise NotImplementedError
+
+
+class InMemorySecretBackend(SecretBackend):
+    backend_name = "memory"
+
+    def write_secret(self, value: str) -> tuple[str, str]:
+        secret_id = next_id("secret")
+        backend_ref = f"{self.backend_name}:{secret_id}"
+        store.secret_values[secret_id] = value
+        return secret_id, backend_ref
+
+    def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
+        return store.secret_values[secret_id]
+
+
+class OpenBaoSecretBackend(SecretBackend):
+    backend_name = "openbao"
+
+    def __init__(
+        self,
+        settings: Settings | None = None,
+        transport: httpx.BaseTransport | None = None,
+    ) -> None:
+        super().__init__(settings)
+        self.transport = transport
+
+    def write_secret(self, value: str) -> tuple[str, str]:
+        secret_id = next_id("secret")
+        path = self._secret_path(secret_id)
+        self._request("POST", self._kv_v2_path(self.settings.openbao_mount, path), json={"data": {"value": value}})
+        backend_ref = f"{self.backend_name}:{self.settings.openbao_mount}:{path}"
+        return secret_id, backend_ref
+
+    def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
+        mount, path = self._resolve_location(secret_id, backend_ref)
+        payload = self._request("GET", self._kv_v2_path(mount, path))
+        return payload["data"]["data"]["value"]
+
+    def _secret_path(self, secret_id: str) -> str:
+        prefix = (self.settings.openbao_prefix or "").strip("/")
+        if not prefix:
+            return secret_id
+        return f"{prefix}/{secret_id}"
+
+    @staticmethod
+    def _kv_v2_path(mount: str, secret_path: str) -> str:
+        return f"/v1/{mount}/data/{secret_path}"
+
+    def _resolve_location(self, secret_id: str, backend_ref: str | None) -> tuple[str, str]:
+        if backend_ref and backend_ref.startswith("openbao:"):
+            _, mount, path = backend_ref.split(":", 2)
+            return mount, path
+        return self.settings.openbao_mount, self._secret_path(secret_id)
+
+    def _request(self, method: str, path: str, json: dict | None = None) -> dict:
+        if not self.settings.openbao_addr or not self.settings.openbao_token:
+            raise RuntimeError("OpenBao backend is not configured")
+
+        with httpx.Client(
+            base_url=self.settings.openbao_addr,
+            headers={"X-Vault-Token": self.settings.openbao_token},
+            timeout=10.0,
+            transport=self.transport,
+        ) as client:
+            response = client.request(method, path, json=json)
+            response.raise_for_status()
+            return response.json()
+
+
+def get_secret_backend(settings: Settings | None = None) -> SecretBackend:
+    settings = settings or Settings()
+    if settings.secret_backend == "memory":
+        return InMemorySecretBackend(settings)
+    if settings.secret_backend == "openbao" and settings.openbao_addr and settings.openbao_token:
+        return OpenBaoSecretBackend(settings)
+    return InMemorySecretBackend(settings)
+
+
+def get_secret_backend_for_ref(backend_ref: str | None, settings: Settings | None = None) -> SecretBackend:
+    settings = settings or Settings()
+    if backend_ref and backend_ref.startswith("openbao:"):
+        return OpenBaoSecretBackend(settings)
+    return InMemorySecretBackend(settings)

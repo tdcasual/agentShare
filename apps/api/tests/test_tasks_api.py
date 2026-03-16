@@ -1,0 +1,46 @@
+def test_agent_can_claim_eligible_task(client):
+    created = client.post(
+        "/api/tasks",
+        json={
+            "title": "Sync provider config",
+            "task_type": "config_sync",
+            "input": {"provider": "qq"},
+            "required_capability_ids": ["qq.account.configure"],
+            "lease_allowed": False,
+        },
+    )
+
+    response = client.post(
+        f"/api/tasks/{created.json()['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "claimed"
+    assert response.json()["claimed_by"] == "agent-test"
+
+
+def test_agent_can_complete_claimed_task(client):
+    created = client.post(
+        "/api/tasks",
+        json={
+            "title": "Fetch account status",
+            "task_type": "account_read",
+            "input": {"provider": "qq"},
+            "required_capability_ids": [],
+            "lease_allowed": False,
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{created['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/tasks/{created['id']}/complete",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"result_summary": "Configuration synced", "output_payload": {"ok": True}},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "completed"

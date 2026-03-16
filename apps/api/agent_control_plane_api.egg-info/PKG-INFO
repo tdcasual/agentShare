@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: agent-control-plane-api
+Version: 0.1.0
+Summary: FastAPI control plane for agents, secrets, and lightweight tasks
+Requires-Python: >=3.12
+Requires-Dist: fastapi>=0.116.0
+Requires-Dist: httpx>=0.28.1
+Requires-Dist: pydantic-settings>=2.10.1
+Requires-Dist: uvicorn>=0.35.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.4.1; extra == "dev"
