@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .next/
 node_modules/
+*.egg-info/
 playwright-report/
 test-results/
 dist/
