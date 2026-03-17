@@ -1,3 +1,4 @@
+import fakeredis
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -42,3 +43,11 @@ def client(db_session):
     app.dependency_overrides[get_db] = _override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def fake_redis_for_all(monkeypatch):
+    """Ensure all tests use fakeredis instead of real Redis."""
+    fake = fakeredis.FakeRedis(decode_responses=True)
+    monkeypatch.setattr("app.services.redis_client._redis_client", fake)
+    yield fake

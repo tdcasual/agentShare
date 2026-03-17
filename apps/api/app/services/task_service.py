@@ -7,6 +7,7 @@ from app.orm.run import RunModel
 from app.repositories.task_repo import TaskRepository
 from app.repositories.run_repo import RunRepository
 from app.schemas.tasks import TaskCreate
+from app.services.redis_client import acquire_lock, release_lock
 
 
 def create_task(session: Session, payload: TaskCreate) -> dict:
@@ -31,16 +32,22 @@ def list_tasks(session: Session) -> list[dict]:
 
 
 def claim_task(session: Session, task_id: str, agent_id: str) -> dict:
-    repo = TaskRepository(session)
-    task = repo.get(task_id)
-    if task is None:
-        raise KeyError("Task not found")
-    if task.status != "pending":
-        raise ValueError("Task is not claimable")
-    task.status = "claimed"
-    task.claimed_by = agent_id
-    repo.update(task)
-    return _task_to_dict(task)
+    lock_key = f"task:{task_id}:claim"
+    if not acquire_lock(lock_key, ttl_seconds=10):
+        raise ValueError("Task claim is being processed by another agent")
+    try:
+        repo = TaskRepository(session)
+        task = repo.get(task_id)
+        if task is None:
+            raise KeyError("Task not found")
+        if task.status != "pending":
+            raise ValueError("Task is not claimable")
+        task.status = "claimed"
+        task.claimed_by = agent_id
+        repo.update(task)
+        return _task_to_dict(task)
+    finally:
+        release_lock(lock_key)
 
 
 def complete_task(session: Session, task_id: str, agent_id: str, result_summary: str, output_payload: dict) -> dict:
