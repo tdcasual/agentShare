@@ -1,3 +1,5 @@
+import hashlib
+
 import fakeredis
 import pytest
 from sqlalchemy import create_engine
@@ -7,6 +9,8 @@ from fastapi.testclient import TestClient
 from app.db import get_db
 from app.main import app
 from app.orm import Base  # noqa: F401 — import triggers all model registration
+from app.orm.agent import AgentIdentityModel
+from app.repositories.agent_repo import AgentRepository
 from app.services.secret_backend import InMemorySecretBackend, reset_secret_counter
 
 _test_engine = create_engine(
@@ -14,6 +18,8 @@ _test_engine = create_engine(
     connect_args={"check_same_thread": False},
 )
 _TestSession = sessionmaker(bind=_test_engine, expire_on_commit=False)
+
+TEST_AGENT_KEY = "agent-test-token"
 
 
 @pytest.fixture(autouse=True)
@@ -35,6 +41,20 @@ def db_session():
 
 @pytest.fixture
 def client(db_session):
+    # Seed a test agent for auth
+    repo = AgentRepository(db_session)
+    key_hash = hashlib.sha256(TEST_AGENT_KEY.encode()).hexdigest()
+    repo.create(AgentIdentityModel(
+        id="test-agent",
+        name="Test Agent",
+        api_key_hash=key_hash,
+        status="active",
+        allowed_capability_ids=[],
+        allowed_task_types=["config_sync", "account_read", "prompt_run"],
+        risk_tier="medium",
+    ))
+    db_session.flush()
+
     def _override_get_db():
         try:
             yield db_session

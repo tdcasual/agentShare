@@ -1,5 +1,12 @@
+import hashlib
+from contextlib import contextmanager
+
 from fastapi import FastAPI
 
+from app.config import Settings
+from app.db import SessionLocal
+from app.orm.agent import AgentIdentityModel
+from app.repositories.agent_repo import AgentRepository
 from app.routes.agents import router as agents_router
 from app.routes.capabilities import router as capabilities_router
 from app.routes.invoke import router as invoke_router
@@ -10,7 +17,34 @@ from app.routes.secrets import router as secrets_router
 from app.routes.tasks import router as tasks_router
 
 
-app = FastAPI(title="Agent Control Plane")
+def _hash_key(key: str) -> str:
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+@contextmanager
+def lifespan(app_instance):
+    settings = Settings()
+    session = SessionLocal()
+    try:
+        repo = AgentRepository(session)
+        existing = repo.get("bootstrap")
+        if existing is None:
+            repo.create(AgentIdentityModel(
+                id="bootstrap",
+                name="Bootstrap Agent",
+                api_key_hash=_hash_key(settings.bootstrap_agent_key),
+                status="active",
+                allowed_capability_ids=[],
+                allowed_task_types=[],
+                risk_tier="high",
+            ))
+            session.commit()
+    finally:
+        session.close()
+    yield
+
+
+app = FastAPI(title="Agent Control Plane", lifespan=lifespan)
 
 # Idempotency middleware — only acts when Idempotency-Key header is present
 try:

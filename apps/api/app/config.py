@@ -9,3 +9,4 @@ class Settings(BaseSettings):
     openbao_token: str | None = None
     openbao_mount: str = "secret"
     openbao_prefix: str = "agent-share"
+    bootstrap_agent_key: str = "changeme-bootstrap-key"

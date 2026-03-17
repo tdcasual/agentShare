@@ -17,7 +17,7 @@ def test_agent_can_claim_eligible_task(client):
 
     assert response.status_code == 200
     assert response.json()["status"] == "claimed"
-    assert response.json()["claimed_by"] == "agent-test"
+    assert response.json()["claimed_by"] == "test-agent"
 
 
 def test_agent_can_complete_claimed_task(client):
