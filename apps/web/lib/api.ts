@@ -153,7 +153,7 @@ export async function getRuns() {
 }
 
 export async function getAgents() {
-  return fallback.agents;
+  return getItems("/api/agents", fallback.agents);
 }
 
 export async function getPlaybooks() {
