@@ -12,6 +12,15 @@ from app.routes.tasks import router as tasks_router
 
 app = FastAPI(title="Agent Control Plane")
 
+# Idempotency middleware — only acts when Idempotency-Key header is present
+try:
+    from app.services.idempotency import IdempotencyMiddleware
+    from app.services.redis_client import get_redis
+
+    app.add_middleware(IdempotencyMiddleware, redis_client=get_redis(), ttl_seconds=300)
+except Exception:
+    pass  # Redis not available in test/dev without docker — middleware is a no-op
+
 
 @app.get("/healthz")
 def healthcheck() -> dict[str, str]:
