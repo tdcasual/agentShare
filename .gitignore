@@ -9,3 +9,7 @@ test-results/
 dist/
 build/
 .DS_Store
+agent_share.db
+*.db-wal
+*.db-shm
+*.db-journal
