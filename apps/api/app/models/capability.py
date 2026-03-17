@@ -10,3 +10,5 @@ class CapabilityRecord(BaseModel):
     risk_level: str
     approval_mode: str = "auto"
     allowed_audience: list[str] = Field(default_factory=list)
+    adapter_type: str = "generic_http"
+    adapter_config: dict = Field(default_factory=dict)
