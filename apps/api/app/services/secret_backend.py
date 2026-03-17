@@ -1,9 +1,24 @@
 from __future__ import annotations
 
+from itertools import count
+
 import httpx
 
 from app.config import Settings
-from app.store import next_id, store
+
+
+# Module-level counter for generating unique secret IDs across all backends
+_secret_counter = count(1)
+
+
+def _next_secret_id() -> str:
+    return f"secret-{next(_secret_counter)}"
+
+
+def reset_secret_counter() -> None:
+    """Reset the counter (used by tests if needed)."""
+    global _secret_counter
+    _secret_counter = count(1)
 
 
 class SecretBackend:
@@ -22,14 +37,21 @@ class SecretBackend:
 class InMemorySecretBackend(SecretBackend):
     backend_name = "memory"
 
+    # Class-level store shared across all InMemorySecretBackend instances
+    _store: dict[str, str] = {}
+
     def write_secret(self, value: str) -> tuple[str, str]:
-        secret_id = next_id("secret")
+        secret_id = _next_secret_id()
         backend_ref = f"{self.backend_name}:{secret_id}"
-        store.secret_values[secret_id] = value
+        InMemorySecretBackend._store[secret_id] = value
         return secret_id, backend_ref
 
     def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
-        return store.secret_values[secret_id]
+        return InMemorySecretBackend._store[secret_id]
+
+    @classmethod
+    def reset_store(cls) -> None:
+        cls._store.clear()
 
 
 class OpenBaoSecretBackend(SecretBackend):
@@ -44,7 +66,7 @@ class OpenBaoSecretBackend(SecretBackend):
         self.transport = transport
 
     def write_secret(self, value: str) -> tuple[str, str]:
-        secret_id = next_id("secret")
+        secret_id = _next_secret_id()
         path = self._secret_path(secret_id)
         self._request("POST", self._kv_v2_path(self.settings.openbao_mount, path), json={"data": {"value": value}})
         backend_ref = f"{self.backend_name}:{self.settings.openbao_mount}:{path}"

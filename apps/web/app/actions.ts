@@ -20,10 +20,12 @@ async function postJson(path: string, payload: Record<string, unknown>) {
     throw new Error("API base URL is not configured");
   }
 
+  const bootstrapKey = process.env.BOOTSTRAP_AGENT_KEY ?? "";
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(bootstrapKey ? { Authorization: `Bearer ${bootstrapKey}` } : {}),
     },
     body: JSON.stringify(payload),
     cache: "no-store",
@@ -98,6 +100,28 @@ export async function createTaskAction(formData: FormData) {
 
   revalidatePath("/tasks");
   redirect(`/tasks?created=${encodeURIComponent(title)}`);
+}
+
+export async function createAgentAction(formData: FormData) {
+  const name = String(formData.get("name") || "").trim();
+  const riskTier = String(formData.get("risk_tier") || "medium").trim();
+
+  if (!name) {
+    redirect("/agents?error=missing-name");
+  }
+
+  let result: { api_key?: string; id?: string };
+  try {
+    result = await postJson("/api/agents", {
+      name,
+      risk_tier: riskTier,
+    });
+  } catch {
+    redirect("/agents?error=save-failed");
+  }
+
+  revalidatePath("/agents");
+  redirect(`/agents?created=${encodeURIComponent(name)}&api_key=${encodeURIComponent(result.api_key || "")}`);
 }
 
 export async function createCapabilityAction(formData: FormData) {

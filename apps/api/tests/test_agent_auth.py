@@ -11,4 +11,4 @@ def test_agent_request_returns_identity_for_known_token(client):
     )
 
     assert response.status_code == 200
-    assert response.json()["id"] == "agent-test"
+    assert response.json()["id"] == "test-agent"
