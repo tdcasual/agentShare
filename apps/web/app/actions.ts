@@ -5,6 +5,15 @@ import { redirect } from "next/navigation";
 
 import { getApiBaseUrl } from "../lib/api";
 
+class ManagementRequestError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 function parseJsonField(value: FormDataEntryValue | null, fallback: Record<string, unknown>) {
   const raw = typeof value === "string" ? value.trim() : "";
   if (!raw) {
@@ -14,18 +23,46 @@ function parseJsonField(value: FormDataEntryValue | null, fallback: Record<strin
   return JSON.parse(raw) as Record<string, unknown>;
 }
 
+function parseListField(value: FormDataEntryValue | null): string[] {
+  const raw = typeof value === "string" ? value : "";
+  return raw
+    .split(/[,\n]/g)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function classifyManagementError(error: unknown) {
+  if (error instanceof ManagementRequestError) {
+    if (error.status === 400) {
+      return "invalid-contract";
+    }
+    if (error.status === 401 || error.status === 403) {
+      return "management-auth";
+    }
+    if (error.status === 503) {
+      return "api-disconnected";
+    }
+  }
+
+  return "save-failed";
+}
+
 async function postJson(path: string, payload: Record<string, unknown>) {
   const apiBaseUrl = getApiBaseUrl();
   if (!apiBaseUrl) {
-    throw new Error("API base URL is not configured");
+    throw new ManagementRequestError(503, "API base URL is not configured");
   }
 
   const bootstrapKey = process.env.BOOTSTRAP_AGENT_KEY ?? "";
+  if (!bootstrapKey) {
+    throw new ManagementRequestError(401, "BOOTSTRAP_AGENT_KEY is not configured");
+  }
+
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(bootstrapKey ? { Authorization: `Bearer ${bootstrapKey}` } : {}),
+      Authorization: `Bearer ${bootstrapKey}`,
     },
     body: JSON.stringify(payload),
     cache: "no-store",
@@ -33,7 +70,7 @@ async function postJson(path: string, payload: Record<string, unknown>) {
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`Request failed: ${response.status} ${detail}`);
+    throw new ManagementRequestError(response.status, detail);
   }
 
   return response.json();
@@ -43,16 +80,20 @@ export async function createSecretAction(formData: FormData) {
   const displayName = String(formData.get("display_name") || "").trim();
   const kind = String(formData.get("kind") || "api_token").trim();
   const value = String(formData.get("value") || "").trim();
+  const provider = String(formData.get("provider") || "").trim();
+  const environment = String(formData.get("environment") || "").trim();
+  const resourceSelector = String(formData.get("resource_selector") || "").trim();
+  const providerScopes = parseListField(formData.get("provider_scopes"));
 
-  if (!displayName || !value) {
+  if (!displayName || !value || !provider) {
     redirect("/secrets?error=missing-fields");
   }
 
-  let scope: Record<string, unknown>;
+  let metadata: Record<string, unknown>;
   try {
-    scope = parseJsonField(formData.get("scope"), {});
+    metadata = parseJsonField(formData.get("metadata"), {});
   } catch {
-    redirect("/secrets?error=invalid-scope");
+    redirect("/secrets?error=invalid-metadata");
   }
 
   try {
@@ -60,10 +101,14 @@ export async function createSecretAction(formData: FormData) {
       display_name: displayName,
       kind,
       value,
-      scope,
+      provider,
+      environment: environment || null,
+      provider_scopes: providerScopes,
+      resource_selector: resourceSelector || null,
+      metadata,
     });
-  } catch {
-    redirect("/secrets?error=save-failed");
+  } catch (error) {
+    redirect(`/secrets?error=${classifyManagementError(error)}`);
   }
 
   revalidatePath("/secrets");
@@ -94,8 +139,8 @@ export async function createTaskAction(formData: FormData) {
       required_capability_ids: [],
       lease_allowed: leaseAllowed,
     });
-  } catch {
-    redirect("/tasks?error=save-failed");
+  } catch (error) {
+    redirect(`/tasks?error=${classifyManagementError(error)}`);
   }
 
   revalidatePath("/tasks");
@@ -116,8 +161,8 @@ export async function createAgentAction(formData: FormData) {
       name,
       risk_tier: riskTier,
     });
-  } catch {
-    redirect("/agents?error=save-failed");
+  } catch (error) {
+    redirect(`/agents?error=${classifyManagementError(error)}`);
   }
 
   revalidatePath("/agents");
@@ -130,9 +175,18 @@ export async function createCapabilityAction(formData: FormData) {
   const allowedMode = String(formData.get("allowed_mode") || "proxy_only").trim();
   const riskLevel = String(formData.get("risk_level") || "medium").trim();
   const leaseTtlRaw = String(formData.get("lease_ttl_seconds") || "60").trim();
+  const requiredProvider = String(formData.get("required_provider") || "").trim();
+  const requiredProviderScopes = parseListField(formData.get("required_provider_scopes"));
+  const allowedEnvironments = parseListField(formData.get("allowed_environments"));
   const leaseTtlSeconds = Number.parseInt(leaseTtlRaw, 10);
 
-  if (!name || !secretId || Number.isNaN(leaseTtlSeconds) || leaseTtlSeconds < 1) {
+  if (
+    !name ||
+    !secretId ||
+    !requiredProvider ||
+    Number.isNaN(leaseTtlSeconds) ||
+    leaseTtlSeconds < 1
+  ) {
     redirect("/capabilities?error=invalid-fields");
   }
 
@@ -143,9 +197,12 @@ export async function createCapabilityAction(formData: FormData) {
       allowed_mode: allowedMode,
       risk_level: riskLevel,
       lease_ttl_seconds: leaseTtlSeconds,
+      required_provider: requiredProvider,
+      required_provider_scopes: requiredProviderScopes,
+      allowed_environments: allowedEnvironments,
     });
-  } catch {
-    redirect("/capabilities?error=save-failed");
+  } catch (error) {
+    redirect(`/capabilities?error=${classifyManagementError(error)}`);
   }
 
   revalidatePath("/capabilities");

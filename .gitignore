@@ -10,6 +10,8 @@ dist/
 build/
 .DS_Store
 agent_share.db
+agent_share_playwright_*.db
+.worktrees/
 *.db-wal
 *.db-shm
 *.db-journal

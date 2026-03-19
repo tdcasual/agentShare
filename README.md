@@ -2,6 +2,47 @@
 
 Human-and-agent control plane for secret-backed capabilities, lightweight tasks, and reusable playbooks.
 
+## Agent Quickstart
+
+Start with the operational guide:
+
+- `docs/guides/agent-quickstart.md`
+
+The quickstart is the shortest path from agent key to completed task and includes proxy invoke plus lease examples.
+
+## API Discovery And Console Auth
+
+- Machine-readable sources of truth:
+  - Swagger UI: `http://127.0.0.1:8000/docs`
+  - OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+- Current web console auth path:
+  - The management console sends `Authorization: Bearer $BOOTSTRAP_AGENT_KEY` for create and management reads.
+  - This is a temporary management credential path until dedicated human session auth is introduced.
+- Production caution:
+  - Do not deploy with `BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key`.
+
+## Route Policy Split
+
+- Public routes:
+  - `GET /healthz`
+  - `/docs` and `/openapi.json`
+- Agent-authenticated runtime routes:
+  - `GET /api/agents/me`
+  - `GET /api/tasks`
+  - `POST /api/tasks/{task_id}/claim`
+  - `POST /api/tasks/{task_id}/complete`
+  - `POST /api/capabilities/{capability_id}/invoke`
+  - `POST /api/capabilities/{capability_id}/lease`
+- Bootstrap-key protected management routes:
+  - `POST /api/secrets`, `GET /api/secrets`
+  - `POST /api/capabilities`, `GET /api/capabilities`
+  - `POST /api/tasks`
+  - `GET /api/agents`, `POST /api/agents`, `DELETE /api/agents/{agent_id}`
+  - `GET /api/runs`
+  - `POST /api/playbooks`, `GET /api/playbooks/search`
+- Future human-session routes:
+  - The same management surfaces above, replacing bootstrap-key auth with explicit human session auth.
+
 ## Quick Start
 
 1. Copy `.env.example` into your local shell environment or preferred env file.
@@ -23,7 +64,7 @@ cd apps/web && npm install
 
 ```bash
 SECRET_BACKEND=openbao OPENBAO_ADDR=http://127.0.0.1:8200 OPENBAO_TOKEN=root .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
-cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
+cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key npm run dev
 ```
 
 5. Run verification locally:

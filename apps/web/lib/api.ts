@@ -1,20 +1,28 @@
-type Secret = {
+export type Secret = {
   id: string;
   display_name: string;
   kind: string;
   backend_ref: string;
+  provider: string;
+  environment: string | null;
+  provider_scopes: string[];
+  resource_selector: string | null;
+  metadata: Record<string, unknown>;
 };
 
-type Capability = {
+export type Capability = {
   id: string;
   name: string;
   secret_id: string;
   allowed_mode: string;
   risk_level: string;
   lease_ttl_seconds: number;
+  required_provider: string;
+  required_provider_scopes: string[];
+  allowed_environments: string[];
 };
 
-type Task = {
+export type Task = {
   id: string;
   title: string;
   task_type: string;
@@ -22,7 +30,7 @@ type Task = {
   lease_allowed: boolean;
 };
 
-type Run = {
+export type Run = {
   id: string;
   task_id: string;
   agent_id: string;
@@ -30,132 +38,239 @@ type Run = {
   result_summary: string;
 };
 
-type Agent = {
+export type Agent = {
   id: string;
   name: string;
   risk_tier: string;
   auth_method: string;
 };
 
-type Playbook = {
+export type Playbook = {
   id: string;
   title: string;
   task_type: string;
   tags: string[];
 };
 
-const fallback = {
+export type CollectionSource = "live" | "demo" | "disconnected" | "error";
+
+export type CollectionResult<T> = {
+  items: T[];
+  source: CollectionSource;
+  error?: string;
+};
+
+const demoFallback = {
   secrets: [
     {
-      id: "secret-1",
-      display_name: "OpenAI production key",
+      id: "secret-demo-1",
+      display_name: "Demo OpenAI key",
       kind: "api_token",
-      backend_ref: "openbao:secret-1",
+      backend_ref: "memory:secret-demo-1",
+      provider: "openai",
+      environment: "demo",
+      provider_scopes: ["responses.read"],
+      resource_selector: "workspace:demo",
+      metadata: { owner: "demo" },
     },
   ] satisfies Secret[],
   capabilities: [
     {
-      id: "capability-1",
+      id: "capability-demo-1",
       name: "openai.chat.invoke",
-      secret_id: "secret-1",
+      secret_id: "secret-demo-1",
       allowed_mode: "proxy_only",
       risk_level: "medium",
       lease_ttl_seconds: 60,
-    },
-    {
-      id: "capability-2",
-      name: "github.repo.read",
-      secret_id: "secret-1",
-      allowed_mode: "proxy_or_lease",
-      risk_level: "low",
-      lease_ttl_seconds: 120,
+      required_provider: "openai",
+      required_provider_scopes: ["responses.read"],
+      allowed_environments: ["demo"],
     },
   ] satisfies Capability[],
   tasks: [
     {
-      id: "task-1",
-      title: "Sync QQ provider config",
-      task_type: "config_sync",
+      id: "task-demo-1",
+      title: "Demo prompt run",
+      task_type: "prompt_run",
       status: "pending",
       lease_allowed: false,
     },
-    {
-      id: "task-2",
-      title: "Read GitHub repo metadata",
-      task_type: "repo_read",
-      status: "claimed",
-      lease_allowed: true,
-    },
   ] satisfies Task[],
-  runs: [
-    {
-      id: "run-1",
-      task_id: "task-2",
-      agent_id: "agent-test",
-      status: "completed",
-      result_summary: "Fetched repository metadata through proxy call",
-    },
-  ] satisfies Run[],
+  runs: [] satisfies Run[],
   agents: [
     {
-      id: "agent-test",
-      name: "Test Agent",
+      id: "agent-demo",
+      name: "Demo Agent",
       risk_tier: "medium",
-      auth_method: "bearer",
+      auth_method: "api_key",
     },
   ] satisfies Agent[],
   playbooks: [
     {
-      id: "playbook-1",
-      title: "QQ config sync",
-      task_type: "config_sync",
-      tags: ["qq", "config"],
+      id: "playbook-demo-1",
+      title: "Demo prompt run",
+      task_type: "prompt_run",
+      tags: ["demo"],
     },
   ] satisfies Playbook[],
 };
+
+const DEMO_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 export function getApiBaseUrl() {
   return process.env.AGENT_CONTROL_PLANE_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 }
 
-async function getItems<T>(path: string, fallbackItems: T[]): Promise<T[]> {
+export function getApiDocsLinks() {
   const apiBase = getApiBaseUrl();
   if (!apiBase) {
-    return fallbackItems;
+    return null;
+  }
+
+  return {
+    swaggerUrl: `${apiBase}/docs`,
+    openapiUrl: `${apiBase}/openapi.json`,
+  };
+}
+
+function isDemoModeEnabled() {
+  const raw =
+    process.env.AGENT_CONTROL_PLANE_DEMO_MODE ??
+    process.env.NEXT_PUBLIC_AGENT_CONTROL_PLANE_DEMO_MODE ??
+    "";
+  return DEMO_ENV_VALUES.has(raw.trim().toLowerCase());
+}
+
+function getBootstrapHeaders(): Record<string, string> {
+  const key = process.env.BOOTSTRAP_AGENT_KEY ?? "";
+  if (!key) {
+    return {};
+  }
+  return { Authorization: `Bearer ${key}` };
+}
+
+function disconnectedResult<T>(demoItems: T[]): CollectionResult<T> {
+  if (isDemoModeEnabled()) {
+    return {
+      items: demoItems,
+      source: "demo",
+    };
+  }
+  return {
+    items: [],
+    source: "disconnected",
+    error: "AGENT_CONTROL_PLANE_API_URL is not configured.",
+  };
+}
+
+async function getCollection<T>(
+  path: string,
+  demoItems: T[],
+  options: { includeManagementAuth?: boolean } = {},
+): Promise<CollectionResult<T>> {
+  const apiBase = getApiBaseUrl();
+  if (!apiBase) {
+    return disconnectedResult(demoItems);
   }
 
   try {
-    const response = await fetch(`${apiBase}${path}`, { cache: "no-store" });
+    const headers = options.includeManagementAuth === false ? {} : getBootstrapHeaders();
+    const response = await fetch(`${apiBase}${path}`, {
+      cache: "no-store",
+      headers,
+    });
+
     if (!response.ok) {
-      return fallbackItems;
+      const detail = await response.text();
+      return {
+        items: [],
+        source: "error",
+        error: `${response.status} ${detail || response.statusText}`.trim(),
+      };
     }
-    const payload = (await response.json()) as { items: T[] };
-    return payload.items;
-  } catch {
-    return fallbackItems;
+
+    const payload = (await response.json()) as { items?: T[] };
+    return {
+      items: Array.isArray(payload.items) ? payload.items : [],
+      source: "live",
+    };
+  } catch (error) {
+    return {
+      items: [],
+      source: "error",
+      error: error instanceof Error ? error.message : "Failed to reach API backend.",
+    };
   }
 }
 
+export function getCollectionNotice<T>(
+  result: CollectionResult<T>,
+  label: string,
+): {
+  tone: "success" | "warning" | "error";
+  message: string;
+} {
+  if (result.source === "live") {
+    return {
+      tone: "success",
+      message: `live API connected for ${label}.`,
+    };
+  }
+
+  if (result.source === "demo") {
+    return {
+      tone: "warning",
+      message:
+        `Demo mode is enabled for ${label}. ` +
+        "Unset AGENT_CONTROL_PLANE_DEMO_MODE and set AGENT_CONTROL_PLANE_API_URL for live data.",
+    };
+  }
+
+  if (result.source === "disconnected") {
+    return {
+      tone: "warning",
+      message:
+        `Disconnected while loading ${label}. ` +
+        "Set AGENT_CONTROL_PLANE_API_URL to your API base URL.",
+    };
+  }
+
+  const detail = result.error ?? "Unknown backend error.";
+  if (detail.startsWith("401") || detail.startsWith("403")) {
+    return {
+      tone: "error",
+      message:
+        `Authorization error while loading ${label}: ${detail}. ` +
+        "Check BOOTSTRAP_AGENT_KEY for management routes.",
+    };
+  }
+
+  return {
+    tone: "error",
+    message: `Failed to load ${label}: ${detail}`,
+  };
+}
+
 export async function getSecrets() {
-  return getItems("/api/secrets", fallback.secrets);
+  return getCollection("/api/secrets", demoFallback.secrets);
 }
 
 export async function getCapabilities() {
-  return getItems("/api/capabilities", fallback.capabilities);
+  return getCollection("/api/capabilities", demoFallback.capabilities);
 }
 
 export async function getTasks() {
-  return getItems("/api/tasks", fallback.tasks);
+  return getCollection("/api/tasks", demoFallback.tasks);
 }
 
 export async function getRuns() {
-  return getItems("/api/runs", fallback.runs);
+  return getCollection("/api/runs", demoFallback.runs);
 }
 
 export async function getAgents() {
-  return getItems("/api/agents", fallback.agents);
+  return getCollection("/api/agents", demoFallback.agents);
 }
 
 export async function getPlaybooks() {
-  return fallback.playbooks;
+  return getCollection("/api/playbooks/search", demoFallback.playbooks);
 }

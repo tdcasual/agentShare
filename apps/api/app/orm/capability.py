@@ -15,5 +15,8 @@ class CapabilityModel(Base, TimestampMixin):
     risk_level: Mapped[str] = mapped_column(String, nullable=False)
     approval_mode: Mapped[str] = mapped_column(String, default="auto")
     allowed_audience: Mapped[list] = mapped_column(JSON, default=list)
+    required_provider: Mapped[str | None] = mapped_column(String, nullable=True)
+    required_provider_scopes: Mapped[list] = mapped_column(JSON, default=list)
+    allowed_environments: Mapped[list] = mapped_column(JSON, default=list)
     adapter_type: Mapped[str] = mapped_column(String, default="generic_http")
     adapter_config: Mapped[dict] = mapped_column(JSON, default=dict)

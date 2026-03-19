@@ -20,6 +20,7 @@ _test_engine = create_engine(
 _TestSession = sessionmaker(bind=_test_engine, expire_on_commit=False)
 
 TEST_AGENT_KEY = "agent-test-token"
+BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
 
 
 @pytest.fixture(autouse=True)
@@ -52,6 +53,16 @@ def client(db_session):
         allowed_capability_ids=[],
         allowed_task_types=["config_sync", "account_read", "prompt_run"],
         risk_tier="medium",
+    ))
+    bootstrap_hash = hashlib.sha256(BOOTSTRAP_AGENT_KEY.encode()).hexdigest()
+    repo.create(AgentIdentityModel(
+        id="bootstrap",
+        name="Bootstrap Agent",
+        api_key_hash=bootstrap_hash,
+        status="active",
+        allowed_capability_ids=[],
+        allowed_task_types=[],
+        risk_tier="high",
     ))
     db_session.flush()
 

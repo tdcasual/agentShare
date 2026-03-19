@@ -60,6 +60,20 @@ export function CapabilityForm({
               <input name="lease_ttl_seconds" type="number" min="1" defaultValue="60" required />
             </label>
           </div>
+          <div className="form-row">
+            <label>
+              Required provider
+              <input name="required_provider" placeholder="github" required />
+            </label>
+            <label>
+              Required provider scopes
+              <input name="required_provider_scopes" placeholder="repo:read,repo:write" />
+            </label>
+          </div>
+          <label>
+            Allowed environments
+            <input name="allowed_environments" placeholder="production,staging" />
+          </label>
           <button type="submit">Create capability</button>
         </form>
       ) : (

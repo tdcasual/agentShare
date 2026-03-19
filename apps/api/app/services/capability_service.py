@@ -5,10 +5,12 @@ from sqlalchemy.orm import Session
 from app.orm.capability import CapabilityModel
 from app.repositories.capability_repo import CapabilityRepository
 from app.schemas.capabilities import CapabilityCreate
+from app.services.scope_policy import ensure_binding_compatible
 
 
-def create_capability(session: Session, payload: CapabilityCreate) -> dict:
+def create_capability(session: Session, payload: CapabilityCreate, secret) -> dict:
     repo = CapabilityRepository(session)
+    ensure_binding_compatible(secret, payload)
     cap_id = f"capability-{len(repo.list_all()) + 1}"
     model = CapabilityModel(
         id=cap_id,
@@ -19,8 +21,11 @@ def create_capability(session: Session, payload: CapabilityCreate) -> dict:
         risk_level=payload.risk_level,
         approval_mode=payload.approval_mode,
         allowed_audience=payload.allowed_audience,
-        adapter_type=getattr(payload, "adapter_type", "generic_http"),
-        adapter_config=getattr(payload, "adapter_config", {}),
+        required_provider=payload.required_provider,
+        required_provider_scopes=payload.required_provider_scopes,
+        allowed_environments=payload.allowed_environments,
+        adapter_type=payload.adapter_type,
+        adapter_config=payload.adapter_config,
     )
     repo.create(model)
     return _to_dict(model)
@@ -48,7 +53,10 @@ def _to_dict(model: CapabilityModel) -> dict:
         "lease_ttl_seconds": model.lease_ttl_seconds,
         "risk_level": model.risk_level,
         "approval_mode": model.approval_mode,
-        "allowed_audience": model.allowed_audience,
-        "adapter_type": model.adapter_type,
-        "adapter_config": model.adapter_config,
+        "allowed_audience": model.allowed_audience or [],
+        "required_provider": model.required_provider,
+        "required_provider_scopes": model.required_provider_scopes or [],
+        "allowed_environments": model.allowed_environments or [],
+        "adapter_type": model.adapter_type or "generic_http",
+        "adapter_config": model.adapter_config or {},
     }

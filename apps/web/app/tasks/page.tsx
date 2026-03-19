@@ -2,7 +2,7 @@ import { createTaskAction } from "../actions";
 import { NavShell } from "../../components/nav-shell";
 import { TaskForm } from "../../components/task-form";
 import { TasksTable } from "../../components/tasks-table";
-import { getTasks } from "../../lib/api";
+import { getCollectionNotice, getTasks } from "../../lib/api";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -18,7 +18,9 @@ function readSingleParam(
 
 export default async function TasksPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
-  const tasks = await getTasks();
+  const tasksResult = await getTasks();
+  const tasks = tasksResult.items;
+  const tasksNotice = getCollectionNotice(tasksResult, "tasks");
   const created = readSingleParam(params, "created");
   const error = readSingleParam(params, "error");
 
@@ -39,9 +41,25 @@ export default async function TasksPage({ searchParams }: PageProps) {
             ? "Task input must be valid JSON."
             : error === "missing-fields"
               ? "Title and task type are required."
+              : error === "management-auth"
+                ? "The bootstrap management key is missing or was rejected."
+                : error === "api-disconnected"
+                  ? "The API base URL is not configured, so the console cannot publish tasks."
               : "The task could not be created."}
         </section>
       ) : null}
+      <section
+        className={
+          tasksNotice.tone === "success"
+            ? "notice success"
+            : tasksNotice.tone === "error"
+              ? "notice error"
+              : "notice"
+        }
+        role={tasksNotice.tone === "error" ? "alert" : "status"}
+      >
+        {tasksNotice.message}
+      </section>
       <div className="grid">
         <TaskForm action={createTaskAction} />
         <TasksTable tasks={tasks} />

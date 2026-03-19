@@ -7,10 +7,16 @@ from app.models.agent import AgentIdentity
 from app.schemas.invoke import LeaseRequest
 from app.services.gateway import issue_lease
 
-router = APIRouter(prefix="/api/capabilities", tags=["leases"])
+router = APIRouter(prefix="/api/capabilities")
 
 
-@router.post("/{capability_id}/lease", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{capability_id}/lease",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Agent Runtime"],
+    summary="Request a capability lease",
+    description="Authenticate as the claiming agent and request a short-lived lease when both the task and capability permit it.",
+)
 def issue_lease_route(
     capability_id: str,
     payload: LeaseRequest,
@@ -18,8 +24,8 @@ def issue_lease_route(
     session: Session = Depends(get_db),
 ) -> dict:
     try:
-        return issue_lease(session, capability_id, payload.task_id, payload.purpose, agent.id)
+        return issue_lease(session, capability_id, payload.task_id, payload.purpose, agent)
     except KeyError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Capability not found") from exc
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc

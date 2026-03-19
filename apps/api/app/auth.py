@@ -40,3 +40,30 @@ def require_agent(
         allowed_task_types=agent_model.allowed_task_types or [],
         risk_tier=agent_model.risk_tier,
     )
+
+
+def require_bootstrap_agent(agent: AgentIdentity = Depends(require_agent)) -> AgentIdentity:
+    if not is_bootstrap_agent(agent):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bootstrap management credential required",
+        )
+    return agent
+
+
+def is_bootstrap_agent(agent: AgentIdentity) -> bool:
+    return agent.id == "bootstrap"
+
+
+def ensure_task_type_allowed(agent: AgentIdentity, task_type: str) -> None:
+    if is_bootstrap_agent(agent):
+        return
+    if agent.allowed_task_types and task_type not in agent.allowed_task_types:
+        raise PermissionError("Agent is not allowed to claim this task type")
+
+
+def ensure_capability_allowed(agent: AgentIdentity, capability_id: str) -> None:
+    if is_bootstrap_agent(agent):
+        return
+    if agent.allowed_capability_ids and capability_id not in agent.allowed_capability_ids:
+        raise PermissionError("Agent is not allowed to use this capability")

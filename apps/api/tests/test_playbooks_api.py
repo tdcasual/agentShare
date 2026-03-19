@@ -1,6 +1,10 @@
+from conftest import BOOTSTRAP_AGENT_KEY
+
+
 def test_create_playbook_returns_saved_record(client):
     response = client.post(
         "/api/playbooks",
+        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "QQ config sync",
             "task_type": "config_sync",
@@ -16,6 +20,7 @@ def test_create_playbook_returns_saved_record(client):
 def test_search_playbooks_filters_by_task_type(client):
     client.post(
         "/api/playbooks",
+        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "QQ config sync",
             "task_type": "config_sync",
@@ -25,6 +30,7 @@ def test_search_playbooks_filters_by_task_type(client):
     )
     client.post(
         "/api/playbooks",
+        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "OpenAI prompt run",
             "task_type": "prompt_run",
@@ -33,7 +39,11 @@ def test_search_playbooks_filters_by_task_type(client):
         },
     )
 
-    response = client.get("/api/playbooks/search", params={"task_type": "config_sync"})
+    response = client.get(
+        "/api/playbooks/search",
+        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
+        params={"task_type": "config_sync"},
+    )
 
     assert response.status_code == 200
     assert len(response.json()["items"]) == 1

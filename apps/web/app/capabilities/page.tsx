@@ -1,7 +1,7 @@
 import { createCapabilityAction } from "../actions";
 import { CapabilityForm } from "../../components/capability-form";
 import { NavShell } from "../../components/nav-shell";
-import { getCapabilities, getSecrets } from "../../lib/api";
+import { getCapabilities, getCollectionNotice, getSecrets } from "../../lib/api";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -17,8 +17,11 @@ function readSingleParam(
 
 export default async function CapabilitiesPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
-  const capabilities = await getCapabilities();
-  const secrets = await getSecrets();
+  const capabilitiesResult = await getCapabilities();
+  const capabilities = capabilitiesResult.items;
+  const capabilitiesNotice = getCollectionNotice(capabilitiesResult, "capabilities");
+  const secretsResult = await getSecrets();
+  const secrets = secretsResult.items;
   const created = readSingleParam(params, "created");
   const error = readSingleParam(params, "error");
   const secretNames = new Map(secrets.map((secret) => [secret.id, secret.display_name]));
@@ -37,10 +40,28 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
       {error ? (
         <section className="notice error" role="alert">
           {error === "invalid-fields"
-            ? "Choose a secret, add a name, and provide a valid lease TTL."
+            ? "Choose a secret, add a name, required provider, and provide a valid lease TTL."
+            : error === "invalid-contract"
+              ? "The selected secret does not satisfy the capability scope contract."
+              : error === "management-auth"
+                ? "The bootstrap management key is missing or was rejected."
+                : error === "api-disconnected"
+                  ? "The API base URL is not configured, so the console cannot save capabilities."
             : "The capability could not be created."}
         </section>
       ) : null}
+      <section
+        className={
+          capabilitiesNotice.tone === "success"
+            ? "notice success"
+            : capabilitiesNotice.tone === "error"
+              ? "notice error"
+              : "notice"
+        }
+        role={capabilitiesNotice.tone === "error" ? "alert" : "status"}
+      >
+        {capabilitiesNotice.message}
+      </section>
       <div className="grid">
         <CapabilityForm action={createCapabilityAction} secrets={secrets} />
         <section className="panel stack">
@@ -60,6 +81,12 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
                     <span className="chip">{capability.allowed_mode}</span>
                     <span className="chip">{capability.risk_level} risk</span>
                     <span className="chip">{capability.lease_ttl_seconds}s ttl</span>
+                    {capability.required_provider ? (
+                      <span className="chip">{capability.required_provider}</span>
+                    ) : null}
+                    {capability.required_provider_scopes.map((scope) => (
+                      <span key={scope} className="chip">{scope}</span>
+                    ))}
                   </div>
                 </li>
               ))}

@@ -1,10 +1,10 @@
 import hashlib
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from app.config import Settings
-from app.db import SessionLocal
+from app.db import SessionLocal, init_db
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.routes.agents import router as agents_router
@@ -21,8 +21,9 @@ def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-@contextmanager
-def lifespan(app_instance):
+@asynccontextmanager
+async def lifespan(app_instance: FastAPI):
+    init_db()
     settings = Settings()
     session = SessionLocal()
     try:
@@ -44,7 +45,23 @@ def lifespan(app_instance):
     yield
 
 
-app = FastAPI(title="Agent Control Plane", lifespan=lifespan)
+app = FastAPI(
+    title="Agent Control Plane",
+    description=(
+        "Coordinate humans, agents, secrets, and lightweight tasks through a single control plane usable by new agents without source diving. "
+        "Humans should use the bootstrap credential for management routes until session auth exists. "
+        "Agents should self-discover request details from /docs and /openapi.json, then authenticate "
+        "with bearer API keys on runtime routes."
+    ),
+    openapi_tags=[
+        {"name": "Bootstrap", "description": "Health and bootstrap surfaces needed to start the system."},
+        {"name": "Management", "description": "Bootstrap-key protected routes used by the human console."},
+        {"name": "Agent Runtime", "description": "Agent-authenticated runtime routes for claiming work and using capabilities."},
+        {"name": "Knowledge", "description": "Reusable playbooks that agents may search without management credentials."},
+        {"name": "Observability", "description": "Run history and audit-friendly state for operators."},
+    ],
+    lifespan=lifespan,
+)
 
 # Idempotency middleware — only acts when Idempotency-Key header is present
 try:
@@ -56,7 +73,7 @@ except Exception:
     pass  # Redis not available in test/dev without docker — middleware is a no-op
 
 
-@app.get("/healthz")
+@app.get("/healthz", tags=["Bootstrap"], summary="Health check", description="Lightweight liveness probe.")
 def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
 

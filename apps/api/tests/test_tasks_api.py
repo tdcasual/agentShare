@@ -1,6 +1,15 @@
+import hashlib
+
+from app.orm.agent import AgentIdentityModel
+from app.repositories.agent_repo import AgentRepository
+
+from conftest import BOOTSTRAP_AGENT_KEY
+
+
 def test_agent_can_claim_eligible_task(client):
     created = client.post(
         "/api/tasks",
+        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "Sync provider config",
             "task_type": "config_sync",
@@ -23,6 +32,7 @@ def test_agent_can_claim_eligible_task(client):
 def test_agent_can_complete_claimed_task(client):
     created = client.post(
         "/api/tasks",
+        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "Fetch account status",
             "task_type": "account_read",
@@ -44,3 +54,33 @@ def test_agent_can_complete_claimed_task(client):
 
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
+
+
+def test_agent_cannot_claim_task_type_outside_allowlist(client, db_session):
+    repo = AgentRepository(db_session)
+    repo.create(AgentIdentityModel(
+        id="limited-agent",
+        name="Limited Agent",
+        api_key_hash=hashlib.sha256("limited-agent-key".encode()).hexdigest(),
+        status="active",
+        allowed_capability_ids=[],
+        allowed_task_types=["account_read"],
+        risk_tier="medium",
+    ))
+    db_session.flush()
+
+    created = client.post(
+        "/api/tasks",
+        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
+        json={
+            "title": "Sync provider config",
+            "task_type": "config_sync",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/tasks/{created['id']}/claim",
+        headers={"Authorization": "Bearer limited-agent-key"},
+    )
+
+    assert response.status_code == 403

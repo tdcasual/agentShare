@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from app.auth import ensure_task_type_allowed
+from app.models.agent import AgentIdentity
 from app.orm.task import TaskModel
 from app.orm.run import RunModel
 from app.repositories.task_repo import TaskRepository
@@ -31,7 +33,7 @@ def list_tasks(session: Session) -> list[dict]:
     return [_task_to_dict(m) for m in TaskRepository(session).list_all()]
 
 
-def claim_task(session: Session, task_id: str, agent_id: str) -> dict:
+def claim_task(session: Session, task_id: str, agent: AgentIdentity) -> dict:
     lock_key = f"task:{task_id}:claim"
     if not acquire_lock(lock_key, ttl_seconds=10):
         raise ValueError("Task claim is being processed by another agent")
@@ -42,29 +44,36 @@ def claim_task(session: Session, task_id: str, agent_id: str) -> dict:
             raise KeyError("Task not found")
         if task.status != "pending":
             raise ValueError("Task is not claimable")
+        ensure_task_type_allowed(agent, task.task_type)
         task.status = "claimed"
-        task.claimed_by = agent_id
+        task.claimed_by = agent.id
         repo.update(task)
         return _task_to_dict(task)
     finally:
         release_lock(lock_key)
 
 
-def complete_task(session: Session, task_id: str, agent_id: str, result_summary: str, output_payload: dict) -> dict:
+def complete_task(
+    session: Session,
+    task_id: str,
+    agent: AgentIdentity,
+    result_summary: str,
+    output_payload: dict,
+) -> dict:
     task_repo = TaskRepository(session)
     run_repo = RunRepository(session)
     task = task_repo.get(task_id)
     if task is None:
         raise KeyError("Task not found")
-    if task.claimed_by != agent_id:
-        raise ValueError("Task is not claimed by this agent")
+    if task.claimed_by != agent.id:
+        raise PermissionError("Task is not claimed by this agent")
     task.status = "completed"
     task_repo.update(task)
     run_id = f"run-{len(run_repo.list_all()) + 1}"
     run = RunModel(
         id=run_id,
         task_id=task_id,
-        agent_id=agent_id,
+        agent_id=agent.id,
         status="completed",
         result_summary=result_summary,
         output_payload=output_payload,

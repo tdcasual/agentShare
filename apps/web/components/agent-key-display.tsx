@@ -1,11 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-export function AgentKeyDisplay({ apiKey }: { apiKey: string }) {
+export function AgentKeyDisplay({ apiKey, apiBaseUrl }: { apiKey: string; apiBaseUrl?: string }) {
   const [copied, setCopied] = useState(false);
 
   if (!apiKey) return null;
+  const resolvedBaseUrl = apiBaseUrl || "http://127.0.0.1:8000";
+  const nextStepSnippet =
+    `export ACP_BASE_URL=${resolvedBaseUrl}\n` +
+    `export ACP_AGENT_KEY=${apiKey}\n` +
+    "curl -sS \\\n" +
+    '  -H "Authorization: Bearer $ACP_AGENT_KEY" \\\n' +
+    '  "$ACP_BASE_URL/api/agents/me"';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(apiKey);
@@ -30,6 +38,15 @@ export function AgentKeyDisplay({ apiKey }: { apiKey: string }) {
       <button onClick={handleCopy} style={{ marginTop: "0.5rem" }}>
         {copied ? "Copied!" : "Copy to clipboard"}
       </button>
+      <p className="muted" style={{ marginTop: "0.75rem" }}>
+        Next step: verify the key with <code>GET /api/agents/me</code>.
+      </p>
+      <pre style={{ margin: 0, padding: "0.75rem", borderRadius: "12px", background: "var(--panel-strong, #fffaf2)", overflowX: "auto" }}>
+        <code>{nextStepSnippet}</code>
+      </pre>
+      <Link className="button-link secondary" href="/quickstart" style={{ marginTop: "0.75rem" }}>
+        Open quickstart
+      </Link>
     </div>
   );
 }

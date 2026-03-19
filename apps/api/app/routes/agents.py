@@ -6,7 +6,7 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth import require_agent
+from app.auth import require_agent, require_bootstrap_agent
 from app.db import get_db
 from app.models.agent import AgentIdentity
 from app.orm.agent import AgentIdentityModel
@@ -14,22 +14,33 @@ from app.repositories.agent_repo import AgentRepository
 from app.schemas.agents import AgentCreate
 from app.services.audit_service import write_audit_event
 
-router = APIRouter(prefix="/api/agents", tags=["agents"])
+router = APIRouter(prefix="/api/agents")
 
 
 def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-@router.get("/me")
+@router.get(
+    "/me",
+    tags=["Agent Runtime"],
+    summary="Inspect the current agent identity",
+    description="Authenticate with an agent API key and return the normalized identity and allowlists for that key.",
+)
 def get_current_agent(agent: AgentIdentity = Depends(require_agent)) -> dict:
     return agent.model_dump()
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Management"],
+    summary="Create an agent identity",
+    description="Mint a new agent API key and define the initial task-type and capability allowlists for that identity.",
+)
 def create_agent(
     payload: AgentCreate,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: AgentIdentity = Depends(require_bootstrap_agent),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
@@ -49,20 +60,34 @@ def create_agent(
     return {"id": agent_id, "name": payload.name, "risk_tier": payload.risk_tier, "api_key": raw_key}
 
 
-@router.get("")
-def list_agents(session: Session = Depends(get_db)) -> dict:
+@router.get(
+    "",
+    tags=["Management"],
+    summary="List registered agents",
+    description="Return management metadata for registered agents. This route is temporary bootstrap-key protected until session auth exists.",
+)
+def list_agents(
+    agent: AgentIdentity = Depends(require_bootstrap_agent),
+    session: Session = Depends(get_db),
+) -> dict:
     repo = AgentRepository(session)
     agents = repo.list_all()
+    write_audit_event(session, "agents_listed", {"agent_id": agent.id, "count": len(agents)})
     return {"items": [
-        {"id": a.id, "name": a.name, "status": a.status, "risk_tier": a.risk_tier, "auth_method": a.auth_method}
-        for a in agents
+        {"id": model.id, "name": model.name, "status": model.status, "risk_tier": model.risk_tier, "auth_method": model.auth_method}
+        for model in agents
     ]}
 
 
-@router.delete("/{agent_id}")
+@router.delete(
+    "/{agent_id}",
+    tags=["Management"],
+    summary="Delete an agent identity",
+    description="Delete an agent record using the bootstrap management credential.",
+)
 def delete_agent(
     agent_id: str,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: AgentIdentity = Depends(require_bootstrap_agent),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)

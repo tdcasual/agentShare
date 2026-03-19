@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { NavShell } from "../components/nav-shell";
+import { getApiBaseUrl } from "../lib/api";
 
 const highlights = [
   { label: "Proxy-first capabilities", value: "Default", note: "Keep secrets behind the gateway." },
@@ -9,6 +10,8 @@ const highlights = [
 ];
 
 export default function HomePage() {
+  const apiBaseUrl = getApiBaseUrl();
+
   return (
     <NavShell
       eyebrow="Control plane"
@@ -50,6 +53,31 @@ export default function HomePage() {
           <Link className="button-link secondary" href="/tasks">
             Open tasks
           </Link>
+        </article>
+        <article className="panel stack">
+          <div>
+            <div className="kicker">Self-serve onboarding</div>
+            <h2>Start from an operational guide and machine-readable API contracts</h2>
+            <p className="muted">
+              New integrators should follow the quickstart first, then treat Swagger and OpenAPI
+              as the source of truth for request and response contracts.
+            </p>
+          </div>
+          <div className="chip-row">
+            <Link className="button-link" href="/quickstart">
+              Agent quickstart
+            </Link>
+            {apiBaseUrl ? (
+              <>
+                <a className="button-link secondary" href={`${apiBaseUrl}/docs`} target="_blank" rel="noreferrer">
+                  Swagger UI
+                </a>
+                <a className="button-link secondary" href={`${apiBaseUrl}/openapi.json`} target="_blank" rel="noreferrer">
+                  OpenAPI JSON
+                </a>
+              </>
+            ) : null}
+          </div>
         </article>
       </section>
     </NavShell>
