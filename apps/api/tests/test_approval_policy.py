@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import pytest
 
@@ -8,6 +9,7 @@ from app.services.approval_service import (
     approve_request,
     approval_required,
     expire_request_if_needed,
+    list_approval_requests,
     reject_request,
     require_runtime_approval,
 )
@@ -137,6 +139,41 @@ def test_expire_request_if_needed_marks_stale_approval_as_expired(db_session):
     assert expired.status == "expired"
 
 
+def test_list_approval_requests_materializes_expired_status_before_filtering(db_session):
+    pending = require_runtime_approval(
+        session=db_session,
+        task_id="task-expire-list",
+        capability_id="capability-expire-list",
+        agent_id="agent-expire-list",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    assert pending is not None
+
+    approve_request(
+        session=db_session,
+        approval_id=pending.id,
+        decided_by="management",
+        now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+
+    approved_items = list_approval_requests(
+        session=db_session,
+        status="approved",
+        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+    )
+    expired_items = list_approval_requests(
+        session=db_session,
+        status="expired",
+        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+    )
+
+    assert approved_items == []
+    assert [item.id for item in expired_items] == [pending.id]
+    assert expired_items[0].status == "expired"
+
+
 def test_require_runtime_approval_replaces_rejected_and_expired_records(db_session):
     initial = require_runtime_approval(
         session=db_session,
@@ -196,6 +233,29 @@ def test_require_runtime_approval_replaces_rejected_and_expired_records(db_sessi
     assert after_expire.status == "pending"
 
 
+def test_list_approval_requests_orders_same_timestamp_by_numeric_suffix(db_session):
+    repo = ApprovalRequestRepository(db_session)
+    fixed_time = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+    for index in range(10):
+        approval = require_runtime_approval(
+            session=db_session,
+            task_id=f"task-order-{index}",
+            capability_id=f"capability-order-{index}",
+            agent_id=f"agent-order-{index}",
+            action_type="invoke",
+            task_approval_mode="manual",
+            capability_approval_mode="auto",
+        )
+        assert approval is not None
+        approval.created_at = fixed_time
+        repo.update(approval)
+
+    listed = list_approval_requests(session=db_session)
+
+    assert [item.id for item in listed[:3]] == ["approval-10", "approval-9", "approval-8"]
+
+
 def test_approval_service_rejects_invalid_modes_and_action_type(db_session):
     with pytest.raises(ValueError):
         approval_required("manual", "sometimes")
@@ -210,6 +270,25 @@ def test_approval_service_rejects_invalid_modes_and_action_type(db_session):
             task_approval_mode="manual",
             capability_approval_mode="auto",
         )
+
+
+@patch("app.services.approval_service.write_audit_event")
+def test_require_runtime_approval_still_returns_pending_when_audit_write_fails(mock_audit, db_session):
+    mock_audit.side_effect = RuntimeError("audit unavailable")
+
+    approval = require_runtime_approval(
+        session=db_session,
+        task_id="task-audit-failure",
+        capability_id="capability-audit-failure",
+        agent_id="agent-audit-failure",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+
+    assert approval is not None
+    assert approval.status == "pending"
+    assert ApprovalRequestRepository(db_session).get(approval.id) is not None
 
 
 def test_approval_service_rejects_invalid_state_transitions(db_session):

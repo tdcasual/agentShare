@@ -20,6 +20,9 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     create_task_op = schema["paths"]["/api/tasks"]["post"]
     list_agents_op = schema["paths"]["/api/agents"]["get"]
     login_op = schema["paths"]["/api/session/login"]["post"]
+    list_approvals_op = schema["paths"]["/api/approvals"]["get"]
+    approve_op = schema["paths"]["/api/approvals/{approval_id}/approve"]["post"]
+    reject_op = schema["paths"]["/api/approvals/{approval_id}/reject"]["post"]
 
     assert invoke_op["summary"]
     assert invoke_op["description"]
@@ -31,6 +34,9 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert create_task_op["description"]
     assert create_task_op["security"] == [{"ManagementSession": []}]
     assert list_agents_op["security"] == [{"ManagementSession": []}]
+    assert list_approvals_op["security"] == [{"ManagementSession": []}]
+    assert approve_op["security"] == [{"ManagementSession": []}]
+    assert reject_op["security"] == [{"ManagementSession": []}]
     assert "security" not in login_op
 
     schemas = schema["components"]["schemas"]

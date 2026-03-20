@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 ApprovalActionType = Literal["invoke", "lease"]
@@ -16,6 +16,29 @@ class ApprovalDecisionRequest(BaseModel):
     })
 
     reason: str = Field(default="", description="Optional operator note for this decision.")
+
+    @field_validator("reason")
+    @classmethod
+    def normalize_reason(cls, value: str) -> str:
+        return value.strip()
+
+
+class ApprovalRejectionRequest(BaseModel):
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "reason": "Rejected due to scope mismatch",
+        },
+    })
+
+    reason: str = Field(description="Human-readable operator note explaining the rejection.")
+
+    @field_validator("reason")
+    @classmethod
+    def require_reason(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("Rejection reason is required")
+        return normalized
 
 
 class ApprovalResponse(BaseModel):
