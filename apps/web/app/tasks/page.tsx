@@ -3,6 +3,7 @@ import { NavShell } from "../../components/nav-shell";
 import { TaskForm } from "../../components/task-form";
 import { TasksTable } from "../../components/tasks-table";
 import { getCollectionNotice, getTasks } from "../../lib/api";
+import { hasManagementSession } from "../../lib/management-session";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -18,6 +19,7 @@ function readSingleParam(
 
 export default async function TasksPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
+  const canManageTasks = await hasManagementSession();
   const tasksResult = await getTasks();
   const tasks = tasksResult.items;
   const tasksNotice = getCollectionNotice(tasksResult, "tasks");
@@ -42,7 +44,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
             : error === "missing-fields"
               ? "Title and task type are required."
               : error === "management-auth"
-                ? "The bootstrap management key is missing or was rejected."
+                ? "The management session is missing or expired."
                 : error === "api-disconnected"
                   ? "The API base URL is not configured, so the console cannot publish tasks."
               : "The task could not be created."}
@@ -61,7 +63,22 @@ export default async function TasksPage({ searchParams }: PageProps) {
         {tasksNotice.message}
       </section>
       <div className="grid">
-        <TaskForm action={createTaskAction} />
+        {canManageTasks ? (
+          <TaskForm action={createTaskAction} />
+        ) : (
+          <section className="panel stack">
+            <div>
+              <div className="kicker">Management login required</div>
+              <h2>Sign in to publish new tasks</h2>
+              <p className="muted">
+                Task listing stays visible, but task creation now requires a human management session.
+              </p>
+            </div>
+            <a className="button-link" href="/login?next=%2Ftasks">
+              Log in to manage tasks
+            </a>
+          </section>
+        )}
         <TasksTable tasks={tasks} />
       </div>
     </NavShell>

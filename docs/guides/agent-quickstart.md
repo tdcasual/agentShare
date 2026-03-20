@@ -6,7 +6,7 @@ This guide is the shortest path from "I have an agent key" to "I can complete a 
 
 - API base URL available at `http://127.0.0.1:8000`
 - A valid runtime agent key for task claim, invoke, and complete flows
-- A bootstrap key for management setup (`BOOTSTRAP_AGENT_KEY`)
+- A bootstrap management credential used only for session login (`BOOTSTRAP_AGENT_KEY`)
 
 ## Route Policy At A Glance
 
@@ -20,24 +20,39 @@ This guide is the shortest path from "I have an agent key" to "I can complete a 
   - `POST /api/tasks/{task_id}/complete`
   - `POST /api/capabilities/{capability_id}/invoke`
   - `POST /api/capabilities/{capability_id}/lease`
-- Bootstrap-key protected management:
+- Bootstrap login:
+  - `POST /api/session/login`
+- Management-session protected:
+  - `GET /api/session/me`
+  - `POST /api/session/logout`
   - `POST/GET /api/secrets`
   - `POST/GET /api/capabilities`
   - `POST /api/tasks`
   - `GET/POST/DELETE /api/agents`
   - `GET /api/runs`
   - `POST /api/playbooks`, `GET /api/playbooks/search`
-- Future:
-  - Replace bootstrap-key management auth with human session auth.
 
-## 1. Create A Runtime Agent Key (Management Path)
+## 1. Start A Management Session
 
 ```bash
 export ACP_BASE_URL=http://127.0.0.1:8000
 export BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key
+export ACP_COOKIE_JAR="$(mktemp -t acp-management-cookie.XXXXXX)"
 
 curl -sS \
-  -H "Authorization: Bearer $BOOTSTRAP_AGENT_KEY" \
+  -c "$ACP_COOKIE_JAR" \
+  -H "Content-Type: application/json" \
+  -d "{\"bootstrap_key\":\"$BOOTSTRAP_AGENT_KEY\"}" \
+  "$ACP_BASE_URL/api/session/login"
+```
+
+Expected: `200 OK`, `status=authenticated`, and a `management_session` cookie written into `ACP_COOKIE_JAR`.
+
+## 2. Create A Runtime Agent Key (Management Path)
+
+```bash
+curl -sS \
+  -b "$ACP_COOKIE_JAR" \
   -H "Content-Type: application/json" \
   -d '{"name":"cli-agent","risk_tier":"medium","allowed_capability_ids":[],"allowed_task_types":["prompt_run","account_read"]}' \
   "$ACP_BASE_URL/api/agents"
@@ -45,7 +60,7 @@ curl -sS \
 
 Save the returned `api_key` as `ACP_AGENT_KEY`.
 
-## 2. Verify Agent Identity (Runtime Path)
+## 3. Verify Agent Identity (Runtime Path)
 
 ```bash
 export ACP_AGENT_KEY=replace-me
@@ -57,11 +72,11 @@ curl -sS \
 
 Expected: `200 OK`, with agent identity and allowlists.
 
-## 3. Create One Secret And One Capability (Management Path)
+## 4. Create One Secret And One Capability (Management Path)
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $BOOTSTRAP_AGENT_KEY" \
+  -b "$ACP_COOKIE_JAR" \
   -H "Content-Type: application/json" \
   -d '{
     "display_name":"OpenAI prod key",
@@ -78,7 +93,7 @@ curl -sS \
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $BOOTSTRAP_AGENT_KEY" \
+  -b "$ACP_COOKIE_JAR" \
   -H "Content-Type: application/json" \
   -d '{
     "name":"openai.chat.invoke",
@@ -93,7 +108,7 @@ curl -sS \
   "$ACP_BASE_URL/api/capabilities"
 ```
 
-## 4. List Tasks And Claim One (Runtime)
+## 5. List Tasks And Claim One (Runtime)
 
 ```bash
 curl -sS \
@@ -112,7 +127,7 @@ curl -sS \
 
 Expected: `200 OK`, task moves to `claimed`, `claimed_by` is your agent.
 
-## 5. Invoke Capability Or Request Lease (Runtime)
+## 6. Invoke Capability Or Request Lease (Runtime)
 
 Proxy invoke:
 
@@ -138,7 +153,7 @@ curl -sS \
 
 Current lease behavior: the response is an explicit metadata placeholder. It confirms the lease decision and expiry window, but does not return raw secret material or a derived session artifact.
 
-## 6. Complete Task (Runtime)
+## 7. Complete Task (Runtime)
 
 ```bash
 curl -sS \
@@ -151,10 +166,11 @@ curl -sS \
 
 ## Common Failure Codes
 
-- `401`: Missing/invalid bearer token.
+- `401`: Missing/invalid bearer token or missing/invalid management session cookie.
 - `403`: Authenticated but outside policy scope (task type, capability allowlist, ownership, management route boundary, or lease restrictions).
 - `404`: Referenced task/capability/secret not found.
 - `409`: State conflict, usually task claim or completion race.
+- `500`: Control-plane misconfiguration such as an unknown adapter type or invalid adapter config.
 - `502`: Capability adapter or upstream runtime dependency failed; retry only after fixing the adapter/backend issue.
 
 ## Source Of Truth For Schema

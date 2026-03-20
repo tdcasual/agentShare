@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth import require_agent, require_bootstrap_agent
+from app.auth import ManagementIdentity, require_agent, require_management_session
 from app.db import get_db
 from app.models.agent import AgentIdentity
 from app.schemas.tasks import TaskComplete, TaskCreate
@@ -20,14 +20,15 @@ router = APIRouter(prefix="/api/tasks")
 )
 def create_task_route(
     payload: TaskCreate,
-    agent=Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     task = create_task(session, payload)
     write_audit_event(session, "task_created", {
         "task_id": task["id"],
         "task_type": task["task_type"],
-        "created_by": agent.id,
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
     })
     return task
 

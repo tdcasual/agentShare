@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
+import httpx
 from sqlalchemy.orm import Session
 
 from app.auth import ensure_capability_allowed
@@ -14,9 +16,15 @@ from app.services.capability_service import get_capability
 from app.services.scope_policy import ensure_runtime_compatible
 from app.services.secret_backend import get_secret_backend_for_ref
 
+logger = logging.getLogger(__name__)
+
 
 class GatewayExecutionError(RuntimeError):
     """Raised when a runtime adapter or gateway dependency fails closed."""
+
+
+class GatewayConfigurationError(RuntimeError):
+    """Raised when the configured capability adapter is invalid."""
 
 
 def proxy_invoke(
@@ -34,25 +42,44 @@ def proxy_invoke(
         require_lease=False,
     )
 
-    backend = get_secret_backend_for_ref(secret_record.backend_ref)
-    secret_value = backend.read_secret(secret_record.id, secret_record.backend_ref)
-
     adapter_type = capability.get("adapter_type", "generic_http")
     adapter_config = capability.get("adapter_config", {})
 
     try:
+        backend = get_secret_backend_for_ref(secret_record.backend_ref)
+        secret_value = backend.read_secret(secret_record.id, secret_record.backend_ref)
+    except Exception as exc:
+        raise GatewayExecutionError(
+            "Capability secret backend failed during proxy execution"
+        ) from exc
+
+    try:
         adapter = get_adapter(adapter_type)
+    except KeyError as exc:
+        raise GatewayConfigurationError(
+            f"Unknown capability adapter '{adapter_type}'"
+        ) from exc
+
+    try:
         result = adapter.invoke(
             secret_value=secret_value,
             adapter_config=adapter_config,
             parameters=parameters,
         )
-    except Exception as exc:
+    except (httpx.HTTPError, ValueError) as exc:
         raise GatewayExecutionError(
             f"Capability adapter '{adapter_type}' failed during proxy execution"
         ) from exc
+    except (KeyError, TypeError) as exc:
+        raise GatewayConfigurationError(
+            f"Capability adapter '{adapter_type}' is misconfigured"
+        ) from exc
+    except Exception as exc:
+        raise GatewayConfigurationError(
+            f"Capability adapter '{adapter_type}' crashed during proxy execution"
+        ) from exc
 
-    write_audit_event(session, "capability_invoked", {
+    _write_audit_event_best_effort(session, "capability_invoked", {
         "agent_id": agent.id, "task_id": task.id,
         "capability_id": capability_id, "mode": "proxy",
         "adapter_type": adapter_type,
@@ -85,7 +112,7 @@ def issue_lease(
     )
 
     lease = {
-        "lease_id": f"lease-{task.id}",
+        "lease_id": f"lease-{task.id}-{capability_id}",
         "capability_id": capability_id,
         "task_id": task.id,
         "issued_to": agent.id,
@@ -95,7 +122,7 @@ def issue_lease(
         "secret_value_included": False,
         "secret_ref": secret_record.backend_ref if secret_record else "",
     }
-    write_audit_event(session, "lease_issued", {
+    _write_audit_event_best_effort(session, "lease_issued", {
         "agent_id": agent.id, "task_id": task.id,
         "capability_id": capability_id, "lease_id": lease["lease_id"],
     })
@@ -133,3 +160,10 @@ def _authorize_capability_use(
     ensure_runtime_compatible(secret_record, capability)
 
     return capability, task, secret_record
+
+
+def _write_audit_event_best_effort(session: Session, event_type: str, payload: dict[str, Any]) -> None:
+    try:
+        write_audit_event(session, event_type, payload)
+    except Exception:
+        logger.exception("Failed to write audit event", extra={"event_type": event_type})

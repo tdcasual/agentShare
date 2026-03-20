@@ -1,7 +1,9 @@
 import { NavShell } from "../../components/nav-shell";
 import { getCollectionNotice, getPlaybooks } from "../../lib/api";
+import { requireManagementSession } from "../../lib/management-session";
 
 export default async function PlaybooksPage() {
+  await requireManagementSession("/playbooks");
   const playbooksResult = await getPlaybooks();
   const playbooks = playbooksResult.items;
   const playbooksNotice = getCollectionNotice(playbooksResult, "playbooks");

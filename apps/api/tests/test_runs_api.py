@@ -1,10 +1,6 @@
-from conftest import BOOTSTRAP_AGENT_KEY
-
-
-def test_completed_task_creates_run_record(client):
-    task = client.post(
+def test_completed_task_creates_run_record(client, management_client):
+    task = management_client.post(
         "/api/tasks",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "Sync provider config",
             "task_type": "config_sync",
@@ -23,10 +19,7 @@ def test_completed_task_creates_run_record(client):
         json={"result_summary": "Done", "output_payload": {"ok": True}},
     )
 
-    response = client.get(
-        "/api/runs",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
-    )
+    response = management_client.get("/api/runs")
 
     assert response.status_code == 200
     items = response.json()["items"]

@@ -1,10 +1,6 @@
-from conftest import BOOTSTRAP_AGENT_KEY
-
-
-def test_create_capability_defaults_to_proxy_only(client):
-    secret = client.post(
+def test_create_capability_defaults_to_proxy_only(management_client):
+    secret = management_client.post(
         "/api/secrets",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "display_name": "OpenAI prod key",
             "kind": "api_token",
@@ -13,9 +9,8 @@ def test_create_capability_defaults_to_proxy_only(client):
         },
     ).json()
 
-    response = client.post(
+    response = management_client.post(
         "/api/capabilities",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "name": "openai.chat.invoke",
             "secret_id": secret["id"],
@@ -28,10 +23,9 @@ def test_create_capability_defaults_to_proxy_only(client):
     assert response.json()["allowed_mode"] == "proxy_only"
 
 
-def test_list_capabilities_returns_created_items(client):
-    secret = client.post(
+def test_list_capabilities_returns_created_items(management_client):
+    secret = management_client.post(
         "/api/secrets",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "display_name": "GitHub token",
             "kind": "api_token",
@@ -40,9 +34,8 @@ def test_list_capabilities_returns_created_items(client):
             "provider_scopes": ["repo"],
         },
     ).json()
-    client.post(
+    management_client.post(
         "/api/capabilities",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "name": "github.repo.read",
             "secret_id": secret["id"],
@@ -54,7 +47,7 @@ def test_list_capabilities_returns_created_items(client):
         },
     )
 
-    response = client.get("/api/capabilities", headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"})
+    response = management_client.get("/api/capabilities")
 
     assert response.status_code == 200
     assert response.json()["items"][0]["name"] == "github.repo.read"

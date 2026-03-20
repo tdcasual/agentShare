@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+import { loginToManagementConsole } from "./helpers";
+
 test("user can bind a secret into a capability", async ({ page }) => {
-  await page.goto("/secrets");
+  await loginToManagementConsole(page, "/secrets");
 
   await page.getByLabel("Display name").fill("Capability secret");
   await page.getByLabel("Kind").selectOption("api_token");

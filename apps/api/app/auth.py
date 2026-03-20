@@ -3,14 +3,30 @@ from __future__ import annotations
 import hashlib
 
 from fastapi import Depends, HTTPException, status
+from fastapi.security import APIKeyCookie
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.config import Settings
 from app.db import get_db
 from app.models.agent import AgentIdentity
 from app.repositories.agent_repo import AgentRepository
+from app.services.session_service import decode_management_session_token
 
 security = HTTPBearer(auto_error=False)
+management_security = APIKeyCookie(
+    name=Settings().management_session_cookie_name,
+    auto_error=False,
+    scheme_name="ManagementSession",
+)
+
+
+class ManagementIdentity(BaseModel):
+    id: str
+    role: str
+    actor_type: str = "human"
+    auth_method: str = "session"
 
 
 def _hash_key(key: str) -> str:
@@ -49,6 +65,30 @@ def require_bootstrap_agent(agent: AgentIdentity = Depends(require_agent)) -> Ag
             detail="Bootstrap management credential required",
         )
     return agent
+
+
+def require_management_session(
+    session_token: str | None = Depends(management_security),
+) -> ManagementIdentity:
+    if session_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing management session",
+        )
+
+    try:
+        payload = decode_management_session_token(session_token)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
+
+    return ManagementIdentity(
+        id=payload.get("sub", "management"),
+        role=payload.get("role", "admin"),
+        actor_type=payload.get("actor_type", "human"),
+    )
 
 
 def is_bootstrap_agent(agent: AgentIdentity) -> bool:

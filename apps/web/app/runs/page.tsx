@@ -1,8 +1,10 @@
 import { NavShell } from "../../components/nav-shell";
 import { RunsTable } from "../../components/runs-table";
 import { getCollectionNotice, getRuns } from "../../lib/api";
+import { requireManagementSession } from "../../lib/management-session";
 
 export default async function RunsPage() {
+  await requireManagementSession("/runs");
   const runsResult = await getRuns();
   const runs = runsResult.items;
   const runsNotice = getCollectionNotice(runsResult, "runs");

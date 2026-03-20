@@ -2,6 +2,7 @@ import { createSecretAction } from "../actions";
 import { SecretsForm } from "../../components/secrets-form";
 import { NavShell } from "../../components/nav-shell";
 import { getCollectionNotice, getSecrets } from "../../lib/api";
+import { requireManagementSession } from "../../lib/management-session";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -16,6 +17,7 @@ function readSingleParam(
 }
 
 export default async function SecretsPage({ searchParams }: PageProps) {
+  await requireManagementSession("/secrets");
   const params = (await searchParams) ?? {};
   const secretsResult = await getSecrets();
   const secrets = secretsResult.items;
@@ -41,7 +43,7 @@ export default async function SecretsPage({ searchParams }: PageProps) {
             : error === "missing-fields"
               ? "Display name, provider, and secret value are required."
               : error === "management-auth"
-                ? "The bootstrap management key is missing or was rejected."
+                ? "The management session is missing or expired."
                 : error === "api-disconnected"
                   ? "The API base URL is not configured, so the console cannot save secrets."
               : "The secret could not be saved."}

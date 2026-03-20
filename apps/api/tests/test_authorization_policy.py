@@ -3,7 +3,7 @@ import hashlib
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 
-from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY
+from conftest import TEST_AGENT_KEY
 
 
 def _auth_header(key: str) -> dict[str, str]:
@@ -31,7 +31,7 @@ def _seed_agent(
     db_session.flush()
 
 
-def test_claim_rejects_task_types_outside_agent_allowlist(client, db_session):
+def test_claim_rejects_task_types_outside_agent_allowlist(client, management_client, db_session):
     _seed_agent(
         db_session,
         agent_id="restricted-agent",
@@ -39,9 +39,8 @@ def test_claim_rejects_task_types_outside_agent_allowlist(client, db_session):
         allowed_task_types=["account_read"],
     )
 
-    task = client.post(
+    task = management_client.post(
         "/api/tasks",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "title": "Sync provider config",
             "task_type": "config_sync",
@@ -57,10 +56,9 @@ def test_claim_rejects_task_types_outside_agent_allowlist(client, db_session):
     assert response.status_code == 403
 
 
-def test_invoke_requires_claimed_task_ownership(client):
-    secret = client.post(
+def test_invoke_requires_claimed_task_ownership(client, management_client):
+    secret = management_client.post(
         "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "display_name": "OpenAI prod key",
             "kind": "api_token",
@@ -68,9 +66,8 @@ def test_invoke_requires_claimed_task_ownership(client):
             "provider": "openai",
         },
     ).json()
-    capability = client.post(
+    capability = management_client.post(
         "/api/capabilities",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "name": "openai.chat.invoke",
             "secret_id": secret["id"],
@@ -78,9 +75,8 @@ def test_invoke_requires_claimed_task_ownership(client):
             "required_provider": "openai",
         },
     ).json()
-    task = client.post(
+    task = management_client.post(
         "/api/tasks",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "title": "Prompt run",
             "task_type": "prompt_run",
@@ -97,10 +93,9 @@ def test_invoke_requires_claimed_task_ownership(client):
     assert response.status_code == 403
 
 
-def test_invoke_rejects_capabilities_outside_task_contract(client):
-    secret = client.post(
+def test_invoke_rejects_capabilities_outside_task_contract(client, management_client):
+    secret = management_client.post(
         "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "display_name": "OpenAI prod key",
             "kind": "api_token",
@@ -108,9 +103,8 @@ def test_invoke_rejects_capabilities_outside_task_contract(client):
             "provider": "openai",
         },
     ).json()
-    capability = client.post(
+    capability = management_client.post(
         "/api/capabilities",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "name": "openai.chat.invoke",
             "secret_id": secret["id"],
@@ -118,9 +112,8 @@ def test_invoke_rejects_capabilities_outside_task_contract(client):
             "required_provider": "openai",
         },
     ).json()
-    task = client.post(
+    task = management_client.post(
         "/api/tasks",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "title": "Prompt run",
             "task_type": "prompt_run",
@@ -141,7 +134,7 @@ def test_invoke_rejects_capabilities_outside_task_contract(client):
     assert response.status_code == 403
 
 
-def test_lease_rejects_capabilities_outside_agent_allowlist(client, db_session):
+def test_lease_rejects_capabilities_outside_agent_allowlist(client, management_client, db_session):
     _seed_agent(
         db_session,
         agent_id="cap-restricted",
@@ -150,9 +143,8 @@ def test_lease_rejects_capabilities_outside_agent_allowlist(client, db_session):
         allowed_task_types=["account_read"],
     )
 
-    secret = client.post(
+    secret = management_client.post(
         "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "display_name": "GitHub token",
             "kind": "api_token",
@@ -161,9 +153,8 @@ def test_lease_rejects_capabilities_outside_agent_allowlist(client, db_session):
             "provider_scopes": ["repo"],
         },
     ).json()
-    capability = client.post(
+    capability = management_client.post(
         "/api/capabilities",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "name": "github.repo.read",
             "secret_id": secret["id"],
@@ -173,9 +164,8 @@ def test_lease_rejects_capabilities_outside_agent_allowlist(client, db_session):
             "required_provider_scopes": ["repo"],
         },
     ).json()
-    task = client.post(
+    task = management_client.post(
         "/api/tasks",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "title": "Read repo metadata",
             "task_type": "account_read",

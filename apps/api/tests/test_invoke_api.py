@@ -1,19 +1,16 @@
 from unittest.mock import MagicMock, patch
 
-from conftest import BOOTSTRAP_AGENT_KEY
-
 
 @patch("app.services.adapters.generic_http.httpx.post")
-def test_proxy_invocation_returns_sanitized_result(mock_post, client):
+def test_proxy_invocation_returns_sanitized_result(mock_post, client, management_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"result": "ok"}
     mock_response.raise_for_status = MagicMock()
     mock_post.return_value = mock_response
 
-    secret = client.post(
+    secret = management_client.post(
         "/api/secrets",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "display_name": "OpenAI prod key",
             "kind": "api_token",
@@ -21,9 +18,8 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client):
             "provider": "openai",
         },
     ).json()
-    capability = client.post(
+    capability = management_client.post(
         "/api/capabilities",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "name": "openai.chat.invoke",
             "secret_id": secret["id"],
@@ -33,9 +29,8 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client):
             "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
         },
     ).json()
-    task = client.post(
+    task = management_client.post(
         "/api/tasks",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "Prompt run",
             "task_type": "prompt_run",
@@ -59,3 +54,56 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client):
     assert body["capability_id"] == capability["id"]
     assert "sk-live-example" not in str(body)
     assert body["result"] == {"result": "ok"}
+
+
+@patch("app.services.gateway.write_audit_event")
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_proxy_invocation_still_returns_success_when_audit_write_fails(mock_post, mock_audit, client, management_client):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": "ok"}
+    mock_response.raise_for_status = MagicMock()
+    mock_post.return_value = mock_response
+    mock_audit.side_effect = RuntimeError("audit unavailable")
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["result"] == {"result": "ok"}

@@ -6,7 +6,7 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth import require_agent, require_bootstrap_agent
+from app.auth import ManagementIdentity, require_agent, require_management_session
 from app.db import get_db
 from app.models.agent import AgentIdentity
 from app.orm.agent import AgentIdentityModel
@@ -40,7 +40,7 @@ def get_current_agent(agent: AgentIdentity = Depends(require_agent)) -> dict:
 )
 def create_agent(
     payload: AgentCreate,
-    agent: AgentIdentity = Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
@@ -56,7 +56,11 @@ def create_agent(
         risk_tier=payload.risk_tier,
     )
     repo.create(model)
-    write_audit_event(session, "agent_created", {"agent_id": agent_id, "created_by": agent.id})
+    write_audit_event(session, "agent_created", {
+        "agent_id": agent_id,
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
+    })
     return {"id": agent_id, "name": payload.name, "risk_tier": payload.risk_tier, "api_key": raw_key}
 
 
@@ -64,15 +68,19 @@ def create_agent(
     "",
     tags=["Management"],
     summary="List registered agents",
-    description="Return management metadata for registered agents. This route is temporary bootstrap-key protected until session auth exists.",
+    description="Return management metadata for registered agents. Requires a valid human management session cookie.",
 )
 def list_agents(
-    agent: AgentIdentity = Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
     agents = repo.list_all()
-    write_audit_event(session, "agents_listed", {"agent_id": agent.id, "count": len(agents)})
+    write_audit_event(session, "agents_listed", {
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
+        "count": len(agents),
+    })
     return {"items": [
         {"id": model.id, "name": model.name, "status": model.status, "risk_tier": model.risk_tier, "auth_method": model.auth_method}
         for model in agents
@@ -87,11 +95,15 @@ def list_agents(
 )
 def delete_agent(
     agent_id: str,
-    agent: AgentIdentity = Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
     if not repo.delete(agent_id):
         raise HTTPException(status_code=404, detail="Agent not found")
-    write_audit_event(session, "agent_deleted", {"agent_id": agent_id, "deleted_by": agent.id})
+    write_audit_event(session, "agent_deleted", {
+        "agent_id": agent_id,
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
+    })
     return {"status": "deleted", "id": agent_id}

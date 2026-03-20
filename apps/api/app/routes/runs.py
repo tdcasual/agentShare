@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.auth import require_bootstrap_agent
+from app.auth import require_management_session
 from app.db import get_db
 from app.repositories.run_repo import RunRepository
 
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/runs")
     description="Return persisted task run history for the management console.",
 )
 def list_runs(
-    agent=Depends(require_bootstrap_agent),
+    manager=Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = RunRepository(session)

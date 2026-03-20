@@ -45,6 +45,14 @@ def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
+def _login_management_session(client, bootstrap_key: str) -> None:
+    response = client.post(
+        "/api/session/login",
+        json={"bootstrap_key": bootstrap_key},
+    )
+    assert response.status_code == 200
+
+
 def test_missing_auth_returns_401(client):
     resp = client.get("/api/agents/me")
     assert resp.status_code == 401
@@ -76,10 +84,10 @@ def test_create_agent_returns_api_key(client, db_session):
         status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="high",
     ))
     db_session.flush()
+    _login_management_session(client, bootstrap_key)
     resp = client.post(
         "/api/agents",
         json={"name": "New Agent", "risk_tier": "low"},
-        headers={"Authorization": f"Bearer {bootstrap_key}"},
     )
     assert resp.status_code == 201
     data = resp.json()
@@ -99,8 +107,8 @@ def test_delete_agent(client, db_session):
         status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="low",
     ))
     db_session.flush()
+    _login_management_session(client, bootstrap_key)
     resp = client.delete(
         "/api/agents/agent-del",
-        headers={"Authorization": f"Bearer {bootstrap_key}"},
     )
     assert resp.status_code == 200

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.auth import require_bootstrap_agent
+from app.auth import ManagementIdentity, require_management_session
 from app.db import get_db
 from app.schemas.playbooks import PlaybookCreate
 from app.services.audit_service import write_audit_event
@@ -19,14 +19,15 @@ router = APIRouter(prefix="/api/playbooks")
 )
 def create_playbook_route(
     payload: PlaybookCreate,
-    agent=Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     record = create_playbook(session, payload)
     write_audit_event(session, "playbook_created", {
         "playbook_id": record["id"],
         "task_type": record["task_type"],
-        "created_by": agent.id,
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
     })
     return record
 
@@ -39,7 +40,7 @@ def create_playbook_route(
 )
 def search_playbooks_route(
     task_type: str | None = Query(default=None),
-    agent=Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     return {"items": search_playbooks(session, task_type)}

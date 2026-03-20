@@ -10,47 +10,41 @@ def _auth_header(key: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {key}"}
 
 
-def test_secret_routes_require_management_bootstrap_key(client):
-    missing = client.post(
-        "/api/secrets",
-        json={
-            "display_name": "OpenAI prod key",
-            "kind": "api_token",
-            "value": "sk-live-example",
-            "provider": "openai",
-        },
-    )
+def test_secret_routes_require_management_session_cookie(client, management_client):
+    payload = {
+        "display_name": "OpenAI prod key",
+        "kind": "api_token",
+        "value": "sk-live-example",
+        "provider": "openai",
+    }
+
+    missing = client.post("/api/secrets", json=payload)
     assert missing.status_code == 401
 
-    non_bootstrap = client.post(
-        "/api/secrets",
-        headers=_auth_header(TEST_AGENT_KEY),
-        json={
-            "display_name": "OpenAI prod key",
-            "kind": "api_token",
-            "value": "sk-live-example",
-            "provider": "openai",
-        },
-    )
-    assert non_bootstrap.status_code == 403
+    non_bootstrap = client.post("/api/secrets", headers=_auth_header(TEST_AGENT_KEY), json=payload)
+    assert non_bootstrap.status_code == 401
 
-    allowed = client.post(
-        "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
-        json={
-            "display_name": "OpenAI prod key",
-            "kind": "api_token",
-            "value": "sk-live-example",
-            "provider": "openai",
-        },
-    )
+    allowed = management_client.post("/api/secrets", json=payload)
     assert allowed.status_code == 201
 
 
-def test_capability_and_task_creation_require_management_bootstrap_key(client):
-    secret = client.post(
+def test_management_bootstrap_bearer_no_longer_authorizes(client):
+    response = client.post(
         "/api/secrets",
         headers=_auth_header(BOOTSTRAP_AGENT_KEY),
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    )
+    assert response.status_code == 401
+
+
+def test_capability_and_task_creation_require_management_session(client, management_client):
+    secret = management_client.post(
+        "/api/secrets",
         json={
             "display_name": "GitHub token",
             "kind": "api_token",
@@ -68,7 +62,7 @@ def test_capability_and_task_creation_require_management_bootstrap_key(client):
             "risk_level": "low",
         },
     )
-    assert capability.status_code == 403
+    assert capability.status_code == 401
 
     task = client.post(
         "/api/tasks",
@@ -79,10 +73,30 @@ def test_capability_and_task_creation_require_management_bootstrap_key(client):
             "input": {"provider": "github"},
         },
     )
-    assert task.status_code == 403
+    assert task.status_code == 401
+
+    allowed_capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "github.repo.read",
+            "secret_id": secret["id"],
+            "risk_level": "low",
+        },
+    )
+    assert allowed_capability.status_code == 201
+
+    allowed_task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Fetch repo metadata",
+            "task_type": "account_read",
+            "input": {"provider": "github"},
+        },
+    )
+    assert allowed_task.status_code == 201
 
 
-def test_agent_management_routes_require_bootstrap_identity(client, db_session):
+def test_agent_management_routes_require_bootstrap_identity(client, management_client, db_session):
     repo = AgentRepository(db_session)
     repo.create(AgentIdentityModel(
         id="agent-delete",
@@ -96,20 +110,27 @@ def test_agent_management_routes_require_bootstrap_identity(client, db_session):
     db_session.flush()
 
     list_response = client.get("/api/agents", headers=_auth_header(TEST_AGENT_KEY))
-    assert list_response.status_code == 403
+    assert list_response.status_code == 401
 
     create_response = client.post(
         "/api/agents",
         headers=_auth_header(TEST_AGENT_KEY),
         json={"name": "Blocked Agent", "risk_tier": "low"},
     )
-    assert create_response.status_code == 403
+    assert create_response.status_code == 401
 
     delete_response = client.delete(
         "/api/agents/agent-delete",
         headers=_auth_header(TEST_AGENT_KEY),
     )
-    assert delete_response.status_code == 403
+    assert delete_response.status_code == 401
 
-    allowed = client.get("/api/agents", headers=_auth_header(BOOTSTRAP_AGENT_KEY))
+    allowed = management_client.get("/api/agents")
     assert allowed.status_code == 200
+
+    creation = management_client.post("/api/agents", json={"name": "New Agent", "risk_tier": "low"})
+    assert creation.status_code == 201
+
+    deletion = management_client.delete("/api/agents/agent-delete")
+    assert deletion.status_code == 200
+    assert deletion.json()["status"] == "deleted"

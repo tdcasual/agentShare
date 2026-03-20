@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth import require_bootstrap_agent
+from app.auth import ManagementIdentity, require_management_session
 from app.db import get_db
 from app.repositories.secret_repo import SecretRepository
 from app.schemas.capabilities import CapabilityCreate, CapabilityResponse
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/capabilities")
 )
 def create_capability_route(
     payload: CapabilityCreate,
-    agent=Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     secret_repo = SecretRepository(session)
@@ -37,7 +37,8 @@ def create_capability_route(
     write_audit_event(session, "capability_created", {
         "capability_id": record["id"],
         "secret_id": payload.secret_id,
-        "created_by": agent.id,
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
     })
     return record
 
@@ -49,9 +50,13 @@ def create_capability_route(
     description="Return the management view of capabilities and their normalized secret-scope contracts.",
 )
 def list_capabilities_route(
-    agent=Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     items = list_capabilities(session)
-    write_audit_event(session, "capabilities_listed", {"agent_id": agent.id, "count": len(items)})
+    write_audit_event(session, "capabilities_listed", {
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
+        "count": len(items),
+    })
     return {"items": items}

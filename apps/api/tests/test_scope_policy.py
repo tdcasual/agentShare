@@ -1,16 +1,15 @@
 from app.orm.secret import SecretModel
 
-from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY
+from conftest import TEST_AGENT_KEY
 
 
 def _auth_header(key: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {key}"}
 
 
-def test_capability_creation_rejects_wrong_provider_binding(client):
-    secret = client.post(
+def test_capability_creation_rejects_wrong_provider_binding(management_client):
+    secret = management_client.post(
         "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "display_name": "OpenAI prod key",
             "kind": "api_token",
@@ -19,9 +18,8 @@ def test_capability_creation_rejects_wrong_provider_binding(client):
         },
     ).json()
 
-    response = client.post(
+    response = management_client.post(
         "/api/capabilities",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "name": "github.repo.read",
             "secret_id": secret["id"],
@@ -33,10 +31,9 @@ def test_capability_creation_rejects_wrong_provider_binding(client):
     assert response.status_code == 400
 
 
-def test_capability_creation_rejects_missing_provider_scopes(client):
-    secret = client.post(
+def test_capability_creation_rejects_missing_provider_scopes(management_client):
+    secret = management_client.post(
         "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "display_name": "GitHub token",
             "kind": "api_token",
@@ -46,9 +43,8 @@ def test_capability_creation_rejects_missing_provider_scopes(client):
         },
     ).json()
 
-    response = client.post(
+    response = management_client.post(
         "/api/capabilities",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "name": "github.repo.sync",
             "secret_id": secret["id"],
@@ -61,10 +57,9 @@ def test_capability_creation_rejects_missing_provider_scopes(client):
     assert response.status_code == 400
 
 
-def test_runtime_invoke_rechecks_secret_scope_compatibility(client, db_session):
-    secret = client.post(
+def test_runtime_invoke_rechecks_secret_scope_compatibility(management_client, client, db_session):
+    secret = management_client.post(
         "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "display_name": "GitHub token",
             "kind": "api_token",
@@ -73,9 +68,8 @@ def test_runtime_invoke_rechecks_secret_scope_compatibility(client, db_session):
             "provider_scopes": ["repo"],
         },
     ).json()
-    capability = client.post(
+    capability = management_client.post(
         "/api/capabilities",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "name": "github.repo.read",
             "secret_id": secret["id"],
@@ -84,9 +78,8 @@ def test_runtime_invoke_rechecks_secret_scope_compatibility(client, db_session):
             "required_provider_scopes": ["repo"],
         },
     ).json()
-    task = client.post(
+    task = management_client.post(
         "/api/tasks",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
         json={
             "title": "Read repo metadata",
             "task_type": "account_read",

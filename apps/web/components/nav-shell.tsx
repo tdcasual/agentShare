@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
+import { logoutManagementAction } from "../app/actions";
+import { hasManagementSession } from "../lib/management-session";
+
 type NavShellProps = {
   title: string;
   eyebrow: string;
@@ -18,7 +21,8 @@ const links = [
   { href: "/playbooks", label: "Playbooks" },
 ];
 
-export function NavShell({ title, eyebrow, subtitle, children }: NavShellProps) {
+export async function NavShell({ title, eyebrow, subtitle, children }: NavShellProps) {
+  const signedIn = await hasManagementSession();
   return (
     <div className="shell">
       <header className="masthead">
@@ -32,6 +36,13 @@ export function NavShell({ title, eyebrow, subtitle, children }: NavShellProps) 
             {link.label}
           </Link>
         ))}
+        {signedIn ? (
+          <form action={logoutManagementAction}>
+            <button type="submit">Log out</button>
+          </form>
+        ) : (
+          <Link href="/login">Login</Link>
+        )}
       </nav>
       {children}
     </div>

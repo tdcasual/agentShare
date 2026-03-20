@@ -1,10 +1,6 @@
-from conftest import BOOTSTRAP_AGENT_KEY
-
-
-def test_create_secret_returns_reference_only(client):
-    response = client.post(
+def test_create_secret_returns_reference_only(management_client):
+    response = management_client.post(
         "/api/secrets",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "display_name": "OpenAI prod key",
             "kind": "api_token",
@@ -23,10 +19,9 @@ def test_create_secret_returns_reference_only(client):
     assert body["backend_ref"].startswith("memory:")
 
 
-def test_list_secrets_returns_redacted_metadata(client):
-    client.post(
+def test_list_secrets_returns_redacted_metadata(management_client):
+    management_client.post(
         "/api/secrets",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "display_name": "QQ token",
             "kind": "api_token",
@@ -35,7 +30,7 @@ def test_list_secrets_returns_redacted_metadata(client):
         },
     )
 
-    response = client.get("/api/secrets", headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"})
+    response = management_client.get("/api/secrets")
 
     assert response.status_code == 200
     assert response.json()["items"][0]["display_name"] == "QQ token"

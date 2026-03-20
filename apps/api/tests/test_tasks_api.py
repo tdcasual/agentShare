@@ -3,13 +3,10 @@ import hashlib
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 
-from conftest import BOOTSTRAP_AGENT_KEY
 
-
-def test_agent_can_claim_eligible_task(client):
-    created = client.post(
+def test_agent_can_claim_eligible_task(client, management_client):
+    created = management_client.post(
         "/api/tasks",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "Sync provider config",
             "task_type": "config_sync",
@@ -29,10 +26,9 @@ def test_agent_can_claim_eligible_task(client):
     assert response.json()["claimed_by"] == "test-agent"
 
 
-def test_agent_can_complete_claimed_task(client):
-    created = client.post(
+def test_agent_can_complete_claimed_task(client, management_client):
+    created = management_client.post(
         "/api/tasks",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "Fetch account status",
             "task_type": "account_read",
@@ -56,7 +52,7 @@ def test_agent_can_complete_claimed_task(client):
     assert response.json()["status"] == "completed"
 
 
-def test_agent_cannot_claim_task_type_outside_allowlist(client, db_session):
+def test_agent_cannot_claim_task_type_outside_allowlist(client, management_client, db_session):
     repo = AgentRepository(db_session)
     repo.create(AgentIdentityModel(
         id="limited-agent",
@@ -69,9 +65,8 @@ def test_agent_cannot_claim_task_type_outside_allowlist(client, db_session):
     ))
     db_session.flush()
 
-    created = client.post(
+    created = management_client.post(
         "/api/tasks",
-        headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
         json={
             "title": "Sync provider config",
             "task_type": "config_sync",

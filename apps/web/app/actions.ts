@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getApiBaseUrl } from "../lib/api";
+import {
+  clearManagementSessionCookie,
+  getManagementSessionHeaders,
+  persistManagementSessionCookie,
+} from "../lib/management-session";
 
 class ManagementRequestError extends Error {
   status: number;
@@ -53,16 +58,16 @@ async function postJson(path: string, payload: Record<string, unknown>) {
     throw new ManagementRequestError(503, "API base URL is not configured");
   }
 
-  const bootstrapKey = process.env.BOOTSTRAP_AGENT_KEY ?? "";
-  if (!bootstrapKey) {
-    throw new ManagementRequestError(401, "BOOTSTRAP_AGENT_KEY is not configured");
+  const managementHeaders = await getManagementSessionHeaders();
+  if (!managementHeaders.Cookie) {
+    throw new ManagementRequestError(401, "Management session is missing");
   }
 
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${bootstrapKey}`,
+      ...managementHeaders,
     },
     body: JSON.stringify(payload),
     cache: "no-store",
@@ -74,6 +79,63 @@ async function postJson(path: string, payload: Record<string, unknown>) {
   }
 
   return response.json();
+}
+
+function getSafeNextPath(value: FormDataEntryValue | null, fallback: string) {
+  const raw = typeof value === "string" ? value.trim() : "";
+  return raw.startsWith("/") ? raw : fallback;
+}
+
+export async function loginManagementAction(formData: FormData) {
+  const apiBaseUrl = getApiBaseUrl();
+  const bootstrapKey = String(formData.get("bootstrap_key") || "").trim();
+  const nextPath = getSafeNextPath(formData.get("next"), "/secrets");
+
+  if (!apiBaseUrl) {
+    redirect(`/login?error=api-disconnected&next=${encodeURIComponent(nextPath)}`);
+  }
+
+  if (!bootstrapKey) {
+    redirect(`/login?error=missing-credential&next=${encodeURIComponent(nextPath)}`);
+  }
+
+  const response = await fetch(`${apiBaseUrl}/api/session/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ bootstrap_key: bootstrapKey }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const errorCode = response.status === 401 ? "invalid-credential" : "save-failed";
+    redirect(`/login?error=${errorCode}&next=${encodeURIComponent(nextPath)}`);
+  }
+
+  const setCookieHeader = response.headers.get("set-cookie");
+  if (!setCookieHeader) {
+    redirect(`/login?error=session-cookie-missing&next=${encodeURIComponent(nextPath)}`);
+  }
+
+  await persistManagementSessionCookie(setCookieHeader);
+  redirect(nextPath);
+}
+
+export async function logoutManagementAction() {
+  const apiBaseUrl = getApiBaseUrl();
+  const managementHeaders = await getManagementSessionHeaders();
+
+  if (apiBaseUrl && managementHeaders.Cookie) {
+    await fetch(`${apiBaseUrl}/api/session/logout`, {
+      method: "POST",
+      headers: managementHeaders,
+      cache: "no-store",
+    }).catch(() => undefined);
+  }
+
+  await clearManagementSessionCookie();
+  redirect("/login?logged_out=1");
 }
 
 export async function createSecretAction(formData: FormData) {

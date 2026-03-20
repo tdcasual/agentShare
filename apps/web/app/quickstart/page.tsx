@@ -73,8 +73,9 @@ export default function QuickstartPage() {
           <div className="kicker">Self-serve route</div>
           <h2>One guide for humans, two machine-readable links for agents</h2>
           <p className="muted">
-            Runtime routes use per-agent bearer API keys. Human management routes are temporarily
-            bootstrap-key protected until session auth exists.
+            Runtime routes use per-agent bearer API keys. Human operators now exchange the bootstrap
+            management credential at `/api/session/login`, then use the short-lived session cookie
+            for management reads and writes.
           </p>
         </div>
         <div className="chip-row">

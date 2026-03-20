@@ -3,6 +3,7 @@ import Link from "next/link";
 import { NavShell } from "../../components/nav-shell";
 import { AgentKeyDisplay } from "../../components/agent-key-display";
 import { getAgents, getApiDocsLinks, getApiBaseUrl, getCollectionNotice } from "../../lib/api";
+import { requireManagementSession } from "../../lib/management-session";
 import { createAgentAction } from "../actions";
 
 type PageProps = {
@@ -18,6 +19,7 @@ function readSingleParam(
 }
 
 export default async function AgentsPage({ searchParams }: PageProps) {
+  await requireManagementSession("/agents");
   const params = (await searchParams) ?? {};
   const agentsResult = await getAgents();
   const agents = agentsResult.items;
@@ -44,7 +46,7 @@ export default async function AgentsPage({ searchParams }: PageProps) {
         <p role="alert" style={{ color: "var(--color-error, #ef4444)" }}>
           Error: {
             error === "management-auth"
-              ? "The bootstrap management key is missing or was rejected."
+              ? "The management session is missing or expired."
               : error === "api-disconnected"
                 ? "The API base URL is not configured for management calls."
                 : "The agent could not be created."

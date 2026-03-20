@@ -2,6 +2,7 @@ import { createCapabilityAction } from "../actions";
 import { CapabilityForm } from "../../components/capability-form";
 import { NavShell } from "../../components/nav-shell";
 import { getCapabilities, getCollectionNotice, getSecrets } from "../../lib/api";
+import { requireManagementSession } from "../../lib/management-session";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -16,6 +17,7 @@ function readSingleParam(
 }
 
 export default async function CapabilitiesPage({ searchParams }: PageProps) {
+  await requireManagementSession("/capabilities");
   const params = (await searchParams) ?? {};
   const capabilitiesResult = await getCapabilities();
   const capabilities = capabilitiesResult.items;
@@ -41,10 +43,10 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
         <section className="notice error" role="alert">
           {error === "invalid-fields"
             ? "Choose a secret, add a name, required provider, and provide a valid lease TTL."
-            : error === "invalid-contract"
-              ? "The selected secret does not satisfy the capability scope contract."
+              : error === "invalid-contract"
+                ? "The selected secret does not satisfy the capability scope contract."
               : error === "management-auth"
-                ? "The bootstrap management key is missing or was rejected."
+                ? "The management session is missing or expired."
                 : error === "api-disconnected"
                   ? "The API base URL is not configured, so the console cannot save capabilities."
             : "The capability could not be created."}

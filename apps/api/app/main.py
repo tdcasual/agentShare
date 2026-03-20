@@ -13,6 +13,7 @@ from app.routes.invoke import router as invoke_router
 from app.routes.leases import router as leases_router
 from app.routes.playbooks import router as playbooks_router
 from app.routes.runs import router as runs_router
+from app.routes.session import router as session_router
 from app.routes.secrets import router as secrets_router
 from app.routes.tasks import router as tasks_router
 
@@ -49,13 +50,13 @@ app = FastAPI(
     title="Agent Control Plane",
     description=(
         "Coordinate humans, agents, secrets, and lightweight tasks through a single control plane usable by new agents without source diving. "
-        "Humans should use the bootstrap credential for management routes until session auth exists. "
+        "Humans should exchange the bootstrap credential once for a short-lived management session cookie, then use that cookie on management routes. "
         "Agents should self-discover request details from /docs and /openapi.json, then authenticate "
         "with bearer API keys on runtime routes."
     ),
     openapi_tags=[
-        {"name": "Bootstrap", "description": "Health and bootstrap surfaces needed to start the system."},
-        {"name": "Management", "description": "Bootstrap-key protected routes used by the human console."},
+        {"name": "Bootstrap", "description": "Health and login/bootstrap surfaces needed to start the system."},
+        {"name": "Management", "description": "Cookie-authenticated human management routes used by the console."},
         {"name": "Agent Runtime", "description": "Agent-authenticated runtime routes for claiming work and using capabilities."},
         {"name": "Knowledge", "description": "Reusable playbooks that agents may search without management credentials."},
         {"name": "Observability", "description": "Run history and audit-friendly state for operators."},
@@ -79,6 +80,7 @@ def healthcheck() -> dict[str, str]:
 
 
 app.include_router(agents_router)
+app.include_router(session_router)
 app.include_router(secrets_router)
 app.include_router(capabilities_router)
 app.include_router(tasks_router)

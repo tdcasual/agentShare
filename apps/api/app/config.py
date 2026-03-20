@@ -10,3 +10,7 @@ class Settings(BaseSettings):
     openbao_mount: str = "secret"
     openbao_prefix: str = "agent-share"
     bootstrap_agent_key: str = "changeme-bootstrap-key"
+    management_session_secret: str = "changeme-management-session-secret"
+    management_session_cookie_name: str = "management_session"
+    management_session_ttl_seconds: int = 60 * 60 * 12
+    management_session_secure: bool = False

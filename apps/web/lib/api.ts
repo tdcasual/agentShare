@@ -1,3 +1,5 @@
+import { getManagementSessionHeaders } from "./management-session";
+
 export type Secret = {
   id: string;
   display_name: string;
@@ -141,14 +143,6 @@ function isDemoModeEnabled() {
   return DEMO_ENV_VALUES.has(raw.trim().toLowerCase());
 }
 
-function getBootstrapHeaders(): Record<string, string> {
-  const key = process.env.BOOTSTRAP_AGENT_KEY ?? "";
-  if (!key) {
-    return {};
-  }
-  return { Authorization: `Bearer ${key}` };
-}
-
 function disconnectedResult<T>(demoItems: T[]): CollectionResult<T> {
   if (isDemoModeEnabled()) {
     return {
@@ -174,7 +168,7 @@ async function getCollection<T>(
   }
 
   try {
-    const headers = options.includeManagementAuth === false ? {} : getBootstrapHeaders();
+    const headers = options.includeManagementAuth === false ? {} : await getManagementSessionHeaders();
     const response = await fetch(`${apiBase}${path}`, {
       cache: "no-store",
       headers,
@@ -241,7 +235,7 @@ export function getCollectionNotice<T>(
       tone: "error",
       message:
         `Authorization error while loading ${label}: ${detail}. ` +
-        "Check BOOTSTRAP_AGENT_KEY for management routes.",
+        "Check the management session or sign in again.",
     };
   }
 

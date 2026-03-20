@@ -21,16 +21,19 @@ The quickstart is the shortest path from agent key to completed task and include
   - Swagger UI: `http://127.0.0.1:8000/docs`
   - OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
 - Current web console auth path:
-  - The management console sends `Authorization: Bearer $BOOTSTRAP_AGENT_KEY` for create and management reads.
-  - This is a temporary management credential path until dedicated human session auth is introduced.
+  - The web console exchanges the bootstrap management credential once at `POST /api/session/login`.
+  - The API responds with a short-lived `management_session` cookie, and the console forwards that cookie on management reads and writes.
+  - Runtime agent operations continue to use `Authorization: Bearer $ACP_AGENT_KEY`.
 - Production caution:
   - Do not deploy with `BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key`.
+  - Replace `MANAGEMENT_SESSION_SECRET=changeme-management-session-secret` before exposing the console to real users.
 
 ## Route Policy Split
 
 - Public routes:
   - `GET /healthz`
   - `/docs` and `/openapi.json`
+  - `POST /api/session/login`
 - Agent-authenticated runtime routes:
   - `GET /api/agents/me`
   - `GET /api/tasks`
@@ -38,15 +41,15 @@ The quickstart is the shortest path from agent key to completed task and include
   - `POST /api/tasks/{task_id}/complete`
   - `POST /api/capabilities/{capability_id}/invoke`
   - `POST /api/capabilities/{capability_id}/lease`
-- Bootstrap-key protected management routes:
+- Management-session protected routes:
+  - `GET /api/session/me`
+  - `POST /api/session/logout`
   - `POST /api/secrets`, `GET /api/secrets`
   - `POST /api/capabilities`, `GET /api/capabilities`
   - `POST /api/tasks`
   - `GET /api/agents`, `POST /api/agents`, `DELETE /api/agents/{agent_id}`
   - `GET /api/runs`
   - `POST /api/playbooks`, `GET /api/playbooks/search`
-- Future human-session routes:
-  - The same management surfaces above, replacing bootstrap-key auth with explicit human session auth.
 
 ## Quick Start
 
@@ -69,7 +72,7 @@ cd apps/web && npm install
 
 ```bash
 SECRET_BACKEND=openbao OPENBAO_ADDR=http://127.0.0.1:8200 OPENBAO_TOKEN=root .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
-cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key npm run dev
+cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
 5. Run verification locally:

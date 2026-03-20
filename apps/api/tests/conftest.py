@@ -41,7 +41,7 @@ def db_session():
 
 
 @pytest.fixture
-def client(db_session):
+def seeded_app(db_session):
     # Seed a test agent for auth
     repo = AgentRepository(db_session)
     key_hash = hashlib.sha256(TEST_AGENT_KEY.encode()).hexdigest()
@@ -72,8 +72,34 @@ def client(db_session):
         finally:
             pass
     app.dependency_overrides[get_db] = _override_get_db
-    yield TestClient(app)
-    app.dependency_overrides.clear()
+    try:
+        yield
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client(seeded_app):
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+@pytest.fixture
+def anonymous_client(client):
+    return client
+
+
+@pytest.fixture
+def management_client(seeded_app):
+    """Log in to the management UI and return a client with the session cookie."""
+    with TestClient(app) as test_client:
+        login_response = test_client.post(
+            "/api/session/login",
+            json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+        )
+        assert login_response.status_code == 200, login_response.text
+        assert login_response.cookies, "management login should issue a cookie"
+        yield test_client
 
 
 @pytest.fixture(autouse=True)

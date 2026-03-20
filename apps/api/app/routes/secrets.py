@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.auth import require_bootstrap_agent
+from app.auth import ManagementIdentity, require_management_session
 from app.db import get_db
 from app.orm.secret import SecretModel
 from app.repositories.secret_repo import SecretRepository
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/secrets")
 )
 def create_secret(
     payload: SecretCreate,
-    agent=Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     backend = get_secret_backend()
@@ -44,7 +44,8 @@ def create_secret(
     write_audit_event(session, "secret_created", {
         "secret_id": secret_id,
         "backend_ref": backend_ref,
-        "created_by": agent.id,
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
     })
     return _to_secret_response(model)
 
@@ -56,12 +57,16 @@ def create_secret(
     description="Return redacted secret inventory for the management console. Plaintext values are never returned.",
 )
 def list_secrets(
-    agent=Depends(require_bootstrap_agent),
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = SecretRepository(session)
     items = [_to_secret_response(model) for model in repo.list_all()]
-    write_audit_event(session, "secrets_listed", {"agent_id": agent.id, "count": len(items)})
+    write_audit_event(session, "secrets_listed", {
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
+        "count": len(items),
+    })
     return {"items": items}
 
 
