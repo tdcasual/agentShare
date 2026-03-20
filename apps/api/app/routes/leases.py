@@ -31,4 +31,5 @@ def issue_lease_route(
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except ApprovalRequiredError as exc:
+        session.commit()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=exc.detail) from exc

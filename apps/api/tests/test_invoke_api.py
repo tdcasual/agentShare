@@ -113,7 +113,12 @@ def test_proxy_invocation_still_returns_success_when_audit_write_fails(mock_post
 
 
 @patch("app.services.adapters.generic_http.httpx.post")
-def test_proxy_invocation_requires_manual_approval_returns_409(mock_post, client, management_client):
+def test_proxy_invocation_requires_manual_approval_returns_409(
+    mock_post,
+    client,
+    management_client,
+    db_session,
+):
     mock_post.return_value = MagicMock()
 
     secret = management_client.post(
@@ -162,6 +167,7 @@ def test_proxy_invocation_requires_manual_approval_returns_409(mock_post, client
     assert detail["approval_request_id"].startswith("approval-")
     assert detail["status"] == "pending"
     assert detail["action_type"] == "invoke"
+    assert ApprovalRequestRepository(db_session).get(detail["approval_request_id"]) is not None
     mock_post.assert_not_called()
 
 
