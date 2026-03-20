@@ -11,6 +11,7 @@ from app.models.agent import AgentIdentity
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
 from app.services.adapters.registry import get_adapter
+from app.services.approval_service import ApprovalRequiredError, require_runtime_approval
 from app.services.audit_service import write_audit_event
 from app.services.capability_service import get_capability
 from app.services.scope_policy import ensure_runtime_compatible
@@ -153,6 +154,19 @@ def _authorize_capability_use(
             raise PermissionError("Task does not allow leases")
         if capability["allowed_mode"] == "proxy_only":
             raise PermissionError("Lease not allowed")
+
+    action_type = "lease" if require_lease else "invoke"
+    approval = require_runtime_approval(
+        session=session,
+        task_id=task.id,
+        capability_id=capability_id,
+        agent_id=agent.id,
+        action_type=action_type,
+        task_approval_mode=task.approval_mode,
+        capability_approval_mode=capability["approval_mode"],
+    )
+    if approval is not None:
+        raise ApprovalRequiredError(approval, action_type)
 
     secret_record = SecretRepository(session).get(capability["secret_id"])
     if secret_record is None:

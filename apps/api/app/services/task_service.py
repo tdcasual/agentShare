@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 from app.auth import ensure_task_type_allowed
 from app.models.agent import AgentIdentity
+from app.orm.approval_request import ApprovalRequestModel
 from app.orm.task import TaskModel
 from app.orm.run import RunModel
 from app.repositories.task_repo import TaskRepository
@@ -69,6 +72,7 @@ def complete_task(
         raise PermissionError("Task is not claimed by this agent")
     task.status = "completed"
     task_repo.update(task)
+    _expire_task_approvals(session, task_id)
     run_id = f"run-{len(run_repo.list_all()) + 1}"
     run = RunModel(
         id=run_id,
@@ -96,3 +100,20 @@ def _task_to_dict(model: TaskModel) -> dict:
         "created_by": model.created_by,
         "claimed_by": model.claimed_by,
     }
+
+
+def _expire_task_approvals(session: Session, task_id: str) -> None:
+    approvals = (
+        session.query(ApprovalRequestModel)
+        .filter(ApprovalRequestModel.task_id == task_id)
+        .filter(ApprovalRequestModel.status.in_(["pending", "approved"]))
+        .all()
+    )
+    if not approvals:
+        return
+
+    current_time = datetime.now(timezone.utc)
+    for approval in approvals:
+        approval.status = "expired"
+        approval.expires_at = current_time
+    session.flush()

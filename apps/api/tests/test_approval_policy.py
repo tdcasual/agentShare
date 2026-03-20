@@ -3,6 +3,7 @@ from unittest.mock import patch
 from uuid import UUID
 
 import pytest
+from sqlalchemy import text
 
 from app.repositories.approval_repo import ApprovalRequestRepository
 from app.services.approval_service import (
@@ -14,6 +15,9 @@ from app.services.approval_service import (
     reject_request,
     require_runtime_approval,
 )
+from app.schemas.tasks import TaskCreate
+from app.services.task_service import claim_task, complete_task, create_task
+from app.models.agent import AgentIdentity
 
 
 def test_approval_required_only_when_task_or_capability_manual():
@@ -175,6 +179,37 @@ def test_list_approval_requests_materializes_expired_status_before_filtering(db_
     assert expired_items[0].status == "expired"
 
 
+def test_list_approval_requests_handles_reloaded_expiry_timestamps(db_session):
+    pending = require_runtime_approval(
+        session=db_session,
+        task_id="task-expire-reload",
+        capability_id="capability-expire-reload",
+        agent_id="agent-expire-reload",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    assert pending is not None
+
+    approve_request(
+        session=db_session,
+        approval_id=pending.id,
+        decided_by="management",
+        now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    )
+
+    approval_id = pending.id
+    db_session.expunge_all()
+
+    expired_items = list_approval_requests(
+        session=db_session,
+        status="expired",
+        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+    )
+
+    assert [item.id for item in expired_items] == [approval_id]
+
+
 def test_require_runtime_approval_replaces_rejected_and_expired_records(db_session):
     initial = require_runtime_approval(
         session=db_session,
@@ -314,6 +349,29 @@ def test_require_runtime_approval_still_returns_pending_when_audit_write_fails(m
     assert ApprovalRequestRepository(db_session).get(approval.id) is not None
 
 
+@patch("app.services.approval_service.write_audit_event")
+def test_require_runtime_approval_keeps_session_usable_when_audit_flush_fails(mock_audit, db_session):
+    def _fail_inside_database(session, event_type, payload):
+        del event_type, payload
+        session.execute(text("INSERT INTO missing_audit_table DEFAULT VALUES"))
+
+    mock_audit.side_effect = _fail_inside_database
+
+    approval = require_runtime_approval(
+        session=db_session,
+        task_id="task-audit-db-failure",
+        capability_id="capability-audit-db-failure",
+        agent_id="agent-audit-db-failure",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+
+    assert approval is not None
+    db_session.commit()
+    assert ApprovalRequestRepository(db_session).get(approval.id) is not None
+
+
 def test_approval_service_rejects_invalid_state_transitions(db_session):
     pending = require_runtime_approval(
         session=db_session,
@@ -381,3 +439,61 @@ def test_approval_service_rejects_invalid_state_transitions(db_session):
             approval_id=pending_for_reject.id,
             decided_by="management",
         )
+
+
+def test_task_completion_expires_pending_and_approved_requests(db_session):
+    agent = AgentIdentity(
+        id="agent-expire",
+        name="Agent Expire",
+        issuer="test",
+        auth_method="test",
+        allowed_task_types=["config_sync"],
+    )
+    task = create_task(
+        db_session,
+        TaskCreate(
+            title="Expire approvals",
+            task_type="config_sync",
+            required_capability_ids=["capability-1"],
+        ),
+    )
+    claim_task(db_session, task["id"], agent)
+
+    pending = require_runtime_approval(
+        session=db_session,
+        task_id=task["id"],
+        capability_id="capability-1",
+        agent_id=agent.id,
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    approved_pending = require_runtime_approval(
+        session=db_session,
+        task_id=task["id"],
+        capability_id="capability-2",
+        agent_id=agent.id,
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    approved = approve_request(
+        session=db_session,
+        approval_id=approved_pending.id,
+        decided_by="management",
+    )
+
+    assert pending.status == "pending"
+    assert approved.status == "approved"
+
+    complete_task(
+        db_session,
+        task["id"],
+        agent,
+        "done",
+        {"ok": True},
+    )
+
+    repo = ApprovalRequestRepository(db_session)
+    assert repo.get(pending.id).status == "expired"
+    assert repo.get(approved.id).status == "expired"

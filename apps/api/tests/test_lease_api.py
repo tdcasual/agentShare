@@ -90,6 +90,58 @@ def test_lease_capability_can_issue_short_lived_lease(client, management_client)
     assert response.json()["secret_value_included"] is False
 
 
+def test_lease_requires_manual_approval_returns_409(client, management_client):
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "GitHub token",
+            "kind": "api_token",
+            "value": "ghp_example",
+            "provider": "github",
+            "provider_scopes": ["repo"],
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "github.repo.read",
+            "secret_id": secret["id"],
+            "risk_level": "low",
+            "allowed_mode": "proxy_or_lease",
+            "lease_ttl_seconds": 120,
+            "approval_mode": "manual",
+            "required_provider": "github",
+            "required_provider_scopes": ["repo"],
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Read repo metadata",
+            "task_type": "account_read",
+            "required_capability_ids": [capability["id"]],
+            "lease_allowed": True,
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/lease",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "purpose": "git cli"},
+    )
+
+    assert response.status_code == 409
+    detail = response.json()["detail"]
+    assert detail["code"] == "approval_required"
+    assert detail["approval_request_id"].startswith("approval-")
+    assert detail["status"] == "pending"
+    assert detail["action_type"] == "lease"
+
+
 def test_same_task_generates_distinct_lease_ids_per_capability(client, management_client):
     first_secret = management_client.post(
         "/api/secrets",

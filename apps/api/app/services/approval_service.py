@@ -25,6 +25,22 @@ _VALID_ACTION_TYPES = {"invoke", "lease"}
 _VALID_STATUSES = {"pending", "approved", "rejected", "expired"}
 
 
+class ApprovalRequiredError(RuntimeError):
+    def __init__(self, approval: ApprovalRequestModel, action_type: str) -> None:
+        self.approval = approval
+        self.action_type = action_type
+        super().__init__("Approval required")
+
+    @property
+    def detail(self) -> dict:
+        return {
+            "code": "approval_required",
+            "approval_request_id": self.approval.id,
+            "status": self.approval.status,
+            "action_type": self.action_type,
+        }
+
+
 def approval_required(task_mode: str, capability_mode: str) -> bool:
     _validate_mode(task_mode, field_name="task_mode")
     _validate_mode(capability_mode, field_name="capability_mode")
@@ -184,8 +200,9 @@ def expire_request_if_needed(
     if approval.status != "approved" or approval.expires_at is None:
         return approval
 
-    current_time = _utc_now() if now is None else now
-    if approval.expires_at > current_time:
+    current_time = _normalize_datetime(_utc_now() if now is None else now)
+    expires_at = _normalize_datetime(approval.expires_at)
+    if expires_at > current_time:
         return approval
 
     approval.status = "expired"
@@ -269,7 +286,8 @@ def _new_approval_id() -> str:
 
 def _write_audit_event_best_effort(session: Session, event_type: str, payload: dict) -> None:
     try:
-        write_audit_event(session, event_type, payload)
+        with session.begin_nested():
+            write_audit_event(session, event_type, payload)
     except Exception:
         logger.exception("Failed to write approval audit event", extra={"event_type": event_type})
 
