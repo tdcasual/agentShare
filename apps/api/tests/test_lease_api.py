@@ -95,3 +95,5 @@ def test_lease_capability_can_issue_short_lived_lease(client):
 
     assert response.status_code == 201
     assert response.json()["expires_in"] == 120
+    assert response.json()["lease_type"] == "metadata_placeholder"
+    assert response.json()["secret_value_included"] is False

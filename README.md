@@ -10,6 +10,11 @@ Start with the operational guide:
 
 The quickstart is the shortest path from agent key to completed task and includes proxy invoke plus lease examples.
 
+## Runtime Safety Notes
+
+- Proxy invoke now fails closed when an adapter cannot reach its upstream or is misconfigured. The API returns a `502` instead of synthesizing a fake success payload.
+- Lease responses are currently explicit metadata placeholders. They record policy-approved lease context, but do not include raw secret text or a derived session artifact yet.
+
 ## API Discovery And Console Auth
 
 - Machine-readable sources of truth:

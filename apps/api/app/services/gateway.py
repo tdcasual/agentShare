@@ -15,6 +15,10 @@ from app.services.scope_policy import ensure_runtime_compatible
 from app.services.secret_backend import get_secret_backend_for_ref
 
 
+class GatewayExecutionError(RuntimeError):
+    """Raised when a runtime adapter or gateway dependency fails closed."""
+
+
 def proxy_invoke(
     session: Session,
     capability_id: str,
@@ -43,15 +47,10 @@ def proxy_invoke(
             adapter_config=adapter_config,
             parameters=parameters,
         )
-    except Exception:
-        # Fallback to echo mode if adapter fails (e.g., no real endpoint in tests)
-        result = {
-            "status_code": 200,
-            "body": {
-                "echo": parameters,
-                "secret_preview": f"len:{len(secret_value)}",
-            },
-        }
+    except Exception as exc:
+        raise GatewayExecutionError(
+            f"Capability adapter '{adapter_type}' failed during proxy execution"
+        ) from exc
 
     write_audit_event(session, "capability_invoked", {
         "agent_id": agent.id, "task_id": task.id,
@@ -92,6 +91,8 @@ def issue_lease(
         "issued_to": agent.id,
         "purpose": purpose,
         "expires_in": capability["lease_ttl_seconds"],
+        "lease_type": "metadata_placeholder",
+        "secret_value_included": False,
         "secret_ref": secret_record.backend_ref if secret_record else "",
     }
     write_audit_event(session, "lease_issued", {

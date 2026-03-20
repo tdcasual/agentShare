@@ -136,6 +136,8 @@ curl -sS \
   "$ACP_BASE_URL/api/capabilities/$CAPABILITY_ID/lease"
 ```
 
+Current lease behavior: the response is an explicit metadata placeholder. It confirms the lease decision and expiry window, but does not return raw secret material or a derived session artifact.
+
 ## 6. Complete Task (Runtime)
 
 ```bash
@@ -153,6 +155,7 @@ curl -sS \
 - `403`: Authenticated but outside policy scope (task type, capability allowlist, ownership, management route boundary, or lease restrictions).
 - `404`: Referenced task/capability/secret not found.
 - `409`: State conflict, usually task claim or completion race.
+- `502`: Capability adapter or upstream runtime dependency failed; retry only after fixing the adapter/backend issue.
 
 ## Source Of Truth For Schema
 

@@ -5,7 +5,7 @@ from app.auth import require_agent
 from app.db import get_db
 from app.models.agent import AgentIdentity
 from app.schemas.invoke import InvokeRequest
-from app.services.gateway import proxy_invoke
+from app.services.gateway import GatewayExecutionError, proxy_invoke
 
 router = APIRouter(prefix="/api/capabilities")
 
@@ -28,3 +28,5 @@ def invoke_capability_route(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    except GatewayExecutionError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc

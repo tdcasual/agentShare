@@ -1,16 +1,11 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
+import httpx
 
 from conftest import BOOTSTRAP_AGENT_KEY
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
-def test_proxy_invocation_returns_sanitized_result(mock_post, client):
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"result": "ok"}
-    mock_response.raise_for_status = MagicMock()
-    mock_post.return_value = mock_response
-
+def _create_runnable_capability(client, *, allowed_mode: str = "proxy_only") -> tuple[dict, dict]:
     secret = client.post(
         "/api/secrets",
         headers={"Authorization": f"Bearer {BOOTSTRAP_AGENT_KEY}"},
@@ -29,6 +24,8 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client):
             "secret_id": secret["id"],
             "risk_level": "medium",
             "required_provider": "openai",
+            "allowed_mode": allowed_mode,
+            "lease_ttl_seconds": 120,
             "adapter_type": "generic_http",
             "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
         },
@@ -40,12 +37,21 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client):
             "title": "Prompt run",
             "task_type": "prompt_run",
             "required_capability_ids": [capability["id"]],
+            "lease_allowed": allowed_mode == "proxy_or_lease",
         },
     ).json()
-    client.post(
+    claim_response = client.post(
         f"/api/tasks/{task['id']}/claim",
         headers={"Authorization": "Bearer agent-test-token"},
     )
+    assert claim_response.status_code == 200
+    return capability, task
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_invoke_fails_closed_when_adapter_request_errors(mock_post, client):
+    capability, task = _create_runnable_capability(client)
+    mock_post.side_effect = httpx.ConnectError("boom")
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
@@ -53,9 +59,20 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client):
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 502
+    assert "adapter" in response.json()["detail"].lower()
+
+
+def test_lease_response_explicitly_marks_placeholder_metadata(client):
+    capability, task = _create_runnable_capability(client, allowed_mode="proxy_or_lease")
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/lease",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "purpose": "sdk call"},
+    )
+
+    assert response.status_code == 201
     body = response.json()
-    assert body["mode"] == "proxy"
-    assert body["capability_id"] == capability["id"]
-    assert "sk-live-example" not in str(body)
-    assert body["result"] == {"result": "ok"}
+    assert body["lease_type"] == "metadata_placeholder"
+    assert body["secret_value_included"] is False
