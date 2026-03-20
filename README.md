@@ -14,6 +14,15 @@ The quickstart is the shortest path from agent key to completed task and include
 
 - Proxy invoke now fails closed when an adapter cannot reach its upstream or is misconfigured. The API returns a `502` instead of synthesizing a fake success payload.
 - Lease responses are currently explicit metadata placeholders. They record policy-approved lease context, but do not include raw secret text or a derived session artifact yet.
+- Manual approval gates stop invoke and lease before secret resolution. The gateway creates a pending approval request and returns `409` with `detail.code="approval_required"` until an operator approves the action.
+
+## Approval Policy
+
+- Tasks and capabilities both support `approval_mode`.
+- `approval_mode="auto"` means the runtime action can proceed as soon as the normal task, capability, and ownership checks pass.
+- `approval_mode="manual"` means invoke and lease must pause for operator approval. If either the task or the capability is manual, the runtime route returns `409 approval_required` with an `approval_request_id`.
+- Operators can review pending requests in the web console at `/approvals` or through the management API under `/api/approvals`.
+- Approval decisions are temporary. Agents should retry the same runtime action only after approval, and should expect approval to be required again after the decision expires or the task is completed.
 
 ## API Discovery And Console Auth
 
@@ -47,6 +56,9 @@ The quickstart is the shortest path from agent key to completed task and include
   - `POST /api/secrets`, `GET /api/secrets`
   - `POST /api/capabilities`, `GET /api/capabilities`
   - `POST /api/tasks`
+  - `GET /api/approvals`
+  - `POST /api/approvals/{approval_id}/approve`
+  - `POST /api/approvals/{approval_id}/reject`
   - `GET /api/agents`, `POST /api/agents`, `DELETE /api/agents/{agent_id}`
   - `GET /api/runs`
   - `POST /api/playbooks`, `GET /api/playbooks/search`

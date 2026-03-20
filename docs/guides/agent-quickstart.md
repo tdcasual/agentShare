@@ -28,6 +28,9 @@ This guide is the shortest path from "I have an agent key" to "I can complete a 
   - `POST/GET /api/secrets`
   - `POST/GET /api/capabilities`
   - `POST /api/tasks`
+  - `GET /api/approvals`
+  - `POST /api/approvals/{approval_id}/approve`
+  - `POST /api/approvals/{approval_id}/reject`
   - `GET/POST/DELETE /api/agents`
   - `GET /api/runs`
   - `POST /api/playbooks`, `GET /api/playbooks/search`
@@ -100,6 +103,7 @@ curl -sS \
     "secret_id":"secret-1",
     "risk_level":"medium",
     "allowed_mode":"proxy_or_lease",
+    "approval_mode":"manual",
     "lease_ttl_seconds":120,
     "required_provider":"openai",
     "required_provider_scopes":["responses.read"],
@@ -108,17 +112,32 @@ curl -sS \
   "$ACP_BASE_URL/api/capabilities"
 ```
 
-## 5. List Tasks And Claim One (Runtime)
+Replace `secret-1` with the secret id returned by the first call, and save the returned capability id as `CAPABILITY_ID`.
+
+## 5. Publish One Task That Uses The Capability (Management Path)
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_AGENT_KEY" \
+  -b "$ACP_COOKIE_JAR" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title":"Manual approval smoke test",
+    "task_type":"prompt_run",
+    "input":{"provider":"openai"},
+    "required_capability_ids":["capability-1"],
+    "lease_allowed":false,
+    "approval_mode":"auto"
+  }' \
   "$ACP_BASE_URL/api/tasks"
 ```
 
-```bash
-export TASK_ID=task-1
+Replace `capability-1` with your real capability id, then save the returned task id as `TASK_ID`.
 
+This example keeps the task on `approval_mode="auto"` and makes the capability manual, which is enough to force a human approval at runtime. Setting the task to `manual` would create the same approval boundary.
+
+## 6. Claim The Task (Runtime)
+
+```bash
 curl -sS \
   -H "Authorization: Bearer $ACP_AGENT_KEY" \
   -X POST \
@@ -127,19 +146,34 @@ curl -sS \
 
 Expected: `200 OK`, task moves to `claimed`, `claimed_by` is your agent.
 
-## 6. Invoke Capability Or Request Lease (Runtime)
+## 7. Invoke Capability Or Request Lease (Runtime)
 
 Proxy invoke:
 
 ```bash
-export CAPABILITY_ID=capability-1
-
 curl -sS \
   -H "Authorization: Bearer $ACP_AGENT_KEY" \
   -H "Content-Type: application/json" \
   -d '{"task_id":"task-1","parameters":{"prompt":"hello"}}' \
   "$ACP_BASE_URL/api/capabilities/$CAPABILITY_ID/invoke"
 ```
+
+Replace the literal `task-1` in the JSON examples with the task you claimed in step 6.
+
+If the task or capability is manual, expect a `409 Conflict` body shaped like this:
+
+```json
+{
+  "detail": {
+    "code": "approval_required",
+    "approval_request_id": "approval-123",
+    "status": "pending",
+    "action_type": "invoke"
+  }
+}
+```
+
+When you receive `409 approval_required`, stop retrying and wait for an operator decision. The gateway has not fetched the secret or contacted the upstream adapter yet.
 
 Lease request (only when policy allows):
 
@@ -153,7 +187,37 @@ curl -sS \
 
 Current lease behavior: the response is an explicit metadata placeholder. It confirms the lease decision and expiry window, but does not return raw secret material or a derived session artifact.
 
-## 7. Complete Task (Runtime)
+## 8. Review And Approve The Pending Request (Management Path)
+
+List the current queue:
+
+```bash
+curl -sS \
+  -b "$ACP_COOKIE_JAR" \
+  "$ACP_BASE_URL/api/approvals?status=pending"
+```
+
+Approve the request:
+
+```bash
+export APPROVAL_ID=approval-123
+
+curl -sS \
+  -b "$ACP_COOKIE_JAR" \
+  -H "Content-Type: application/json" \
+  -d '{"reason":"Approved for this task"}' \
+  "$ACP_BASE_URL/api/approvals/$APPROVAL_ID/approve"
+```
+
+Replace `approval-123` with the request id returned by the pending-approvals list or the runtime `409` response body.
+
+The same queue is available in the web console at `/approvals` after logging in through `/login`.
+
+## 9. Retry The Same Runtime Action
+
+After approval, retry the exact invoke or lease call. A successful approval converts the manual boundary into a temporary allow decision for that task, capability, and action type.
+
+## 10. Complete Task (Runtime)
 
 ```bash
 curl -sS \
@@ -169,7 +233,7 @@ curl -sS \
 - `401`: Missing/invalid bearer token or missing/invalid management session cookie.
 - `403`: Authenticated but outside policy scope (task type, capability allowlist, ownership, management route boundary, or lease restrictions).
 - `404`: Referenced task/capability/secret not found.
-- `409`: State conflict, usually task claim or completion race.
+- `409`: State conflict, usually task claim/completion races or `approval_required` for manual approval boundaries.
 - `500`: Control-plane misconfiguration such as an unknown adapter type or invalid adapter config.
 - `502`: Capability adapter or upstream runtime dependency failed; retry only after fixing the adapter/backend issue.
 
