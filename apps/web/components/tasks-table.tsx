@@ -4,6 +4,7 @@ type TaskRow = {
   task_type: string;
   status: string;
   lease_allowed: boolean;
+  approval_mode: string;
 };
 
 export function TasksTable({ tasks }: { tasks: TaskRow[] }) {
@@ -34,6 +35,7 @@ export function TasksTable({ tasks }: { tasks: TaskRow[] }) {
             <th>Task</th>
             <th>Type</th>
             <th>Status</th>
+            <th>Approval</th>
             <th>Lease</th>
           </tr>
         </thead>
@@ -43,6 +45,7 @@ export function TasksTable({ tasks }: { tasks: TaskRow[] }) {
               <td>{task.title}</td>
               <td>{task.task_type}</td>
               <td>{task.status}</td>
+              <td>{task.approval_mode === "manual" ? "Manual review" : "Auto"}</td>
               <td>{task.lease_allowed ? "Allowed" : "Proxy only"}</td>
             </tr>
           ))}

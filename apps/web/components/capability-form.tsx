@@ -60,6 +60,13 @@ export function CapabilityForm({
               <input name="lease_ttl_seconds" type="number" min="1" defaultValue="60" required />
             </label>
           </div>
+          <label>
+            Approval mode
+            <select name="approval_mode" defaultValue="auto">
+              <option value="auto">Auto</option>
+              <option value="manual">Manual review</option>
+            </select>
+          </label>
           <div className="form-row">
             <label>
               Required provider

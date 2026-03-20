@@ -18,6 +18,7 @@ export type Capability = {
   secret_id: string;
   allowed_mode: string;
   risk_level: string;
+  approval_mode: string;
   lease_ttl_seconds: number;
   required_provider: string;
   required_provider_scopes: string[];
@@ -30,6 +31,20 @@ export type Task = {
   task_type: string;
   status: string;
   lease_allowed: boolean;
+  approval_mode: string;
+};
+
+export type ApprovalRequest = {
+  id: string;
+  task_id: string;
+  capability_id: string;
+  agent_id: string;
+  action_type: string;
+  status: string;
+  reason: string;
+  requested_by: string;
+  decided_by: string | null;
+  expires_at: string | null;
 };
 
 export type Run = {
@@ -83,6 +98,7 @@ const demoFallback = {
       secret_id: "secret-demo-1",
       allowed_mode: "proxy_only",
       risk_level: "medium",
+      approval_mode: "auto",
       lease_ttl_seconds: 60,
       required_provider: "openai",
       required_provider_scopes: ["responses.read"],
@@ -96,8 +112,10 @@ const demoFallback = {
       task_type: "prompt_run",
       status: "pending",
       lease_allowed: false,
+      approval_mode: "auto",
     },
   ] satisfies Task[],
+  approvals: [] satisfies ApprovalRequest[],
   runs: [] satisfies Run[],
   agents: [
     {
@@ -259,6 +277,13 @@ export async function getTasks() {
 
 export async function getRuns() {
   return getCollection("/api/runs", demoFallback.runs);
+}
+
+export async function getApprovals(status?: ApprovalRequest["status"]) {
+  const path = status
+    ? `/api/approvals?status=${encodeURIComponent(status)}`
+    : "/api/approvals";
+  return getCollection(path, demoFallback.approvals);
 }
 
 export async function getAgents() {

@@ -16,6 +16,7 @@ const links = [
   { href: "/secrets", label: "Secrets" },
   { href: "/capabilities", label: "Capabilities" },
   { href: "/tasks", label: "Tasks" },
+  { href: "/approvals", label: "Approvals" },
   { href: "/agents", label: "Agents" },
   { href: "/runs", label: "Runs" },
   { href: "/playbooks", label: "Playbooks" },

@@ -28,6 +28,13 @@ export function TaskForm({ action }: { action: (formData: FormData) => void | Pr
           </label>
         </div>
         <label>
+          Approval mode
+          <select name="approval_mode" defaultValue="auto">
+            <option value="auto">Auto</option>
+            <option value="manual">Manual review</option>
+          </select>
+        </label>
+        <label>
           Input
           <textarea name="input" defaultValue={'{"provider":"qq"}'} />
         </label>

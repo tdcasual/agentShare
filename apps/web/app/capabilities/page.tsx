@@ -82,6 +82,9 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
                   <div className="chip-row">
                     <span className="chip">{capability.allowed_mode}</span>
                     <span className="chip">{capability.risk_level} risk</span>
+                    <span className="chip">
+                      {capability.approval_mode === "manual" ? "manual approval" : "auto approval"}
+                    </span>
                     <span className="chip">{capability.lease_ttl_seconds}s ttl</span>
                     {capability.required_provider ? (
                       <span className="chip">{capability.required_provider}</span>

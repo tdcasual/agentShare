@@ -181,6 +181,7 @@ export async function createTaskAction(formData: FormData) {
   const title = String(formData.get("title") || "").trim();
   const taskType = String(formData.get("task_type") || "").trim();
   const leaseAllowed = String(formData.get("lease_allowed") || "false") === "true";
+  const approvalMode = String(formData.get("approval_mode") || "auto").trim();
 
   if (!title || !taskType) {
     redirect("/tasks?error=missing-fields");
@@ -200,6 +201,7 @@ export async function createTaskAction(formData: FormData) {
       input,
       required_capability_ids: [],
       lease_allowed: leaseAllowed,
+      approval_mode: approvalMode,
     });
   } catch (error) {
     redirect(`/tasks?error=${classifyManagementError(error)}`);
@@ -236,6 +238,7 @@ export async function createCapabilityAction(formData: FormData) {
   const secretId = String(formData.get("secret_id") || "").trim();
   const allowedMode = String(formData.get("allowed_mode") || "proxy_only").trim();
   const riskLevel = String(formData.get("risk_level") || "medium").trim();
+  const approvalMode = String(formData.get("approval_mode") || "auto").trim();
   const leaseTtlRaw = String(formData.get("lease_ttl_seconds") || "60").trim();
   const requiredProvider = String(formData.get("required_provider") || "").trim();
   const requiredProviderScopes = parseListField(formData.get("required_provider_scopes"));
@@ -258,6 +261,7 @@ export async function createCapabilityAction(formData: FormData) {
       secret_id: secretId,
       allowed_mode: allowedMode,
       risk_level: riskLevel,
+      approval_mode: approvalMode,
       lease_ttl_seconds: leaseTtlSeconds,
       required_provider: requiredProvider,
       required_provider_scopes: requiredProviderScopes,
@@ -269,4 +273,54 @@ export async function createCapabilityAction(formData: FormData) {
 
   revalidatePath("/capabilities");
   redirect(`/capabilities?created=${encodeURIComponent(name)}`);
+}
+
+export async function approveApprovalAction(formData: FormData) {
+  const approvalId = String(formData.get("approval_id") || "").trim();
+  const reason = String(formData.get("reason") || "").trim();
+  const nextPath = getSafeNextPath(formData.get("next"), "/approvals");
+
+  if (!approvalId) {
+    redirect(`${nextPath}?error=missing-approval`);
+  }
+
+  try {
+    await postJson(`/api/approvals/${approvalId}/approve`, {
+      reason,
+    });
+  } catch (error) {
+    redirect(`${nextPath}?error=${classifyManagementError(error)}`);
+  }
+
+  revalidatePath("/approvals");
+  revalidatePath("/tasks");
+  revalidatePath("/runs");
+  redirect(`${nextPath}?updated=${encodeURIComponent(approvalId)}`);
+}
+
+export async function rejectApprovalAction(formData: FormData) {
+  const approvalId = String(formData.get("approval_id") || "").trim();
+  const reason = String(formData.get("reason") || "").trim();
+  const nextPath = getSafeNextPath(formData.get("next"), "/approvals");
+
+  if (!approvalId) {
+    redirect(`${nextPath}?error=missing-approval`);
+  }
+
+  if (!reason) {
+    redirect(`${nextPath}?error=missing-reason`);
+  }
+
+  try {
+    await postJson(`/api/approvals/${approvalId}/reject`, {
+      reason,
+    });
+  } catch (error) {
+    redirect(`${nextPath}?error=${classifyManagementError(error)}`);
+  }
+
+  revalidatePath("/approvals");
+  revalidatePath("/tasks");
+  revalidatePath("/runs");
+  redirect(`${nextPath}?updated=${encodeURIComponent(approvalId)}`);
 }
