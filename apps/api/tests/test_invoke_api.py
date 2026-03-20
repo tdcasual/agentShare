@@ -247,3 +247,63 @@ def test_approved_request_past_expiry_is_blocked_again(mock_post, client, manage
     assert detail["status"] == "pending"
     assert detail["action_type"] == "invoke"
     assert mock_post.call_count == 1
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_completed_task_cannot_request_new_approval_or_invoke(
+    mock_post,
+    client,
+    management_client,
+    db_session,
+):
+    mock_post.return_value = MagicMock()
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "Completed task secret",
+            "kind": "api_token",
+            "value": "sk-completed-example",
+            "provider": "openai",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke.completed",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "approval_mode": "manual",
+            "required_provider": "openai",
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Completed prompt run",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    completed = client.post(
+        f"/api/tasks/{task['id']}/complete",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"result_summary": "done", "output_payload": {"ok": True}},
+    )
+    assert completed.status_code == 200
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 403
+    assert ApprovalRequestRepository(db_session).list_all() == []
+    mock_post.assert_not_called()

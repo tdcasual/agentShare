@@ -146,6 +146,8 @@ def _authorize_capability_use(
         raise KeyError(f"Task {task_id} not found")
     if task.claimed_by != agent.id:
         raise PermissionError("Task is not claimed by this agent")
+    if task.status != "claimed":
+        raise PermissionError("Task is not active")
     if task.required_capability_ids and capability_id not in task.required_capability_ids:
         raise PermissionError("Capability is outside the task contract")
 
