@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from time import time_ns
 from typing import Literal
+from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
@@ -198,9 +200,8 @@ def _create_pending_request(
     agent_id: str,
     action_type: str,
 ) -> ApprovalRequestModel:
-    approval_id = f"approval-{len(repo.list_all()) + 1}"
     model = ApprovalRequestModel(
-        id=approval_id,
+        id=_new_approval_id(),
         task_id=task_id,
         capability_id=capability_id,
         agent_id=agent_id,
@@ -253,20 +254,17 @@ def _normalize_reason(reason: str) -> str:
 
 
 def _approval_sort_key(model: ApprovalRequestModel) -> tuple[datetime, int]:
-    return _normalize_datetime(model.created_at), _approval_sequence(model.id)
-
-
-def _approval_sequence(approval_id: str) -> int:
-    try:
-        return int(approval_id.rsplit("-", 1)[1])
-    except (IndexError, ValueError):
-        return -1
+    return _normalize_datetime(model.created_at), model.id
 
 
 def _normalize_datetime(value: datetime) -> datetime:
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
+
+
+def _new_approval_id() -> str:
+    return f"approval-{time_ns():020d}-{uuid4().hex[:12]}"
 
 
 def _write_audit_event_best_effort(session: Session, event_type: str, payload: dict) -> None:

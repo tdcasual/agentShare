@@ -37,9 +37,12 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert list_approvals_op["security"] == [{"ManagementSession": []}]
     assert approve_op["security"] == [{"ManagementSession": []}]
     assert reject_op["security"] == [{"ManagementSession": []}]
+    assert list_approvals_op["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == "#/components/schemas/ApprovalListResponse"
     assert "security" not in login_op
 
     schemas = schema["components"]["schemas"]
+    assert schemas["ApprovalListResponse"]["properties"]["items"]["type"] == "array"
+    assert schemas["ApprovalListResponse"]["properties"]["items"]["items"]["$ref"] == "#/components/schemas/ApprovalResponse"
     assert schemas["AgentCreate"]["example"]["allowed_task_types"] == ["config_sync", "account_read"]
     assert schemas["SecretCreate"]["example"]["provider"] == "openai"
     assert schemas["CapabilityCreate"]["example"]["required_provider_scopes"] == ["repo"]

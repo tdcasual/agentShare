@@ -67,3 +67,7 @@ class ApprovalResponse(BaseModel):
     requested_by: str
     decided_by: str | None
     expires_at: datetime | None
+
+
+class ApprovalListResponse(BaseModel):
+    items: list[ApprovalResponse]

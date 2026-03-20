@@ -5,6 +5,7 @@ from app.auth import ManagementIdentity, require_management_session
 from app.db import get_db
 from app.schemas.approvals import (
     ApprovalDecisionRequest,
+    ApprovalListResponse,
     ApprovalRejectionRequest,
     ApprovalResponse,
 )
@@ -20,6 +21,7 @@ router = APIRouter(prefix="/api/approvals")
 
 @router.get(
     "",
+    response_model=ApprovalListResponse,
     tags=["Management"],
     summary="List approval requests",
     description="Return approval requests for management review, optionally filtered by status.",

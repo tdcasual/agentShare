@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
+from uuid import UUID
 
 import pytest
 
@@ -233,27 +234,49 @@ def test_require_runtime_approval_replaces_rejected_and_expired_records(db_sessi
     assert after_expire.status == "pending"
 
 
-def test_list_approval_requests_orders_same_timestamp_by_numeric_suffix(db_session):
+def test_list_approval_requests_uses_id_tiebreaker_for_same_timestamp_records(db_session):
     repo = ApprovalRequestRepository(db_session)
     fixed_time = datetime(2026, 1, 2, tzinfo=timezone.utc)
 
-    for index in range(10):
-        approval = require_runtime_approval(
+    with patch(
+        "app.services.approval_service.uuid4",
+        side_effect=[
+            UUID("00000000-0000-0000-0000-00000000000a"),
+            UUID("00000000-0000-0000-0000-00000000000b"),
+        ],
+    ), patch(
+        "app.services.approval_service.time_ns",
+        side_effect=[10, 11],
+    ):
+        first = require_runtime_approval(
             session=db_session,
-            task_id=f"task-order-{index}",
-            capability_id=f"capability-order-{index}",
-            agent_id=f"agent-order-{index}",
+            task_id="task-order-a",
+            capability_id="capability-order-a",
+            agent_id="agent-order-a",
             action_type="invoke",
             task_approval_mode="manual",
             capability_approval_mode="auto",
         )
-        assert approval is not None
-        approval.created_at = fixed_time
-        repo.update(approval)
+        second = require_runtime_approval(
+            session=db_session,
+            task_id="task-order-b",
+            capability_id="capability-order-b",
+            agent_id="agent-order-b",
+            action_type="invoke",
+            task_approval_mode="manual",
+            capability_approval_mode="auto",
+        )
+
+    assert first is not None
+    assert second is not None
+    first.created_at = fixed_time
+    second.created_at = fixed_time
+    repo.update(first)
+    repo.update(second)
 
     listed = list_approval_requests(session=db_session)
 
-    assert [item.id for item in listed[:3]] == ["approval-10", "approval-9", "approval-8"]
+    assert [item.id for item in listed[:2]] == [second.id, first.id]
 
 
 def test_approval_service_rejects_invalid_modes_and_action_type(db_session):
