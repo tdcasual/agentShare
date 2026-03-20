@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -27,7 +27,10 @@ class TaskCreate(BaseModel):
         default=False,
         description="Whether the task may issue secret leases instead of proxy-only execution.",
     )
-    approval_mode: str = Field(default="auto", description="Approval mode for this task.")
+    approval_mode: Literal["auto", "manual"] = Field(
+        default="auto",
+        description="Approval mode for this task.",
+    )
     priority: str = Field(default="normal", description="Relative scheduling priority.")
 
 

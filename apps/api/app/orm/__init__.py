@@ -6,6 +6,7 @@ from app.orm.task import TaskModel
 from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
 from app.orm.audit_event import AuditEventModel
+from app.orm.approval_request import ApprovalRequestModel
 
 __all__ = [
     "Base",
@@ -16,4 +17,5 @@ __all__ = [
     "RunModel",
     "PlaybookModel",
     "AuditEventModel",
+    "ApprovalRequestModel",
 ]

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -32,7 +32,10 @@ class CapabilityCreate(BaseModel):
         default=60,
         description="Maximum lease duration in seconds when allowed_mode permits leases.",
     )
-    approval_mode: str = Field(default="auto", description="Approval workflow mode for this capability.")
+    approval_mode: Literal["auto", "manual"] = Field(
+        default="auto",
+        description="Approval workflow mode for this capability.",
+    )
     allowed_audience: list[str] = Field(
         default_factory=list,
         description="Optional audience labels that may use this capability.",
@@ -81,7 +84,7 @@ class CapabilityResponse(BaseModel):
     risk_level: str
     allowed_mode: str
     lease_ttl_seconds: int
-    approval_mode: str
+    approval_mode: Literal["auto", "manual"]
     allowed_audience: list[str]
     required_provider: str | None
     required_provider_scopes: list[str]
