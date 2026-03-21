@@ -11,9 +11,10 @@ from app.models.agent import AgentIdentity
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
 from app.services.adapters.registry import get_adapter
-from app.services.approval_service import ApprovalRequiredError, require_runtime_approval
+from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError, require_runtime_approval
 from app.services.audit_service import write_audit_event
 from app.services.capability_service import get_capability
+from app.services.policy_service import PolicyContext
 from app.services.scope_policy import ensure_runtime_compatible
 from app.services.secret_backend import get_secret_backend_for_ref
 
@@ -92,7 +93,8 @@ def proxy_invoke(
         "task_id": task.id,
         "capability_id": capability_id,
         "provider": capability["name"],
-        "adapter_type": adapter_type,
+        "adapter_type": result.get("adapter_type", adapter_type),
+        "upstream_status": result.get("upstream_status"),
         "result": result.get("body", result),
     }
 
@@ -157,6 +159,11 @@ def _authorize_capability_use(
         if capability["allowed_mode"] == "proxy_only":
             raise PermissionError("Lease not allowed")
 
+    secret_record = SecretRepository(session).get(capability["secret_id"])
+    if secret_record is None:
+        raise KeyError(f"Secret {capability['secret_id']} not found")
+    ensure_runtime_compatible(secret_record, capability)
+
     action_type = "lease" if require_lease else "invoke"
     approval = require_runtime_approval(
         session=session,
@@ -166,14 +173,19 @@ def _authorize_capability_use(
         action_type=action_type,
         task_approval_mode=task.approval_mode,
         capability_approval_mode=capability["approval_mode"],
+        task_rules=task.approval_rules or [],
+        capability_rules=capability.get("approval_rules", []),
+        context=PolicyContext(
+            action_type=action_type,
+            risk_level=capability["risk_level"],
+            provider=secret_record.provider or capability.get("required_provider"),
+            environment=secret_record.environment,
+            task_type=task.task_type,
+            capability_name=capability["name"],
+        ),
     )
     if approval is not None:
         raise ApprovalRequiredError(approval, action_type)
-
-    secret_record = SecretRepository(session).get(capability["secret_id"])
-    if secret_record is None:
-        raise KeyError(f"Secret {capability['secret_id']} not found")
-    ensure_runtime_compatible(secret_record, capability)
 
     return capability, task, secret_record
 

@@ -23,7 +23,10 @@ def create_task_route(
     manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
-    task = create_task(session, payload)
+    try:
+        task = create_task(session, payload)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     write_audit_event(session, "task_created", {
         "task_id": task["id"],
         "task_type": task["task_type"],

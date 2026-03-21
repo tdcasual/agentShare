@@ -20,6 +20,7 @@ This guide is the shortest path from "I have an agent key" to "I can complete a 
   - `POST /api/tasks/{task_id}/complete`
   - `POST /api/capabilities/{capability_id}/invoke`
   - `POST /api/capabilities/{capability_id}/lease`
+  - `POST /mcp`
 - Bootstrap login:
   - `POST /api/session/login`
 - Management-session protected:
@@ -113,6 +114,12 @@ curl -sS \
 ```
 
 Replace `secret-1` with the secret id returned by the first call, and save the returned capability id as `CAPABILITY_ID`.
+
+If you are binding a GitHub token instead, set:
+
+- `required_provider` to `github`
+- `adapter_type` to `github`
+- `adapter_config` to a narrow REST path such as `{"method":"GET","path":"/repos/{owner}/{repo}/issues"}`
 
 ## 5. Publish One Task That Uses The Capability (Management Path)
 
@@ -217,6 +224,14 @@ The same queue is available in the web console at `/approvals` after logging in 
 
 After approval, retry the exact invoke or lease call. A successful approval converts the manual boundary into a temporary allow decision for that task, capability, and action type.
 
+Successful invoke responses now include:
+
+- `adapter_type`
+- `upstream_status`
+- `result`
+
+That keeps adapter behavior explicit without leaking the secret or raw credential material.
+
 ## 10. Complete Task (Runtime)
 
 ```bash
@@ -243,3 +258,7 @@ curl -sS \
 - OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
 
 Treat these two as authoritative for request and response schema details.
+
+## MCP Alternative
+
+When the agent should discover tools dynamically instead of issuing direct HTTP calls, switch to `docs/guides/mcp-quickstart.md`.

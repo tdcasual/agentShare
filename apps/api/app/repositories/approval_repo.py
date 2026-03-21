@@ -37,6 +37,7 @@ class ApprovalRequestRepository:
     ) -> ApprovalRequestModel | None:
         return (
             self.session.query(ApprovalRequestModel)
+            .execution_options(populate_existing=True)
             .filter(ApprovalRequestModel.task_id == task_id)
             .filter(ApprovalRequestModel.capability_id == capability_id)
             .filter(ApprovalRequestModel.agent_id == agent_id)

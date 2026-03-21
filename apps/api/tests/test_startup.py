@@ -2,7 +2,7 @@ import hashlib
 import importlib
 
 from fastapi.testclient import TestClient
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 from app.repositories.agent_repo import AgentRepository
 
@@ -44,3 +44,40 @@ def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
         assert model.api_key_hash == hashlib.sha256(bootstrap_key.encode()).hexdigest()
     finally:
         session.close()
+
+
+def test_init_db_backfills_task_playbook_ids_column(monkeypatch, tmp_path):
+    db_path = tmp_path / "startup-legacy.db"
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
+
+    from app import db as db_module
+
+    db_module = importlib.reload(db_module)
+    with db_module.engine.begin() as connection:
+        connection.exec_driver_sql(
+            """
+            CREATE TABLE tasks (
+                id VARCHAR PRIMARY KEY,
+                title VARCHAR NOT NULL,
+                task_type VARCHAR NOT NULL,
+                input JSON,
+                required_capability_ids JSON,
+                lease_allowed BOOLEAN,
+                approval_mode VARCHAR,
+                priority VARCHAR,
+                status VARCHAR,
+                created_by VARCHAR,
+                claimed_by VARCHAR
+            )
+            """
+        )
+
+    db_module.init_db()
+
+    with db_module.engine.connect() as connection:
+        columns = {
+            row[1]
+            for row in connection.execute(text("PRAGMA table_info(tasks)")).all()
+        }
+
+    assert "playbook_ids" in columns

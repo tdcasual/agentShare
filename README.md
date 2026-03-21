@@ -7,18 +7,40 @@ Human-and-agent control plane for secret-backed capabilities, lightweight tasks,
 Start with the operational guide:
 
 - `docs/guides/agent-quickstart.md`
+- `docs/guides/mcp-quickstart.md`
 
-The quickstart is the shortest path from agent key to completed task and includes proxy invoke plus lease examples.
+The quickstarts cover both direct HTTP runtime calls and the MCP tool surface on top of the same control-plane services.
+
+## Phase 2 Surface
+
+- Search playbooks by `task_type`, free-text `q`, and `tag`, then open a full detail view in the console.
+- Attach `playbook_ids` to tasks so operators can publish work together with reusable execution guidance.
+- Enforce approval policy with explicit allow/manual/deny rules over action type, risk, provider, environment, and optional task type.
+- Choose among three adapter paths:
+  - `openai` for chat completions
+  - `github` for repository-scoped REST calls
+  - `generic_http` for other JSON APIs
+- Use the MCP endpoint at `POST /mcp` to expose `list_tasks`, `claim_task`, `complete_task`, `search_playbooks`, `invoke_capability`, and `request_capability_lease`.
 
 ## Runtime Safety Notes
 
 - Proxy invoke now fails closed when an adapter cannot reach its upstream or is misconfigured. The API returns a `502` instead of synthesizing a fake success payload.
+- Successful proxy invoke responses now keep the adapter contract explicit with:
+  - `adapter_type`
+  - `upstream_status`
+  - `result`
 - Lease responses are currently explicit metadata placeholders. They record policy-approved lease context, but do not include raw secret text or a derived session artifact yet.
 - Manual approval gates stop invoke and lease before secret resolution. The gateway creates a pending approval request and returns `409` with `detail.code="approval_required"` until an operator approves the action.
 
 ## Approval Policy
 
 - Tasks and capabilities both support `approval_mode`.
+- Tasks and capabilities also support explicit `approval_rules`.
+- Rule precedence is deterministic:
+  - `deny`
+  - `manual`
+  - `allow`
+  - fallback to `approval_mode`
 - `approval_mode="auto"` means the runtime action can proceed as soon as the normal task, capability, and ownership checks pass.
 - `approval_mode="manual"` means invoke and lease must pause for operator approval. If either the task or the capability is manual, the runtime route returns `409 approval_required` with an `approval_request_id`.
 - Operators can review pending requests in the web console at `/approvals` or through the management API under `/api/approvals`.
@@ -50,6 +72,7 @@ The quickstart is the shortest path from agent key to completed task and include
   - `POST /api/tasks/{task_id}/complete`
   - `POST /api/capabilities/{capability_id}/invoke`
   - `POST /api/capabilities/{capability_id}/lease`
+  - `POST /mcp`
 - Management-session protected routes:
   - `GET /api/session/me`
   - `POST /api/session/logout`
@@ -61,7 +84,37 @@ The quickstart is the shortest path from agent key to completed task and include
   - `POST /api/approvals/{approval_id}/reject`
   - `GET /api/agents`, `POST /api/agents`, `DELETE /api/agents/{agent_id}`
   - `GET /api/runs`
-  - `POST /api/playbooks`, `GET /api/playbooks/search`
+  - `POST /api/playbooks`, `GET /api/playbooks/search`, `GET /api/playbooks/{playbook_id}`
+
+## Playbook Search And Detail
+
+- Management users can filter playbooks with:
+  - `task_type`
+  - `q` (free-text over title and body)
+  - `tag`
+- `GET /api/playbooks/search` now returns:
+  - `items`: matched playbook records
+  - `meta.total`: total matched records
+  - `meta.items_count`: item count returned in this payload
+  - `meta.applied_filters`: normalized filters used by the query
+- The console includes:
+  - list/search view at `/playbooks`
+  - detail view at `/playbooks/{playbook_id}`
+- Tasks can now reference one or more `playbook_ids` so operators can publish work together with reusable execution guidance.
+- Agents can search the same knowledge surface through the MCP `search_playbooks` tool without needing a second business-logic path.
+
+## Adapter Choices
+
+- `openai`
+  - Use for chat completions against the OpenAI-compatible `/chat/completions` flow.
+- `github`
+  - Use for GitHub REST API calls backed by a GitHub token.
+  - Typical `adapter_config`:
+    - `{"method":"GET","path":"/repos/{owner}/{repo}/issues"}`
+- `generic_http`
+  - Use for any remaining JSON API where a first-class adapter does not exist yet.
+  - Typical `adapter_config`:
+    - `{"url":"https://api.example.com/v1/run","method":"POST"}`
 
 ## Quick Start
 

@@ -14,6 +14,7 @@ class CapabilityModel(Base, TimestampMixin):
     lease_ttl_seconds: Mapped[int] = mapped_column(Integer, default=60)
     risk_level: Mapped[str] = mapped_column(String, nullable=False)
     approval_mode: Mapped[str] = mapped_column(String, default="auto")
+    approval_rules: Mapped[list] = mapped_column(JSON, default=list)
     allowed_audience: Mapped[list] = mapped_column(JSON, default=list)
     required_provider: Mapped[str | None] = mapped_column(String, nullable=True)
     required_provider_scopes: Mapped[list] = mapped_column(JSON, default=list)

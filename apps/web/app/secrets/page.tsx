@@ -30,6 +30,7 @@ export default async function SecretsPage({ searchParams }: PageProps) {
       eyebrow="Secrets"
       title="Put raw credentials behind references, policy, and audit."
       subtitle="The app layer should know names, scopes, and bindings. The secret backend should hold the sensitive plaintext."
+      activeHref="/secrets"
     >
       {created ? (
         <section className="notice success" role="status">
@@ -61,28 +62,63 @@ export default async function SecretsPage({ searchParams }: PageProps) {
       >
         {secretsNotice.message}
       </section>
-      <div className="grid">
-        <SecretsForm action={createSecretAction} />
-        <section className="panel stack">
+      <div className="workspace-grid">
+        <div className="workspace-main">
+          <section className="panel feature-panel stack">
+            <div className="section-intro-grid">
+              <div>
+                <div className="kicker">Vault posture</div>
+                <h2>Store the credential once, then bind everything else to metadata and policy.</h2>
+                <p className="muted section-intro">
+                  This page should feel more like registering a controlled asset than pasting a
+                  token into a dashboard. Operators define provider, scope, and environment here so
+                  later capability bindings stay narrow.
+                </p>
+              </div>
+              <div className="aside-note">
+                <strong>{secrets.length === 0 ? "No secrets stored yet" : `${secrets.length} references on file`}</strong>
+                <span className="muted">
+                  The backend keeps the sensitive value. The console only needs the contract around
+                  it.
+                </span>
+              </div>
+            </div>
+          </section>
+          <SecretsForm action={createSecretAction} />
+        </div>
+        <div className="workspace-side">
+          <section className="panel stack">
+            <div>
+              <div className="kicker">Operator guidance</div>
+              <h2>Keep each secret narrow and legible</h2>
+              <p className="muted">
+                Prefer one provider and one environment per record. If a token has broad scope,
+                make that obvious in the display name before you bind it into capabilities.
+              </p>
+            </div>
+          </section>
+          <section className="panel stack">
           <div>
             <div className="kicker">Inventory</div>
             <h2>Current secret references</h2>
           </div>
           {secrets.length > 0 ? (
-            <ul className="list">
+            <ul className="list inventory-list">
               {secrets.map((secret) => (
                 <li key={secret.id} className="list-item">
-                  <strong>{secret.display_name}</strong>
-                  <span className="muted">
-                    {secret.kind} · {secret.provider}
-                  </span>
+                  <div className="inventory-meta">
+                    <strong>{secret.display_name}</strong>
+                    <span className="muted">
+                      {secret.kind} · {secret.provider}
+                    </span>
+                    <code>{secret.backend_ref}</code>
+                  </div>
                   <div className="chip-row">
                     {secret.environment ? <span className="chip">{secret.environment}</span> : null}
                     {secret.provider_scopes.map((scope) => (
                       <span key={scope} className="chip">{scope}</span>
                     ))}
                   </div>
-                  <span className="muted">{secret.backend_ref}</span>
                 </li>
               ))}
             </ul>
@@ -92,7 +128,8 @@ export default async function SecretsPage({ searchParams }: PageProps) {
               rest of the platform.
             </div>
           )}
-        </section>
+          </section>
+        </div>
       </div>
     </NavShell>
   );

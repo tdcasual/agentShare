@@ -31,6 +31,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
       eyebrow="Management login"
       title="Establish a human session for console management."
       subtitle="Use the bootstrap management credential once to mint a short-lived session cookie. Runtime agent keys stay separate."
+      activeHref="/login"
     >
       {loggedOut ? (
         <section className="notice success" role="status">
@@ -50,7 +51,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
                   : "The management session could not be created."}
         </section>
       ) : null}
-      <section className="panel stack" style={{ maxWidth: "30rem" }}>
+      <section className="panel stack panel-limit">
         <div>
           <div className="kicker">Session exchange</div>
           <h2>Log in to management routes</h2>

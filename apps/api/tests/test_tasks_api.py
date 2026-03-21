@@ -26,6 +26,47 @@ def test_agent_can_claim_eligible_task(client, management_client):
     assert response.json()["claimed_by"] == "test-agent"
 
 
+def test_management_can_publish_task_with_playbook_references(management_client):
+    playbook = management_client.post(
+        "/api/playbooks",
+        json={
+            "title": "QQ config sync playbook",
+            "task_type": "config_sync",
+            "body": "Validate provider state and sync it.",
+            "tags": ["qq"],
+        },
+    ).json()
+
+    response = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Sync provider config",
+            "task_type": "config_sync",
+            "input": {"provider": "qq"},
+            "required_capability_ids": ["qq.account.configure"],
+            "playbook_ids": [playbook["id"]],
+            "lease_allowed": False,
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["playbook_ids"] == [playbook["id"]]
+
+
+def test_management_cannot_publish_task_with_missing_playbook_references(management_client):
+    response = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Broken task",
+            "task_type": "config_sync",
+            "playbook_ids": ["playbook-missing"],
+        },
+    )
+
+    assert response.status_code == 400
+    assert "playbook" in response.json()["detail"].lower()
+
+
 def test_agent_can_complete_claimed_task(client, management_client):
     created = management_client.post(
         "/api/tasks",

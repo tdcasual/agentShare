@@ -7,12 +7,17 @@ test("homepage links to secrets and tasks", async ({ page }) => {
 
   const nav = page.getByLabel("Primary");
 
+  await expect(nav.getByRole("link", { name: "Quickstart", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Secrets", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Tasks", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Agent quickstart" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "HTTP quickstart" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "MCP quickstart" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Swagger UI" })).toBeVisible();
   await expect(page.getByRole("link", { name: "OpenAPI JSON" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Browse playbooks" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Review approvals" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Compare adapters" })).toBeVisible();
 });
 
 test("management pages redirect to login when session is missing", async ({ page }) => {

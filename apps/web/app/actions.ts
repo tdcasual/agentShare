@@ -36,6 +36,19 @@ function parseListField(value: FormDataEntryValue | null): string[] {
     .filter((item) => item.length > 0);
 }
 
+function parseJsonArrayField(value: FormDataEntryValue | null): Record<string, unknown>[] {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) {
+    return [];
+  }
+
+  const parsed = JSON.parse(raw);
+  if (!Array.isArray(parsed)) {
+    throw new Error("Expected a JSON array");
+  }
+  return parsed as Record<string, unknown>[];
+}
+
 function classifyManagementError(error: unknown) {
   if (error instanceof ManagementRequestError) {
     if (error.status === 400) {
@@ -182,6 +195,7 @@ export async function createTaskAction(formData: FormData) {
   const taskType = String(formData.get("task_type") || "").trim();
   const leaseAllowed = String(formData.get("lease_allowed") || "false") === "true";
   const approvalMode = String(formData.get("approval_mode") || "auto").trim();
+  const playbookIds = parseListField(formData.get("playbook_ids"));
 
   if (!title || !taskType) {
     redirect("/tasks?error=missing-fields");
@@ -194,16 +208,28 @@ export async function createTaskAction(formData: FormData) {
     redirect("/tasks?error=invalid-input");
   }
 
+  let approvalRules: Record<string, unknown>[];
+  try {
+    approvalRules = parseJsonArrayField(formData.get("approval_rules"));
+  } catch {
+    redirect("/tasks?error=invalid-policy");
+  }
+
   try {
     await postJson("/api/tasks", {
       title,
       task_type: taskType,
       input,
       required_capability_ids: [],
+      playbook_ids: playbookIds,
       lease_allowed: leaseAllowed,
       approval_mode: approvalMode,
+      approval_rules: approvalRules,
     });
   } catch (error) {
+    if (error instanceof ManagementRequestError && error.status === 400) {
+      redirect("/tasks?error=invalid-playbooks");
+    }
     redirect(`/tasks?error=${classifyManagementError(error)}`);
   }
 
@@ -239,11 +265,14 @@ export async function createCapabilityAction(formData: FormData) {
   const allowedMode = String(formData.get("allowed_mode") || "proxy_only").trim();
   const riskLevel = String(formData.get("risk_level") || "medium").trim();
   const approvalMode = String(formData.get("approval_mode") || "auto").trim();
+  const adapterType = String(formData.get("adapter_type") || "generic_http").trim();
   const leaseTtlRaw = String(formData.get("lease_ttl_seconds") || "60").trim();
   const requiredProvider = String(formData.get("required_provider") || "").trim();
   const requiredProviderScopes = parseListField(formData.get("required_provider_scopes"));
   const allowedEnvironments = parseListField(formData.get("allowed_environments"));
   const leaseTtlSeconds = Number.parseInt(leaseTtlRaw, 10);
+  let approvalRules: Record<string, unknown>[];
+  let adapterConfig: Record<string, unknown>;
 
   if (
     !name ||
@@ -256,16 +285,31 @@ export async function createCapabilityAction(formData: FormData) {
   }
 
   try {
+    approvalRules = parseJsonArrayField(formData.get("approval_rules"));
+  } catch {
+    redirect("/capabilities?error=invalid-policy");
+  }
+
+  try {
+    adapterConfig = parseJsonField(formData.get("adapter_config"), {});
+  } catch {
+    redirect("/capabilities?error=invalid-adapter-config");
+  }
+
+  try {
     await postJson("/api/capabilities", {
       name,
       secret_id: secretId,
       allowed_mode: allowedMode,
       risk_level: riskLevel,
       approval_mode: approvalMode,
+      approval_rules: approvalRules,
       lease_ttl_seconds: leaseTtlSeconds,
       required_provider: requiredProvider,
       required_provider_scopes: requiredProviderScopes,
       allowed_environments: allowedEnvironments,
+      adapter_type: adapterType,
+      adapter_config: adapterConfig,
     });
   } catch (error) {
     redirect(`/capabilities?error=${classifyManagementError(error)}`);

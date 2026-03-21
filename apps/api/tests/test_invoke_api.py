@@ -55,6 +55,8 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client, management
     body = response.json()
     assert body["mode"] == "proxy"
     assert body["capability_id"] == capability["id"]
+    assert body["adapter_type"] == "generic_http"
+    assert body["upstream_status"] == 200
     assert "sk-live-example" not in str(body)
     assert body["result"] == {"result": "ok"}
 
@@ -109,6 +111,7 @@ def test_proxy_invocation_still_returns_success_when_audit_write_fails(mock_post
     )
 
     assert response.status_code == 200
+    assert response.json()["upstream_status"] == 200
     assert response.json()["result"] == {"result": "ok"}
 
 
@@ -171,6 +174,145 @@ def test_proxy_invocation_requires_manual_approval_returns_409(
     mock_post.assert_not_called()
 
 
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_policy_rule_requires_manual_approval_even_when_approval_modes_are_auto(
+    mock_post,
+    client,
+    management_client,
+    db_session,
+):
+    mock_post.return_value = MagicMock()
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+            "environment": "production",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke",
+            "secret_id": secret["id"],
+            "risk_level": "high",
+            "approval_mode": "auto",
+            "approval_rules": [
+                {
+                    "decision": "manual",
+                    "reason": "High-risk production invokes require review",
+                    "action_types": ["invoke"],
+                    "risk_levels": ["high"],
+                    "providers": ["openai"],
+                    "environments": ["production"],
+                    "task_types": ["prompt_run"],
+                }
+            ],
+            "required_provider": "openai",
+            "allowed_environments": ["production"],
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run",
+            "task_type": "prompt_run",
+            "approval_mode": "auto",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 409
+    detail = response.json()["detail"]
+    assert detail["code"] == "approval_required"
+    assert detail["policy_reason"] == "High-risk production invokes require review"
+    assert detail["policy_source"] == "capability"
+    approval = ApprovalRequestRepository(db_session).get(detail["approval_request_id"])
+    assert approval is not None
+    assert approval.policy_reason == "High-risk production invokes require review"
+    mock_post.assert_not_called()
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_policy_rule_can_deny_invoke_without_creating_approval(
+    mock_post,
+    client,
+    management_client,
+    db_session,
+):
+    mock_post.return_value = MagicMock()
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+            "environment": "production",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke",
+            "secret_id": secret["id"],
+            "risk_level": "high",
+            "approval_rules": [
+                {
+                    "decision": "deny",
+                    "reason": "Production invoke is denied for this capability",
+                    "action_types": ["invoke"],
+                    "providers": ["openai"],
+                    "environments": ["production"],
+                }
+            ],
+            "required_provider": "openai",
+            "allowed_environments": ["production"],
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 403
+    detail = response.json()["detail"]
+    assert detail["code"] == "policy_denied"
+    assert detail["policy_reason"] == "Production invoke is denied for this capability"
+    assert ApprovalRequestRepository(db_session).list_all() == []
+    mock_post.assert_not_called()
 @patch("app.services.adapters.generic_http.httpx.post")
 def test_approved_request_past_expiry_is_blocked_again(mock_post, client, management_client, db_session):
     mock_response = MagicMock()

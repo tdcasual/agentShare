@@ -4,6 +4,8 @@ from typing import Any
 
 import httpx
 
+from app.services.adapters.base import normalize_json_response
+
 OPENAI_DEFAULT_BASE = "https://api.openai.com/v1"
 
 
@@ -38,5 +40,4 @@ class OpenAIAdapter:
             },
             timeout=60,
         )
-        resp.raise_for_status()
-        return {"status_code": resp.status_code, "body": resp.json()}
+        return normalize_json_response("openai", resp)

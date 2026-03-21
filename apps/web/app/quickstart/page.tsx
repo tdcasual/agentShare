@@ -66,7 +66,8 @@ export default function QuickstartPage() {
     <NavShell
       eyebrow="Quickstart"
       title="Teach a new agent the exact control-plane happy path."
-      subtitle="Use this page for the call order. Use Swagger UI and raw OpenAPI for machine-readable request and response details."
+      subtitle="Use this page for the call order. Start with HTTP when you want direct API control, or jump to MCP when the agent should discover tools dynamically."
+      activeHref="/quickstart"
     >
       <section className="panel stack">
         <div>
@@ -82,6 +83,9 @@ export default function QuickstartPage() {
           <Link className="button-link secondary" href="/agents">
             Create or inspect agents
           </Link>
+          <a className="button-link secondary" href="#mcp-quickstart">
+            MCP quickstart
+          </a>
           {apiDocsLinks ? (
             <>
               <a className="button-link" href={apiDocsLinks.swaggerUrl} target="_blank" rel="noreferrer">
@@ -96,28 +100,37 @@ export default function QuickstartPage() {
           )}
         </div>
       </section>
-      <section className="grid" style={{ marginTop: 18 }}>
+      <section className="grid section-space">
         {steps.map((step) => (
           <article key={step.title} className="panel stack">
             <div>
               <div className="kicker">Happy path</div>
               <h2>{step.title}</h2>
             </div>
-            <pre
-              style={{
-                margin: 0,
-                padding: "1rem",
-                borderRadius: 18,
-                overflowX: "auto",
-                background: "rgba(45, 32, 23, 0.08)",
-              }}
-            >
+            <pre className="code-block">
               <code>{step.code}</code>
             </pre>
           </article>
         ))}
       </section>
-      <section className="panel stack" style={{ marginTop: 18 }}>
+      <section id="mcp-quickstart" className="panel stack section-space">
+        <div>
+          <div className="kicker">MCP quickstart</div>
+          <h2>Expose the same runtime flow through MCP tools</h2>
+          <p className="muted">
+            The MCP endpoint reuses the same agent bearer key and preserves runtime semantics such
+            as `403 policy_denied` and `409 approval_required`.
+          </p>
+        </div>
+        <pre className="code-block">
+          <code>{`curl -sS \\
+  -H "Authorization: Bearer $ACP_AGENT_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_tasks","arguments":{}}}' \\
+  "${apiBase}/mcp"`}</code>
+        </pre>
+      </section>
+      <section className="panel stack section-space">
         <div>
           <div className="kicker">Failure codes</div>
           <h2>What agents should infer from common failures</h2>

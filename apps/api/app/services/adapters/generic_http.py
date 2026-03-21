@@ -3,6 +3,8 @@ from typing import Any
 
 import httpx
 
+from app.services.adapters.base import normalize_json_response
+
 
 class GenericHttpAdapter:
     """Adapter that proxies requests to an arbitrary HTTP endpoint,
@@ -37,5 +39,4 @@ class GenericHttpAdapter:
                 method, url=url, json=parameters, headers=headers, timeout=30
             )
 
-        resp.raise_for_status()
-        return {"status_code": resp.status_code, "body": resp.json()}
+        return normalize_json_response("generic_http", resp)

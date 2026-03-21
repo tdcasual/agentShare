@@ -91,6 +91,42 @@ def test_list_approvals_supports_status_filter_and_newest_first(management_clien
     assert [item["id"] for item in rejected_only.json()["items"]] == [older.id]
 
 
+def test_list_approvals_exposes_policy_reason_and_source(management_client, db_session):
+    pending = require_runtime_approval(
+        session=db_session,
+        task_id="task-policy",
+        capability_id="capability-policy",
+        agent_id="agent-policy",
+        action_type="invoke",
+        task_approval_mode="auto",
+        capability_approval_mode="auto",
+        task_rules=[],
+        capability_rules=[
+            {
+                "decision": "manual",
+                "reason": "Production invoke requires operator review",
+                "action_types": ["invoke"],
+                "providers": ["openai"],
+            }
+        ],
+        context={
+            "action_type": "invoke",
+            "risk_level": "high",
+            "provider": "openai",
+            "environment": "production",
+            "task_type": "prompt_run",
+            "capability_name": "openai.chat.invoke",
+        },
+    )
+    assert pending is not None
+
+    listed = management_client.get("/api/approvals")
+    assert listed.status_code == 200
+    approval = listed.json()["items"][0]
+    assert approval["policy_reason"] == "Production invoke requires operator review"
+    assert approval["policy_source"] == "capability"
+
+
 def test_approval_decision_routes_update_state_and_handle_errors(management_client, db_session):
     to_approve = _create_pending_approval(
         db_session,

@@ -25,26 +25,25 @@ export function AgentKeyDisplay({ apiKey, apiBaseUrl }: { apiKey: string; apiBas
     <div
       role="alert"
       aria-live="polite"
-      className="card"
-      style={{ border: "2px solid var(--color-warning, #f59e0b)", marginBottom: "1rem" }}
+      className="card warning-card"
     >
       <h3>New Agent API Key</h3>
       <p className="muted">
         Copy this key now. It will not be shown again.
       </p>
-      <code style={{ wordBreak: "break-all", display: "block", padding: "0.5rem", background: "var(--color-surface, #1e1e1e)" }}>
+      <code className="key-value">
         {apiKey}
       </code>
-      <button onClick={handleCopy} style={{ marginTop: "0.5rem" }}>
+      <button onClick={handleCopy}>
         {copied ? "Copied!" : "Copy to clipboard"}
       </button>
-      <p className="muted" style={{ marginTop: "0.75rem" }}>
+      <p className="muted">
         Next step: verify the key with <code>GET /api/agents/me</code>.
       </p>
-      <pre style={{ margin: 0, padding: "0.75rem", borderRadius: "12px", background: "var(--panel-strong, #fffaf2)", overflowX: "auto" }}>
+      <pre className="code-block">
         <code>{nextStepSnippet}</code>
       </pre>
-      <Link className="button-link secondary" href="/quickstart" style={{ marginTop: "0.75rem" }}>
+      <Link className="button-link secondary" href="/quickstart">
         Open quickstart
       </Link>
     </div>

@@ -51,6 +51,8 @@ class ApprovalResponse(BaseModel):
             "action_type": "invoke",
             "status": "pending",
             "reason": "",
+            "policy_reason": "High-risk production invokes require review",
+            "policy_source": "capability",
             "requested_by": "agent-1",
             "decided_by": None,
             "expires_at": None,
@@ -64,6 +66,8 @@ class ApprovalResponse(BaseModel):
     action_type: ApprovalActionType
     status: ApprovalStatus
     reason: str
+    policy_reason: str
+    policy_source: str | None
     requested_by: str
     decided_by: str | None
     expires_at: datetime | None

@@ -12,6 +12,7 @@ from app.routes.approvals import router as approvals_router
 from app.routes.capabilities import router as capabilities_router
 from app.routes.invoke import router as invoke_router
 from app.routes.leases import router as leases_router
+from app.mcp.server import router as mcp_router
 from app.routes.playbooks import router as playbooks_router
 from app.routes.runs import router as runs_router
 from app.routes.session import router as session_router
@@ -88,5 +89,6 @@ app.include_router(capabilities_router)
 app.include_router(tasks_router)
 app.include_router(invoke_router)
 app.include_router(leases_router)
+app.include_router(mcp_router)
 app.include_router(runs_router)
 app.include_router(playbooks_router)

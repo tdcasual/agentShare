@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.orm.playbook import PlaybookModel
@@ -20,9 +21,21 @@ class PlaybookRepository:
     def list_all(self) -> list[PlaybookModel]:
         return list(self.session.query(PlaybookModel).all())
 
-    def search_by_task_type(self, task_type: str) -> list[PlaybookModel]:
-        return list(
-            self.session.query(PlaybookModel)
-            .filter(PlaybookModel.task_type == task_type)
-            .all()
-        )
+    def search(
+        self,
+        *,
+        task_type: str | None = None,
+        query: str | None = None,
+    ) -> list[PlaybookModel]:
+        statement = self.session.query(PlaybookModel)
+        if task_type:
+            statement = statement.filter(PlaybookModel.task_type == task_type)
+        if query:
+            pattern = f"%{query}%"
+            statement = statement.filter(
+                or_(
+                    PlaybookModel.title.ilike(pattern),
+                    PlaybookModel.body.ilike(pattern),
+                )
+            )
+        return list(statement.all())

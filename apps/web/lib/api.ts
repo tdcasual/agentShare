@@ -19,10 +19,13 @@ export type Capability = {
   allowed_mode: string;
   risk_level: string;
   approval_mode: string;
+  approval_rules: Array<Record<string, unknown>>;
   lease_ttl_seconds: number;
   required_provider: string;
   required_provider_scopes: string[];
   allowed_environments: string[];
+  adapter_type: string;
+  adapter_config: Record<string, unknown>;
 };
 
 export type Task = {
@@ -32,6 +35,8 @@ export type Task = {
   status: string;
   lease_allowed: boolean;
   approval_mode: string;
+  approval_rules: Array<Record<string, unknown>>;
+  playbook_ids: string[];
 };
 
 export type ApprovalRequest = {
@@ -42,6 +47,8 @@ export type ApprovalRequest = {
   action_type: string;
   status: string;
   reason: string;
+  policy_reason: string;
+  policy_source: string | null;
   requested_by: string;
   decided_by: string | null;
   expires_at: string | null;
@@ -66,7 +73,30 @@ export type Playbook = {
   id: string;
   title: string;
   task_type: string;
+  body: string;
   tags: string[];
+};
+
+export type PlaybookSearchMeta = {
+  total: number;
+  items_count: number;
+  applied_filters: Record<string, string>;
+};
+
+export type PlaybookSearchFilters = {
+  taskType?: string;
+  q?: string;
+  tag?: string;
+};
+
+export type PlaybookCollectionResult = CollectionResult<Playbook> & {
+  meta: PlaybookSearchMeta;
+};
+
+export type ItemResult<T> = {
+  item: T | null;
+  source: CollectionSource;
+  error?: string;
 };
 
 export type CollectionSource = "live" | "demo" | "disconnected" | "error";
@@ -99,10 +129,13 @@ const demoFallback = {
       allowed_mode: "proxy_only",
       risk_level: "medium",
       approval_mode: "auto",
+      approval_rules: [],
       lease_ttl_seconds: 60,
       required_provider: "openai",
       required_provider_scopes: ["responses.read"],
       allowed_environments: ["demo"],
+      adapter_type: "openai",
+      adapter_config: { model: "gpt-4.1-mini" },
     },
   ] satisfies Capability[],
   tasks: [
@@ -113,6 +146,8 @@ const demoFallback = {
       status: "pending",
       lease_allowed: false,
       approval_mode: "auto",
+      approval_rules: [],
+      playbook_ids: ["playbook-demo-1"],
     },
   ] satisfies Task[],
   approvals: [] satisfies ApprovalRequest[],
@@ -130,6 +165,7 @@ const demoFallback = {
       id: "playbook-demo-1",
       title: "Demo prompt run",
       task_type: "prompt_run",
+      body: "Validate prompt input, invoke the capability, then store a short run summary.",
       tags: ["demo"],
     },
   ] satisfies Playbook[],
@@ -291,5 +327,138 @@ export async function getAgents() {
 }
 
 export async function getPlaybooks() {
-  return getCollection("/api/playbooks/search", demoFallback.playbooks);
+  return getPlaybookSearch();
+}
+
+function getDefaultPlaybookMeta(): PlaybookSearchMeta {
+  return {
+    total: 0,
+    items_count: 0,
+    applied_filters: {},
+  };
+}
+
+export async function getPlaybookSearch(
+  filters: PlaybookSearchFilters = {},
+): Promise<PlaybookCollectionResult> {
+  const params = new URLSearchParams();
+  if (filters.taskType) {
+    params.set("task_type", filters.taskType);
+  }
+  if (filters.q) {
+    params.set("q", filters.q);
+  }
+  if (filters.tag) {
+    params.set("tag", filters.tag);
+  }
+
+  const path = params.size > 0
+    ? `/api/playbooks/search?${params.toString()}`
+    : "/api/playbooks/search";
+  const apiBase = getApiBaseUrl();
+  if (!apiBase) {
+    const disconnected = disconnectedResult(demoFallback.playbooks);
+    return {
+      ...disconnected,
+      meta: {
+        total: disconnected.items.length,
+        items_count: disconnected.items.length,
+        applied_filters: {},
+      },
+    };
+  }
+
+  try {
+    const headers = await getManagementSessionHeaders();
+    const response = await fetch(`${apiBase}${path}`, {
+      cache: "no-store",
+      headers,
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      return {
+        items: [],
+        source: "error",
+        error: `${response.status} ${detail || response.statusText}`.trim(),
+        meta: getDefaultPlaybookMeta(),
+      };
+    }
+
+    const payload = (await response.json()) as {
+      items?: Playbook[];
+      meta?: Partial<PlaybookSearchMeta>;
+    };
+    const items = Array.isArray(payload.items) ? payload.items : [];
+    const meta = payload.meta ?? {};
+    return {
+      items,
+      source: "live",
+      meta: {
+        total: typeof meta.total === "number" ? meta.total : items.length,
+        items_count: typeof meta.items_count === "number" ? meta.items_count : items.length,
+        applied_filters: typeof meta.applied_filters === "object" && meta.applied_filters
+          ? meta.applied_filters
+          : {},
+      },
+    };
+  } catch (error) {
+    return {
+      items: [],
+      source: "error",
+      error: error instanceof Error ? error.message : "Failed to reach API backend.",
+      meta: getDefaultPlaybookMeta(),
+    };
+  }
+}
+
+export async function getPlaybookById(playbookId: string): Promise<ItemResult<Playbook>> {
+  const apiBase = getApiBaseUrl();
+  if (!apiBase) {
+    if (isDemoModeEnabled()) {
+      const demoItem = demoFallback.playbooks.find((item) => item.id === playbookId) ?? null;
+      return {
+        item: demoItem,
+        source: "demo",
+      };
+    }
+    return {
+      item: null,
+      source: "disconnected",
+      error: "AGENT_CONTROL_PLANE_API_URL is not configured.",
+    };
+  }
+
+  try {
+    const headers = await getManagementSessionHeaders();
+    const response = await fetch(`${apiBase}/api/playbooks/${encodeURIComponent(playbookId)}`, {
+      cache: "no-store",
+      headers,
+    });
+    if (response.status === 404) {
+      return {
+        item: null,
+        source: "error",
+        error: "404 playbook not found",
+      };
+    }
+    if (!response.ok) {
+      const detail = await response.text();
+      return {
+        item: null,
+        source: "error",
+        error: `${response.status} ${detail || response.statusText}`.trim(),
+      };
+    }
+    return {
+      item: (await response.json()) as Playbook,
+      source: "live",
+    };
+  } catch (error) {
+    return {
+      item: null,
+      source: "error",
+      error: error instanceof Error ? error.message : "Failed to reach API backend.",
+    };
+  }
 }

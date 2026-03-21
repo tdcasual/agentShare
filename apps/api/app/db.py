@@ -45,6 +45,23 @@ def init_db() -> None:
                 "required_provider": "required_provider VARCHAR",
                 "required_provider_scopes": "required_provider_scopes JSON",
                 "allowed_environments": "allowed_environments JSON",
+                "approval_rules": "approval_rules JSON",
+            },
+        )
+    if "tasks" in table_names:
+        _ensure_columns(
+            "tasks",
+            {
+                "playbook_ids": "playbook_ids JSON",
+                "approval_rules": "approval_rules JSON",
+            },
+        )
+    if "approval_requests" in table_names:
+        _ensure_columns(
+            "approval_requests",
+            {
+                "policy_reason": "policy_reason VARCHAR",
+                "policy_source": "policy_source VARCHAR",
             },
         )
 

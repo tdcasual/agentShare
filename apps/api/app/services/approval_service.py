@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.orm.approval_request import ApprovalRequestModel
 from app.repositories.approval_repo import ApprovalRequestRepository
 from app.services.audit_service import write_audit_event
+from app.services.policy_service import PolicyContext, evaluate_policy
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,25 @@ class ApprovalRequiredError(RuntimeError):
             "approval_request_id": self.approval.id,
             "status": self.approval.status,
             "action_type": self.action_type,
+            "policy_reason": self.approval.policy_reason,
+            "policy_source": self.approval.policy_source,
+        }
+
+
+class PolicyDeniedError(PermissionError):
+    def __init__(self, *, action_type: str, policy_reason: str, policy_source: str) -> None:
+        self.action_type = action_type
+        self.policy_reason = policy_reason
+        self.policy_source = policy_source
+        super().__init__(policy_reason)
+
+    @property
+    def detail(self) -> dict:
+        return {
+            "code": "policy_denied",
+            "action_type": self.action_type,
+            "policy_reason": self.policy_reason,
+            "policy_source": self.policy_source,
         }
 
 
@@ -56,10 +76,26 @@ def require_runtime_approval(
     action_type: str,
     task_approval_mode: str,
     capability_approval_mode: str,
+    task_rules: list[dict] | None = None,
+    capability_rules: list[dict] | None = None,
+    context: PolicyContext | dict | None = None,
 ) -> ApprovalRequestModel | None:
     _validate_action_type(action_type)
-    if not approval_required(task_approval_mode, capability_approval_mode):
+    outcome = evaluate_policy(
+        task_rules=task_rules or [],
+        capability_rules=capability_rules or [],
+        context=_coerce_context(context, action_type),
+        task_approval_mode=task_approval_mode,
+        capability_approval_mode=capability_approval_mode,
+    )
+    if outcome.decision == "allow":
         return None
+    if outcome.decision == "deny":
+        raise PolicyDeniedError(
+            action_type=action_type,
+            policy_reason=outcome.reason,
+            policy_source=outcome.source,
+        )
 
     repo = ApprovalRequestRepository(session)
     latest = repo.get_latest_for_scope(
@@ -75,6 +111,8 @@ def require_runtime_approval(
             capability_id=capability_id,
             agent_id=agent_id,
             action_type=action_type,
+            policy_reason=outcome.reason,
+            policy_source=outcome.source,
         )
 
     latest = expire_request_if_needed(session=session, approval=latest)
@@ -89,6 +127,8 @@ def require_runtime_approval(
         capability_id=capability_id,
         agent_id=agent_id,
         action_type=action_type,
+        policy_reason=outcome.reason,
+        policy_source=outcome.source,
     )
 
 
@@ -185,6 +225,8 @@ def approval_to_dict(model: ApprovalRequestModel) -> dict:
         "action_type": model.action_type,
         "status": model.status,
         "reason": model.reason,
+        "policy_reason": model.policy_reason,
+        "policy_source": model.policy_source,
         "requested_by": model.requested_by,
         "decided_by": model.decided_by,
         "expires_at": model.expires_at,
@@ -216,6 +258,8 @@ def _create_pending_request(
     capability_id: str,
     agent_id: str,
     action_type: str,
+    policy_reason: str,
+    policy_source: str,
 ) -> ApprovalRequestModel:
     model = ApprovalRequestModel(
         id=_new_approval_id(),
@@ -225,6 +269,8 @@ def _create_pending_request(
         action_type=action_type,
         status="pending",
         reason="Awaiting manual approval",
+        policy_reason=policy_reason,
+        policy_source=policy_source,
         requested_by=agent_id,
     )
     created = repo.create(model)
@@ -237,6 +283,28 @@ def _create_pending_request(
         "requested_by": created.requested_by,
     })
     return created
+
+
+def _coerce_context(context: PolicyContext | dict | None, action_type: str) -> PolicyContext:
+    if isinstance(context, PolicyContext):
+        return context
+    if isinstance(context, dict):
+        return PolicyContext(
+            action_type=context.get("action_type", action_type),
+            risk_level=context.get("risk_level", ""),
+            provider=context.get("provider"),
+            environment=context.get("environment"),
+            task_type=context.get("task_type", ""),
+            capability_name=context.get("capability_name", ""),
+        )
+    return PolicyContext(
+        action_type=action_type,
+        risk_level="",
+        provider=None,
+        environment=None,
+        task_type="",
+        capability_name="",
+    )
 
 
 def _validate_mode(mode: str, *, field_name: str) -> None:

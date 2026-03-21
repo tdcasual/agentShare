@@ -18,11 +18,13 @@ def get_adapter(name: str) -> "CapabilityAdapter":
 
 
 def _bootstrap_defaults() -> None:
+    from app.services.adapters.github_adapter import GitHubAdapter
     from app.services.adapters.generic_http import GenericHttpAdapter
     from app.services.adapters.openai_adapter import OpenAIAdapter
 
     register_adapter("generic_http", GenericHttpAdapter())
     register_adapter("openai", OpenAIAdapter())
+    register_adapter("github", GitHubAdapter())
 
 
 _bootstrap_defaults()

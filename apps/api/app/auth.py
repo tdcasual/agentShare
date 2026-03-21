@@ -33,19 +33,12 @@ def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-def require_agent(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-    session: Session = Depends(get_db),
-) -> AgentIdentity:
-    if credentials is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
-
-    api_key = credentials.credentials
+def resolve_agent_from_api_key(api_key: str, session: Session) -> AgentIdentity | None:
     key_hash = _hash_key(api_key)
     repo = AgentRepository(session)
     agent_model = repo.find_by_api_key_hash(key_hash)
     if agent_model is None or agent_model.status != "active":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
+        return None
 
     return AgentIdentity(
         id=agent_model.id,
@@ -56,6 +49,20 @@ def require_agent(
         allowed_task_types=agent_model.allowed_task_types or [],
         risk_tier=agent_model.risk_tier,
     )
+
+
+def require_agent(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    session: Session = Depends(get_db),
+) -> AgentIdentity:
+    if credentials is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
+
+    agent = resolve_agent_from_api_key(credentials.credentials, session)
+    if agent is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
+
+    return agent
 
 
 def require_bootstrap_agent(agent: AgentIdentity = Depends(require_agent)) -> AgentIdentity:

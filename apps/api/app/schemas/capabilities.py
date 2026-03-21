@@ -2,6 +2,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.policy import ApprovalRule
+
 
 class CapabilityCreate(BaseModel):
     model_config = ConfigDict(json_schema_extra={
@@ -12,6 +14,16 @@ class CapabilityCreate(BaseModel):
             "allowed_mode": "proxy_or_lease",
             "lease_ttl_seconds": 120,
             "approval_mode": "auto",
+            "approval_rules": [
+                {
+                    "decision": "manual",
+                    "reason": "High-risk production invokes require review",
+                    "action_types": ["invoke"],
+                    "risk_levels": ["high"],
+                    "providers": ["openai"],
+                    "environments": ["production"],
+                }
+            ],
             "allowed_audience": ["agent"],
             "required_provider": "github",
             "required_provider_scopes": ["repo"],
@@ -35,6 +47,10 @@ class CapabilityCreate(BaseModel):
     approval_mode: Literal["auto", "manual"] = Field(
         default="auto",
         description="Approval workflow mode for this capability.",
+    )
+    approval_rules: list[ApprovalRule] = Field(
+        default_factory=list,
+        description="Optional policy rules evaluated before falling back to approval_mode.",
     )
     allowed_audience: list[str] = Field(
         default_factory=list,
@@ -69,6 +85,16 @@ class CapabilityResponse(BaseModel):
             "allowed_mode": "proxy_or_lease",
             "lease_ttl_seconds": 120,
             "approval_mode": "auto",
+            "approval_rules": [
+                {
+                    "decision": "manual",
+                    "reason": "High-risk production invokes require review",
+                    "action_types": ["invoke"],
+                    "risk_levels": ["high"],
+                    "providers": ["openai"],
+                    "environments": ["production"],
+                }
+            ],
             "allowed_audience": ["agent"],
             "required_provider": "github",
             "required_provider_scopes": ["repo"],
@@ -85,6 +111,7 @@ class CapabilityResponse(BaseModel):
     allowed_mode: str
     lease_ttl_seconds: int
     approval_mode: Literal["auto", "manual"]
+    approval_rules: list[ApprovalRule]
     allowed_audience: list[str]
     required_provider: str | None
     required_provider_scopes: list[str]

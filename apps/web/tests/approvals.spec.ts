@@ -174,9 +174,72 @@ test("task and capability forms expose approval mode selectors", async ({ page }
   const capabilityApprovalMode = page.getByLabel("Approval mode");
   await expect(capabilityApprovalMode).toBeVisible();
   await expect(capabilityApprovalMode.locator("option")).toHaveText(["Auto", "Manual review"]);
+  await expect(page.getByLabel("Policy rules JSON")).toBeVisible();
 
   await page.goto("/tasks");
   const taskApprovalMode = page.getByLabel("Approval mode");
   await expect(taskApprovalMode).toBeVisible();
   await expect(taskApprovalMode.locator("option")).toHaveText(["Auto", "Manual review"]);
+  await expect(page.getByLabel("Policy rules JSON")).toBeVisible();
+});
+
+test("approvals page shows policy reason for policy-triggered reviews", async ({ page, request }) => {
+  const suffix = Date.now().toString();
+
+  await loginToManagementConsole(page, "/approvals");
+
+  const secret = await managementPost(request, page, "/api/secrets", {
+    display_name: `Policy secret ${suffix}`,
+    kind: "api_token",
+    value: `token-${suffix}`,
+    provider: "openai",
+    environment: "production",
+    provider_scopes: ["responses.read"],
+    resource_selector: "workspace:playwright",
+    metadata: {},
+  });
+  const capability = await managementPost(request, page, "/api/capabilities", {
+    name: `openai.chat.policy.${suffix}`,
+    secret_id: secret.id,
+    allowed_mode: "proxy_only",
+    risk_level: "high",
+    approval_mode: "auto",
+    approval_rules: [
+      {
+        decision: "manual",
+        reason: "High-risk production invokes require review",
+        action_types: ["invoke"],
+        risk_levels: ["high"],
+        providers: ["openai"],
+        environments: ["production"],
+        task_types: ["prompt_run"],
+      },
+    ],
+    required_provider: "openai",
+    required_provider_scopes: ["responses.read"],
+    allowed_environments: ["production"],
+    lease_ttl_seconds: 180,
+    adapter_type: "generic_http",
+    adapter_config: { url: `${API_BASE_URL}/healthz`, method: "GET" },
+  });
+  const task = await managementPost(request, page, "/api/tasks", {
+    title: `Policy approval task ${suffix}`,
+    task_type: "prompt_run",
+    input: { provider: "openai" },
+    required_capability_ids: [capability.id],
+    lease_allowed: false,
+    approval_mode: "auto",
+  });
+
+  const agent = await createAgent(request, page, `policy-agent-${suffix}`);
+  const invokeResponse = await triggerBlockedInvoke(
+    request,
+    agent.api_key,
+    String(task.id),
+    String(capability.id),
+  );
+
+  expect(invokeResponse.status()).toBe(409);
+  await page.goto("/approvals");
+  await expect(page.getByText("High-risk production invokes require review")).toBeVisible();
 });

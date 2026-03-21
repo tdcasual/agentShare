@@ -35,23 +35,24 @@ export default async function AgentsPage({ searchParams }: PageProps) {
       eyebrow="Agents"
       title="Track each agent as its own identity with its own trust boundary."
       subtitle="Each agent authenticates independently and carries a bounded risk tier."
+      activeHref="/agents"
     >
       {apiKey && <AgentKeyDisplay apiKey={apiKey} apiBaseUrl={apiBaseUrl} />}
 
       {created && !apiKey && (
-        <p role="status">Agent created: <strong>{created}</strong></p>
+        <section className="notice success" role="status">
+          Agent created: <strong>{created}</strong>
+        </section>
       )}
 
       {error && (
-        <p role="alert" style={{ color: "var(--color-error, #ef4444)" }}>
-          Error: {
-            error === "management-auth"
-              ? "The management session is missing or expired."
-              : error === "api-disconnected"
-                ? "The API base URL is not configured for management calls."
-                : "The agent could not be created."
-          }
-        </p>
+        <section className="notice error" role="alert">
+          {error === "management-auth"
+            ? "The management session is missing or expired."
+            : error === "api-disconnected"
+              ? "The API base URL is not configured for management calls."
+              : "The agent could not be created."}
+        </section>
       )}
       <section
         className={
@@ -66,14 +67,21 @@ export default async function AgentsPage({ searchParams }: PageProps) {
         {agentsNotice.message}
       </section>
 
-      <section className="panel stack" style={{ marginBottom: "1.5rem" }}>
+      <section className="panel stack section-card">
         <div>
           <div className="kicker">Onboarding links</div>
           <h2>Teach new agents with the quickstart and API schema</h2>
+          <p className="muted section-intro">
+            Keep one operator-facing path for setup and one machine-readable path for runtime
+            discovery so new agents can onboard without source diving.
+          </p>
         </div>
         <div className="chip-row">
           <Link className="button-link" href="/quickstart">
-            Agent quickstart
+            HTTP quickstart
+          </Link>
+          <Link className="button-link secondary" href="/quickstart#mcp-quickstart">
+            MCP quickstart
           </Link>
           {apiDocsLinks ? (
             <>
@@ -90,9 +98,9 @@ export default async function AgentsPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <details style={{ marginBottom: "1.5rem" }}>
+      <details className="compact-details">
         <summary>Register new agent</summary>
-        <form action={createAgentAction} style={{ display: "flex", flexDirection: "column", gap: "0.75rem", maxWidth: "24rem" }}>
+        <form action={createAgentAction} className="form panel-limit">
           <label htmlFor="agent-name">
             Name
             <input id="agent-name" name="name" type="text" required placeholder="e.g. deploy-bot" />

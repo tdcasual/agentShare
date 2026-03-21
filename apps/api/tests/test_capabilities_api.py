@@ -51,3 +51,40 @@ def test_list_capabilities_returns_created_items(management_client):
 
     assert response.status_code == 200
     assert response.json()["items"][0]["name"] == "github.repo.read"
+
+
+def test_create_capability_persists_adapter_contract(management_client):
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "GitHub token",
+            "kind": "api_token",
+            "value": "ghp_example",
+            "provider": "github",
+            "provider_scopes": ["repo"],
+        },
+    ).json()
+
+    response = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "github.repo.issues.list",
+            "secret_id": secret["id"],
+            "risk_level": "low",
+            "required_provider": "github",
+            "required_provider_scopes": ["repo"],
+            "adapter_type": "github",
+            "adapter_config": {
+                "method": "GET",
+                "path": "/repos/{owner}/{repo}/issues",
+            },
+        },
+    )
+
+    assert response.status_code == 201
+    payload = response.json()
+    assert payload["adapter_type"] == "github"
+    assert payload["adapter_config"] == {
+        "method": "GET",
+        "path": "/repos/{owner}/{repo}/issues",
+    }

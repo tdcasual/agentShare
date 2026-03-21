@@ -36,6 +36,8 @@ def test_openai_chat_completion(mock_post):
     body = call_kwargs.kwargs["json"]
     assert body["model"] == "gpt-4"
     assert body["messages"] == [{"role": "user", "content": "Hi"}]
+    assert result["adapter_type"] == "openai"
+    assert result["upstream_status"] == 200
     assert result["body"]["choices"][0]["message"]["content"] == "Hello!"
 
 

@@ -25,6 +25,10 @@ test("user can bind a secret into a capability", async ({ page }) => {
   await page.getByLabel("Allowed mode").selectOption("proxy_or_lease");
   await page.getByLabel("Risk level").selectOption("medium");
   await page.getByLabel("Lease TTL").fill("180");
+  await page.getByLabel("Adapter type").selectOption("github");
+  await page
+    .getByLabel("Adapter config JSON")
+    .fill('{"method":"GET","path":"/repos/{owner}/{repo}/issues"}');
   await page.getByLabel("Required provider", { exact: true }).fill("github");
   await page.getByLabel("Required provider scopes").fill("repo:read");
   await page.getByLabel("Allowed environments").fill("production");
@@ -35,4 +39,5 @@ test("user can bind a secret into a capability", async ({ page }) => {
   ).toContainText("github.repo.sync");
   await expect(page.getByRole("listitem").filter({ hasText: "github.repo.sync" })).toBeVisible();
   await expect(page.getByRole("listitem").filter({ hasText: "Capability secret" })).toBeVisible();
+  await expect(page.getByRole("listitem").filter({ hasText: "github adapter" })).toBeVisible();
 });

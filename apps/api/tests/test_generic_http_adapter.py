@@ -42,7 +42,11 @@ def test_generic_http_invoke(mock_post):
     mock_post.assert_called_once()
     call_kwargs = mock_post.call_args
     assert "Authorization" in call_kwargs.kwargs.get("headers", call_kwargs[1].get("headers", {}))
-    assert result == {"status_code": 200, "body": {"result": "ok"}}
+    assert result == {
+        "adapter_type": "generic_http",
+        "upstream_status": 200,
+        "body": {"result": "ok"},
+    }
 
 
 @patch("app.services.adapters.generic_http.httpx.post")

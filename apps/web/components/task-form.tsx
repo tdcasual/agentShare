@@ -35,8 +35,23 @@ export function TaskForm({ action }: { action: (formData: FormData) => void | Pr
           </select>
         </label>
         <label>
+          Policy rules JSON
+          <textarea
+            name="approval_rules"
+            defaultValue="[]"
+            placeholder='[{"decision":"manual","reason":"Production prompt runs require review","action_types":["invoke"],"task_types":["prompt_run"],"environments":["production"]}]'
+          />
+        </label>
+        <label>
           Input
           <textarea name="input" defaultValue={'{"provider":"qq"}'} />
+        </label>
+        <label>
+          Referenced playbooks
+          <input
+            name="playbook_ids"
+            placeholder="playbook-1,playbook-2"
+          />
         </label>
         <button type="submit">Create task</button>
       </form>

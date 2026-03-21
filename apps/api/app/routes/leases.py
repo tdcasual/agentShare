@@ -5,7 +5,7 @@ from app.auth import require_agent
 from app.db import get_db
 from app.models.agent import AgentIdentity
 from app.schemas.invoke import LeaseRequest
-from app.services.approval_service import ApprovalRequiredError
+from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError
 from app.services.gateway import issue_lease
 
 router = APIRouter(prefix="/api/capabilities")
@@ -28,6 +28,8 @@ def issue_lease_route(
         return issue_lease(session, capability_id, payload.task_id, payload.purpose, agent)
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except PolicyDeniedError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=exc.detail) from exc
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except ApprovalRequiredError as exc:

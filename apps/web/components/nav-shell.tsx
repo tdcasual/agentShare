@@ -8,11 +8,13 @@ type NavShellProps = {
   title: string;
   eyebrow: string;
   subtitle: string;
+  activeHref?: string;
   children: ReactNode;
 };
 
 const links = [
   { href: "/", label: "Overview" },
+  { href: "/quickstart", label: "Quickstart" },
   { href: "/secrets", label: "Secrets" },
   { href: "/capabilities", label: "Capabilities" },
   { href: "/tasks", label: "Tasks" },
@@ -22,7 +24,7 @@ const links = [
   { href: "/playbooks", label: "Playbooks" },
 ];
 
-export async function NavShell({ title, eyebrow, subtitle, children }: NavShellProps) {
+export async function NavShell({ title, eyebrow, subtitle, activeHref, children }: NavShellProps) {
   const signedIn = await hasManagementSession();
   return (
     <div className="shell">
@@ -32,11 +34,19 @@ export async function NavShell({ title, eyebrow, subtitle, children }: NavShellP
         <p className="subtitle">{subtitle}</p>
       </header>
       <nav className="nav" aria-label="Primary">
-        {links.map((link) => (
-          <Link key={link.href} href={link.href}>
-            {link.label}
-          </Link>
-        ))}
+        {links.map((link) => {
+          const isActive = Boolean(activeHref && link.href === activeHref);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={isActive ? "page" : undefined}
+              className={isActive ? "is-active" : undefined}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
         {signedIn ? (
           <form action={logoutManagementAction}>
             <button type="submit">Log out</button>
