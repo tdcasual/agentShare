@@ -77,6 +77,7 @@ test("tasks page can reference attached playbooks", async ({ page, request }) =>
 
   await page.getByLabel("Title").fill(`Task with playbook ${suffix}`);
   await page.getByLabel("Task type").fill("config_sync");
+  await page.locator("summary").filter({ hasText: "Advanced settings" }).click();
   await page.getByLabel("Referenced playbooks").fill(playbook.id);
   await page.getByRole("button", { name: "Create task" }).click();
 

@@ -15,6 +15,7 @@ type NavShellProps = {
 const links = [
   { href: "/", label: "Overview" },
   { href: "/quickstart", label: "Quickstart" },
+  { href: "/agent", label: "Agent" },
   { href: "/secrets", label: "Secrets" },
   { href: "/capabilities", label: "Capabilities" },
   { href: "/tasks", label: "Tasks" },

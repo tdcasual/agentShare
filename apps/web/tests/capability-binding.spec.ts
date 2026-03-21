@@ -26,10 +26,11 @@ test("user can bind a secret into a capability", async ({ page }) => {
   await page.getByLabel("Risk level").selectOption("medium");
   await page.getByLabel("Lease TTL").fill("180");
   await page.getByLabel("Adapter type").selectOption("github");
+  await page.getByLabel("Required provider", { exact: true }).fill("github");
+  await page.locator("summary").filter({ hasText: "Advanced settings" }).click();
   await page
     .getByLabel("Adapter config JSON")
     .fill('{"method":"GET","path":"/repos/{owner}/{repo}/issues"}');
-  await page.getByLabel("Required provider", { exact: true }).fill("github");
   await page.getByLabel("Required provider scopes").fill("repo:read");
   await page.getByLabel("Allowed environments").fill("production");
   await page.getByRole("button", { name: "Create capability" }).click();

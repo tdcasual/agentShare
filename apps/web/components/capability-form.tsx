@@ -15,11 +15,8 @@ export function CapabilityForm({
     <section className="panel stack" aria-labelledby="capability-form-title">
       <div>
         <div className="kicker">Capability studio</div>
-        <h2 id="capability-form-title">Bind a stored secret into an ability agents can safely use</h2>
-        <p className="muted">
-          Capabilities are the trust envelope around a secret. Name the action clearly, attach one
-          secret, and decide whether agents must stay in proxy mode or may request short leases.
-        </p>
+        <h2 id="capability-form-title">Bind a secret into a single, reviewable ability.</h2>
+        <p className="muted">Keep the name and adapter contract narrow. Move policy and JSON into Advanced.</p>
       </div>
       {secrets.length > 0 ? (
         <form className="form" action={action}>
@@ -70,12 +67,8 @@ export function CapabilityForm({
               </select>
             </label>
             <label>
-              Adapter config JSON
-              <textarea
-                name="adapter_config"
-                defaultValue="{}"
-                placeholder='{"method":"GET","path":"/repos/{owner}/{repo}/issues"}'
-              />
+              Required provider
+              <input name="required_provider" placeholder="github" required />
             </label>
           </div>
           <label>
@@ -85,38 +78,45 @@ export function CapabilityForm({
               <option value="manual">Manual review</option>
             </select>
           </label>
-          <label>
-            Policy rules JSON
-            <textarea
-              name="approval_rules"
-              defaultValue="[]"
-              placeholder='[{"decision":"manual","reason":"High-risk production invokes require review","action_types":["invoke"],"risk_levels":["high"],"providers":["openai"],"environments":["production"]}]'
-            />
-          </label>
-          <div className="form-row">
-            <label>
-              Required provider
-              <input name="required_provider" placeholder="github" required />
-            </label>
-            <label>
-              Required provider scopes
-              <input name="required_provider_scopes" placeholder="repo:read,repo:write" />
-            </label>
-          </div>
-          <label>
-            Allowed environments
-            <input name="allowed_environments" placeholder="production,staging" />
-          </label>
-          <p className="muted">
-            Use <code>generic_http</code> for arbitrary JSON APIs, <code>openai</code> for chat
-            completions, and <code>github</code> for repository-scoped REST calls with templated
-            paths.
-          </p>
+
+          <details className="compact-details">
+            <summary>Advanced settings</summary>
+            <div className="stack">
+              <label>
+                Adapter config JSON
+                <textarea
+                  name="adapter_config"
+                  defaultValue="{}"
+                  placeholder='{"method":"GET","path":"/repos/{owner}/{repo}/issues"}'
+                />
+              </label>
+              <label>
+                Policy rules JSON
+                <textarea
+                  name="approval_rules"
+                  defaultValue="[]"
+                  placeholder='[{"decision":"manual","reason":"High-risk production invokes require review","action_types":["invoke"],"risk_levels":["high"],"providers":["openai"],"environments":["production"]}]'
+                />
+              </label>
+              <label>
+                Required provider scopes
+                <input name="required_provider_scopes" placeholder="repo:read,repo:write" />
+              </label>
+              <label>
+                Allowed environments
+                <input name="allowed_environments" placeholder="production,staging" />
+              </label>
+              <p className="muted">
+                Choose the narrowest adapter that matches the upstream system. Keep JSON contracts
+                small and legible.
+              </p>
+            </div>
+          </details>
           <button type="submit">Create capability</button>
         </form>
       ) : (
         <div className="empty-state">
-          Create a secret first. A capability is always anchored to one stored credential.
+        Create a secret first. A capability is always anchored to one stored credential.
         </div>
       )}
     </section>

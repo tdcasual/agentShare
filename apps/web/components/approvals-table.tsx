@@ -36,72 +36,71 @@ export function ApprovalsTable({
           Keep the policy reason close to the decision so higher-risk actions stay explainable.
         </p>
       </div>
-      <div className="table-wrap">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Request</th>
-              <th>Status</th>
-              <th>Action</th>
-              <th>Task</th>
-              <th>Capability</th>
-              <th>Agent</th>
-              <th>Policy</th>
-              <th>Operator note</th>
-              <th>Decision</th>
-            </tr>
-          </thead>
-          <tbody>
-            {approvals.map((approval) => {
-              const isPending = approval.status === "pending";
+      <div className="list">
+        {approvals.map((approval) => {
+          const isPending = approval.status === "pending";
+          const policyLine = approval.policy_reason || "No policy reason recorded";
 
-              return (
-                <tr key={approval.id}>
-                  <td>{approval.id}</td>
-                  <td>{approval.status}</td>
-                  <td>{approval.action_type}</td>
-                  <td>{approval.task_id}</td>
-                  <td>{approval.capability_id}</td>
-                  <td>{approval.agent_id}</td>
-                  <td>
-                    <div className="stack">
-                      <span>{approval.policy_reason || "No policy reason recorded"}</span>
-                      {approval.policy_source ? (
-                        <span className="muted">{approval.policy_source} policy</span>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td>{approval.reason || "Awaiting operator input"}</td>
-                  <td>
-                    <div className="inline-actions">
-                      <form action={approveAction}>
-                        <input type="hidden" name="approval_id" value={approval.id} />
-                        <input type="hidden" name="next" value="/approvals" />
-                        <input type="hidden" name="reason" value="" />
-                        <button type="submit" disabled={!isPending}>
-                          Approve
-                        </button>
-                      </form>
-                      <form action={rejectAction} className="inline-actions">
-                        <input type="hidden" name="approval_id" value={approval.id} />
-                        <input type="hidden" name="next" value="/approvals" />
-                        <input
-                          name="reason"
-                          placeholder="Reason for rejection"
-                          required
-                          disabled={!isPending}
-                        />
-                        <button type="submit" disabled={!isPending}>
-                          Reject
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+          return (
+            <article
+              key={approval.id}
+              data-testid="approval-card"
+              className="list-item approval-card"
+            >
+              <div className="chip-row">
+                <span className="chip">{approval.status}</span>
+                <span className="chip">{approval.action_type}</span>
+                {approval.policy_source ? <span className="chip">{approval.policy_source}</span> : null}
+              </div>
+              <div className="stack">
+                <strong>{policyLine}</strong>
+                <span className="muted">
+                  {approval.reason || "Awaiting operator input."}
+                </span>
+              </div>
+              <details className="compact-details">
+                <summary>Show request details</summary>
+                <div className="stack">
+                  <div className="chip-row">
+                    <span className="chip">request {approval.id}</span>
+                    <span className="chip">task {approval.task_id}</span>
+                    <span className="chip">capability {approval.capability_id}</span>
+                    <span className="chip">agent {approval.agent_id}</span>
+                  </div>
+                </div>
+              </details>
+              <div className="inline-actions">
+                <form action={approveAction}>
+                  <input type="hidden" name="approval_id" value={approval.id} />
+                  <input type="hidden" name="next" value="/approvals" />
+                  <input type="hidden" name="reason" value="" />
+                  <button type="submit" disabled={!isPending}>
+                    Approve
+                  </button>
+                </form>
+                <details className="compact-details">
+                  <summary>Reject</summary>
+                  <form action={rejectAction} className="stack">
+                    <input type="hidden" name="approval_id" value={approval.id} />
+                    <input type="hidden" name="next" value="/approvals" />
+                    <label>
+                      Reason
+                      <input
+                        name="reason"
+                        placeholder="Reason for rejection"
+                        required
+                        disabled={!isPending}
+                      />
+                    </label>
+                    <button type="submit" disabled={!isPending}>
+                      Confirm rejection
+                    </button>
+                  </form>
+                </details>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

@@ -80,6 +80,9 @@ export default function QuickstartPage() {
           </p>
         </div>
         <div className="chip-row">
+          <Link className="button-link" href="/agent">
+            Open agent self-serve
+          </Link>
           <Link className="button-link secondary" href="/agents">
             Create or inspect agents
           </Link>

@@ -5,8 +5,8 @@ export function TaskForm({ action }: { action: (formData: FormData) => void | Pr
         <div className="kicker">New task</div>
         <h2>Publish a task</h2>
         <p className="muted">
-          Keep tasks compact and policy-aware. The control plane should hold the capability
-          contract, while the task carries only the work context.
+          Title and input should be enough to understand the work. Keep policy and references in
+          Advanced unless they matter right now.
         </p>
       </div>
       <form className="form" action={action}>
@@ -35,24 +35,26 @@ export function TaskForm({ action }: { action: (formData: FormData) => void | Pr
           </select>
         </label>
         <label>
-          Policy rules JSON
-          <textarea
-            name="approval_rules"
-            defaultValue="[]"
-            placeholder='[{"decision":"manual","reason":"Production prompt runs require review","action_types":["invoke"],"task_types":["prompt_run"],"environments":["production"]}]'
-          />
-        </label>
-        <label>
           Input
           <textarea name="input" defaultValue={'{"provider":"qq"}'} />
         </label>
-        <label>
-          Referenced playbooks
-          <input
-            name="playbook_ids"
-            placeholder="playbook-1,playbook-2"
-          />
-        </label>
+        <details className="compact-details">
+          <summary>Advanced settings</summary>
+          <div className="stack">
+            <label>
+              Policy rules JSON
+              <textarea
+                name="approval_rules"
+                defaultValue="[]"
+                placeholder='[{"decision":"manual","reason":"Production prompt runs require review","action_types":["invoke"],"task_types":["prompt_run"],"environments":["production"]}]'
+              />
+            </label>
+            <label>
+              Referenced playbooks
+              <input name="playbook_ids" placeholder="playbook-1,playbook-2" />
+            </label>
+          </div>
+        </details>
         <button type="submit">Create task</button>
       </form>
     </section>

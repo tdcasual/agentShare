@@ -140,10 +140,10 @@ test("operator can approve a pending manual capability request", async ({ page, 
 
   await page.goto("/approvals");
   await expect(page.getByRole("heading", { name: "Pending approvals" })).toBeVisible();
-  const approvalRow = page.getByRole("row").filter({ hasText: approvalRequestId });
-  await expect(approvalRow).toBeVisible();
+  const approvalCard = page.getByTestId("approval-card").filter({ hasText: approvalRequestId });
+  await expect(approvalCard).toBeVisible();
 
-  await approvalRow.getByRole("button", { name: "Approve" }).click();
+  await approvalCard.getByRole("button", { name: "Approve" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Approval updated:" })).toContainText(
     approvalRequestId,
   );
@@ -174,12 +174,14 @@ test("task and capability forms expose approval mode selectors", async ({ page }
   const capabilityApprovalMode = page.getByLabel("Approval mode");
   await expect(capabilityApprovalMode).toBeVisible();
   await expect(capabilityApprovalMode.locator("option")).toHaveText(["Auto", "Manual review"]);
+  await page.locator("summary").filter({ hasText: "Advanced settings" }).click();
   await expect(page.getByLabel("Policy rules JSON")).toBeVisible();
 
   await page.goto("/tasks");
   const taskApprovalMode = page.getByLabel("Approval mode");
   await expect(taskApprovalMode).toBeVisible();
   await expect(taskApprovalMode.locator("option")).toHaveText(["Auto", "Manual review"]);
+  await page.locator("summary").filter({ hasText: "Advanced settings" }).click();
   await expect(page.getByLabel("Policy rules JSON")).toBeVisible();
 });
 
