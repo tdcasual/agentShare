@@ -1,26 +1,28 @@
 :root {
-  --bg: oklch(0.96 0.02 78);
-  --bg-elevated: oklch(0.985 0.014 78);
-  --panel: color-mix(in oklab, var(--bg-elevated) 82%, transparent);
-  --panel-strong: oklch(0.99 0.012 78);
+  --bg: oklch(0.965 0.018 78);
+  --bg-elevated: oklch(0.988 0.012 78);
+  --panel: color-mix(in oklab, var(--bg-elevated) 84%, transparent);
+  --panel-strong: oklch(0.992 0.01 78);
   --line: color-mix(in oklab, var(--ink) 14%, transparent);
   --line-strong: color-mix(in oklab, var(--ink) 22%, transparent);
-  --ink: oklch(0.25 0.03 45);
-  --muted: oklch(0.46 0.025 45);
-  --accent: oklch(0.58 0.14 45);
-  --accent-strong: oklch(0.5 0.15 42);
+  --ink: oklch(0.235 0.03 45);
+  --muted: oklch(0.46 0.02 45);
+  --accent: oklch(0.58 0.145 45);
+  --accent-strong: oklch(0.5 0.155 42);
   --accent-soft: color-mix(in oklab, var(--accent) 14%, white);
-  --success: oklch(0.5 0.1 155);
+  --success: oklch(0.52 0.105 155);
   --success-soft: color-mix(in oklab, var(--success) 16%, white);
-  --error: oklch(0.56 0.15 36);
+  --error: oklch(0.56 0.155 36);
   --error-soft: color-mix(in oklab, var(--error) 16%, white);
-  --shadow: 0 28px 70px rgba(63, 40, 25, 0.1);
-  --shadow-soft: 0 14px 34px rgba(63, 40, 25, 0.08);
-  --radius-panel: 28px;
-  --radius-card: 22px;
-  --radius-control: 16px;
+  --shadow: 0 34px 90px rgba(44, 28, 18, 0.1);
+  --shadow-soft: 0 18px 40px rgba(44, 28, 18, 0.08);
+  --radius-panel: 26px;
+  --radius-card: 20px;
+  --radius-control: 14px;
+  --ease-out: cubic-bezier(0.2, 1, 0.28, 1);
   --transition-fast: 160ms ease;
-  --transition-soft: 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-soft: 240ms var(--ease-out);
+  --transition-page: 520ms var(--ease-out);
 }
 
 * {
@@ -37,12 +39,66 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, color-mix(in oklab, var(--accent) 22%, white) 0%, transparent 34%),
-    radial-gradient(circle at top right, color-mix(in oklab, var(--success) 18%, white) 0%, transparent 30%),
-    linear-gradient(180deg, color-mix(in oklab, white 75%, var(--bg)) 0%, var(--bg) 100%);
-  font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+    radial-gradient(
+      circle at 12% -6%,
+      color-mix(in oklab, var(--accent) 24%, white) 0%,
+      transparent 36%
+    ),
+    radial-gradient(
+      circle at 92% 0%,
+      color-mix(in oklab, var(--success) 18%, white) 0%,
+      transparent 34%
+    ),
+    linear-gradient(180deg, color-mix(in oklab, white 78%, var(--bg)) 0%, var(--bg) 100%);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 9px,
+      color-mix(in oklab, var(--ink) 6%, transparent) 10px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 56px,
+      color-mix(in oklab, var(--ink) 4%, transparent) 57px
+    );
+  opacity: 0.12;
+  mix-blend-mode: multiply;
+}
+
+code,
+pre {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+h2,
+h3 {
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-family: var(--font-serif), ui-serif, "Iowan Old Style", "Palatino Linotype", serif;
+  font-weight: 550;
+  line-height: 1.12;
+  font-size: clamp(1.25rem, 1.6vw, 1.7rem);
+}
+
+h3 {
+  font-weight: 650;
+  font-size: 1.05rem;
+  line-height: 1.25;
 }
 
 ::selection {
@@ -108,7 +164,7 @@ summary:focus-visible {
 
 .title {
   margin: 0;
-  font-family: "Iowan Old Style", "Palatino Linotype", serif;
+  font-family: var(--font-serif), ui-serif, "Iowan Old Style", "Palatino Linotype", serif;
   font-size: clamp(2.4rem, 4vw, 4.4rem);
   line-height: 0.94;
   max-width: 12ch;
@@ -133,6 +189,9 @@ summary:focus-visible {
   background: color-mix(in oklab, var(--panel-strong) 74%, transparent);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(10px);
+  position: sticky;
+  top: 16px;
+  z-index: 10;
 }
 
 .nav a,
@@ -142,12 +201,25 @@ summary:focus-visible {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.58);
   color: var(--ink);
+  font-weight: 520;
 }
 
 .nav a.is-active {
   border-color: color-mix(in oklab, var(--accent) 42%, transparent);
   background: color-mix(in oklab, white 78%, var(--accent-soft));
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent);
+  position: relative;
+}
+
+.nav a.is-active::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 7px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 62%, transparent);
 }
 
 .nav a:hover,
@@ -159,6 +231,19 @@ summary:focus-visible {
 
 .nav form {
   margin-left: auto;
+}
+
+button:active,
+.button-link:active,
+.nav a:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 @keyframes lift-fade {
@@ -173,18 +258,18 @@ summary:focus-visible {
 }
 
 .masthead {
-  animation: lift-fade 520ms var(--transition-soft) both;
+  animation: lift-fade var(--transition-page) both;
 }
 
 .nav {
-  animation: lift-fade 520ms var(--transition-soft) both;
+  animation: lift-fade var(--transition-page) both;
   animation-delay: 40ms;
 }
 
 .notice,
 .panel,
 .card {
-  animation: lift-fade 520ms var(--transition-soft) both;
+  animation: lift-fade var(--transition-page) both;
   animation-delay: 80ms;
 }
 
@@ -310,7 +395,7 @@ summary:focus-visible {
   flex: 1 1 auto;
 }
 
-.dense-form .form {
+.form.dense-form {
   gap: 12px;
 }
 
@@ -336,6 +421,12 @@ summary:focus-visible {
 .card {
   padding: 24px;
   border-radius: var(--radius-card);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, white 64%, var(--panel-strong)) 0%,
+      var(--panel) 100%
+    );
 }
 
 .panel {
@@ -396,6 +487,11 @@ textarea {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in oklab, var(--muted) 82%, transparent);
+}
+
 textarea {
   min-height: 116px;
   resize: vertical;
@@ -418,7 +514,7 @@ button,
   border: 1px solid transparent;
   border-radius: 999px;
   background: var(--ink);
-  color: #fffaf3;
+  color: oklch(0.98 0.02 78);
   cursor: pointer;
   font: inherit;
   box-shadow: 0 10px 24px rgba(45, 32, 23, 0.12);
@@ -436,6 +532,12 @@ button.secondary {
   color: var(--ink);
   border-color: var(--line);
   box-shadow: none;
+}
+
+.button-link.secondary:hover,
+button.secondary:hover {
+  border-color: color-mix(in oklab, var(--ink) 18%, transparent);
+  background: color-mix(in oklab, var(--panel-strong) 82%, white);
 }
 
 .stack {
@@ -497,10 +599,15 @@ button.secondary {
   gap: 8px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: color-mix(in oklab, var(--success) 12%, white);
-  color: var(--success);
+  background: color-mix(in oklab, var(--ink) 6%, white);
+  color: color-mix(in oklab, var(--ink) 84%, transparent);
   font-size: 0.84rem;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--success) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 10%, transparent);
+}
+
+.chip:hover {
+  background: color-mix(in oklab, var(--accent) 10%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 18%, transparent);
 }
 
 .empty-state {
@@ -530,11 +637,20 @@ button.secondary {
   padding: 14px 10px;
   text-align: left;
   border-bottom: 1px solid var(--line);
+  vertical-align: top;
 }
 
 .table th {
   color: var(--muted);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.74rem;
+  background: color-mix(in oklab, white 72%, transparent);
+}
+
+.table tbody tr:hover td {
+  background: color-mix(in oklab, var(--accent) 6%, transparent);
 }
 
 .table td strong {
@@ -560,7 +676,7 @@ button.secondary {
   padding: 1rem;
   border-radius: 18px;
   overflow-x: auto;
-  background: rgba(45, 32, 23, 0.08);
+  background: color-mix(in oklab, var(--ink) 8%, white);
   border: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
 }
 
@@ -620,6 +736,7 @@ button.secondary {
   .nav {
     gap: 10px;
     padding: 10px;
+    top: 10px;
   }
 
   .nav form {
