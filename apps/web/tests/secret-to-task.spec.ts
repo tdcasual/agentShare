@@ -31,5 +31,5 @@ test("user can create a secret and publish a task", async ({ page }) => {
   await expect(
     page.getByRole("status").filter({ hasText: "Task published:" }),
   ).toContainText("Playwright task");
-  await expect(page.getByRole("row").filter({ hasText: "Playwright task" })).toBeVisible();
+  await expect(page.getByTestId("task-card").filter({ hasText: "Playwright task" })).toBeVisible();
 });

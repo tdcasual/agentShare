@@ -11,6 +11,13 @@ export function ApprovalsTable({
   approveAction,
   rejectAction,
 }: ApprovalsTableProps) {
+  const statusTone = (status: string) => {
+    if (status === "approved") return "success";
+    if (status === "rejected") return "error";
+    if (status === "pending") return "accent";
+    return "muted";
+  };
+
   if (approvals.length === 0) {
     return (
       <section className="panel stack">
@@ -19,8 +26,7 @@ export function ApprovalsTable({
           <h2>Pending approvals</h2>
         </div>
         <div className="empty-state">
-          No approval requests are waiting right now. Manual tasks and capabilities will appear
-          here as soon as an agent hits a gated runtime action.
+          No approval requests waiting right now. They appear as soon as an agent hits a gated action.
         </div>
       </section>
     );
@@ -31,10 +37,6 @@ export function ApprovalsTable({
       <div>
         <div className="kicker">Pending approvals</div>
         <h2>Pending approvals</h2>
-        <p className="muted">
-          Review agent runtime requests before they receive proxy access or short-lived leases.
-          Keep the policy reason close to the decision so higher-risk actions stay explainable.
-        </p>
       </div>
       <div className="list">
         {approvals.map((approval) => {
@@ -48,7 +50,9 @@ export function ApprovalsTable({
               className="list-item approval-card"
             >
               <div className="chip-row">
-                <span className="chip">{approval.status}</span>
+                <span className="chip" data-tone={statusTone(approval.status)}>
+                  {approval.status}
+                </span>
                 <span className="chip">{approval.action_type}</span>
                 {approval.policy_source ? <span className="chip">{approval.policy_source}</span> : null}
               </div>
@@ -59,7 +63,7 @@ export function ApprovalsTable({
                 </span>
               </div>
               <details className="compact-details">
-                <summary>Show request details</summary>
+                <summary>Details</summary>
                 <div className="stack">
                   <div className="chip-row">
                     <span className="chip">request {approval.id}</span>

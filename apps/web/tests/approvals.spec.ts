@@ -147,7 +147,7 @@ test("operator can approve a pending manual capability request", async ({ page, 
   await expect(page.getByRole("status").filter({ hasText: "Approval updated:" })).toContainText(
     approvalRequestId,
   );
-  await expect(page.getByText("No approval requests are waiting right now.")).toBeVisible();
+  await expect(page.getByText("No approval requests waiting right now.")).toBeVisible();
 
   const approvedInvoke = await request.post(`${API_BASE_URL}/api/capabilities/${String(capability.id)}/invoke`, {
     headers: {

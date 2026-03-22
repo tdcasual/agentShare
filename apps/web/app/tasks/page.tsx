@@ -37,7 +37,7 @@ export default async function TasksPage({ searchParams }: PageProps) {
     <NavShell
       eyebrow="Tasks"
       title="Queue lightweight work that any eligible agent can pick up."
-      subtitle="Tasks stay small on purpose. They carry input, required capabilities, lease policy, playbook links, and execution status without turning into a heavy workflow engine."
+      subtitle="Small, claimable units of work with clear policy guardrails."
       activeHref="/tasks"
     >
       {created ? (
@@ -76,25 +76,6 @@ export default async function TasksPage({ searchParams }: PageProps) {
       </section>
       <div className="workspace-grid">
         <div className="workspace-main">
-          <section className="panel feature-panel stack">
-            <div className="section-intro-grid">
-              <div>
-                <div className="kicker">Operator loop</div>
-                <h2>Publish the work, attach context, then let runtime policy guard execution.</h2>
-                <p className="muted section-intro">
-                  Tasks are intentionally light. They should say what needs doing, which playbooks
-                  support it, and what capability boundary exists, without turning into a workflow
-                  engine.
-                </p>
-              </div>
-              <div className="aside-note">
-                <strong>{tasks.length === 0 ? "Queue is empty" : `${tasks.length} tasks visible`}</strong>
-                <span className="muted">
-                  Agents can discover this queue through HTTP or MCP before claiming work.
-                </span>
-              </div>
-            </div>
-          </section>
           {canManageTasks ? (
             <TaskForm action={createTaskAction} />
           ) : (
@@ -113,16 +94,6 @@ export default async function TasksPage({ searchParams }: PageProps) {
           )}
         </div>
         <div className="workspace-side">
-          <section className="panel stack">
-            <div>
-              <div className="kicker">Publishing guidance</div>
-              <h2>Keep each task narrow enough to explain in one glance</h2>
-              <p className="muted">
-                If a task needs too many caveats, move the nuance into a playbook or a capability
-                policy instead of stuffing it into the task body.
-              </p>
-            </div>
-          </section>
           <TasksTable tasks={tasks} playbookLinks={playbookLinks} />
         </div>
       </div>

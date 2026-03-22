@@ -590,13 +590,16 @@ button.secondary:hover {
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(79, 57, 39, 0.08);
-  transition: transform var(--transition-soft), border-color var(--transition-fast), background var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .list-item:hover {
-  transform: translateY(-1px);
   border-color: color-mix(in oklab, var(--accent) 18%, transparent);
   background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-soft);
 }
 
 .chip-row {
@@ -617,7 +620,27 @@ button.secondary:hover {
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 10%, transparent);
 }
 
-.chip:hover {
+.chip[data-tone="success"] {
+  background: color-mix(in oklab, var(--success) 12%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--success) 22%, transparent);
+}
+
+.chip[data-tone="accent"] {
+  background: color-mix(in oklab, var(--accent) 10%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+.chip[data-tone="error"] {
+  background: color-mix(in oklab, var(--error) 10%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--error) 22%, transparent);
+}
+
+.chip[data-tone="muted"] {
+  background: color-mix(in oklab, var(--ink) 4%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 8%, transparent);
+}
+
+.chip:not([data-tone]):hover {
   background: color-mix(in oklab, var(--accent) 10%, white);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 18%, transparent);
 }
@@ -673,6 +696,18 @@ button.secondary:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.approval-card {
+  gap: 12px;
+}
+
+.approval-card .inline-actions {
+  align-items: center;
+}
+
+.task-card {
+  gap: 12px;
 }
 
 .panel-limit {

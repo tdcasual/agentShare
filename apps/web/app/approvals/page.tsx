@@ -61,41 +61,6 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
       >
         {approvalsNotice.message}
       </section>
-      <div className="workspace-grid">
-        <div className="workspace-main">
-          <section className="panel feature-panel stack">
-            <div className="section-intro-grid">
-              <div>
-                <div className="kicker">Policy flow</div>
-                <h2>See exactly why a runtime request stopped here.</h2>
-                <p className="muted section-intro">
-                  Approval should never feel mysterious. The queue exists to show which rule fired,
-                  what action is blocked, and what an operator is about to approve.
-                </p>
-              </div>
-              <div className="aside-note">
-                <strong>{approvalsResult.items.length === 0 ? "Queue is clear" : `${approvalsResult.items.length} pending decisions`}</strong>
-                <span className="muted">
-                  Deny, manual, and allow are resolved before approval mode fallback, so the reason
-                  shown here matters.
-                </span>
-              </div>
-            </div>
-          </section>
-        </div>
-        <div className="workspace-side">
-          <section className="panel stack">
-            <div>
-              <div className="kicker">Review posture</div>
-              <h2>Approve only what the task and policy actually justify</h2>
-              <p className="muted">
-                The fastest safe review is the one where policy reason, source, task, and
-                capability are all readable without leaving the page.
-              </p>
-            </div>
-          </section>
-        </div>
-      </div>
       <ApprovalsTable
         approvals={approvalsResult.items}
         approveAction={approveApprovalAction}
