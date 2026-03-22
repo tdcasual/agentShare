@@ -10,11 +10,10 @@ export default function AgentSelfServePage() {
     <NavShell
       eyebrow="Agent self-serve"
       title="Run the agent workflow end to end, without source diving."
-      subtitle="Verify an agent key, claim work, search playbooks via MCP, invoke capabilities, request leases, and complete tasks."
+      subtitle="Verify your key, claim work, search playbooks, then invoke, lease, and complete."
       activeHref="/agent"
     >
       <AgentSelfServe apiBaseUrl={apiBaseUrl} />
     </NavShell>
   );
 }
-
