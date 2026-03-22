@@ -1,19 +1,22 @@
 import { NavShell } from "../../components/nav-shell";
 import { RunsTable } from "../../components/runs-table";
 import { getCollectionNotice, getRuns } from "../../lib/api";
+import { getLocale } from "../../lib/i18n-server";
+import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
 
 export default async function RunsPage() {
   await requireManagementSession("/runs");
+  const locale = await getLocale();
   const runsResult = await getRuns();
   const runs = runsResult.items;
-  const runsNotice = getCollectionNotice(runsResult, "runs");
+  const runsNotice = getCollectionNotice(runsResult, tr(locale, "runs", "运行记录"), locale);
 
   return (
     <NavShell
-      eyebrow="Runs"
-      title="Keep a durable trace of how work was completed."
-      subtitle="Runs are more than logs. They become the historical layer that helps another agent complete similar work faster and with fewer mistakes."
+      eyebrow={tr(locale, "Runs", "运行记录")}
+      title={tr(locale, "Keep a durable trace of how work was completed.", "保留工作如何完成的持久痕迹。")}
+      subtitle={tr(locale, "Runs are more than logs. They become the historical layer that helps another agent complete similar work faster and with fewer mistakes.", "Runs 不只是日志，它们是历史层，帮助下一个 Agent 更快、更少错误地完成类似工作。")}
       activeHref="/runs"
     >
       <section
@@ -48,7 +51,7 @@ export default async function RunsPage() {
               </div>
             </div>
           </section>
-          <RunsTable runs={runs} />
+          <RunsTable runs={runs} locale={locale} />
         </div>
         <div className="workspace-side">
           <section className="panel stack">

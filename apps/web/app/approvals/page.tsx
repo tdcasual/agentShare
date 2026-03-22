@@ -2,6 +2,8 @@ import { approveApprovalAction, rejectApprovalAction } from "../actions";
 import { ApprovalsTable } from "../../components/approvals-table";
 import { NavShell } from "../../components/nav-shell";
 import { getApprovals, getCollectionNotice } from "../../lib/api";
+import { getLocale } from "../../lib/i18n-server";
+import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
 
 type PageProps = {
@@ -19,34 +21,35 @@ function readSingleParam(
 export default async function ApprovalsPage({ searchParams }: PageProps) {
   await requireManagementSession("/approvals");
   const params = (await searchParams) ?? {};
+  const locale = await getLocale();
   const approvalsResult = await getApprovals("pending");
-  const approvalsNotice = getCollectionNotice(approvalsResult, "approvals");
+  const approvalsNotice = getCollectionNotice(approvalsResult, tr(locale, "approvals", "审批"), locale);
   const updated = readSingleParam(params, "updated");
   const error = readSingleParam(params, "error");
 
   return (
     <NavShell
-      eyebrow="Approvals"
-      title="Review gated runtime actions before agents cross a higher-risk boundary."
-      subtitle="Manual capabilities and tasks surface here as a compact queue so operators can approve or reject work without leaving the console."
+      eyebrow={tr(locale, "Approvals", "审批")}
+      title={tr(locale, "Review gated runtime actions before agents cross a higher-risk boundary.", "在 Agent 跨越更高风险边界前，复核受控运行时动作。")}
+      subtitle={tr(locale, "Manual capabilities and tasks surface here as a compact queue so operators can approve or reject work without leaving the console.", "需要人工复核的能力与任务会汇总在这里，方便运营者直接批准或拒绝。")}
       activeHref="/approvals"
     >
       {updated ? (
         <section className="notice success" role="status">
-          Approval updated: <strong>{updated}</strong>
+          {tr(locale, "Approval updated:", "审批已更新：")} <strong>{updated}</strong>
         </section>
       ) : null}
       {error ? (
         <section className="notice error" role="alert">
           {error === "missing-reason"
-            ? "A rejection reason is required."
+            ? tr(locale, "A rejection reason is required.", "拒绝必须填写原因。")
             : error === "missing-approval"
-              ? "The selected approval request is missing."
+              ? tr(locale, "The selected approval request is missing.", "所选审批请求不存在。")
               : error === "management-auth"
-                ? "The management session is missing or expired."
+                ? tr(locale, "The management session is missing or expired.", "管理会话缺失或已过期。")
                 : error === "api-disconnected"
-                  ? "The API base URL is not configured, so approvals cannot be reviewed."
-                  : "The approval decision could not be saved."}
+                  ? tr(locale, "The API base URL is not configured, so approvals cannot be reviewed.", "未配置 API Base URL，无法处理审批。")
+                  : tr(locale, "The approval decision could not be saved.", "审批结果保存失败。")}
         </section>
       ) : null}
       <section
@@ -65,6 +68,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
         approvals={approvalsResult.items}
         approveAction={approveApprovalAction}
         rejectAction={rejectApprovalAction}
+        locale={locale}
       />
     </NavShell>
   );

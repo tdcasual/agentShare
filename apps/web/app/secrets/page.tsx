@@ -2,6 +2,8 @@ import { createSecretAction } from "../actions";
 import { SecretsForm } from "../../components/secrets-form";
 import { NavShell } from "../../components/nav-shell";
 import { getCollectionNotice, getSecrets } from "../../lib/api";
+import { getLocale } from "../../lib/i18n-server";
+import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
 
 type PageProps = {
@@ -19,35 +21,36 @@ function readSingleParam(
 export default async function SecretsPage({ searchParams }: PageProps) {
   await requireManagementSession("/secrets");
   const params = (await searchParams) ?? {};
+  const locale = await getLocale();
   const secretsResult = await getSecrets();
   const secrets = secretsResult.items;
-  const secretsNotice = getCollectionNotice(secretsResult, "secrets");
+  const secretsNotice = getCollectionNotice(secretsResult, tr(locale, "secrets", "密钥"), locale);
   const created = readSingleParam(params, "created");
   const error = readSingleParam(params, "error");
 
   return (
     <NavShell
-      eyebrow="Secrets"
-      title="Put raw credentials behind references, policy, and audit."
-      subtitle="The app layer should know names, scopes, and bindings. The secret backend should hold the sensitive plaintext."
+      eyebrow={tr(locale, "Secrets", "密钥")}
+      title={tr(locale, "Put raw credentials behind references, policy, and audit.", "用引用、策略与审计把原始凭据保护起来。")}
+      subtitle={tr(locale, "The app layer should know names, scopes, and bindings. The secret backend should hold the sensitive plaintext.", "应用层只需知道名称、范围与绑定关系；敏感明文应存放在后端密钥仓库。")}
       activeHref="/secrets"
     >
       {created ? (
         <section className="notice success" role="status">
-          Secret saved: <strong>{created}</strong>
+          {tr(locale, "Secret saved:", "密钥已保存：")} <strong>{created}</strong>
         </section>
       ) : null}
       {error ? (
         <section className="notice error" role="alert">
           {error === "invalid-metadata"
-            ? "Metadata must be valid JSON."
+            ? tr(locale, "Metadata must be valid JSON.", "元数据必须是合法 JSON。")
             : error === "missing-fields"
-              ? "Display name, provider, and secret value are required."
+              ? tr(locale, "Display name, provider, and secret value are required.", "显示名称、provider 与密钥内容为必填。")
               : error === "management-auth"
-                ? "The management session is missing or expired."
+                ? tr(locale, "The management session is missing or expired.", "管理会话缺失或已过期。")
                 : error === "api-disconnected"
-                  ? "The API base URL is not configured, so the console cannot save secrets."
-              : "The secret could not be saved."}
+                  ? tr(locale, "The API base URL is not configured, so the console cannot save secrets.", "未配置 API Base URL，控制台无法保存密钥。")
+              : tr(locale, "The secret could not be saved.", "密钥保存失败。")}
         </section>
       ) : null}
       <section
@@ -67,40 +70,48 @@ export default async function SecretsPage({ searchParams }: PageProps) {
           <section className="panel feature-panel stack">
             <div className="section-intro-grid">
               <div>
-                <div className="kicker">Vault posture</div>
-                <h2>Store the credential once, then bind everything else to metadata and policy.</h2>
+                <div className="kicker">{tr(locale, "Vault posture", "密钥姿态")}</div>
+                <h2>{tr(locale, "Store the credential once, then bind everything else to metadata and policy.", "凭据只存一次，其余都绑定到元数据与策略。")}</h2>
                 <p className="muted section-intro">
-                  This page should feel more like registering a controlled asset than pasting a
-                  token into a dashboard. Operators define provider, scope, and environment here so
-                  later capability bindings stay narrow.
+                  {tr(
+                    locale,
+                    "This page should feel more like registering a controlled asset than pasting a token into a dashboard. Operators define provider, scope, and environment here so later capability bindings stay narrow.",
+                    "这里更像登记一项受控资产，而不是往面板里粘贴 token。运营者在此定义 provider、scope 与环境，保证后续能力绑定足够窄。",
+                  )}
                 </p>
               </div>
               <div className="aside-note">
-                <strong>{secrets.length === 0 ? "No secrets stored yet" : `${secrets.length} references on file`}</strong>
+                <strong>
+                  {secrets.length === 0
+                    ? tr(locale, "No secrets stored yet", "尚未存储密钥")
+                    : tr(locale, `${secrets.length} references on file`, `已登记 ${secrets.length} 条引用`)}
+                </strong>
                 <span className="muted">
-                  The backend keeps the sensitive value. The console only needs the contract around
-                  it.
+                  {tr(locale, "The backend keeps the sensitive value. The console only needs the contract around it.", "后端保存敏感明文，控制台只需要它的契约信息。")}
                 </span>
               </div>
             </div>
           </section>
-          <SecretsForm action={createSecretAction} />
+          <SecretsForm action={createSecretAction} locale={locale} />
         </div>
         <div className="workspace-side">
           <section className="panel stack">
             <div>
-              <div className="kicker">Operator guidance</div>
-              <h2>Keep each secret narrow and legible</h2>
+              <div className="kicker">{tr(locale, "Operator guidance", "运营建议")}</div>
+              <h2>{tr(locale, "Keep each secret narrow and legible", "让每条密钥记录足够窄、足够可读")}</h2>
               <p className="muted">
-                Prefer one provider and one environment per record. If a token has broad scope,
-                make that obvious in the display name before you bind it into capabilities.
+                {tr(
+                  locale,
+                  "Prefer one provider and one environment per record. If a token has broad scope, make that obvious in the display name before you bind it into capabilities.",
+                  "建议每条记录只对应一个 provider 与一个环境。如果 token scope 很大，在绑定能力前先在显示名称里明确标注。",
+                )}
               </p>
             </div>
           </section>
           <section className="panel stack">
           <div>
-            <div className="kicker">Inventory</div>
-            <h2>Current secret references</h2>
+            <div className="kicker">{tr(locale, "Inventory", "清单")}</div>
+            <h2>{tr(locale, "Current secret references", "当前密钥引用")}</h2>
           </div>
           {secrets.length > 0 ? (
             <ul className="list inventory-list">
@@ -124,8 +135,11 @@ export default async function SecretsPage({ searchParams }: PageProps) {
             </ul>
           ) : (
             <div className="empty-state">
-              Nothing stored yet. The first secret you add here becomes a capability anchor for the
-              rest of the platform.
+              {tr(
+                locale,
+                "Nothing stored yet. The first secret you add here becomes a capability anchor for the rest of the platform.",
+                "当前未存储任何密钥。你在这里添加的第一条密钥，会成为后续能力绑定的锚点。",
+              )}
             </div>
           )}
           </section>

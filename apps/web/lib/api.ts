@@ -1,4 +1,6 @@
 import { getManagementSessionHeaders } from "./management-session";
+import type { Locale } from "./i18n-shared";
+import { tr } from "./i18n-shared";
 
 export type Secret = {
   id: string;
@@ -254,6 +256,7 @@ async function getCollection<T>(
 export function getCollectionNotice<T>(
   result: CollectionResult<T>,
   label: string,
+  locale: Locale = "en",
 ): {
   tone: "success" | "warning" | "error";
   message: string;
@@ -261,7 +264,7 @@ export function getCollectionNotice<T>(
   if (result.source === "live") {
     return {
       tone: "success",
-      message: `live API connected for ${label}.`,
+      message: tr(locale, `live API connected for ${label}.`, `已连接实时 API：${label}。`),
     };
   }
 
@@ -269,8 +272,12 @@ export function getCollectionNotice<T>(
     return {
       tone: "warning",
       message:
-        `Demo mode is enabled for ${label}. ` +
-        "Unset AGENT_CONTROL_PLANE_DEMO_MODE and set AGENT_CONTROL_PLANE_API_URL for live data.",
+        tr(
+          locale,
+          `Demo mode is enabled for ${label}. ` +
+            "Unset AGENT_CONTROL_PLANE_DEMO_MODE and set AGENT_CONTROL_PLANE_API_URL for live data.",
+          `${label} 已启用 Demo 模式。取消 AGENT_CONTROL_PLANE_DEMO_MODE，并设置 AGENT_CONTROL_PLANE_API_URL 以获取实时数据。`,
+        ),
     };
   }
 
@@ -278,8 +285,12 @@ export function getCollectionNotice<T>(
     return {
       tone: "warning",
       message:
-        `Disconnected while loading ${label}. ` +
-        "Set AGENT_CONTROL_PLANE_API_URL to your API base URL.",
+        tr(
+          locale,
+          `Disconnected while loading ${label}. ` +
+            "Set AGENT_CONTROL_PLANE_API_URL to your API base URL.",
+          `加载 ${label} 时连接断开。请设置 AGENT_CONTROL_PLANE_API_URL 为 API Base URL。`,
+        ),
     };
   }
 
@@ -288,14 +299,18 @@ export function getCollectionNotice<T>(
     return {
       tone: "error",
       message:
-        `Authorization error while loading ${label}: ${detail}. ` +
-        "Check the management session or sign in again.",
+        tr(
+          locale,
+          `Authorization error while loading ${label}: ${detail}. ` +
+            "Check the management session or sign in again.",
+          `加载 ${label} 时发生授权错误：${detail}。请检查管理会话或重新登录。`,
+        ),
     };
   }
 
   return {
     tone: "error",
-    message: `Failed to load ${label}: ${detail}`,
+    message: tr(locale, `Failed to load ${label}: ${detail}`, `加载 ${label} 失败：${detail}`),
   };
 }
 

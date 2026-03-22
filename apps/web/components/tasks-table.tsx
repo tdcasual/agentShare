@@ -1,3 +1,6 @@
+import type { Locale } from "../lib/i18n-shared";
+import { tr } from "../lib/i18n-shared";
+
 type TaskRow = {
   id: string;
   title: string;
@@ -11,7 +14,11 @@ type TaskRow = {
 type PlaybookLinkMap = Map<string, { title: string }>;
 
 export function TasksTable(
-  { tasks, playbookLinks = new Map() }: { tasks: TaskRow[]; playbookLinks?: PlaybookLinkMap },
+  {
+    tasks,
+    playbookLinks = new Map(),
+    locale = "en",
+  }: { tasks: TaskRow[]; playbookLinks?: PlaybookLinkMap; locale?: Locale },
 ) {
   const statusTone = (status: string) => {
     if (status === "completed") return "success";
@@ -23,11 +30,15 @@ export function TasksTable(
     return (
       <section className="panel stack">
         <div>
-          <div className="kicker">Work queue</div>
-          <h2>Publish lightweight tasks for agents to claim</h2>
+          <div className="kicker">{tr(locale, "Work queue", "任务队列")}</div>
+          <h2>{tr(locale, "Publish lightweight tasks for agents to claim", "发布可被 Agent 认领的轻量任务")}</h2>
         </div>
         <div className="empty-state">
-          No tasks yet. Start with one narrow task and link a playbook if it needs nuance.
+          {tr(
+            locale,
+            "No tasks yet. Start with one narrow task and link a playbook if it needs nuance.",
+            "当前没有任务。先发布一个足够窄的任务，需要细节就关联一份手册。",
+          )}
         </div>
       </section>
     );
@@ -36,8 +47,8 @@ export function TasksTable(
   return (
     <section className="panel stack">
       <div>
-        <div className="kicker">Work queue</div>
-        <h2>Publish lightweight tasks for agents to claim</h2>
+        <div className="kicker">{tr(locale, "Work queue", "任务队列")}</div>
+        <h2>{tr(locale, "Publish lightweight tasks for agents to claim", "发布可被 Agent 认领的轻量任务")}</h2>
       </div>
       <ul className="list" aria-label="Task queue">
         {tasks.map((task) => (
@@ -71,7 +82,7 @@ export function TasksTable(
                 })}
               </div>
             ) : (
-              <span className="muted">No playbooks attached.</span>
+              <span className="muted">{tr(locale, "No playbooks attached.", "未关联手册。")}</span>
             )}
           </li>
         ))}

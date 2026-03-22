@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Mono, Spline_Sans } from "next/font/google";
 import "./globals.css";
 
+import { getLocale } from "../lib/i18n-server";
+
 export const metadata: Metadata = {
   title: "Agent Control Plane",
   description: "Human-and-agent control plane for secrets, tasks, and playbooks.",
@@ -26,9 +28,10 @@ const fontMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="en">
+    <html lang={locale === "zh" ? "zh-CN" : "en"}>
       <body className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable}`}>
         {children}
       </body>

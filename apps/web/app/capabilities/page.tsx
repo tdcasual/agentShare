@@ -2,6 +2,8 @@ import { createCapabilityAction } from "../actions";
 import { CapabilityForm } from "../../components/capability-form";
 import { NavShell } from "../../components/nav-shell";
 import { getCapabilities, getCollectionNotice, getSecrets } from "../../lib/api";
+import { getLocale } from "../../lib/i18n-server";
+import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
 
 type PageProps = {
@@ -19,9 +21,10 @@ function readSingleParam(
 export default async function CapabilitiesPage({ searchParams }: PageProps) {
   await requireManagementSession("/capabilities");
   const params = (await searchParams) ?? {};
+  const locale = await getLocale();
   const capabilitiesResult = await getCapabilities();
   const capabilities = capabilitiesResult.items;
-  const capabilitiesNotice = getCollectionNotice(capabilitiesResult, "capabilities");
+  const capabilitiesNotice = getCollectionNotice(capabilitiesResult, tr(locale, "capabilities", "能力"), locale);
   const secretsResult = await getSecrets();
   const secrets = secretsResult.items;
   const created = readSingleParam(params, "created");
@@ -30,31 +33,31 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
 
   return (
     <NavShell
-      eyebrow="Capabilities"
-      title="Make agents ask for approved abilities, not for raw tokens."
-      subtitle="Capabilities sit between agents and secrets. They define adapter type, mode, risk, and whether a lease can ever be issued."
+      eyebrow={tr(locale, "Capabilities", "能力")}
+      title={tr(locale, "Make agents ask for approved abilities, not for raw tokens.", "让 Agent 请求可审核的能力，而不是原始 token。")}
+      subtitle={tr(locale, "Capabilities sit between agents and secrets. They define adapter type, mode, risk, and whether a lease can ever be issued.", "能力位于 Agent 与密钥之间，定义适配器、模式、风险与是否允许发放租约。")}
       activeHref="/capabilities"
     >
       {created ? (
         <section className="notice success" role="status">
-          Capability created: <strong>{created}</strong>
+          {tr(locale, "Capability created:", "能力已创建：")} <strong>{created}</strong>
         </section>
       ) : null}
       {error ? (
         <section className="notice error" role="alert">
           {error === "invalid-fields"
-            ? "Choose a secret, add a name, required provider, and provide a valid lease TTL."
+            ? tr(locale, "Choose a secret, add a name, required provider, and provide a valid lease TTL.", "请选择密钥并填写名称、required provider 和合法的租约 TTL。")
               : error === "invalid-policy"
-                ? "Capability policy rules must be a valid JSON array."
+                ? tr(locale, "Capability policy rules must be a valid JSON array.", "能力策略规则必须是合法的 JSON 数组。")
               : error === "invalid-adapter-config"
-                ? "Adapter config must be a valid JSON object."
+                ? tr(locale, "Adapter config must be a valid JSON object.", "适配器配置必须是合法的 JSON 对象。")
               : error === "invalid-contract"
-                ? "The selected secret does not satisfy the capability scope contract."
+                ? tr(locale, "The selected secret does not satisfy the capability scope contract.", "所选密钥不满足能力范围契约。")
               : error === "management-auth"
-                ? "The management session is missing or expired."
+                ? tr(locale, "The management session is missing or expired.", "管理会话缺失或已过期。")
                 : error === "api-disconnected"
-                  ? "The API base URL is not configured, so the console cannot save capabilities."
-            : "The capability could not be created."}
+                  ? tr(locale, "The API base URL is not configured, so the console cannot save capabilities.", "未配置 API Base URL，控制台无法保存能力。")
+            : tr(locale, "The capability could not be created.", "能力创建失败。")}
         </section>
       ) : null}
       <section
@@ -90,7 +93,7 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
               </div>
             </div>
           </section>
-          <CapabilityForm action={createCapabilityAction} secrets={secrets} />
+          <CapabilityForm action={createCapabilityAction} secrets={secrets} locale={locale} />
         </div>
         <div className="workspace-side">
           <section className="panel stack">

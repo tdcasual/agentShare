@@ -50,7 +50,16 @@ body {
       transparent 34%
     ),
     linear-gradient(180deg, color-mix(in oklab, white 78%, var(--bg)) 0%, var(--bg) 100%);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-sans),
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -95,7 +104,14 @@ h3 {
 }
 
 h2 {
-  font-family: var(--font-serif), ui-serif, "Iowan Old Style", "Palatino Linotype", serif;
+  font-family:
+    var(--font-serif),
+    "Songti SC",
+    "STSong",
+    ui-serif,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    serif;
   font-weight: 550;
   line-height: 1.12;
   font-size: clamp(1.25rem, 1.6vw, 1.7rem);
@@ -170,7 +186,14 @@ summary:focus-visible {
 
 .title {
   margin: 0;
-  font-family: var(--font-serif), ui-serif, "Iowan Old Style", "Palatino Linotype", serif;
+  font-family:
+    var(--font-serif),
+    "Songti SC",
+    "STSong",
+    ui-serif,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    serif;
   font-size: clamp(2.15rem, 3.6vw, 4.1rem);
   line-height: 0.985;
   max-width: 16ch;
@@ -234,7 +257,14 @@ summary:focus-visible {
 }
 
 .nav form {
+  margin: 0;
+}
+
+.nav-right {
   margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 button:active,

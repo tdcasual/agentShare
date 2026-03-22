@@ -3,7 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 
-export function AgentKeyDisplay({ apiKey, apiBaseUrl }: { apiKey: string; apiBaseUrl?: string }) {
+import type { Locale } from "../lib/i18n-shared";
+import { tr } from "../lib/i18n-shared";
+
+export function AgentKeyDisplay({
+  apiKey,
+  apiBaseUrl,
+  locale = "en",
+}: {
+  apiKey: string;
+  apiBaseUrl?: string;
+  locale?: Locale;
+}) {
   const [copied, setCopied] = useState(false);
 
   if (!apiKey) return null;
@@ -27,24 +38,25 @@ export function AgentKeyDisplay({ apiKey, apiBaseUrl }: { apiKey: string; apiBas
       aria-live="polite"
       className="card warning-card"
     >
-      <h3>New Agent API Key</h3>
+      <h3>{tr(locale, "New Agent API Key", "新的 Agent API Key")}</h3>
       <p className="muted">
-        Copy this key now. It will not be shown again.
+        {tr(locale, "Copy this key now. It will not be shown again.", "请立即复制该 key。它不会再次显示。")}
       </p>
       <code className="key-value">
         {apiKey}
       </code>
       <button onClick={handleCopy}>
-        {copied ? "Copied!" : "Copy to clipboard"}
+        {copied ? tr(locale, "Copied!", "已复制") : tr(locale, "Copy to clipboard", "复制到剪贴板")}
       </button>
       <p className="muted">
-        Next step: verify the key with <code>GET /api/agents/me</code>.
+        {tr(locale, "Next step: verify the key with", "下一步：用")} <code>GET /api/agents/me</code>{" "}
+        {tr(locale, "to verify the key.", "验证 key。")}
       </p>
       <pre className="code-block">
         <code>{nextStepSnippet}</code>
       </pre>
       <Link className="button-link secondary" href="/quickstart">
-        Open quickstart
+        {tr(locale, "Open quickstart", "打开快速开始")}
       </Link>
     </div>
   );

@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import type { Locale } from "../../lib/i18n-shared";
+import { tr } from "../../lib/i18n-shared";
+
 type AgentIdentity = {
   id: string;
   name: string;
@@ -95,11 +98,11 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
-function formatApiError(action: string, response: AgentHttpResult): string {
+function formatApiError(locale: Locale, action: string, response: AgentHttpResult): string {
   const payload = asRecord(response.json);
   const detail = payload?.detail;
   if (typeof detail === "string") {
-    return `${action} failed (${response.status}): ${detail}`;
+    return `${action}${tr(locale, " failed", "失败")} (${response.status}): ${detail}`;
   }
   const detailObj = asRecord(detail);
   const code = typeof detailObj?.code === "string" ? detailObj.code : null;
@@ -110,10 +113,10 @@ function formatApiError(action: string, response: AgentHttpResult): string {
     const policyReason =
       typeof detailObj?.policy_reason === "string" ? detailObj.policy_reason : "";
     return [
-      `${action} blocked: approval required.`,
-      approvalId ? `Request: ${approvalId}.` : null,
-      policyReason ? `Policy: ${policyReason}.` : null,
-      "Ask an operator to approve it in /approvals, then retry.",
+      tr(locale, `${action} blocked: approval required.`, `${action}被阻止：需要审批。`),
+      approvalId ? tr(locale, `Request: ${approvalId}.`, `请求：${approvalId}。`) : null,
+      policyReason ? tr(locale, `Policy: ${policyReason}.`, `策略：${policyReason}。`) : null,
+      tr(locale, "Ask an operator to approve it in /approvals, then retry.", "请让运营者在 /approvals 审批后重试。"),
     ]
       .filter(Boolean)
       .join(" ");
@@ -125,17 +128,29 @@ function formatApiError(action: string, response: AgentHttpResult): string {
     const policySource =
       typeof detailObj?.policy_source === "string" ? detailObj.policy_source : "";
     const policyLine = policyReason || "Policy denied.";
-    return `${action} denied by policy: ${policyLine}${policySource ? ` (${policySource})` : ""}`;
+    return tr(
+      locale,
+      `${action} denied by policy: ${policyLine}${policySource ? ` (${policySource})` : ""}`,
+      `${action}被策略拒绝：${policyLine}${policySource ? `（${policySource}）` : ""}`,
+    );
   }
 
   if (response.status === 401) {
-    return `${action} failed: missing, unknown, or revoked agent key.`;
+    return tr(
+      locale,
+      `${action} failed: missing, unknown, or revoked agent key.`,
+      `${action}失败：agent key 缺失、未知或已吊销。`,
+    );
   }
 
   if (typeof response.bodyText === "string" && response.bodyText.trim()) {
-    return `${action} failed (${response.status}): ${response.bodyText}`;
+    return tr(
+      locale,
+      `${action} failed (${response.status}): ${response.bodyText}`,
+      `${action}失败（${response.status}）：${response.bodyText}`,
+    );
   }
-  return `${action} failed (${response.status}).`;
+  return tr(locale, `${action} failed (${response.status}).`, `${action}失败（${response.status}）。`);
 }
 
 async function copyText(value: string) {
@@ -158,7 +173,7 @@ function truncId(value: string, keep = 14) {
   return `${value.slice(0, keep)}…${value.slice(-keep)}`;
 }
 
-export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
+export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; locale: Locale }) {
   const [agentKey, setAgentKey] = useState("");
   const [revealKey, setRevealKey] = useState(false);
   const [agentIdentity, setAgentIdentity] = useState<AgentIdentity | null>(null);
@@ -211,7 +226,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
   }, [agentKey]);
 
   const canAuth = agentKey.trim().length > 0;
-  const apiHint = apiBaseUrl || "Set AGENT_CONTROL_PLANE_API_URL on the web server.";
+  const apiHint = apiBaseUrl || tr(locale, "Set AGENT_CONTROL_PLANE_API_URL on the web server.", "请在 Web 服务端设置 AGENT_CONTROL_PLANE_API_URL。");
 
   const eligibility = useMemo(() => {
     const identity = agentIdentity;
@@ -246,13 +261,13 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     setAgentError(null);
     setAgentIdentity(null);
     if (!canAuth) {
-      setAgentError("Paste an agent API key first.");
+      setAgentError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
       return;
     }
 
     const response = await agentFetchJson("/api/agent/agents/me", { agentKey });
     if (response.status !== 200) {
-      setAgentError(formatApiError("Verify", response));
+      setAgentError(formatApiError(locale, tr(locale, "Verify", "验证"), response));
       return;
     }
     setAgentIdentity(response.json as AgentIdentity);
@@ -262,7 +277,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     setTasksError(null);
     const response = await agentFetchJson("/api/agent/tasks");
     if (response.status !== 200) {
-      setTasksError(formatApiError("Load tasks", response));
+      setTasksError(formatApiError(locale, tr(locale, "Load tasks", "加载任务"), response));
       setTasks([]);
       return;
     }
@@ -273,12 +288,12 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
   async function claimTask(taskId: string) {
     setTasksError(null);
     if (!canAuth) {
-      setTasksError("Paste an agent API key to claim tasks.");
+      setTasksError(tr(locale, "Paste an agent API key to claim tasks.", "请粘贴 agent API key 后再认领任务。"));
       return;
     }
     const response = await agentFetchJson(`/api/agent/tasks/${taskId}/claim`, { method: "POST", agentKey });
     if (response.status !== 200) {
-      setTasksError(formatApiError("Claim", response));
+      setTasksError(formatApiError(locale, tr(locale, "Claim", "认领"), response));
       return;
     }
     setActiveTask(response.json as TaskRecord);
@@ -289,7 +304,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     setPlaybookError(null);
     setPlaybookResult(null);
     if (!canAuth) {
-      setPlaybookError("Paste an agent API key to call MCP tools.");
+      setPlaybookError(tr(locale, "Paste an agent API key to call MCP tools.", "请粘贴 agent API key 后再调用 MCP 工具。"));
       return;
     }
 
@@ -313,14 +328,20 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     });
 
     if (response.status !== 200) {
-      setPlaybookError(formatApiError("MCP call", response));
+      setPlaybookError(formatApiError(locale, tr(locale, "MCP call", "MCP 调用"), response));
       return;
     }
 
     const payload = response.json as McpToolEnvelope;
     const toolResult = payload?.result;
     if (toolResult?.isError) {
-      setPlaybookError(`MCP tool returned an error: ${JSON.stringify(toolResult.structuredContent ?? toolResult)}`);
+      setPlaybookError(
+        tr(
+          locale,
+          `MCP tool returned an error: ${JSON.stringify(toolResult.structuredContent ?? toolResult)}`,
+          `MCP 工具返回错误：${JSON.stringify(toolResult.structuredContent ?? toolResult)}`,
+        ),
+      );
       return;
     }
     setPlaybookResult(toolResult?.structuredContent ?? payload);
@@ -330,16 +351,16 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     setInvokeError(null);
     setInvokeResult(null);
     if (!activeTask) {
-      setInvokeError("Claim or select a task first.");
+      setInvokeError(tr(locale, "Claim or select a task first.", "请先认领或选择一个任务。"));
       return;
     }
     if (!canAuth) {
-      setInvokeError("Paste an agent API key first.");
+      setInvokeError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
       return;
     }
     const capabilityId = (invokeCapabilityId || suggestedCapabilityId).trim();
     if (!capabilityId) {
-      setInvokeError("Enter a capability id.");
+      setInvokeError(tr(locale, "Enter a capability id.", "请输入 capability id。"));
       return;
     }
     const parsed = safeJsonParse(invokeParams);
@@ -357,7 +378,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     });
     setInvokeResult(response);
     if (response.status !== 200) {
-      setInvokeError(formatApiError("Invoke", response));
+      setInvokeError(formatApiError(locale, tr(locale, "Invoke", "调用"), response));
     }
   }
 
@@ -365,16 +386,16 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     setLeaseError(null);
     setLeaseResult(null);
     if (!activeTask) {
-      setLeaseError("Claim or select a task first.");
+      setLeaseError(tr(locale, "Claim or select a task first.", "请先认领或选择一个任务。"));
       return;
     }
     if (!canAuth) {
-      setLeaseError("Paste an agent API key first.");
+      setLeaseError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
       return;
     }
     const capabilityId = (leaseCapabilityId || suggestedCapabilityId).trim();
     if (!capabilityId) {
-      setLeaseError("Enter a capability id.");
+      setLeaseError(tr(locale, "Enter a capability id.", "请输入 capability id。"));
       return;
     }
     const response = await agentFetchJson(`/api/agent/capabilities/${capabilityId}/lease`, {
@@ -387,7 +408,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     });
     setLeaseResult(response);
     if (response.status !== 201) {
-      setLeaseError(formatApiError("Lease", response));
+      setLeaseError(formatApiError(locale, tr(locale, "Lease", "租约"), response));
     }
   }
 
@@ -395,11 +416,11 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     setCompleteError(null);
     setCompleteResult(null);
     if (!activeTask) {
-      setCompleteError("Claim or select a task first.");
+      setCompleteError(tr(locale, "Claim or select a task first.", "请先认领或选择一个任务。"));
       return;
     }
     if (!canAuth) {
-      setCompleteError("Paste an agent API key first.");
+      setCompleteError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
       return;
     }
     const parsed = safeJsonParse(completeOutput);
@@ -417,7 +438,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     });
     setCompleteResult(response);
     if (response.status !== 200) {
-      setCompleteError(formatApiError("Complete", response));
+      setCompleteError(formatApiError(locale, tr(locale, "Complete", "完成"), response));
     }
     if (response.status === 200) {
       await loadTasks();
@@ -446,20 +467,20 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
     <div className="stack section-space">
       <section className="panel stack">
         <div>
-          <div className="kicker">Connect</div>
-          <h2>Agent identity</h2>
+          <div className="kicker">{tr(locale, "Connect", "连接")}</div>
+          <h2>{tr(locale, "Agent identity", "Agent 身份")}</h2>
         </div>
         <div className="form-row">
           <label>
-            API base
+            {tr(locale, "API base", "API 地址")}
             <input value={apiHint} readOnly />
           </label>
           <label>
-            Agent API key
+            {tr(locale, "Agent API key", "Agent API key")}
             <input
               value={agentKey}
               onChange={(event) => setAgentKey(event.target.value)}
-              placeholder="paste bearer token"
+              placeholder={tr(locale, "paste bearer token", "粘贴 bearer token")}
               type={revealKey ? "text" : "password"}
               autoComplete="off"
             />
@@ -467,7 +488,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
         </div>
         <div className="inline-actions">
           <button type="button" onClick={verifyAgent} disabled={!canAuth}>
-            Verify
+            {tr(locale, "Verify", "验证")}
           </button>
           <button
             type="button"
@@ -475,10 +496,10 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
             onClick={() => setRevealKey((value) => !value)}
             disabled={!canAuth}
           >
-            {revealKey ? "Hide key" : "Reveal key"}
+            {revealKey ? tr(locale, "Hide key", "隐藏 key") : tr(locale, "Reveal key", "显示 key")}
           </button>
           <button type="button" className="secondary" onClick={clearKey}>
-            Clear key
+            {tr(locale, "Clear key", "清除 key")}
           </button>
         </div>
         {agentError ? (
@@ -488,9 +509,9 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
         ) : null}
         {agentIdentity ? (
           <section className="notice success" role="status">
-            Verified as <strong>{agentIdentity.name}</strong>{" "}
-            <span className="muted">({truncId(agentIdentity.id)})</span> in{" "}
-            <strong>{agentIdentity.risk_tier}</strong>.
+            {tr(locale, "Verified as", "已验证")} <strong>{agentIdentity.name}</strong>{" "}
+            <span className="muted">({truncId(agentIdentity.id)})</span>{" "}
+            {tr(locale, "in", "风险等级")} <strong>{agentIdentity.risk_tier}</strong>.
           </section>
         ) : null}
       </section>
@@ -500,12 +521,12 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
           <section className="panel stack">
             <div className="toolbar">
               <div className="stack" style={{ gap: 6 }}>
-                <div className="kicker">Queue</div>
-                <h2>Tasks</h2>
+                <div className="kicker">{tr(locale, "Queue", "队列")}</div>
+                <h2>{tr(locale, "Tasks", "任务")}</h2>
               </div>
               <div className="inline-actions">
                 <button type="button" className="secondary" onClick={loadTasks}>
-                  Refresh
+                  {tr(locale, "Refresh", "刷新")}
                 </button>
               </div>
             </div>
@@ -518,7 +539,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
 
             <div className="form-row">
               <label>
-                Show
+                {tr(locale, "Show", "显示")}
                 <select
                   value={taskStatusFilter}
                   onChange={(e) =>
@@ -527,21 +548,21 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                     )
                   }
                 >
-                  <option value="pending">Pending</option>
-                  <option value="claimed">Claimed</option>
-                  <option value="completed">Completed</option>
-                  <option value="all">All</option>
+                  <option value="pending">{tr(locale, "Pending", "待认领")}</option>
+                  <option value="claimed">{tr(locale, "Claimed", "已认领")}</option>
+                  <option value="completed">{tr(locale, "Completed", "已完成")}</option>
+                  <option value="all">{tr(locale, "All", "全部")}</option>
                 </select>
               </label>
               <label>
-                Eligible only
+                {tr(locale, "Eligible only", "仅显示可执行")}
                 <select
                   value={onlyEligible ? "yes" : "no"}
                   onChange={(e) => setOnlyEligible(e.target.value === "yes")}
                   disabled={!agentIdentity}
                 >
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
+                  <option value="yes">{tr(locale, "Yes", "是")}</option>
+                  <option value="no">{tr(locale, "No", "否")}</option>
                 </select>
               </label>
             </div>
@@ -549,8 +570,8 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
             {visibleTasks.length === 0 ? (
               <div className="empty-state">
                 {tasks.length === 0
-                  ? "No tasks are visible. Ask an operator to publish one in the console."
-                  : "No tasks match the current filters."}
+                  ? tr(locale, "No tasks are visible. Ask an operator to publish one in the console.", "当前没有可见任务。请让运营者在控制台发布任务。")
+                  : tr(locale, "No tasks match the current filters.", "没有任务符合当前筛选条件。")}
               </div>
             ) : (
               <div className="list" aria-label="Task queue">
@@ -566,10 +587,12 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                           {task.status}
                         </span>
                         <span className="chip">{task.task_type}</span>
-                        {task.lease_allowed ? <span className="chip">lease</span> : null}
-                        {task.approval_mode === "manual" ? <span className="chip">manual</span> : null}
-                        {task.claimed_by ? <span className="chip">claimed</span> : null}
-                        {agentIdentity && !eligible ? <span className="chip" data-tone="error">ineligible</span> : null}
+                        {task.lease_allowed ? <span className="chip">{tr(locale, "lease", "租约")}</span> : null}
+                        {task.approval_mode === "manual" ? <span className="chip">{tr(locale, "manual", "人工")}</span> : null}
+                        {task.claimed_by ? <span className="chip">{tr(locale, "claimed", "已认领")}</span> : null}
+                        {agentIdentity && !eligible ? (
+                          <span className="chip" data-tone="error">{tr(locale, "ineligible", "不符合")}</span>
+                        ) : null}
                       </div>
                       <div className="stack">
                         <strong>{task.title}</strong>
@@ -584,14 +607,14 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                           ))}
                         </div>
                       ) : (
-                        <span className="muted">No playbooks attached.</span>
+                        <span className="muted">{tr(locale, "No playbooks attached.", "未关联手册。")}</span>
                       )}
                       <div className="inline-actions">
                         <button type="button" className="secondary" onClick={() => setActiveTask(task)}>
-                          {isActive ? "Selected" : "Select"}
+                          {isActive ? tr(locale, "Selected", "已选择") : tr(locale, "Select", "选择")}
                         </button>
                         <button type="button" onClick={() => claimTask(task.id)} disabled={!canAuth || !canClaim}>
-                          Claim
+                          {tr(locale, "Claim", "认领")}
                         </button>
                       </div>
                     </article>
@@ -606,8 +629,8 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
           <section className="panel stack">
             <div className="toolbar">
               <div className="stack" style={{ gap: 6 }}>
-                <div className="kicker">Knowledge</div>
-                <h2>Playbooks</h2>
+                <div className="kicker">{tr(locale, "Knowledge", "知识")}</div>
+                <h2>{tr(locale, "Playbooks", "手册")}</h2>
               </div>
               <div className="inline-actions">
                 <button
@@ -621,13 +644,13 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                   }}
                   disabled={!playbookResult}
                 >
-                  {playbookCopied ? "Copied" : "Copy JSON"}
+                  {playbookCopied ? tr(locale, "Copied", "已复制") : tr(locale, "Copy JSON", "复制 JSON")}
                 </button>
               </div>
             </div>
 
             <label>
-              Query
+              {tr(locale, "Query", "检索")}
               <input
                 value={playbookQuery}
                 onChange={(e) => setPlaybookQuery(e.target.value)}
@@ -636,10 +659,10 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
             </label>
 
             <details className="compact-details">
-              <summary>Filters</summary>
+              <summary>{tr(locale, "Filters", "筛选")}</summary>
               <div className="form-row">
                 <label>
-                  Task type
+                  {tr(locale, "Task type", "任务类型")}
                   <input
                     value={playbookTaskType}
                     onChange={(e) => setPlaybookTaskType(e.target.value)}
@@ -647,22 +670,22 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                   />
                 </label>
                 <label>
-                  Tag
+                  {tr(locale, "Tag", "标签")}
                   <input value={playbookTag} onChange={(e) => setPlaybookTag(e.target.value)} placeholder="openai" />
                 </label>
               </div>
               <label>
-                View
+                {tr(locale, "View", "视图")}
                 <select value={showRaw ? "raw" : "summary"} onChange={(e) => setShowRaw(e.target.value === "raw")}>
-                  <option value="summary">Summary</option>
-                  <option value="raw">Raw JSON</option>
+                  <option value="summary">{tr(locale, "Summary", "摘要")}</option>
+                  <option value="raw">{tr(locale, "Raw JSON", "原始 JSON")}</option>
                 </select>
               </label>
             </details>
 
             <div className="inline-actions">
               <button type="button" onClick={searchPlaybooksViaMcp} disabled={!canAuth}>
-                Search
+                {tr(locale, "Search", "搜索")}
               </button>
             </div>
 
@@ -678,7 +701,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                   <code>{JSON.stringify(playbookResult, null, 2)}</code>
                 </pre>
               ) : playbookItems.length === 0 ? (
-                <div className="empty-state">No playbooks matched.</div>
+                <div className="empty-state">{tr(locale, "No playbooks matched.", "没有匹配的手册。")}</div>
               ) : (
                 <div className="list" aria-label="Playbook results">
                   {playbookItems.slice(0, 10).map((playbook) => {
@@ -713,34 +736,38 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                 </div>
               )
             ) : (
-              <div className="empty-state">Search via MCP to pull playbooks into the runtime context.</div>
+              <div className="empty-state">
+                {tr(locale, "Search via MCP to pull playbooks into the runtime context.", "通过 MCP 检索手册，把上下文拉入运行时。")}
+              </div>
             )}
           </section>
 
           <section className="panel stack">
             <div>
-              <div className="kicker">Execute</div>
-              <h2>Invoke, lease, complete</h2>
+              <div className="kicker">{tr(locale, "Execute", "执行")}</div>
+              <h2>{tr(locale, "Invoke, lease, complete", "调用、租约、完成")}</h2>
             </div>
 
             {!activeTask ? (
-              <div className="empty-state">Select or claim a task from the queue to unlock runtime actions.</div>
+              <div className="empty-state">
+                {tr(locale, "Select or claim a task from the queue to unlock runtime actions.", "从队列中选择或认领任务后才能执行运行时动作。")}
+              </div>
             ) : (
               <>
                 <section className="notice" role="status">
-                  Active: <strong>{activeTask.title}</strong>{" "}
+                  {tr(locale, "Active:", "当前任务：")} <strong>{activeTask.title}</strong>{" "}
                   <span className="muted">({truncId(activeTask.id)})</span>
                   {suggestedCapabilityId ? (
                     <>
                       {" "}
-                      Default capability: <strong>{truncId(suggestedCapabilityId)}</strong>
+                      {tr(locale, "Default capability:", "默认 capability：")} <strong>{truncId(suggestedCapabilityId)}</strong>
                     </>
                   ) : null}
                 </section>
 
                 <div className="form-row">
                   <label>
-                    Capability id (invoke)
+                    {tr(locale, "Capability id (invoke)", "Capability id（调用）")}
                     <input
                       value={invokeCapabilityId}
                       onChange={(e) => setInvokeCapabilityId(e.target.value)}
@@ -748,7 +775,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                     />
                   </label>
                   <label>
-                    Capability id (lease)
+                    {tr(locale, "Capability id (lease)", "Capability id（租约）")}
                     <input
                       value={leaseCapabilityId}
                       onChange={(e) => setLeaseCapabilityId(e.target.value)}
@@ -758,24 +785,24 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                 </div>
 
                 <details className="compact-details" open>
-                  <summary>Invoke</summary>
+                  <summary>{tr(locale, "Invoke", "调用")}</summary>
                   <label>
-                    Parameters (JSON)
+                    {tr(locale, "Parameters (JSON)", "参数（JSON）")}
                     <textarea value={invokeParams} onChange={(e) => setInvokeParams(e.target.value)} />
                   </label>
                   <div className="inline-actions">
                     <button type="button" onClick={invokeCapability} disabled={!canAuth}>
-                      Invoke
+                      {tr(locale, "Invoke", "调用")}
                     </button>
                     <button
                       type="button"
                       className="secondary"
                       onClick={async () => {
                         const ok = await copyText(invokeParams);
-                        if (!ok) setInvokeError("Copy failed. Your browser may block clipboard access.");
+                        if (!ok) setInvokeError(tr(locale, "Copy failed. Your browser may block clipboard access.", "复制失败，浏览器可能阻止剪贴板访问。"));
                       }}
                     >
-                      Copy JSON
+                      {tr(locale, "Copy JSON", "复制 JSON")}
                     </button>
                   </div>
                   {invokeError ? (
@@ -785,7 +812,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                   ) : null}
                   {invokeResult ? (
                     <details className="compact-details">
-                      <summary>Response</summary>
+                      <summary>{tr(locale, "Response", "响应")}</summary>
                       <pre className="code-block">
                         <code>
                           {`status: ${invokeResult.status}\n` +
@@ -799,14 +826,14 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                 </details>
 
                 <details className="compact-details">
-                  <summary>Lease</summary>
+                  <summary>{tr(locale, "Lease", "租约")}</summary>
                   <label>
-                    Purpose
+                    {tr(locale, "Purpose", "用途")}
                     <input value={leasePurpose} onChange={(e) => setLeasePurpose(e.target.value)} />
                   </label>
                   <div className="inline-actions">
                     <button type="button" className="secondary" onClick={requestLease} disabled={!canAuth}>
-                      Request lease
+                      {tr(locale, "Request lease", "申请租约")}
                     </button>
                   </div>
                   {leaseError ? (
@@ -816,7 +843,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                   ) : null}
                   {leaseResult ? (
                     <details className="compact-details">
-                      <summary>Response</summary>
+                      <summary>{tr(locale, "Response", "响应")}</summary>
                       <pre className="code-block">
                         <code>
                           {`status: ${leaseResult.status}\n` +
@@ -828,28 +855,28 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                 </details>
 
                 <details className="compact-details">
-                  <summary>Complete</summary>
+                  <summary>{tr(locale, "Complete", "完成")}</summary>
                   <label>
-                    Result summary
+                    {tr(locale, "Result summary", "结果摘要")}
                     <input value={completeResultSummary} onChange={(e) => setCompleteResultSummary(e.target.value)} />
                   </label>
                   <label>
-                    Output payload (JSON)
+                    {tr(locale, "Output payload (JSON)", "输出载荷（JSON）")}
                     <textarea value={completeOutput} onChange={(e) => setCompleteOutput(e.target.value)} />
                   </label>
                   <div className="inline-actions">
                     <button type="button" onClick={completeTask} disabled={!canAuth}>
-                      Complete task
+                      {tr(locale, "Complete task", "完成任务")}
                     </button>
                     <button
                       type="button"
                       className="secondary"
                       onClick={async () => {
                         const ok = await copyText(completeOutput);
-                        if (!ok) setCompleteError("Copy failed. Your browser may block clipboard access.");
+                        if (!ok) setCompleteError(tr(locale, "Copy failed. Your browser may block clipboard access.", "复制失败，浏览器可能阻止剪贴板访问。"));
                       }}
                     >
-                      Copy JSON
+                      {tr(locale, "Copy JSON", "复制 JSON")}
                     </button>
                   </div>
                   {completeError ? (
@@ -859,7 +886,7 @@ export function AgentSelfServe({ apiBaseUrl }: { apiBaseUrl: string }) {
                   ) : null}
                   {completeResult ? (
                     <details className="compact-details">
-                      <summary>Response</summary>
+                      <summary>{tr(locale, "Response", "响应")}</summary>
                       <pre className="code-block">
                         <code>
                           {`status: ${completeResult.status}\n` +
