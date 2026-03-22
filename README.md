@@ -2,6 +2,91 @@
 
 Human-and-agent control plane for secret-backed capabilities, lightweight tasks, and reusable playbooks.
 
+## Docker And Deployment
+
+This repository now ships two first-class container images:
+
+- `ghcr.io/<owner>/agentshare-api`
+- `ghcr.io/<owner>/agentshare-web`
+
+They are built by GitHub Actions from:
+
+- `apps/api/Dockerfile`
+- `apps/web/Dockerfile`
+
+### GitHub Actions image publishing
+
+- Workflow: `.github/workflows/docker-images.yml`
+- Pull requests: build validation only, no push
+- Pushes to `main`: build and push tagged images to `ghcr.io`
+- Git tags like `v1.2.3`: publish matching version tags
+- Default branch pushes also publish `latest`
+
+### Complete Docker Compose stack
+
+The root `docker-compose.yml` runs the full stack:
+
+- `web`
+- `api`
+- `postgres`
+- `redis`
+- `openbao`
+
+Start everything locally:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+Then open:
+
+- Web: `http://127.0.0.1:3000`
+- API docs: `http://127.0.0.1:8000/docs`
+- OpenAPI: `http://127.0.0.1:8000/openapi.json`
+
+Stop and remove containers:
+
+```bash
+docker compose down
+```
+
+Stop and remove containers plus database/cache volumes:
+
+```bash
+docker compose down -v
+```
+
+### Compose environment variables
+
+Important variables are exposed through `.env.example`:
+
+- `DATABASE_URL`
+- `REDIS_URL`
+- `SECRET_BACKEND`
+- `OPENBAO_ADDR`
+- `OPENBAO_TOKEN`
+- `BOOTSTRAP_AGENT_KEY`
+- `MANAGEMENT_SESSION_SECRET`
+- `AGENT_CONTROL_PLANE_API_URL`
+- `NEXT_PUBLIC_API_BASE_URL`
+- `API_IMAGE`
+- `WEB_IMAGE`
+
+For local compose defaults, `web` talks to `api` over the internal Compose network using `http://api:8000`.
+
+### Using prebuilt GHCR images with Compose
+
+If you want Compose to run published images instead of local builds, set:
+
+```bash
+export API_IMAGE=ghcr.io/<owner>/agentshare-api:latest
+export WEB_IMAGE=ghcr.io/<owner>/agentshare-web:latest
+docker compose up -d --no-build
+```
+
+Use a SHA or release tag instead of `latest` for repeatable production deployments.
+
 ## Agent Quickstart
 
 Start with the operational guide:
@@ -118,14 +203,20 @@ The quickstarts cover both direct HTTP runtime calls and the MCP tool surface on
 
 ## Quick Start
 
-1. Copy `.env.example` into your local shell environment or preferred env file.
-2. Start the local dependencies:
+1. Copy `.env.example` into `.env`.
+2. Start the full stack with Docker Compose:
+
+```bash
+docker compose up -d --build
+```
+
+3. Or, if you only want dependency services for local host-based development:
 
 ```bash
 docker compose up -d openbao postgres redis
 ```
 
-3. Install the API and web dependencies:
+4. Install the API and web dependencies:
 
 ```bash
 python3 -m venv .venv
@@ -133,14 +224,14 @@ python3 -m venv .venv
 cd apps/web && npm install
 ```
 
-4. Start the API and web apps:
+5. Start the API and web apps:
 
 ```bash
 SECRET_BACKEND=openbao OPENBAO_ADDR=http://127.0.0.1:8200 OPENBAO_TOKEN=root .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
 cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
-5. Run verification locally:
+6. Run verification locally:
 
 ```bash
 .venv/bin/pytest apps/api/tests -q

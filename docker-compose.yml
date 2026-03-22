@@ -1,6 +1,7 @@
 services:
   openbao:
     image: docker.io/openbao/openbao:latest
+    container_name: agentshare-openbao
     command:
       - server
       - -dev
@@ -18,22 +19,29 @@ services:
 
   postgres:
     image: postgres:16
+    container_name: agentshare-postgres
     environment:
-      POSTGRES_DB: agent_share
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-agent_share}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agent_share}"]
       interval: 5s
       timeout: 3s
       retries: 5
 
   redis:
     image: redis:7
+    container_name: agentshare-redis
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -41,23 +49,58 @@ services:
       retries: 5
 
   api:
+    image: ${API_IMAGE:-agentshare-api:local}
     build:
-      context: apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: agentshare-api
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/agent_share
-      REDIS_URL: redis://redis:6379/0
-      SECRET_BACKEND: memory
-      BOOTSTRAP_AGENT_KEY: changeme-bootstrap-key
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/agent_share}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SECRET_BACKEND: ${SECRET_BACKEND:-openbao}
+      OPENBAO_ADDR: ${OPENBAO_ADDR:-http://openbao:8200}
+      OPENBAO_TOKEN: ${OPENBAO_TOKEN:-root}
+      OPENBAO_MOUNT: ${OPENBAO_MOUNT:-secret}
+      OPENBAO_PREFIX: ${OPENBAO_PREFIX:-agent-share}
+      BOOTSTRAP_AGENT_KEY: ${BOOTSTRAP_AGENT_KEY:-changeme-bootstrap-key}
+      MANAGEMENT_SESSION_SECRET: ${MANAGEMENT_SESSION_SECRET:-changeme-management-session-secret}
+      MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-false}
     depends_on:
+      openbao:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
       interval: 5s
       timeout: 3s
       retries: 5
+
+  web:
+    image: ${WEB_IMAGE:-agentshare-web:local}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: agentshare-web
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      AGENT_CONTROL_PLANE_API_URL: ${AGENT_CONTROL_PLANE_API_URL:-http://api:8000}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+      AGENT_CONTROL_PLANE_DEMO_MODE: ${AGENT_CONTROL_PLANE_DEMO_MODE:-false}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then((res)=>{if(!res.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+  redis-data:

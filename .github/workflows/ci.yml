@@ -32,7 +32,10 @@ jobs:
           pip install -e 'apps/api[dev]'
 
       - name: Run API tests
-        run: pytest apps/api/tests -q
+        run: PYTHONPATH=apps/api pytest apps/api/tests tests/ops -q
+
+      - name: Validate Docker Compose
+        run: docker compose config
 
       - name: Install web dependencies
         working-directory: apps/web
