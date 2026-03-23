@@ -34,6 +34,10 @@ class SecretBackend:
         raise NotImplementedError
 
 
+class SecretBackendConfigurationError(RuntimeError):
+    pass
+
+
 class InMemorySecretBackend(SecretBackend):
     backend_name = "memory"
 
@@ -110,6 +114,7 @@ class OpenBaoSecretBackend(SecretBackend):
 
 def get_secret_backend(settings: Settings | None = None) -> SecretBackend:
     settings = settings or Settings()
+    validate_secret_backend_settings(settings)
     if settings.secret_backend == "memory":
         return InMemorySecretBackend(settings)
     if settings.secret_backend == "openbao" and settings.openbao_addr and settings.openbao_token:
@@ -120,5 +125,23 @@ def get_secret_backend(settings: Settings | None = None) -> SecretBackend:
 def get_secret_backend_for_ref(backend_ref: str | None, settings: Settings | None = None) -> SecretBackend:
     settings = settings or Settings()
     if backend_ref and backend_ref.startswith("openbao:"):
+        validate_secret_backend_settings(settings)
         return OpenBaoSecretBackend(settings)
     return InMemorySecretBackend(settings)
+
+
+def validate_secret_backend_settings(settings: Settings) -> None:
+    if settings.secret_backend == "memory":
+        if settings.is_production_like():
+            raise SecretBackendConfigurationError(
+                "APP_ENV staging/production does not allow SECRET_BACKEND=memory."
+            )
+        return
+
+    if settings.secret_backend == "openbao":
+        if settings.openbao_addr and settings.openbao_token:
+            return
+        if settings.is_production_like():
+            raise SecretBackendConfigurationError(
+                "APP_ENV staging/production requires OpenBao credentials when SECRET_BACKEND=openbao."
+            )

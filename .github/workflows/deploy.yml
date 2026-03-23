@@ -66,7 +66,7 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}
           target: ${{ secrets.DEPLOY_PATH }}
           overwrite: true
-          source: "docker-compose.yml,docker-compose.prod.yml,.env.production.example,.release.env"
+          source: "docker-compose.prod.yml,.env.production.example,.release.env,ops/caddy/Caddyfile,ops/compose/prod.env.example,scripts/ops/smoke-test.sh"
 
       - name: Pull and restart remote stack
         uses: appleboy/ssh-action@v1.0.3
@@ -80,17 +80,16 @@ jobs:
             set -euo pipefail
             mkdir -p "${{ secrets.DEPLOY_PATH }}"
             cd "${{ secrets.DEPLOY_PATH }}"
+            mkdir -p ops/caddy ops/compose scripts/ops
 
-            if [ ! -f .env.production ]; then
-              if [ -n "${{ secrets.DEPLOY_ENV_FILE }}" ]; then
-                cat > .env.production <<'EOF'
+            if [ -z "${{ secrets.DEPLOY_ENV_FILE }}" ]; then
+              echo "DEPLOY_ENV_FILE secret is required."
+              exit 1
+            fi
+
+            cat > .env.production <<'EOF'
             ${{ secrets.DEPLOY_ENV_FILE }}
             EOF
-              else
-                echo "Missing .env.production on server and DEPLOY_ENV_FILE secret is empty."
-                exit 1
-              fi
-            fi
 
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
 
@@ -99,6 +98,11 @@ jobs:
             . ./.release.env
             set +a
 
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null
+            docker compose --env-file .env.production -f docker-compose.prod.yml pull
+            docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
+
+            chmod +x scripts/ops/smoke-test.sh
+            echo "Running smoke checks through caddy..."
+            ./scripts/ops/smoke-test.sh
             docker image prune -f

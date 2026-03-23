@@ -13,11 +13,13 @@ from app.routes.capabilities import router as capabilities_router
 from app.routes.invoke import router as invoke_router
 from app.routes.leases import router as leases_router
 from app.mcp.server import router as mcp_router
+from app.routes.metrics import router as metrics_router
 from app.routes.playbooks import router as playbooks_router
 from app.routes.runs import router as runs_router
 from app.routes.session import router as session_router
 from app.routes.secrets import router as secrets_router
 from app.routes.tasks import router as tasks_router
+from app.services.secret_backend import validate_secret_backend_settings
 
 
 def _hash_key(key: str) -> str:
@@ -26,8 +28,9 @@ def _hash_key(key: str) -> str:
 
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
-    init_db()
     settings = Settings()
+    validate_secret_backend_settings(settings)
+    init_db()
     session = SessionLocal()
     try:
         repo = AgentRepository(session)
@@ -90,5 +93,6 @@ app.include_router(tasks_router)
 app.include_router(invoke_router)
 app.include_router(leases_router)
 app.include_router(mcp_router)
+app.include_router(metrics_router)
 app.include_router(runs_router)
 app.include_router(playbooks_router)

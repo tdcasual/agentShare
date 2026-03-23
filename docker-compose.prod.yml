@@ -1,28 +1,119 @@
 services:
-  openbao:
-    restart: unless-stopped
-
-  postgres:
-    restart: unless-stopped
-
-  redis:
-    restart: unless-stopped
-
-  api:
-    build: !reset null
-    image: ${API_IMAGE:?API_IMAGE is required}
-    restart: unless-stopped
-    ports: !override
-      - "127.0.0.1:${API_PORT:-8000}:8000"
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: agentshare-caddy
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
     environment:
-      MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}
+      PUBLIC_HOST: ${PUBLIC_HOST:?PUBLIC_HOST is required}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+    volumes:
+      - ./ops/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+    restart: unless-stopped
 
   web:
-    build: !reset null
     image: ${WEB_IMAGE:?WEB_IMAGE is required}
-    restart: unless-stopped
-    ports: !override
-      - "${WEB_PORT:-3000}:3000"
+    container_name: agentshare-web
+    depends_on:
+      api:
+        condition: service_healthy
     environment:
       AGENT_CONTROL_PLANE_API_URL: ${AGENT_CONTROL_PLANE_API_URL:-http://api:8000}
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL is required}
+      AGENT_CONTROL_PLANE_DEMO_MODE: ${AGENT_CONTROL_PLANE_DEMO_MODE:-false}
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then((res)=>{if(!res.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edge
+    restart: unless-stopped
+
+  api:
+    image: ${API_IMAGE:?API_IMAGE is required}
+    container_name: agentshare-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      REDIS_URL: ${REDIS_URL:?REDIS_URL is required}
+      SECRET_BACKEND: ${SECRET_BACKEND:-openbao}
+      OPENBAO_ADDR: ${SECRET_BACKEND_URL:?SECRET_BACKEND_URL is required}
+      OPENBAO_TOKEN: ${SECRET_BACKEND_TOKEN:?SECRET_BACKEND_TOKEN is required}
+      OPENBAO_MOUNT: ${OPENBAO_MOUNT:-secret}
+      OPENBAO_PREFIX: ${OPENBAO_PREFIX:-agent-share}
+      BOOTSTRAP_AGENT_KEY: ${BOOTSTRAP_AGENT_KEY:?BOOTSTRAP_AGENT_KEY is required}
+      MANAGEMENT_SESSION_SECRET: ${MANAGEMENT_SESSION_SECRET:?MANAGEMENT_SESSION_SECRET is required}
+      MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}
+      METRICS_ENABLED: ${METRICS_ENABLED:-true}
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - edge
+      - data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    container_name: agentshare-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agent_share}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agent_share}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: agentshare-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - data
+    restart: unless-stopped
+
+networks:
+  edge:
+  data:
+
+volumes:
+  caddy-data:
+  caddy-config:
+  postgres-data:
+  redis-data:

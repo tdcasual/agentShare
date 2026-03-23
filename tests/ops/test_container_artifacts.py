@@ -12,7 +12,10 @@ def test_container_artifacts_exist() -> None:
     assert (ROOT / "apps/api/Dockerfile").exists()
     assert (ROOT / "apps/web/Dockerfile").exists()
     assert (ROOT / "docker-compose.prod.yml").exists()
-    assert (ROOT / ".env.production.example").exists()
+    assert (ROOT / "ops/caddy/Caddyfile").exists()
+    assert (ROOT / "ops/compose/prod.env.example").exists()
+    assert (ROOT / "docs/guides/production-deployment.md").exists()
+    assert (ROOT / "docs/guides/production-operations.md").exists()
 
 
 def test_compose_includes_web_and_api_services() -> None:
@@ -67,28 +70,36 @@ def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
     assert 'workflows: ["Docker Images"]' in workflow
     assert "appleboy/scp-action" in workflow
     assert "appleboy/ssh-action" in workflow
-    assert "docker compose -f docker-compose.yml -f docker-compose.prod.yml pull" in workflow
-    assert "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans" in workflow
+    assert "docker compose --env-file .env.production -f docker-compose.prod.yml config" in workflow
+    assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in workflow
+    assert "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans" in workflow
     assert ".env.production" in workflow
     assert "DEPLOY_ENV_FILE" in workflow
+    assert "smoke-test.sh" in workflow
+    assert "cat > .env.production" in workflow
+    assert "if [ ! -f .env.production ]" not in workflow
 
 
 def test_prod_compose_uses_published_images() -> None:
     compose = (ROOT / "docker-compose.prod.yml").read_text()
     assert "${API_IMAGE:" in compose
     assert "${WEB_IMAGE:" in compose
+    assert "\n  caddy:\n" in compose
     assert "restart: unless-stopped" in compose
     assert "MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}" in compose
 
 
 def test_production_env_template_includes_runtime_placeholders() -> None:
-    env_example = (ROOT / ".env.production.example").read_text()
+    env_example = (ROOT / "ops/compose/prod.env.example").read_text()
     assert "DATABASE_URL=" in env_example
     assert "BOOTSTRAP_AGENT_KEY=" in env_example
     assert "MANAGEMENT_SESSION_SECRET=" in env_example
     assert "NEXT_PUBLIC_API_BASE_URL=" in env_example
     assert "API_IMAGE=" in env_example
     assert "WEB_IMAGE=" in env_example
+    assert "SECRET_BACKEND_URL=" in env_example
+    assert "SECRET_BACKEND_TOKEN=" in env_example
+    assert "APP_BASE_URL=" in env_example
 
 
 def test_readme_documents_compose_and_image_pipeline() -> None:
@@ -99,6 +110,24 @@ def test_readme_documents_compose_and_image_pipeline() -> None:
     assert "API_IMAGE" in readme
     assert "DEPLOY_HOST" in readme
     assert "DEPLOY_ENV_FILE" in readme
-    assert "docker compose -f docker-compose.yml -f docker-compose.prod.yml pull" in readme
+    assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in readme
     assert "workflow_dispatch" in readme
     assert "rollback" in readme.lower()
+    assert "external secret backend" in readme.lower()
+    assert "backup" in readme.lower()
+    assert "restore" in readme.lower()
+    assert "caddy" in readme.lower()
+    assert "smoke" in readme.lower()
+
+
+def test_prod_compose_includes_caddy_and_excludes_openbao() -> None:
+    compose = (ROOT / "docker-compose.prod.yml").read_text()
+    assert "caddy:" in compose
+    assert "openbao:" not in compose
+
+
+def test_smoke_script_checks_https_entrypoint() -> None:
+    script = (ROOT / "scripts/ops/smoke-test.sh").read_text()
+    assert "APP_BASE_URL" in script
+    assert "--location" in script
+    assert "--resolve" in script

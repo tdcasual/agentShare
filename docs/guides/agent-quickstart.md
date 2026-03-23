@@ -1,5 +1,7 @@
 # Agent Quickstart
 
+This guide is for local development and day-to-day agent workflow discovery. For production deployment and operations, use `docs/guides/production-deployment.md` and `docs/guides/production-operations.md`.
+
 This guide is the shortest path from "I have an agent key" to "I can complete a task safely".
 
 ## Preconditions

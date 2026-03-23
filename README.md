@@ -98,16 +98,19 @@ Deployment triggers:
 
 The workflow uploads:
 
-- `docker-compose.yml`
 - `docker-compose.prod.yml`
 - `.env.production.example`
+- `ops/compose/prod.env.example`
 - a generated `.release.env` file containing `API_IMAGE` and `WEB_IMAGE`
+- `ops/caddy/Caddyfile`
+- `scripts/ops/smoke-test.sh`
 
 Then the remote host runs:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+docker compose --env-file .env.production -f docker-compose.prod.yml pull
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
+APP_BASE_URL=https://agentshare.example.com PUBLIC_HOST=agentshare.example.com ./scripts/ops/smoke-test.sh
 ```
 
 ### Required GitHub secrets
@@ -123,7 +126,7 @@ Configure these repository or environment secrets before enabling the deploy wor
 - `GHCR_TOKEN`
 - `DEPLOY_ENV_FILE`
 
-`DEPLOY_ENV_FILE` should contain the full contents of the production `.env.production` file. On first deploy, the workflow writes that secret to the server if `.env.production` does not already exist.
+`DEPLOY_ENV_FILE` should contain the full contents of the production `.env.production` file. The deploy workflow refreshes `.env.production` on every deployment so secret rotation, host changes, and other runtime config updates are actually applied.
 
 ### Server prerequisites
 
@@ -134,15 +137,45 @@ The target host should already have:
 - an SSH account that can manage the deployment directory and run Docker commands
 - network access to `ghcr.io`
 
-Use `.env.production.example` as the starting point for the server environment file. The production override expects explicit published image tags through `API_IMAGE` and `WEB_IMAGE`, and it defaults `MANAGEMENT_SESSION_SECURE` to `true`.
+Use `.env.production.example` as the starting point for the server environment file. Production expects an external secret backend instead of the in-repo OpenBao dev container, so configure `SECRET_BACKEND_URL` and `SECRET_BACKEND_TOKEN` for a separately managed KV v2 compatible service. The production stack exposes only Caddy publicly and keeps Postgres and Redis private to the compose network.
+
+For the maintained production baseline, prefer `ops/compose/prod.env.example` and keep `.env.production` on the host aligned with it.
+
+### Production topology
+
+`docker-compose.prod.yml` is now a self-contained production stack:
+
+- `caddy` terminates HTTP/TLS and routes traffic
+- `web` serves the Next.js UI internally
+- `api` serves the FastAPI control plane internally
+- `postgres` and `redis` stay private on the data network
+
+The Caddy config lives at `ops/caddy/Caddyfile` and routes `/api`, `/docs`, `/openapi.json`, `/healthz`, and `/mcp` to the API while sending all other traffic to the web app.
 
 ### Rollback guidance
 
 For rollback, re-run `workflow_dispatch` and set `image_tag` to a known-good release tag like `v1.0.0` or a published SHA tag such as `sha-abcdef1`. That keeps the deployment reproducible without rebuilding images on the server.
 
+### Smoke, backup, and restore expectations
+
+The deploy workflow now runs smoke checks through Caddy after every restart. That verifies the root page and `/healthz` are reachable through the public entrypoint before the deployment is considered healthy.
+
+This repository now ships baseline backup and restore helpers plus an operations runbook:
+
+- `scripts/ops/backup-postgres.sh`
+- `scripts/ops/restore-postgres.sh`
+- `scripts/ops/backup-redis.sh`
+- `docs/guides/production-operations.md`
+
+Production still needs you to schedule and store these artifacts safely:
+
+- Postgres needs scheduled logical backups plus periodic restore drills
+- Redis persistence should be snapshotted or otherwise captured according to your RPO
+- the external secret backend must have its own backup and restore policy outside this repository
+
 ### Current single-host limitation
 
-`docker-compose.prod.yml` is a pragmatic single-host baseline, not a hardened internet-scale platform. It still uses the same in-repo OpenBao dev service topology as local compose, so the next hardening step should be replacing that with a secured secret backend plus reverse proxy and TLS termination.
+`docker-compose.prod.yml` is a pragmatic single-host baseline, not a clustered platform. It is suitable for a controlled long-term deployment baseline, but it still needs follow-up work for richer observability, stricter production policy validation, and eventually more automated off-host backup scheduling.
 
 ## Agent Quickstart
 
