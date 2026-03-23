@@ -22,6 +22,8 @@ This guide covers the production deployment path only. Use the agent quickstart 
 - Point `PUBLIC_HOST` at the production server before the first deploy.
 - Caddy terminates TLS automatically using `ACME_EMAIL`.
 - Keep `/metrics` on the API service for internal scraping; do not publish Postgres or Redis directly.
+- Keep the Caddy security headers in `ops/caddy/Caddyfile` enabled unless you have a replacement control upstream.
+- Review `.github/workflows/security.yml` before each release window if recent image security scan failures occurred.
 
 ## Rollback
 

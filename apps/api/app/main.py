@@ -1,7 +1,10 @@
+import json
 import hashlib
+import logging
 from contextlib import asynccontextmanager
+from time import monotonic
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 from app.config import Settings
 from app.db import SessionLocal, init_db
@@ -20,6 +23,8 @@ from app.routes.session import router as session_router
 from app.routes.secrets import router as secrets_router
 from app.routes.tasks import router as tasks_router
 from app.services.secret_backend import validate_secret_backend_settings
+
+request_logger = logging.getLogger("app.request")
 
 
 def _hash_key(key: str) -> str:
@@ -68,6 +73,25 @@ app = FastAPI(
     ],
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    started_at = monotonic()
+    response = await call_next(request)
+    duration_ms = round((monotonic() - started_at) * 1000, 3)
+    request_logger.info(
+        json.dumps(
+            {
+                "event": "http_request",
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "duration_ms": duration_ms,
+            }
+        )
+    )
+    return response
 
 # Idempotency middleware — only acts when Idempotency-Key header is present
 try:

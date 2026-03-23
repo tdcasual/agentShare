@@ -166,6 +166,8 @@ This repository now ships baseline backup and restore helpers plus an operations
 - `scripts/ops/restore-postgres.sh`
 - `scripts/ops/backup-redis.sh`
 - `docs/guides/production-operations.md`
+- `docs/guides/production-security.md`
+- `docs/guides/platform-roadmap.md`
 
 Production still needs you to schedule and store these artifacts safely:
 
@@ -173,9 +175,17 @@ Production still needs you to schedule and store these artifacts safely:
 - Redis persistence should be snapshotted or otherwise captured according to your RPO
 - the external secret backend must have its own backup and restore policy outside this repository
 
+### Security scan and headers
+
+The repository now includes `.github/workflows/security.yml` to run Trivy image security scans against the published GHCR images on a schedule or by manual trigger.
+
+The public ingress in `ops/caddy/Caddyfile` also applies baseline security headers for HSTS, framing protection, MIME sniffing protection, and referrer policy. For deeper operator guidance, see `docs/guides/production-security.md`.
+
 ### Current single-host limitation
 
 `docker-compose.prod.yml` is a pragmatic single-host baseline, not a clustered platform. It is suitable for a controlled long-term deployment baseline, but it still needs follow-up work for richer observability, stricter production policy validation, and eventually more automated off-host backup scheduling.
+
+For the remaining P3 platformization work, use `docs/guides/platform-roadmap.md` as the migration checklist for high-availability, managed data services, SSO, and routine secret rotation.
 
 ## Agent Quickstart
 
