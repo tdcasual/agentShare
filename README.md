@@ -87,6 +87,63 @@ docker compose up -d --no-build
 
 Use a SHA or release tag instead of `latest` for repeatable production deployments.
 
+### Server deployment with GitHub Actions
+
+This repository now includes `.github/workflows/deploy.yml` for single-host deployments over SSH.
+
+Deployment triggers:
+
+- `workflow_run`: automatically deploys `latest` after the `Docker Images` workflow succeeds on `main`
+- `workflow_dispatch`: lets you redeploy or pin any explicit image tag, including a release tag or SHA tag
+
+The workflow uploads:
+
+- `docker-compose.yml`
+- `docker-compose.prod.yml`
+- `.env.production.example`
+- a generated `.release.env` file containing `API_IMAGE` and `WEB_IMAGE`
+
+Then the remote host runs:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+```
+
+### Required GitHub secrets
+
+Configure these repository or environment secrets before enabling the deploy workflow:
+
+- `DEPLOY_HOST`
+- `DEPLOY_PORT`
+- `DEPLOY_USER`
+- `DEPLOY_SSH_KEY`
+- `DEPLOY_PATH`
+- `GHCR_USERNAME`
+- `GHCR_TOKEN`
+- `DEPLOY_ENV_FILE`
+
+`DEPLOY_ENV_FILE` should contain the full contents of the production `.env.production` file. On first deploy, the workflow writes that secret to the server if `.env.production` does not already exist.
+
+### Server prerequisites
+
+The target host should already have:
+
+- Docker Engine
+- Docker Compose v2 plugin
+- an SSH account that can manage the deployment directory and run Docker commands
+- network access to `ghcr.io`
+
+Use `.env.production.example` as the starting point for the server environment file. The production override expects explicit published image tags through `API_IMAGE` and `WEB_IMAGE`, and it defaults `MANAGEMENT_SESSION_SECURE` to `true`.
+
+### Rollback guidance
+
+For rollback, re-run `workflow_dispatch` and set `image_tag` to a known-good release tag like `v1.0.0` or a published SHA tag such as `sha-abcdef1`. That keeps the deployment reproducible without rebuilding images on the server.
+
+### Current single-host limitation
+
+`docker-compose.prod.yml` is a pragmatic single-host baseline, not a hardened internet-scale platform. It still uses the same in-repo OpenBao dev service topology as local compose, so the next hardening step should be replacing that with a secured secret backend plus reverse proxy and TLS termination.
+
 ## Agent Quickstart
 
 Start with the operational guide:

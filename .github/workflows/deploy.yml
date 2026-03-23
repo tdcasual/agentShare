@@ -1,0 +1,104 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Docker image tag to deploy
+        required: false
+        default: latest
+      environment:
+        description: GitHub environment name for this deployment
+        required: false
+        default: production
+  workflow_run:
+    workflows: ["Docker Images"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Compute deployment variables
+        id: vars
+        shell: bash
+        run: |
+          echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepare release image env
+        shell: bash
+        run: |
+          cat > .release.env <<EOF
+          API_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/agentshare-api:${{ steps.vars.outputs.image_tag }}
+          WEB_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/agentshare-web:${{ steps.vars.outputs.image_tag }}
+          EOF
+
+      - name: Copy deployment assets to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          target: ${{ secrets.DEPLOY_PATH }}
+          overwrite: true
+          source: "docker-compose.yml,docker-compose.prod.yml,.env.production.example,.release.env"
+
+      - name: Pull and restart remote stack
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            mkdir -p "${{ secrets.DEPLOY_PATH }}"
+            cd "${{ secrets.DEPLOY_PATH }}"
+
+            if [ ! -f .env.production ]; then
+              if [ -n "${{ secrets.DEPLOY_ENV_FILE }}" ]; then
+                cat > .env.production <<'EOF'
+            ${{ secrets.DEPLOY_ENV_FILE }}
+            EOF
+              else
+                echo "Missing .env.production on server and DEPLOY_ENV_FILE secret is empty."
+                exit 1
+              fi
+            fi
+
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+            set -a
+            . ./.env.production
+            . ./.release.env
+            set +a
+
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f

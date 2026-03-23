@@ -1,0 +1,28 @@
+services:
+  openbao:
+    restart: unless-stopped
+
+  postgres:
+    restart: unless-stopped
+
+  redis:
+    restart: unless-stopped
+
+  api:
+    build: !reset null
+    image: ${API_IMAGE:?API_IMAGE is required}
+    restart: unless-stopped
+    ports: !override
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    environment:
+      MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}
+
+  web:
+    build: !reset null
+    image: ${WEB_IMAGE:?WEB_IMAGE is required}
+    restart: unless-stopped
+    ports: !override
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      AGENT_CONTROL_PLANE_API_URL: ${AGENT_CONTROL_PLANE_API_URL:-http://api:8000}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL is required}
