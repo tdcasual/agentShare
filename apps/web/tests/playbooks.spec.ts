@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type Page } from "@playwright/tes
 
 import { loginToManagementConsole } from "./helpers";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:3800";
 
 async function getManagementCookie(page: Page) {
   const cookies = await page.context().cookies();

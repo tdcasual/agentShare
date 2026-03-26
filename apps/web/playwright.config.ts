@@ -1,4 +1,26 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import { defineConfig } from "@playwright/test";
+
+function findVenvExecutable(executable: string) {
+  let currentDir = __dirname;
+
+  while (true) {
+    const candidate = path.join(currentDir, ".venv", "bin", executable);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      throw new Error(`Unable to find .venv/bin/${executable} from ${__dirname}`);
+    }
+    currentDir = parentDir;
+  }
+}
+
+const uvicornBin = findVenvExecutable("uvicorn");
 
 export default defineConfig({
   testDir: "./tests",
@@ -8,8 +30,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command:
-        "env DATABASE_URL=sqlite:///../../agent_share_playwright_$$.db SECRET_BACKEND=memory BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key ../../.venv/bin/uvicorn app.main:app --app-dir ../api --host 127.0.0.1 --port 3800",
+      command: `env DATABASE_URL=sqlite:///../../agent_share_playwright_$$.db SECRET_BACKEND=memory BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key ${uvicornBin} app.main:app --app-dir ../api --host 127.0.0.1 --port 3800`,
       port: 3800,
       reuseExistingServer: false,
       timeout: 120000,

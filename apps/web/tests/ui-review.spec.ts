@@ -73,7 +73,7 @@ test("task and approval cards show concise operational metadata", async ({ page 
   await page.goto("/tasks");
 
   await expect(page.getByText("任务队列")).toBeVisible();
-  await expect(page.getByText("待认领")).toBeVisible();
+  await expect(page.locator(".stat-inline").filter({ hasText: "待认领" }).first()).toBeVisible();
   await expect(page.getByText("可申请租约")).toHaveCount(0);
 });
 
