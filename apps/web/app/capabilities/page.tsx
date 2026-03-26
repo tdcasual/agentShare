@@ -5,6 +5,12 @@ import { getCapabilities, getCollectionNotice, getSecrets } from "../../lib/api"
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
+import {
+  adapterTypeLabel,
+  approvalModeLabel,
+  capabilityModeLabel,
+  riskLevelLabel,
+} from "../../lib/ui";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -46,7 +52,7 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
       {error ? (
         <section className="notice error" role="alert">
           {error === "invalid-fields"
-            ? tr(locale, "Choose a secret, add a name, required provider, and provide a valid lease TTL.", "请选择密钥并填写名称、required provider 和合法的租约 TTL。")
+            ? tr(locale, "Choose a secret, add a name, required provider, and provide a valid lease TTL.", "请选择密钥并填写名称、服务提供方以及合法的租约时长。")
               : error === "invalid-policy"
                 ? tr(locale, "Capability policy rules must be a valid JSON array.", "能力策略规则必须是合法的 JSON 数组。")
               : error === "invalid-adapter-config"
@@ -72,44 +78,51 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
       >
         {capabilitiesNotice.message}
       </section>
-      <div className="workspace-grid">
+      <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <section className="panel feature-panel stack">
-            <div className="section-intro-grid">
-              <div>
-                <div className="kicker">Capability design</div>
-                <h2>Shape one explicit runtime contract for each sensitive action.</h2>
-                <p className="muted section-intro">
-                  A capability is where secret binding, adapter choice, lease mode, and approval
-                  posture come together. Keep it narrow enough that an operator can understand the
-                  risk in one scan.
-                </p>
-              </div>
-              <div className="aside-note">
-                <strong>{capabilities.length === 0 ? "No bindings yet" : `${capabilities.length} capability contracts`}</strong>
-                <span className="muted">
-                  Prefer first-class adapters when possible so runtime responses stay predictable.
-                </span>
-              </div>
-            </div>
-          </section>
           <CapabilityForm action={createCapabilityAction} secrets={secrets} locale={locale} />
         </div>
         <div className="workspace-side">
+          <section className="panel compact-panel stack">
+            <div className="stack stack-tight">
+              <div className="kicker">{tr(locale, "Capability design", "能力设计")}</div>
+              <h2>{tr(locale, "Define one explicit runtime contract for each sensitive action.", "为每个敏感动作定义一份明确契约。")}</h2>
+              <p className="muted">
+                {tr(
+                  locale,
+                  "A capability should be narrow enough that an operator can understand secret binding, adapter choice, and review posture in one scan.",
+                  "一条能力应当窄到让运营者一眼看懂密钥绑定、适配器选择和审批姿态。",
+                )}
+              </p>
+            </div>
+            <div className="info-rail">
+              <strong>
+                {capabilities.length === 0
+                  ? tr(locale, "No bindings yet", "还没有绑定关系")
+                  : tr(locale, `${capabilities.length} capability contracts`, `已定义 ${capabilities.length} 条能力契约`)}
+              </strong>
+              <p className="muted">
+                {tr(locale, "Prefer first-class adapters whenever possible so runtime behavior stays predictable.", "尽量优先使用一等适配器，让运行时行为保持可预测。")}
+              </p>
+            </div>
+          </section>
           <section className="panel stack">
             <div>
-              <div className="kicker">Adapter choice</div>
-              <h2>Pick the narrowest adapter that matches the upstream system</h2>
+              <div className="kicker">{tr(locale, "Adapter choice", "适配器选择")}</div>
+              <h2>{tr(locale, "Pick the narrowest adapter that matches the upstream system", "选择最贴合上游系统且最窄的适配器")}</h2>
               <p className="muted">
-                Use GitHub for repository-scoped REST calls, OpenAI for chat completions, and
-                generic HTTP only when no first-class adapter fits.
+                {tr(
+                  locale,
+                  "Use GitHub for repository-scoped REST calls, OpenAI for chat completions, and generic HTTP only when no first-class adapter fits.",
+                  "仓库范围的 REST 调用优先用 GitHub 适配器，对话调用优先用 OpenAI 适配器，只有没有一等适配器时再使用 generic HTTP。",
+                )}
               </p>
             </div>
           </section>
           <section className="panel stack">
           <div>
-            <div className="kicker">Bindings</div>
-            <h2>Available capability contracts</h2>
+            <div className="kicker">{tr(locale, "Bindings", "绑定关系")}</div>
+            <h2>{tr(locale, "Available capability contracts", "当前能力契约")}</h2>
           </div>
           {capabilities.length > 0 ? (
             <ul className="list inventory-list">
@@ -118,17 +131,16 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
                   <div className="inventory-meta">
                     <strong>{capability.name}</strong>
                     <span className="muted">
-                      Bound to {secretNames.get(capability.secret_id) ?? capability.secret_id}
+                      {tr(locale, "Bound to ", "绑定到 ")}
+                      {secretNames.get(capability.secret_id) ?? capability.secret_id}
                     </span>
                   </div>
                   <div className="chip-row">
-                    <span className="chip">{capability.allowed_mode}</span>
-                    <span className="chip">{capability.risk_level} risk</span>
-                    <span className="chip">{capability.adapter_type} adapter</span>
-                    <span className="chip">
-                      {capability.approval_mode === "manual" ? "manual approval" : "auto approval"}
-                    </span>
-                    <span className="chip">{capability.lease_ttl_seconds}s ttl</span>
+                    <span className="chip">{capabilityModeLabel(locale, capability.allowed_mode)}</span>
+                    <span className="chip">{riskLevelLabel(locale, capability.risk_level)}</span>
+                    <span className="chip">{adapterTypeLabel(locale, capability.adapter_type)}</span>
+                    <span className="chip">{approvalModeLabel(locale, capability.approval_mode)}</span>
+                    <span className="chip">{tr(locale, `${capability.lease_ttl_seconds}s ttl`, `${capability.lease_ttl_seconds} 秒 TTL`)}</span>
                     {capability.required_provider ? (
                       <span className="chip">{capability.required_provider}</span>
                     ) : null}
@@ -141,8 +153,11 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
             </ul>
           ) : (
             <div className="empty-state">
-              No capability has been defined yet. This page becomes the bridge between stored
-              credentials and agent-visible actions.
+              {tr(
+                locale,
+                "No capability has been defined yet. This page becomes the bridge between stored credentials and agent-visible actions.",
+                "当前还没有定义能力。这里会成为已存储凭据与 Agent 可见动作之间的桥梁。",
+              )}
             </div>
           )}
           </section>

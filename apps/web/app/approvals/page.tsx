@@ -23,6 +23,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
   const approvalsResult = await getApprovals("pending");
+  const pendingCount = approvalsResult.items.length;
   const approvalsNotice = getCollectionNotice(approvalsResult, tr(locale, "approvals", "审批"), locale);
   const updated = readSingleParam(params, "updated");
   const error = readSingleParam(params, "error");
@@ -64,12 +65,41 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
       >
         {approvalsNotice.message}
       </section>
-      <ApprovalsTable
-        approvals={approvalsResult.items}
-        approveAction={approveApprovalAction}
-        rejectAction={rejectApprovalAction}
-        locale={locale}
-      />
+      <div className="workspace-grid workspace-grid-priority">
+        <div className="workspace-main">
+          <ApprovalsTable
+            approvals={approvalsResult.items}
+            approveAction={approveApprovalAction}
+            rejectAction={rejectApprovalAction}
+            locale={locale}
+          />
+        </div>
+        <div className="workspace-side">
+          <section className="panel compact-panel stack">
+            <div className="stack stack-tight">
+              <div className="kicker">{tr(locale, "Review queue", "复核队列")}</div>
+              <h2>{tr(locale, "Keep decisions fast, contextual, and auditable.", "让每次审批都足够快、带上下文、可追踪。")}</h2>
+              <p className="muted">
+                {tr(
+                  locale,
+                  "Approve when a request matches intent and policy. Reject with a reason when the requested boundary is unclear or too broad.",
+                  "当请求与意图和策略一致时批准；当边界不清晰或范围过宽时，带原因拒绝。",
+                )}
+              </p>
+            </div>
+            <div className="stat-inline-row">
+              <div className="stat-inline">
+                <span>{tr(locale, "Pending", "待处理")}</span>
+                <strong>{pendingCount}</strong>
+              </div>
+              <div className="stat-inline">
+                <span>{tr(locale, "Policy reason", "策略原因")}</span>
+                <strong>{tr(locale, "Visible", "可见")}</strong>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
     </NavShell>
   );
 }

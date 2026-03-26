@@ -327,7 +327,7 @@ export async function getTasks() {
 }
 
 export async function getRuns() {
-  return getCollection("/api/runs", demoFallback.runs);
+  return getCollection<Run>("/api/runs", demoFallback.runs);
 }
 
 export async function getApprovals(status?: ApprovalRequest["status"]) {

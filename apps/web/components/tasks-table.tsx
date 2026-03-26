@@ -1,5 +1,6 @@
 import type { Locale } from "../lib/i18n-shared";
 import { tr } from "../lib/i18n-shared";
+import { approvalModeLabel, leasePolicyLabel, taskStatusLabel } from "../lib/ui";
 
 type TaskRow = {
   id: string;
@@ -26,12 +27,16 @@ export function TasksTable(
     return "muted";
   };
 
+  const statusLabel = (status: string) => {
+    return taskStatusLabel(locale, status);
+  };
+
   if (tasks.length === 0) {
     return (
       <section className="panel stack">
         <div>
           <div className="kicker">{tr(locale, "Work queue", "任务队列")}</div>
-          <h2>{tr(locale, "Publish lightweight tasks for agents to claim", "发布可被 Agent 认领的轻量任务")}</h2>
+          <h2>{tr(locale, "No queued work yet", "当前还没有队列任务")}</h2>
         </div>
         <div className="empty-state">
           {tr(
@@ -48,26 +53,22 @@ export function TasksTable(
     <section className="panel stack">
       <div>
         <div className="kicker">{tr(locale, "Work queue", "任务队列")}</div>
-        <h2>{tr(locale, "Publish lightweight tasks for agents to claim", "发布可被 Agent 认领的轻量任务")}</h2>
+        <h2>{tr(locale, "Current tasks waiting for claim or completion", "当前等待认领或完成的任务")}</h2>
       </div>
       <ul className="list" aria-label="Task queue">
         {tasks.map((task) => (
           <li key={task.id} data-testid="task-card" className="list-item task-card">
             <div className="chip-row">
               <span className="chip" data-tone={statusTone(task.status)}>
-                {task.status}
+                {statusLabel(task.status)}
               </span>
               <span className="chip">{task.task_type}</span>
-              <span className="chip">{task.approval_mode === "manual" ? "manual" : "auto"}</span>
-              {task.lease_allowed ? (
-                <span className="chip">lease</span>
-              ) : (
-                <span className="chip">proxy</span>
-              )}
+              <span className="chip">{approvalModeLabel(locale, task.approval_mode)}</span>
+              <span className="chip">{leasePolicyLabel(locale, task.lease_allowed)}</span>
             </div>
             <div className="stack">
               <strong>{task.title}</strong>
-              <span className="muted">{task.id}</span>
+              <span className="muted truncate-text" title={task.id}>{task.id}</span>
             </div>
             {task.playbook_ids.length > 0 ? (
               <div className="chip-row">
@@ -75,7 +76,7 @@ export function TasksTable(
                   const playbook = playbookLinks.get(playbookId);
                   const label = playbook?.title ?? playbookId;
                   return (
-                    <a key={playbookId} className="chip" href={`/playbooks/${playbookId}`}>
+                    <a key={playbookId} className="chip truncate-text" href={`/playbooks/${playbookId}`} title={label}>
                       {label}
                     </a>
                   );

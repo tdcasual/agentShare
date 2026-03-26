@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { Locale } from "../../lib/i18n-shared";
 import { tr } from "../../lib/i18n-shared";
+import {
+  approvalModeLabel,
+  leasePolicyLabel,
+  riskLevelLabel,
+  runtimeKeyLabel,
+  taskStatusLabel,
+} from "../../lib/ui";
 
 type AgentIdentity = {
   id: string;
@@ -25,11 +32,6 @@ type TaskRecord = {
   approval_mode: string;
   priority: string;
   claimed_by: string | null;
-};
-
-type McpToolCallResult = {
-  result?: unknown;
-  error?: unknown;
 };
 
 type AgentHttpResult = {
@@ -114,9 +116,9 @@ function formatApiError(locale: Locale, action: string, response: AgentHttpResul
       typeof detailObj?.policy_reason === "string" ? detailObj.policy_reason : "";
     return [
       tr(locale, `${action} blocked: approval required.`, `${action}被阻止：需要审批。`),
-      approvalId ? tr(locale, `Request: ${approvalId}.`, `请求：${approvalId}。`) : null,
-      policyReason ? tr(locale, `Policy: ${policyReason}.`, `策略：${policyReason}。`) : null,
-      tr(locale, "Ask an operator to approve it in /approvals, then retry.", "请让运营者在 /approvals 审批后重试。"),
+      approvalId ? tr(locale, `Request: ${approvalId}.`, `审批单：${approvalId}。`) : null,
+      policyReason ? tr(locale, `Policy: ${policyReason}.`, `策略原因：${policyReason}。`) : null,
+      tr(locale, "Ask an operator to approve it in /approvals, then retry.", "请让运营者在 /approvals 中审批后再重试。"),
     ]
       .filter(Boolean)
       .join(" ");
@@ -139,7 +141,7 @@ function formatApiError(locale: Locale, action: string, response: AgentHttpResul
     return tr(
       locale,
       `${action} failed: missing, unknown, or revoked agent key.`,
-      `${action}失败：agent key 缺失、未知或已吊销。`,
+      `${action}失败：访问密钥缺失、未知或已吊销。`,
     );
   }
 
@@ -164,6 +166,7 @@ async function copyText(value: string) {
 
 function statusTone(status: string) {
   if (status === "completed") return "success";
+  if (status === "claimed") return "accent";
   if (status === "pending") return "accent";
   return "muted";
 }
@@ -194,23 +197,17 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
 
   const [invokeCapabilityId, setInvokeCapabilityId] = useState("");
   const [invokeParams, setInvokeParams] = useState('{"prompt":"hello"}');
-  const [invokeResult, setInvokeResult] = useState<{ status: number; json: unknown | null; bodyText: string } | null>(
-    null,
-  );
+  const [invokeResult, setInvokeResult] = useState<AgentHttpResult | null>(null);
   const [invokeError, setInvokeError] = useState<string | null>(null);
 
   const [leaseCapabilityId, setLeaseCapabilityId] = useState("");
   const [leasePurpose, setLeasePurpose] = useState("cli access");
-  const [leaseResult, setLeaseResult] = useState<{ status: number; json: unknown | null; bodyText: string } | null>(
-    null,
-  );
+  const [leaseResult, setLeaseResult] = useState<AgentHttpResult | null>(null);
   const [leaseError, setLeaseError] = useState<string | null>(null);
 
   const [completeResultSummary, setCompleteResultSummary] = useState("Completed via agent self-serve.");
   const [completeOutput, setCompleteOutput] = useState('{"ok":true}');
-  const [completeResult, setCompleteResult] = useState<{ status: number; json: unknown | null; bodyText: string } | null>(
-    null,
-  );
+  const [completeResult, setCompleteResult] = useState<AgentHttpResult | null>(null);
   const [completeError, setCompleteError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -224,6 +221,10 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
     if (!agentKey) return;
     window.sessionStorage.setItem("acp_agent_key", agentKey);
   }, [agentKey]);
+
+  useEffect(() => {
+    void loadTasks();
+  }, []);
 
   const canAuth = agentKey.trim().length > 0;
   const apiHint = apiBaseUrl || tr(locale, "Set AGENT_CONTROL_PLANE_API_URL on the web server.", "请在 Web 服务端设置 AGENT_CONTROL_PLANE_API_URL。");
@@ -249,19 +250,25 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
   }, [activeTask]);
 
   const visibleTasks = useMemo(() => {
-    const filtered = tasks.filter((task) => {
+    return tasks.filter((task) => {
       if (taskStatusFilter !== "all" && task.status !== taskStatusFilter) return false;
       if (onlyEligible && eligibility && !eligibility.isEligible(task)) return false;
       return true;
     });
-    return filtered;
   }, [tasks, taskStatusFilter, onlyEligible, eligibility]);
+
+  const playbookItems = useMemo(() => {
+    const structured = asRecord(playbookResult);
+    const items = structured?.items;
+    if (!Array.isArray(items)) return [];
+    return items as Array<Record<string, unknown>>;
+  }, [playbookResult]);
 
   async function verifyAgent() {
     setAgentError(null);
     setAgentIdentity(null);
     if (!canAuth) {
-      setAgentError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
+      setAgentError(tr(locale, "Paste an agent API key first.", "请先粘贴 Agent 访问密钥。"));
       return;
     }
 
@@ -288,7 +295,7 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
   async function claimTask(taskId: string) {
     setTasksError(null);
     if (!canAuth) {
-      setTasksError(tr(locale, "Paste an agent API key to claim tasks.", "请粘贴 agent API key 后再认领任务。"));
+      setTasksError(tr(locale, "Paste an agent API key to claim tasks.", "请粘贴 Agent 访问密钥后再认领任务。"));
       return;
     }
     const response = await agentFetchJson(`/api/agent/tasks/${taskId}/claim`, { method: "POST", agentKey });
@@ -304,7 +311,7 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
     setPlaybookError(null);
     setPlaybookResult(null);
     if (!canAuth) {
-      setPlaybookError(tr(locale, "Paste an agent API key to call MCP tools.", "请粘贴 agent API key 后再调用 MCP 工具。"));
+      setPlaybookError(tr(locale, "Paste an agent API key to call MCP tools.", "请粘贴 Agent 访问密钥后再调用 MCP 工具。"));
       return;
     }
 
@@ -355,12 +362,12 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
       return;
     }
     if (!canAuth) {
-      setInvokeError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
+      setInvokeError(tr(locale, "Paste an agent API key first.", "请先粘贴 Agent 访问密钥。"));
       return;
     }
     const capabilityId = (invokeCapabilityId || suggestedCapabilityId).trim();
     if (!capabilityId) {
-      setInvokeError(tr(locale, "Enter a capability id.", "请输入 capability id。"));
+      setInvokeError(tr(locale, "Enter a capability id.", "请输入能力 ID。"));
       return;
     }
     const parsed = safeJsonParse(invokeParams);
@@ -390,12 +397,12 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
       return;
     }
     if (!canAuth) {
-      setLeaseError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
+      setLeaseError(tr(locale, "Paste an agent API key first.", "请先粘贴 Agent 访问密钥。"));
       return;
     }
     const capabilityId = (leaseCapabilityId || suggestedCapabilityId).trim();
     if (!capabilityId) {
-      setLeaseError(tr(locale, "Enter a capability id.", "请输入 capability id。"));
+      setLeaseError(tr(locale, "Enter a capability id.", "请输入能力 ID。"));
       return;
     }
     const response = await agentFetchJson(`/api/agent/capabilities/${capabilityId}/lease`, {
@@ -420,7 +427,7 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
       return;
     }
     if (!canAuth) {
-      setCompleteError(tr(locale, "Paste an agent API key first.", "请先粘贴 agent API key。"));
+      setCompleteError(tr(locale, "Paste an agent API key first.", "请先粘贴 Agent 访问密钥。"));
       return;
     }
     const parsed = safeJsonParse(completeOutput);
@@ -452,23 +459,19 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
     setAgentError(null);
   }
 
-  useEffect(() => {
-    void loadTasks();
-  }, []);
-
-  const playbookItems = useMemo(() => {
-    const structured = asRecord(playbookResult);
-    const items = structured?.items;
-    if (!Array.isArray(items)) return [];
-    return items as Array<Record<string, unknown>>;
-  }, [playbookResult]);
-
   return (
-    <div className="stack section-space">
-      <section className="panel stack">
-        <div>
+    <div className="agent-self-serve stack section-space">
+      <section className="panel stack agent-stage-panel">
+        <div className="stack stack-tight">
           <div className="kicker">{tr(locale, "Connect", "连接")}</div>
-          <h2>{tr(locale, "Agent identity", "Agent 身份")}</h2>
+          <h2>{tr(locale, "Agent identity", "连接身份")}</h2>
+          <p className="muted section-intro">
+            {tr(
+              locale,
+              "Store one runtime key in the browser session, verify it once, then keep the rest of the workflow close by.",
+              "把一条运行时访问密钥保存在当前浏览器会话中，验证一次后，就能把后续动作都收拢在同一屏里。",
+            )}
+          </p>
         </div>
         <div className="form-row">
           <label>
@@ -476,11 +479,11 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
             <input value={apiHint} readOnly />
           </label>
           <label>
-            {tr(locale, "Agent API key", "Agent API key")}
+            {runtimeKeyLabel(locale)}
             <input
               value={agentKey}
               onChange={(event) => setAgentKey(event.target.value)}
-              placeholder={tr(locale, "paste bearer token", "粘贴 bearer token")}
+              placeholder={tr(locale, "paste bearer token", "粘贴访问令牌")}
               type={revealKey ? "text" : "password"}
               autoComplete="off"
             />
@@ -496,10 +499,10 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
             onClick={() => setRevealKey((value) => !value)}
             disabled={!canAuth}
           >
-            {revealKey ? tr(locale, "Hide key", "隐藏 key") : tr(locale, "Reveal key", "显示 key")}
+            {revealKey ? tr(locale, "Hide key", "隐藏密钥") : tr(locale, "Reveal key", "显示密钥")}
           </button>
           <button type="button" className="secondary" onClick={clearKey}>
-            {tr(locale, "Clear key", "清除 key")}
+            {tr(locale, "Clear key", "清除密钥")}
           </button>
         </div>
         {agentError ? (
@@ -509,20 +512,23 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
         ) : null}
         {agentIdentity ? (
           <section className="notice success" role="status">
-            {tr(locale, "Verified as", "已验证")} <strong>{agentIdentity.name}</strong>{" "}
-            <span className="muted">({truncId(agentIdentity.id)})</span>{" "}
-            {tr(locale, "in", "风险等级")} <strong>{agentIdentity.risk_tier}</strong>.
+            {tr(locale, "Verified as", "已验证为")} <strong>{agentIdentity.name}</strong>{" "}
+            <span className="muted">({truncId(agentIdentity.id)})</span>
+            <span>
+              {" "}
+              {tr(locale, "with", "，风险等级为")} <strong>{riskLevelLabel(locale, agentIdentity.risk_tier)}</strong>
+            </span>
           </section>
         ) : null}
       </section>
 
-      <div className="workspace-grid">
-        <div className="workspace-main">
-          <section className="panel stack">
+      <div className="agent-console">
+        <div className="agent-main-column">
+          <section className="panel stack agent-stage-panel">
             <div className="toolbar">
-              <div className="stack" style={{ gap: 6 }}>
+              <div className="stack stack-tight">
                 <div className="kicker">{tr(locale, "Queue", "队列")}</div>
-                <h2>{tr(locale, "Tasks", "任务")}</h2>
+                <h2>{tr(locale, "Tasks", "任务队列")}</h2>
               </div>
               <div className="inline-actions">
                 <button type="button" className="secondary" onClick={loadTasks}>
@@ -548,9 +554,9 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
                     )
                   }
                 >
-                  <option value="pending">{tr(locale, "Pending", "待认领")}</option>
-                  <option value="claimed">{tr(locale, "Claimed", "已认领")}</option>
-                  <option value="completed">{tr(locale, "Completed", "已完成")}</option>
+                  <option value="pending">{taskStatusLabel(locale, "pending")}</option>
+                  <option value="claimed">{taskStatusLabel(locale, "claimed")}</option>
+                  <option value="completed">{taskStatusLabel(locale, "completed")}</option>
                   <option value="all">{tr(locale, "All", "全部")}</option>
                 </select>
               </label>
@@ -570,7 +576,7 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
             {visibleTasks.length === 0 ? (
               <div className="empty-state">
                 {tasks.length === 0
-                  ? tr(locale, "No tasks are visible. Ask an operator to publish one in the console.", "当前没有可见任务。请让运营者在控制台发布任务。")
+                  ? tr(locale, "No tasks are visible. Ask an operator to publish one in the console.", "当前没有可见任务。请让运营者先在控制台发布任务。")
                   : tr(locale, "No tasks match the current filters.", "没有任务符合当前筛选条件。")}
               </div>
             ) : (
@@ -584,24 +590,24 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
                     <article key={task.id} className="list-item task-card" data-testid="agent-task-card">
                       <div className="chip-row">
                         <span className="chip" data-tone={statusTone(task.status)}>
-                          {task.status}
+                          {taskStatusLabel(locale, task.status)}
                         </span>
                         <span className="chip">{task.task_type}</span>
-                        {task.lease_allowed ? <span className="chip">{tr(locale, "lease", "租约")}</span> : null}
-                        {task.approval_mode === "manual" ? <span className="chip">{tr(locale, "manual", "人工")}</span> : null}
-                        {task.claimed_by ? <span className="chip">{tr(locale, "claimed", "已认领")}</span> : null}
+                        <span className="chip">{leasePolicyLabel(locale, task.lease_allowed)}</span>
+                        <span className="chip">{approvalModeLabel(locale, task.approval_mode)}</span>
+                        {task.claimed_by ? <span className="chip">{taskStatusLabel(locale, "claimed")}</span> : null}
                         {agentIdentity && !eligible ? (
-                          <span className="chip" data-tone="error">{tr(locale, "ineligible", "不符合")}</span>
+                          <span className="chip" data-tone="error">{tr(locale, "Ineligible", "不符合当前权限")}</span>
                         ) : null}
                       </div>
                       <div className="stack">
                         <strong>{task.title}</strong>
-                        <span className="muted">{task.id}</span>
+                        <span className="muted truncate-text" title={task.id}>{task.id}</span>
                       </div>
                       {task.playbook_ids.length ? (
                         <div className="chip-row">
                           {task.playbook_ids.map((id) => (
-                            <a key={id} className="chip" href={`/playbooks/${id}`}>
+                            <a key={id} className="chip truncate-text" href={`/playbooks/${id}`} title={id}>
                               {id}
                             </a>
                           ))}
@@ -623,14 +629,12 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
               </div>
             )}
           </section>
-        </div>
 
-        <div className="workspace-side">
-          <section className="panel stack">
+          <section className="panel stack agent-stage-panel">
             <div className="toolbar">
-              <div className="stack" style={{ gap: 6 }}>
+              <div className="stack stack-tight">
                 <div className="kicker">{tr(locale, "Knowledge", "知识")}</div>
-                <h2>{tr(locale, "Playbooks", "手册")}</h2>
+                <h2>{tr(locale, "Playbooks", "手册检索")}</h2>
               </div>
               <div className="inline-actions">
                 <button
@@ -649,38 +653,40 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
               </div>
             </div>
 
-            <label>
-              {tr(locale, "Query", "检索")}
-              <input
-                value={playbookQuery}
-                onChange={(e) => setPlaybookQuery(e.target.value)}
-                placeholder="prompt run"
-              />
-            </label>
+            <div className="form-row">
+              <label>
+                {tr(locale, "Query", "检索词")}
+                <input
+                  value={playbookQuery}
+                  onChange={(e) => setPlaybookQuery(e.target.value)}
+                  placeholder={tr(locale, "prompt run", "例如：prompt run")}
+                />
+              </label>
+              <label>
+                {tr(locale, "Task type", "任务类型")}
+                <input
+                  value={playbookTaskType}
+                  onChange={(e) => setPlaybookTaskType(e.target.value)}
+                  placeholder="prompt_run"
+                />
+              </label>
+            </div>
 
             <details className="compact-details">
-              <summary>{tr(locale, "Filters", "筛选")}</summary>
+              <summary>{tr(locale, "Filters", "更多筛选")}</summary>
               <div className="form-row">
-                <label>
-                  {tr(locale, "Task type", "任务类型")}
-                  <input
-                    value={playbookTaskType}
-                    onChange={(e) => setPlaybookTaskType(e.target.value)}
-                    placeholder="prompt_run"
-                  />
-                </label>
                 <label>
                   {tr(locale, "Tag", "标签")}
                   <input value={playbookTag} onChange={(e) => setPlaybookTag(e.target.value)} placeholder="openai" />
                 </label>
+                <label>
+                  {tr(locale, "View", "查看方式")}
+                  <select value={showRaw ? "raw" : "summary"} onChange={(e) => setShowRaw(e.target.value === "raw")}>
+                    <option value="summary">{tr(locale, "Summary", "摘要")}</option>
+                    <option value="raw">{tr(locale, "Raw JSON", "原始 JSON")}</option>
+                  </select>
+                </label>
               </div>
-              <label>
-                {tr(locale, "View", "视图")}
-                <select value={showRaw ? "raw" : "summary"} onChange={(e) => setShowRaw(e.target.value === "raw")}>
-                  <option value="summary">{tr(locale, "Summary", "摘要")}</option>
-                  <option value="raw">{tr(locale, "Raw JSON", "原始 JSON")}</option>
-                </select>
-              </label>
             </details>
 
             <div className="inline-actions">
@@ -737,37 +743,64 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
               )
             ) : (
               <div className="empty-state">
-                {tr(locale, "Search via MCP to pull playbooks into the runtime context.", "通过 MCP 检索手册，把上下文拉入运行时。")}
+                {tr(locale, "Search via MCP to pull playbooks into the runtime context.", "通过 MCP 检索手册，把上下文拉入当前运行时。")}
               </div>
             )}
           </section>
+        </div>
 
-          <section className="panel stack">
-            <div>
+        <div className="agent-side-column">
+          <section className="panel stack feature-panel agent-stage-panel agent-execution-panel">
+            <div className="stack stack-tight">
               <div className="kicker">{tr(locale, "Execute", "执行")}</div>
-              <h2>{tr(locale, "Invoke, lease, complete", "调用、租约、完成")}</h2>
+              <h2>{tr(locale, "Invoke, lease, complete", "执行动作")}</h2>
+              <p className="muted section-intro">
+                {tr(
+                  locale,
+                  "Keep one active task in focus, then invoke a capability, request a lease only when needed, and complete the task with a structured result.",
+                  "先把选中的任务固定在视野内，再执行能力调用、按需申请租约，并用结构化结果完成任务。",
+                )}
+              </p>
             </div>
 
-            {!activeTask ? (
-              <div className="empty-state">
-                {tr(locale, "Select or claim a task from the queue to unlock runtime actions.", "从队列中选择或认领任务后才能执行运行时动作。")}
+            <section className="agent-active-task" role="status">
+              <div className="agent-active-task-header">
+                <span className="kicker">{tr(locale, "Active task", "当前任务")}</span>
+                {activeTask ? (
+                  <span className="chip" data-tone={statusTone(activeTask.status)}>
+                    {taskStatusLabel(locale, activeTask.status)}
+                  </span>
+                ) : null}
               </div>
-            ) : (
-              <>
-                <section className="notice" role="status">
-                  {tr(locale, "Active:", "当前任务：")} <strong>{activeTask.title}</strong>{" "}
-                  <span className="muted">({truncId(activeTask.id)})</span>
+              {activeTask ? (
+                <div className="stack stack-tight">
+                  <strong>{activeTask.title}</strong>
+                  <div className="chip-row">
+                    <span className="chip truncate-text" title={activeTask.id}>{truncId(activeTask.id)}</span>
+                    <span className="chip">{activeTask.task_type}</span>
+                    <span className="chip">{approvalModeLabel(locale, activeTask.approval_mode)}</span>
+                    <span className="chip">{leasePolicyLabel(locale, activeTask.lease_allowed)}</span>
+                  </div>
                   {suggestedCapabilityId ? (
-                    <>
-                      {" "}
-                      {tr(locale, "Default capability:", "默认 capability：")} <strong>{truncId(suggestedCapabilityId)}</strong>
-                    </>
-                  ) : null}
-                </section>
+                    <p className="muted">
+                      {tr(locale, "Default capability:", "默认能力：")} <strong>{truncId(suggestedCapabilityId)}</strong>
+                    </p>
+                  ) : (
+                    <p className="muted">{tr(locale, "No default capability is attached yet.", "所选任务还没有默认能力。")}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  {tr(locale, "Select or claim a task from the queue to unlock runtime actions.", "先在左侧选择或认领一个任务，执行动作才会解锁。")}
+                </div>
+              )}
+            </section>
 
+            {!activeTask ? null : (
+              <>
                 <div className="form-row">
                   <label>
-                    {tr(locale, "Capability id (invoke)", "Capability id（调用）")}
+                    {tr(locale, "Capability id (invoke)", "能力 ID（调用）")}
                     <input
                       value={invokeCapabilityId}
                       onChange={(e) => setInvokeCapabilityId(e.target.value)}
@@ -775,7 +808,7 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
                     />
                   </label>
                   <label>
-                    {tr(locale, "Capability id (lease)", "Capability id（租约）")}
+                    {tr(locale, "Capability id (lease)", "能力 ID（租约）")}
                     <input
                       value={leaseCapabilityId}
                       onChange={(e) => setLeaseCapabilityId(e.target.value)}
@@ -785,21 +818,23 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
                 </div>
 
                 <details className="compact-details" open>
-                  <summary>{tr(locale, "Invoke", "调用")}</summary>
+                  <summary>{tr(locale, "Invoke", "调用能力")}</summary>
                   <label>
                     {tr(locale, "Parameters (JSON)", "参数（JSON）")}
                     <textarea value={invokeParams} onChange={(e) => setInvokeParams(e.target.value)} />
                   </label>
                   <div className="inline-actions">
                     <button type="button" onClick={invokeCapability} disabled={!canAuth}>
-                      {tr(locale, "Invoke", "调用")}
+                      {tr(locale, "Invoke", "执行调用")}
                     </button>
                     <button
                       type="button"
                       className="secondary"
                       onClick={async () => {
                         const ok = await copyText(invokeParams);
-                        if (!ok) setInvokeError(tr(locale, "Copy failed. Your browser may block clipboard access.", "复制失败，浏览器可能阻止剪贴板访问。"));
+                        if (!ok) {
+                          setInvokeError(tr(locale, "Copy failed. Your browser may block clipboard access.", "复制失败，浏览器可能阻止剪贴板访问。"));
+                        }
                       }}
                     >
                       {tr(locale, "Copy JSON", "复制 JSON")}
@@ -826,14 +861,18 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
                 </details>
 
                 <details className="compact-details">
-                  <summary>{tr(locale, "Lease", "租约")}</summary>
+                  <summary>{tr(locale, "Lease", "申请租约")}</summary>
                   <label>
                     {tr(locale, "Purpose", "用途")}
-                    <input value={leasePurpose} onChange={(e) => setLeasePurpose(e.target.value)} />
+                    <input
+                      value={leasePurpose}
+                      onChange={(e) => setLeasePurpose(e.target.value)}
+                      placeholder={tr(locale, "Briefly explain why direct access is needed", "简要说明为什么需要直接访问")}
+                    />
                   </label>
                   <div className="inline-actions">
                     <button type="button" className="secondary" onClick={requestLease} disabled={!canAuth}>
-                      {tr(locale, "Request lease", "申请租约")}
+                      {tr(locale, "Request lease", "提交租约申请")}
                     </button>
                   </div>
                   {leaseError ? (
@@ -855,7 +894,7 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
                 </details>
 
                 <details className="compact-details">
-                  <summary>{tr(locale, "Complete", "完成")}</summary>
+                  <summary>{tr(locale, "Complete", "完成任务")}</summary>
                   <label>
                     {tr(locale, "Result summary", "结果摘要")}
                     <input value={completeResultSummary} onChange={(e) => setCompleteResultSummary(e.target.value)} />
@@ -866,14 +905,16 @@ export function AgentSelfServe({ apiBaseUrl, locale }: { apiBaseUrl: string; loc
                   </label>
                   <div className="inline-actions">
                     <button type="button" onClick={completeTask} disabled={!canAuth}>
-                      {tr(locale, "Complete task", "完成任务")}
+                      {tr(locale, "Complete task", "提交完成结果")}
                     </button>
                     <button
                       type="button"
                       className="secondary"
                       onClick={async () => {
                         const ok = await copyText(completeOutput);
-                        if (!ok) setCompleteError(tr(locale, "Copy failed. Your browser may block clipboard access.", "复制失败，浏览器可能阻止剪贴板访问。"));
+                        if (!ok) {
+                          setCompleteError(tr(locale, "Copy failed. Your browser may block clipboard access.", "复制失败，浏览器可能阻止剪贴板访问。"));
+                        }
                       }}
                     >
                       {tr(locale, "Copy JSON", "复制 JSON")}

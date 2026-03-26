@@ -45,7 +45,7 @@ export default async function SecretsPage({ searchParams }: PageProps) {
           {error === "invalid-metadata"
             ? tr(locale, "Metadata must be valid JSON.", "元数据必须是合法 JSON。")
             : error === "missing-fields"
-              ? tr(locale, "Display name, provider, and secret value are required.", "显示名称、provider 与密钥内容为必填。")
+              ? tr(locale, "Display name, provider, and secret value are required.", "显示名称、服务提供方与密钥内容为必填。")
               : error === "management-auth"
                 ? tr(locale, "The management session is missing or expired.", "管理会话缺失或已过期。")
                 : error === "api-disconnected"
@@ -65,36 +65,34 @@ export default async function SecretsPage({ searchParams }: PageProps) {
       >
         {secretsNotice.message}
       </section>
-      <div className="workspace-grid">
+      <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <section className="panel feature-panel stack">
-            <div className="section-intro-grid">
-              <div>
-                <div className="kicker">{tr(locale, "Vault posture", "密钥姿态")}</div>
-                <h2>{tr(locale, "Store the credential once, then bind everything else to metadata and policy.", "凭据只存一次，其余都绑定到元数据与策略。")}</h2>
-                <p className="muted section-intro">
-                  {tr(
-                    locale,
-                    "This page should feel more like registering a controlled asset than pasting a token into a dashboard. Operators define provider, scope, and environment here so later capability bindings stay narrow.",
-                    "这里更像登记一项受控资产，而不是往面板里粘贴 token。运营者在此定义 provider、scope 与环境，保证后续能力绑定足够窄。",
-                  )}
-                </p>
-              </div>
-              <div className="aside-note">
-                <strong>
-                  {secrets.length === 0
-                    ? tr(locale, "No secrets stored yet", "尚未存储密钥")
-                    : tr(locale, `${secrets.length} references on file`, `已登记 ${secrets.length} 条引用`)}
-                </strong>
-                <span className="muted">
-                  {tr(locale, "The backend keeps the sensitive value. The console only needs the contract around it.", "后端保存敏感明文，控制台只需要它的契约信息。")}
-                </span>
-              </div>
-            </div>
-          </section>
           <SecretsForm action={createSecretAction} locale={locale} />
         </div>
         <div className="workspace-side">
+          <section className="panel compact-panel stack">
+            <div className="stack stack-tight">
+              <div className="kicker">{tr(locale, "Vault posture", "密钥姿态")}</div>
+              <h2>{tr(locale, "Register controlled references, not raw credentials in chat.", "在这里登记受控引用，而不是在聊天里粘贴原始凭据。")}</h2>
+              <p className="muted">
+                {tr(
+                  locale,
+                  "Define provider, environment, and scope once so later capability bindings stay narrow and legible.",
+                  "先把服务提供方、环境和权限范围定义清楚，后续能力绑定才会足够收敛、足够清晰。",
+                )}
+              </p>
+            </div>
+            <div className="info-rail">
+              <strong>
+                {secrets.length === 0
+                  ? tr(locale, "No secrets stored yet", "尚未存储密钥")
+                  : tr(locale, `${secrets.length} references on file`, `已登记 ${secrets.length} 条引用`)}
+              </strong>
+              <p className="muted">
+                {tr(locale, "The backend holds the sensitive value. The console only needs the contract around it.", "后端保存敏感明文，控制台只需要它的契约信息。")}
+              </p>
+            </div>
+          </section>
           <section className="panel stack">
             <div>
               <div className="kicker">{tr(locale, "Operator guidance", "运营建议")}</div>
@@ -103,7 +101,7 @@ export default async function SecretsPage({ searchParams }: PageProps) {
                 {tr(
                   locale,
                   "Prefer one provider and one environment per record. If a token has broad scope, make that obvious in the display name before you bind it into capabilities.",
-                  "建议每条记录只对应一个 provider 与一个环境。如果 token scope 很大，在绑定能力前先在显示名称里明确标注。",
+                  "建议每条记录只对应一个服务提供方与一个环境。如果访问范围很大，在绑定能力前先在显示名称里明确标注。",
                 )}
               </p>
             </div>

@@ -12,12 +12,12 @@ export function SecretsForm({
     <section className="panel stack" aria-labelledby="secret-form-title">
       <div>
         <div className="kicker">{tr(locale, "New secret", "新建密钥")}</div>
-        <h2 id="secret-form-title">{tr(locale, "Create a secret without exposing it in chat", "创建密钥，不在聊天中暴露")}</h2>
+        <h2 id="secret-form-title">{tr(locale, "Create a secret without exposing it in chat", "创建密钥，不在对话中暴露")}</h2>
         <p className="muted">
           {tr(
             locale,
-            "The MVP stores only metadata in the app layer. Secrets should be written to the backend vault and consumed through capabilities.",
-            "MVP 只在应用层保存元数据。密钥应写入后端仓库，并通过能力进行消费。",
+            "Store the secret once, then let later capabilities reference it by name, scope, and environment.",
+            "密钥只录入一次，后续能力通过名称、范围和环境来引用它。",
           )}
         </p>
       </div>
@@ -25,7 +25,7 @@ export function SecretsForm({
         <div className="form-row">
           <label>
             {tr(locale, "Display name", "显示名称")}
-            <input name="display_name" placeholder={tr(locale, "OpenAI production key", "OpenAI 生产 key")} required />
+            <input name="display_name" placeholder={tr(locale, "OpenAI production key", "OpenAI 生产访问密钥")} required />
           </label>
           <label>
             {tr(locale, "Kind", "类型")}
@@ -42,7 +42,7 @@ export function SecretsForm({
         </label>
         <div className="form-row">
           <label>
-            {tr(locale, "Provider", "Provider")}
+            {tr(locale, "Provider", "服务提供方")}
             <input name="provider" placeholder={tr(locale, "openai", "openai")} required />
           </label>
           <label>

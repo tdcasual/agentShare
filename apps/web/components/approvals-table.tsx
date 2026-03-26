@@ -1,6 +1,7 @@
 import type { ApprovalRequest } from "../lib/api";
 import type { Locale } from "../lib/i18n-shared";
 import { tr } from "../lib/i18n-shared";
+import { actionTypeLabel, agentLabel, approvalStatusLabel } from "../lib/ui";
 
 type ApprovalsTableProps = {
   approvals: ApprovalRequest[];
@@ -20,6 +21,10 @@ export function ApprovalsTable({
     if (status === "rejected") return "error";
     if (status === "pending") return "accent";
     return "muted";
+  };
+
+  const statusLabel = (status: string) => {
+    return approvalStatusLabel(locale, status);
   };
 
   if (approvals.length === 0) {
@@ -60,25 +65,33 @@ export function ApprovalsTable({
             >
               <div className="chip-row">
                 <span className="chip" data-tone={statusTone(approval.status)}>
-                  {approval.status}
+                  {statusLabel(approval.status)}
                 </span>
-                <span className="chip">{approval.action_type}</span>
+                <span className="chip">{actionTypeLabel(locale, approval.action_type)}</span>
                 {approval.policy_source ? <span className="chip">{approval.policy_source}</span> : null}
               </div>
               <div className="stack">
                 <strong>{policyLine}</strong>
                 <span className="muted">
-                  {approval.reason || "Awaiting operator input."}
+                  {approval.reason || tr(locale, "Awaiting operator input.", "等待运营者处理。")}
                 </span>
               </div>
               <details className="compact-details">
                 <summary>{tr(locale, "Details", "详情")}</summary>
                 <div className="stack">
                   <div className="chip-row">
-                    <span className="chip">request {approval.id}</span>
-                    <span className="chip">task {approval.task_id}</span>
-                    <span className="chip">capability {approval.capability_id}</span>
-                    <span className="chip">agent {approval.agent_id}</span>
+                    <span className="chip truncate-text" title={approval.id}>
+                      {tr(locale, "Request", "请求")} {approval.id}
+                    </span>
+                    <span className="chip truncate-text" title={approval.task_id}>
+                      {tr(locale, "Task", "任务")} {approval.task_id}
+                    </span>
+                    <span className="chip truncate-text" title={approval.capability_id}>
+                      {tr(locale, "Capability", "能力")} {approval.capability_id}
+                    </span>
+                    <span className="chip truncate-text" title={approval.agent_id}>
+                      {agentLabel(locale)} {approval.agent_id}
+                    </span>
                   </div>
                 </div>
               </details>

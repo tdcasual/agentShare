@@ -5,6 +5,7 @@ import { NavShell } from "../../components/nav-shell";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
 import { hasManagementSession } from "../../lib/management-session";
+import { managementCredentialLabel } from "../../lib/ui";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -31,9 +32,10 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
   return (
     <NavShell
+      variant="minimal"
       eyebrow={tr(locale, "Management login", "管理登录")}
       title={tr(locale, "Establish a human session for console management.", "建立管理控制台的人类会话。")}
-      subtitle={tr(locale, "Use the bootstrap management credential once to mint a short-lived session cookie. Runtime agent keys stay separate.", "使用一次 bootstrap 管理凭据换取短期 session cookie。运行时 agent key 与管理会话相互隔离。")}
+      subtitle={tr(locale, "Use the bootstrap management credential once to mint a short-lived session cookie. Runtime agent keys stay separate.", "使用一次管理引导口令换取短期 session cookie。运行时 Agent 访问密钥与管理会话相互隔离。")}
       activeHref="/login"
     >
       {loggedOut ? (
@@ -46,7 +48,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
           {error === "missing-credential"
             ? tr(locale, "Enter the bootstrap management credential to continue.", "请输入 bootstrap 管理凭据以继续。")
             : error === "invalid-credential"
-              ? tr(locale, "The bootstrap management credential was rejected.", "bootstrap 管理凭据被拒绝。")
+              ? tr(locale, "The bootstrap management credential was rejected.", "管理引导口令被拒绝。")
               : error === "api-disconnected"
                 ? tr(locale, "The API base URL is not configured, so the login exchange cannot complete.", "未配置 API Base URL，无法完成登录交换。")
                 : error === "session-cookie-missing"
@@ -62,7 +64,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
         <form className="form" action={loginManagementAction}>
           <input type="hidden" name="next" value={nextPath} />
           <label>
-            {tr(locale, "Bootstrap management credential", "Bootstrap 管理凭据")}
+            {managementCredentialLabel(locale)}
             <input name="bootstrap_key" type="password" autoComplete="current-password" required />
           </label>
           <button type="submit">{tr(locale, "Create management session", "创建管理会话")}</button>

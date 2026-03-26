@@ -1,5 +1,6 @@
 import type { Locale } from "../lib/i18n-shared";
 import { tr } from "../lib/i18n-shared";
+import { approvalModeLabel, leasePolicyLabel } from "../lib/ui";
 
 export function TaskForm({
   action,
@@ -16,8 +17,8 @@ export function TaskForm({
         <p className="muted">
           {tr(
             locale,
-            "Title and input should be enough to understand the work. Keep policy and references in Advanced unless they matter right now.",
-            "标题与输入应足以让人理解工作内容。除非现在必须，否则把策略与引用放到高级设置里。",
+            "Start with title, task type, and input. Keep policy and references in Advanced unless they matter right now.",
+            "先填写标题、任务类型和输入。除非现在必须，否则把策略与引用放到高级设置里。",
           )}
         </p>
       </div>
@@ -34,8 +35,8 @@ export function TaskForm({
           <label>
             {tr(locale, "Lease policy", "租约策略")}
             <select name="lease_allowed" defaultValue="false">
-              <option value="false">{tr(locale, "Proxy only", "仅代理")}</option>
-              <option value="true">{tr(locale, "Lease allowed", "允许租约")}</option>
+              <option value="false">{leasePolicyLabel(locale, false)}</option>
+              <option value="true">{leasePolicyLabel(locale, true)}</option>
             </select>
           </label>
         </div>
@@ -43,7 +44,7 @@ export function TaskForm({
           {tr(locale, "Approval mode", "审批模式")}
           <select name="approval_mode" defaultValue="auto">
             <option value="auto">{tr(locale, "Auto", "自动")}</option>
-            <option value="manual">{tr(locale, "Manual review", "人工复核")}</option>
+            <option value="manual">{approvalModeLabel(locale, "manual")}</option>
           </select>
         </label>
         <label>

@@ -64,28 +64,24 @@ export default async function PlaybooksPage({ searchParams }: PageProps) {
       >
         {playbooksNotice.message}
       </section>
-      <div className="workspace-grid">
+      <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <section className="panel feature-panel stack">
-            <div className="section-intro-grid">
-              <div>
-                <div className="kicker">{tr(locale, "Search", "检索")}</div>
-                <h2>{tr(locale, "Find reusable execution knowledge quickly", "快速找到可复用的执行知识")}</h2>
-                <p className="muted section-intro">
-                  {tr(locale, "Use task type for queue-aligned filtering, text search for instructions, and tags for provider or workflow hints. This should feel more like searching an internal field guide than browsing CMS entries.", "用任务类型做队列对齐筛选，用文本搜索查指令，用标签标记 provider 或流程线索。体验应更像查内部操作手册，而不是浏览 CMS。")}
-                </p>
-              </div>
-              <div className="aside-note">
-                <strong>{tr(locale, `${playbooksResult.meta.total} matching playbooks`, `${playbooksResult.meta.total} 份匹配手册`)}</strong>
-                <span className="muted">
-                  {tr(locale, "Operators read them here; agents can search the same surface through MCP.", "运营者在这里阅读；Agent 可通过 MCP 搜索同一知识面。")}
-                </span>
-              </div>
+          <section className="panel stack">
+            <div className="stack stack-tight">
+              <div className="kicker">{tr(locale, "Search", "检索")}</div>
+              <h2>{tr(locale, "Find reusable execution guidance fast.", "快速找到可复用的执行指引。")}</h2>
+              <p className="muted section-intro">
+                {tr(
+                  locale,
+                  "Filter by task family, search text, or tag. This should feel closer to searching an internal field guide than browsing CMS entries.",
+                  "可以按任务类型、文本关键词或标签筛选。这里的体验应该更像检索内部操作手册，而不是浏览 CMS。",
+                )}
+              </p>
             </div>
             <form method="get" action="/playbooks" className="form dense-form">
               <div className="form-row">
                 <label>
-                  {tr(locale, "Query", "检索")}
+                  {tr(locale, "Query", "检索词")}
                   <input
                     type="text"
                     name="q"
@@ -102,8 +98,6 @@ export default async function PlaybooksPage({ searchParams }: PageProps) {
                     placeholder="prompt_run"
                   />
                 </label>
-              </div>
-              <div className="form-row">
                 <label>
                   {tr(locale, "Tag", "标签")}
                   <input
@@ -113,26 +107,59 @@ export default async function PlaybooksPage({ searchParams }: PageProps) {
                     placeholder="openai"
                   />
                 </label>
-                <div className="stack">
-                  <span className="muted form-footnote">
-                    {tr(locale, "Filter by one provider, one task family, or one recurring operation pattern at a time.", "一次只聚焦一个 provider、一个任务家族或一个重复操作模式。")}
-                  </span>
-                  <div className="subtle-actions">
-                    <button type="submit">{tr(locale, "Apply filters", "应用筛选")}</button>
-                    <a className="button-link secondary" href="/playbooks">
-                      {tr(locale, "Clear", "清除")}
-                    </a>
-                  </div>
+              </div>
+              <div className="toolbar">
+                <span className="muted form-footnote">
+                  {tr(locale, "Filter by one provider, one task family, or one recurring operation pattern at a time.", "一次只聚焦一个服务提供方、一个任务家族或一个重复操作模式。")}
+                </span>
+                <div className="subtle-actions">
+                  <button type="submit">{tr(locale, "Apply filters", "应用筛选")}</button>
+                  <a className="button-link secondary" href="/playbooks">
+                    {tr(locale, "Clear", "清除")}
+                  </a>
                 </div>
               </div>
             </form>
           </section>
+          <section className="panel stack section-space">
+            <div>
+              <div className="kicker">{tr(locale, "Library", "库")}</div>
+              <h2>{tr(locale, "Browse the matching playbooks", "浏览匹配的手册")}</h2>
+            </div>
+            {playbooks.length > 0 ? (
+              <ul className="list editorial-list">
+                {playbooks.map((playbook) => (
+                  <li key={playbook.id} className="list-item">
+                    <a className="list-link" href={`/playbooks/${playbook.id}`}>
+                      <strong>{playbook.title}</strong>
+                    </a>
+                    <span className="muted">{playbook.task_type}</span>
+                    <p className="muted">{excerpt(playbook.body)}</p>
+                    <div className="chip-row">
+                      {playbook.tags.map((tag) => (
+                        <span key={tag} className="chip">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="empty-state">
+                {tr(locale, "No playbooks are available yet. Publish one through the API, then attach it to a task so future agents can reuse the same instructions.", "当前没有手册。可先通过 API 发布一份，再关联到任务，让后续 Agent 复用同一套指引。")}
+              </div>
+            )}
+          </section>
         </div>
         <div className="workspace-side">
-          <section className="panel stack">
+          <section className="panel compact-panel stack">
             <div>
               <div className="kicker">{tr(locale, "Shared know-how", "共享经验")}</div>
               <h2>{tr(locale, "Lightweight execution recipes", "轻量执行配方")}</h2>
+              <p className="muted">
+                {tr(locale, "Operators read them here; agents can search the same surface through MCP.", "运营者在这里阅读；Agent 也能通过 MCP 搜索同一知识面。")}
+              </p>
             </div>
             <div className="toolbar">
               <p className="muted">
@@ -149,36 +176,6 @@ export default async function PlaybooksPage({ searchParams }: PageProps) {
           </section>
         </div>
       </div>
-      <section className="panel stack section-space">
-        <div>
-          <div className="kicker">{tr(locale, "Library", "库")}</div>
-          <h2>{tr(locale, "Browse the matching playbooks", "浏览匹配的手册")}</h2>
-        </div>
-        {playbooks.length > 0 ? (
-          <ul className="list editorial-list">
-            {playbooks.map((playbook) => (
-              <li key={playbook.id} className="list-item">
-                <a className="list-link" href={`/playbooks/${playbook.id}`}>
-                  <strong>{playbook.title}</strong>
-                </a>
-                <span className="muted">{playbook.task_type}</span>
-                <p className="muted">{excerpt(playbook.body)}</p>
-                <div className="chip-row">
-                  {playbook.tags.map((tag) => (
-                    <span key={tag} className="chip">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="empty-state">
-            {tr(locale, "No playbooks are available yet. Publish one through the API, then attach it to a task so future agents can reuse the same instructions.", "当前没有手册。可先通过 API 发布一份，再关联到任务，让后续 Agent 复用同一套指引。")}
-          </div>
-        )}
-      </section>
     </NavShell>
   );
 }

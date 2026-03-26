@@ -4,22 +4,38 @@ import { NavShell } from "../components/nav-shell";
 import { getApiBaseUrl } from "../lib/api";
 import { getLocale } from "../lib/i18n-server";
 import { tr } from "../lib/i18n-shared";
+import { agentSelfServeLabel, docsLabel } from "../lib/ui";
 
 const highlights = [
   {
     label: { en: "Playbook search", zh: "手册检索" },
     value: { en: "Ready", zh: "就绪" },
-    note: { en: "Find reusable guidance by task type, text, and tag.", zh: "按任务类型、关键词与标签检索可复用的操作指引。" },
+    note: { en: "Search by task family, free text, and tags.", zh: "支持按任务类型、关键词和标签检索。" },
   },
   {
     label: { en: "Policy-backed approvals", zh: "策略审批" },
     value: { en: "Live", zh: "启用" },
-    note: { en: "Runtime actions can allow, require review, or deny.", zh: "运行时动作可以放行、要求人工复核或直接拒绝。" },
+    note: { en: "Runtime actions can allow, pause for review, or deny.", zh: "运行时动作可自动放行、转人工复核或直接拒绝。" },
   },
   {
-    label: { en: "MCP tools", zh: "MCP 工具" },
-    value: { en: "6", zh: "6" },
-    note: { en: "Expose task, playbook, invoke, and lease operations to agents.", zh: "把任务、手册、调用与租约等操作暴露给 Agent。" },
+    label: { en: "Agent entry points", zh: "Agent 入口" },
+    value: { en: "HTTP + MCP", zh: "HTTP + MCP" },
+    note: { en: "One human console, two machine-friendly paths.", zh: "一套人类控制台，两条机器友好入口。" },
+  },
+];
+
+const operatorFlow = [
+  {
+    title: { en: "Register one secret reference", zh: "先登记一条密钥引用" },
+    note: { en: "Store raw credentials in the backend vault, then keep only the reference in the console.", zh: "把原始凭据放在后端密钥仓库里，控制台只保留引用与上下文。" },
+  },
+  {
+    title: { en: "Bind a capability with narrow scope", zh: "再绑定一条收敛能力" },
+    note: { en: "Choose the smallest adapter contract that matches the upstream system and the least risky execution mode.", zh: "选择最贴近上游系统、且风险最小的适配器契约与执行模式。" },
+  },
+  {
+    title: { en: "Queue a task and keep approvals nearby", zh: "然后发布任务并把审批放近" },
+    note: { en: "Tasks, approvals, and runs should stay close enough that operators can review without context switching.", zh: "任务、审批与运行记录应保持足够接近，方便运营者不切上下文就完成判断。" },
   },
 ];
 
@@ -29,6 +45,7 @@ export default async function HomePage() {
 
   return (
     <NavShell
+      variant="hero"
       eyebrow={tr(locale, "Control plane", "控制平面")}
       title={tr(locale, "Coordinate humans, agents, secrets, and lightweight work in one place.", "把人、Agent、密钥与轻量任务统一协调。")}
       subtitle={tr(
@@ -37,158 +54,166 @@ export default async function HomePage() {
         "这里遵循你选择的运行模型：默认代理调用能力，仅在需要时发放短租约，并以任务为中心协作。",
       )}
       activeHref="/"
+      headerActions={
+        <div className="subtle-actions">
+          <Link className="button-link" href="/tasks">
+            {tr(locale, "Open task queue", "打开任务队列")}
+          </Link>
+          <Link className="button-link secondary" href="/quickstart">
+            {tr(locale, "Read quickstart", "查看快速开始")}
+          </Link>
+        </div>
+      }
     >
-      <section className="hero-grid">
-        <article className="panel feature-panel stack">
-          <div className="section-intro-grid">
-            <div className="stack">
-              <div className="kicker">{tr(locale, "Operational overview", "运行概览")}</div>
-              <h2>
-                {tr(
-                  locale,
-                  "Run sensitive agent work through one deliberate, policy-shaped surface.",
-                  "用一套可解释的策略界面承载敏感 Agent 工作流。",
-                )}
-              </h2>
-              <p className="muted section-intro">
-                {tr(
-                  locale,
-                  "The control plane is at its best when humans set trust boundaries once and agents execute cleanly inside them. Secrets stay abstracted, approvals stay explainable, and reusable context stays close to the task.",
-                  "控制平面的价值在于：人类一次性设定信任边界，Agent 在边界内稳定执行。密钥保持抽象、审批保持可解释、可复用的上下文紧贴任务本身。",
-                )}
-              </p>
-              <div className="subtle-actions">
-                <Link className="button-link" href="/tasks">
-                  {tr(locale, "Open task queue", "打开任务队列")}
-                </Link>
-                <Link className="button-link secondary" href="/approvals">
-                  {tr(locale, "Open review queue", "打开审批队列")}
-                </Link>
+      <section className="dashboard-stage">
+        <article className="panel feature-panel dashboard-primary stack">
+          <div>
+            <div className="kicker">{tr(locale, "Start here", "从这里开始")}</div>
+            <h2>
+              {tr(
+                locale,
+                "Set trust boundaries once, then let agents move cleanly inside them.",
+                "先定义好信任边界，再让 Agent 在边界内稳定执行。",
+              )}
+            </h2>
+            <p className="muted section-intro">
+              {tr(
+                locale,
+                "The fastest path to a reliable setup is simple: hide raw secrets behind references, bind a narrow capability, then queue one clear task with approvals close by.",
+                "最快跑通一套可靠流程的方式其实很简单：先把原始密钥藏到引用之后，再绑定一条收敛能力，最后发布一个清晰任务，并把审批放在旁边。",
+              )}
+            </p>
+          </div>
+          <div className="hero-stat-grid">
+            {highlights.map((item) => (
+              <div key={item.label.en} className="stat-tile">
+                <span className="stat-label">{tr(locale, item.label.en, item.label.zh)}</span>
+                <div className="metric">{tr(locale, item.value.en, item.value.zh)}</div>
+                <p className="muted">{tr(locale, item.note.en, item.note.zh)}</p>
               </div>
-            </div>
-            <div className="aside-note">
-              <strong>{tr(locale, "Phase 2 is now coherent", "Phase 2 已打通")}</strong>
-              <span className="muted">
-                {tr(
-                  locale,
-                  "Knowledge, policy, adapters, and MCP are all visible in one console instead of hiding behind docs and API routes.",
-                  "知识、策略、适配器与 MCP 都在同一个控制台可见，不再散落在文档与接口里。",
-                )}
-              </span>
-            </div>
+            ))}
           </div>
         </article>
-        {highlights.map((item) => (
-          <article key={item.label.en} className="card">
-            <div className="kicker">{tr(locale, item.label.en, item.label.zh)}</div>
-            <div className="metric">{tr(locale, item.value.en, item.value.zh)}</div>
-            <p className="muted">{tr(locale, item.note.en, item.note.zh)}</p>
-          </article>
-        ))}
+        <aside className="panel dashboard-guide stack">
+          <div>
+            <div className="kicker">{tr(locale, "Operator flow", "运营路径")}</div>
+            <h2>{tr(locale, "Use one repeatable path instead of ad-hoc chat coordination.", "尽量使用一条可重复路径，而不是临时聊天协调。")}</h2>
+          </div>
+          <ol className="process-list">
+            {operatorFlow.map((step, index) => (
+              <li key={step.title.en} className="process-step">
+                <span className="process-index">{index + 1}</span>
+                <div className="stack stack-tight">
+                  <strong>{tr(locale, step.title.en, step.title.zh)}</strong>
+                  <p className="muted">{tr(locale, step.note.en, step.note.zh)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </aside>
       </section>
-      <section className="grid section-space">
-        <article className="panel stack">
+      <section className="dashboard-grid section-space">
+        <article className="panel stack dashboard-card">
           <div>
-            <div className="kicker">{tr(locale, "Start with trust", "从信任边界开始")}</div>
-            <h2>{tr(locale, "Capture secrets in the console, not in chat threads", "在控制台登记密钥，不要在聊天里粘贴")}</h2>
+            <div className="kicker">{tr(locale, "Build trust", "建立信任边界")}</div>
+            <h2>{tr(locale, "Register secrets and capabilities before agents ever touch upstream systems.", "在 Agent 接触上游系统前，先把密钥和能力定义好。")}</h2>
             <p className="muted">
               {tr(
                 locale,
-                "Keep sensitive credentials in the backend vault and expose them through named capabilities that agents can safely invoke.",
-                "把敏感凭据存入后端密钥仓库，并通过命名能力对外暴露，让 Agent 在策略约束下安全调用。",
+                "Keep raw credentials in the backend vault, expose them through named capabilities, and make approval posture visible before work starts.",
+                "把原始凭据留在后端密钥仓库里，再通过命名能力暴露给 Agent，并在任务开始前让审批姿态显性化。",
               )}
             </p>
           </div>
-          <Link className="button-link" href="/secrets">
-            {tr(locale, "Manage secrets", "管理密钥")}
-          </Link>
+          <div className="subtle-actions">
+            <Link className="button-link" href="/secrets">
+              {tr(locale, "Manage secrets", "管理密钥")}
+            </Link>
+            <Link className="button-link secondary" href="/capabilities">
+              {tr(locale, "Open capabilities", "查看能力")}
+            </Link>
+          </div>
         </article>
-        <article className="panel stack">
+        <article className="panel stack dashboard-card">
           <div>
-            <div className="kicker">{tr(locale, "Queue work", "发布任务")}</div>
-            <h2>{tr(locale, "Publish lightweight tasks that agents can claim and complete", "发布可认领、可完成的轻量任务")}</h2>
+            <div className="kicker">{tr(locale, "Run work", "运行工作流")}</div>
+            <h2>{tr(locale, "Keep the task queue, review queue, and run history within the same operational loop.", "让任务队列、审批队列和运行记录处在同一个操作闭环中。")}</h2>
             <p className="muted">
               {tr(
                 locale,
-                "Tasks reference capabilities instead of raw tokens, so the control plane stays in the middle of every sensitive action. Attach playbooks when a task needs reusable operator guidance instead of one-off instructions.",
-                "任务引用能力而不是原始 token，让控制平面始终处在每次敏感动作的中间层。需要可复用的操作指引时附上手册，而不是写一次性的指令。",
+                "Operators should be able to publish, review, and trace work without hunting across logs, source, or separate tools.",
+                "运营者应当能在不翻日志、不查源码、不切换工具的前提下完成发布、审批和追踪。",
               )}
             </p>
           </div>
-          <Link className="button-link secondary" href="/tasks">
-            {tr(locale, "Open tasks", "打开任务")}
-          </Link>
-        </article>
-        <article className="panel stack">
-          <div>
-            <div className="kicker">{tr(locale, "Keep context reusable", "让上下文可复用")}</div>
-            <h2>{tr(locale, "Turn good runs into playbooks and keep approvals close by", "把高质量运行沉淀成手册，把审批放在手边")}</h2>
-            <p className="muted">
-              {tr(
-                locale,
-                "Operators should be able to find reusable execution guidance and review higher-risk actions without digging through source or logs.",
-                "运营者应当能在不翻源码、不挖日志的情况下，找到可复用的执行指引并复核高风险动作。",
-              )}
-            </p>
-          </div>
-          <div className="chip-row">
-            <Link className="button-link" href="/playbooks">
-              {tr(locale, "Browse playbooks", "浏览手册")}
+          <div className="subtle-actions">
+            <Link className="button-link" href="/tasks">
+              {tr(locale, "Open tasks", "打开任务")}
             </Link>
             <Link className="button-link secondary" href="/approvals">
               {tr(locale, "Review approvals", "处理审批")}
             </Link>
+            <Link className="button-link secondary" href="/runs">
+              {tr(locale, "Open runs", "查看运行记录")}
+            </Link>
           </div>
         </article>
-        <article className="panel stack">
+        <article className="panel stack dashboard-card">
           <div>
-            <div className="kicker">{tr(locale, "Choose the right adapter", "选择合适的适配器")}</div>
-            <h2>{tr(locale, "Use the narrowest capability contract that matches the upstream system", "用最窄的能力契约匹配上游系统")}</h2>
-            <p className="muted">
-              {tr(locale, "Pick ", "优先选择 ")}
-              <strong>openai</strong>
-              {tr(locale, " for chat completions, ", " 处理对话调用，")}
-              <strong>github</strong>
-              {tr(locale, " for repository-scoped REST calls, and ", " 处理仓库范围的 REST 调用，")}
-              <strong>generic_http</strong>
-              {tr(locale, " only when no first-class adapter exists yet.", " 仅在没有一等适配器时使用。")}
-            </p>
-          </div>
-          <Link className="button-link secondary" href="/capabilities">
-            {tr(locale, "Compare adapters", "查看能力")}
-          </Link>
-        </article>
-        <article className="panel stack">
-          <div>
-            <div className="kicker">{tr(locale, "Self-serve onboarding", "自助上手")}</div>
-            <h2>{tr(locale, "Start from HTTP or MCP, then confirm details in machine-readable contracts", "先走通 HTTP 或 MCP，再用契约确认细节")}</h2>
+            <div className="kicker">{tr(locale, "Teach agents", "帮助 Agent 上手")}</div>
+            <h2>{tr(locale, "Pair quickstart guidance with reusable playbooks so the next run starts smarter.", "把快速开始和可复用手册放在一起，让下一次执行从更高起点开始。")}</h2>
             <p className="muted">
               {tr(
                 locale,
-                "New integrators should follow the quickstart first, choose the transport they need, then treat Swagger and OpenAPI as the source of truth for request and response contracts.",
-                "新接入者先跟随快速开始走通流程，选择需要的传输方式，然后把 Swagger 与 OpenAPI 作为请求响应契约的唯一真相来源。",
+                "New integrators should start with one clear guide, then confirm runtime details through machine-readable contracts and searchable execution notes.",
+                "新接入者应先跟随一份清晰指南，再通过机器可读契约和可检索执行笔记确认运行细节。",
               )}
             </p>
           </div>
-          <div className="chip-row">
-            <Link className="button-link" href="/quickstart">
-              {tr(locale, "HTTP quickstart", "HTTP 快速开始")}
+          <div className="subtle-actions">
+            <Link className="button-link" href="/playbooks">
+              {tr(locale, "Browse playbooks", "浏览手册")}
             </Link>
-            <Link className="button-link secondary" href="/quickstart#mcp-quickstart">
-              {tr(locale, "MCP quickstart", "MCP 快速开始")}
+            <Link className="button-link secondary" href="/quickstart">
+              {tr(locale, "Open quickstart", "查看快速开始")}
             </Link>
-            {apiBaseUrl ? (
-              <>
-                <a className="button-link secondary" href={`${apiBaseUrl}/docs`} target="_blank" rel="noreferrer">
-                  {tr(locale, "Swagger UI", "Swagger UI")}
-                </a>
-                <a className="button-link secondary" href={`${apiBaseUrl}/openapi.json`} target="_blank" rel="noreferrer">
-                  {tr(locale, "OpenAPI JSON", "OpenAPI JSON")}
-                </a>
-              </>
-            ) : null}
+            <Link className="button-link secondary" href="/agent">
+              {agentSelfServeLabel(locale)}
+            </Link>
           </div>
         </article>
+      </section>
+      <section className="panel stack compact-panel section-space">
+        <div className="toolbar">
+          <div className="stack stack-tight">
+            <div className="kicker">{tr(locale, "Platform posture", "平台姿态")}</div>
+            <h2>{tr(locale, "Three things this control plane should always keep obvious", "这个控制平面始终要把三件事保持可见")}</h2>
+          </div>
+          {apiBaseUrl ? (
+            <div className="subtle-actions">
+              <a className="button-link secondary" href={`${apiBaseUrl}/docs`} target="_blank" rel="noreferrer">
+                {docsLabel(locale, "swagger")}
+              </a>
+              <a className="button-link secondary" href={`${apiBaseUrl}/openapi.json`} target="_blank" rel="noreferrer">
+                {docsLabel(locale, "openapi")}
+              </a>
+            </div>
+          ) : null}
+        </div>
+        <div className="signal-list signal-list-inline">
+          <div className="signal-item">
+            <span>{tr(locale, "Default execution", "默认执行")}</span>
+            <strong>{tr(locale, "Proxy-first capability calls", "能力调用默认走代理")}</strong>
+          </div>
+          <div className="signal-item">
+            <span>{tr(locale, "Sensitive access", "敏感访问")}</span>
+            <strong>{tr(locale, "Short leases only when strictly needed", "仅在确有必要时发放短租约")}</strong>
+          </div>
+          <div className="signal-item">
+            <span>{tr(locale, "Reusable context", "可复用上下文")}</span>
+            <strong>{tr(locale, "Tasks, approvals, and playbooks stay connected", "任务、审批与手册保持联动")}</strong>
+          </div>
+        </div>
       </section>
     </NavShell>
   );

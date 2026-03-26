@@ -1,5 +1,6 @@
 import type { Locale } from "../lib/i18n-shared";
 import { tr } from "../lib/i18n-shared";
+import { approvalModeLabel, capabilityModeLabel } from "../lib/ui";
 
 type SecretOption = {
   id: string;
@@ -26,8 +27,8 @@ export function CapabilityForm({
         <p className="muted">
           {tr(
             locale,
-            "Keep the name and adapter contract narrow. Move policy and JSON into Advanced.",
-            "把名称与适配器契约保持足够窄。把策略与 JSON 放到高级设置里。",
+            "Keep the name and adapter contract narrow. Move policy and JSON into Advanced when they are not needed immediately.",
+            "把名称与适配器契约保持足够窄。只有在需要时再去填写高级设置里的策略和 JSON。",
           )}
         </p>
       </div>
@@ -51,8 +52,8 @@ export function CapabilityForm({
             <label>
               {tr(locale, "Allowed mode", "允许模式")}
               <select name="allowed_mode" defaultValue="proxy_only">
-                <option value="proxy_only">{tr(locale, "Proxy only", "仅代理")}</option>
-                <option value="proxy_or_lease">{tr(locale, "Proxy or lease", "代理或租约")}</option>
+                <option value="proxy_only">{capabilityModeLabel(locale, "proxy_only")}</option>
+                <option value="proxy_or_lease">{capabilityModeLabel(locale, "proxy_or_lease")}</option>
               </select>
             </label>
           </div>
@@ -66,7 +67,7 @@ export function CapabilityForm({
               </select>
             </label>
             <label>
-              {tr(locale, "Lease TTL", "租约 TTL")}
+              {tr(locale, "Lease TTL", "租约时长（秒）")}
               <input name="lease_ttl_seconds" type="number" min="1" defaultValue="60" required />
             </label>
           </div>
@@ -80,7 +81,7 @@ export function CapabilityForm({
               </select>
             </label>
             <label>
-              {tr(locale, "Required provider", "Required provider")}
+              {tr(locale, "Required provider", "要求的服务提供方")}
               <input name="required_provider" placeholder={tr(locale, "github", "github")} required />
             </label>
           </div>
@@ -88,7 +89,7 @@ export function CapabilityForm({
             {tr(locale, "Approval mode", "审批模式")}
             <select name="approval_mode" defaultValue="auto">
               <option value="auto">{tr(locale, "Auto", "自动")}</option>
-              <option value="manual">{tr(locale, "Manual review", "人工复核")}</option>
+              <option value="manual">{approvalModeLabel(locale, "manual")}</option>
             </select>
           </label>
 
@@ -112,7 +113,7 @@ export function CapabilityForm({
                 />
               </label>
               <label>
-                {tr(locale, "Required provider scopes", "Required provider scopes")}
+                {tr(locale, "Required provider scopes", "要求的服务提供方权限")}
                 <input name="required_provider_scopes" placeholder={tr(locale, "repo:read,repo:write", "repo:read,repo:write")} />
               </label>
               <label>
@@ -123,7 +124,7 @@ export function CapabilityForm({
                 {tr(
                   locale,
                   "Choose the narrowest adapter that matches the upstream system. Keep JSON contracts small and legible.",
-                  "选择最匹配上游系统且最窄的适配器。让 JSON 契约保持小且可读。",
+                  "选择最匹配上游系统且最窄的适配器，让 JSON 契约保持小且可读。",
                 )}
               </p>
             </div>

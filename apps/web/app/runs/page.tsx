@@ -10,6 +10,7 @@ export default async function RunsPage() {
   const locale = await getLocale();
   const runsResult = await getRuns();
   const runs = runsResult.items;
+  const completedCount = runs.filter((run) => run.status === "completed").length;
   const runsNotice = getCollectionNotice(runsResult, tr(locale, "runs", "运行记录"), locale);
 
   return (
@@ -31,36 +32,44 @@ export default async function RunsPage() {
       >
         {runsNotice.message}
       </section>
-      <div className="workspace-grid">
+      <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <section className="panel feature-panel stack">
-            <div className="section-intro-grid">
-              <div>
-                <div className="kicker">Audit trail</div>
-                <h2>Keep a clean historical layer for repeats and postmortems.</h2>
-                <p className="muted section-intro">
-                  Runs should read like a compact ledger: what task was executed, who executed it,
-                  and what result was recorded. Treat this as your reusable trace layer.
-                </p>
-              </div>
-              <div className="aside-note">
-                <strong>{runs.length === 0 ? "No runs yet" : `${runs.length} recorded runs`}</strong>
-                <span className="muted">
-                  When a run becomes a repeatable pattern, turn it into a playbook.
-                </span>
-              </div>
-            </div>
-          </section>
           <RunsTable runs={runs} locale={locale} />
         </div>
         <div className="workspace-side">
+          <section className="panel compact-panel stack">
+            <div>
+              <div className="kicker">{tr(locale, "Audit trail", "审计轨迹")}</div>
+              <h2>{tr(locale, "Keep a clean trace layer for repeats and postmortems.", "为重复执行和复盘保留一层干净轨迹。")}</h2>
+              <p className="muted">
+                {tr(
+                  locale,
+                  "Runs should read like a compact ledger: what happened, who ran it, and what result is safe to reuse later.",
+                  "Runs 应该像一份紧凑账本：发生了什么、谁执行的、哪些结果适合后续复用。",
+                )}
+              </p>
+            </div>
+            <div className="stat-inline-row">
+              <div className="stat-inline">
+                <span>{tr(locale, "Total runs", "运行总数")}</span>
+                <strong>{runs.length}</strong>
+              </div>
+              <div className="stat-inline">
+                <span>{tr(locale, "Completed", "已完成")}</span>
+                <strong>{completedCount}</strong>
+              </div>
+            </div>
+          </section>
           <section className="panel stack">
             <div>
-              <div className="kicker">Operator note</div>
-              <h2>Store just enough output to be useful</h2>
+              <div className="kicker">{tr(locale, "Operator note", "运营提示")}</div>
+              <h2>{tr(locale, "Store just enough output to stay useful.", "只保留足够有用的输出。")}</h2>
               <p className="muted">
-                Prefer short summaries and structured payloads. Avoid storing sensitive secret
-                material in run output.
+                {tr(
+                  locale,
+                  "Prefer short summaries and structured payloads. Avoid storing raw secret material in run output.",
+                  "优先保留简短摘要和结构化输出，避免在运行结果中存放原始敏感信息。",
+                )}
               </p>
             </div>
           </section>

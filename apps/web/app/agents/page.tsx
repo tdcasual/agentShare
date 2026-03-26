@@ -6,6 +6,7 @@ import { getAgents, getApiDocsLinks, getApiBaseUrl, getCollectionNotice } from "
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
+import { agentsCatalogLabel, docsLabel, riskLevelLabel } from "../../lib/ui";
 import { createAgentAction } from "../actions";
 
 type PageProps = {
@@ -26,7 +27,7 @@ export default async function AgentsPage({ searchParams }: PageProps) {
   const locale = await getLocale();
   const agentsResult = await getAgents();
   const agents = agentsResult.items;
-  const agentsNotice = getCollectionNotice(agentsResult, tr(locale, "agents", "代理"), locale);
+  const agentsNotice = getCollectionNotice(agentsResult, tr(locale, "agents", "Agent 列表"), locale);
   const apiBaseUrl = getApiBaseUrl();
   const apiDocsLinks = getApiDocsLinks();
   const apiKey = readSingleParam(params, "api_key");
@@ -35,7 +36,7 @@ export default async function AgentsPage({ searchParams }: PageProps) {
 
   return (
     <NavShell
-      eyebrow={tr(locale, "Agents", "代理")}
+      eyebrow={agentsCatalogLabel(locale)}
       title={tr(locale, "Track each agent as its own identity with its own trust boundary.", "将每个 Agent 视为独立身份与独立信任边界。")}
       subtitle={tr(locale, "Each agent authenticates independently and carries a bounded risk tier.", "每个 Agent 独立认证，并携带受限的风险等级。")}
       activeHref="/agents"
@@ -92,10 +93,10 @@ export default async function AgentsPage({ searchParams }: PageProps) {
           {apiDocsLinks ? (
             <>
               <a className="button-link secondary" href={apiDocsLinks.swaggerUrl} target="_blank" rel="noreferrer">
-                {tr(locale, "Swagger UI", "Swagger UI")}
+                {docsLabel(locale, "swagger")}
               </a>
               <a className="button-link secondary" href={apiDocsLinks.openapiUrl} target="_blank" rel="noreferrer">
-                {tr(locale, "OpenAPI JSON", "OpenAPI JSON")}
+                {docsLabel(locale, "openapi")}
               </a>
             </>
           ) : (
@@ -132,7 +133,7 @@ export default async function AgentsPage({ searchParams }: PageProps) {
             <h2>{agent.name}</h2>
             <p className="muted">
               {tr(locale, "Auth via", "认证方式")} {agent.auth_method}
-              {tr(locale, ", operating in the ", "，风险等级")} {agent.risk_tier}
+              {tr(locale, ", operating in the ", "，风险等级")} {riskLevelLabel(locale, agent.risk_tier)}
               {tr(locale, " risk tier.", "。")}
             </p>
           </article>
