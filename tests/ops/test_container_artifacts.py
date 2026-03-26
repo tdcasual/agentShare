@@ -53,6 +53,20 @@ def test_compose_defines_complete_stack() -> None:
     assert "AGENT_CONTROL_PLANE_API_URL" in compose
 
 
+def test_dev_compose_builds_local_app_services_without_pulling_fake_local_tags() -> None:
+    compose = (ROOT / "docker-compose.yml").read_text()
+    assert "dockerfile: apps/api/Dockerfile" in compose
+    assert "dockerfile: apps/web/Dockerfile" in compose
+    assert "agentshare-api:local" not in compose
+    assert "agentshare-web:local" not in compose
+
+
+def test_dev_compose_openbao_healthcheck_uses_ipv4_loopback() -> None:
+    compose = (ROOT / "docker-compose.yml").read_text()
+    assert '["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8200/v1/sys/health"]' in compose
+    assert "http://localhost:8200/v1/sys/health" not in compose
+
+
 def test_docker_workflow_builds_both_images_with_ghcr() -> None:
     workflow = (ROOT / ".github/workflows/docker-images.yml").read_text()
     assert "docker/login-action" in workflow

@@ -12,7 +12,7 @@ services:
     ports:
       - "8200:8200"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8200/v1/sys/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8200/v1/sys/health"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -49,7 +49,6 @@ services:
       retries: 5
 
   api:
-    image: ${API_IMAGE:-agentshare-api:local}
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -81,7 +80,6 @@ services:
       retries: 5
 
   web:
-    image: ${WEB_IMAGE:-agentshare-web:local}
     build:
       context: .
       dockerfile: apps/web/Dockerfile
