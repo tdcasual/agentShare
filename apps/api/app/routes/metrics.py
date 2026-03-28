@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 
 from app.config import Settings
+from app.dependencies import get_settings
 from app.observability import snapshot_metrics
 
 
@@ -16,8 +17,7 @@ router = APIRouter(tags=["Observability"])
     description="Minimal Prometheus-compatible metrics for production scraping.",
     response_class=PlainTextResponse,
 )
-def metrics() -> PlainTextResponse:
-    settings = Settings()
+def metrics(settings: Settings = Depends(get_settings)) -> PlainTextResponse:
     if not settings.metrics_enabled:
         return PlainTextResponse("", status_code=404)
 

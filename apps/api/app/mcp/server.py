@@ -8,7 +8,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.auth import require_agent
+from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
 from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError
 from app.services.gateway import GatewayConfigurationError, GatewayExecutionError
@@ -88,6 +90,7 @@ def mcp_endpoint(
     payload: McpRequest,
     agent: AgentIdentity = Depends(require_agent),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict[str, Any]:
     if payload.method == "initialize":
         return _jsonrpc_result(
@@ -127,6 +130,7 @@ def mcp_endpoint(
             arguments=arguments,
             session=session,
             agent=agent,
+            settings=settings,
         )
         return _jsonrpc_result(payload.id, _tool_success(result))
     except ToolExecutionError as exc:

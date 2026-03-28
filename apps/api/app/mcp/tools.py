@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
 
+from app.config import Settings
 from app.models.agent import AgentIdentity
 from app.services.gateway import issue_lease, proxy_invoke
 from app.services.playbook_service import search_playbooks
@@ -87,6 +88,7 @@ def execute_tool(
     arguments: dict[str, Any],
     session: Session,
     agent: AgentIdentity,
+    settings: Settings,
 ) -> Any:
     model = TOOL_MODELS.get(name)
     if model is None:
@@ -105,7 +107,7 @@ def execute_tool(
             result = [item for item in result if item["task_type"] == parsed.task_type]
         return {"items": result}
     if name == "claim_task":
-        return claim_task(session, parsed.task_id, agent)
+        return claim_task(session, parsed.task_id, agent, settings=settings)
     if name == "complete_task":
         return complete_task(
             session,
@@ -136,6 +138,7 @@ def execute_tool(
             parsed.task_id,
             parsed.parameters,
             agent,
+            settings=settings,
         )
     if name == "request_capability_lease":
         return issue_lease(

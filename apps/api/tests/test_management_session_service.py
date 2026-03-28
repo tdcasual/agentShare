@@ -3,6 +3,7 @@ import pytest
 from app.config import Settings
 from app.services.session_service import (
     ManagementSessionError,
+    build_management_session_payload,
     decode_management_session_token,
     issue_management_session_token,
 )
@@ -51,3 +52,14 @@ def test_decode_management_session_token_rejects_unsupported_version():
 
     with pytest.raises(ManagementSessionError, match="version"):
         decode_management_session_token(encoded, settings)
+
+
+def test_management_session_helpers_require_explicit_settings():
+    with pytest.raises(TypeError):
+        build_management_session_payload()
+
+    with pytest.raises(TypeError):
+        issue_management_session_token()
+
+    with pytest.raises(TypeError):
+        decode_management_session_token("signed-token")

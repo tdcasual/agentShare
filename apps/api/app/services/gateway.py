@@ -7,6 +7,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.auth import ensure_capability_allowed
+from app.config import Settings
 from app.models.agent import AgentIdentity
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
@@ -35,6 +36,7 @@ def proxy_invoke(
     task_id: str,
     parameters: dict[str, Any],
     agent: AgentIdentity,
+    settings: Settings | None = None,
 ) -> dict:
     capability, task, secret_record = _authorize_capability_use(
         session=session,
@@ -48,7 +50,7 @@ def proxy_invoke(
     adapter_config = capability.get("adapter_config", {})
 
     try:
-        backend = get_secret_backend_for_ref(secret_record.backend_ref)
+        backend = get_secret_backend_for_ref(secret_record.backend_ref, settings)
         secret_value = backend.read_secret(secret_record.id, secret_record.backend_ref)
     except Exception as exc:
         raise GatewayExecutionError(

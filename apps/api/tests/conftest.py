@@ -129,5 +129,5 @@ def management_client(seeded_app):
 def fake_redis_for_all(monkeypatch):
     """Ensure all tests use fakeredis instead of real Redis."""
     fake = fakeredis.FakeRedis(decode_responses=True)
-    monkeypatch.setattr("app.services.redis_client._redis_client", fake)
+    monkeypatch.setattr("app.services.redis_client._redis_clients", {TEST_SETTINGS.redis_url: fake})
     yield fake

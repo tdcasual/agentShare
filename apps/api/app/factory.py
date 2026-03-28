@@ -69,13 +69,17 @@ def add_request_logging_middleware(app: FastAPI) -> None:
         return response
 
 
-def add_idempotency_middleware(app: FastAPI) -> None:
+def add_idempotency_middleware(app: FastAPI, settings: Settings) -> None:
     # Idempotency middleware — only acts when Idempotency-Key header is present.
     try:
         from app.services.idempotency import IdempotencyMiddleware
         from app.services.redis_client import get_redis
 
-        app.add_middleware(IdempotencyMiddleware, redis_client=get_redis(), ttl_seconds=300)
+        app.add_middleware(
+            IdempotencyMiddleware,
+            redis_client=get_redis(settings),
+            ttl_seconds=300,
+        )
     except Exception:
         pass
 
@@ -121,7 +125,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.runtime = runtime
 
     add_request_logging_middleware(app)
-    add_idempotency_middleware(app)
+    add_idempotency_middleware(app, current_settings)
     register_core_routes(app)
     register_routes(app)
 

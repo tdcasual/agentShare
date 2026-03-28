@@ -1,5 +1,7 @@
 import hashlib
 
+from conftest import TEST_SETTINGS
+
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 
@@ -24,6 +26,36 @@ def test_agent_can_claim_eligible_task(client, management_client):
     assert response.status_code == 200
     assert response.json()["status"] == "claimed"
     assert response.json()["claimed_by"] == "test-agent"
+
+
+def test_agent_claim_uses_runtime_settings_for_redis_lock(client, management_client, monkeypatch):
+    captured: list[str] = []
+
+    def fake_acquire_lock(key: str, ttl_seconds: int, settings):
+        captured.append(settings.redis_url)
+        return True
+
+    def fake_release_lock(key: str, settings):
+        captured.append(settings.redis_url)
+
+    monkeypatch.setattr("app.services.task_service.acquire_lock", fake_acquire_lock)
+    monkeypatch.setattr("app.services.task_service.release_lock", fake_release_lock)
+
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Runtime lock claim",
+            "task_type": "config_sync",
+        },
+    )
+
+    response = client.post(
+        f"/api/tasks/{created.json()['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    assert response.status_code == 200
+    assert captured == [TEST_SETTINGS.redis_url, TEST_SETTINGS.redis_url]
 
 
 def test_management_can_publish_task_with_playbook_references(management_client):

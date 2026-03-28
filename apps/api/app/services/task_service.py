@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.auth import ensure_task_type_allowed
+from app.config import Settings
 from app.models.agent import AgentIdentity
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.task import TaskModel
@@ -40,9 +41,14 @@ def list_tasks(session: Session) -> list[dict]:
     return [_task_to_dict(m) for m in TaskRepository(session).list_all()]
 
 
-def claim_task(session: Session, task_id: str, agent: AgentIdentity) -> dict:
+def claim_task(
+    session: Session,
+    task_id: str,
+    agent: AgentIdentity,
+    settings: Settings | None = None,
+) -> dict:
     lock_key = f"task:{task_id}:claim"
-    if not acquire_lock(lock_key, ttl_seconds=10):
+    if not acquire_lock(lock_key, ttl_seconds=10, settings=settings):
         raise ValueError("Task claim is being processed by another agent")
     try:
         repo = TaskRepository(session)
@@ -57,7 +63,7 @@ def claim_task(session: Session, task_id: str, agent: AgentIdentity) -> dict:
         repo.update(task)
         return _task_to_dict(task)
     finally:
-        release_lock(lock_key)
+        release_lock(lock_key, settings=settings)
 
 
 def complete_task(

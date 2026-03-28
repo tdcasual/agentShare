@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_agent, require_management_session
+from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
 from app.schemas.tasks import TaskComplete, TaskCreate
 from app.services.audit_service import write_audit_event
@@ -56,9 +58,10 @@ def claim_task_route(
     task_id: str,
     agent: AgentIdentity = Depends(require_agent),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
     try:
-        task = claim_task(session, task_id, agent)
+        task = claim_task(session, task_id, agent, settings=settings)
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found") from exc
     except PermissionError as exc:

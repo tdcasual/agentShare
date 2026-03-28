@@ -21,11 +21,15 @@ def reset_secret_counter() -> None:
     _secret_counter = count(1)
 
 
+def _resolve_settings(settings: Settings | None) -> Settings:
+    return settings or Settings()
+
+
 class SecretBackend:
     backend_name = "base"
 
-    def __init__(self, settings: Settings | None = None) -> None:
-        self.settings = settings or Settings()
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
 
     def write_secret(self, value: str) -> tuple[str, str]:
         raise NotImplementedError
@@ -113,21 +117,21 @@ class OpenBaoSecretBackend(SecretBackend):
 
 
 def get_secret_backend(settings: Settings | None = None) -> SecretBackend:
-    settings = settings or Settings()
-    validate_secret_backend_settings(settings)
-    if settings.secret_backend == "memory":
-        return InMemorySecretBackend(settings)
-    if settings.secret_backend == "openbao" and settings.openbao_addr and settings.openbao_token:
-        return OpenBaoSecretBackend(settings)
-    return InMemorySecretBackend(settings)
+    current_settings = _resolve_settings(settings)
+    validate_secret_backend_settings(current_settings)
+    if current_settings.secret_backend == "memory":
+        return InMemorySecretBackend(current_settings)
+    if current_settings.secret_backend == "openbao" and current_settings.openbao_addr and current_settings.openbao_token:
+        return OpenBaoSecretBackend(current_settings)
+    return InMemorySecretBackend(current_settings)
 
 
 def get_secret_backend_for_ref(backend_ref: str | None, settings: Settings | None = None) -> SecretBackend:
-    settings = settings or Settings()
+    current_settings = _resolve_settings(settings)
     if backend_ref and backend_ref.startswith("openbao:"):
-        validate_secret_backend_settings(settings)
-        return OpenBaoSecretBackend(settings)
-    return InMemorySecretBackend(settings)
+        validate_secret_backend_settings(current_settings)
+        return OpenBaoSecretBackend(current_settings)
+    return InMemorySecretBackend(current_settings)
 
 
 def validate_secret_backend_settings(settings: Settings) -> None:

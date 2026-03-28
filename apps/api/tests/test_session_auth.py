@@ -1,3 +1,7 @@
+from fastapi.testclient import TestClient
+
+from app.config import Settings
+from app.factory import create_app
 from conftest import BOOTSTRAP_AGENT_KEY
 
 
@@ -40,3 +44,23 @@ def test_management_logout_clears_cookie(anonymous_client):
 
     session_me = anonymous_client.get("/api/session/me")
     assert session_me.status_code == 401
+
+
+def test_management_login_uses_runtime_cookie_name(tmp_path):
+    settings = Settings(
+        database_url=f"sqlite:///{tmp_path / 'cookie.db'}",
+        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        management_session_secret="session-secret",
+        management_session_cookie_name="ops_session",
+    )
+    app = create_app(settings)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/session/login",
+            json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+        )
+
+    assert response.status_code == 200
+    assert "ops_session" in response.cookies
+    assert "ops_session=" in response.headers["set-cookie"]

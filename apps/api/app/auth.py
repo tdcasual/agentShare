@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import APIKeyCookie
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
@@ -10,13 +10,14 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
 from app.repositories.agent_repo import AgentRepository
 from app.services.session_service import decode_management_session_token
 
 security = HTTPBearer(auto_error=False)
 management_security = APIKeyCookie(
-    name=Settings().management_session_cookie_name,
+    name="management_session",
     auto_error=False,
     scheme_name="ManagementSession",
 )
@@ -77,8 +78,11 @@ def require_bootstrap_agent(agent: AgentIdentity = Depends(require_agent)) -> Ag
 
 
 def require_management_session(
-    session_token: str | None = Depends(management_security),
+    request: Request,
+    settings: Settings = Depends(get_settings),
+    _documented_session_token: str | None = Depends(management_security),
 ) -> ManagementIdentity:
+    session_token = request.cookies.get(settings.management_session_cookie_name)
     if session_token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -86,7 +90,7 @@ def require_management_session(
         )
 
     try:
-        payload = decode_management_session_token(session_token)
+        payload = decode_management_session_token(session_token, settings)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
