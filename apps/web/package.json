@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint app components lib tests --max-warnings=0",
+    "sync:contracts": "python3 ../../scripts/export-intake-catalog.py --write",
     "test:contracts": "python3 ../../scripts/check-intake-drift.py",
     "test:unit": "tsx --test lib/forms/__tests__/*.test.ts",
     "test:e2e": "playwright test"

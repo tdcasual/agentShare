@@ -231,6 +231,15 @@ cd apps/web && npx playwright test
 
 If one of these fails, treat the branch as below the quality floor until the failure is explained or fixed.
 
+When the backend intake catalog changes, refresh the frontend fallback snapshot before committing:
+
+```bash
+cd apps/web && npm run sync:contracts
+cd apps/web && npm run test:contracts
+```
+
+`npm run sync:contracts` rewrites `apps/web/lib/forms/generated/intake-catalog.json` from the backend source of truth. `npm run test:contracts` then verifies the committed snapshot and the frontend fallback contracts still match the backend catalog.
+
 ## Agent Quickstart
 
 Start with the operational guide:

@@ -34,3 +34,16 @@ def test_generated_web_snapshot_matches_backend_export() -> None:
     snapshot = json.loads(SNAPSHOT_PATH.read_text())
 
     assert snapshot == module.build_export_payload()
+
+
+def test_web_package_exposes_snapshot_refresh_script() -> None:
+    package_json = (ROOT / "apps" / "web" / "package.json").read_text()
+
+    assert '"sync:contracts": "python3 ../../scripts/export-intake-catalog.py --write"' in package_json
+
+
+def test_readme_documents_snapshot_refresh_and_drift_check() -> None:
+    readme = (ROOT / "README.md").read_text()
+
+    assert "npm run sync:contracts" in readme
+    assert "npm run test:contracts" in readme
