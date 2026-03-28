@@ -88,6 +88,9 @@ async function postJson(path: string, payload: Record<string, unknown>) {
 
   if (!response.ok) {
     const detail = await response.text();
+    if (response.status === 401 || response.status === 403) {
+      await clearManagementSessionCookie();
+    }
     throw new ManagementRequestError(response.status, detail);
   }
 

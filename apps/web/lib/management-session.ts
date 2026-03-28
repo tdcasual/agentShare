@@ -3,18 +3,95 @@ import { redirect } from "next/navigation";
 
 export const MANAGEMENT_SESSION_COOKIE = "management_session";
 
+type ManagementSessionState = {
+  active: boolean;
+  error: "missing" | "session-expired" | "api-unavailable" | null;
+  authMethod?: string;
+  actorId?: string;
+  expiresAt?: number;
+};
+
+function getManagementApiBaseUrl() {
+  return process.env.AGENT_CONTROL_PLANE_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+}
+
 export async function getManagementSessionToken() {
   const store = await cookies();
   return store.get(MANAGEMENT_SESSION_COOKIE)?.value ?? "";
 }
 
+export async function getManagementSessionState(): Promise<ManagementSessionState> {
+  const token = await getManagementSessionToken();
+  if (!token) {
+    return {
+      active: false,
+      error: "missing",
+    };
+  }
+
+  const apiBaseUrl = getManagementApiBaseUrl();
+  if (!apiBaseUrl) {
+    return {
+      active: true,
+      error: "api-unavailable",
+    };
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/session/me`, {
+      cache: "no-store",
+      headers: {
+        Cookie: `${MANAGEMENT_SESSION_COOKIE}=${token}`,
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        active: false,
+        error: "session-expired",
+      };
+    }
+
+    if (!response.ok) {
+      return {
+        active: true,
+        error: "api-unavailable",
+      };
+    }
+
+    const payload = (await response.json()) as {
+      actor_id?: string;
+      auth_method?: string;
+      expires_at?: number;
+    };
+
+    return {
+      active: true,
+      error: null,
+      actorId: payload.actor_id,
+      authMethod: payload.auth_method,
+      expiresAt: payload.expires_at,
+    };
+  } catch {
+    return {
+      active: true,
+      error: "api-unavailable",
+    };
+  }
+}
+
 export async function hasManagementSession() {
-  return Boolean(await getManagementSessionToken());
+  const session = await getManagementSessionState();
+  return session.active;
 }
 
 export async function requireManagementSession(nextPath: string) {
-  if (!(await hasManagementSession())) {
-    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+  const session = await getManagementSessionState();
+  if (!session.active) {
+    const suffix = session.error === "session-expired"
+      ? `&error=session-expired`
+      : "";
+    redirect(`/login?next=${encodeURIComponent(nextPath)}${suffix}`);
   }
 }
 

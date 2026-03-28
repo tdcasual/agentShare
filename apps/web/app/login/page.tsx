@@ -4,7 +4,7 @@ import { loginManagementAction } from "../actions";
 import { NavShell } from "../../components/nav-shell";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
-import { hasManagementSession } from "../../lib/management-session";
+import { getManagementSessionState } from "../../lib/management-session";
 import { managementCredentialLabel } from "../../lib/ui";
 
 type PageProps = {
@@ -25,8 +25,9 @@ export default async function LoginPage({ searchParams }: PageProps) {
   const nextPath = readSingleParam(params, "next") ?? "/secrets";
   const error = readSingleParam(params, "error");
   const loggedOut = readSingleParam(params, "logged_out");
+  const session = await getManagementSessionState();
 
-  if (await hasManagementSession()) {
+  if (session.active) {
     redirect(nextPath.startsWith("/") ? nextPath : "/secrets");
   }
 
@@ -49,6 +50,8 @@ export default async function LoginPage({ searchParams }: PageProps) {
             ? tr(locale, "Enter the bootstrap management credential to continue.", "请输入 bootstrap 管理凭据以继续。")
             : error === "invalid-credential"
               ? tr(locale, "The bootstrap management credential was rejected.", "管理引导口令被拒绝。")
+              : error === "session-expired"
+                ? tr(locale, "The previous management session expired or became invalid. Sign in again to continue.", "之前的管理会话已过期或失效，请重新登录后继续。")
               : error === "api-disconnected"
                 ? tr(locale, "The API base URL is not configured, so the login exchange cannot complete.", "未配置 API Base URL，无法完成登录交换。")
                 : error === "session-cookie-missing"
