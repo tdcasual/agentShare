@@ -27,6 +27,8 @@ class ManagementIdentity(BaseModel):
     role: str
     actor_type: str = "human"
     auth_method: str = "session"
+    issued_at: int
+    expires_at: int
 
 
 def _hash_key(key: str) -> str:
@@ -92,9 +94,12 @@ def require_management_session(
         ) from exc
 
     return ManagementIdentity(
-        id=payload.get("sub", "management"),
-        role=payload.get("role", "admin"),
-        actor_type=payload.get("actor_type", "human"),
+        id=payload.actor_id,
+        role=payload.role,
+        actor_type=payload.actor_type,
+        auth_method=payload.auth_method,
+        issued_at=payload.iat,
+        expires_at=payload.exp,
     )
 
 

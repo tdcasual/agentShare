@@ -8,6 +8,7 @@ from app.schemas.sessions import ManagementLoginRequest, ManagementSessionRespon
 from app.services.audit_service import write_audit_event
 from app.services.session_service import (
     authenticate_bootstrap_key,
+    build_management_session_payload,
     issue_management_session_token,
 )
 
@@ -33,7 +34,8 @@ def login_management_session(
         )
 
     settings = Settings()
-    token = issue_management_session_token(settings)
+    payload = build_management_session_payload(settings)
+    token = issue_management_session_token(settings, payload=payload)
     response.set_cookie(
         key=settings.management_session_cookie_name,
         value=token,
@@ -49,10 +51,13 @@ def login_management_session(
     })
     return {
         "status": "authenticated",
-        "actor_type": "human",
-        "actor_id": "management",
-        "role": "admin",
+        "actor_type": payload.actor_type,
+        "actor_id": payload.actor_id,
+        "role": payload.role,
+        "auth_method": payload.auth_method,
         "expires_in": settings.management_session_ttl_seconds,
+        "issued_at": payload.iat,
+        "expires_at": payload.exp,
     }
 
 
@@ -90,5 +95,8 @@ def get_management_session(
         "actor_type": identity.actor_type,
         "actor_id": identity.id,
         "role": identity.role,
+        "auth_method": identity.auth_method,
         "expires_in": settings.management_session_ttl_seconds,
+        "issued_at": identity.issued_at,
+        "expires_at": identity.expires_at,
     }

@@ -14,6 +14,9 @@ def test_management_login_sets_cookie_and_allows_session_introspection(anonymous
     assert session_me.status_code == 200
     assert session_me.json()["actor_id"] == "management"
     assert session_me.json()["actor_type"] == "human"
+    assert session_me.json()["auth_method"] == "session"
+    assert session_me.json()["issued_at"] > 0
+    assert session_me.json()["expires_at"] > session_me.json()["issued_at"]
 
 
 def test_management_login_rejects_invalid_bootstrap_credential(anonymous_client):

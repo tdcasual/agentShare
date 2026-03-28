@@ -6,10 +6,12 @@ import hmac
 import json
 import time
 
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.repositories.agent_repo import AgentRepository
+from app.schemas.sessions import ManagementSessionPayload
 
 
 class ManagementSessionError(ValueError):
@@ -26,18 +28,30 @@ def authenticate_bootstrap_key(session: Session, bootstrap_key: str) -> bool:
     return agent is not None and agent.id == "bootstrap" and agent.status == "active"
 
 
-def issue_management_session_token(settings: Settings | None = None) -> str:
+def build_management_session_payload(settings: Settings | None = None) -> ManagementSessionPayload:
     current_settings = settings or Settings()
     now = int(time.time())
-    payload = {
-        "sub": "management",
-        "role": "admin",
-        "actor_type": "human",
-        "iat": now,
-        "exp": now + current_settings.management_session_ttl_seconds,
-        "ver": 1,
-    }
-    encoded_payload = _encode_component(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode())
+    return ManagementSessionPayload(
+        sub="management",
+        actor_id="management",
+        role="admin",
+        actor_type="human",
+        auth_method="session",
+        iat=now,
+        exp=now + current_settings.management_session_ttl_seconds,
+        ver=1,
+    )
+
+
+def issue_management_session_token(
+    settings: Settings | None = None,
+    payload: ManagementSessionPayload | None = None,
+) -> str:
+    current_settings = settings or Settings()
+    current_payload = payload or build_management_session_payload(current_settings)
+    encoded_payload = _encode_component(
+        json.dumps(current_payload.model_dump(), sort_keys=True, separators=(",", ":")).encode()
+    )
     signature = hmac.new(
         current_settings.management_session_secret.encode(),
         encoded_payload.encode(),
@@ -47,7 +61,10 @@ def issue_management_session_token(settings: Settings | None = None) -> str:
     return f"{encoded_payload}.{encoded_signature}"
 
 
-def decode_management_session_token(token: str, settings: Settings | None = None) -> dict:
+def decode_management_session_token(
+    token: str,
+    settings: Settings | None = None,
+) -> ManagementSessionPayload:
     current_settings = settings or Settings()
     try:
         encoded_payload, encoded_signature = token.split(".", 1)
@@ -63,8 +80,12 @@ def decode_management_session_token(token: str, settings: Settings | None = None
     if not hmac.compare_digest(signature, expected_signature):
         raise ManagementSessionError("Invalid management session signature")
 
-    payload = json.loads(_decode_component(encoded_payload))
-    if int(payload.get("exp", 0)) <= int(time.time()):
+    payload_data = json.loads(_decode_component(encoded_payload))
+    try:
+        payload = ManagementSessionPayload.model_validate(payload_data)
+    except ValidationError as exc:
+        raise ManagementSessionError(str(exc)) from exc
+    if int(payload.exp) <= int(time.time()):
         raise ManagementSessionError("Management session expired")
     return payload
 
