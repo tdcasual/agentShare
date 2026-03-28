@@ -3,16 +3,18 @@ from __future__ import annotations
 import hashlib
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_agent, require_management_session
 from app.db import get_db
+from app.errors import NotFoundError
 from app.models.agent import AgentIdentity
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.schemas.agents import AgentCreate
 from app.services.audit_service import write_audit_event
+from app.services.identifiers import new_resource_id
 
 router = APIRouter(prefix="/api/agents")
 
@@ -44,7 +46,7 @@ def create_agent(
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
-    agent_id = f"agent-{len(repo.list_all()) + 1}"
+    agent_id = new_resource_id("agent")
     raw_key = secrets.token_urlsafe(32)
     model = AgentIdentityModel(
         id=agent_id,
@@ -100,7 +102,7 @@ def delete_agent(
 ) -> dict:
     repo = AgentRepository(session)
     if not repo.delete(agent_id):
-        raise HTTPException(status_code=404, detail="Agent not found")
+        raise NotFoundError("Agent not found")
     write_audit_event(session, "agent_deleted", {
         "agent_id": agent_id,
         "actor_type": manager.actor_type,

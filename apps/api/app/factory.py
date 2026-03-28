@@ -2,28 +2,34 @@ import json
 import hashlib
 import logging
 import uuid
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from time import monotonic
 
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
 from app import db as db_module
 from app.config import Settings
+from app.errors import DomainError
 from app.observability import record_http_request
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
+from app.runtime import build_runtime
 from app.routes import register_routes
 from app.services.secret_backend import validate_secret_backend_settings
 
 request_logger = logging.getLogger("app.request")
+startup_logger = logging.getLogger("app.startup")
 
 
 def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-def ensure_bootstrap_agent(settings: Settings) -> None:
-    session = db_module.SessionLocal()
+def ensure_bootstrap_agent(settings: Settings, session_factory: Callable[[], Session]) -> None:
+    session = session_factory()
     try:
         repo = AgentRepository(session)
         existing = repo.get("bootstrap")
@@ -66,15 +72,22 @@ def add_request_logging_middleware(app: FastAPI) -> None:
         return response
 
 
-def add_idempotency_middleware(app: FastAPI) -> None:
+def add_idempotency_middleware(app: FastAPI, settings: Settings) -> None:
     # Idempotency middleware — only acts when Idempotency-Key header is present.
     try:
         from app.services.idempotency import IdempotencyMiddleware
         from app.services.redis_client import get_redis
 
-        app.add_middleware(IdempotencyMiddleware, redis_client=get_redis(), ttl_seconds=300)
-    except Exception:
-        pass
+        app.add_middleware(
+            IdempotencyMiddleware,
+            redis_client=get_redis(settings),
+            ttl_seconds=300,
+        )
+    except Exception as exc:
+        message = f"Idempotency middleware disabled because Redis initialization failed: {exc}"
+        if settings.is_production_like():
+            raise RuntimeError(message) from exc
+        startup_logger.warning(message)
 
 
 def register_core_routes(app: FastAPI) -> None:
@@ -83,14 +96,28 @@ def register_core_routes(app: FastAPI) -> None:
         return {"status": "ok"}
 
 
+def add_domain_error_handlers(app: FastAPI) -> None:
+    @app.exception_handler(DomainError)
+    async def handle_domain_error(request: Request, exc: DomainError) -> JSONResponse:
+        del request
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     current_settings = settings or Settings()
+    runtime = build_runtime(current_settings)
 
     @asynccontextmanager
     async def lifespan(app_instance: FastAPI):
-        validate_secret_backend_settings(current_settings)
-        db_module.init_db()
-        ensure_bootstrap_agent(current_settings)
+        runtime = app_instance.state.runtime
+        settings = app_instance.state.settings
+
+        validate_secret_backend_settings(settings)
+        db_module.init_db(runtime.engine)
+        ensure_bootstrap_agent(settings, runtime.session_factory)
         yield
 
     app = FastAPI(
@@ -111,9 +138,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = current_settings
+    app.state.runtime = runtime
 
     add_request_logging_middleware(app)
-    add_idempotency_middleware(app)
+    add_idempotency_middleware(app, current_settings)
+    add_domain_error_handlers(app)
     register_core_routes(app)
     register_routes(app)
 

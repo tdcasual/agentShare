@@ -28,8 +28,7 @@ def authenticate_bootstrap_key(session: Session, bootstrap_key: str) -> bool:
     return agent is not None and agent.id == "bootstrap" and agent.status == "active"
 
 
-def build_management_session_payload(settings: Settings | None = None) -> ManagementSessionPayload:
-    current_settings = settings or Settings()
+def build_management_session_payload(settings: Settings) -> ManagementSessionPayload:
     now = int(time.time())
     return ManagementSessionPayload(
         sub="management",
@@ -38,22 +37,21 @@ def build_management_session_payload(settings: Settings | None = None) -> Manage
         actor_type="human",
         auth_method="session",
         iat=now,
-        exp=now + current_settings.management_session_ttl_seconds,
+        exp=now + settings.management_session_ttl_seconds,
         ver=1,
     )
 
 
 def issue_management_session_token(
-    settings: Settings | None = None,
+    settings: Settings,
     payload: ManagementSessionPayload | None = None,
 ) -> str:
-    current_settings = settings or Settings()
-    current_payload = payload or build_management_session_payload(current_settings)
+    current_payload = payload or build_management_session_payload(settings)
     encoded_payload = _encode_component(
         json.dumps(current_payload.model_dump(), sort_keys=True, separators=(",", ":")).encode()
     )
     signature = hmac.new(
-        current_settings.management_session_secret.encode(),
+        settings.management_session_secret.encode(),
         encoded_payload.encode(),
         hashlib.sha256,
     ).digest()
@@ -63,16 +61,15 @@ def issue_management_session_token(
 
 def decode_management_session_token(
     token: str,
-    settings: Settings | None = None,
+    settings: Settings,
 ) -> ManagementSessionPayload:
-    current_settings = settings or Settings()
     try:
         encoded_payload, encoded_signature = token.split(".", 1)
     except ValueError as exc:
         raise ManagementSessionError("Malformed management session token") from exc
 
     expected_signature = hmac.new(
-        current_settings.management_session_secret.encode(),
+        settings.management_session_secret.encode(),
         encoded_payload.encode(),
         hashlib.sha256,
     ).digest()

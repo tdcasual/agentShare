@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.auth import ManagementIdentity, require_management_session
 from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.schemas.sessions import ManagementLoginRequest, ManagementSessionResponse
 from app.services.audit_service import write_audit_event
 from app.services.session_service import (
@@ -26,6 +27,7 @@ def login_management_session(
     payload: ManagementLoginRequest,
     response: Response,
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
     if not authenticate_bootstrap_key(session, payload.bootstrap_key):
         raise HTTPException(
@@ -33,7 +35,6 @@ def login_management_session(
             detail="Invalid bootstrap management credential",
         )
 
-    settings = Settings()
     payload = build_management_session_payload(settings)
     token = issue_management_session_token(settings, payload=payload)
     response.set_cookie(
@@ -67,8 +68,10 @@ def login_management_session(
     summary="Log out of the management console",
     description="Clear the current management session cookie.",
 )
-def logout_management_session(response: Response) -> dict:
-    settings = Settings()
+def logout_management_session(
+    response: Response,
+    settings: Settings = Depends(get_settings),
+) -> dict:
     response.delete_cookie(
         key=settings.management_session_cookie_name,
         path="/",
@@ -88,8 +91,8 @@ def logout_management_session(response: Response) -> dict:
 )
 def get_management_session(
     identity: ManagementIdentity = Depends(require_management_session),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
-    settings = Settings()
     return {
         "status": "authenticated",
         "actor_type": identity.actor_type,

@@ -8,7 +8,7 @@ from app.services.redis_client import acquire_lock, release_lock, get_redis
 def fake_redis(monkeypatch):
     """Patch get_redis to return a fakeredis instance."""
     fake = fakeredis.FakeRedis(decode_responses=True)
-    monkeypatch.setattr("app.services.redis_client._redis_client", fake)
+    monkeypatch.setattr("app.services.redis_client._redis_clients", {"redis://localhost:6379/0": fake})
     yield fake
     fake.flushall()
 

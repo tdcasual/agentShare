@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.auth import ensure_task_type_allowed
+from app.config import Settings
+from app.errors import AuthorizationError, BadRequestError, ConflictError, NotFoundError
 from app.models.agent import AgentIdentity
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.task import TaskModel
@@ -13,13 +15,14 @@ from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.task_repo import TaskRepository
 from app.repositories.run_repo import RunRepository
 from app.schemas.tasks import TaskCreate
+from app.services.identifiers import new_resource_id
 from app.services.redis_client import acquire_lock, release_lock
 
 
 def create_task(session: Session, payload: TaskCreate) -> dict:
     _ensure_playbooks_exist(session, payload.playbook_ids)
     repo = TaskRepository(session)
-    task_id = f"task-{len(repo.list_all()) + 1}"
+    task_id = new_resource_id("task")
     model = TaskModel(
         id=task_id,
         title=payload.title,
@@ -40,24 +43,32 @@ def list_tasks(session: Session) -> list[dict]:
     return [_task_to_dict(m) for m in TaskRepository(session).list_all()]
 
 
-def claim_task(session: Session, task_id: str, agent: AgentIdentity) -> dict:
+def claim_task(
+    session: Session,
+    task_id: str,
+    agent: AgentIdentity,
+    settings: Settings | None = None,
+) -> dict:
     lock_key = f"task:{task_id}:claim"
-    if not acquire_lock(lock_key, ttl_seconds=10):
-        raise ValueError("Task claim is being processed by another agent")
+    if not acquire_lock(lock_key, ttl_seconds=10, settings=settings):
+        raise ConflictError("Task claim is being processed by another agent")
     try:
         repo = TaskRepository(session)
         task = repo.get(task_id)
         if task is None:
-            raise KeyError("Task not found")
+            raise NotFoundError("Task not found")
         if task.status != "pending":
-            raise ValueError("Task is not claimable")
-        ensure_task_type_allowed(agent, task.task_type)
+            raise ConflictError("Task is not claimable")
+        try:
+            ensure_task_type_allowed(agent, task.task_type)
+        except PermissionError as exc:
+            raise AuthorizationError(str(exc)) from exc
         task.status = "claimed"
         task.claimed_by = agent.id
         repo.update(task)
         return _task_to_dict(task)
     finally:
-        release_lock(lock_key)
+        release_lock(lock_key, settings=settings)
 
 
 def complete_task(
@@ -71,13 +82,13 @@ def complete_task(
     run_repo = RunRepository(session)
     task = task_repo.get(task_id)
     if task is None:
-        raise KeyError("Task not found")
+        raise NotFoundError("Task not found")
     if task.claimed_by != agent.id:
-        raise PermissionError("Task is not claimed by this agent")
+        raise AuthorizationError("Task is not claimed by this agent")
     task.status = "completed"
     task_repo.update(task)
     _expire_task_approvals(session, task_id)
-    run_id = f"run-{len(run_repo.list_all()) + 1}"
+    run_id = new_resource_id("run")
     run = RunModel(
         id=run_id,
         task_id=task_id,
@@ -116,7 +127,7 @@ def _ensure_playbooks_exist(session: Session, playbook_ids: list[str]) -> None:
     missing = [playbook_id for playbook_id in playbook_ids if repo.get(playbook_id) is None]
     if missing:
         joined = ", ".join(missing)
-        raise KeyError(f"Unknown playbook reference: {joined}")
+        raise BadRequestError(f"Unknown playbook reference: {joined}")
 
 
 def _expire_task_approvals(session: Session, task_id: str) -> None:

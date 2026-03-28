@@ -20,6 +20,8 @@ def test_create_capability_defaults_to_proxy_only(management_client):
     )
 
     assert response.status_code == 201
+    assert response.json()["id"].startswith("capability-")
+    assert response.json()["id"] != "capability-1"
     assert response.json()["allowed_mode"] == "proxy_only"
 
 
@@ -88,3 +90,18 @@ def test_create_capability_persists_adapter_contract(management_client):
         "method": "GET",
         "path": "/repos/{owner}/{repo}/issues",
     }
+
+
+def test_create_capability_with_missing_secret_returns_clean_not_found(management_client):
+    response = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "missing.secret.binding",
+            "secret_id": "secret-missing",
+            "risk_level": "medium",
+            "required_provider": "openai",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Secret not found"}

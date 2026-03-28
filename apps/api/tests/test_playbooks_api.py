@@ -10,6 +10,8 @@ def test_create_playbook_returns_saved_record(management_client):
     )
 
     assert response.status_code == 201
+    assert response.json()["id"].startswith("playbook-")
+    assert response.json()["id"] != "playbook-1"
     assert response.json()["title"] == "QQ config sync"
 
 
@@ -101,3 +103,4 @@ def test_get_playbook_by_id_returns_full_record(management_client):
 def test_get_playbook_by_id_returns_404_when_missing(management_client):
     response = management_client.get("/api/playbooks/playbook-missing")
     assert response.status_code == 404
+    assert response.json() == {"detail": "Playbook not found"}

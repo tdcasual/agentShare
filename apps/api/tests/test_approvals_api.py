@@ -119,6 +119,8 @@ def test_list_approvals_exposes_policy_reason_and_source(management_client, db_s
         },
     )
     assert pending is not None
+    assert pending.id.startswith("approval-")
+    assert pending.id != "approval-1"
 
     listed = management_client.get("/api/approvals")
     assert listed.status_code == 200

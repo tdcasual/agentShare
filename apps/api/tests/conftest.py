@@ -4,29 +4,49 @@ import fakeredis
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
+from app.config import Settings
 from app.db import get_db
 from app.factory import create_app
 from app.orm import Base  # noqa: F401 — import triggers all model registration
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
+from app.runtime import AppRuntime
 from app.services.secret_backend import InMemorySecretBackend, reset_secret_counter
 
 _test_engine = create_engine(
-    "sqlite:///:memory:",
+    "sqlite://",
     connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
 _TestSession = sessionmaker(bind=_test_engine, expire_on_commit=False)
 
 TEST_AGENT_KEY = "agent-test-token"
 BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
-app = create_app()
+TEST_SETTINGS = Settings(
+    database_url="sqlite://",
+    bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+)
+
+
+def _build_test_app():
+    app = create_app(TEST_SETTINGS)
+    app.state.settings = TEST_SETTINGS
+    app.state.runtime = AppRuntime(
+        settings=TEST_SETTINGS,
+        engine=_test_engine,
+        session_factory=_TestSession,
+    )
+    return app
 
 
 @pytest.fixture(autouse=True)
 def db_session():
     """Create tables fresh for every test, yield session, then drop."""
+    Base.metadata.drop_all(bind=_test_engine)
+
     # Use a single connection so in-memory SQLite tables are visible to the session
     connection = _test_engine.connect()
     Base.metadata.create_all(bind=connection)
@@ -43,6 +63,8 @@ def db_session():
 
 @pytest.fixture
 def seeded_app(db_session):
+    app = _build_test_app()
+
     # Seed a test agent for auth
     repo = AgentRepository(db_session)
     key_hash = hashlib.sha256(TEST_AGENT_KEY.encode()).hexdigest()
@@ -74,14 +96,14 @@ def seeded_app(db_session):
             pass
     app.dependency_overrides[get_db] = _override_get_db
     try:
-        yield
+        yield app
     finally:
         app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def client(seeded_app):
-    with TestClient(app) as test_client:
+    with TestClient(seeded_app) as test_client:
         yield test_client
 
 
@@ -93,7 +115,7 @@ def anonymous_client(client):
 @pytest.fixture
 def management_client(seeded_app):
     """Log in to the management UI and return a client with the session cookie."""
-    with TestClient(app) as test_client:
+    with TestClient(seeded_app) as test_client:
         login_response = test_client.post(
             "/api/session/login",
             json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
@@ -107,5 +129,5 @@ def management_client(seeded_app):
 def fake_redis_for_all(monkeypatch):
     """Ensure all tests use fakeredis instead of real Redis."""
     fake = fakeredis.FakeRedis(decode_responses=True)
-    monkeypatch.setattr("app.services.redis_client._redis_client", fake)
+    monkeypatch.setattr("app.services.redis_client._redis_clients", {TEST_SETTINGS.redis_url: fake})
     yield fake

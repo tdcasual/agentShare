@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_management_session
 from app.db import get_db
+from app.errors import NotFoundError
 from app.repositories.secret_repo import SecretRepository
 from app.schemas.capabilities import CapabilityCreate, CapabilityResponse
 from app.services.audit_service import write_audit_event
@@ -27,12 +28,9 @@ def create_capability_route(
     secret_repo = SecretRepository(session)
     secret = secret_repo.get(payload.secret_id)
     if secret is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found")
+        raise NotFoundError("Secret not found")
 
-    try:
-        record = create_capability(session, payload, secret)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    record = create_capability(session, payload, secret)
 
     write_audit_event(session, "capability_created", {
         "capability_id": record["id"],

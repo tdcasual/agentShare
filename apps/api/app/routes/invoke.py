@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth import require_agent
+from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
 from app.schemas.invoke import InvokeRequest
 from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError
@@ -22,9 +24,17 @@ def invoke_capability_route(
     payload: InvokeRequest,
     agent: AgentIdentity = Depends(require_agent),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
     try:
-        return proxy_invoke(session, capability_id, payload.task_id, payload.parameters, agent)
+        return proxy_invoke(
+            session,
+            capability_id,
+            payload.task_id,
+            payload.parameters,
+            agent,
+            settings=settings,
+        )
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PolicyDeniedError as exc:

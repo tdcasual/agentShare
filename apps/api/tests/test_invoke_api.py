@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
+from conftest import TEST_SETTINGS
+
 from app.repositories.approval_repo import ApprovalRequestRepository
 
 
@@ -59,6 +61,68 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client, management
     assert body["upstream_status"] == 200
     assert "sk-live-example" not in str(body)
     assert body["result"] == {"result": "ok"}
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_proxy_invocation_uses_runtime_settings_for_secret_backend(mock_post, client, management_client, monkeypatch):
+    captured: list[str] = []
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": "ok"}
+    mock_response.raise_for_status = MagicMock()
+    mock_post.return_value = mock_response
+
+    class FakeBackend:
+        def read_secret(self, secret_id: str, backend_ref: str) -> str:
+            return "sk-live-example"
+
+    def fake_get_secret_backend_for_ref(backend_ref: str, settings):
+        captured.append(settings.secret_backend)
+        return FakeBackend()
+
+    monkeypatch.setattr("app.services.gateway.get_secret_backend_for_ref", fake_get_secret_backend_for_ref)
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 200
+    assert captured == [TEST_SETTINGS.secret_backend]
 
 
 @patch("app.services.gateway.write_audit_event")

@@ -31,6 +31,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e 'apps/api[dev]'
 
+      - name: Run API migrations
+        working-directory: apps/api
+        run: alembic upgrade head
+
       - name: Run API tests
         run: PYTHONPATH=apps/api pytest apps/api/tests tests/ops -q
 

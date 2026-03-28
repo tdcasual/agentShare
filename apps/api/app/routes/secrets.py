@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_management_session
+from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.orm.secret import SecretModel
 from app.repositories.secret_repo import SecretRepository
 from app.schemas.secrets import SecretCreate, SecretResponse
@@ -24,8 +26,9 @@ def create_secret(
     payload: SecretCreate,
     manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
-    backend = get_secret_backend()
+    backend = get_secret_backend(settings)
     secret_id, backend_ref = backend.write_secret(payload.value)
     model = SecretModel(
         id=secret_id,

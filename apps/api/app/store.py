@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from itertools import count
 from typing import Any
+
+from app.services.identifiers import new_resource_id
 
 
 @dataclass
@@ -14,23 +15,13 @@ class Store:
     runs: list[dict[str, Any]] = field(default_factory=list)
     playbooks: dict[str, dict[str, Any]] = field(default_factory=dict)
     audit_events: list[dict[str, Any]] = field(default_factory=list)
-    counters: dict[str, Any] = field(
-        default_factory=lambda: {
-            "secret": count(1),
-            "capability": count(1),
-            "task": count(1),
-            "run": count(1),
-            "playbook": count(1),
-            "lease": count(1),
-        }
-    )
 
 
 store = Store()
 
 
 def next_id(prefix: str) -> str:
-    return f"{prefix}-{next(store.counters[prefix])}"
+    return new_resource_id(prefix)
 
 
 def reset_store() -> None:
@@ -42,4 +33,3 @@ def reset_store() -> None:
     store.runs.clear()
     store.playbooks.clear()
     store.audit_events.clear()
-    store.counters = fresh.counters
