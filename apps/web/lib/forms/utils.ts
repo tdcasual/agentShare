@@ -6,6 +6,7 @@ import type {
   FormValues,
   IntakeVariantContract,
   LocalizedCopy,
+  SerializedFormValues,
   VisibilityRule,
 } from "./types";
 
@@ -121,4 +122,48 @@ export function updateFormValue(values: FormValues, key: string, value: FormValu
     ...values,
     [key]: value,
   };
+}
+
+export function buildPreviewPayload(
+  contract: IntakeVariantContract,
+  values: FormValues,
+): SerializedFormValues {
+  const serialized = contract.serialize(values);
+  const fieldsByKey = new Map(getAllFields(contract).map((field) => [field.key, field]));
+
+  return Object.entries(serialized).reduce<SerializedFormValues>((accumulator, [key, value]) => {
+    const field = fieldsByKey.get(key);
+    const serializedValue = value.trim();
+
+    if (!field) {
+      if (serializedValue) {
+        accumulator[key] = value;
+      }
+      return accumulator;
+    }
+
+    if (!serializedValue) {
+      return accumulator;
+    }
+
+    if (field.advanced) {
+      const currentValue = stringifyFormValue(values[key]);
+      const defaultValue = field.defaultValue === undefined
+        ? ""
+        : stringifyFormValue(field.defaultValue);
+      const normalizedCurrentValue = currentValue.trim();
+
+      if (
+        !normalizedCurrentValue
+        || normalizedCurrentValue === defaultValue
+        || normalizedCurrentValue === "{}"
+        || normalizedCurrentValue === "[]"
+      ) {
+        return accumulator;
+      }
+    }
+
+    accumulator[key] = value;
+    return accumulator;
+  }, {});
 }

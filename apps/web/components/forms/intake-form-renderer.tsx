@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 
 import type { Locale } from "../../lib/i18n-shared";
 import {
+  buildPreviewPayload,
   getDefaultValues,
   getHydratedValues,
   isFieldVisible,
@@ -16,6 +17,8 @@ import {
   type LocalizedCopy,
   type ValidationErrors,
 } from "../../lib/forms";
+import { IntakePayloadPreview } from "./intake-payload-preview";
+import { IntakeTemplateMenu } from "./intake-template-menu";
 import { IntakeVariantPicker } from "./intake-variant-picker";
 
 function getContract(
@@ -61,6 +64,7 @@ export function IntakeFormRenderer({
 
   const currentContract = getContract(contracts, selectedVariant, defaultVariant);
   const hiddenValues = currentContract.serialize(values);
+  const previewPayload = buildPreviewPayload(currentContract, values);
 
   const handleVariantChange = (variant: string) => {
     const previousContract = currentContract;
@@ -90,6 +94,14 @@ export function IntakeFormRenderer({
     if (Object.keys(nextErrors).length > 0) {
       event.preventDefault();
     }
+  };
+
+  const handleTemplateApply = (templateValues: Record<string, FormValue>) => {
+    setValues((currentValues) => getHydratedValues(currentContract, {
+      ...currentValues,
+      ...templateValues,
+    }, currentContract));
+    setErrors({});
   };
 
   const renderField = (field: FieldSpec) => {
@@ -189,6 +201,14 @@ export function IntakeFormRenderer({
         onChange={handleVariantChange}
       />
 
+      <IntakeTemplateMenu
+        resourceKind={currentContract.resourceKind}
+        variant={currentContract.variant}
+        values={values}
+        locale={locale}
+        onApply={handleTemplateApply}
+      />
+
       {currentContract.sections.map((section) => {
         const visibleFields = section.fields.filter((field) => isFieldVisible(field, values));
         if (visibleFields.length === 0) {
@@ -237,6 +257,8 @@ export function IntakeFormRenderer({
       {Object.entries(hiddenValues).map(([key, value]) => (
         <input key={key} type="hidden" name={key} value={value} />
       ))}
+
+      <IntakePayloadPreview payload={previewPayload} locale={locale} />
 
       <button type="submit">{localizeCopy(submitLabel, locale)}</button>
     </form>
