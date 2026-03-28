@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 
 from app.db import get_db
-from app.main import app
+from app.factory import create_app
 from app.orm import Base  # noqa: F401 — import triggers all model registration
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
@@ -21,6 +21,7 @@ _TestSession = sessionmaker(bind=_test_engine, expire_on_commit=False)
 
 TEST_AGENT_KEY = "agent-test-token"
 BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
+app = create_app()
 
 
 @pytest.fixture(autouse=True)
