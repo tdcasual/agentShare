@@ -187,6 +187,33 @@ The public ingress in `ops/caddy/Caddyfile` also applies baseline security heade
 
 For the remaining P3 platformization work, use `docs/guides/platform-roadmap.md` as the migration checklist for high-availability, managed data services, SSO, and routine secret rotation.
 
+## Local Development Runtime
+
+The quickest way to prepare a fresh local checkout is:
+
+```bash
+./scripts/ops/bootstrap-dev-runtime.sh
+```
+
+That script:
+
+- creates or refreshes the root `.venv`;
+- installs the editable API dev dependencies into `.venv`;
+- runs `npm ci` in `apps/web`;
+- installs the Chromium browser used by Playwright when the local binary is available.
+
+If you keep Python somewhere else, you can override the interpreter:
+
+```bash
+PYTHON_BIN=python3.12 ./scripts/ops/bootstrap-dev-runtime.sh
+```
+
+Playwright will look for `.venv/bin/uvicorn` by default. If you need to use a different binary, set:
+
+```bash
+export AGENT_SHARE_API_UVICORN_BIN=/absolute/path/to/uvicorn
+```
+
 ## Agent Quickstart
 
 Start with the operational guide:

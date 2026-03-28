@@ -148,6 +148,15 @@ def test_smoke_script_checks_https_entrypoint() -> None:
     assert "--resolve" in script
 
 
+def test_dev_runtime_bootstrap_script_is_present_and_documented() -> None:
+    script_path = ROOT / "scripts/ops/bootstrap-dev-runtime.sh"
+    readme = (ROOT / "README.md").read_text().lower()
+
+    assert script_path.exists()
+    assert "bootstrap-dev-runtime.sh" in readme
+    assert ".venv" in readme
+
+
 def test_operations_docs_reference_request_ids_for_incident_tracing() -> None:
     operations_guide = (ROOT / "docs/guides/production-operations.md").read_text()
     security_guide = (ROOT / "docs/guides/production-security.md").read_text()

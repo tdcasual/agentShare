@@ -1,30 +1,11 @@
-import fs from "node:fs";
-import path from "node:path";
-
 import { defineConfig } from "@playwright/test";
 import {
   createPlaywrightDatabaseRuntime,
   registerCleanupHooks,
 } from "./tests/setup/test-db";
+import { resolveVenvExecutable } from "./tests/setup/runtime-env";
 
-function findVenvExecutable(executable: string) {
-  let currentDir = __dirname;
-
-  while (true) {
-    const candidate = path.join(currentDir, ".venv", "bin", executable);
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
-
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      throw new Error(`Unable to find .venv/bin/${executable} from ${__dirname}`);
-    }
-    currentDir = parentDir;
-  }
-}
-
-const uvicornBin = findVenvExecutable("uvicorn");
+const uvicornBin = resolveVenvExecutable("uvicorn");
 const testDatabaseRuntime = createPlaywrightDatabaseRuntime();
 
 registerCleanupHooks(testDatabaseRuntime.cleanup);
