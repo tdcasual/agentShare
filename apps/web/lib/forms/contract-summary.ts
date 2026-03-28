@@ -1,7 +1,9 @@
-import { agentContracts, defaultAgentVariant } from "./agents-contracts";
-import { buildCapabilityContracts, defaultCapabilityVariant } from "./capabilities-contracts";
-import { defaultSecretVariant, secretContracts } from "./secrets-contracts";
-import { defaultTaskVariant, taskContracts } from "./tasks-contracts";
+import {
+  buildAgentContractsFromCatalog,
+  buildCapabilityContractsFromCatalog,
+  buildSecretContractsFromCatalog,
+  buildTaskContractsFromCatalog,
+} from "./catalog-contracts";
 import type { FieldSpec, FormValue, IntakeVariantContract, ResourceKind } from "./types";
 
 type ContractFieldSummary = {
@@ -88,10 +90,15 @@ function summarizeResource(
 }
 
 export function getFrontendContractSummary(): FrontendContractSummary {
+  const secret = buildSecretContractsFromCatalog(null);
+  const capability = buildCapabilityContractsFromCatalog(null, []);
+  const task = buildTaskContractsFromCatalog(null);
+  const agent = buildAgentContractsFromCatalog(null);
+
   return {
-    secret: summarizeResource(defaultSecretVariant, secretContracts),
-    capability: summarizeResource(defaultCapabilityVariant, buildCapabilityContracts([])),
-    task: summarizeResource(defaultTaskVariant, taskContracts),
-    agent: summarizeResource(defaultAgentVariant, agentContracts),
+    secret: summarizeResource(secret.defaultVariant, secret.contracts),
+    capability: summarizeResource(capability.defaultVariant, capability.contracts),
+    task: summarizeResource(task.defaultVariant, task.contracts),
+    agent: summarizeResource(agent.defaultVariant, agent.contracts),
   };
 }
