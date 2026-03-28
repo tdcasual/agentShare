@@ -4,8 +4,13 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
+from app.orm.task import TaskModel
+from app.repositories.task_repo import TaskRepository
+from app.services.approval_service import approve_request, require_runtime_approval
 from app.services.idempotency import IdempotencyMiddleware
+from app.services.policy_service import PolicyContext
 from app.services.redis_client import get_redis
+from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -22,6 +27,75 @@ def test_metrics_endpoint_exposes_prometheus_text(client) -> None:
     assert "agent_control_plane_uptime_seconds" in response.text
     assert "agent_control_plane_http_requests_total" in response.text
     assert "agent_control_plane_http_errors_total" in response.text
+    assert "agent_control_plane_management_session_logins_total" in response.text
+    assert "agent_control_plane_management_session_login_failures_total" in response.text
+    assert "agent_control_plane_task_claims_total" in response.text
+    assert "agent_control_plane_task_completions_total" in response.text
+    assert "agent_control_plane_approval_requests_total" in response.text
+    assert "agent_control_plane_approval_approvals_total" in response.text
+    assert "agent_control_plane_capability_invocations_total" in response.text
+    assert "agent_control_plane_capability_invocation_failures_total" in response.text
+
+
+def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client, db_session) -> None:
+    TaskRepository(db_session).create(TaskModel(
+        id="task-observed",
+        title="Observed task",
+        task_type="prompt_run",
+        status="pending",
+    ))
+    db_session.flush()
+
+    failed_login = client.post("/api/session/login", json={"bootstrap_key": "wrong-key"})
+    successful_login = client.post(
+        "/api/session/login",
+        json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+    )
+    claim = client.post(
+        "/api/tasks/task-observed/claim",
+        headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
+    )
+    complete = client.post(
+        "/api/tasks/task-observed/complete",
+        headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
+        json={"result_summary": "done", "output_payload": {"ok": True}},
+    )
+    approval = require_runtime_approval(
+        session=db_session,
+        task_id="task-observed",
+        capability_id="capability-observed",
+        agent_id="test-agent",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+        context=PolicyContext(
+            action_type="invoke",
+            risk_level="medium",
+            provider="openai",
+            environment="production",
+            task_type="prompt_run",
+            capability_name="openai.chat.invoke",
+        ),
+    )
+    assert approval is not None
+    approve_request(
+        session=db_session,
+        approval_id=approval.id,
+        decided_by="management",
+    )
+
+    metrics = client.get("/metrics")
+
+    assert failed_login.status_code == 401
+    assert successful_login.status_code == 200
+    assert claim.status_code == 200
+    assert complete.status_code == 200
+    assert "agent_control_plane_management_session_logins_total 1" in metrics.text
+    assert "agent_control_plane_management_session_login_failures_total 1" in metrics.text
+    assert "agent_control_plane_task_claims_total 1" in metrics.text
+    assert "agent_control_plane_task_completions_total 1" in metrics.text
+    assert "agent_control_plane_approval_requests_total 1" in metrics.text
+    assert "agent_control_plane_approval_approvals_total 1" in metrics.text
 
 
 def test_metrics_endpoint_respects_runtime_settings(tmp_path) -> None:
@@ -86,3 +160,4 @@ def test_production_docs_reference_metrics_and_incident_entrypoints() -> None:
     assert "metrics" in deployment_guide.lower()
     assert "incident" in operations_guide.lower()
     assert "local development" in quickstart.lower()
+    assert "x-request-id" in operations_guide.lower()

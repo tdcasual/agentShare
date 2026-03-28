@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.auth import ensure_capability_allowed
 from app.config import Settings
 from app.models.agent import AgentIdentity
+from app.observability import record_capability_invoke
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
 from app.services.adapters.registry import get_adapter
@@ -53,6 +54,7 @@ def proxy_invoke(
         backend = get_secret_backend_for_ref(secret_record.backend_ref, settings)
         secret_value = backend.read_secret(secret_record.id, secret_record.backend_ref)
     except Exception as exc:
+        record_capability_invoke(False)
         raise GatewayExecutionError(
             "Capability secret backend failed during proxy execution"
         ) from exc
@@ -60,6 +62,7 @@ def proxy_invoke(
     try:
         adapter = get_adapter(adapter_type)
     except KeyError as exc:
+        record_capability_invoke(False)
         raise GatewayConfigurationError(
             f"Unknown capability adapter '{adapter_type}'"
         ) from exc
@@ -71,14 +74,17 @@ def proxy_invoke(
             parameters=parameters,
         )
     except (httpx.HTTPError, ValueError) as exc:
+        record_capability_invoke(False)
         raise GatewayExecutionError(
             f"Capability adapter '{adapter_type}' failed during proxy execution"
         ) from exc
     except (KeyError, TypeError) as exc:
+        record_capability_invoke(False)
         raise GatewayConfigurationError(
             f"Capability adapter '{adapter_type}' is misconfigured"
         ) from exc
     except Exception as exc:
+        record_capability_invoke(False)
         raise GatewayConfigurationError(
             f"Capability adapter '{adapter_type}' crashed during proxy execution"
         ) from exc
@@ -88,6 +94,7 @@ def proxy_invoke(
         "capability_id": capability_id, "mode": "proxy",
         "adapter_type": adapter_type,
     })
+    record_capability_invoke(True)
 
     return {
         "status": "completed",

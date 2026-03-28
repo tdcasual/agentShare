@@ -9,6 +9,7 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from app.orm.approval_request import ApprovalRequestModel
+from app.observability import record_approval_decision, record_approval_requested
 from app.repositories.approval_repo import ApprovalRequestRepository
 from app.services.audit_service import write_audit_event
 from app.services.policy_service import PolicyContext, evaluate_policy
@@ -150,6 +151,7 @@ def approve_request(
     approval.reason = normalized_reason
     approval.expires_at = current_time + timedelta(seconds=APPROVAL_TTL_SECONDS)
     updated = repo.update(approval)
+    record_approval_decision(True)
     _write_audit_event_best_effort(session, "approval_approved", {
         "approval_id": updated.id,
         "task_id": updated.task_id,
@@ -179,6 +181,7 @@ def reject_request(
     approval.decided_by = decided_by
     approval.expires_at = None
     updated = repo.update(approval)
+    record_approval_decision(False)
     _write_audit_event_best_effort(session, "approval_rejected", {
         "approval_id": updated.id,
         "task_id": updated.task_id,
@@ -274,6 +277,7 @@ def _create_pending_request(
         requested_by=agent_id,
     )
     created = repo.create(model)
+    record_approval_requested()
     _write_audit_event_best_effort(repo.session, "approval_requested", {
         "approval_id": created.id,
         "task_id": created.task_id,

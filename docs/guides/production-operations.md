@@ -17,6 +17,7 @@
 ## Incident Entry Points
 
 - Check the deploy smoke logs first if a release just completed.
+- The smoke script should confirm both reachability and the presence of an `x-request-id` header on `/healthz`, so early failures still leave a trace handle for request-log correlation.
 - Check `/healthz` and `/metrics` before debugging application routes.
 - Capture the `x-request-id` from the failing response and use it to trace the matching structured request log entry.
 - Treat the external secret backend, Postgres, and Redis as the first three upstream dependencies to verify.

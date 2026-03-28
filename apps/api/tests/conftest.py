@@ -14,6 +14,7 @@ from app.orm import Base  # noqa: F401 — import triggers all model registratio
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.runtime import AppRuntime
+from app.observability import reset_metrics
 from app.services.secret_backend import InMemorySecretBackend, reset_secret_counter
 
 _test_engine = create_engine(
@@ -57,6 +58,11 @@ def db_session():
         session.close()
         Base.metadata.drop_all(bind=connection)
         connection.close()
+
+
+@pytest.fixture(autouse=True)
+def reset_observability_metrics():
+    reset_metrics()
 
 
 @pytest.fixture

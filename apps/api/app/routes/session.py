@@ -5,6 +5,7 @@ from app.auth import ManagementIdentity, require_management_session
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
+from app.observability import record_management_session_login
 from app.schemas.sessions import ManagementLoginRequest, ManagementSessionResponse
 from app.services.audit_service import write_audit_event
 from app.services.session_service import (
@@ -31,6 +32,7 @@ def login_management_session(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     if not authenticate_bootstrap_key(session, payload.bootstrap_key):
+        record_management_session_login(False)
         write_audit_event(session, "management_session_rejected", {
             "actor_type": "human",
             "actor_id": settings.management_operator_id,
@@ -43,6 +45,7 @@ def login_management_session(
 
     payload = build_management_session_payload(settings)
     token = issue_management_session_token(settings, payload=payload)
+    record_management_session_login(True)
     response.set_cookie(
         key=settings.management_session_cookie_name,
         value=token,
@@ -84,15 +87,15 @@ def logout_management_session(
 ) -> dict:
     session_token = request.cookies.get(settings.management_session_cookie_name)
     if session_token:
-      try:
-          payload = decode_management_session_token(session_token, settings)
-          write_audit_event(session, "management_session_ended", {
-              "actor_type": payload.actor_type,
-              "actor_id": payload.actor_id,
-              "session_id": payload.session_id,
-          })
-      except ValueError:
-          pass
+        try:
+            payload = decode_management_session_token(session_token, settings)
+            write_audit_event(session, "management_session_ended", {
+                "actor_type": payload.actor_type,
+                "actor_id": payload.actor_id,
+                "session_id": payload.session_id,
+            })
+        except ValueError:
+            pass
     response.delete_cookie(
         key=settings.management_session_cookie_name,
         path="/",

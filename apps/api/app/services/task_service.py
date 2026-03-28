@@ -15,6 +15,7 @@ from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.task_repo import TaskRepository
 from app.repositories.run_repo import RunRepository
 from app.schemas.tasks import TaskCreate
+from app.observability import record_task_claim, record_task_completion
 from app.services.identifiers import new_resource_id
 from app.services.redis_client import acquire_lock, release_lock
 
@@ -66,6 +67,7 @@ def claim_task(
         task.status = "claimed"
         task.claimed_by = agent.id
         repo.update(task)
+        record_task_claim()
         return _task_to_dict(task)
     finally:
         release_lock(lock_key, settings=settings)
@@ -98,6 +100,7 @@ def complete_task(
         output_payload=output_payload,
     )
     run_repo.create(run)
+    record_task_completion()
     return _task_to_dict(task)
 
 
