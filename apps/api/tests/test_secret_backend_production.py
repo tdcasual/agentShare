@@ -55,6 +55,9 @@ def test_external_secret_backend_aliases_map_to_openbao_settings() -> None:
         secret_backend="openbao",
         secret_backend_url="https://vault.example.com",
         secret_backend_token="scoped-token",
+        bootstrap_agent_key="custom-bootstrap-key",
+        management_session_secret="custom-management-secret",
+        management_session_secure=True,
     )
 
     backend = get_secret_backend(settings)

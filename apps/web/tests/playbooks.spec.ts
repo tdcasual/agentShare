@@ -59,7 +59,7 @@ test("playbooks page supports filters and detail navigation", async ({ page, req
   await expect(page.getByText("Showing 1 of 1 playbooks.")).toBeVisible();
 
   await page.getByRole("link", { name: `OpenAI prompt run ${suffix}` }).click();
-  await expect(page).toHaveURL(/\/playbooks\/playbook-\d+$/);
+  await expect(page).toHaveURL(/\/playbooks\/playbook-[a-f0-9]+$/);
   await expect(page.getByRole("heading", { name: `OpenAI prompt run ${suffix}` })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Instructions" })).toBeVisible();
 });
