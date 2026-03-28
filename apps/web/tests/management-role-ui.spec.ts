@@ -41,3 +41,21 @@ test("admin session still exposes admin management forms", async ({ page }) => {
   await page.getByText("Register new agent").click();
   await expect(page.getByRole("button", { name: "Create agent" })).toBeVisible();
 });
+
+test("owner session can delete an agent from the inventory", async ({ page }) => {
+  const suffix = Date.now().toString();
+  const agentName = `Owner managed agent ${suffix}`;
+
+  await useManagementRole(page, "owner");
+  await page.goto("/agents");
+  await page.getByText("Register new agent").click();
+  await page.getByLabel("Name").fill(agentName);
+  await page.getByRole("button", { name: "Create agent" }).click();
+
+  const agentCard = page.getByTestId("agent-card").filter({ hasText: agentName });
+  await expect(agentCard).toBeVisible();
+  await agentCard.getByRole("button", { name: "Delete agent" }).click();
+
+  await expect(page.getByRole("status").filter({ hasText: "Agent deleted:" })).toContainText(agentName);
+  await expect(page.getByTestId("agent-card").filter({ hasText: agentName })).toHaveCount(0);
+});

@@ -100,6 +100,34 @@ async function postJson(path: string, payload: Record<string, unknown>) {
   return response.json();
 }
 
+async function deletePath(path: string) {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) {
+    throw new ManagementRequestError(503, "API base URL is not configured");
+  }
+
+  const managementHeaders = await getManagementSessionHeaders();
+  if (!managementHeaders.Cookie) {
+    throw new ManagementRequestError(401, "Management session is missing");
+  }
+
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: "DELETE",
+    headers: managementHeaders,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    if (response.status === 401) {
+      await clearManagementSessionCookie();
+    }
+    throw new ManagementRequestError(response.status, detail);
+  }
+
+  return response.json();
+}
+
 function getSafeNextPath(value: FormDataEntryValue | null, fallback: string) {
   const raw = typeof value === "string" ? value.trim() : "";
   return raw.startsWith("/") ? raw : fallback;
@@ -267,6 +295,28 @@ export async function createAgentAction(formData: FormData) {
 
   revalidatePath("/agents");
   redirect(`/agents?created=${encodeURIComponent(name)}&api_key=${encodeURIComponent(result.api_key || "")}`);
+}
+
+export async function deleteAgentAction(formData: FormData) {
+  const agentId = String(formData.get("agent_id") || "").trim();
+  const agentName = String(formData.get("agent_name") || "").trim();
+  const nextPath = getSafeNextPath(formData.get("next"), "/agents");
+
+  if (!agentId) {
+    redirect(`${nextPath}?error=missing-agent`);
+  }
+
+  try {
+    await deletePath(`/api/agents/${encodeURIComponent(agentId)}`);
+  } catch (error) {
+    if (error instanceof ManagementRequestError && error.status === 404) {
+      redirect(`${nextPath}?error=missing-agent`);
+    }
+    redirect(`${nextPath}?error=${classifyManagementError(error)}`);
+  }
+
+  revalidatePath("/agents");
+  redirect(`${nextPath}?deleted=${encodeURIComponent(agentName || agentId)}`);
 }
 
 export async function createCapabilityAction(formData: FormData) {
