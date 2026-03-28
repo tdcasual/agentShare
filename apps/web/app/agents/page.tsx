@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AgentForm } from "../../components/agent-form";
 import { NavShell } from "../../components/nav-shell";
 import { AgentKeyDisplay } from "../../components/agent-key-display";
 import { getAgents, getApiDocsLinks, getApiBaseUrl, getCollectionNotice } from "../../lib/api";
@@ -109,21 +110,7 @@ export default async function AgentsPage({ searchParams }: PageProps) {
 
       <details className="compact-details">
         <summary>{tr(locale, "Register new agent", "注册新 Agent")}</summary>
-        <form action={createAgentAction} className="form panel-limit">
-          <label htmlFor="agent-name">
-            {tr(locale, "Name", "名称")}
-            <input id="agent-name" name="name" type="text" required placeholder={tr(locale, "e.g. deploy-bot", "例如 deploy-bot")} />
-          </label>
-          <label htmlFor="agent-risk-tier">
-            {tr(locale, "Risk tier", "风险等级")}
-            <select id="agent-risk-tier" name="risk_tier" defaultValue="medium">
-              <option value="low">{tr(locale, "Low", "低")}</option>
-              <option value="medium">{tr(locale, "Medium", "中")}</option>
-              <option value="high">{tr(locale, "High", "高")}</option>
-            </select>
-          </label>
-          <button type="submit">{tr(locale, "Create agent", "创建 Agent")}</button>
-        </form>
+        <AgentForm action={createAgentAction} locale={locale} />
       </details>
 
       <section className="grid">

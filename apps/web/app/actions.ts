@@ -240,6 +240,8 @@ export async function createTaskAction(formData: FormData) {
 export async function createAgentAction(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
   const riskTier = String(formData.get("risk_tier") || "medium").trim();
+  const allowedTaskTypes = parseListField(formData.get("allowed_task_types"));
+  const allowedCapabilityIds = parseListField(formData.get("allowed_capability_ids"));
 
   if (!name) {
     redirect("/agents?error=missing-name");
@@ -250,6 +252,8 @@ export async function createAgentAction(formData: FormData) {
     result = await postJson("/api/agents", {
       name,
       risk_tier: riskTier,
+      allowed_task_types: allowedTaskTypes,
+      allowed_capability_ids: allowedCapabilityIds,
     });
   } catch (error) {
     redirect(`/agents?error=${classifyManagementError(error)}`);
