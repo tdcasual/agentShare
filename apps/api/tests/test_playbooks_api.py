@@ -10,6 +10,8 @@ def test_create_playbook_returns_saved_record(management_client):
     )
 
     assert response.status_code == 201
+    assert response.json()["id"].startswith("playbook-")
+    assert response.json()["id"] != "playbook-1"
     assert response.json()["title"] == "QQ config sync"
 
 

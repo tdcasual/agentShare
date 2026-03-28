@@ -17,12 +17,15 @@ def test_agent_can_claim_eligible_task(client, management_client):
             "lease_allowed": False,
         },
     )
+    created_id = created.json()["id"]
 
     response = client.post(
-        f"/api/tasks/{created.json()['id']}/claim",
+        f"/api/tasks/{created_id}/claim",
         headers={"Authorization": "Bearer agent-test-token"},
     )
 
+    assert created_id.startswith("task-")
+    assert created_id != "task-1"
     assert response.status_code == 200
     assert response.json()["status"] == "claimed"
     assert response.json()["claimed_by"] == "test-agent"

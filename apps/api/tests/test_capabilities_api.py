@@ -20,6 +20,8 @@ def test_create_capability_defaults_to_proxy_only(management_client):
     )
 
     assert response.status_code == 201
+    assert response.json()["id"].startswith("capability-")
+    assert response.json()["id"] != "capability-1"
     assert response.json()["allowed_mode"] == "proxy_only"
 
 

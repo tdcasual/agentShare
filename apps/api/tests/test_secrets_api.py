@@ -21,9 +21,11 @@ def test_create_secret_returns_reference_only(management_client):
 
     assert response.status_code == 201
     body = response.json()
+    assert body["id"].startswith("secret-")
+    assert body["id"] != "secret-1"
     assert body["display_name"] == "OpenAI prod key"
     assert "value" not in body
-    assert body["backend_ref"].startswith("memory:")
+    assert body["backend_ref"] == f"memory:{body['id']}"
 
 
 def test_list_secrets_returns_redacted_metadata(management_client):

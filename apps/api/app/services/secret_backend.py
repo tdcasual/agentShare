@@ -1,24 +1,16 @@
 from __future__ import annotations
 
-from itertools import count
-
 import httpx
 
 from app.config import Settings
-
-
-# Module-level counter for generating unique secret IDs across all backends
-_secret_counter = count(1)
-
+from app.services.identifiers import new_resource_id
 
 def _next_secret_id() -> str:
-    return f"secret-{next(_secret_counter)}"
+    return new_resource_id("secret")
 
 
 def reset_secret_counter() -> None:
-    """Reset the counter (used by tests if needed)."""
-    global _secret_counter
-    _secret_counter = count(1)
+    """Backward-compatible no-op now that secret IDs are UUID-based."""
 
 
 def _resolve_settings(settings: Settings | None) -> Settings:

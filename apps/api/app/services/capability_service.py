@@ -5,13 +5,14 @@ from sqlalchemy.orm import Session
 from app.orm.capability import CapabilityModel
 from app.repositories.capability_repo import CapabilityRepository
 from app.schemas.capabilities import CapabilityCreate
+from app.services.identifiers import new_resource_id
 from app.services.scope_policy import ensure_binding_compatible
 
 
 def create_capability(session: Session, payload: CapabilityCreate, secret) -> dict:
     repo = CapabilityRepository(session)
     ensure_binding_compatible(secret, payload)
-    cap_id = f"capability-{len(repo.list_all()) + 1}"
+    cap_id = new_resource_id("capability")
     model = CapabilityModel(
         id=cap_id,
         name=payload.name,

@@ -48,9 +48,11 @@ def test_openbao_backend_uses_kv_v2_data_paths_for_write_and_read():
     secret_value = backend.read_secret(secret_id, backend_ref)
 
     assert secret_value == "remote-secret"
-    assert backend_ref == "openbao:secret:agent-share/secret-1"
+    assert secret_id.startswith("secret-")
+    assert secret_id != "secret-1"
+    assert backend_ref == f"openbao:secret:agent-share/{secret_id}"
     assert captured[0][0] == "POST"
-    assert captured[0][1] == "/v1/secret/data/agent-share/secret-1"
+    assert captured[0][1] == f"/v1/secret/data/agent-share/{secret_id}"
     assert captured[0][2]["token"] == "root-token"
     assert captured[1][0] == "GET"
-    assert captured[1][1] == "/v1/secret/data/agent-share/secret-1"
+    assert captured[1][1] == f"/v1/secret/data/agent-share/{secret_id}"

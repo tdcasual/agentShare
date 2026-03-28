@@ -14,13 +14,14 @@ from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.task_repo import TaskRepository
 from app.repositories.run_repo import RunRepository
 from app.schemas.tasks import TaskCreate
+from app.services.identifiers import new_resource_id
 from app.services.redis_client import acquire_lock, release_lock
 
 
 def create_task(session: Session, payload: TaskCreate) -> dict:
     _ensure_playbooks_exist(session, payload.playbook_ids)
     repo = TaskRepository(session)
-    task_id = f"task-{len(repo.list_all()) + 1}"
+    task_id = new_resource_id("task")
     model = TaskModel(
         id=task_id,
         title=payload.title,
@@ -83,7 +84,7 @@ def complete_task(
     task.status = "completed"
     task_repo.update(task)
     _expire_task_approvals(session, task_id)
-    run_id = f"run-{len(run_repo.list_all()) + 1}"
+    run_id = new_resource_id("run")
     run = RunModel(
         id=run_id,
         task_id=task_id,

@@ -13,6 +13,7 @@ from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.schemas.agents import AgentCreate
 from app.services.audit_service import write_audit_event
+from app.services.identifiers import new_resource_id
 
 router = APIRouter(prefix="/api/agents")
 
@@ -44,7 +45,7 @@ def create_agent(
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
-    agent_id = f"agent-{len(repo.list_all()) + 1}"
+    agent_id = new_resource_id("agent")
     raw_key = secrets.token_urlsafe(32)
     model = AgentIdentityModel(
         id=agent_id,

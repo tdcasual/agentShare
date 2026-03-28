@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.orm.playbook import PlaybookModel
 from app.repositories.playbook_repo import PlaybookRepository
 from app.schemas.playbooks import PlaybookCreate
+from app.services.identifiers import new_resource_id
 
 
 @dataclass(frozen=True)
@@ -18,7 +19,7 @@ class PlaybookSearchResult:
 
 def create_playbook(session: Session, payload: PlaybookCreate) -> dict:
     repo = PlaybookRepository(session)
-    playbook_id = f"playbook-{len(repo.list_all()) + 1}"
+    playbook_id = new_resource_id("playbook")
     model = PlaybookModel(
         id=playbook_id,
         title=payload.title,
