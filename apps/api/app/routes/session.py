@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_management_session
@@ -10,6 +10,7 @@ from app.services.audit_service import write_audit_event
 from app.services.session_service import (
     authenticate_bootstrap_key,
     build_management_session_payload,
+    decode_management_session_token,
     issue_management_session_token,
 )
 
@@ -30,6 +31,11 @@ def login_management_session(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     if not authenticate_bootstrap_key(session, payload.bootstrap_key):
+        write_audit_event(session, "management_session_rejected", {
+            "actor_type": "human",
+            "actor_id": settings.management_operator_id,
+            "reason": "invalid_bootstrap_credential",
+        })
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid bootstrap management credential",
@@ -48,7 +54,8 @@ def login_management_session(
     )
     write_audit_event(session, "management_session_started", {
         "actor_type": "human",
-        "actor_id": "management",
+        "actor_id": payload.actor_id,
+        "session_id": payload.session_id,
     })
     return {
         "status": "authenticated",
@@ -56,6 +63,7 @@ def login_management_session(
         "actor_id": payload.actor_id,
         "role": payload.role,
         "auth_method": payload.auth_method,
+        "session_id": payload.session_id,
         "expires_in": settings.management_session_ttl_seconds,
         "issued_at": payload.iat,
         "expires_at": payload.exp,
@@ -69,9 +77,22 @@ def login_management_session(
     description="Clear the current management session cookie.",
 )
 def logout_management_session(
+    request: Request,
     response: Response,
+    session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
+    session_token = request.cookies.get(settings.management_session_cookie_name)
+    if session_token:
+      try:
+          payload = decode_management_session_token(session_token, settings)
+          write_audit_event(session, "management_session_ended", {
+              "actor_type": payload.actor_type,
+              "actor_id": payload.actor_id,
+              "session_id": payload.session_id,
+          })
+      except ValueError:
+          pass
     response.delete_cookie(
         key=settings.management_session_cookie_name,
         path="/",
@@ -99,6 +120,7 @@ def get_management_session(
         "actor_id": identity.id,
         "role": identity.role,
         "auth_method": identity.auth_method,
+        "session_id": identity.session_id,
         "expires_in": settings.management_session_ttl_seconds,
         "issued_at": identity.issued_at,
         "expires_at": identity.expires_at,

@@ -16,7 +16,7 @@ from app.errors import DomainError
 from app.observability import record_http_request
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
-from app.runtime import build_runtime
+from app.runtime import AppRuntime, build_runtime
 from app.routes import register_routes
 from app.services.secret_backend import validate_secret_backend_settings
 
@@ -106,9 +106,14 @@ def add_domain_error_handlers(app: FastAPI) -> None:
         )
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
-    current_settings = settings or Settings()
-    runtime = build_runtime(current_settings)
+def create_app(settings: Settings | None = None, runtime: AppRuntime | None = None) -> FastAPI:
+    if settings is not None:
+        current_settings = settings
+    elif runtime is not None:
+        current_settings = runtime.settings
+    else:
+        current_settings = Settings()
+    current_runtime = runtime or build_runtime(current_settings)
 
     @asynccontextmanager
     async def lifespan(app_instance: FastAPI):
@@ -138,7 +143,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = current_settings
-    app.state.runtime = runtime
+    app.state.runtime = current_runtime
 
     add_request_logging_middleware(app)
     add_idempotency_middleware(app, current_settings)

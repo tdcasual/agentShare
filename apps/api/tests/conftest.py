@@ -32,14 +32,12 @@ TEST_SETTINGS = Settings(
 
 
 def _build_test_app():
-    app = create_app(TEST_SETTINGS)
-    app.state.settings = TEST_SETTINGS
-    app.state.runtime = AppRuntime(
+    runtime = AppRuntime(
         settings=TEST_SETTINGS,
         engine=_test_engine,
         session_factory=_TestSession,
     )
-    return app
+    return create_app(TEST_SETTINGS, runtime=runtime)
 
 
 @pytest.fixture(autouse=True)

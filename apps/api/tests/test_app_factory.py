@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
+from app.runtime import build_runtime
 
 
 def test_create_app_registers_core_routes():
@@ -36,3 +37,22 @@ def test_create_app_attaches_runtime_settings(tmp_path):
     runtime = app.state.runtime
     assert str(runtime.engine.url).endswith("runtime.db")
     assert runtime.settings.database_url.endswith("runtime.db")
+
+
+def test_create_app_accepts_prebuilt_runtime_without_rebuilding(tmp_path, monkeypatch):
+    db_path = tmp_path / "prebuilt-runtime.db"
+    settings = Settings(
+        database_url=f"sqlite:///{db_path}",
+        bootstrap_agent_key="runtime-bootstrap-key",
+    )
+    runtime = build_runtime(settings)
+
+    def fail_build_runtime(_settings: Settings):
+        raise AssertionError("create_app should use the provided runtime")
+
+    monkeypatch.setattr("app.factory.build_runtime", fail_build_runtime)
+
+    app = create_app(settings, runtime=runtime)
+
+    assert app.state.runtime is runtime
+    assert app.state.settings is settings

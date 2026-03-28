@@ -36,7 +36,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
       variant="minimal"
       eyebrow={tr(locale, "Management login", "管理登录")}
       title={tr(locale, "Establish a human session for console management.", "建立管理控制台的人类会话。")}
-      subtitle={tr(locale, "Use the bootstrap management credential once to mint a short-lived session cookie. Runtime agent keys stay separate.", "使用一次管理引导口令换取短期 session cookie。运行时 Agent 访问密钥与管理会话相互隔离。")}
+      subtitle={tr(locale, "Use the bootstrap management credential once to mint a short-lived operator session cookie with its own session id. Runtime agent keys stay separate.", "使用一次管理引导口令换取带独立 session id 的短期 operator session cookie。运行时 Agent 访问密钥与管理会话相互隔离。")}
       activeHref="/login"
     >
       {loggedOut ? (
@@ -63,6 +63,9 @@ export default async function LoginPage({ searchParams }: PageProps) {
         <div>
           <div className="kicker">{tr(locale, "Session exchange", "会话交换")}</div>
           <h2>{tr(locale, "Log in to management routes", "登录管理路由")}</h2>
+          <p className="muted">
+            {tr(locale, "Every successful login mints a fresh session id and expires automatically after the configured session TTL.", "每次成功登录都会生成新的 session id，并在配置的 session TTL 到期后自动失效。")}
+          </p>
         </div>
         <form className="form" action={loginManagementAction}>
           <input type="hidden" name="next" value={nextPath} />

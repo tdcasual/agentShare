@@ -52,7 +52,7 @@ curl -sS \
   "$ACP_BASE_URL/api/session/login"
 ```
 
-Expected: `200 OK`, `status=authenticated`, and a `management_session` cookie written into `ACP_COOKIE_JAR`.
+Expected: `200 OK`, `status=authenticated`, a non-empty `session_id`, and a `management_session` cookie written into `ACP_COOKIE_JAR`.
 
 ## 2. Create A Runtime Agent Key (Management Path)
 
@@ -231,6 +231,8 @@ Successful invoke responses now include:
 - `adapter_type`
 - `upstream_status`
 - `result`
+
+Management sessions are intentionally short-lived. Every successful login mints a fresh `session_id`, and retries after expiry should start with a new `/api/session/login` exchange instead of assuming a stale cookie can be reused.
 
 That keeps adapter behavior explicit without leaking the secret or raw credential material.
 

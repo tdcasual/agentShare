@@ -24,6 +24,8 @@ This guide covers the security controls that live inside this repository. It com
 
 - Production and staging must replace the placeholder values `changeme-bootstrap-key` and `changeme-management-session-secret` before the API can boot.
 - Production and staging must set `MANAGEMENT_SESSION_SECURE=true` so browser session cookies are always marked secure.
+- Management sessions are intentionally short-lived and now carry a distinct `session_id` for audit correlation. Treat each new login as a fresh operator session, not a renewable long-lived admin credential.
+- If you customize operator identity through `MANAGEMENT_OPERATOR_ID` or `MANAGEMENT_OPERATOR_ROLE`, keep those values stable and human-readable so audit trails remain legible.
 - If Redis-backed idempotency middleware cannot initialize, development logs the reason explicitly and production fails fast instead of silently degrading.
 
 ## Container Security Scan

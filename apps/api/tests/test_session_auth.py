@@ -19,6 +19,7 @@ def test_management_login_sets_cookie_and_allows_session_introspection(anonymous
     assert session_me.json()["actor_id"] == "management"
     assert session_me.json()["actor_type"] == "human"
     assert session_me.json()["auth_method"] == "session"
+    assert session_me.json()["session_id"]
     assert session_me.json()["issued_at"] > 0
     assert session_me.json()["expires_at"] > session_me.json()["issued_at"]
 
@@ -83,3 +84,29 @@ def test_management_login_sets_secure_cookie_when_enabled(tmp_path):
 
     assert response.status_code == 200
     assert "secure" in response.headers["set-cookie"].lower()
+
+
+def test_management_login_uses_configured_operator_identity(tmp_path):
+    settings = Settings(
+        database_url=f"sqlite:///{tmp_path / 'operator.db'}",
+        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        management_session_secret="session-secret",
+        management_operator_id="ops.owner",
+        management_operator_role="owner",
+    )
+    app = create_app(settings)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/session/login",
+            json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+        )
+        session_me = client.get("/api/session/me")
+
+    assert response.status_code == 200
+    assert response.json()["actor_id"] == "ops.owner"
+    assert response.json()["role"] == "owner"
+    assert response.json()["session_id"]
+    assert session_me.status_code == 200
+    assert session_me.json()["actor_id"] == "ops.owner"
+    assert session_me.json()["role"] == "owner"

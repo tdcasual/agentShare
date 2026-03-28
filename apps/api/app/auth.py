@@ -28,6 +28,7 @@ class ManagementIdentity(BaseModel):
     role: str
     actor_type: str = "human"
     auth_method: str = "session"
+    session_id: str
     issued_at: int
     expires_at: int
 
@@ -102,6 +103,7 @@ def require_management_session(
         role=payload.role,
         actor_type=payload.actor_type,
         auth_method=payload.auth_method,
+        session_id=payload.session_id,
         issued_at=payload.iat,
         expires_at=payload.exp,
     )

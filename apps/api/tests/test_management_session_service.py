@@ -22,8 +22,23 @@ def test_issue_and_decode_management_session_token_returns_typed_identity_payloa
     assert payload.actor_type == "human"
     assert payload.role == "admin"
     assert payload.auth_method == "session"
+    assert payload.session_id
     assert payload.ver == 1
     assert payload.exp > payload.iat
+
+
+def test_build_management_session_payload_respects_operator_identity_settings():
+    settings = Settings(
+        management_session_secret="test-session-secret",
+        management_operator_id="ops.lead",
+        management_operator_role="owner",
+    )
+
+    payload = build_management_session_payload(settings)
+
+    assert payload.actor_id == "ops.lead"
+    assert payload.role == "owner"
+    assert payload.sub == "ops.lead"
 
 
 def test_decode_management_session_token_rejects_missing_required_claims():

@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import json
 import time
+from uuid import uuid4
 
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -31,11 +32,12 @@ def authenticate_bootstrap_key(session: Session, bootstrap_key: str) -> bool:
 def build_management_session_payload(settings: Settings) -> ManagementSessionPayload:
     now = int(time.time())
     return ManagementSessionPayload(
-        sub="management",
-        actor_id="management",
-        role="admin",
+        sub=settings.management_operator_id,
+        actor_id=settings.management_operator_id,
+        role=settings.management_operator_role,
         actor_type="human",
         auth_method="session",
+        session_id=f"session-{uuid4().hex}",
         iat=now,
         exp=now + settings.management_session_ttl_seconds,
         ver=1,

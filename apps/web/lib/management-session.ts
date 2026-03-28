@@ -8,6 +8,7 @@ type ManagementSessionState = {
   error: "missing" | "session-expired" | "api-unavailable" | null;
   authMethod?: string;
   actorId?: string;
+  sessionId?: string;
   expiresAt?: number;
 };
 
@@ -62,6 +63,7 @@ export async function getManagementSessionState(): Promise<ManagementSessionStat
     const payload = (await response.json()) as {
       actor_id?: string;
       auth_method?: string;
+      session_id?: string;
       expires_at?: number;
     };
 
@@ -70,6 +72,7 @@ export async function getManagementSessionState(): Promise<ManagementSessionStat
       error: null,
       actorId: payload.actor_id,
       authMethod: payload.auth_method,
+      sessionId: payload.session_id,
       expiresAt: payload.expires_at,
     };
   } catch {

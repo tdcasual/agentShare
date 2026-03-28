@@ -19,6 +19,7 @@ class ManagementSessionResponse(BaseModel):
             "actor_id": "management",
             "role": "admin",
             "auth_method": "session",
+            "session_id": "session-123",
             "expires_in": 43200,
             "issued_at": 1711584000,
             "expires_at": 1711627200,
@@ -30,6 +31,7 @@ class ManagementSessionResponse(BaseModel):
     actor_id: str
     role: str
     auth_method: str
+    session_id: str
     expires_in: int
     issued_at: int
     expires_at: int
@@ -41,6 +43,7 @@ class ManagementSessionPayload(BaseModel):
     actor_type: str
     role: str
     auth_method: str
+    session_id: str
     iat: int
     exp: int
     ver: int
@@ -49,6 +52,8 @@ class ManagementSessionPayload(BaseModel):
     def validate_payload(self) -> "ManagementSessionPayload":
         if not self.actor_id:
             raise ValueError("Management session actor_id is required.")
+        if not self.session_id:
+            raise ValueError("Management session session_id is required.")
         if self.ver != 1:
             raise ValueError(f"Management session version {self.ver} is not supported.")
         if self.exp <= self.iat:
