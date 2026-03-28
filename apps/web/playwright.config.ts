@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { defineConfig } from "@playwright/test";
+import {
+  createPlaywrightDatabaseRuntime,
+  registerCleanupHooks,
+} from "./tests/setup/test-db";
 
 function findVenvExecutable(executable: string) {
   let currentDir = __dirname;
@@ -21,6 +25,9 @@ function findVenvExecutable(executable: string) {
 }
 
 const uvicornBin = findVenvExecutable("uvicorn");
+const testDatabaseRuntime = createPlaywrightDatabaseRuntime();
+
+registerCleanupHooks(testDatabaseRuntime.cleanup);
 
 export default defineConfig({
   testDir: "./tests",
@@ -30,7 +37,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `env DATABASE_URL=sqlite:///../../agent_share_playwright_$$.db SECRET_BACKEND=memory BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key ${uvicornBin} app.main:app --app-dir ../api --host 127.0.0.1 --port 3800`,
+      command: `env DATABASE_URL=${testDatabaseRuntime.databaseUrl} SECRET_BACKEND=memory BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key ${uvicornBin} app.main:app --app-dir ../api --host 127.0.0.1 --port 3800`,
       port: 3800,
       reuseExistingServer: false,
       timeout: 120000,
