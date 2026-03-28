@@ -2,16 +2,19 @@ import json
 import hashlib
 import logging
 import uuid
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from time import monotonic
 
 from fastapi import FastAPI, Request
+from sqlalchemy.orm import Session
 
 from app import db as db_module
 from app.config import Settings
 from app.observability import record_http_request
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
+from app.runtime import build_runtime
 from app.routes import register_routes
 from app.services.secret_backend import validate_secret_backend_settings
 
@@ -22,8 +25,8 @@ def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-def ensure_bootstrap_agent(settings: Settings) -> None:
-    session = db_module.SessionLocal()
+def ensure_bootstrap_agent(settings: Settings, session_factory: Callable[[], Session]) -> None:
+    session = session_factory()
     try:
         repo = AgentRepository(session)
         existing = repo.get("bootstrap")
@@ -85,12 +88,13 @@ def register_core_routes(app: FastAPI) -> None:
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     current_settings = settings or Settings()
+    runtime = build_runtime(current_settings)
 
     @asynccontextmanager
     async def lifespan(app_instance: FastAPI):
         validate_secret_backend_settings(current_settings)
-        db_module.init_db()
-        ensure_bootstrap_agent(current_settings)
+        db_module.init_db(runtime.engine)
+        ensure_bootstrap_agent(current_settings, runtime.session_factory)
         yield
 
     app = FastAPI(
@@ -111,6 +115,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = current_settings
+    app.state.runtime = runtime
 
     add_request_logging_middleware(app)
     add_idempotency_middleware(app)
