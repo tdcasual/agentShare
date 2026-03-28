@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from app.errors import BadRequestError, NotFoundError
 from app.orm.capability import CapabilityModel
 from app.repositories.capability_repo import CapabilityRepository
 from app.schemas.capabilities import CapabilityCreate
@@ -11,7 +12,10 @@ from app.services.scope_policy import ensure_binding_compatible
 
 def create_capability(session: Session, payload: CapabilityCreate, secret) -> dict:
     repo = CapabilityRepository(session)
-    ensure_binding_compatible(secret, payload)
+    try:
+        ensure_binding_compatible(secret, payload)
+    except ValueError as exc:
+        raise BadRequestError(str(exc)) from exc
     cap_id = new_resource_id("capability")
     model = CapabilityModel(
         id=cap_id,
@@ -37,7 +41,7 @@ def get_capability(session: Session, capability_id: str) -> dict:
     repo = CapabilityRepository(session)
     model = repo.get(capability_id)
     if model is None:
-        raise KeyError(f"Capability {capability_id} not found")
+        raise NotFoundError("Capability not found")
     return _to_dict(model)
 
 

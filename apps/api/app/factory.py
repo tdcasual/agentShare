@@ -7,10 +7,12 @@ from contextlib import asynccontextmanager
 from time import monotonic
 
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app import db as db_module
 from app.config import Settings
+from app.errors import DomainError
 from app.observability import record_http_request
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
@@ -94,6 +96,16 @@ def register_core_routes(app: FastAPI) -> None:
         return {"status": "ok"}
 
 
+def add_domain_error_handlers(app: FastAPI) -> None:
+    @app.exception_handler(DomainError)
+    async def handle_domain_error(request: Request, exc: DomainError) -> JSONResponse:
+        del request
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     current_settings = settings or Settings()
     runtime = build_runtime(current_settings)
@@ -130,6 +142,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     add_request_logging_middleware(app)
     add_idempotency_middleware(app, current_settings)
+    add_domain_error_handlers(app)
     register_core_routes(app)
     register_routes(app)
 

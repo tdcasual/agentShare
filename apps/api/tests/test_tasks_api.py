@@ -99,7 +99,17 @@ def test_management_cannot_publish_task_with_missing_playbook_references(managem
     )
 
     assert response.status_code == 400
-    assert "playbook" in response.json()["detail"].lower()
+    assert response.json() == {"detail": "Unknown playbook reference: playbook-missing"}
+
+
+def test_claiming_unknown_task_returns_clean_not_found(client):
+    response = client.post(
+        "/api/tasks/task-missing/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Task not found"}
 
 
 def test_agent_can_complete_claimed_task(client, management_client):

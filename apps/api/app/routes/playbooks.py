@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_management_session
@@ -72,10 +72,4 @@ def get_playbook_route(
     session: Session = Depends(get_db),
 ) -> dict:
     del manager  # managed by dependency; kept to enforce session auth
-    record = get_playbook(session, playbook_id)
-    if record is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Playbook {playbook_id} not found",
-        )
-    return record
+    return get_playbook(session, playbook_id)

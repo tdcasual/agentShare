@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_agent, require_management_session
@@ -25,10 +25,7 @@ def create_task_route(
     manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
-    try:
-        task = create_task(session, payload)
-    except KeyError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    task = create_task(session, payload)
     write_audit_event(session, "task_created", {
         "task_id": task["id"],
         "task_type": task["task_type"],
@@ -60,14 +57,7 @@ def claim_task_route(
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    try:
-        task = claim_task(session, task_id, agent, settings=settings)
-    except KeyError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found") from exc
-    except PermissionError as exc:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    task = claim_task(session, task_id, agent, settings=settings)
     write_audit_event(session, "task_claimed", {"task_id": task_id, "agent_id": agent.id})
     return task
 
@@ -84,13 +74,6 @@ def complete_task_route(
     agent: AgentIdentity = Depends(require_agent),
     session: Session = Depends(get_db),
 ) -> dict:
-    try:
-        task = complete_task(session, task_id, agent, payload.result_summary, payload.output_payload)
-    except KeyError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found") from exc
-    except PermissionError as exc:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    task = complete_task(session, task_id, agent, payload.result_summary, payload.output_payload)
     write_audit_event(session, "task_completed", {"task_id": task_id, "agent_id": agent.id})
     return task
