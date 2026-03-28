@@ -44,6 +44,7 @@ export type FieldSpec = {
   min?: number;
   step?: number;
   options?: FieldOption[];
+  optionsSource?: string;
   visibleWhen?: VisibilityRule[];
 };
 

@@ -25,6 +25,13 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
 
     secret_catalog = resource_kinds["secret"]
     assert secret_catalog["default_variant"] == "generic_secret"
+    assert {variant["variant"] for variant in secret_catalog["variants"]} == {
+        "generic_secret",
+        "openai_api_token",
+        "github_pat",
+        "cookie_session",
+        "refresh_token",
+    }
     openai_secret = next(
         variant for variant in secret_catalog["variants"] if variant["variant"] == "openai_api_token"
     )
@@ -34,6 +41,12 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
 
     capability_catalog = resource_kinds["capability"]
     assert capability_catalog["default_variant"] == "generic_capability"
+    assert {variant["variant"] for variant in capability_catalog["variants"]} == {
+        "generic_capability",
+        "openai_chat_proxy",
+        "github_rest_proxy",
+        "lease_enabled_generic_http",
+    }
     generic_capability = next(
         variant
         for variant in capability_catalog["variants"]
@@ -44,6 +57,12 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
     assert secret_binding_field["options_source"] == "management_secret_inventory"
 
     task_catalog = resource_kinds["task"]
+    assert {variant["variant"] for variant in task_catalog["variants"]} == {
+        "custom_task",
+        "prompt_run",
+        "config_sync",
+        "account_read",
+    }
     prompt_run = next(
         variant for variant in task_catalog["variants"] if variant["variant"] == "prompt_run"
     )
@@ -52,6 +71,12 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
     assert task_type_field["read_only"] is True
 
     agent_catalog = resource_kinds["agent"]
+    assert {variant["variant"] for variant in agent_catalog["variants"]} == {
+        "general_agent",
+        "task_scoped",
+        "capability_scoped",
+        "fully_scoped",
+    }
     task_scoped = next(
         variant for variant in agent_catalog["variants"] if variant["variant"] == "task_scoped"
     )
