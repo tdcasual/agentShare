@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_management_session
+from app.auth import (
+    ManagementIdentity,
+    require_admin_management_session,
+    require_management_session,
+)
 from app.db import get_db
 from app.errors import NotFoundError
 from app.repositories.secret_repo import SecretRepository
@@ -18,11 +22,11 @@ router = APIRouter(prefix="/api/capabilities")
     status_code=status.HTTP_201_CREATED,
     tags=["Management"],
     summary="Create a capability binding",
-    description="Bind a stored secret into a capability contract and verify the secret scope satisfies the capability requirements.",
+    description="Bind a stored secret into a capability contract and verify the secret scope satisfies the capability requirements. Requires an admin management session.",
 )
 def create_capability_route(
     payload: CapabilityCreate,
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     secret_repo = SecretRepository(session)

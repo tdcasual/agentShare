@@ -26,17 +26,14 @@ This guide is the shortest path from "I have an agent key" to "I can complete a 
 - Bootstrap login:
   - `POST /api/session/login`
 - Management-session protected:
-  - `GET /api/session/me`
-  - `POST /api/session/logout`
-  - `POST/GET /api/secrets`
-  - `POST/GET /api/capabilities`
-  - `POST /api/tasks`
-  - `GET /api/approvals`
-  - `POST /api/approvals/{approval_id}/approve`
-  - `POST /api/approvals/{approval_id}/reject`
-  - `GET/POST/DELETE /api/agents`
-  - `GET /api/runs`
-  - `POST /api/playbooks`, `GET /api/playbooks/search`
+  - Any management role:
+    `GET /api/session/me`, `POST /api/session/logout`, `GET /api/capabilities`, `POST /api/tasks`, `GET /api/runs`, `POST /api/playbooks`, `GET /api/playbooks/search`, `GET /api/playbooks/{playbook_id}`
+  - `operator+`:
+    `GET /api/approvals`, `POST /api/approvals/{approval_id}/approve`, `POST /api/approvals/{approval_id}/reject`
+  - `admin+`:
+    `POST/GET /api/secrets`, `POST /api/capabilities`, `GET/POST /api/agents`
+  - `owner`:
+    `DELETE /api/agents/{agent_id}`
 
 ## 1. Start A Management Session
 
@@ -54,7 +51,7 @@ curl -sS \
 
 Expected: `200 OK`, `status=authenticated`, a non-empty `session_id`, and a `management_session` cookie written into `ACP_COOKIE_JAR`.
 
-## 2. Create A Runtime Agent Key (Management Path)
+## 2. Create A Runtime Agent Key (Admin Management Path)
 
 ```bash
 curl -sS \
@@ -78,7 +75,7 @@ curl -sS \
 
 Expected: `200 OK`, with agent identity and allowlists.
 
-## 4. Create One Secret And One Capability (Management Path)
+## 4. Create One Secret And One Capability (Admin Management Path)
 
 ```bash
 curl -sS \
@@ -196,7 +193,7 @@ curl -sS \
 
 Current lease behavior: the response is an explicit metadata placeholder. It confirms the lease decision and expiry window, but does not return raw secret material or a derived session artifact.
 
-## 8. Review And Approve The Pending Request (Management Path)
+## 8. Review And Approve The Pending Request (Operator+ Management Path)
 
 List the current queue:
 

@@ -13,11 +13,11 @@ BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
 
 
 @contextmanager
-def management_client_for_role(tmp_path: Path, role: str):
+def management_client_for_role(tmp_path: Path, role: str, *, database_name: str | None = None):
     settings = Settings(
         _env_file=None,
         app_env="development",
-        database_url=f"sqlite:///{tmp_path / f'{role}.db'}",
+        database_url=f"sqlite:///{tmp_path / (database_name or f'{role}.db')}",
         bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
         management_session_secret="session-secret",
         management_operator_id=f"ops.{role}",
@@ -132,3 +132,49 @@ def test_owner_can_delete_agents(tmp_path: Path) -> None:
     assert created_agent.status_code == 201
     assert deleted.status_code == 200
     assert deleted.json()["status"] == "deleted"
+
+
+def test_non_admin_roles_cannot_create_capabilities_but_can_still_list_them(tmp_path: Path) -> None:
+    shared_database = "management-capabilities.db"
+
+    with management_client_for_role(tmp_path, "admin", database_name=shared_database) as admin_client:
+        secret = admin_client.post(
+            "/api/secrets",
+            json={
+                "display_name": "Capability secret",
+                "kind": "api_token",
+                "value": "secret-value",
+                "provider": "openai",
+                "metadata": {},
+            },
+        )
+        assert secret.status_code == 201
+
+        created_capability = admin_client.post(
+            "/api/capabilities",
+            json={
+                "name": "openai.chat.invoke",
+                "secret_id": secret.json()["id"],
+                "risk_level": "medium",
+                "required_provider": "openai",
+            },
+        )
+        assert created_capability.status_code == 201
+
+    for role in ("viewer", "operator"):
+        with management_client_for_role(tmp_path, role, database_name=shared_database) as client:
+            listing = client.get("/api/capabilities")
+            creation_attempt = client.post(
+                "/api/capabilities",
+                json={
+                    "name": f"{role}.capability.create",
+                    "secret_id": secret.json()["id"],
+                    "risk_level": "medium",
+                    "required_provider": "openai",
+                },
+            )
+
+        assert listing.status_code == 200
+        assert created_capability.json()["id"] in {item["id"] for item in listing.json()["items"]}
+        assert creation_attempt.status_code == 403
+        assert creation_attempt.json()["detail"] == "admin role required"

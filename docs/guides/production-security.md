@@ -27,7 +27,10 @@ This guide covers the security controls that live inside this repository. It com
 - Management sessions are intentionally short-lived and now carry a distinct `session_id` for audit correlation. Treat each new login as a fresh operator session, not a renewable long-lived admin credential.
 - If you customize operator identity through `MANAGEMENT_OPERATOR_ID` or `MANAGEMENT_OPERATOR_ROLE`, keep those values stable and human-readable so audit trails remain legible.
 - Supported management roles are `viewer`, `operator`, `admin`, and `owner`.
-- Use `operator` for approval review only, `admin` for secret and agent creation/listing, and `owner` when the session must be able to delete agent identities.
+- Use `viewer` for read-only management visibility such as capability inventory, runs, and playbook search.
+- Use `operator` for approval review and decision-making without secret or agent inventory changes.
+- Use `admin` for secret inventory, capability creation, and agent creation/listing.
+- Use `owner` when the session must also be able to delete agent identities.
 - If Redis-backed idempotency middleware cannot initialize, development logs the reason explicitly and production fails fast instead of silently degrading.
 
 ## Container Security Scan

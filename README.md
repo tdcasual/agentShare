@@ -303,17 +303,14 @@ The quickstarts cover both direct HTTP runtime calls and the MCP tool surface on
   - `POST /api/capabilities/{capability_id}/lease`
   - `POST /mcp`
 - Management-session protected routes:
-  - `GET /api/session/me`
-  - `POST /api/session/logout`
-  - `POST /api/secrets`, `GET /api/secrets`
-  - `POST /api/capabilities`, `GET /api/capabilities`
-  - `POST /api/tasks`
-  - `GET /api/approvals`
-  - `POST /api/approvals/{approval_id}/approve`
-  - `POST /api/approvals/{approval_id}/reject`
-  - `GET /api/agents`, `POST /api/agents`, `DELETE /api/agents/{agent_id}`
-  - `GET /api/runs`
-  - `POST /api/playbooks`, `GET /api/playbooks/search`, `GET /api/playbooks/{playbook_id}`
+  - Any management role:
+    `GET /api/session/me`, `POST /api/session/logout`, `GET /api/capabilities`, `POST /api/tasks`, `GET /api/runs`, `POST /api/playbooks`, `GET /api/playbooks/search`, `GET /api/playbooks/{playbook_id}`
+  - `operator+`:
+    `GET /api/approvals`, `POST /api/approvals/{approval_id}/approve`, `POST /api/approvals/{approval_id}/reject`
+  - `admin+`:
+    `POST /api/secrets`, `GET /api/secrets`, `POST /api/capabilities`, `GET /api/agents`, `POST /api/agents`
+  - `owner`:
+    `DELETE /api/agents/{agent_id}`
 
 ## Playbook Search And Detail
 
