@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:contracts": "python3 ../../scripts/check-intake-drift.py",
     "test:unit": "tsx --test lib/forms/__tests__/*.test.ts",
     "test:e2e": "playwright test"
   },
