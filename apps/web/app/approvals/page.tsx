@@ -1,10 +1,11 @@
 import { approveApprovalAction, rejectApprovalAction } from "../actions";
 import { ApprovalsTable } from "../../components/approvals-table";
+import { ManagementRolePanel } from "../../components/management-role-panel";
 import { NavShell } from "../../components/nav-shell";
 import { getApprovals, getCollectionNotice } from "../../lib/api";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
-import { requireManagementSession } from "../../lib/management-session";
+import { hasManagementRole, requireManagementSession } from "../../lib/management-session";
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -19,10 +20,17 @@ function readSingleParam(
 }
 
 export default async function ApprovalsPage({ searchParams }: PageProps) {
-  await requireManagementSession("/approvals");
+  const session = await requireManagementSession("/approvals");
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
-  const approvalsResult = await getApprovals("pending");
+  const canReviewApprovals = hasManagementRole(session.role, "operator");
+  const approvalsResult = canReviewApprovals
+    ? await getApprovals("pending")
+    : {
+      items: [],
+      source: "error" as const,
+      error: "403 operator role required",
+    };
   const pendingCount = approvalsResult.items.length;
   const approvalsNotice = getCollectionNotice(approvalsResult, tr(locale, "approvals", "审批"), locale);
   const updated = readSingleParam(params, "updated");
@@ -48,6 +56,8 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
               ? tr(locale, "The selected approval request is missing.", "所选审批请求不存在。")
               : error === "management-auth"
                 ? tr(locale, "The management session is missing or expired.", "管理会话缺失或已过期。")
+                : error === "insufficient-role"
+                  ? tr(locale, "Your current role cannot review approvals.", "当前角色无权处理审批。")
                 : error === "api-disconnected"
                   ? tr(locale, "The API base URL is not configured, so approvals cannot be reviewed.", "未配置 API Base URL，无法处理审批。")
                   : tr(locale, "The approval decision could not be saved.", "审批结果保存失败。")}
@@ -67,12 +77,26 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
       </section>
       <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <ApprovalsTable
-            approvals={approvalsResult.items}
-            approveAction={approveApprovalAction}
-            rejectAction={rejectApprovalAction}
-            locale={locale}
-          />
+          {canReviewApprovals ? (
+            <ApprovalsTable
+              approvals={approvalsResult.items}
+              approveAction={approveApprovalAction}
+              rejectAction={rejectApprovalAction}
+              locale={locale}
+            />
+          ) : (
+            <ManagementRolePanel
+              locale={locale}
+              currentRole={session.role}
+              requiredRole="operator"
+              title={tr(locale, "An operator role is required to review approvals.", "需要运营者角色才能处理审批。")}
+              description={tr(
+                locale,
+                "This queue is intentionally locked until the current management session carries approval-review privileges.",
+                "只有当前管理会话具备审批复核权限时，才会显示并允许处理该队列。",
+              )}
+            />
+          )}
         </div>
         <div className="workspace-side">
           <section className="panel compact-panel stack">

@@ -105,6 +105,24 @@ export function managementCredentialLabel(locale: Locale) {
   return tr(locale, "Bootstrap management credential", "管理引导口令");
 }
 
+export function managementRoleLabel(
+  locale: Locale,
+  role: "viewer" | "operator" | "admin" | "owner",
+) {
+  switch (role) {
+    case "viewer":
+      return tr(locale, "Viewer", "查看者");
+    case "operator":
+      return tr(locale, "Operator", "运营者");
+    case "admin":
+      return tr(locale, "Admin", "管理员");
+    case "owner":
+      return tr(locale, "Owner", "所有者");
+    default:
+      return role;
+  }
+}
+
 export function agentsCatalogLabel(locale: Locale) {
   return tr(locale, "Agents", "Agent 列表");
 }

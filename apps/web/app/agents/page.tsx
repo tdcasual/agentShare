@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { AgentForm } from "../../components/agent-form";
+import { ManagementRolePanel } from "../../components/management-role-panel";
 import { NavShell } from "../../components/nav-shell";
 import { AgentKeyDisplay } from "../../components/agent-key-display";
 import { getAgents, getApiDocsLinks, getApiBaseUrl, getCollectionNotice, getIntakeCatalog } from "../../lib/api";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
-import { requireManagementSession } from "../../lib/management-session";
+import { hasManagementRole, requireManagementSession } from "../../lib/management-session";
 import { agentsCatalogLabel, docsLabel, riskLevelLabel } from "../../lib/ui";
 import { createAgentAction } from "../actions";
 
@@ -23,12 +24,25 @@ function readSingleParam(
 }
 
 export default async function AgentsPage({ searchParams }: PageProps) {
-  await requireManagementSession("/agents");
+  const session = await requireManagementSession("/agents");
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
+  const canManageAgents = hasManagementRole(session.role, "admin");
   const [agentsResult, intakeCatalogResult] = await Promise.all([
-    getAgents(),
-    getIntakeCatalog(),
+    canManageAgents
+      ? getAgents()
+      : Promise.resolve({
+        items: [],
+        source: "error" as const,
+        error: "403 admin role required",
+      }),
+    canManageAgents
+      ? getIntakeCatalog()
+      : Promise.resolve({
+        item: null,
+        source: "error" as const,
+        error: "403 admin role required",
+      }),
   ]);
   const agents = agentsResult.items;
   const agentsNotice = getCollectionNotice(agentsResult, tr(locale, "agents", "Agent 列表"), locale);
@@ -57,6 +71,8 @@ export default async function AgentsPage({ searchParams }: PageProps) {
         <section className="notice error" role="alert">
           {error === "management-auth"
             ? tr(locale, "The management session is missing or expired.", "管理会话缺失或已过期。")
+            : error === "insufficient-role"
+              ? tr(locale, "Your current role cannot manage agents.", "当前角色无权管理 Agent。")
             : error === "api-disconnected"
               ? tr(locale, "The API base URL is not configured for management calls.", "未配置管理调用的 API Base URL。")
               : tr(locale, "The agent could not be created.", "Agent 创建失败。")}
@@ -111,28 +127,44 @@ export default async function AgentsPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <details className="compact-details">
-        <summary>{tr(locale, "Register new agent", "注册新 Agent")}</summary>
-        <AgentForm
-          action={createAgentAction}
-          catalog={intakeCatalogResult.item}
+      {canManageAgents ? (
+        <details className="compact-details">
+          <summary>{tr(locale, "Register new agent", "注册新 Agent")}</summary>
+          <AgentForm
+            action={createAgentAction}
+            catalog={intakeCatalogResult.item}
+            locale={locale}
+          />
+        </details>
+      ) : (
+        <ManagementRolePanel
           locale={locale}
+          currentRole={session.role}
+          requiredRole="admin"
+          title={tr(locale, "An admin role is required to manage agent inventory.", "需要管理员角色才能管理 Agent 清单。")}
+          description={tr(
+            locale,
+            "Agent creation and inventory stay hidden until the current management session can manage operator-owned identities.",
+            "只有当前管理会话具备管理运营者持有身份的权限时，才会显示 Agent 创建与清单。",
+          )}
         />
-      </details>
+      )}
 
-      <section className="grid">
-        {agents.map((agent) => (
-          <article key={agent.id} className="card">
-            <div className="kicker">{agent.id}</div>
-            <h2>{agent.name}</h2>
-            <p className="muted">
-              {tr(locale, "Auth via", "认证方式")} {agent.auth_method}
-              {tr(locale, ", operating in the ", "，风险等级")} {riskLevelLabel(locale, agent.risk_tier)}
-              {tr(locale, " risk tier.", "。")}
-            </p>
-          </article>
-        ))}
-      </section>
+      {canManageAgents ? (
+        <section className="grid">
+          {agents.map((agent) => (
+            <article key={agent.id} className="card">
+              <div className="kicker">{agent.id}</div>
+              <h2>{agent.name}</h2>
+              <p className="muted">
+                {tr(locale, "Auth via", "认证方式")} {agent.auth_method}
+                {tr(locale, ", operating in the ", "，风险等级")} {riskLevelLabel(locale, agent.risk_tier)}
+                {tr(locale, " risk tier.", "。")}
+              </p>
+            </article>
+          ))}
+        </section>
+      ) : null}
     </NavShell>
   );
 }

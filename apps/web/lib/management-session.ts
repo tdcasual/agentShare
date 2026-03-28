@@ -2,10 +2,19 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export const MANAGEMENT_SESSION_COOKIE = "management_session";
+export type ManagementRole = "viewer" | "operator" | "admin" | "owner";
+
+const MANAGEMENT_ROLE_LEVELS: Record<ManagementRole, number> = {
+  viewer: 0,
+  operator: 1,
+  admin: 2,
+  owner: 3,
+};
 
 type ManagementSessionState = {
   active: boolean;
   error: "missing" | "session-expired" | "api-unavailable" | null;
+  role?: ManagementRole;
   authMethod?: string;
   actorId?: string;
   sessionId?: string;
@@ -62,6 +71,7 @@ export async function getManagementSessionState(): Promise<ManagementSessionStat
 
     const payload = (await response.json()) as {
       actor_id?: string;
+      role?: ManagementRole;
       auth_method?: string;
       session_id?: string;
       expires_at?: number;
@@ -71,6 +81,7 @@ export async function getManagementSessionState(): Promise<ManagementSessionStat
       active: true,
       error: null,
       actorId: payload.actor_id,
+      role: payload.role,
       authMethod: payload.auth_method,
       sessionId: payload.session_id,
       expiresAt: payload.expires_at,
@@ -88,6 +99,16 @@ export async function hasManagementSession() {
   return session.active;
 }
 
+export function hasManagementRole(
+  role: ManagementRole | undefined,
+  minimumRole: ManagementRole,
+) {
+  if (!role) {
+    return false;
+  }
+  return MANAGEMENT_ROLE_LEVELS[role] >= MANAGEMENT_ROLE_LEVELS[minimumRole];
+}
+
 export async function requireManagementSession(nextPath: string) {
   const session = await getManagementSessionState();
   if (!session.active) {
@@ -96,6 +117,7 @@ export async function requireManagementSession(nextPath: string) {
       : "";
     redirect(`/login?next=${encodeURIComponent(nextPath)}${suffix}`);
   }
+  return session;
 }
 
 export async function getManagementSessionHeaders(): Promise<Record<string, string>> {

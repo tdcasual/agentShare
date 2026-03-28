@@ -6,8 +6,8 @@ import { LangToggle } from "../components/lang-toggle";
 import { getLocale } from "../lib/i18n-server";
 import type { Locale } from "../lib/i18n-shared";
 import { tr } from "../lib/i18n-shared";
-import { hasManagementSession } from "../lib/management-session";
-import { agentSelfServeLabel, agentsCatalogLabel } from "../lib/ui";
+import { getManagementSessionState } from "../lib/management-session";
+import { agentSelfServeLabel, agentsCatalogLabel, managementRoleLabel } from "../lib/ui";
 
 type NavShellProps = {
   title: string;
@@ -41,7 +41,8 @@ export async function NavShell({
   headerActions,
   children,
 }: NavShellProps) {
-  const signedIn = await hasManagementSession();
+  const session = await getManagementSessionState();
+  const signedIn = session.active;
   const locale = await getLocale();
   const activeLabel = navLabel(locale, links.find((link) => link.href === activeHref)?.labelKey ?? "Overview");
   const primaryMobileLinks = links.filter((link) =>
@@ -64,7 +65,13 @@ export async function NavShell({
           <div className="shell-meta">
             <span className="shell-pill">
               {signedIn
-                ? tr(locale, "Management session active", "管理会话已连接")
+                ? session.role
+                  ? tr(
+                    locale,
+                    `${managementRoleLabel(locale, session.role)} session active`,
+                    `${managementRoleLabel(locale, session.role)}会话已连接`,
+                  )
+                  : tr(locale, "Management session active", "管理会话已连接")
                 : tr(locale, "Read-only until login", "登录前仅可读")}
             </span>
           </div>

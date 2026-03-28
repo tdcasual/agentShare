@@ -304,7 +304,7 @@ export function getCollectionNotice<T>(
   }
 
   const detail = result.error ?? "Unknown backend error.";
-  if (detail.startsWith("401") || detail.startsWith("403")) {
+  if (detail.startsWith("401")) {
     return {
       tone: "error",
       message:
@@ -313,6 +313,19 @@ export function getCollectionNotice<T>(
           `Authorization error while loading ${label}: ${detail}. ` +
             "Check the management session or sign in again.",
           `加载 ${label} 时发生授权错误：${detail}。请检查管理会话或重新登录。`,
+        ),
+    };
+  }
+
+  if (detail.startsWith("403")) {
+    return {
+      tone: "error",
+      message:
+        tr(
+          locale,
+          `Permission denied while loading ${label}: ${detail}. ` +
+            "Use a management session with the required role.",
+          `加载 ${label} 时权限不足：${detail}。请使用具备所需角色的管理会话。`,
         ),
     };
   }

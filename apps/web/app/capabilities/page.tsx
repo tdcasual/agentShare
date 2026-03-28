@@ -1,10 +1,11 @@
 import { createCapabilityAction } from "../actions";
 import { CapabilityForm } from "../../components/capability-form";
+import { ManagementRolePanel } from "../../components/management-role-panel";
 import { NavShell } from "../../components/nav-shell";
 import { getCapabilities, getCollectionNotice, getIntakeCatalog, getSecrets } from "../../lib/api";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
-import { requireManagementSession } from "../../lib/management-session";
+import { hasManagementRole, requireManagementSession } from "../../lib/management-session";
 import {
   adapterTypeLabel,
   approvalModeLabel,
@@ -25,13 +26,26 @@ function readSingleParam(
 }
 
 export default async function CapabilitiesPage({ searchParams }: PageProps) {
-  await requireManagementSession("/capabilities");
+  const session = await requireManagementSession("/capabilities");
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
+  const canConfigureCapabilities = hasManagementRole(session.role, "admin");
   const [capabilitiesResult, secretsResult, intakeCatalogResult] = await Promise.all([
     getCapabilities(),
-    getSecrets(),
-    getIntakeCatalog(),
+    canConfigureCapabilities
+      ? getSecrets()
+      : Promise.resolve({
+        items: [],
+        source: "error" as const,
+        error: "403 admin role required",
+      }),
+    canConfigureCapabilities
+      ? getIntakeCatalog()
+      : Promise.resolve({
+        item: null,
+        source: "error" as const,
+        error: "403 admin role required",
+      }),
   ]);
   const capabilities = capabilitiesResult.items;
   const capabilitiesNotice = getCollectionNotice(capabilitiesResult, tr(locale, "capabilities", "能力"), locale);
@@ -64,6 +78,8 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
                 ? tr(locale, "The selected secret does not satisfy the capability scope contract.", "所选密钥不满足能力范围契约。")
               : error === "management-auth"
                 ? tr(locale, "The management session is missing or expired.", "管理会话缺失或已过期。")
+                : error === "insufficient-role"
+                  ? tr(locale, "Your current role cannot configure capabilities.", "当前角色无权配置能力。")
                 : error === "api-disconnected"
                   ? tr(locale, "The API base URL is not configured, so the console cannot save capabilities.", "未配置 API Base URL，控制台无法保存能力。")
             : tr(locale, "The capability could not be created.", "能力创建失败。")}
@@ -83,12 +99,26 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
       </section>
       <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <CapabilityForm
-            action={createCapabilityAction}
-            catalog={intakeCatalogResult.item}
-            secrets={secrets}
-            locale={locale}
-          />
+          {canConfigureCapabilities ? (
+            <CapabilityForm
+              action={createCapabilityAction}
+              catalog={intakeCatalogResult.item}
+              secrets={secrets}
+              locale={locale}
+            />
+          ) : (
+            <ManagementRolePanel
+              locale={locale}
+              currentRole={session.role}
+              requiredRole="admin"
+              title={tr(locale, "An admin role is required to configure capability bindings.", "需要管理员角色才能配置能力绑定。")}
+              description={tr(
+                locale,
+                "Capability setup depends on secret inventory and should stay locked until the current management session can work with those references safely.",
+                "能力配置依赖密钥清单；只有当前管理会话能安全处理这些引用时，才应开放该表单。",
+              )}
+            />
+          )}
         </div>
         <div className="workspace-side">
           <section className="panel compact-panel stack">

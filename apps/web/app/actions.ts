@@ -54,8 +54,11 @@ function classifyManagementError(error: unknown) {
     if (error.status === 400) {
       return "invalid-contract";
     }
-    if (error.status === 401 || error.status === 403) {
+    if (error.status === 401) {
       return "management-auth";
+    }
+    if (error.status === 403) {
+      return "insufficient-role";
     }
     if (error.status === 503) {
       return "api-disconnected";
@@ -88,7 +91,7 @@ async function postJson(path: string, payload: Record<string, unknown>) {
 
   if (!response.ok) {
     const detail = await response.text();
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       await clearManagementSessionCookie();
     }
     throw new ManagementRequestError(response.status, detail);
