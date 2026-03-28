@@ -14,6 +14,7 @@ from app.routes.agents import router as agents_router
 from app.routes.approvals import router as approvals_router
 from app.routes.capabilities import router as capabilities_router
 from app.routes.invoke import router as invoke_router
+from app.routes.intake_catalog import router as intake_catalog_router
 from app.routes.leases import router as leases_router
 from app.mcp.server import router as mcp_router
 from app.routes.metrics import router as metrics_router
@@ -111,6 +112,7 @@ def healthcheck() -> dict[str, str]:
 app.include_router(agents_router)
 app.include_router(session_router)
 app.include_router(approvals_router)
+app.include_router(intake_catalog_router)
 app.include_router(secrets_router)
 app.include_router(capabilities_router)
 app.include_router(tasks_router)

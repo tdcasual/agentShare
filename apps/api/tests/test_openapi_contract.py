@@ -18,6 +18,7 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     claim_op = schema["paths"]["/api/tasks/{task_id}/claim"]["post"]
     complete_op = schema["paths"]["/api/tasks/{task_id}/complete"]["post"]
     create_task_op = schema["paths"]["/api/tasks"]["post"]
+    intake_catalog_op = schema["paths"]["/api/intake-catalog"]["get"]
     list_agents_op = schema["paths"]["/api/agents"]["get"]
     login_op = schema["paths"]["/api/session/login"]["post"]
     list_approvals_op = schema["paths"]["/api/approvals"]["get"]
@@ -33,6 +34,9 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert create_task_op["summary"]
     assert create_task_op["description"]
     assert create_task_op["security"] == [{"ManagementSession": []}]
+    assert intake_catalog_op["summary"]
+    assert intake_catalog_op["description"]
+    assert intake_catalog_op["security"] == [{"ManagementSession": []}]
     assert list_agents_op["security"] == [{"ManagementSession": []}]
     assert list_approvals_op["security"] == [{"ManagementSession": []}]
     assert approve_op["security"] == [{"ManagementSession": []}]
@@ -43,6 +47,9 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     schemas = schema["components"]["schemas"]
     assert schemas["ApprovalListResponse"]["properties"]["items"]["type"] == "array"
     assert schemas["ApprovalListResponse"]["properties"]["items"]["items"]["$ref"] == "#/components/schemas/ApprovalResponse"
+    assert schemas["IntakeCatalogResponse"]["properties"]["resource_kinds"]["type"] == "array"
+    assert schemas["IntakeVariantCatalog"]["properties"]["sections"]["type"] == "array"
+    assert schemas["IntakeFieldCatalog"]["properties"]["options_source"]["anyOf"][0]["type"] == "string"
     assert schemas["AgentCreate"]["example"]["allowed_task_types"] == ["config_sync", "account_read"]
     assert schemas["SecretCreate"]["example"]["provider"] == "openai"
     assert schemas["CapabilityCreate"]["example"]["required_provider_scopes"] == ["repo"]
