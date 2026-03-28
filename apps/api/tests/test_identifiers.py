@@ -11,18 +11,18 @@ def test_new_resource_id_uses_prefix_and_unique_suffix():
     assert first != "task-1"
 
 
-def test_agent_ids_do_not_reuse_deleted_suffixes(management_client):
-    first = management_client.post(
+def test_agent_ids_do_not_reuse_deleted_suffixes(owner_management_client):
+    first = owner_management_client.post(
         "/api/agents",
         json={"name": "First Agent", "risk_tier": "low"},
     )
     assert first.status_code == 201
     first_id = first.json()["id"]
 
-    deleted = management_client.delete(f"/api/agents/{first_id}")
+    deleted = owner_management_client.delete(f"/api/agents/{first_id}")
     assert deleted.status_code == 200
 
-    second = management_client.post(
+    second = owner_management_client.post(
         "/api/agents",
         json={"name": "Second Agent", "risk_tier": "low"},
     )

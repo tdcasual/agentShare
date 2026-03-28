@@ -95,7 +95,7 @@ def test_create_agent_returns_api_key(client, db_session):
     assert data["name"] == "New Agent"
 
 
-def test_delete_agent(client, db_session):
+def test_delete_agent_requires_owner_role(client, db_session):
     bootstrap_key = "bootstrap-key-xyz"
     repo = AgentRepository(db_session)
     repo.create(AgentIdentityModel(
@@ -111,4 +111,5 @@ def test_delete_agent(client, db_session):
     resp = client.delete(
         "/api/agents/agent-del",
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "owner role required"

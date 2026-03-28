@@ -132,5 +132,5 @@ def test_agent_management_routes_require_bootstrap_identity(client, management_c
     assert creation.status_code == 201
 
     deletion = management_client.delete("/api/agents/agent-delete")
-    assert deletion.status_code == 200
-    assert deletion.json()["status"] == "deleted"
+    assert deletion.status_code == 403
+    assert deletion.json()["detail"] == "owner role required"

@@ -1,4 +1,5 @@
 import hashlib
+from contextlib import contextmanager
 
 import fakeredis
 import pytest
@@ -32,13 +33,13 @@ TEST_SETTINGS = Settings(
 )
 
 
-def _build_test_app():
+def _build_test_app(settings: Settings = TEST_SETTINGS):
     runtime = AppRuntime(
-        settings=TEST_SETTINGS,
+        settings=settings,
         engine=_test_engine,
         session_factory=_TestSession,
     )
-    return create_app(TEST_SETTINGS, runtime=runtime)
+    return create_app(settings, runtime=runtime)
 
 
 @pytest.fixture(autouse=True)
@@ -126,6 +127,41 @@ def management_client(seeded_app):
         )
         assert login_response.status_code == 200, login_response.text
         assert login_response.cookies, "management login should issue a cookie"
+        yield test_client
+
+
+@pytest.fixture
+def management_client_for_role(db_session):
+    @contextmanager
+    def _client(role: str):
+        settings = TEST_SETTINGS.model_copy(update={"management_operator_role": role})
+        app = _build_test_app(settings)
+
+        def _override_get_db():
+            try:
+                yield db_session
+            finally:
+                pass
+
+        app.dependency_overrides[get_db] = _override_get_db
+        try:
+            with TestClient(app) as test_client:
+                login_response = test_client.post(
+                    "/api/session/login",
+                    json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+                )
+                assert login_response.status_code == 200, login_response.text
+                assert login_response.cookies, "management login should issue a cookie"
+                yield test_client
+        finally:
+            app.dependency_overrides.clear()
+
+    return _client
+
+
+@pytest.fixture
+def owner_management_client(management_client_for_role):
+    with management_client_for_role("owner") as test_client:
         yield test_client
 
 
