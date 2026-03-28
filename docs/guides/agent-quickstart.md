@@ -234,6 +234,8 @@ Successful invoke responses now include:
 
 Management sessions are intentionally short-lived. Every successful login mints a fresh `session_id`, and retries after expiry should start with a new `/api/session/login` exchange instead of assuming a stale cookie can be reused.
 
+Management routes may also enforce role boundaries. `operator` can review approvals, `admin` can manage secrets and agent inventory, and `owner` is required for destructive agent-management actions such as deletion.
+
 That keeps adapter behavior explicit without leaking the secret or raw credential material.
 
 ## 10. Complete Task (Runtime)

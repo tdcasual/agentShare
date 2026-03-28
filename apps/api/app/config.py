@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_BOOTSTRAP_AGENT_KEY = "changeme-bootstrap-key"
 DEFAULT_MANAGEMENT_SESSION_SECRET = "changeme-management-session-secret"
+ManagementRole = Literal["viewer", "operator", "admin", "owner"]
 
 
 class Settings(BaseSettings):
@@ -30,7 +31,7 @@ class Settings(BaseSettings):
     management_session_ttl_seconds: int = 60 * 60 * 12
     management_session_secure: bool = False
     management_operator_id: str = "management"
-    management_operator_role: str = "admin"
+    management_operator_role: ManagementRole = "admin"
     metrics_enabled: bool = True
 
     @model_validator(mode="after")

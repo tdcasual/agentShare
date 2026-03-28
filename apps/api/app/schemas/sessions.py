@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.config import ManagementRole
+
 
 class ManagementLoginRequest(BaseModel):
     model_config = ConfigDict(json_schema_extra={
@@ -29,7 +31,7 @@ class ManagementSessionResponse(BaseModel):
     status: str
     actor_type: str
     actor_id: str
-    role: str
+    role: ManagementRole
     auth_method: str
     session_id: str
     expires_in: int
@@ -41,7 +43,7 @@ class ManagementSessionPayload(BaseModel):
     sub: str
     actor_id: str
     actor_type: str
-    role: str
+    role: ManagementRole
     auth_method: str
     session_id: str
     iat: int

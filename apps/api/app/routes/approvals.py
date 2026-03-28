@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_management_session
+from app.auth import ManagementIdentity, require_operator_management_session
 from app.db import get_db
 from app.schemas.approvals import (
     ApprovalDecisionRequest,
@@ -24,11 +24,11 @@ router = APIRouter(prefix="/api/approvals")
     response_model=ApprovalListResponse,
     tags=["Management"],
     summary="List approval requests",
-    description="Return approval requests for management review, optionally filtered by status.",
+    description="Return approval requests for management review, optionally filtered by status. Requires an operator-or-higher management role.",
 )
 def list_approvals_route(
     status_filter: str | None = Query(default=None, alias="status"),
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_operator_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     del manager  # managed by dependency; kept to enforce session auth
@@ -45,12 +45,12 @@ def list_approvals_route(
     response_model=ApprovalResponse,
     tags=["Management"],
     summary="Approve a pending request",
-    description="Mark a pending approval request as approved and set its decision expiry.",
+    description="Mark a pending approval request as approved and set its decision expiry. Requires an operator-or-higher management role.",
 )
 def approve_request_route(
     approval_id: str,
     payload: ApprovalDecisionRequest,
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_operator_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     try:
@@ -73,12 +73,12 @@ def approve_request_route(
     response_model=ApprovalResponse,
     tags=["Management"],
     summary="Reject a pending request",
-    description="Mark a pending approval request as rejected with an operator-provided reason.",
+    description="Mark a pending approval request as rejected with an operator-provided reason. Requires an operator-or-higher management role.",
 )
 def reject_request_route(
     approval_id: str,
     payload: ApprovalRejectionRequest,
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_operator_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     try:

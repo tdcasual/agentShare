@@ -6,7 +6,12 @@ import secrets
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_agent, require_management_session
+from app.auth import (
+    ManagementIdentity,
+    require_admin_management_session,
+    require_agent,
+    require_owner_management_session,
+)
 from app.db import get_db
 from app.errors import NotFoundError
 from app.models.agent import AgentIdentity
@@ -38,11 +43,11 @@ def get_current_agent(agent: AgentIdentity = Depends(require_agent)) -> dict:
     status_code=status.HTTP_201_CREATED,
     tags=["Management"],
     summary="Create an agent identity",
-    description="Mint a new agent API key and define the initial task-type and capability allowlists for that identity.",
+    description="Mint a new agent API key and define the initial task-type and capability allowlists for that identity. Requires an admin-or-higher management role.",
 )
 def create_agent(
     payload: AgentCreate,
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
@@ -70,10 +75,10 @@ def create_agent(
     "",
     tags=["Management"],
     summary="List registered agents",
-    description="Return management metadata for registered agents. Requires a valid human management session cookie.",
+    description="Return management metadata for registered agents. Requires an admin-or-higher human management role.",
 )
 def list_agents(
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
@@ -93,11 +98,11 @@ def list_agents(
     "/{agent_id}",
     tags=["Management"],
     summary="Delete an agent identity",
-    description="Delete an agent record using the bootstrap management credential.",
+    description="Delete an agent record using an owner-level human management role.",
 )
 def delete_agent(
     agent_id: str,
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_owner_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)

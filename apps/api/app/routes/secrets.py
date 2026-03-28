@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_management_session
+from app.auth import ManagementIdentity, require_admin_management_session
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
@@ -20,11 +20,11 @@ router = APIRouter(prefix="/api/secrets")
     status_code=status.HTTP_201_CREATED,
     tags=["Management"],
     summary="Create a stored secret",
-    description="Store a plaintext credential in the secret backend and keep only normalized metadata in the control plane.",
+    description="Store a plaintext credential in the secret backend and keep only normalized metadata in the control plane. Requires an admin-or-higher management role.",
 )
 def create_secret(
     payload: SecretCreate,
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -57,10 +57,10 @@ def create_secret(
     "",
     tags=["Management"],
     summary="List stored secret references",
-    description="Return redacted secret inventory for the management console. Plaintext values are never returned.",
+    description="Return redacted secret inventory for the management console. Plaintext values are never returned. Requires an admin-or-higher management role.",
 )
 def list_secrets(
-    manager: ManagementIdentity = Depends(require_management_session),
+    manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = SecretRepository(session)

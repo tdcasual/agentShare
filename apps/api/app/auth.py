@@ -8,7 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.config import Settings
+from app.config import ManagementRole, Settings
 from app.db import get_db
 from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
@@ -23,9 +23,17 @@ management_security = APIKeyCookie(
 )
 
 
+MANAGEMENT_ROLE_LEVELS: dict[ManagementRole, int] = {
+    "viewer": 0,
+    "operator": 1,
+    "admin": 2,
+    "owner": 3,
+}
+
+
 class ManagementIdentity(BaseModel):
     id: str
-    role: str
+    role: ManagementRole
     actor_type: str = "human"
     auth_method: str = "session"
     session_id: str
@@ -107,6 +115,26 @@ def require_management_session(
         issued_at=payload.iat,
         expires_at=payload.exp,
     )
+
+
+def require_management_role(minimum_role: ManagementRole):
+    def dependency(
+        identity: ManagementIdentity = Depends(require_management_session),
+    ) -> ManagementIdentity:
+        if MANAGEMENT_ROLE_LEVELS[identity.role] < MANAGEMENT_ROLE_LEVELS[minimum_role]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"{minimum_role} role required",
+            )
+        return identity
+
+    dependency.__name__ = f"require_management_{minimum_role}"
+    return dependency
+
+
+require_operator_management_session = require_management_role("operator")
+require_admin_management_session = require_management_role("admin")
+require_owner_management_session = require_management_role("owner")
 
 
 def is_bootstrap_agent(agent: AgentIdentity) -> bool:
