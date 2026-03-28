@@ -5,12 +5,16 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_metrics_endpoint_exposes_prometheus_text(client) -> None:
+    client.get("/healthz")
+    client.get("/does-not-exist")
     response = client.get("/metrics")
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/plain")
     assert "agent_control_plane_up 1" in response.text
     assert "agent_control_plane_uptime_seconds" in response.text
+    assert "agent_control_plane_http_requests_total" in response.text
+    assert "agent_control_plane_http_errors_total" in response.text
 
 
 def test_prod_compose_enables_metrics_collection() -> None:

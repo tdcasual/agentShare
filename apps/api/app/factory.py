@@ -1,6 +1,7 @@
 import json
 import hashlib
 import logging
+import uuid
 from contextlib import asynccontextmanager
 from time import monotonic
 
@@ -8,6 +9,7 @@ from fastapi import FastAPI, Request
 
 from app import db as db_module
 from app.config import Settings
+from app.observability import record_http_request
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.routes import register_routes
@@ -44,12 +46,16 @@ def add_request_logging_middleware(app: FastAPI) -> None:
     @app.middleware("http")
     async def log_request(request: Request, call_next):
         started_at = monotonic()
+        request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
         response = await call_next(request)
         duration_ms = round((monotonic() - started_at) * 1000, 3)
+        response.headers["x-request-id"] = request_id
+        record_http_request(response.status_code)
         request_logger.info(
             json.dumps(
                 {
                     "event": "http_request",
+                    "request_id": request_id,
                     "method": request.method,
                     "path": request.url.path,
                     "status_code": response.status_code,

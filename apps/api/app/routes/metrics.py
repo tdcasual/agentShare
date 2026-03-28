@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from time import monotonic
-
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
 from app.config import Settings
+from app.observability import snapshot_metrics
 
 
 router = APIRouter(tags=["Observability"])
-STARTED_AT = monotonic()
 
 
 @router.get(
@@ -23,15 +21,21 @@ def metrics() -> PlainTextResponse:
     if not settings.metrics_enabled:
         return PlainTextResponse("", status_code=404)
 
-    uptime_seconds = monotonic() - STARTED_AT
+    metrics_snapshot = snapshot_metrics()
     payload = "\n".join(
         [
             "# HELP agent_control_plane_up Agent Control Plane process status.",
             "# TYPE agent_control_plane_up gauge",
-            "agent_control_plane_up 1",
+            f"agent_control_plane_up {metrics_snapshot['up']}",
             "# HELP agent_control_plane_uptime_seconds Agent Control Plane uptime in seconds.",
             "# TYPE agent_control_plane_uptime_seconds gauge",
-            f"agent_control_plane_uptime_seconds {uptime_seconds:.3f}",
+            f"agent_control_plane_uptime_seconds {metrics_snapshot['uptime_seconds']:.3f}",
+            "# HELP agent_control_plane_http_requests_total Total HTTP requests observed by the API.",
+            "# TYPE agent_control_plane_http_requests_total counter",
+            f"agent_control_plane_http_requests_total {metrics_snapshot['http_requests_total']}",
+            "# HELP agent_control_plane_http_errors_total Total HTTP requests with status >= 400.",
+            "# TYPE agent_control_plane_http_errors_total counter",
+            f"agent_control_plane_http_errors_total {metrics_snapshot['http_errors_total']}",
             "",
         ]
     )

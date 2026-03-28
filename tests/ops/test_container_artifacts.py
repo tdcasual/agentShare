@@ -145,3 +145,11 @@ def test_smoke_script_checks_https_entrypoint() -> None:
     assert "APP_BASE_URL" in script
     assert "--location" in script
     assert "--resolve" in script
+
+
+def test_operations_docs_reference_request_ids_for_incident_tracing() -> None:
+    operations_guide = (ROOT / "docs/guides/production-operations.md").read_text()
+    security_guide = (ROOT / "docs/guides/production-security.md").read_text()
+
+    assert "x-request-id" in operations_guide.lower()
+    assert "x-request-id" in security_guide.lower()

@@ -29,5 +29,6 @@ This guide covers the security controls that live inside this repository. It com
 ## Incident Entry Points
 
 - Start with the deployment smoke check, `/healthz`, and `/metrics`.
+- Use the response `x-request-id` header to correlate operator reports with API request logs.
 - Review the latest deploy logs and the Trivy scan output before assuming the issue is application-only.
 - If a secret compromise is suspected, rotate the external secret backend token first, then redeploy with updated `DEPLOY_ENV_FILE`.
