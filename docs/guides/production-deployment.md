@@ -15,7 +15,13 @@ This guide covers the production deployment path only. Use the agent quickstart 
 
 1. Push images through `.github/workflows/docker-images.yml`.
 2. Trigger `.github/workflows/deploy.yml` or let the successful `main` image workflow start it.
-3. The deploy workflow uploads the production assets, writes `.env.production`, validates compose, pulls images, restarts the stack, and runs smoke checks.
+3. The deploy workflow uploads the production assets, writes `.env.production`, validates compose, pulls images, runs `alembic upgrade head`, restarts the stack, and runs smoke checks.
+
+## Database Migrations
+
+- Treat Alembic as the schema authority for the API database.
+- Run `alembic upgrade head` from `apps/api` before starting the API in CI, staging, or production.
+- Do not rely on API startup to backfill legacy columns; schema changes must ship as migrations.
 
 ## DNS, TLS, and Metrics
 

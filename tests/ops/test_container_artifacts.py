@@ -86,6 +86,7 @@ def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
     assert "appleboy/ssh-action" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml config" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in workflow
+    assert "alembic upgrade head" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans" in workflow
     assert ".env.production" in workflow
     assert "DEPLOY_ENV_FILE" in workflow
@@ -161,3 +162,11 @@ def test_security_docs_explain_fail_fast_production_secrets_and_secure_cookies()
     assert "changeme-bootstrap-key" in security_guide
     assert "changeme-management-session-secret" in security_guide
     assert "management_session_secure" in security_guide
+
+
+def test_ci_and_deployment_docs_reference_migration_step() -> None:
+    ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+    deployment_guide = (ROOT / "docs/guides/production-deployment.md").read_text().lower()
+
+    assert "alembic upgrade head" in ci_workflow
+    assert "alembic upgrade head" in deployment_guide

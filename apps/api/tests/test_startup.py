@@ -46,7 +46,7 @@ def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
         session.close()
 
 
-def test_init_db_backfills_task_playbook_ids_column(monkeypatch, tmp_path):
+def test_init_db_does_not_backfill_legacy_task_columns(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-legacy.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
 
@@ -80,4 +80,4 @@ def test_init_db_backfills_task_playbook_ids_column(monkeypatch, tmp_path):
             for row in connection.execute(text("PRAGMA table_info(tasks)")).all()
         }
 
-    assert "playbook_ids" in columns
+    assert "playbook_ids" not in columns
