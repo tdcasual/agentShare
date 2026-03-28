@@ -18,6 +18,7 @@ This guide covers the app team's single-host production baseline only. Managed d
 1. Push images through `.github/workflows/docker-images.yml`.
 2. Trigger `.github/workflows/deploy.yml` or let the successful `main` image workflow start it.
 3. The deploy workflow uploads the production assets, writes `.env.production`, validates compose, pulls images, runs `alembic upgrade head`, restarts the stack, and runs smoke checks.
+4. The smoke script accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` as the public entrypoint override when operators need to match existing environment naming.
 
 ## Database Migrations
 

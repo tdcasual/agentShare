@@ -113,6 +113,8 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d --rem
 APP_BASE_URL=https://agentshare.example.com PUBLIC_HOST=agentshare.example.com ./scripts/ops/smoke-test.sh
 ```
 
+`scripts/ops/smoke-test.sh` accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` for the public entrypoint, so teams can keep the smoke configuration aligned with their deployment env naming.
+
 ### Required GitHub secrets
 
 Configure these repository or environment secrets before enabling the deploy workflow:

@@ -3,7 +3,7 @@
 set -eu
 
 : "${PUBLIC_HOST:?PUBLIC_HOST is required}"
-APP_BASE_URL="${APP_BASE_URL:-https://${PUBLIC_HOST}}"
+APP_BASE_URL="${APP_BASE_URL:-${PUBLIC_BASE_URL:-https://${PUBLIC_HOST}}}"
 
 check_health_headers() {
 	headers_file="$(mktemp)"
