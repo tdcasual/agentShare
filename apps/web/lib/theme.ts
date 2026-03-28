@@ -30,7 +30,7 @@ export function initTheme() {
   applyTheme(theme)
   
   // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (_event) => {
     if (getStoredTheme() === 'system') {
       applyTheme('system')
     }

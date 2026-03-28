@@ -25,6 +25,8 @@ This guide captures the remaining platform work that is intentionally outside th
 - Single-host production baseline for controlled environments
 - Smoke checks, backup helpers, and production runbooks
 
+That single-host production baseline is the repository completion boundary for this codebase. Shipping everything above that line is an application responsibility; shipping everything below that line is platform work.
+
 ## What Must Be Owned Outside This Repository
 
 - High-availability networking and DNS failover
@@ -32,6 +34,8 @@ This guide captures the remaining platform work that is intentionally outside th
 - Secret backend lifecycle management
 - SSO integration and identity governance
 - Centralized alerting and incident escalation
+
+These items are owned outside this repository because they require long-lived infrastructure control, shared platform policy, or cross-service incident response beyond the app team's delivery scope.
 
 ## Exit Criteria For Calling P3 Complete
 

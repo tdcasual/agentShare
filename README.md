@@ -214,6 +214,21 @@ Playwright will look for `.venv/bin/uvicorn` by default. If you need to use a di
 export AGENT_SHARE_API_UVICORN_BIN=/absolute/path/to/uvicorn
 ```
 
+## Quality Floor
+
+The repo's clean repo state is defined by these commands:
+
+```bash
+PYTHONPATH=apps/api .venv/bin/pytest apps/api/tests tests/ops -q
+cd apps/web && npm run typecheck
+cd apps/web && npm run lint
+cd apps/web && npm run test:contracts
+cd apps/web && npm run test:unit
+cd apps/web && npx playwright test
+```
+
+If one of these fails, treat the branch as below the quality floor until the failure is explained or fixed.
+
 ## Agent Quickstart
 
 Start with the operational guide:

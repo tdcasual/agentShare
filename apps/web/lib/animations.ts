@@ -8,7 +8,6 @@ const easeDefault = [0.4, 0, 0.2, 1] as const
 const easeDecelerate = [0, 0, 0.2, 1] as const
 const easeAccelerate = [0.4, 0, 1, 1] as const
 const easeSpring = [0.34, 1.56, 0.64, 1] as const
-const easeSmooth = [0.19, 1, 0.22, 1] as const
 
 // Base transitions
 export const transitions: Record<string, Transition> = {

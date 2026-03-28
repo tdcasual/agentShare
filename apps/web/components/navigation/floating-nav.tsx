@@ -32,7 +32,7 @@ interface FloatingNavProps {
   isAuthenticated?: boolean
 }
 
-export function FloatingNav({ locale, badgeCounts, isAuthenticated = false }: FloatingNavProps) {
+export function FloatingNav({ locale, badgeCounts, isAuthenticated: _isAuthenticated = false }: FloatingNavProps) {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { prefersReducedMotion } = useReducedMotion()

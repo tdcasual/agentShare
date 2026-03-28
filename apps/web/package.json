@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint app components lib tests --max-warnings=0",
     "test:contracts": "python3 ../../scripts/check-intake-drift.py",
     "test:unit": "tsx --test lib/forms/__tests__/*.test.ts",
     "test:e2e": "playwright test"
@@ -25,7 +27,11 @@
     "@types/node": "24.0.10",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
+    "@eslint/js": "^9.24.0",
+    "eslint": "^9.24.0",
+    "globals": "^16.0.0",
     "tsx": "^4.21.0",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "typescript-eslint": "^8.29.0"
   }
 }

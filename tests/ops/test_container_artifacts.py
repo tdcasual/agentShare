@@ -180,3 +180,22 @@ def test_ci_and_deployment_docs_reference_migration_step() -> None:
 
     assert "alembic upgrade head" in ci_workflow
     assert "alembic upgrade head" in deployment_guide
+
+
+def test_repo_quality_floor_is_documented_and_enforced() -> None:
+    ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+    web_package = (ROOT / "apps/web/package.json").read_text()
+    readme = (ROOT / "README.md").read_text().lower()
+
+    assert (ROOT / ".editorconfig").exists()
+    assert (ROOT / "apps/web/eslint.config.mjs").exists()
+    assert '"typecheck"' in web_package
+    assert '"lint"' in web_package
+    assert "npm run typecheck" in ci_workflow
+    assert "npm run lint" in ci_workflow
+    assert "quality floor" in readme
+    assert "clean repo state" in readme
+
+
+def test_frontend_dead_design_token_layer_is_removed() -> None:
+    assert not (ROOT / "apps/web/lib/design-tokens.ts").exists()

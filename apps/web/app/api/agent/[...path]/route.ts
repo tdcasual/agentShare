@@ -8,7 +8,7 @@ function getUpstreamBaseUrl() {
 }
 
 function resolveUpstreamPath(pathSegments: string[], method: string): string | null {
-  const [scope, id, action, tail] = pathSegments;
+  const [scope, id, action] = pathSegments;
 
   if (scope === "tasks") {
     if (method === "GET" && pathSegments.length === 1) {
@@ -122,4 +122,3 @@ export async function POST(
   }
   return proxyToUpstream(req, upstreamPath);
 }
-

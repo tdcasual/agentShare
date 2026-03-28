@@ -35,7 +35,7 @@ export function ApprovalsClient({ initialApprovals, locale }: ApprovalsClientPro
     )
   }, [locale])
 
-  const handleReject = useCallback((id: string, reason: string) => {
+  const handleReject = useCallback((id: string, _reason: string) => {
     setApprovals(prev => prev.filter(a => a.id !== id))
     toastSuccess(
       tr(locale, 'Approval rejected', '已拒绝'),

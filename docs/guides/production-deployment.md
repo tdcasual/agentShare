@@ -11,6 +11,8 @@ This guide covers the production deployment path only. Use the agent quickstart 
 - `web`, `api`, `postgres`, and `redis` stay on private compose networks.
 - Secret reads and writes go through an external secret backend configured with `SECRET_BACKEND_URL` and `SECRET_BACKEND_TOKEN`.
 
+This guide covers the app team's single-host production baseline only. Managed data services, HA networking, SSO, and centralized alerting remain outside this repository and should follow `docs/guides/platform-roadmap.md`.
+
 ## Release Flow
 
 1. Push images through `.github/workflows/docker-images.yml`.
