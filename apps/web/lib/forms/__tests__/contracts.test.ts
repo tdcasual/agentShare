@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { agentContracts, getAgentContract } from "../agents-contracts";
+import { agentContracts, defaultAgentVariant, getAgentContract } from "../agents-contracts";
 import {
   buildCapabilityContracts,
   defaultCapabilityVariant,
 } from "../capabilities-contracts";
+import { getFrontendContractSummary } from "../contract-summary";
 import {
   defaultSecretVariant,
   getSecretContract,
@@ -89,4 +90,23 @@ test("agent registry exposes scoped onboarding variants", () => {
   assert.equal(payload.name, "scoped-agent");
   assert.equal(payload.allowed_task_types, "prompt_run,account_read");
   assert.equal(payload.allowed_capability_ids, "");
+});
+
+test("frontend contract summary exposes stable defaults and dynamic option sources", () => {
+  const summary = getFrontendContractSummary();
+
+  assert.equal(summary.secret.default_variant, defaultSecretVariant);
+  assert.equal(summary.task.default_variant, defaultTaskVariant);
+  assert.equal(summary.capability.default_variant, defaultCapabilityVariant);
+  assert.equal(summary.agent.default_variant, defaultAgentVariant);
+
+  const capabilitySecretField = summary.capability.variants.generic_capability.sections[0]?.fields.find(
+    (field) => field.key === "secret_id",
+  );
+  assert.equal(capabilitySecretField?.options_source, "management_secret_inventory");
+
+  const openaiProviderField = summary.secret.variants.openai_api_token.sections[0]?.fields.find(
+    (field) => field.key === "provider",
+  );
+  assert.equal(openaiProviderField?.read_only, true);
 });
