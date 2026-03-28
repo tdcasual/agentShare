@@ -19,6 +19,7 @@ from app.routes import register_routes
 from app.services.secret_backend import validate_secret_backend_settings
 
 request_logger = logging.getLogger("app.request")
+startup_logger = logging.getLogger("app.startup")
 
 
 def _hash_key(key: str) -> str:
@@ -80,8 +81,11 @@ def add_idempotency_middleware(app: FastAPI, settings: Settings) -> None:
             redis_client=get_redis(settings),
             ttl_seconds=300,
         )
-    except Exception:
-        pass
+    except Exception as exc:
+        message = f"Idempotency middleware disabled because Redis initialization failed: {exc}"
+        if settings.is_production_like():
+            raise RuntimeError(message) from exc
+        startup_logger.warning(message)
 
 
 def register_core_routes(app: FastAPI) -> None:

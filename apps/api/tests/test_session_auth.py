@@ -64,3 +64,22 @@ def test_management_login_uses_runtime_cookie_name(tmp_path):
     assert response.status_code == 200
     assert "ops_session" in response.cookies
     assert "ops_session=" in response.headers["set-cookie"]
+
+
+def test_management_login_sets_secure_cookie_when_enabled(tmp_path):
+    settings = Settings(
+        database_url=f"sqlite:///{tmp_path / 'secure-cookie.db'}",
+        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        management_session_secret="session-secret",
+        management_session_secure=True,
+    )
+    app = create_app(settings)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/session/login",
+            json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+        )
+
+    assert response.status_code == 200
+    assert "secure" in response.headers["set-cookie"].lower()

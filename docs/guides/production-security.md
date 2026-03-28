@@ -20,6 +20,12 @@ This guide covers the security controls that live inside this repository. It com
 - Rotate `SECRET_BACKEND_TOKEN` in the external secret backend according to the provider's least-privilege policy.
 - Rotate `BOOTSTRAP_AGENT_KEY` and `MANAGEMENT_SESSION_SECRET` whenever operator trust changes or after an incident.
 
+## Fail-Fast Configuration
+
+- Production and staging must replace the placeholder values `changeme-bootstrap-key` and `changeme-management-session-secret` before the API can boot.
+- Production and staging must set `MANAGEMENT_SESSION_SECURE=true` so browser session cookies are always marked secure.
+- If Redis-backed idempotency middleware cannot initialize, development logs the reason explicitly and production fails fast instead of silently degrading.
+
 ## Container Security Scan
 
 - `.github/workflows/security.yml` runs a Trivy security scan against the published `ghcr.io` images.

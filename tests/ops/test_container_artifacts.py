@@ -153,3 +153,11 @@ def test_operations_docs_reference_request_ids_for_incident_tracing() -> None:
 
     assert "x-request-id" in operations_guide.lower()
     assert "x-request-id" in security_guide.lower()
+
+
+def test_security_docs_explain_fail_fast_production_secrets_and_secure_cookies() -> None:
+    security_guide = (ROOT / "docs/guides/production-security.md").read_text().lower()
+
+    assert "changeme-bootstrap-key" in security_guide
+    assert "changeme-management-session-secret" in security_guide
+    assert "management_session_secure" in security_guide
