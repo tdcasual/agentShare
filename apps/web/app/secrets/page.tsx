@@ -1,7 +1,7 @@
 import { createSecretAction } from "../actions";
 import { SecretsForm } from "../../components/secrets-form";
 import { NavShell } from "../../components/nav-shell";
-import { getCollectionNotice, getSecrets } from "../../lib/api";
+import { getCollectionNotice, getIntakeCatalog, getSecrets } from "../../lib/api";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
@@ -22,7 +22,10 @@ export default async function SecretsPage({ searchParams }: PageProps) {
   await requireManagementSession("/secrets");
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
-  const secretsResult = await getSecrets();
+  const [secretsResult, intakeCatalogResult] = await Promise.all([
+    getSecrets(),
+    getIntakeCatalog(),
+  ]);
   const secrets = secretsResult.items;
   const secretsNotice = getCollectionNotice(secretsResult, tr(locale, "secrets", "密钥"), locale);
   const created = readSingleParam(params, "created");
@@ -67,7 +70,11 @@ export default async function SecretsPage({ searchParams }: PageProps) {
       </section>
       <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <SecretsForm action={createSecretAction} locale={locale} />
+          <SecretsForm
+            action={createSecretAction}
+            catalog={intakeCatalogResult.item}
+            locale={locale}
+          />
         </div>
         <div className="workspace-side">
           <section className="panel compact-panel stack">

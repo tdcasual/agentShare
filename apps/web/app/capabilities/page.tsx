@@ -1,7 +1,7 @@
 import { createCapabilityAction } from "../actions";
 import { CapabilityForm } from "../../components/capability-form";
 import { NavShell } from "../../components/nav-shell";
-import { getCapabilities, getCollectionNotice, getSecrets } from "../../lib/api";
+import { getCapabilities, getCollectionNotice, getIntakeCatalog, getSecrets } from "../../lib/api";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
@@ -28,10 +28,13 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
   await requireManagementSession("/capabilities");
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
-  const capabilitiesResult = await getCapabilities();
+  const [capabilitiesResult, secretsResult, intakeCatalogResult] = await Promise.all([
+    getCapabilities(),
+    getSecrets(),
+    getIntakeCatalog(),
+  ]);
   const capabilities = capabilitiesResult.items;
   const capabilitiesNotice = getCollectionNotice(capabilitiesResult, tr(locale, "capabilities", "能力"), locale);
-  const secretsResult = await getSecrets();
   const secrets = secretsResult.items;
   const created = readSingleParam(params, "created");
   const error = readSingleParam(params, "error");
@@ -80,7 +83,12 @@ export default async function CapabilitiesPage({ searchParams }: PageProps) {
       </section>
       <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
-          <CapabilityForm action={createCapabilityAction} secrets={secrets} locale={locale} />
+          <CapabilityForm
+            action={createCapabilityAction}
+            catalog={intakeCatalogResult.item}
+            secrets={secrets}
+            locale={locale}
+          />
         </div>
         <div className="workspace-side">
           <section className="panel compact-panel stack">

@@ -2,7 +2,7 @@ import { createTaskAction } from "../actions";
 import { NavShell } from "../../components/nav-shell";
 import { TaskForm } from "../../components/task-form";
 import { TasksTable } from "../../components/tasks-table";
-import { getCollectionNotice, getPlaybooks, getTasks } from "../../lib/api";
+import { getCollectionNotice, getIntakeCatalog, getPlaybooks, getTasks } from "../../lib/api";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
 import { hasManagementSession } from "../../lib/management-session";
@@ -23,7 +23,10 @@ export default async function TasksPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
   const canManageTasks = await hasManagementSession();
-  const tasksResult = await getTasks();
+  const [tasksResult, intakeCatalogResult] = await Promise.all([
+    getTasks(),
+    canManageTasks ? getIntakeCatalog() : Promise.resolve({ item: null, source: "disconnected" as const }),
+  ]);
   const tasks = tasksResult.items;
   const pendingCount = tasks.filter((task) => task.status === "pending").length;
   const claimedCount = tasks.filter((task) => task.status === "claimed").length;
@@ -83,7 +86,11 @@ export default async function TasksPage({ searchParams }: PageProps) {
       <div className="workspace-grid workspace-grid-priority">
         <div className="workspace-main">
           {canManageTasks ? (
-            <TaskForm action={createTaskAction} locale={locale} />
+            <TaskForm
+              action={createTaskAction}
+              catalog={intakeCatalogResult.item}
+              locale={locale}
+            />
           ) : (
             <section className="panel stack">
               <div>

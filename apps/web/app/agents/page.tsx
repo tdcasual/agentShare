@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AgentForm } from "../../components/agent-form";
 import { NavShell } from "../../components/nav-shell";
 import { AgentKeyDisplay } from "../../components/agent-key-display";
-import { getAgents, getApiDocsLinks, getApiBaseUrl, getCollectionNotice } from "../../lib/api";
+import { getAgents, getApiDocsLinks, getApiBaseUrl, getCollectionNotice, getIntakeCatalog } from "../../lib/api";
 import { getLocale } from "../../lib/i18n-server";
 import { tr } from "../../lib/i18n-shared";
 import { requireManagementSession } from "../../lib/management-session";
@@ -26,7 +26,10 @@ export default async function AgentsPage({ searchParams }: PageProps) {
   await requireManagementSession("/agents");
   const params = (await searchParams) ?? {};
   const locale = await getLocale();
-  const agentsResult = await getAgents();
+  const [agentsResult, intakeCatalogResult] = await Promise.all([
+    getAgents(),
+    getIntakeCatalog(),
+  ]);
   const agents = agentsResult.items;
   const agentsNotice = getCollectionNotice(agentsResult, tr(locale, "agents", "Agent 列表"), locale);
   const apiBaseUrl = getApiBaseUrl();
@@ -110,7 +113,11 @@ export default async function AgentsPage({ searchParams }: PageProps) {
 
       <details className="compact-details">
         <summary>{tr(locale, "Register new agent", "注册新 Agent")}</summary>
-        <AgentForm action={createAgentAction} locale={locale} />
+        <AgentForm
+          action={createAgentAction}
+          catalog={intakeCatalogResult.item}
+          locale={locale}
+        />
       </details>
 
       <section className="grid">

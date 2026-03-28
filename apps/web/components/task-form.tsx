@@ -1,17 +1,22 @@
 "use client";
 
 import type { Locale } from "../lib/i18n-shared";
-import { defaultTaskVariant, taskContracts } from "../lib/forms";
+import type { IntakeCatalogResponse } from "../lib/forms";
+import { buildTaskContractsFromCatalog } from "../lib/forms";
 import { tr } from "../lib/i18n-shared";
 import { IntakeFormRenderer } from "./forms";
 
 export function TaskForm({
   action,
+  catalog,
   locale = "en",
 }: {
   action: (formData: FormData) => void | Promise<void>;
+  catalog: IntakeCatalogResponse | null;
   locale?: Locale;
 }) {
+  const formCatalog = buildTaskContractsFromCatalog(catalog);
+
   return (
     <section className="panel stack">
       <div>
@@ -27,8 +32,8 @@ export function TaskForm({
       </div>
       <IntakeFormRenderer
         action={action}
-        contracts={taskContracts}
-        defaultVariant={defaultTaskVariant}
+        contracts={formCatalog.contracts}
+        defaultVariant={formCatalog.defaultVariant}
         locale={locale}
         submitLabel={{ en: "Create task", zh: "创建任务" }}
         variantLabel={{ en: "Task template", zh: "任务模板" }}

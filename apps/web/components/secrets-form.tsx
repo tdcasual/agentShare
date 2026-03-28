@@ -1,17 +1,22 @@
 "use client";
 
 import type { Locale } from "../lib/i18n-shared";
-import { defaultSecretVariant, secretContracts } from "../lib/forms";
+import type { IntakeCatalogResponse } from "../lib/forms";
+import { buildSecretContractsFromCatalog } from "../lib/forms";
 import { tr } from "../lib/i18n-shared";
 import { IntakeFormRenderer } from "./forms";
 
 export function SecretsForm({
   action,
+  catalog,
   locale = "en",
 }: {
   action: (formData: FormData) => void | Promise<void>;
+  catalog: IntakeCatalogResponse | null;
   locale?: Locale;
 }) {
+  const formCatalog = buildSecretContractsFromCatalog(catalog);
+
   return (
     <section className="panel stack" aria-labelledby="secret-form-title">
       <div>
@@ -27,8 +32,8 @@ export function SecretsForm({
       </div>
       <IntakeFormRenderer
         action={action}
-        contracts={secretContracts}
-        defaultVariant={defaultSecretVariant}
+        contracts={formCatalog.contracts}
+        defaultVariant={formCatalog.defaultVariant}
         locale={locale}
         submitLabel={{ en: "Save secret", zh: "保存密钥" }}
         variantLabel={{ en: "Secret type", zh: "密钥模板" }}

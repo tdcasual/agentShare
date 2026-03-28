@@ -1,6 +1,7 @@
 import { getManagementSessionHeaders } from "./management-session";
 import type { Locale } from "./i18n-shared";
 import { tr } from "./i18n-shared";
+import type { IntakeCatalogResponse } from "./forms";
 
 export type Secret = {
   id: string;
@@ -108,6 +109,14 @@ export type CollectionResult<T> = {
   source: CollectionSource;
   error?: string;
 };
+
+function disconnectedItemResult<T>(): ItemResult<T> {
+  return {
+    item: null,
+    source: "disconnected",
+    error: "AGENT_CONTROL_PLANE_API_URL is not configured.",
+  };
+}
 
 const demoFallback = {
   secrets: [
@@ -467,6 +476,41 @@ export async function getPlaybookById(playbookId: string): Promise<ItemResult<Pl
     }
     return {
       item: (await response.json()) as Playbook,
+      source: "live",
+    };
+  } catch (error) {
+    return {
+      item: null,
+      source: "error",
+      error: error instanceof Error ? error.message : "Failed to reach API backend.",
+    };
+  }
+}
+
+export async function getIntakeCatalog(): Promise<ItemResult<IntakeCatalogResponse>> {
+  const apiBase = getApiBaseUrl();
+  if (!apiBase) {
+    return disconnectedItemResult();
+  }
+
+  try {
+    const headers = await getManagementSessionHeaders();
+    const response = await fetch(`${apiBase}/api/intake-catalog`, {
+      cache: "no-store",
+      headers,
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      return {
+        item: null,
+        source: "error",
+        error: `${response.status} ${detail || response.statusText}`.trim(),
+      };
+    }
+
+    return {
+      item: (await response.json()) as IntakeCatalogResponse,
       source: "live",
     };
   } catch (error) {
