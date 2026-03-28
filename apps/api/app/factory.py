@@ -92,9 +92,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app_instance: FastAPI):
-        validate_secret_backend_settings(current_settings)
+        runtime = app_instance.state.runtime
+        settings = app_instance.state.settings
+
+        validate_secret_backend_settings(settings)
         db_module.init_db(runtime.engine)
-        ensure_bootstrap_agent(current_settings, runtime.session_factory)
+        ensure_bootstrap_agent(settings, runtime.session_factory)
         yield
 
     app = FastAPI(

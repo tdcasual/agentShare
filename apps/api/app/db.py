@@ -6,18 +6,30 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings
-from app.runtime import build_runtime
+from app.runtime import AppRuntime, build_runtime
 
-_default_runtime = build_runtime(Settings())
-_settings = _default_runtime.settings
 
-engine = _default_runtime.engine
-SessionLocal = _default_runtime.session_factory
+_default_runtime: AppRuntime | None = None
+
+
+def _get_default_runtime() -> AppRuntime:
+    global _default_runtime
+    if _default_runtime is None:
+        _default_runtime = build_runtime(Settings())
+    return _default_runtime
+
+
+def __getattr__(name: str):
+    if name == "engine":
+        return _get_default_runtime().engine
+    if name == "SessionLocal":
+        return _get_default_runtime().session_factory
+    raise AttributeError(name)
 
 
 def init_db(target_engine: Engine | None = None) -> None:
     from app.orm import Base  # Imported lazily so model registration happens before create_all.
-    engine_to_use = target_engine or engine
+    engine_to_use = target_engine or _get_default_runtime().engine
 
     Base.metadata.create_all(bind=engine_to_use)
     inspector = inspect(engine_to_use)
@@ -72,7 +84,7 @@ def _ensure_columns(
     *,
     target_engine: Engine | None = None,
 ) -> None:
-    engine_to_use = target_engine or engine
+    engine_to_use = target_engine or _get_default_runtime().engine
     inspector = inspect(engine_to_use)
     existing = {column["name"] for column in inspector.get_columns(table_name)}
     missing = [definition for column, definition in definitions.items() if column not in existing]
@@ -86,7 +98,7 @@ def _ensure_columns(
 
 def get_db(request: Request) -> Generator[Session, None, None]:
     """FastAPI dependency that yields a DB session per request."""
-    session_factory: sessionmaker[Session] = SessionLocal
+    session_factory: sessionmaker[Session] = _get_default_runtime().session_factory
     if hasattr(request.app.state, "runtime"):
         session_factory = request.app.state.runtime.session_factory
 
