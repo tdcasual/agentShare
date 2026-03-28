@@ -136,3 +136,13 @@ export function createCatalogBehaviorMap(
     return accumulator;
   }, {});
 }
+
+export function createVariantBehaviorMap(
+  resourceKind: string,
+  behaviors: Record<string, IntakeVariantBehavior>,
+): IntakeCatalogBehaviorMap {
+  return Object.entries(behaviors).reduce<IntakeCatalogBehaviorMap>((accumulator, [variant, behavior]) => {
+    accumulator[getBehaviorKey(resourceKind, variant)] = behavior;
+    return accumulator;
+  }, {});
+}
