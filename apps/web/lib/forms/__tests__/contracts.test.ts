@@ -58,6 +58,7 @@ test("capability registry can be built from current secret inventory", () => {
 
   const openai = capabilityContracts.find((contract) => contract.variant === "openai_chat_proxy");
   assert.ok(openai);
+  const secretField = openai.sections[0]?.fields.find((field) => field.key === "secret_id");
 
   const payload = openai.serialize({
     name: "openai.chat.invoke",
@@ -74,6 +75,7 @@ test("capability registry can be built from current secret inventory", () => {
 
   assert.equal(payload.adapter_type, "openai");
   assert.equal(payload.required_provider, "openai");
+  assert.equal(secretField?.defaultValue, "secret-1");
 });
 
 test("agent registry exposes scoped onboarding variants", () => {

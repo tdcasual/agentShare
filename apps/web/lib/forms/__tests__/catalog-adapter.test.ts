@@ -113,3 +113,52 @@ test("adaptResourceCatalog keeps capability secret binding inventory-backed", ()
   assert.equal(secretField?.optionsSource, "management_secret_inventory");
   assert.deepEqual(secretField?.options, []);
 });
+
+test("adaptResourceCatalog defaults inventory-backed selects to the first available option", () => {
+  const capabilityCatalog: IntakeCatalogResource = {
+    kind: "capability",
+    default_variant: "generic_capability",
+    variants: [
+      {
+        resource_kind: "capability",
+        variant: "generic_capability",
+        title: { en: "Generic capability", zh: "通用能力" },
+        summary: {
+          en: "Manual binding with full adapter and provider control.",
+          zh: "手动绑定，完整控制适配器与提供方。",
+        },
+        sections: [
+          {
+            id: "basic",
+            title: { en: "Basic fields", zh: "基础字段" },
+            fields: [
+              {
+                key: "secret_id",
+                control: "select",
+                label: { en: "Bound secret", zh: "绑定密钥" },
+                required: true,
+                options_source: "management_secret_inventory",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const resource = adaptResourceCatalog(capabilityCatalog, {}, {
+    management_secret_inventory: [
+      {
+        value: "secret-1",
+        label: { en: "OpenAI prod", zh: "OpenAI prod" },
+      },
+      {
+        value: "secret-2",
+        label: { en: "GitHub prod", zh: "GitHub prod" },
+      },
+    ],
+  });
+  const secretField = resource.contracts[0]?.sections[0]?.fields[0];
+
+  assert.equal(secretField?.defaultValue, "secret-1");
+});

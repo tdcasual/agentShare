@@ -1,5 +1,7 @@
 import type { Locale } from "../i18n-shared";
 
+import { adaptResourceCatalog, createVariantBehaviorMap } from "./catalog-adapter";
+import { requireGeneratedCatalogResource } from "./generated-catalog";
 import type { FieldOption, IntakeVariantContract, ValidationErrors } from "./types";
 import {
   mergeValidationErrors,
@@ -13,8 +15,6 @@ export type SecretBindingOption = {
   display_name: string;
   kind: string;
 };
-
-export const defaultCapabilityVariant = "generic_capability";
 
 function validateCapability(
   contract: IntakeVariantContract,
@@ -63,516 +63,104 @@ function toSecretOptions(secrets: SecretBindingOption[]): FieldOption[] {
   }));
 }
 
-export function buildCapabilityContracts(secrets: SecretBindingOption[]): IntakeVariantContract[] {
-  const secretOptions = toSecretOptions(secrets);
+function createCapabilityBehavior(config: {
+  defaultName?: string;
+  defaultAllowedMode?: string;
+  fixedAllowedMode?: string;
+  defaultRiskLevel?: string;
+  defaultLeaseTtlSeconds?: string;
+  defaultAdapterType?: string;
+  fixedAdapterType?: string;
+  defaultRequiredProvider?: string;
+  fixedRequiredProvider?: string;
+  defaultApprovalMode?: string;
+  defaultAdapterConfig?: string;
+  defaultApprovalRules?: string;
+  defaultRequiredProviderScopes?: string;
+  defaultAllowedEnvironments?: string;
+}): Pick<IntakeVariantContract, "serialize" | "validate"> {
+  return {
+    serialize(values) {
+      return {
+        name: String(values.name ?? config.defaultName ?? ""),
+        secret_id: String(values.secret_id ?? ""),
+        allowed_mode: config.fixedAllowedMode ?? String(values.allowed_mode ?? config.defaultAllowedMode ?? "proxy_only"),
+        risk_level: String(values.risk_level ?? config.defaultRiskLevel ?? "medium"),
+        lease_ttl_seconds: String(values.lease_ttl_seconds ?? config.defaultLeaseTtlSeconds ?? "60"),
+        adapter_type: config.fixedAdapterType ?? String(values.adapter_type ?? config.defaultAdapterType ?? "generic_http"),
+        required_provider: config.fixedRequiredProvider ?? String(values.required_provider ?? config.defaultRequiredProvider ?? ""),
+        approval_mode: String(values.approval_mode ?? config.defaultApprovalMode ?? "auto"),
+        adapter_config: String(values.adapter_config ?? config.defaultAdapterConfig ?? "{}"),
+        approval_rules: String(values.approval_rules ?? config.defaultApprovalRules ?? "[]"),
+        required_provider_scopes: String(values.required_provider_scopes ?? config.defaultRequiredProviderScopes ?? ""),
+        allowed_environments: String(values.allowed_environments ?? config.defaultAllowedEnvironments ?? ""),
+      };
+    },
+    validate(this: IntakeVariantContract, values, locale) {
+      return validateCapability(this, values, locale);
+    },
+  };
+}
 
-  return [
+const capabilityResource = requireGeneratedCatalogResource("capability");
+
+export const defaultCapabilityVariant = capabilityResource.default_variant;
+
+const capabilityBehaviors: Record<string, Pick<IntakeVariantContract, "serialize" | "validate">> = {
+  generic_capability: createCapabilityBehavior({
+    defaultAllowedMode: "proxy_only",
+    defaultRiskLevel: "medium",
+    defaultLeaseTtlSeconds: "60",
+    defaultAdapterType: "generic_http",
+    defaultApprovalMode: "auto",
+    defaultAdapterConfig: "{}",
+    defaultApprovalRules: "[]",
+  }),
+  openai_chat_proxy: createCapabilityBehavior({
+    defaultName: "openai.chat.invoke",
+    defaultAllowedMode: "proxy_only",
+    defaultRiskLevel: "medium",
+    defaultLeaseTtlSeconds: "60",
+    fixedAdapterType: "openai",
+    fixedRequiredProvider: "openai",
+    defaultApprovalMode: "auto",
+    defaultAdapterConfig: "{}",
+    defaultApprovalRules: "[]",
+    defaultRequiredProviderScopes: "responses.read",
+    defaultAllowedEnvironments: "production",
+  }),
+  github_rest_proxy: createCapabilityBehavior({
+    defaultName: "github.repo.sync",
+    defaultAllowedMode: "proxy_or_lease",
+    defaultRiskLevel: "medium",
+    defaultLeaseTtlSeconds: "180",
+    fixedAdapterType: "github",
+    fixedRequiredProvider: "github",
+    defaultApprovalMode: "auto",
+    defaultAdapterConfig: '{"method":"GET","path":"/repos/{owner}/{repo}/issues"}',
+    defaultApprovalRules: "[]",
+    defaultRequiredProviderScopes: "repo:read",
+    defaultAllowedEnvironments: "production",
+  }),
+  lease_enabled_generic_http: createCapabilityBehavior({
+    fixedAllowedMode: "proxy_or_lease",
+    defaultRiskLevel: "medium",
+    defaultLeaseTtlSeconds: "120",
+    fixedAdapterType: "generic_http",
+    defaultApprovalMode: "auto",
+    defaultAdapterConfig: "{}",
+    defaultApprovalRules: "[]",
+  }),
+};
+
+export function buildCapabilityContracts(secrets: SecretBindingOption[]): IntakeVariantContract[] {
+  return adaptResourceCatalog(
+    capabilityResource,
+    createVariantBehaviorMap("capability", capabilityBehaviors),
     {
-      resourceKind: "capability",
-      variant: "generic_capability",
-      title: { en: "Generic capability", zh: "通用能力" },
-      summary: { en: "Manual binding with full adapter and provider control.", zh: "手动绑定，完整控制适配器与提供方。" },
-      sections: [
-        {
-          id: "basic",
-          title: { en: "Basic fields", zh: "基础字段" },
-          fields: [
-            { key: "name", control: "text", label: { en: "Capability name", zh: "能力名称" }, required: true },
-            {
-              key: "secret_id",
-              control: "select",
-              label: { en: "Bound secret", zh: "绑定密钥" },
-              options: secretOptions,
-              optionsSource: "management_secret_inventory",
-              defaultValue: secretOptions[0]?.value ?? "",
-              required: true,
-            },
-            {
-              key: "allowed_mode",
-              control: "select",
-              label: { en: "Allowed mode", zh: "允许模式" },
-              defaultValue: "proxy_only",
-              options: [
-                { value: "proxy_only", label: { en: "Proxy only", zh: "仅代理" } },
-                { value: "proxy_or_lease", label: { en: "Proxy or lease", zh: "代理或租约" } },
-              ],
-              required: true,
-            },
-            {
-              key: "risk_level",
-              control: "select",
-              label: { en: "Risk level", zh: "风险等级" },
-              defaultValue: "medium",
-              options: [
-                { value: "low", label: { en: "Low", zh: "低" } },
-                { value: "medium", label: { en: "Medium", zh: "中" } },
-                { value: "high", label: { en: "High", zh: "高" } },
-              ],
-              required: true,
-            },
-            {
-              key: "lease_ttl_seconds",
-              control: "number",
-              label: { en: "Lease TTL", zh: "租约时长（秒）" },
-              defaultValue: "60",
-              required: true,
-            },
-            {
-              key: "adapter_type",
-              control: "select",
-              label: { en: "Adapter type", zh: "适配器类型" },
-              defaultValue: "generic_http",
-              options: [
-                { value: "generic_http", label: { en: "generic_http", zh: "generic_http" } },
-                { value: "openai", label: { en: "openai", zh: "openai" } },
-                { value: "github", label: { en: "github", zh: "github" } },
-              ],
-              required: true,
-            },
-            {
-              key: "required_provider",
-              control: "text",
-              label: { en: "Required provider", zh: "要求的服务提供方" },
-              required: true,
-            },
-            {
-              key: "approval_mode",
-              control: "select",
-              label: { en: "Approval mode", zh: "审批模式" },
-              defaultValue: "auto",
-              options: [
-                { value: "auto", label: { en: "Auto", zh: "自动" } },
-                { value: "manual", label: { en: "Manual review", zh: "人工复核" } },
-              ],
-              required: true,
-            },
-            {
-              key: "adapter_config",
-              control: "json",
-              label: { en: "Adapter config JSON", zh: "适配器配置 JSON" },
-              defaultValue: "{}",
-              advanced: true,
-            },
-            {
-              key: "approval_rules",
-              control: "json",
-              label: { en: "Policy rules JSON", zh: "策略规则 JSON" },
-              defaultValue: "[]",
-              advanced: true,
-            },
-            {
-              key: "required_provider_scopes",
-              control: "chips",
-              label: { en: "Required provider scopes", zh: "要求的服务提供方权限" },
-              advanced: true,
-            },
-            {
-              key: "allowed_environments",
-              control: "chips",
-              label: { en: "Allowed environments", zh: "允许环境" },
-              advanced: true,
-            },
-          ],
-        },
-      ],
-      serialize(values) {
-        return {
-          name: String(values.name ?? ""),
-          secret_id: String(values.secret_id ?? ""),
-          allowed_mode: String(values.allowed_mode ?? "proxy_only"),
-          risk_level: String(values.risk_level ?? "medium"),
-          lease_ttl_seconds: String(values.lease_ttl_seconds ?? "60"),
-          adapter_type: String(values.adapter_type ?? "generic_http"),
-          required_provider: String(values.required_provider ?? ""),
-          approval_mode: String(values.approval_mode ?? "auto"),
-          adapter_config: String(values.adapter_config ?? "{}"),
-          approval_rules: String(values.approval_rules ?? "[]"),
-          required_provider_scopes: String(values.required_provider_scopes ?? ""),
-          allowed_environments: String(values.allowed_environments ?? ""),
-        };
-      },
-      validate(values, locale) {
-        return validateCapability(this, values, locale);
-      },
+      management_secret_inventory: toSecretOptions(secrets),
     },
-    {
-      resourceKind: "capability",
-      variant: "openai_chat_proxy",
-      title: { en: "OpenAI chat proxy", zh: "OpenAI 聊天代理能力" },
-      summary: { en: "Preset for OpenAI-backed proxy execution.", zh: "面向 OpenAI 代理执行的预设模板。" },
-      sections: [
-        {
-          id: "basic",
-          title: { en: "Basic fields", zh: "基础字段" },
-          fields: [
-            { key: "name", control: "text", label: { en: "Capability name", zh: "能力名称" }, defaultValue: "openai.chat.invoke", required: true },
-            {
-              key: "secret_id",
-              control: "select",
-              label: { en: "Bound secret", zh: "绑定密钥" },
-              options: secretOptions,
-              optionsSource: "management_secret_inventory",
-              defaultValue: secretOptions[0]?.value ?? "",
-              required: true,
-            },
-            {
-              key: "allowed_mode",
-              control: "select",
-              label: { en: "Allowed mode", zh: "允许模式" },
-              defaultValue: "proxy_only",
-              options: [
-                { value: "proxy_only", label: { en: "Proxy only", zh: "仅代理" } },
-                { value: "proxy_or_lease", label: { en: "Proxy or lease", zh: "代理或租约" } },
-              ],
-              required: true,
-            },
-            {
-              key: "risk_level",
-              control: "select",
-              label: { en: "Risk level", zh: "风险等级" },
-              defaultValue: "medium",
-              options: [
-                { value: "low", label: { en: "Low", zh: "低" } },
-                { value: "medium", label: { en: "Medium", zh: "中" } },
-                { value: "high", label: { en: "High", zh: "高" } },
-              ],
-              required: true,
-            },
-            {
-              key: "lease_ttl_seconds",
-              control: "number",
-              label: { en: "Lease TTL", zh: "租约时长（秒）" },
-              defaultValue: "60",
-              required: true,
-            },
-            {
-              key: "adapter_type",
-              control: "text",
-              label: { en: "Adapter type", zh: "适配器类型" },
-              defaultValue: "openai",
-              readOnly: true,
-              required: true,
-            },
-            {
-              key: "required_provider",
-              control: "text",
-              label: { en: "Required provider", zh: "要求的服务提供方" },
-              defaultValue: "openai",
-              readOnly: true,
-              required: true,
-            },
-            {
-              key: "approval_mode",
-              control: "select",
-              label: { en: "Approval mode", zh: "审批模式" },
-              defaultValue: "auto",
-              options: [
-                { value: "auto", label: { en: "Auto", zh: "自动" } },
-                { value: "manual", label: { en: "Manual review", zh: "人工复核" } },
-              ],
-              required: true,
-            },
-            {
-              key: "required_provider_scopes",
-              control: "chips",
-              label: { en: "Required provider scopes", zh: "要求的服务提供方权限" },
-              defaultValue: "responses.read",
-              advanced: true,
-            },
-            {
-              key: "allowed_environments",
-              control: "chips",
-              label: { en: "Allowed environments", zh: "允许环境" },
-              defaultValue: "production",
-              advanced: true,
-            },
-            {
-              key: "adapter_config",
-              control: "json",
-              label: { en: "Adapter config JSON", zh: "适配器配置 JSON" },
-              defaultValue: "{}",
-              advanced: true,
-            },
-            {
-              key: "approval_rules",
-              control: "json",
-              label: { en: "Policy rules JSON", zh: "策略规则 JSON" },
-              defaultValue: "[]",
-              advanced: true,
-            },
-          ],
-        },
-      ],
-      serialize(values) {
-        return {
-          name: String(values.name ?? "openai.chat.invoke"),
-          secret_id: String(values.secret_id ?? ""),
-          allowed_mode: String(values.allowed_mode ?? "proxy_only"),
-          risk_level: String(values.risk_level ?? "medium"),
-          lease_ttl_seconds: String(values.lease_ttl_seconds ?? "60"),
-          adapter_type: "openai",
-          required_provider: "openai",
-          approval_mode: String(values.approval_mode ?? "auto"),
-          adapter_config: String(values.adapter_config ?? "{}"),
-          approval_rules: String(values.approval_rules ?? "[]"),
-          required_provider_scopes: String(values.required_provider_scopes ?? "responses.read"),
-          allowed_environments: String(values.allowed_environments ?? "production"),
-        };
-      },
-      validate(values, locale) {
-        return validateCapability(this, values, locale);
-      },
-    },
-    {
-      resourceKind: "capability",
-      variant: "github_rest_proxy",
-      title: { en: "GitHub REST proxy", zh: "GitHub REST 代理能力" },
-      summary: { en: "Preset for GitHub repository-scoped proxy operations.", zh: "面向 GitHub 仓库范围代理操作的预设模板。" },
-      sections: [
-        {
-          id: "basic",
-          title: { en: "Basic fields", zh: "基础字段" },
-          fields: [
-            { key: "name", control: "text", label: { en: "Capability name", zh: "能力名称" }, defaultValue: "github.repo.sync", required: true },
-            {
-              key: "secret_id",
-              control: "select",
-              label: { en: "Bound secret", zh: "绑定密钥" },
-              options: secretOptions,
-              optionsSource: "management_secret_inventory",
-              defaultValue: secretOptions[0]?.value ?? "",
-              required: true,
-            },
-            {
-              key: "allowed_mode",
-              control: "select",
-              label: { en: "Allowed mode", zh: "允许模式" },
-              defaultValue: "proxy_or_lease",
-              options: [
-                { value: "proxy_only", label: { en: "Proxy only", zh: "仅代理" } },
-                { value: "proxy_or_lease", label: { en: "Proxy or lease", zh: "代理或租约" } },
-              ],
-              required: true,
-            },
-            {
-              key: "risk_level",
-              control: "select",
-              label: { en: "Risk level", zh: "风险等级" },
-              defaultValue: "medium",
-              options: [
-                { value: "low", label: { en: "Low", zh: "低" } },
-                { value: "medium", label: { en: "Medium", zh: "中" } },
-                { value: "high", label: { en: "High", zh: "高" } },
-              ],
-              required: true,
-            },
-            {
-              key: "lease_ttl_seconds",
-              control: "number",
-              label: { en: "Lease TTL", zh: "租约时长（秒）" },
-              defaultValue: "180",
-              required: true,
-            },
-            {
-              key: "adapter_type",
-              control: "text",
-              label: { en: "Adapter type", zh: "适配器类型" },
-              defaultValue: "github",
-              readOnly: true,
-              required: true,
-            },
-            {
-              key: "required_provider",
-              control: "text",
-              label: { en: "Required provider", zh: "要求的服务提供方" },
-              defaultValue: "github",
-              readOnly: true,
-              required: true,
-            },
-            {
-              key: "approval_mode",
-              control: "select",
-              label: { en: "Approval mode", zh: "审批模式" },
-              defaultValue: "auto",
-              options: [
-                { value: "auto", label: { en: "Auto", zh: "自动" } },
-                { value: "manual", label: { en: "Manual review", zh: "人工复核" } },
-              ],
-              required: true,
-            },
-            {
-              key: "required_provider_scopes",
-              control: "chips",
-              label: { en: "Required provider scopes", zh: "要求的服务提供方权限" },
-              defaultValue: "repo:read",
-              advanced: true,
-            },
-            {
-              key: "allowed_environments",
-              control: "chips",
-              label: { en: "Allowed environments", zh: "允许环境" },
-              defaultValue: "production",
-              advanced: true,
-            },
-            {
-              key: "adapter_config",
-              control: "json",
-              label: { en: "Adapter config JSON", zh: "适配器配置 JSON" },
-              defaultValue: '{"method":"GET","path":"/repos/{owner}/{repo}/issues"}',
-              advanced: true,
-            },
-            {
-              key: "approval_rules",
-              control: "json",
-              label: { en: "Policy rules JSON", zh: "策略规则 JSON" },
-              defaultValue: "[]",
-              advanced: true,
-            },
-          ],
-        },
-      ],
-      serialize(values) {
-        return {
-          name: String(values.name ?? "github.repo.sync"),
-          secret_id: String(values.secret_id ?? ""),
-          allowed_mode: String(values.allowed_mode ?? "proxy_or_lease"),
-          risk_level: String(values.risk_level ?? "medium"),
-          lease_ttl_seconds: String(values.lease_ttl_seconds ?? "180"),
-          adapter_type: "github",
-          required_provider: "github",
-          approval_mode: String(values.approval_mode ?? "auto"),
-          adapter_config: String(values.adapter_config ?? '{"method":"GET","path":"/repos/{owner}/{repo}/issues"}'),
-          approval_rules: String(values.approval_rules ?? "[]"),
-          required_provider_scopes: String(values.required_provider_scopes ?? "repo:read"),
-          allowed_environments: String(values.allowed_environments ?? "production"),
-        };
-      },
-      validate(values, locale) {
-        return validateCapability(this, values, locale);
-      },
-    },
-    {
-      resourceKind: "capability",
-      variant: "lease_enabled_generic_http",
-      title: { en: "Lease-enabled generic HTTP", zh: "允许租约的通用 HTTP 能力" },
-      summary: { en: "Generic HTTP contract that starts with lease support enabled.", zh: "默认启用租约能力的通用 HTTP 契约。" },
-      sections: [
-        {
-          id: "basic",
-          title: { en: "Basic fields", zh: "基础字段" },
-          fields: [
-            { key: "name", control: "text", label: { en: "Capability name", zh: "能力名称" }, required: true },
-            {
-              key: "secret_id",
-              control: "select",
-              label: { en: "Bound secret", zh: "绑定密钥" },
-              options: secretOptions,
-              optionsSource: "management_secret_inventory",
-              defaultValue: secretOptions[0]?.value ?? "",
-              required: true,
-            },
-            {
-              key: "allowed_mode",
-              control: "text",
-              label: { en: "Allowed mode", zh: "允许模式" },
-              defaultValue: "proxy_or_lease",
-              readOnly: true,
-              required: true,
-            },
-            {
-              key: "risk_level",
-              control: "select",
-              label: { en: "Risk level", zh: "风险等级" },
-              defaultValue: "medium",
-              options: [
-                { value: "low", label: { en: "Low", zh: "低" } },
-                { value: "medium", label: { en: "Medium", zh: "中" } },
-                { value: "high", label: { en: "High", zh: "高" } },
-              ],
-              required: true,
-            },
-            {
-              key: "lease_ttl_seconds",
-              control: "number",
-              label: { en: "Lease TTL", zh: "租约时长（秒）" },
-              defaultValue: "120",
-              required: true,
-            },
-            {
-              key: "adapter_type",
-              control: "text",
-              label: { en: "Adapter type", zh: "适配器类型" },
-              defaultValue: "generic_http",
-              readOnly: true,
-              required: true,
-            },
-            {
-              key: "required_provider",
-              control: "text",
-              label: { en: "Required provider", zh: "要求的服务提供方" },
-              required: true,
-            },
-            {
-              key: "approval_mode",
-              control: "select",
-              label: { en: "Approval mode", zh: "审批模式" },
-              defaultValue: "auto",
-              options: [
-                { value: "auto", label: { en: "Auto", zh: "自动" } },
-                { value: "manual", label: { en: "Manual review", zh: "人工复核" } },
-              ],
-              required: true,
-            },
-            {
-              key: "adapter_config",
-              control: "json",
-              label: { en: "Adapter config JSON", zh: "适配器配置 JSON" },
-              defaultValue: "{}",
-              advanced: true,
-            },
-            {
-              key: "approval_rules",
-              control: "json",
-              label: { en: "Policy rules JSON", zh: "策略规则 JSON" },
-              defaultValue: "[]",
-              advanced: true,
-            },
-            {
-              key: "required_provider_scopes",
-              control: "chips",
-              label: { en: "Required provider scopes", zh: "要求的服务提供方权限" },
-              advanced: true,
-            },
-            {
-              key: "allowed_environments",
-              control: "chips",
-              label: { en: "Allowed environments", zh: "允许环境" },
-              advanced: true,
-            },
-          ],
-        },
-      ],
-      serialize(values) {
-        return {
-          name: String(values.name ?? ""),
-          secret_id: String(values.secret_id ?? ""),
-          allowed_mode: "proxy_or_lease",
-          risk_level: String(values.risk_level ?? "medium"),
-          lease_ttl_seconds: String(values.lease_ttl_seconds ?? "120"),
-          adapter_type: "generic_http",
-          required_provider: String(values.required_provider ?? ""),
-          approval_mode: String(values.approval_mode ?? "auto"),
-          adapter_config: String(values.adapter_config ?? "{}"),
-          approval_rules: String(values.approval_rules ?? "[]"),
-          required_provider_scopes: String(values.required_provider_scopes ?? ""),
-          allowed_environments: String(values.allowed_environments ?? ""),
-        };
-      },
-      validate(values, locale) {
-        return validateCapability(this, values, locale);
-      },
-    },
-  ];
+  ).contracts;
 }
 
 export function getCapabilityContract(

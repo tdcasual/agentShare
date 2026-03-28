@@ -64,6 +64,14 @@ function adaptField(field: IntakeCatalogField, optionSources: OptionSourceMap): 
         value: option.value,
         label: option.label,
       }));
+  const defaultValue = field.default_value
+    ?? (
+      field.control === "select"
+      && field.options_source
+      && options.length > 0
+        ? options[0]?.value
+        : undefined
+    );
 
   return {
     key: field.key,
@@ -71,7 +79,7 @@ function adaptField(field: IntakeCatalogField, optionSources: OptionSourceMap): 
     label: field.label,
     description: field.description,
     placeholder: field.placeholder,
-    defaultValue: field.default_value ?? undefined,
+    defaultValue,
     required: field.required ?? false,
     advanced: field.advanced ?? false,
     readOnly: field.read_only ?? false,
