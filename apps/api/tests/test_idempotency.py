@@ -5,6 +5,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.background import BackgroundTask
+from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from app.services.idempotency import IdempotencyMiddleware
@@ -24,6 +25,9 @@ def idempotent_app(fake_redis_client):
         "two": 0,
         "echo": 0,
         "created": 0,
+        "auth": 0,
+        "cookie": 0,
+        "conflict": 0,
         "plain": 0,
         "cookie_json": 0,
         "location_json": 0,
@@ -59,6 +63,30 @@ def idempotent_app(fake_redis_client):
         return JSONResponse(
             status_code=201,
             content={"status": "created", "count": counters["created"]},
+        )
+
+    @test_app.post("/auth")
+    def auth_endpoint(request: Request):
+        counters["auth"] += 1
+        return {
+            "count": counters["auth"],
+            "auth": request.headers.get("authorization"),
+        }
+
+    @test_app.post("/cookie")
+    def cookie_endpoint(request: Request):
+        counters["cookie"] += 1
+        return {
+            "count": counters["cookie"],
+            "cookie": request.cookies.get("session"),
+        }
+
+    @test_app.post("/conflict")
+    def conflict_endpoint():
+        counters["conflict"] += 1
+        return JSONResponse(
+            status_code=409,
+            content={"count": counters["conflict"]},
         )
 
     @test_app.post("/plain")
@@ -119,6 +147,17 @@ def idempotent_app(fake_redis_client):
             content=iter([json.dumps({"count": value}).encode("utf-8")]),
             media_type="application/json",
             background=BackgroundTask(on_done),
+        )
+
+    @test_app.post("/json-stream-fixed")
+    def json_stream_fixed_endpoint():
+        counters["json_stream"] += 1
+        value = counters["json_stream"]
+        payload = json.dumps({"count": value}).encode("utf-8")
+        return StreamingResponse(
+            content=iter([payload]),
+            media_type="application/json",
+            headers={"content-length": str(len(payload))},
         )
 
     @test_app.get("/stream-bg-count")
@@ -187,6 +226,17 @@ def test_cached_json_responses_preserve_status_code(idempotent_app):
     assert first.json() == second.json()
 
 
+def test_idempotency_fingerprint_is_stable_for_json_key_order(idempotent_app):
+    headers = {"Idempotency-Key": "stable-json-key"}
+    first = idempotent_app.post("/echo", headers=headers, json={"a": 1, "b": 2})
+    second = idempotent_app.post("/echo", headers=headers, json={"b": 2, "a": 1})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["count"] == 1
+    assert second.json()["count"] == 1
+
+
 def test_non_json_responses_are_not_cached(idempotent_app):
     headers = {"Idempotency-Key": "plain-key"}
     first = idempotent_app.post("/plain", headers=headers)
@@ -237,6 +287,42 @@ def test_json_responses_with_etag_header_are_not_cached(idempotent_app):
     assert second.headers["etag"] == "v2"
 
 
+def test_same_key_different_authorization_headers_do_not_replay(idempotent_app):
+    headers_one = {"Idempotency-Key": "caller-key", "Authorization": "Bearer one"}
+    headers_two = {"Idempotency-Key": "caller-key", "Authorization": "Bearer two"}
+    first = idempotent_app.post("/auth", headers=headers_one)
+    second = idempotent_app.post("/auth", headers=headers_two)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1, "auth": "Bearer one"}
+    assert second.json() == {"count": 2, "auth": "Bearer two"}
+
+
+def test_same_key_different_session_cookies_do_not_replay(idempotent_app):
+    headers = {"Idempotency-Key": "caller-cookie-key"}
+    idempotent_app.cookies.set("session", "s1")
+    first = idempotent_app.post("/cookie", headers=headers)
+    idempotent_app.cookies.set("session", "s2")
+    second = idempotent_app.post("/cookie", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1, "cookie": "s1"}
+    assert second.json() == {"count": 2, "cookie": "s2"}
+
+
+def test_non_success_json_responses_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "conflict-key"}
+    first = idempotent_app.post("/conflict", headers=headers)
+    second = idempotent_app.post("/conflict", headers=headers)
+
+    assert first.status_code == 409
+    assert second.status_code == 409
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+
+
 def test_streaming_responses_are_bypassed_without_transformation(idempotent_app):
     headers = {"Idempotency-Key": "stream-key"}
     first = idempotent_app.post("/stream", headers=headers)
@@ -263,3 +349,14 @@ def test_json_streaming_responses_are_bypassed_without_replay(idempotent_app):
     assert second.json() == {"count": 2}
     bg_count = idempotent_app.get("/json-stream-bg-count").json()["count"]
     assert bg_count == 2
+
+
+def test_fixed_length_json_streaming_responses_are_explicitly_cacheable(idempotent_app):
+    headers = {"Idempotency-Key": "json-stream-fixed-key"}
+    first = idempotent_app.post("/json-stream-fixed", headers=headers)
+    second = idempotent_app.post("/json-stream-fixed", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 1}

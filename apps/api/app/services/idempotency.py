@@ -8,7 +8,7 @@ import redis
 from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response, StreamingResponse
+from starlette.responses import JSONResponse, Response
 
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
@@ -64,8 +64,17 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         except (json.JSONDecodeError, UnicodeDecodeError):
             stable_body = body_bytes
         body_hash = hashlib.sha256(stable_body).hexdigest()
-        raw_fingerprint = f"{request.method}:{request.url.path}:{body_hash}"
+        auth_context_hash = self._build_auth_context_hash(request)
+        raw_fingerprint = f"{request.method}:{request.url.path}:{body_hash}:{auth_context_hash}"
         return hashlib.sha256(raw_fingerprint.encode("utf-8")).hexdigest()
+
+    def _build_auth_context_hash(self, request: Request) -> str:
+        auth_context = {
+            "authorization": request.headers.get("authorization", ""),
+            "cookies": sorted(request.cookies.items()),
+        }
+        normalized_context = json.dumps(auth_context, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(normalized_context.encode("utf-8")).hexdigest()
 
     def _build_cache_envelope(self, response: Response, body_bytes: bytes) -> dict[str, Any] | None:
         if len(body_bytes) > self._MAX_CACHEABLE_RESPONSE_BYTES:
@@ -83,9 +92,8 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         }
 
     def _is_explicitly_cacheable_response(self, response: Response) -> bool:
-        if isinstance(response, StreamingResponse):
+        if not 200 <= response.status_code < 300:
             return False
-
         content_type = (response.headers.get("content-type") or "").lower()
         if not content_type.startswith("application/json"):
             return False
