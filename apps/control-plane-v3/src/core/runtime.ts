@@ -7,6 +7,7 @@ import { PluginRegistry } from './plugin';
 import { EventBusImpl, TypedEventBus } from './event';
 import { DIContainerImpl } from './di';
 import { StateContainerImpl } from './state';
+import { IdentityDomainPlugin } from '../domains/identity/plugin';
 import type { DomainEvents } from '../shared/types';
 
 // Placeholder implementations for now
@@ -170,4 +171,18 @@ export function getRuntime(): CoreRuntime {
 
 export function setRuntime(runtime: CoreRuntime): void {
   globalRuntime = runtime;
+}
+
+export async function initializeRuntime(runtime: CoreRuntime = getRuntime()): Promise<CoreRuntime> {
+  const identityPluginId = 'domain.identity';
+
+  if (!runtime.plugin.get(identityPluginId)) {
+    runtime.plugin.register(new IdentityDomainPlugin());
+  }
+
+  if (!runtime.plugin.isActive(identityPluginId)) {
+    await runtime.plugin.activatePlugin(identityPluginId);
+  }
+
+  return runtime;
 }

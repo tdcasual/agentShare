@@ -4,8 +4,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
-import { getRuntime } from '../../../core/runtime';
-import { IdentityDomainPlugin } from '../../../domains/identity/plugin';
+import { getRuntime, initializeRuntime } from '../../../core/runtime';
 import { IdentityRegistryServiceId } from '../../../domains/identity/services/identity-registry';
 import type { Identity } from '../../../shared/types';
 
@@ -22,12 +21,7 @@ export function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     const init = async () => {
-      const runtime = getRuntime();
-      
-      // Register and activate identity plugin
-      const identityPlugin = new IdentityDomainPlugin();
-      runtime.plugin.register(identityPlugin);
-      await runtime.plugin.activatePlugin(identityPlugin.id);
+      const runtime = await initializeRuntime(getRuntime());
 
       // Get registry
       const registry = runtime.di.resolve(IdentityRegistryServiceId);

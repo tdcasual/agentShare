@@ -10,12 +10,13 @@ import {
   Users,
   Package,
   Globe,
-  Zap,
   CheckSquare,
   Settings,
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  KeyRound,
+  ShieldCheck,
 } from 'lucide-react';
 
 function cn(...inputs: ClassValue[]) {
@@ -34,7 +35,9 @@ const navItems: NavItem[] = [
   { href: '/identities', label: 'Identities', icon: <Users className="w-5 h-5" /> },
   { href: '/assets', label: 'Assets', icon: <Package className="w-5 h-5" /> },
   { href: '/spaces', label: 'Spaces', icon: <Globe className="w-5 h-5" /> },
+  { href: '/tokens', label: 'Tokens', icon: <KeyRound className="w-5 h-5" /> },
   { href: '/tasks', label: 'Tasks', icon: <CheckSquare className="w-5 h-5" />, badge: 3 },
+  { href: '/reviews', label: 'Reviews', icon: <ShieldCheck className="w-5 h-5" /> },
   { href: '/marketplace', label: 'Marketplace', icon: <Sparkles className="w-5 h-5" /> },
 ];
 

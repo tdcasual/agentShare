@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Layout } from '../interfaces/human/layout';
 import { getRuntime } from '../core/runtime';
 import { IdentityRegistryServiceId } from '../domains/identity/services/identity-registry';
@@ -9,20 +11,83 @@ import type { Identity } from '../shared/types';
 import { Card } from '../shared/ui-primitives/card';
 import { Button } from '../shared/ui-primitives/button';
 import { Badge } from '../shared/ui-primitives/badge';
-import { 
-  Users, Bot, Globe, Zap, CheckSquare, 
-  TrendingUp, Clock, ArrowRight, Sparkles 
+import { resolveAppEntryState, type AppEntryState } from '@/lib/session';
+import {
+  Users, Bot, Globe, Zap, CheckSquare,
+  TrendingUp, Clock, ArrowRight, Sparkles, KeyRound, ShieldCheck
 } from 'lucide-react';
 
 export default function HubPage() {
+  const router = useRouter();
+  const [entryState, setEntryState] = useState<AppEntryState | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const nextState = await resolveAppEntryState();
+        if (cancelled) {
+          return;
+        }
+        setEntryState(nextState);
+        if (nextState.kind === 'setup') {
+          router.replace('/setup');
+          return;
+        }
+        if (nextState.kind === 'login') {
+          router.replace('/login');
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : 'Failed to resolve entry state');
+        }
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <Card variant="feature" className="max-w-lg w-full text-center space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm uppercase tracking-[0.35em] text-pink-500">Control Plane V3</p>
+            <h1 className="text-3xl font-bold text-gray-800">Unable to open the console</h1>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!entryState || entryState.kind !== 'ready') {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <Card variant="feature" className="max-w-lg w-full text-center space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm uppercase tracking-[0.35em] text-pink-500">Control Plane V3</p>
+            <h1 className="text-3xl font-bold text-gray-800">Routing you to the right control surface</h1>
+            <p className="text-gray-600">Checking bootstrap status and current management session...</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <Layout>
-      <HubContent />
+      <HubContent email={entryState.session.email} role={entryState.session.role} />
     </Layout>
   );
 }
 
-function HubContent() {
+function HubContent({ email, role }: { email: string; role: string }) {
   const [identities, setIdentities] = useState<Identity[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -36,81 +101,87 @@ function HubContent() {
     const runtime = getRuntime();
     const registry = runtime.di.resolve(IdentityRegistryServiceId);
     const allIdentities = registry.getAll();
-    
+
     setIdentities(allIdentities);
     setStats({
-      humans: allIdentities.filter(i => i.type === 'human').length,
-      agents: allIdentities.filter(i => i.type === 'agent').length,
+      humans: allIdentities.filter((identity) => identity.type === 'human').length,
+      agents: allIdentities.filter((identity) => identity.type === 'agent').length,
       spaces: 12,
       tasksToday: 48,
     });
 
-    // Mock activity data
     setRecentActivity([
       { id: 1, type: 'task', actor: allIdentities[1], action: 'completed task', target: 'API Deployment', time: '2m ago' },
-      { id: 2, type: 'mention', actor: allIdentities[0], action: 'mentioned you in', target: '#project-alpha', time: '5m ago' },
-      { id: 3, type: 'join', actor: allIdentities[2], action: 'joined workspace', target: '', time: '1h ago' },
+      { id: 2, type: 'review', actor: allIdentities[0], action: 'approved asset', target: 'queued playbook', time: '5m ago' },
+      { id: 3, type: 'token', actor: allIdentities[2], action: 'published token', target: 'staging-worker', time: '1h ago' },
       { id: 4, type: 'asset', actor: allIdentities[0], action: 'created asset', target: 'Production Config', time: '2h ago' },
     ]);
   }, []);
 
-  const humans = identities.filter(i => i.type === 'human');
-  const agents = identities.filter(i => i.type === 'agent');
+  const humans = identities.filter((identity) => identity.type === 'human');
+  const agents = identities.filter((identity) => identity.type === 'agent');
 
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
             Welcome to <span className="gradient-text">Dual Cosmos</span>
           </h1>
           <p className="text-gray-600">
-            Human and Agent, coexisting as equals in a unified control plane
+            Signed in as {email} with {role} access. Bootstrap, tokens, reviews, and tasks are now all live.
           </p>
         </div>
-        <Button variant="gradient" size="lg">
-          <Sparkles className="w-5 h-5 mr-2" />
-          Quick Start
-        </Button>
+        <Link href="/tokens">
+          <Button variant="gradient" size="lg">
+            <Sparkles className="w-5 h-5 mr-2" />
+            Open Token Ops
+          </Button>
+        </Link>
       </div>
 
-      {/* Stats Grid */}
+      <Card className="p-4 border border-pink-100 bg-white/90">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+          <Badge variant="primary">Invite-only management</Badge>
+          <span>Public registration is closed after first-run owner bootstrap.</span>
+          <span className="text-gray-300">•</span>
+          <span>Runtime tokens are managed separately from human sessions.</span>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={<Users className="w-6 h-6 text-sky-600" />}
           label="Humans"
           value={stats.humans}
-          trend="+1 this week"
+          trend="+1 invited this week"
           color="sky"
         />
         <StatCard
           icon={<Bot className="w-6 h-6 text-green-600" />}
           label="Agents"
           value={stats.agents}
-          trend="+2 this week"
+          trend="managed by tokens"
           color="green"
         />
         <StatCard
-          icon={<Globe className="w-6 h-6 text-purple-600" />}
-          label="Spaces"
-          value={stats.spaces}
-          trend="3 active now"
+          icon={<KeyRound className="w-6 h-6 text-purple-600" />}
+          label="Token Ops"
+          value={4}
+          trend="issue, revoke, review"
           color="purple"
         />
         <StatCard
           icon={<CheckSquare className="w-6 h-6 text-orange-600" />}
           label="Tasks Today"
           value={stats.tasksToday}
-          trend="12 completed"
+          trend="token-targeted flow"
           color="orange"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content - Identities */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Recent Identities */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800">Identity Universe</h2>
@@ -119,10 +190,10 @@ function HubContent() {
                 <Badge variant="agent">{agents.length} Agents</Badge>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {identities.map((identity, index) => (
-                <div 
+                <div
                   key={identity.id}
                   className="animate-slide-up"
                   style={{ animationDelay: `${index * 100}ms` }}
@@ -133,20 +204,21 @@ function HubContent() {
             </div>
           </section>
 
-          {/* Recent Activity */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800">Recent Activity</h2>
-              <Button variant="ghost" size="sm">
-                View all <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
+              <Link href="/reviews">
+                <Button variant="ghost" size="sm">
+                  Review queue <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
             </div>
-            
+
             <Card className="p-0 overflow-hidden">
               <div className="divide-y divide-pink-100">
                 {recentActivity.map((activity) => (
-                  <div 
-                    key={activity.id} 
+                  <div
+                    key={activity.id}
                     className="p-4 flex items-center gap-4 hover:bg-pink-50/30 transition-colors"
                   >
                     <img
@@ -164,8 +236,8 @@ function HubContent() {
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">{activity.time}</p>
                     </div>
-                    <Badge 
-                      variant={activity.type === 'task' ? 'success' : 'default'}
+                    <Badge
+                      variant={activity.type === 'task' ? 'success' : activity.type === 'review' ? 'warning' : 'default'}
                       className="flex-shrink-0"
                     >
                       {activity.type}
@@ -177,47 +249,43 @@ function HubContent() {
           </section>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Quick Actions */}
           <Card className="p-6">
             <h3 className="font-semibold text-gray-800 mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <ActionButton icon={<Zap className="w-4 h-4" />} label="Create Task" />
-              <ActionButton icon={<Globe className="w-4 h-4" />} label="Join Space" />
-              <ActionButton icon={<Bot className="w-4 h-4" />} label="Deploy Agent" />
-              <ActionButton icon={<Users className="w-4 h-4" />} label="Invite Identity" />
+              <ActionButton href="/tasks" icon={<Zap className="w-4 h-4" />} label="Publish Task" />
+              <ActionButton href="/tokens" icon={<KeyRound className="w-4 h-4" />} label="Manage Tokens" />
+              <ActionButton href="/reviews" icon={<ShieldCheck className="w-4 h-4" />} label="Review Queue" />
+              <ActionButton href="/settings" icon={<Users className="w-4 h-4" />} label="Invite Admin" />
             </div>
           </Card>
 
-          {/* Online Now */}
           <Card className="p-6">
             <h3 className="font-semibold text-gray-800 mb-4">Online Now</h3>
             <div className="space-y-2">
-              {identities.filter(i => i.presence === 'online').map((identity) => (
+              {identities.filter((identity) => identity.presence === 'online').map((identity) => (
                 <IdentityCardCompact key={identity.id} identity={identity} />
               ))}
             </div>
           </Card>
 
-          {/* System Status */}
           <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-100">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-              <h3 className="font-semibold text-green-800">System Healthy</h3>
+              <h3 className="font-semibold text-green-800">Control Surface Ready</h3>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-green-700">
-                <span>API Latency</span>
-                <span className="font-medium">24ms</span>
+                <span>Bootstrap</span>
+                <span className="font-medium">Initialized</span>
               </div>
               <div className="flex justify-between text-green-700">
-                <span>Active Connections</span>
-                <span className="font-medium">142</span>
+                <span>Management Session</span>
+                <span className="font-medium">Active</span>
               </div>
               <div className="flex justify-between text-green-700">
-                <span>Queue Depth</span>
-                <span className="font-medium">0</span>
+                <span>Review Gate</span>
+                <span className="font-medium">Enabled</span>
               </div>
             </div>
           </Card>
@@ -227,16 +295,16 @@ function HubContent() {
   );
 }
 
-function StatCard({ 
-  icon, 
-  label, 
-  value, 
+function StatCard({
+  icon,
+  label,
+  value,
   trend,
-  color 
-}: { 
-  icon: React.ReactNode; 
-  label: string; 
-  value: number; 
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
   trend: string;
   color: 'sky' | 'green' | 'purple' | 'orange';
 }) {
@@ -261,12 +329,12 @@ function StatCard({
   );
 }
 
-function ActionButton({ icon, label }: { icon: React.ReactNode; label: string }) {
+function ActionButton({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
-    <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-pink-50 transition-colors text-left">
+    <Link href={href} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-pink-50 transition-colors text-left">
       <span className="text-pink-500">{icon}</span>
       <span className="font-medium">{label}</span>
-    </button>
+    </Link>
   );
 }
 

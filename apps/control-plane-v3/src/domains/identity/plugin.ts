@@ -8,7 +8,6 @@ import { IdentityRegistryImpl, IdentityRegistryServiceId } from './services/iden
 export class IdentityDomainPlugin implements Plugin {
   readonly id = 'domain.identity';
   readonly version = '1.0.0';
-  readonly dependencies = ['core.runtime'];
 
   private runtime!: CoreRuntime;
   private registry!: IdentityRegistryImpl;

@@ -262,6 +262,116 @@ export interface Space {
   state: SpaceState;
 }
 
+// --- Control Plane API Types ---
+
+export interface BootstrapStatus {
+  initialized: boolean;
+}
+
+export interface ManagementSessionSummary {
+  status: string;
+  actor_type: string;
+  actor_id: string;
+  role: ManagementRole;
+  auth_method: string;
+  session_id: string;
+  email: string;
+  expires_in: number;
+  issued_at: number;
+  expires_at: number;
+}
+
+export interface AdminAccountSummary {
+  id: string;
+  email: string;
+  display_name: string;
+  role: ManagementRole;
+  status: string;
+  last_login_at: string | null;
+}
+
+export interface AgentSummary {
+  id: string;
+  name: string;
+  status: string;
+  risk_tier: string;
+  auth_method: string;
+}
+
+export interface AgentTokenSummary {
+  id: string;
+  agent_id: string;
+  display_name: string;
+  token_prefix: string;
+  status: string;
+  expires_at: string | null;
+  issued_by_actor_type: string;
+  issued_by_actor_id: string;
+  last_used_at: string | null;
+  scopes: string[];
+  labels: Record<string, string>;
+  completed_runs: number;
+  successful_runs: number;
+  success_rate: number;
+  last_feedback_at: string | null;
+  trust_score: number;
+  api_key?: string | null;
+}
+
+export interface ReviewQueueItem {
+  resource_kind: string;
+  resource_id: string;
+  title: string;
+  publication_status: string;
+  created_by_actor_type: string;
+  created_by_actor_id: string;
+  created_via_token_id: string | null;
+  reviewed_by_actor_id: string | null;
+  reviewed_at: string | null;
+}
+
+export interface TaskSummary {
+  id: string;
+  title: string;
+  task_type: string;
+  input: Record<string, unknown>;
+  status: string;
+  claimed_by: string | null;
+  publication_status: string;
+  priority: string;
+  created_by_actor_type: string;
+  created_by_actor_id: string;
+  created_via_token_id: string | null;
+  target_ids: string[];
+  target_token_ids: string[];
+}
+
+export interface RunSummary {
+  id: string;
+  task_id: string;
+  agent_id: string;
+  token_id: string | null;
+  task_target_id: string | null;
+  status: string;
+  result_summary: string;
+  output_payload: Record<string, unknown>;
+  error_summary: string | null;
+}
+
+export interface TokenFeedbackSummary {
+  id: string;
+  token_id: string;
+  task_target_id: string;
+  run_id: string;
+  source: string;
+  score: number;
+  verdict: string;
+  summary: string;
+  created_by_actor_type: string;
+  created_by_actor_id: string;
+  created_at: string;
+}
+
 export interface SpaceMeta {
   name: string;
   description?: string;
