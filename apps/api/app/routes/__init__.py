@@ -15,11 +15,13 @@ from app.routes.runs import router as runs_router
 from app.routes.secrets import router as secrets_router
 from app.routes.session import router as session_router
 from app.routes.tasks import router as tasks_router
+from app.routes.bootstrap import router as bootstrap_router
 
 
 def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
     routers: list[APIRouter] = [
         agents_router,
+        bootstrap_router,
         session_router,
         approvals_router,
         intake_catalog_router,

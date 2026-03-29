@@ -8,6 +8,8 @@ from app.orm.playbook import PlaybookModel
 from app.orm.audit_event import AuditEventModel
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.management_session import ManagementSessionModel
+from app.orm.human_account import HumanAccountModel
+from app.orm.system_setting import SystemSettingModel
 
 __all__ = [
     "Base",
@@ -20,4 +22,6 @@ __all__ = [
     "AuditEventModel",
     "ApprovalRequestModel",
     "ManagementSessionModel",
+    "HumanAccountModel",
+    "SystemSettingModel",
 ]
