@@ -82,7 +82,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/control-plane-v3/Dockerfile
     container_name: agentshare-web
     ports:
       - "${WEB_PORT:-3000}:3000"
