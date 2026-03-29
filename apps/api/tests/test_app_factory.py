@@ -12,9 +12,19 @@ def test_create_app_registers_core_routes():
     route_paths = {route.path for route in app.routes}
 
     assert "/healthz" in route_paths
+    assert "/api/bootstrap/status" in route_paths
+    assert "/api/bootstrap/setup-owner" in route_paths
     assert "/metrics" in route_paths
     assert "/api/session/login" in route_paths
+    assert "/api/session/logout" in route_paths
+    assert "/api/admin-accounts" in route_paths
+    assert "/api/agents/{agent_id}/tokens" in route_paths
+    assert "/api/agent-tokens/{token_id}/revoke" in route_paths
     assert "/api/intake-catalog" in route_paths
+    assert "/api/reviews" in route_paths
+    assert "/api/task-targets/{target_id}/claim" in route_paths
+    assert "/api/task-targets/{target_id}/complete" in route_paths
+    assert "/api/task-targets/{task_target_id}/feedback" in route_paths
 
 
 def test_create_app_runs_bootstrap_initializer_once(monkeypatch):
@@ -39,6 +49,17 @@ def test_create_app_attaches_runtime_settings(tmp_path):
     runtime = app.state.runtime
     assert str(runtime.engine.url).endswith("runtime.db")
     assert runtime.settings.database_url.endswith("runtime.db")
+
+
+def test_create_app_uses_runtime_engine_for_bootstrap_routes(tmp_path):
+    db_path = tmp_path / "bootstrap-runtime.db"
+    app = create_app(Settings(database_url=f"sqlite:///{db_path}", management_session_secret="session-secret"))
+
+    with TestClient(app) as client:
+        status_response = client.get("/api/bootstrap/status")
+
+    assert status_response.status_code == 200
+    assert status_response.json() == {"initialized": False}
 
 
 def test_create_app_accepts_prebuilt_runtime_without_rebuilding(tmp_path, monkeypatch):

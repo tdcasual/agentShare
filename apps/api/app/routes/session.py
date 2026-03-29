@@ -91,9 +91,11 @@ def login_management_session(
 def logout_management_session(
     request: Request,
     response: Response,
+    manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
+    del manager
     session_token = request.cookies.get(settings.management_session_cookie_name)
     if session_token:
         try:

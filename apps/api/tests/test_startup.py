@@ -17,9 +17,21 @@ def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
     db_module.init_db()
 
     inspector = inspect(db_module.engine)
-    assert {"agents", "secrets", "capabilities", "tasks", "runs", "playbooks"}.issubset(
-        set(inspector.get_table_names())
-    )
+    assert {
+        "agents",
+        "agent_tokens",
+        "human_accounts",
+        "management_sessions",
+        "system_settings",
+        "secrets",
+        "capabilities",
+        "tasks",
+        "task_targets",
+        "runs",
+        "token_feedback",
+        "playbooks",
+        "audit_events",
+    }.issubset(set(inspector.get_table_names()))
 
 
 def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
@@ -44,6 +56,49 @@ def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
         assert model.api_key_hash == hashlib.sha256(bootstrap_key.encode()).hexdigest()
     finally:
         session.close()
+
+
+def test_app_startup_bootstrap_route_initializes_once(monkeypatch, tmp_path):
+    db_path = tmp_path / "startup-bootstrap-route.db"
+    bootstrap_key = "bootstrap-key-xyz"
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
+    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", bootstrap_key)
+    monkeypatch.setenv("MANAGEMENT_SESSION_SECRET", "session-secret")
+
+    from app import db as db_module
+    from app import main as main_module
+
+    db_module = importlib.reload(db_module)
+    main_module = importlib.reload(main_module)
+
+    with TestClient(main_module.app) as client:
+        status_before = client.get("/api/bootstrap/status")
+        first = client.post(
+            "/api/bootstrap/setup-owner",
+            json={
+                "bootstrap_key": bootstrap_key,
+                "email": "owner@example.com",
+                "display_name": "Founding Owner",
+                "password": "correct horse battery staple",
+            },
+        )
+        status_after = client.get("/api/bootstrap/status")
+        second = client.post(
+            "/api/bootstrap/setup-owner",
+            json={
+                "bootstrap_key": bootstrap_key,
+                "email": "owner@example.com",
+                "display_name": "Founding Owner",
+                "password": "correct horse battery staple",
+            },
+        )
+
+    assert status_before.status_code == 200
+    assert status_before.json() == {"initialized": False}
+    assert first.status_code == 201
+    assert status_after.status_code == 200
+    assert status_after.json() == {"initialized": True}
+    assert second.status_code == 409
 
 
 def test_init_db_does_not_backfill_legacy_task_columns(monkeypatch, tmp_path):

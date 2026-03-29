@@ -252,9 +252,10 @@ cd apps/web && npm run test:contracts
 Start with the operational guide:
 
 - `docs/guides/agent-quickstart.md`
+- `docs/guides/admin-bootstrap-and-token-ops.md`
 - `docs/guides/mcp-quickstart.md`
 
-The quickstarts cover both direct HTTP runtime calls and the MCP tool surface on top of the same control-plane services.
+The quickstarts cover first-run management bootstrap, managed token operations, direct HTTP runtime calls, and the MCP tool surface on top of the same control-plane services.
 
 ## Phase 2 Surface
 
@@ -297,36 +298,55 @@ The quickstarts cover both direct HTTP runtime calls and the MCP tool surface on
   - Swagger UI: `http://127.0.0.1:8000/docs`
   - OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
 - Current web console auth path:
-  - The web console exchanges the bootstrap management credential once at `POST /api/session/login`.
+  - Check `GET /api/bootstrap/status`.
+  - If the system is uninitialized, create the founding owner once at `POST /api/bootstrap/setup-owner` using the bootstrap key.
+  - After bootstrap, humans log in with persisted email/password accounts at `POST /api/session/login`.
   - The API responds with a short-lived `management_session` cookie, and the console forwards that cookie on management reads and writes.
-  - Runtime agent operations continue to use `Authorization: Bearer $ACP_AGENT_KEY`.
+  - Runtime agent operations continue to use `Authorization: Bearer $ACP_AGENT_TOKEN`.
 - Production caution:
   - Do not deploy with `BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key`.
   - Replace `MANAGEMENT_SESSION_SECRET=changeme-management-session-secret` before exposing the console to real users.
+- Operator note:
+  - Bootstrap is a one-time setup path, not a reusable daily login.
+  - New human accounts are invite-only through `POST /api/admin-accounts`.
+  - Runtime agents and their managed tokens are operated separately under `/api/agents` and `/api/agents/{agent_id}/tokens`.
 
 ## Route Policy Split
 
 - Public routes:
   - `GET /healthz`
   - `/docs` and `/openapi.json`
+  - `GET /api/bootstrap/status`
+  - `POST /api/bootstrap/setup-owner`
   - `POST /api/session/login`
 - Agent-authenticated runtime routes:
   - `GET /api/agents/me`
   - `GET /api/tasks`
+  - `GET /api/tasks/assigned`
   - `POST /api/tasks/{task_id}/claim`
   - `POST /api/tasks/{task_id}/complete`
+  - `POST /api/task-targets/{target_id}/claim`
+  - `POST /api/task-targets/{target_id}/complete`
   - `POST /api/capabilities/{capability_id}/invoke`
   - `POST /api/capabilities/{capability_id}/lease`
   - `POST /mcp`
 - Management-session protected routes:
   - Any management role:
-    `GET /api/session/me`, `POST /api/session/logout`, `GET /api/capabilities`, `POST /api/tasks`, `GET /api/runs`, `POST /api/playbooks`, `GET /api/playbooks/search`, `GET /api/playbooks/{playbook_id}`
+    `GET /api/session/me`, `POST /api/session/logout`, `GET /api/capabilities`, `POST /api/tasks`, `GET /api/runs`, `POST /api/playbooks`, `GET /api/playbooks/search`, `GET /api/playbooks/{playbook_id}`, `GET /api/agent-tokens/{token_id}/feedback`
   - `operator+`:
     `GET /api/approvals`, `POST /api/approvals/{approval_id}/approve`, `POST /api/approvals/{approval_id}/reject`
   - `admin+`:
-    `POST /api/secrets`, `GET /api/secrets`, `POST /api/capabilities`, `GET /api/agents`, `POST /api/agents`
+    `POST /api/secrets`, `GET /api/secrets`, `POST /api/capabilities`, `GET /api/agents`, `POST /api/agents`, `GET /api/admin-accounts`, `POST /api/admin-accounts`, `GET /api/agents/{agent_id}/tokens`, `POST /api/agents/{agent_id}/tokens`, `POST /api/agent-tokens/{token_id}/revoke`, `GET /api/reviews`, `POST /api/reviews/{resource_kind}/{resource_id}/approve`, `POST /api/reviews/{resource_kind}/{resource_id}/reject`, `POST /api/task-targets/{task_target_id}/feedback`
   - `owner`:
     `DELETE /api/agents/{agent_id}`
+
+## Bootstrap, Tokens, And Reviews
+
+- Owner bootstrap is now one-time only and returns `409` after initialization.
+- Human management login uses persisted admin accounts, not the bootstrap credential.
+- Managed agent tokens are separate runtime credentials and can be listed, minted, revoked, targeted by tasks, and scored with feedback.
+- Agent-created secrets, capabilities, playbooks, and tasks stay in `pending_review` until a human reviews them in `/api/reviews`.
+- Task runs now record both `token_id` and `task_target_id`, and token feedback rolls up into token trust metrics.
 
 ## Playbook Search And Detail
 
