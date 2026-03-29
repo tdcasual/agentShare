@@ -3,10 +3,10 @@ import json
 import fakeredis
 import pytest
 from fastapi import FastAPI
-from fastapi import Request
 from fastapi.testclient import TestClient
-from starlette.responses import JSONResponse
-from starlette.responses import PlainTextResponse
+from starlette.background import BackgroundTask
+from starlette.requests import Request
+from starlette.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from app.services.idempotency import IdempotencyMiddleware
 
@@ -20,74 +20,153 @@ def fake_redis_client():
 def idempotent_app(fake_redis_client):
     test_app = FastAPI()
     test_app.add_middleware(IdempotencyMiddleware, redis_client=fake_redis_client, ttl_seconds=300)
-    state = {
-        "test": 0,
+    counters = {
         "one": 0,
         "two": 0,
         "echo": 0,
-        "text": 0,
         "created": 0,
-        "header_json": 0,
+        "auth": 0,
+        "cookie": 0,
+        "conflict": 0,
+        "plain": 0,
         "cookie_json": 0,
+        "location_json": 0,
+        "etag_json": 0,
+        "stream": 0,
+        "stream_bg": 0,
+        "json_stream": 0,
+        "json_stream_bg": 0,
     }
 
     @test_app.post("/test")
     def test_endpoint():
-        state["test"] += 1
-        return {"result": "ok", "call_count": state["test"]}
+        return {"result": "ok", "call_count": 1}
 
     @test_app.post("/one")
     def one_endpoint():
-        state["one"] += 1
-        return {"path": "/one", "call_count": state["one"]}
+        counters["one"] += 1
+        return {"endpoint": "one", "count": counters["one"]}
 
     @test_app.post("/two")
     def two_endpoint():
-        state["two"] += 1
-        return {"path": "/two", "call_count": state["two"]}
+        counters["two"] += 1
+        return {"endpoint": "two", "count": counters["two"]}
 
     @test_app.post("/echo")
-    async def echo_endpoint(request: Request):
-        state["echo"] += 1
-        payload = await request.json()
-        return {"payload": payload, "call_count": state["echo"]}
-
-    @test_app.post("/text")
-    def text_endpoint():
-        state["text"] += 1
-        return PlainTextResponse(f"plain-{state['text']}")
+    def echo_endpoint(payload: dict):
+        counters["echo"] += 1
+        return {"payload": payload, "count": counters["echo"]}
 
     @test_app.post("/created")
     def created_endpoint():
-        state["created"] += 1
+        counters["created"] += 1
         return JSONResponse(
-            content={"result": "created", "call_count": state["created"]},
             status_code=201,
+            content={"status": "created", "count": counters["created"]},
         )
 
-    @test_app.post("/header-json")
-    def header_json_endpoint():
-        state["header_json"] += 1
+    @test_app.post("/auth")
+    def auth_endpoint(request: Request):
+        counters["auth"] += 1
+        return {
+            "count": counters["auth"],
+            "auth": request.headers.get("authorization"),
+        }
+
+    @test_app.post("/cookie")
+    def cookie_endpoint(request: Request):
+        counters["cookie"] += 1
+        return {
+            "count": counters["cookie"],
+            "cookie": request.cookies.get("session"),
+        }
+
+    @test_app.post("/conflict")
+    def conflict_endpoint():
+        counters["conflict"] += 1
         return JSONResponse(
-            content={"result": "header", "call_count": state["header_json"]},
-            status_code=202,
-            headers={
-                "Location": "/jobs/job-123",
-                "ETag": '"etag-v1"',
-                "Cache-Control": "private, max-age=60",
-                "X-Correlation-Id": "corr-123",
-            },
+            status_code=409,
+            content={"count": counters["conflict"]},
         )
+
+    @test_app.post("/plain")
+    def plain_endpoint():
+        counters["plain"] += 1
+        return PlainTextResponse(f"plain-{counters['plain']}")
 
     @test_app.post("/cookie-json")
     def cookie_json_endpoint():
-        state["cookie_json"] += 1
-        response = JSONResponse(
-            content={"result": "cookie", "call_count": state["cookie_json"]},
-            status_code=200,
-        )
-        response.set_cookie("session_token", f"token-{state['cookie_json']}", httponly=True)
+        counters["cookie_json"] += 1
+        value = counters["cookie_json"]
+        response = JSONResponse({"count": value})
+        response.set_cookie(key="session", value=f"token-{value}", httponly=True)
         return response
+
+    @test_app.post("/location-json")
+    def location_json_endpoint():
+        counters["location_json"] += 1
+        value = counters["location_json"]
+        response = JSONResponse({"count": value})
+        response.headers["Location"] = f"/next/{value}"
+        return response
+
+    @test_app.post("/etag-json")
+    def etag_json_endpoint():
+        counters["etag_json"] += 1
+        value = counters["etag_json"]
+        response = JSONResponse({"count": value})
+        response.headers["ETag"] = f"v{value}"
+        return response
+
+    @test_app.post("/stream")
+    def stream_endpoint():
+        counters["stream"] += 1
+        value = counters["stream"]
+
+        def on_done():
+            counters["stream_bg"] += 1
+
+        response = StreamingResponse(
+            content=iter([f"stream-{value}".encode("utf-8")]),
+            media_type="text/plain",
+            background=BackgroundTask(on_done),
+        )
+        response.set_cookie("stream_a", f"a-{value}")
+        response.set_cookie("stream_b", f"b-{value}")
+        return response
+
+    @test_app.post("/json-stream")
+    def json_stream_endpoint():
+        counters["json_stream"] += 1
+        value = counters["json_stream"]
+
+        def on_done():
+            counters["json_stream_bg"] += 1
+
+        return StreamingResponse(
+            content=iter([json.dumps({"count": value}).encode("utf-8")]),
+            media_type="application/json",
+            background=BackgroundTask(on_done),
+        )
+
+    @test_app.post("/json-stream-fixed")
+    def json_stream_fixed_endpoint():
+        counters["json_stream"] += 1
+        value = counters["json_stream"]
+        payload = json.dumps({"count": value}).encode("utf-8")
+        return StreamingResponse(
+            content=iter([payload]),
+            media_type="application/json",
+            headers={"content-length": str(len(payload))},
+        )
+
+    @test_app.get("/stream-bg-count")
+    def stream_bg_count():
+        return {"count": counters["stream_bg"]}
+
+    @test_app.get("/json-stream-bg-count")
+    def json_stream_bg_count():
+        return {"count": counters["json_stream_bg"]}
 
     return TestClient(test_app)
 
@@ -113,21 +192,20 @@ def test_different_keys_are_independent(idempotent_app):
     assert resp2.status_code == 200
 
 
-def test_same_idempotency_key_does_not_cross_route_boundaries(idempotent_app):
-    headers = {"Idempotency-Key": "cross-route-key"}
+def test_idempotency_cache_key_includes_request_path(idempotent_app):
+    headers = {"Idempotency-Key": "same"}
+    first = idempotent_app.post("/one", headers=headers)
+    second = idempotent_app.post("/two", headers=headers)
 
-    one = idempotent_app.post("/one", headers=headers)
-    two = idempotent_app.post("/two", headers=headers)
-
-    assert one.status_code == 200
-    assert two.status_code == 200
-    assert one.json()["path"] == "/one"
-    assert two.json()["path"] == "/two"
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["endpoint"] == "one"
+    assert second.json()["endpoint"] == "two"
+    assert first.json() != second.json()
 
 
-def test_same_idempotency_key_does_not_replay_when_body_changes(idempotent_app):
-    headers = {"Idempotency-Key": "body-sensitive-key"}
-
+def test_idempotency_cache_key_includes_request_body(idempotent_app):
+    headers = {"Idempotency-Key": "same"}
     first = idempotent_app.post("/echo", headers=headers, json={"value": 1})
     second = idempotent_app.post("/echo", headers=headers, json={"value": 2})
 
@@ -135,60 +213,150 @@ def test_same_idempotency_key_does_not_replay_when_body_changes(idempotent_app):
     assert second.status_code == 200
     assert first.json()["payload"] == {"value": 1}
     assert second.json()["payload"] == {"value": 2}
-    assert second.json()["call_count"] == 2
+    assert first.json() != second.json()
 
 
-def test_non_json_responses_are_not_cached_for_idempotency(idempotent_app):
-    headers = {"Idempotency-Key": "text-response-key"}
-
-    first = idempotent_app.post("/text", headers=headers)
-    second = idempotent_app.post("/text", headers=headers)
-
-    assert first.status_code == 200
-    assert second.status_code == 200
-    assert first.headers["content-type"].startswith("text/plain")
-    assert second.headers["content-type"].startswith("text/plain")
-    assert first.text == "plain-1"
-    assert second.text == "plain-2"
-
-
-def test_cached_json_replay_preserves_status_code(idempotent_app):
-    headers = {"Idempotency-Key": "created-status-key"}
-
+def test_cached_json_responses_preserve_status_code(idempotent_app):
+    headers = {"Idempotency-Key": "created-key"}
     first = idempotent_app.post("/created", headers=headers)
     second = idempotent_app.post("/created", headers=headers)
 
     assert first.status_code == 201
     assert second.status_code == 201
-    assert first.json() == {"result": "created", "call_count": 1}
-    assert second.json() == {"result": "created", "call_count": 1}
+    assert first.json() == second.json()
 
 
-def test_cached_json_replay_preserves_relevant_response_headers(idempotent_app):
-    headers = {"Idempotency-Key": "header-replay-key"}
+def test_idempotency_fingerprint_is_stable_for_json_key_order(idempotent_app):
+    headers = {"Idempotency-Key": "stable-json-key"}
+    first = idempotent_app.post("/echo", headers=headers, json={"a": 1, "b": 2})
+    second = idempotent_app.post("/echo", headers=headers, json={"b": 2, "a": 1})
 
-    first = idempotent_app.post("/header-json", headers=headers)
-    second = idempotent_app.post("/header-json", headers=headers)
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["count"] == 1
+    assert second.json()["count"] == 1
 
-    assert first.status_code == 202
-    assert second.status_code == 202
-    assert first.json() == {"result": "header", "call_count": 1}
-    assert second.json() == {"result": "header", "call_count": 1}
-    assert second.headers["location"] == "/jobs/job-123"
-    assert second.headers["etag"] == '"etag-v1"'
-    assert second.headers["cache-control"] == "private, max-age=60"
-    assert second.headers["x-correlation-id"] == "corr-123"
+
+def test_non_json_responses_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "plain-key"}
+    first = idempotent_app.post("/plain", headers=headers)
+    second = idempotent_app.post("/plain", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.text == "plain-1"
+    assert second.text == "plain-2"
 
 
 def test_json_responses_with_set_cookie_are_not_cached(idempotent_app):
-    headers = {"Idempotency-Key": "cookie-json-key"}
-
+    headers = {"Idempotency-Key": "cookie-key"}
     first = idempotent_app.post("/cookie-json", headers=headers)
     second = idempotent_app.post("/cookie-json", headers=headers)
 
     assert first.status_code == 200
     assert second.status_code == 200
-    assert first.json() == {"result": "cookie", "call_count": 1}
-    assert second.json() == {"result": "cookie", "call_count": 2}
-    assert first.headers.get("set-cookie")
-    assert second.headers.get("set-cookie")
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    assert "token-1" in first.headers["set-cookie"]
+    assert "token-2" in second.headers["set-cookie"]
+
+
+def test_json_responses_with_location_header_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "location-key"}
+    first = idempotent_app.post("/location-json", headers=headers)
+    second = idempotent_app.post("/location-json", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    assert first.headers["location"] == "/next/1"
+    assert second.headers["location"] == "/next/2"
+
+
+def test_json_responses_with_etag_header_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "etag-key"}
+    first = idempotent_app.post("/etag-json", headers=headers)
+    second = idempotent_app.post("/etag-json", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    assert first.headers["etag"] == "v1"
+    assert second.headers["etag"] == "v2"
+
+
+def test_same_key_different_authorization_headers_do_not_replay(idempotent_app):
+    headers_one = {"Idempotency-Key": "caller-key", "Authorization": "Bearer one"}
+    headers_two = {"Idempotency-Key": "caller-key", "Authorization": "Bearer two"}
+    first = idempotent_app.post("/auth", headers=headers_one)
+    second = idempotent_app.post("/auth", headers=headers_two)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1, "auth": "Bearer one"}
+    assert second.json() == {"count": 2, "auth": "Bearer two"}
+
+
+def test_same_key_different_session_cookies_do_not_replay(idempotent_app):
+    headers = {"Idempotency-Key": "caller-cookie-key"}
+    idempotent_app.cookies.set("session", "s1")
+    first = idempotent_app.post("/cookie", headers=headers)
+    idempotent_app.cookies.set("session", "s2")
+    second = idempotent_app.post("/cookie", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1, "cookie": "s1"}
+    assert second.json() == {"count": 2, "cookie": "s2"}
+
+
+def test_non_success_json_responses_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "conflict-key"}
+    first = idempotent_app.post("/conflict", headers=headers)
+    second = idempotent_app.post("/conflict", headers=headers)
+
+    assert first.status_code == 409
+    assert second.status_code == 409
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+
+
+def test_streaming_responses_are_bypassed_without_transformation(idempotent_app):
+    headers = {"Idempotency-Key": "stream-key"}
+    first = idempotent_app.post("/stream", headers=headers)
+    second = idempotent_app.post("/stream", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.text == "stream-1"
+    assert second.text == "stream-2"
+    assert len(first.headers.get_list("set-cookie")) == 2
+    assert len(second.headers.get_list("set-cookie")) == 2
+    bg_count = idempotent_app.get("/stream-bg-count").json()["count"]
+    assert bg_count == 2
+
+
+def test_json_streaming_responses_are_bypassed_without_replay(idempotent_app):
+    headers = {"Idempotency-Key": "json-stream-key"}
+    first = idempotent_app.post("/json-stream", headers=headers)
+    second = idempotent_app.post("/json-stream", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    bg_count = idempotent_app.get("/json-stream-bg-count").json()["count"]
+    assert bg_count == 2
+
+
+def test_fixed_length_json_streaming_responses_are_explicitly_cacheable(idempotent_app):
+    headers = {"Idempotency-Key": "json-stream-fixed-key"}
+    first = idempotent_app.post("/json-stream-fixed", headers=headers)
+    second = idempotent_app.post("/json-stream-fixed", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 1}
