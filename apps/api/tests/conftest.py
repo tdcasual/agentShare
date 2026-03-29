@@ -16,9 +16,11 @@ from app.db import get_db
 from app.factory import create_app
 from app.orm import Base  # noqa: F401 — import triggers all model registration
 from app.orm.agent import AgentIdentityModel
+from app.orm.agent_token import AgentTokenModel
 from app.repositories.agent_repo import AgentRepository
 from app.runtime import AppRuntime
 from app.observability import reset_metrics
+from app.services.agent_token_service import hash_token
 from app.services.secret_backend import InMemorySecretBackend, reset_secret_counter
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -121,11 +123,23 @@ def seeded_app(db_session, test_engine, test_session_factory, test_settings):
     repo.create(AgentIdentityModel(
         id="test-agent",
         name="Test Agent",
-        api_key_hash=key_hash,
+        api_key_hash=None,
         status="active",
         allowed_capability_ids=[],
         allowed_task_types=["config_sync", "account_read", "prompt_run"],
         risk_tier="medium",
+    ))
+    db_session.add(AgentTokenModel(
+        id="token-test-agent",
+        agent_id="test-agent",
+        display_name="Test agent token",
+        token_hash=hash_token(TEST_AGENT_KEY),
+        token_prefix=TEST_AGENT_KEY[:10],
+        status="active",
+        issued_by_actor_type="system",
+        issued_by_actor_id="test-fixture",
+        scopes=[],
+        labels={},
     ))
     db_session.commit()
 

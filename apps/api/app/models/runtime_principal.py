@@ -1,0 +1,29 @@
+from __future__ import annotations
+
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
+
+class RuntimePrincipal(BaseModel):
+    id: str
+    name: str
+    issuer: str
+    auth_method: str
+    status: str = "active"
+    token_id: str
+    token_prefix: str | None = None
+    expires_at: datetime | None = None
+    scopes: list[str] = Field(default_factory=list)
+    labels: dict[str, str] = Field(default_factory=dict)
+    allowed_capability_ids: list[str] = Field(default_factory=list)
+    allowed_task_types: list[str] = Field(default_factory=list)
+    risk_tier: str = "medium"
+
+    @property
+    def agent_id(self) -> str:
+        return self.id
+
+    @property
+    def agent_name(self) -> str:
+        return self.name

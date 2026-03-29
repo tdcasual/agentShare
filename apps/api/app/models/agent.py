@@ -1,12 +1,6 @@
-from pydantic import BaseModel, Field
+from app.models.runtime_principal import RuntimePrincipal
 
 
-class AgentIdentity(BaseModel):
-    id: str
-    name: str
-    issuer: str
-    auth_method: str
-    status: str = "active"
-    allowed_capability_ids: list[str] = Field(default_factory=list)
-    allowed_task_types: list[str] = Field(default_factory=list)
-    risk_tier: str = "medium"
+AgentIdentity = RuntimePrincipal
+
+__all__ = ["AgentIdentity"]

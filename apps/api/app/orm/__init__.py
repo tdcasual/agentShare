@@ -2,6 +2,7 @@ from app.orm.base import Base
 from app.orm.secret import SecretModel
 from app.orm.capability import CapabilityModel
 from app.orm.agent import AgentIdentityModel
+from app.orm.agent_token import AgentTokenModel
 from app.orm.task import TaskModel
 from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
@@ -16,6 +17,7 @@ __all__ = [
     "SecretModel",
     "CapabilityModel",
     "AgentIdentityModel",
+    "AgentTokenModel",
     "TaskModel",
     "RunModel",
     "PlaybookModel",

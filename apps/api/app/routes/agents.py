@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-import secrets
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -18,14 +15,11 @@ from app.models.agent import AgentIdentity
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.schemas.agents import AgentCreate
+from app.services.agent_token_service import mint_agent_token
 from app.services.audit_service import write_audit_event
 from app.services.identifiers import new_resource_id
 
 router = APIRouter(prefix="/api/agents")
-
-
-def _hash_key(key: str) -> str:
-    return hashlib.sha256(key.encode()).hexdigest()
 
 
 @router.get(
@@ -52,23 +46,36 @@ def create_agent(
 ) -> dict:
     repo = AgentRepository(session)
     agent_id = new_resource_id("agent")
-    raw_key = secrets.token_urlsafe(32)
     model = AgentIdentityModel(
         id=agent_id,
         name=payload.name,
-        api_key_hash=_hash_key(raw_key),
+        api_key_hash=None,
         status="active",
         allowed_capability_ids=payload.allowed_capability_ids,
         allowed_task_types=payload.allowed_task_types,
         risk_tier=payload.risk_tier,
     )
     repo.create(model)
+    token, raw_key = mint_agent_token(
+        session,
+        agent_id=agent_id,
+        display_name="Primary token",
+        issued_by_actor_type=manager.actor_type,
+        issued_by_actor_id=manager.id,
+    )
     write_audit_event(session, "agent_created", {
         "agent_id": agent_id,
         "actor_type": manager.actor_type,
         "actor_id": manager.id,
     })
-    return {"id": agent_id, "name": payload.name, "risk_tier": payload.risk_tier, "api_key": raw_key}
+    return {
+        "id": agent_id,
+        "name": payload.name,
+        "risk_tier": payload.risk_tier,
+        "api_key": raw_key,
+        "token_id": token.id,
+        "token_prefix": token.token_prefix,
+    }
 
 
 @router.get(

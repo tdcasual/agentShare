@@ -127,6 +127,7 @@ def test_create_agent_returns_api_key(client, db_session):
     assert resp.status_code == 201
     data = resp.json()
     assert "api_key" in data
+    assert "token_id" in data
     assert data["name"] == "New Agent"
 
 

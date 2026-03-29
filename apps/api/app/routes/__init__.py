@@ -5,6 +5,7 @@ from fastapi import APIRouter, FastAPI
 from app.mcp.server import router as mcp_router
 from app.routes.agents import router as agents_router
 from app.routes.admin_accounts import router as admin_accounts_router
+from app.routes.agent_tokens import router as agent_tokens_router
 from app.routes.approvals import router as approvals_router
 from app.routes.capabilities import router as capabilities_router
 from app.routes.intake_catalog import router as intake_catalog_router
@@ -22,6 +23,7 @@ from app.routes.bootstrap import router as bootstrap_router
 def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
     routers: list[APIRouter] = [
         agents_router,
+        agent_tokens_router,
         bootstrap_router,
         session_router,
         admin_accounts_router,
