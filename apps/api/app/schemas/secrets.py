@@ -81,6 +81,7 @@ class SecretResponse(BaseModel):
             "resource_selector": "project:agent-share",
             "metadata": {"owner": "ml-platform"},
             "backend_ref": "memory:secret-1",
+            "publication_status": "active",
         },
     })
 
@@ -94,3 +95,4 @@ class SecretResponse(BaseModel):
     resource_selector: str | None
     metadata: dict[str, Any]
     backend_ref: str
+    publication_status: str

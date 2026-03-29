@@ -33,7 +33,7 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert complete_op["security"] == [{"HTTPBearer": []}]
     assert create_task_op["summary"]
     assert create_task_op["description"]
-    assert create_task_op["security"] == [{"ManagementSession": []}]
+    assert create_task_op["security"] == [{"HTTPBearer": []}, {"ManagementSession": []}]
     assert intake_catalog_op["summary"]
     assert intake_catalog_op["description"]
     assert intake_catalog_op["security"] == [{"ManagementSession": []}]

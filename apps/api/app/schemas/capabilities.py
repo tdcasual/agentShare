@@ -30,6 +30,7 @@ class CapabilityCreate(BaseModel):
             "allowed_environments": ["production"],
             "adapter_type": "generic_http",
             "adapter_config": {},
+            "publication_status": "active",
         },
     })
 
@@ -118,3 +119,4 @@ class CapabilityResponse(BaseModel):
     allowed_environments: list[str]
     adapter_type: str
     adapter_config: dict[str, Any]
+    publication_status: str

@@ -19,3 +19,8 @@ class CapabilityRepository:
 
     def list_all(self) -> list[CapabilityModel]:
         return list(self.session.query(CapabilityModel).all())
+
+    def update(self, model: CapabilityModel) -> CapabilityModel:
+        merged = self.session.merge(model)
+        self.session.flush()
+        return merged

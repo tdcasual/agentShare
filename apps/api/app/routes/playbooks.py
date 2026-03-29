@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_management_session
+from app.auth import AuthenticatedActor, ManagementIdentity, require_management_or_agent, require_management_session
 from app.db import get_db
 from app.schemas.playbooks import PlaybookCreate, PlaybookResponse, PlaybookSearchResponse
-from app.services.audit_service import write_audit_event
+from app.services.audit_service import actor_payload, write_audit_event
 from app.services.playbook_service import create_playbook, get_playbook, search_playbooks
+from app.services.review_service import publication_status_for_actor
 
 router = APIRouter(prefix="/api/playbooks")
 
@@ -20,15 +21,17 @@ router = APIRouter(prefix="/api/playbooks")
 )
 def create_playbook_route(
     payload: PlaybookCreate,
-    manager: ManagementIdentity = Depends(require_management_session),
+    response: Response,
+    actor: AuthenticatedActor = Depends(require_management_or_agent),
     session: Session = Depends(get_db),
 ) -> dict:
-    record = create_playbook(session, payload)
+    record = create_playbook(session, payload, actor=actor)
+    if publication_status_for_actor(actor.actor_type) == "pending_review":
+        response.status_code = status.HTTP_202_ACCEPTED
     write_audit_event(session, "playbook_created", {
         "playbook_id": record["id"],
         "task_type": record["task_type"],
-        "actor_type": manager.actor_type,
-        "actor_id": manager.id,
+        **actor_payload(actor),
     })
     return record
 

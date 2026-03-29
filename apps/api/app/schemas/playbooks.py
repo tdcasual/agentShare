@@ -14,6 +14,7 @@ class PlaybookResponse(BaseModel):
     task_type: str
     body: str
     tags: list[str] = Field(default_factory=list)
+    publication_status: str = "active"
 
 
 class PlaybookSearchMeta(BaseModel):

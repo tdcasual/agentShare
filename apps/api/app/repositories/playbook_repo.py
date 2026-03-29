@@ -21,6 +21,11 @@ class PlaybookRepository:
     def list_all(self) -> list[PlaybookModel]:
         return list(self.session.query(PlaybookModel).all())
 
+    def update(self, model: PlaybookModel) -> PlaybookModel:
+        merged = self.session.merge(model)
+        self.session.flush()
+        return merged
+
     def search(
         self,
         *,

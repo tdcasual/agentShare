@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_admin_management_session
+from app.auth import AuthenticatedActor, ManagementIdentity, require_admin_management_session, require_admin_management_or_agent
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
 from app.orm.secret import SecretModel
 from app.repositories.secret_repo import SecretRepository
 from app.schemas.secrets import SecretCreate, SecretResponse
-from app.services.audit_service import write_audit_event
+from app.services.audit_service import actor_payload, write_audit_event
 from app.services.secret_backend import get_secret_backend
+from app.services.review_service import publication_status_for_actor
 
 router = APIRouter(prefix="/api/secrets")
 
@@ -24,12 +25,14 @@ router = APIRouter(prefix="/api/secrets")
 )
 def create_secret(
     payload: SecretCreate,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    response: Response,
+    actor: AuthenticatedActor = Depends(require_admin_management_or_agent),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
     backend = get_secret_backend(settings)
     secret_id, backend_ref = backend.write_secret(payload.value)
+    publication_status = publication_status_for_actor(actor.actor_type)
     model = SecretModel(
         id=secret_id,
         display_name=payload.display_name,
@@ -41,14 +44,20 @@ def create_secret(
         resource_selector=payload.resource_selector,
         metadata_json=payload.metadata,
         backend_ref=backend_ref,
+        created_by=actor.actor_type,
+        created_by_actor_type=actor.actor_type,
+        created_by_actor_id=actor.id,
+        created_via_token_id=actor.token_id,
+        publication_status=publication_status,
     )
     repo = SecretRepository(session)
     repo.create(model)
+    if actor.actor_type == "agent":
+        response.status_code = status.HTTP_202_ACCEPTED
     write_audit_event(session, "secret_created", {
         "secret_id": secret_id,
         "backend_ref": backend_ref,
-        "actor_type": manager.actor_type,
-        "actor_id": manager.id,
+        **actor_payload(actor),
     })
     return _to_secret_response(model)
 
@@ -90,4 +99,5 @@ def _to_secret_response(model: SecretModel) -> dict:
         "resource_selector": model.resource_selector,
         "metadata": model.metadata_json or model.scope or {},
         "backend_ref": model.backend_ref,
+        "publication_status": model.publication_status,
     }

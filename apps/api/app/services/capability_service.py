@@ -7,10 +7,13 @@ from app.orm.capability import CapabilityModel
 from app.repositories.capability_repo import CapabilityRepository
 from app.schemas.capabilities import CapabilityCreate
 from app.services.identifiers import new_resource_id
+from app.services.review_service import publication_status_for_actor
 from app.services.scope_policy import ensure_binding_compatible
 
 
-def create_capability(session: Session, payload: CapabilityCreate, secret) -> dict:
+def create_capability(session: Session, payload: CapabilityCreate, secret, *, actor=None) -> dict:
+    if actor is None:
+        actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
     repo = CapabilityRepository(session)
     try:
         ensure_binding_compatible(secret, payload)
@@ -32,15 +35,21 @@ def create_capability(session: Session, payload: CapabilityCreate, secret) -> di
         allowed_environments=payload.allowed_environments,
         adapter_type=payload.adapter_type,
         adapter_config=payload.adapter_config,
+        created_by_actor_type=actor.actor_type,
+        created_by_actor_id=actor.id,
+        created_via_token_id=getattr(actor, "token_id", None),
+        publication_status=publication_status_for_actor(actor.actor_type),
     )
     repo.create(model)
     return _to_dict(model)
 
 
-def get_capability(session: Session, capability_id: str) -> dict:
+def get_capability(session: Session, capability_id: str, *, require_active: bool = False) -> dict:
     repo = CapabilityRepository(session)
     model = repo.get(capability_id)
     if model is None:
+        raise NotFoundError("Capability not found")
+    if require_active and model.publication_status != "active":
         raise NotFoundError("Capability not found")
     return _to_dict(model)
 
@@ -66,4 +75,5 @@ def _to_dict(model: CapabilityModel) -> dict:
         "allowed_environments": model.allowed_environments or [],
         "adapter_type": model.adapter_type or "generic_http",
         "adapter_config": model.adapter_config or {},
+        "publication_status": model.publication_status,
     }

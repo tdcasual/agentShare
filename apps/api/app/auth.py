@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import APIKeyCookie
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -49,8 +47,12 @@ class ManagementIdentity(BaseModel):
     expires_at: int
 
 
-def _hash_key(key: str) -> str:
-    return hashlib.sha256(key.encode()).hexdigest()
+class AuthenticatedActor(BaseModel):
+    actor_type: str
+    id: str
+    auth_method: str
+    role: ManagementRole | None = None
+    token_id: str | None = None
 
 
 def resolve_agent_from_api_key(api_key: str, session: Session) -> AgentIdentity | None:
@@ -126,6 +128,14 @@ def require_management_session(
     settings: Settings = Depends(get_settings),
     _documented_session_token: str | None = Depends(management_security),
 ) -> ManagementIdentity:
+    return _resolve_management_identity(request, session, settings)
+
+
+def _resolve_management_identity(
+    request: Request,
+    session: Session,
+    settings: Settings,
+) -> ManagementIdentity:
     session_token = request.cookies.get(settings.management_session_cookie_name)
     if session_token is None:
         raise HTTPException(
@@ -151,6 +161,47 @@ def require_management_session(
         issued_at=payload.iat,
         expires_at=payload.exp,
     )
+
+
+def require_management_or_agent(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    _documented_session_token: str | None = Depends(management_security),
+) -> AuthenticatedActor:
+    if credentials is not None:
+        agent = resolve_agent_from_api_key(credentials.credentials, session)
+        if agent is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
+        if is_bootstrap_agent(agent):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
+        return AuthenticatedActor(
+            actor_type="agent",
+            id=agent.id,
+            auth_method=agent.auth_method,
+            token_id=agent.token_id,
+        )
+
+    identity = _resolve_management_identity(request, session, settings)
+    return AuthenticatedActor(
+        actor_type=identity.actor_type,
+        id=identity.id,
+        auth_method=identity.auth_method,
+        role=identity.role,
+    )
+
+
+def require_admin_management_or_agent(
+    actor: AuthenticatedActor = Depends(require_management_or_agent),
+) -> AuthenticatedActor:
+    if actor.actor_type == "human" and actor.role is not None:
+        if MANAGEMENT_ROLE_LEVELS[actor.role] < MANAGEMENT_ROLE_LEVELS["admin"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="admin role required",
+            )
+    return actor
 
 
 def require_management_role(minimum_role: ManagementRole):

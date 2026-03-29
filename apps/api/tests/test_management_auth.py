@@ -11,7 +11,7 @@ def _auth_header(key: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {key}"}
 
 
-def test_secret_routes_require_management_session_cookie(client, management_client):
+def test_secret_routes_require_management_session_cookie_or_runtime_agent(client, management_client):
     payload = {
         "display_name": "OpenAI prod key",
         "kind": "api_token",
@@ -23,7 +23,8 @@ def test_secret_routes_require_management_session_cookie(client, management_clie
     assert missing.status_code == 401
 
     non_bootstrap = client.post("/api/secrets", headers=_auth_header(TEST_AGENT_KEY), json=payload)
-    assert non_bootstrap.status_code == 401
+    assert non_bootstrap.status_code == 202
+    assert non_bootstrap.json()["publication_status"] == "pending_review"
 
     allowed = management_client.post("/api/secrets", json=payload)
     assert allowed.status_code == 201
@@ -43,7 +44,7 @@ def test_management_bootstrap_bearer_no_longer_authorizes(client):
     assert response.status_code == 401
 
 
-def test_capability_and_task_creation_require_management_session(client, management_client):
+def test_capability_and_task_creation_allow_runtime_submission_but_keep_management_active_publish(client, management_client):
     secret = management_client.post(
         "/api/secrets",
         json={
@@ -63,7 +64,8 @@ def test_capability_and_task_creation_require_management_session(client, managem
             "risk_level": "low",
         },
     )
-    assert capability.status_code == 401
+    assert capability.status_code == 202
+    assert capability.json()["publication_status"] == "pending_review"
 
     task = client.post(
         "/api/tasks",
@@ -74,7 +76,8 @@ def test_capability_and_task_creation_require_management_session(client, managem
             "input": {"provider": "github"},
         },
     )
-    assert task.status_code == 401
+    assert task.status_code == 202
+    assert task.json()["publication_status"] == "pending_review"
 
     allowed_capability = management_client.post(
         "/api/capabilities",

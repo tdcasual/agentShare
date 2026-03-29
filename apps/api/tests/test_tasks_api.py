@@ -111,6 +111,7 @@ def test_management_can_publish_task_with_playbook_references(management_client)
 
     assert response.status_code == 201
     assert response.json()["playbook_ids"] == [playbook["id"]]
+    assert response.json()["publication_status"] == "active"
 
 
 def test_management_cannot_publish_task_with_missing_playbook_references(management_client):
@@ -190,3 +191,18 @@ def test_agent_cannot_claim_task_type_outside_allowlist(client, management_clien
     )
 
     assert response.status_code == 403
+
+
+def test_runtime_created_task_starts_pending_review(client):
+    response = client.post(
+        "/api/tasks",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "title": "Runtime submitted task",
+            "task_type": "prompt_run",
+            "input": {"prompt": "hello"},
+        },
+    )
+
+    assert response.status_code == 202
+    assert response.json()["publication_status"] == "pending_review"

@@ -19,3 +19,8 @@ class SecretRepository:
 
     def list_all(self) -> list[SecretModel]:
         return list(self.session.query(SecretModel).all())
+
+    def update(self, model: SecretModel) -> SecretModel:
+        merged = self.session.merge(model)
+        self.session.flush()
+        return merged

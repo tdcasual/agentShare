@@ -2,7 +2,8 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
-from conftest import BOOTSTRAP_AGENT_KEY, bootstrap_owner_account, login_management_account
+from app.repositories.audit_repo import AuditEventRepository
+from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY, bootstrap_owner_account, login_management_account
 
 
 def test_create_secret_returns_reference_only(management_client):
@@ -24,6 +25,7 @@ def test_create_secret_returns_reference_only(management_client):
     assert body["id"].startswith("secret-")
     assert body["id"] != "secret-1"
     assert body["display_name"] == "OpenAI prod key"
+    assert body["publication_status"] == "active"
     assert "value" not in body
     assert body["backend_ref"] == f"memory:{body['id']}"
 
@@ -82,3 +84,27 @@ def test_create_secret_uses_runtime_settings_for_secret_backend(monkeypatch, tmp
 
     assert response.status_code == 201
     assert captured == ["memory"]
+
+
+def test_runtime_created_secret_starts_pending_review_and_tracks_token_provenance(client, db_session):
+    response = client.post(
+        "/api/secrets",
+        headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
+        json={
+            "display_name": "Agent secret",
+            "kind": "api_token",
+            "value": "agent-secret-value",
+            "provider": "openai",
+        },
+    )
+
+    assert response.status_code == 202
+    body = response.json()
+    assert body["publication_status"] == "pending_review"
+
+    events = AuditEventRepository(db_session).list_all()
+    created_events = [event for event in events if event.event_type == "secret_created"]
+    assert created_events
+    assert created_events[-1].payload["actor_type"] == "agent"
+    assert created_events[-1].payload["actor_id"] == "test-agent"
+    assert created_events[-1].payload["via_token_id"] == "token-test-agent"

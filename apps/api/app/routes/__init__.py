@@ -14,6 +14,7 @@ from app.routes.leases import router as leases_router
 from app.routes.metrics import router as metrics_router
 from app.routes.playbooks import router as playbooks_router
 from app.routes.runs import router as runs_router
+from app.routes.reviews import router as reviews_router
 from app.routes.secrets import router as secrets_router
 from app.routes.session import router as session_router
 from app.routes.tasks import router as tasks_router
@@ -28,6 +29,7 @@ def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
         session_router,
         admin_accounts_router,
         approvals_router,
+        reviews_router,
         intake_catalog_router,
         secrets_router,
         capabilities_router,

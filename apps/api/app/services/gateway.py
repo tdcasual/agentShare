@@ -166,7 +166,7 @@ def _authorize_capability_use(
     agent: AgentIdentity,
     require_lease: bool,
 ) -> tuple[dict, Any, Any]:
-    capability = get_capability(session, capability_id)
+    capability = get_capability(session, capability_id, require_active=True)
     ensure_capability_allowed(agent, capability_id)
 
     task = TaskRepository(session).get(task_id)
@@ -188,6 +188,8 @@ def _authorize_capability_use(
     secret_record = SecretRepository(session).get(capability["secret_id"])
     if secret_record is None:
         raise KeyError(f"Secret {capability['secret_id']} not found")
+    if getattr(secret_record, "publication_status", "active") != "active":
+        raise PermissionError("Secret is not active")
     ensure_runtime_compatible(secret_record, capability)
 
     action_type = "lease" if require_lease else "invoke"

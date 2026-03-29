@@ -13,6 +13,7 @@ def test_create_playbook_returns_saved_record(management_client):
     assert response.json()["id"].startswith("playbook-")
     assert response.json()["id"] != "playbook-1"
     assert response.json()["title"] == "QQ config sync"
+    assert response.json()["publication_status"] == "active"
 
 
 def test_search_playbooks_filters_by_task_type(management_client):
@@ -104,3 +105,19 @@ def test_get_playbook_by_id_returns_404_when_missing(management_client):
     response = management_client.get("/api/playbooks/playbook-missing")
     assert response.status_code == 404
     assert response.json() == {"detail": "Playbook not found"}
+
+
+def test_runtime_created_playbook_starts_pending_review(client):
+    response = client.post(
+        "/api/playbooks",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "title": "Runtime playbook",
+            "task_type": "prompt_run",
+            "body": "Agent-authored draft playbook.",
+            "tags": ["runtime"],
+        },
+    )
+
+    assert response.status_code == 202
+    assert response.json()["publication_status"] == "pending_review"

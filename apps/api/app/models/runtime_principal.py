@@ -11,7 +11,7 @@ class RuntimePrincipal(BaseModel):
     issuer: str
     auth_method: str
     status: str = "active"
-    token_id: str
+    token_id: str | None = None
     token_prefix: str | None = None
     expires_at: datetime | None = None
     scopes: list[str] = Field(default_factory=list)

@@ -20,6 +20,13 @@ class TaskRepository:
     def list_all(self) -> list[TaskModel]:
         return list(self.session.query(TaskModel).all())
 
+    def list_active(self) -> list[TaskModel]:
+        return list(
+            self.session.query(TaskModel)
+            .filter(TaskModel.publication_status == "active")
+            .all()
+        )
+
     def update(self, model: TaskModel) -> TaskModel:
         merged = self.session.merge(model)
         self.session.flush()

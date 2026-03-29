@@ -18,9 +18,12 @@ from app.schemas.tasks import TaskCreate
 from app.observability import record_task_claim, record_task_completion
 from app.services.identifiers import new_resource_id
 from app.services.redis_client import acquire_lock, release_lock
+from app.services.review_service import publication_status_for_actor
 
 
-def create_task(session: Session, payload: TaskCreate) -> dict:
+def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
+    if actor is None:
+        actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
     _ensure_playbooks_exist(session, payload.playbook_ids)
     repo = TaskRepository(session)
     task_id = new_resource_id("task")
@@ -35,13 +38,18 @@ def create_task(session: Session, payload: TaskCreate) -> dict:
         approval_mode=payload.approval_mode,
         approval_rules=[rule.model_dump() for rule in payload.approval_rules],
         priority=payload.priority,
+        created_by=actor.actor_type,
+        created_by_actor_type=actor.actor_type,
+        created_by_actor_id=actor.id,
+        created_via_token_id=getattr(actor, "token_id", None),
+        publication_status=publication_status_for_actor(actor.actor_type),
     )
     repo.create(model)
     return _task_to_dict(model)
 
 
 def list_tasks(session: Session) -> list[dict]:
-    return [_task_to_dict(m) for m in TaskRepository(session).list_all()]
+    return [_task_to_dict(m) for m in TaskRepository(session).list_active()]
 
 
 def claim_task(
@@ -58,6 +66,8 @@ def claim_task(
         task = repo.get(task_id)
         if task is None:
             raise NotFoundError("Task not found")
+        if task.publication_status != "active":
+            raise ConflictError("Task is not claimable")
         if task.status != "pending":
             raise ConflictError("Task is not claimable")
         try:
@@ -118,6 +128,10 @@ def _task_to_dict(model: TaskModel) -> dict:
         "priority": model.priority,
         "status": model.status,
         "created_by": model.created_by,
+        "created_by_actor_type": model.created_by_actor_type,
+        "created_by_actor_id": model.created_by_actor_id,
+        "created_via_token_id": model.created_via_token_id,
+        "publication_status": model.publication_status,
         "claimed_by": model.claimed_by,
     }
 

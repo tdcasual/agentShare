@@ -23,6 +23,7 @@ def test_create_capability_defaults_to_proxy_only(management_client):
     assert response.json()["id"].startswith("capability-")
     assert response.json()["id"] != "capability-1"
     assert response.json()["allowed_mode"] == "proxy_only"
+    assert response.json()["publication_status"] == "active"
 
 
 def test_list_capabilities_returns_created_items(management_client):
@@ -105,3 +106,29 @@ def test_create_capability_with_missing_secret_returns_clean_not_found(managemen
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Secret not found"}
+
+
+def test_runtime_created_capability_starts_pending_review(client, management_client):
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "Capability backing secret",
+            "kind": "api_token",
+            "value": "secret-value",
+            "provider": "openai",
+        },
+    ).json()
+
+    response = client.post(
+        "/api/capabilities",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "name": "openai.chat.runtime",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+        },
+    )
+
+    assert response.status_code == 202
+    assert response.json()["publication_status"] == "pending_review"

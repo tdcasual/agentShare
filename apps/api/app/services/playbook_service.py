@@ -9,6 +9,7 @@ from app.orm.playbook import PlaybookModel
 from app.repositories.playbook_repo import PlaybookRepository
 from app.schemas.playbooks import PlaybookCreate
 from app.services.identifiers import new_resource_id
+from app.services.review_service import publication_status_for_actor
 
 
 @dataclass(frozen=True)
@@ -18,7 +19,9 @@ class PlaybookSearchResult:
     applied_filters: dict[str, str]
 
 
-def create_playbook(session: Session, payload: PlaybookCreate) -> dict:
+def create_playbook(session: Session, payload: PlaybookCreate, *, actor=None) -> dict:
+    if actor is None:
+        actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
     repo = PlaybookRepository(session)
     playbook_id = new_resource_id("playbook")
     model = PlaybookModel(
@@ -27,6 +30,10 @@ def create_playbook(session: Session, payload: PlaybookCreate) -> dict:
         task_type=payload.task_type,
         body=payload.body,
         tags=payload.tags,
+        created_by_actor_type=actor.actor_type,
+        created_by_actor_id=actor.id,
+        created_via_token_id=getattr(actor, "token_id", None),
+        publication_status=publication_status_for_actor(actor.actor_type),
     )
     repo.create(model)
     return _to_dict(model)
@@ -74,4 +81,5 @@ def _to_dict(model: PlaybookModel) -> dict:
         "task_type": model.task_type,
         "body": model.body,
         "tags": model.tags,
+        "publication_status": model.publication_status,
     }
