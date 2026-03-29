@@ -25,6 +25,8 @@ class TaskCreate(BaseModel):
                 }
             ],
             "priority": "normal",
+            "target_token_ids": ["token-1"],
+            "target_mode": "explicit_tokens",
         },
     })
 
@@ -52,6 +54,14 @@ class TaskCreate(BaseModel):
         description="Optional policy rules evaluated before falling back to approval_mode.",
     )
     priority: str = Field(default="normal", description="Relative scheduling priority.")
+    target_token_ids: list[str] = Field(
+        default_factory=list,
+        description="Concrete token ids that should receive this task when target_mode is explicit_tokens.",
+    )
+    target_mode: Literal["explicit_tokens", "broadcast"] = Field(
+        default="broadcast",
+        description="Whether to target explicit token ids or broadcast to all currently active tokens.",
+    )
 
 
 class TaskComplete(BaseModel):

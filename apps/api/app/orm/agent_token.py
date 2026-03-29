@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, String
+from sqlalchemy import JSON, DateTime, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.orm.base import Base, TimestampMixin
@@ -21,3 +21,8 @@ class AgentTokenModel(Base, TimestampMixin):
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     scopes: Mapped[list] = mapped_column(JSON, default=list)
     labels: Mapped[dict] = mapped_column(JSON, default=dict)
+    completed_runs: Mapped[int] = mapped_column(Integer, default=0)
+    successful_runs: Mapped[int] = mapped_column(Integer, default=0)
+    success_rate: Mapped[float] = mapped_column(Float, default=0.0)
+    last_feedback_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    trust_score: Mapped[float] = mapped_column(Float, default=0.0)

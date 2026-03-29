@@ -24,6 +24,8 @@ def list_runs(
             "id": model.id,
             "task_id": model.task_id,
             "agent_id": model.agent_id,
+            "token_id": model.token_id,
+            "task_target_id": model.task_target_id,
             "status": model.status,
             "result_summary": model.result_summary,
             "output_payload": model.output_payload,

@@ -4,6 +4,8 @@ from app.orm.capability import CapabilityModel
 from app.orm.agent import AgentIdentityModel
 from app.orm.agent_token import AgentTokenModel
 from app.orm.task import TaskModel
+from app.orm.task_target import TaskTargetModel
+from app.orm.token_feedback import TokenFeedbackModel
 from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
 from app.orm.audit_event import AuditEventModel
@@ -19,6 +21,8 @@ __all__ = [
     "AgentIdentityModel",
     "AgentTokenModel",
     "TaskModel",
+    "TaskTargetModel",
+    "TokenFeedbackModel",
     "RunModel",
     "PlaybookModel",
     "AuditEventModel",

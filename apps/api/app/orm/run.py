@@ -10,6 +10,8 @@ class RunModel(Base, TimestampMixin):
     id: Mapped[str] = mapped_column(String, primary_key=True)
     task_id: Mapped[str] = mapped_column(String, nullable=False)
     agent_id: Mapped[str] = mapped_column(String, nullable=False)
+    token_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    task_target_id: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[str] = mapped_column(String, nullable=False)
     result_summary: Mapped[str] = mapped_column(String, default="")
     output_payload: Mapped[dict] = mapped_column(JSON, default=dict)

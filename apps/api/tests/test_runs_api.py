@@ -9,12 +9,18 @@ def test_completed_task_creates_run_record(client, management_client):
             "lease_allowed": False,
         },
     ).json()
+    assigned = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    assert assigned.status_code == 200
+    target_id = assigned.json()["items"][0]["id"]
     client.post(
-        f"/api/tasks/{task['id']}/claim",
+        f"/api/task-targets/{target_id}/claim",
         headers={"Authorization": "Bearer agent-test-token"},
     )
     client.post(
-        f"/api/tasks/{task['id']}/complete",
+        f"/api/task-targets/{target_id}/complete",
         headers={"Authorization": "Bearer agent-test-token"},
         json={"result_summary": "Done", "output_payload": {"ok": True}},
     )
@@ -25,3 +31,5 @@ def test_completed_task_creates_run_record(client, management_client):
     items = response.json()["items"]
     assert len(items) == 1
     assert items[0]["task_id"] == task["id"]
+    assert items[0]["token_id"] == "token-test-agent"
+    assert items[0]["task_target_id"] == target_id

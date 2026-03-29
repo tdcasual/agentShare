@@ -95,6 +95,11 @@ def serialize_agent_token(model: AgentTokenModel, *, api_key: str | None = None)
         "last_used_at": model.last_used_at,
         "scopes": model.scopes or [],
         "labels": model.labels or {},
+        "completed_runs": model.completed_runs,
+        "successful_runs": model.successful_runs,
+        "success_rate": model.success_rate,
+        "last_feedback_at": model.last_feedback_at,
+        "trust_score": model.trust_score,
         "api_key": api_key,
     }
 

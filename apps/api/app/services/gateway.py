@@ -14,6 +14,7 @@ from app.models.agent import AgentIdentity
 from app.observability import record_capability_invoke
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
+from app.repositories.task_target_repo import TaskTargetRepository
 from app.services.adapters.registry import get_adapter
 from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError, require_runtime_approval
 from app.services.audit_service import write_audit_event
@@ -172,10 +173,15 @@ def _authorize_capability_use(
     task = TaskRepository(session).get(task_id)
     if task is None:
         raise KeyError(f"Task {task_id} not found")
-    if task.claimed_by != agent.id:
-        raise PermissionError("Task is not claimed by this agent")
-    if task.status != "claimed":
-        raise PermissionError("Task is not active")
+    if agent.token_id:
+        target = TaskTargetRepository(session).find_by_task_and_token(task_id, agent.token_id)
+        if target is None or target.status != "claimed" or target.claimed_by_token_id != agent.token_id:
+            raise PermissionError("Task is not claimed by this token")
+    else:
+        if task.claimed_by != agent.id:
+            raise PermissionError("Task is not claimed by this agent")
+        if task.status != "claimed":
+            raise PermissionError("Task is not active")
     if task.required_capability_ids and capability_id not in task.required_capability_ids:
         raise PermissionError("Capability is outside the task contract")
 

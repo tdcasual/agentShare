@@ -32,6 +32,11 @@ class AgentTokenResponse(BaseModel):
     last_used_at: datetime | None
     scopes: list[str]
     labels: dict[str, str]
+    completed_runs: int = 0
+    successful_runs: int = 0
+    success_rate: float = 0.0
+    last_feedback_at: datetime | None = None
+    trust_score: float = 0.0
     api_key: str | None = None
 
 

@@ -206,3 +206,42 @@ def test_runtime_created_task_starts_pending_review(client):
 
     assert response.status_code == 202
     assert response.json()["publication_status"] == "pending_review"
+
+
+def test_runtime_assigned_queue_only_returns_tasks_for_current_token(client, management_client):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Queue Agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    minted = management_client.post(
+        f"/api/agents/{created_agent.json()['id']}/tokens",
+        json={"display_name": "Queue token"},
+    )
+    assert minted.status_code == 201, minted.text
+
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Token-targeted work",
+            "task_type": "account_read",
+            "target_token_ids": ["token-test-agent", minted.json()["id"]],
+            "target_mode": "explicit_tokens",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    seeded_queue = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    minted_queue = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": f"Bearer {minted.json()['api_key']}"},
+    )
+
+    assert seeded_queue.status_code == 200
+    assert {item["target_token_id"] for item in seeded_queue.json()["items"]} == {"token-test-agent"}
+    assert minted_queue.status_code == 200
+    assert {item["target_token_id"] for item in minted_queue.json()["items"]} == {minted.json()["id"]}

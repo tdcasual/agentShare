@@ -26,6 +26,13 @@ class AgentTokenRepository:
             .all()
         )
 
+    def list_active(self) -> list[AgentTokenModel]:
+        return list(
+            self.session.query(AgentTokenModel)
+            .filter(AgentTokenModel.status == "active")
+            .all()
+        )
+
     def find_by_token_hash(self, token_hash: str) -> AgentTokenModel | None:
         return (
             self.session.query(AgentTokenModel)
