@@ -268,6 +268,7 @@ def _task_to_dict(model: TaskModel, *, targets: list[TaskTargetModel] | None = N
         "created_via_token_id": model.created_via_token_id,
         "publication_status": model.publication_status,
         "claimed_by": model.claimed_by,
+        "target_ids": [target.id for target in target_rows],
         "target_token_ids": [target.target_token_id for target in target_rows],
     }
 
