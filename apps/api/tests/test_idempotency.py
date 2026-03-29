@@ -4,7 +4,8 @@ import fakeredis
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.background import BackgroundTask
+from starlette.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from app.services.idempotency import IdempotencyMiddleware
 
@@ -24,6 +25,9 @@ def idempotent_app(fake_redis_client):
         "echo": 0,
         "created": 0,
         "plain": 0,
+        "cookie_json": 0,
+        "stream": 0,
+        "stream_bg": 0,
     }
 
     @test_app.post("/test")
@@ -57,6 +61,35 @@ def idempotent_app(fake_redis_client):
     def plain_endpoint():
         counters["plain"] += 1
         return PlainTextResponse(f"plain-{counters['plain']}")
+
+    @test_app.post("/cookie-json")
+    def cookie_json_endpoint():
+        counters["cookie_json"] += 1
+        value = counters["cookie_json"]
+        response = JSONResponse({"count": value})
+        response.set_cookie(key="session", value=f"token-{value}", httponly=True)
+        return response
+
+    @test_app.post("/stream")
+    def stream_endpoint():
+        counters["stream"] += 1
+        value = counters["stream"]
+
+        def on_done():
+            counters["stream_bg"] += 1
+
+        response = StreamingResponse(
+            content=iter([f"stream-{value}".encode("utf-8")]),
+            media_type="text/plain",
+            background=BackgroundTask(on_done),
+        )
+        response.set_cookie("stream_a", f"a-{value}")
+        response.set_cookie("stream_b", f"b-{value}")
+        return response
+
+    @test_app.get("/stream-bg-count")
+    def stream_bg_count():
+        return {"count": counters["stream_bg"]}
 
     return TestClient(test_app)
 
@@ -125,3 +158,31 @@ def test_non_json_responses_are_not_cached(idempotent_app):
     assert second.status_code == 200
     assert first.text == "plain-1"
     assert second.text == "plain-2"
+
+
+def test_json_responses_with_set_cookie_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "cookie-key"}
+    first = idempotent_app.post("/cookie-json", headers=headers)
+    second = idempotent_app.post("/cookie-json", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    assert "token-1" in first.headers["set-cookie"]
+    assert "token-2" in second.headers["set-cookie"]
+
+
+def test_streaming_responses_are_bypassed_without_transformation(idempotent_app):
+    headers = {"Idempotency-Key": "stream-key"}
+    first = idempotent_app.post("/stream", headers=headers)
+    second = idempotent_app.post("/stream", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.text == "stream-1"
+    assert second.text == "stream-2"
+    assert len(first.headers.get_list("set-cookie")) == 2
+    assert len(second.headers.get_list("set-cookie")) == 2
+    bg_count = idempotent_app.get("/stream-bg-count").json()["count"]
+    assert bg_count == 2

@@ -5,6 +5,7 @@ import json
 from typing import Any
 
 import redis
+from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -39,21 +40,17 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             )
 
         response = await call_next(request)
+        if not self._is_explicitly_cacheable_response(response):
+            return response
 
-        body_bytes = b""
-        async for chunk in response.body_iterator:
-            body_bytes += chunk if isinstance(chunk, bytes) else chunk.encode()
+        body_bytes = await self._read_response_body(response)
 
         cache_envelope = self._build_cache_envelope(response, body_bytes)
         if cache_envelope is not None:
             self.redis.setex(cache_key, self.ttl, json.dumps(cache_envelope))
 
-        return Response(
-            content=body_bytes,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            media_type=response.media_type,
-        )
+        self._restore_response_body(response, body_bytes)
+        return response
 
     async def _build_request_fingerprint(self, request: Request) -> str:
         body_bytes = await request.body()
@@ -67,9 +64,6 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         return hashlib.sha256(raw_fingerprint.encode("utf-8")).hexdigest()
 
     def _build_cache_envelope(self, response: Response, body_bytes: bytes) -> dict[str, Any] | None:
-        content_type = (response.headers.get("content-type") or "").lower()
-        if not content_type.startswith("application/json"):
-            return None
         if len(body_bytes) > self._MAX_CACHEABLE_RESPONSE_BYTES:
             return None
 
@@ -83,3 +77,20 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             "media_type": response.media_type or "application/json",
             "body": body_json,
         }
+
+    def _is_explicitly_cacheable_response(self, response: Response) -> bool:
+        content_type = (response.headers.get("content-type") or "").lower()
+        if not content_type.startswith("application/json"):
+            return False
+        if response.headers.get("set-cookie") is not None:
+            return False
+        return True
+
+    async def _read_response_body(self, response: Response) -> bytes:
+        body_bytes = b""
+        async for chunk in response.body_iterator:
+            body_bytes += chunk if isinstance(chunk, bytes) else chunk.encode()
+        return body_bytes
+
+    def _restore_response_body(self, response: Response, body_bytes: bytes) -> None:
+        response.body_iterator = iterate_in_threadpool([body_bytes])
