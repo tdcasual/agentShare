@@ -56,4 +56,5 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert schemas["TaskCreate"]["example"]["required_capability_ids"] == ["capability-1"]
     assert schemas["InvokeRequest"]["example"]["task_id"] == "task-1"
     assert schemas["LeaseRequest"]["example"]["purpose"] == "git cli access"
-    assert schemas["ManagementLoginRequest"]["example"]["bootstrap_key"] == "changeme-bootstrap-key"
+    assert schemas["ManagementLoginRequest"]["example"]["email"] == "owner@example.com"
+    assert schemas["ManagementLoginRequest"]["example"]["password"] == "correct horse battery staple"

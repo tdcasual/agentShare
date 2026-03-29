@@ -12,8 +12,10 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config import Settings
+from app.orm.human_account import HumanAccountModel
 from app.orm.management_session import ManagementSessionModel
 from app.repositories.agent_repo import AgentRepository
+from app.repositories.human_account_repo import HumanAccountRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.schemas.sessions import ManagementSessionPayload
 
@@ -32,15 +34,19 @@ def authenticate_bootstrap_key(session: Session, bootstrap_key: str) -> bool:
     return agent is not None and agent.id == "bootstrap" and agent.status == "active"
 
 
-def build_management_session_payload(settings: Settings) -> ManagementSessionPayload:
+def build_management_session_payload(
+    account: HumanAccountModel,
+    settings: Settings,
+) -> ManagementSessionPayload:
     now = int(time.time())
     return ManagementSessionPayload(
-        sub=settings.management_operator_id,
-        actor_id=settings.management_operator_id,
-        role=settings.management_operator_role,
+        sub=account.id,
+        actor_id=account.id,
         actor_type="human",
+        role=account.role,
         auth_method="session",
         session_id=f"session-{uuid4().hex}",
+        email=account.email,
         iat=now,
         exp=now + settings.management_session_ttl_seconds,
         ver=1,
@@ -50,8 +56,9 @@ def build_management_session_payload(settings: Settings) -> ManagementSessionPay
 def create_management_session(
     session: Session,
     settings: Settings,
+    account: HumanAccountModel,
 ) -> ManagementSessionPayload:
-    payload = build_management_session_payload(settings)
+    payload = build_management_session_payload(account, settings)
     repo = ManagementSessionRepository(session)
     repo.create(ManagementSessionModel(
         session_id=payload.session_id,
@@ -67,7 +74,9 @@ def issue_management_session_token(
     settings: Settings,
     payload: ManagementSessionPayload | None = None,
 ) -> str:
-    current_payload = payload or build_management_session_payload(settings)
+    if payload is None:
+        raise TypeError("Management session payload is required")
+    current_payload = payload
     encoded_payload = _encode_component(
         json.dumps(current_payload.model_dump(), sort_keys=True, separators=(",", ":")).encode()
     )
@@ -133,6 +142,11 @@ def authenticate_management_session_token(
         or _datetime_to_timestamp(record.expires_at) != payload.exp
     ):
         raise ManagementSessionError("Management session payload does not match persisted session")
+    account = HumanAccountRepository(session).get(payload.actor_id)
+    if account is None or account.status != "active":
+        raise ManagementSessionError("Management account is inactive")
+    if account.email != payload.email or account.role != payload.role:
+        raise ManagementSessionError("Management account no longer matches this session")
     return payload
 
 

@@ -33,6 +33,7 @@ MANAGEMENT_ROLE_LEVELS: dict[ManagementRole, int] = {
 
 class ManagementIdentity(BaseModel):
     id: str
+    email: str
     role: ManagementRole
     actor_type: str = "human"
     auth_method: str = "session"
@@ -109,6 +110,7 @@ def require_management_session(
 
     return ManagementIdentity(
         id=payload.actor_id,
+        email=payload.email,
         role=payload.role,
         actor_type=payload.actor_type,
         auth_method=payload.auth_method,

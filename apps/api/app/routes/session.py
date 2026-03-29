@@ -5,11 +5,12 @@ from app.auth import ManagementIdentity, require_management_session
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
+from app.errors import AuthorizationError, ConflictError
 from app.observability import record_management_session_login
 from app.schemas.sessions import ManagementLoginRequest, ManagementSessionResponse
 from app.services.audit_service import write_audit_event
+from app.services.admin_account_service import authenticate_admin_account
 from app.services.session_service import (
-    authenticate_bootstrap_key,
     create_management_session,
     decode_management_session_token,
     issue_management_session_token,
@@ -24,7 +25,7 @@ router = APIRouter(prefix="/api/session")
     response_model=ManagementSessionResponse,
     tags=["Bootstrap"],
     summary="Log in to the management console",
-    description="Exchange the bootstrap management credential for a short-lived human management session cookie.",
+    description="Exchange persisted human account credentials for a short-lived management session cookie.",
 )
 def login_management_session(
     payload: ManagementLoginRequest,
@@ -32,19 +33,25 @@ def login_management_session(
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    if not authenticate_bootstrap_key(session, payload.bootstrap_key):
+    try:
+        account = authenticate_admin_account(
+            session,
+            email=payload.email,
+            password=payload.password,
+        )
+    except (AuthorizationError, ConflictError) as exc:
         record_management_session_login(False)
         write_audit_event(session, "management_session_rejected", {
             "actor_type": "human",
-            "actor_id": settings.management_operator_id,
-            "reason": "invalid_bootstrap_credential",
+            "actor_id": payload.email,
+            "reason": str(exc),
         })
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid bootstrap management credential",
-        )
+        detail = str(exc)
+        if detail == "Bootstrap setup is required before management login":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from exc
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail) from exc
 
-    payload = create_management_session(session, settings)
+    payload = create_management_session(session, settings, account)
     token = issue_management_session_token(settings, payload=payload)
     record_management_session_login(True)
     response.set_cookie(
@@ -68,6 +75,7 @@ def login_management_session(
         "role": payload.role,
         "auth_method": payload.auth_method,
         "session_id": payload.session_id,
+        "email": payload.email,
         "expires_in": settings.management_session_ttl_seconds,
         "issued_at": payload.iat,
         "expires_at": payload.exp,
@@ -126,6 +134,7 @@ def get_management_session(
         "role": identity.role,
         "auth_method": identity.auth_method,
         "session_id": identity.session_id,
+        "email": identity.email,
         "expires_in": settings.management_session_ttl_seconds,
         "issued_at": identity.issued_at,
         "expires_at": identity.expires_at,

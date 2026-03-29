@@ -26,6 +26,10 @@ API_ROOT = ROOT / "apps/api"
 
 TEST_AGENT_KEY = "agent-test-token"
 BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
+OWNER_EMAIL = "owner@example.com"
+OWNER_PASSWORD = "correct horse battery staple"
+ADMIN_EMAIL = "admin@example.com"
+ADMIN_PASSWORD = "admin-password-123"
 TEST_SETTINGS = Settings(
     database_url="sqlite:///./pytest-placeholder.db",
     bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
@@ -143,6 +147,37 @@ def client(seeded_app):
         yield test_client
 
 
+def bootstrap_owner_account(client: TestClient) -> dict:
+    status_response = client.get("/api/bootstrap/status")
+    assert status_response.status_code == 200, status_response.text
+    if status_response.json()["initialized"]:
+        return {"initialized": True}
+
+    response = client.post(
+        "/api/bootstrap/setup-owner",
+        json={
+            "bootstrap_key": BOOTSTRAP_AGENT_KEY,
+            "email": OWNER_EMAIL,
+            "display_name": "Founding Owner",
+            "password": OWNER_PASSWORD,
+        },
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def login_management_account(
+    client: TestClient,
+    *,
+    email: str = OWNER_EMAIL,
+    password: str = OWNER_PASSWORD,
+):
+    return client.post(
+        "/api/session/login",
+        json={"email": email, "password": password},
+    )
+
+
 @pytest.fixture
 def anonymous_client(client):
     return client
@@ -152,9 +187,25 @@ def anonymous_client(client):
 def management_client(seeded_app):
     """Log in to the management UI and return a client with the session cookie."""
     with TestClient(seeded_app) as test_client:
-        login_response = test_client.post(
-            "/api/session/login",
-            json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+        bootstrap_owner_account(test_client)
+        owner_login_response = login_management_account(test_client)
+        assert owner_login_response.status_code == 200, owner_login_response.text
+        create_response = test_client.post(
+            "/api/admin-accounts",
+            json={
+                "email": ADMIN_EMAIL,
+                "display_name": "Admin User",
+                "password": ADMIN_PASSWORD,
+                "role": "admin",
+            },
+        )
+        assert create_response.status_code in {201, 409}, create_response.text
+        logout_response = test_client.post("/api/session/logout")
+        assert logout_response.status_code == 200, logout_response.text
+        login_response = login_management_account(
+            test_client,
+            email=ADMIN_EMAIL,
+            password=ADMIN_PASSWORD,
         )
         assert login_response.status_code == 200, login_response.text
         assert login_response.cookies, "management login should issue a cookie"
@@ -169,7 +220,6 @@ def management_client_for_role(db_session):
         settings = TEST_SETTINGS.model_copy(
             update={
                 "database_url": str(engine.url),
-                "management_operator_role": role,
             }
         )
         session_factory = sessionmaker(bind=engine, expire_on_commit=False)
@@ -184,12 +234,29 @@ def management_client_for_role(db_session):
         app.dependency_overrides[get_db] = _override_get_db
         try:
             with TestClient(app) as test_client:
-                login_response = test_client.post(
-                    "/api/session/login",
-                    json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
-                )
+                bootstrap_owner_account(test_client)
+                login_response = login_management_account(test_client)
                 assert login_response.status_code == 200, login_response.text
                 assert login_response.cookies, "management login should issue a cookie"
+                if role != "owner":
+                    create_response = test_client.post(
+                        "/api/admin-accounts",
+                        json={
+                            "email": f"{role}@example.com",
+                            "display_name": role.title(),
+                            "password": f"{role}-password-123",
+                            "role": role,
+                        },
+                    )
+                    assert create_response.status_code in {201, 409}, create_response.text
+                    logout_response = test_client.post("/api/session/logout")
+                    assert logout_response.status_code == 200, logout_response.text
+                    role_login_response = login_management_account(
+                        test_client,
+                        email=f"{role}@example.com",
+                        password=f"{role}-password-123",
+                    )
+                    assert role_login_response.status_code == 200, role_login_response.text
                 yield test_client
         finally:
             app.dependency_overrides.clear()

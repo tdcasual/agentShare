@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
-from conftest import BOOTSTRAP_AGENT_KEY
+from conftest import BOOTSTRAP_AGENT_KEY, bootstrap_owner_account, login_management_account
 
 
 def test_create_secret_returns_reference_only(management_client):
@@ -66,10 +66,8 @@ def test_create_secret_uses_runtime_settings_for_secret_backend(monkeypatch, tmp
     ))
 
     with TestClient(app) as client:
-        login_response = client.post(
-            "/api/session/login",
-            json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
-        )
+        bootstrap_owner_account(client)
+        login_response = login_management_account(client)
         assert login_response.status_code == 200
 
         response = client.post(

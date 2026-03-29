@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
 from app.orm.human_account import HumanAccountModel
@@ -24,6 +25,13 @@ class HumanAccountRepository:
             .one_or_none()
         )
 
+    def list_all(self) -> list[HumanAccountModel]:
+        return (
+            self.session.query(HumanAccountModel)
+            .order_by(asc(HumanAccountModel.created_at), asc(HumanAccountModel.email))
+            .all()
+        )
+
     def list_active_owners(self) -> list[HumanAccountModel]:
         return (
             self.session.query(HumanAccountModel)
@@ -31,3 +39,8 @@ class HumanAccountRepository:
             .filter(HumanAccountModel.status == "active")
             .all()
         )
+
+    def update(self, model: HumanAccountModel) -> HumanAccountModel:
+        merged = self.session.merge(model)
+        self.session.flush()
+        return merged

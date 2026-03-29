@@ -10,6 +10,8 @@ from app.factory import create_app
 
 
 BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
+OWNER_EMAIL = "owner@example.com"
+OWNER_PASSWORD = "correct horse battery staple"
 
 
 @contextmanager
@@ -20,14 +22,46 @@ def management_client_for_role(tmp_path: Path, role: str, *, database_name: str 
         database_url=f"sqlite:///{tmp_path / (database_name or f'{role}.db')}",
         bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
         management_session_secret="session-secret",
-        management_operator_id=f"ops.{role}",
-        management_operator_role=role,
     )
     app = create_app(settings)
 
     with TestClient(app) as client:
-        login = client.post("/api/session/login", json={"bootstrap_key": BOOTSTRAP_AGENT_KEY})
+        status_response = client.get("/api/bootstrap/status")
+        assert status_response.status_code == 200, status_response.text
+        if not status_response.json()["initialized"]:
+            bootstrap = client.post(
+                "/api/bootstrap/setup-owner",
+                json={
+                    "bootstrap_key": BOOTSTRAP_AGENT_KEY,
+                    "email": OWNER_EMAIL,
+                    "display_name": "Founding Owner",
+                    "password": OWNER_PASSWORD,
+                },
+            )
+            assert bootstrap.status_code == 201, bootstrap.text
+
+        login = client.post("/api/session/login", json={"email": OWNER_EMAIL, "password": OWNER_PASSWORD})
         assert login.status_code == 200, login.text
+
+        if role != "owner":
+            create_account = client.post(
+                "/api/admin-accounts",
+                json={
+                    "email": f"{role}@example.com",
+                    "display_name": role.title(),
+                    "password": f"{role}-password-123",
+                    "role": role,
+                },
+            )
+            assert create_account.status_code == 201, create_account.text
+
+            client.post("/api/session/logout")
+            login = client.post(
+                "/api/session/login",
+                json={"email": f"{role}@example.com", "password": f"{role}-password-123"},
+            )
+            assert login.status_code == 200, login.text
+
         yield client
 
 

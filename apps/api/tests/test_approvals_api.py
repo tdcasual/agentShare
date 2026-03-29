@@ -130,6 +130,10 @@ def test_list_approvals_exposes_policy_reason_and_source(management_client, db_s
 
 
 def test_approval_decision_routes_update_state_and_handle_errors(management_client, db_session):
+    session_me = management_client.get("/api/session/me")
+    assert session_me.status_code == 200
+    actor_id = session_me.json()["actor_id"]
+
     to_approve = _create_pending_approval(
         db_session,
         task_id="task-approve",
@@ -150,7 +154,7 @@ def test_approval_decision_routes_update_state_and_handle_errors(management_clie
     assert approved_response.status_code == 200
     approved = approved_response.json()
     assert approved["status"] == "approved"
-    assert approved["decided_by"] == "management"
+    assert approved["decided_by"] == actor_id
     assert approved["expires_at"] is not None
     assert approved["reason"] == ""
 
@@ -161,7 +165,7 @@ def test_approval_decision_routes_update_state_and_handle_errors(management_clie
     assert rejected_response.status_code == 200
     rejected = rejected_response.json()
     assert rejected["status"] == "rejected"
-    assert rejected["decided_by"] == "management"
+    assert rejected["decided_by"] == actor_id
     assert rejected["reason"] == "Rejected due to scope mismatch"
     assert rejected["expires_at"] is None
 
