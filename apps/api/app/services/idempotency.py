@@ -8,11 +8,16 @@ import redis
 from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse, Response, StreamingResponse
 
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     _MAX_CACHEABLE_RESPONSE_BYTES = 64 * 1024
+    _REPLAY_UNSAFE_HEADERS = {
+        "set-cookie",
+        "location",
+        "content-location",
+    }
 
     def __init__(self, app: Any, redis_client: redis.Redis, ttl_seconds: int = 300) -> None:
         super().__init__(app)
@@ -79,11 +84,19 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         }
 
     def _is_explicitly_cacheable_response(self, response: Response) -> bool:
+        if isinstance(response, StreamingResponse):
+            return False
+
         content_type = (response.headers.get("content-type") or "").lower()
         if not content_type.startswith("application/json"):
             return False
-        if response.headers.get("set-cookie") is not None:
+        if response.headers.get("content-length") is None:
             return False
+
+        header_names = {key.lower() for key in response.headers.keys()}
+        if header_names.intersection(self._REPLAY_UNSAFE_HEADERS):
+            return False
+
         return True
 
     async def _read_response_body(self, response: Response) -> bytes:

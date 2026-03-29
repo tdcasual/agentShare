@@ -26,8 +26,11 @@ def idempotent_app(fake_redis_client):
         "created": 0,
         "plain": 0,
         "cookie_json": 0,
+        "location_json": 0,
         "stream": 0,
         "stream_bg": 0,
+        "json_stream": 0,
+        "json_stream_bg": 0,
     }
 
     @test_app.post("/test")
@@ -70,6 +73,14 @@ def idempotent_app(fake_redis_client):
         response.set_cookie(key="session", value=f"token-{value}", httponly=True)
         return response
 
+    @test_app.post("/location-json")
+    def location_json_endpoint():
+        counters["location_json"] += 1
+        value = counters["location_json"]
+        response = JSONResponse({"count": value})
+        response.headers["Location"] = f"/next/{value}"
+        return response
+
     @test_app.post("/stream")
     def stream_endpoint():
         counters["stream"] += 1
@@ -87,9 +98,27 @@ def idempotent_app(fake_redis_client):
         response.set_cookie("stream_b", f"b-{value}")
         return response
 
+    @test_app.post("/json-stream")
+    def json_stream_endpoint():
+        counters["json_stream"] += 1
+        value = counters["json_stream"]
+
+        def on_done():
+            counters["json_stream_bg"] += 1
+
+        return StreamingResponse(
+            content=iter([json.dumps({"count": value}).encode("utf-8")]),
+            media_type="application/json",
+            background=BackgroundTask(on_done),
+        )
+
     @test_app.get("/stream-bg-count")
     def stream_bg_count():
         return {"count": counters["stream_bg"]}
+
+    @test_app.get("/json-stream-bg-count")
+    def json_stream_bg_count():
+        return {"count": counters["json_stream_bg"]}
 
     return TestClient(test_app)
 
@@ -173,6 +202,19 @@ def test_json_responses_with_set_cookie_are_not_cached(idempotent_app):
     assert "token-2" in second.headers["set-cookie"]
 
 
+def test_json_responses_with_location_header_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "location-key"}
+    first = idempotent_app.post("/location-json", headers=headers)
+    second = idempotent_app.post("/location-json", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    assert first.headers["location"] == "/next/1"
+    assert second.headers["location"] == "/next/2"
+
+
 def test_streaming_responses_are_bypassed_without_transformation(idempotent_app):
     headers = {"Idempotency-Key": "stream-key"}
     first = idempotent_app.post("/stream", headers=headers)
@@ -185,4 +227,17 @@ def test_streaming_responses_are_bypassed_without_transformation(idempotent_app)
     assert len(first.headers.get_list("set-cookie")) == 2
     assert len(second.headers.get_list("set-cookie")) == 2
     bg_count = idempotent_app.get("/stream-bg-count").json()["count"]
+    assert bg_count == 2
+
+
+def test_json_streaming_responses_are_bypassed_without_replay(idempotent_app):
+    headers = {"Idempotency-Key": "json-stream-key"}
+    first = idempotent_app.post("/json-stream", headers=headers)
+    second = idempotent_app.post("/json-stream", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    bg_count = idempotent_app.get("/json-stream-bg-count").json()["count"]
     assert bg_count == 2
