@@ -22,6 +22,14 @@ def metrics(settings: Settings = Depends(get_settings)) -> PlainTextResponse:
         return PlainTextResponse("", status_code=404)
 
     metrics_snapshot = snapshot_metrics()
+    request_metric_lines = [
+        (
+            "agent_control_plane_http_requests_total"
+            f'{{method="{_escape_label(sample["method"])}",path="{_escape_label(sample["path"])}",status="{_escape_label(sample["status"])}"}} '
+            f'{sample["count"]}'
+        )
+        for sample in metrics_snapshot["http_request_dimensions"]
+    ]
     payload = "\n".join(
         [
             "# HELP agent_control_plane_up Agent Control Plane process status.",
@@ -30,9 +38,9 @@ def metrics(settings: Settings = Depends(get_settings)) -> PlainTextResponse:
             "# HELP agent_control_plane_uptime_seconds Agent Control Plane uptime in seconds.",
             "# TYPE agent_control_plane_uptime_seconds gauge",
             f"agent_control_plane_uptime_seconds {metrics_snapshot['uptime_seconds']:.3f}",
-            "# HELP agent_control_plane_http_requests_total Total HTTP requests observed by the API.",
+            "# HELP agent_control_plane_http_requests_total Total HTTP requests observed by the API, partitioned by method, path, and status.",
             "# TYPE agent_control_plane_http_requests_total counter",
-            f"agent_control_plane_http_requests_total {metrics_snapshot['http_requests_total']}",
+            *request_metric_lines,
             "# HELP agent_control_plane_http_errors_total Total HTTP requests with status >= 400.",
             "# TYPE agent_control_plane_http_errors_total counter",
             f"agent_control_plane_http_errors_total {metrics_snapshot['http_errors_total']}",
@@ -67,3 +75,7 @@ def metrics(settings: Settings = Depends(get_settings)) -> PlainTextResponse:
         ]
     )
     return PlainTextResponse(payload)
+
+
+def _escape_label(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")

@@ -1,11 +1,14 @@
 import hashlib
+import os
+import subprocess
+import sys
 from contextlib import contextmanager
+from pathlib import Path
 
 import fakeredis
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
 from app.config import Settings
@@ -18,47 +21,85 @@ from app.runtime import AppRuntime
 from app.observability import reset_metrics
 from app.services.secret_backend import InMemorySecretBackend, reset_secret_counter
 
-_test_engine = create_engine(
-    "sqlite://",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-_TestSession = sessionmaker(bind=_test_engine, expire_on_commit=False)
+ROOT = Path(__file__).resolve().parents[3]
+API_ROOT = ROOT / "apps/api"
 
 TEST_AGENT_KEY = "agent-test-token"
 BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
 TEST_SETTINGS = Settings(
-    database_url="sqlite://",
+    database_url="sqlite:///./pytest-placeholder.db",
     bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
 )
 
 
-def _build_test_app(settings: Settings = TEST_SETTINGS):
+def _run_alembic_upgrade(database_url: str) -> None:
+    env = os.environ.copy()
+    env["DATABASE_URL"] = database_url
+
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from alembic.config import main; main(argv=['-c', 'alembic.ini', 'upgrade', 'head'])",
+        ],
+        cwd=API_ROOT,
+        check=True,
+        env=env,
+    )
+
+
+def _build_test_app(
+    engine,
+    session_factory,
+    settings: Settings,
+):
     runtime = AppRuntime(
         settings=settings,
-        engine=_test_engine,
-        session_factory=_TestSession,
+        engine=engine,
+        session_factory=session_factory,
     )
     return create_app(settings, runtime=runtime)
 
 
-@pytest.fixture(autouse=True)
-def db_session():
-    """Create tables fresh for every test, yield session, then drop."""
-    Base.metadata.drop_all(bind=_test_engine)
+@pytest.fixture
+def test_database_url(tmp_path):
+    db_path = tmp_path / "pytest.db"
+    database_url = f"sqlite:///{db_path}"
+    _run_alembic_upgrade(database_url)
+    return database_url
 
-    # Use a single connection so in-memory SQLite tables are visible to the session
-    connection = _test_engine.connect()
-    Base.metadata.create_all(bind=connection)
+
+@pytest.fixture
+def test_settings(test_database_url):
+    return TEST_SETTINGS.model_copy(update={"database_url": test_database_url})
+
+
+@pytest.fixture
+def test_engine(test_database_url):
+    engine = create_engine(
+        test_database_url,
+        connect_args={"check_same_thread": False},
+    )
+    try:
+        yield engine
+    finally:
+        engine.dispose()
+
+
+@pytest.fixture
+def test_session_factory(test_engine):
+    return sessionmaker(bind=test_engine, expire_on_commit=False)
+
+
+@pytest.fixture(autouse=True)
+def db_session(test_session_factory):
     InMemorySecretBackend.reset_store()
     reset_secret_counter()
-    session = _TestSession(bind=connection)
+    session = test_session_factory()
     try:
         yield session
     finally:
         session.close()
-        Base.metadata.drop_all(bind=connection)
-        connection.close()
 
 
 @pytest.fixture(autouse=True)
@@ -67,8 +108,8 @@ def reset_observability_metrics():
 
 
 @pytest.fixture
-def seeded_app(db_session):
-    app = _build_test_app()
+def seeded_app(db_session, test_engine, test_session_factory, test_settings):
+    app = _build_test_app(test_engine, test_session_factory, test_settings)
 
     # Seed a test agent for auth
     repo = AgentRepository(db_session)
@@ -82,17 +123,7 @@ def seeded_app(db_session):
         allowed_task_types=["config_sync", "account_read", "prompt_run"],
         risk_tier="medium",
     ))
-    bootstrap_hash = hashlib.sha256(BOOTSTRAP_AGENT_KEY.encode()).hexdigest()
-    repo.create(AgentIdentityModel(
-        id="bootstrap",
-        name="Bootstrap Agent",
-        api_key_hash=bootstrap_hash,
-        status="active",
-        allowed_capability_ids=[],
-        allowed_task_types=[],
-        risk_tier="high",
-    ))
-    db_session.flush()
+    db_session.commit()
 
     def _override_get_db():
         try:
@@ -134,8 +165,15 @@ def management_client(seeded_app):
 def management_client_for_role(db_session):
     @contextmanager
     def _client(role: str):
-        settings = TEST_SETTINGS.model_copy(update={"management_operator_role": role})
-        app = _build_test_app(settings)
+        engine = db_session.get_bind()
+        settings = TEST_SETTINGS.model_copy(
+            update={
+                "database_url": str(engine.url),
+                "management_operator_role": role,
+            }
+        )
+        session_factory = sessionmaker(bind=engine, expire_on_commit=False)
+        app = _build_test_app(engine, session_factory, settings)
 
         def _override_get_db():
             try:

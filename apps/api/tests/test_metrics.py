@@ -37,6 +37,18 @@ def test_metrics_endpoint_exposes_prometheus_text(client) -> None:
     assert "agent_control_plane_capability_invocation_failures_total" in response.text
 
 
+def test_metrics_expose_request_dimensions(client) -> None:
+    client.get("/healthz")
+    client.get("/does-not-exist")
+
+    response = client.get("/metrics")
+
+    assert response.status_code == 200
+    assert 'agent_control_plane_http_requests_total{method="GET",path="/healthz",status="200"} 1' in response.text
+    assert 'agent_control_plane_http_requests_total{method="GET",path="/does-not-exist",status="404"} 1' in response.text
+    assert "agent_control_plane_http_errors_total 1" in response.text
+
+
 def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client, db_session) -> None:
     TaskRepository(db_session).create(TaskModel(
         id="task-observed",
@@ -161,3 +173,5 @@ def test_production_docs_reference_metrics_and_incident_entrypoints() -> None:
     assert "incident" in operations_guide.lower()
     assert "local development" in quickstart.lower()
     assert "x-request-id" in operations_guide.lower()
+    assert "method" in operations_guide.lower()
+    assert "status" in operations_guide.lower()

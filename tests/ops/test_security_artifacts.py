@@ -33,5 +33,6 @@ def test_production_docs_cover_security_scans_and_headers() -> None:
     assert "trivy" in security_guide
     assert "security headers" in security_guide
     assert "secret rotation" in security_guide
+    assert "metrics" in security_guide
     assert "security scan" in readme
     assert "headers" in deployment_guide

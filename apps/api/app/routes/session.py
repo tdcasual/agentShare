@@ -10,9 +10,10 @@ from app.schemas.sessions import ManagementLoginRequest, ManagementSessionRespon
 from app.services.audit_service import write_audit_event
 from app.services.session_service import (
     authenticate_bootstrap_key,
-    build_management_session_payload,
+    create_management_session,
     decode_management_session_token,
     issue_management_session_token,
+    revoke_management_session,
 )
 
 router = APIRouter(prefix="/api/session")
@@ -43,7 +44,7 @@ def login_management_session(
             detail="Invalid bootstrap management credential",
         )
 
-    payload = build_management_session_payload(settings)
+    payload = create_management_session(session, settings)
     token = issue_management_session_token(settings, payload=payload)
     record_management_session_login(True)
     response.set_cookie(
@@ -89,6 +90,7 @@ def logout_management_session(
     if session_token:
         try:
             payload = decode_management_session_token(session_token, settings)
+            revoke_management_session(session, payload.session_id)
             write_audit_event(session, "management_session_ended", {
                 "actor_type": payload.actor_type,
                 "actor_id": payload.actor_id,

@@ -147,6 +147,8 @@ def test_smoke_script_checks_https_entrypoint() -> None:
     assert "--location" in script
     assert "--resolve" in script
     assert "x-request-id" in script.lower()
+    assert "/metrics" in script
+    assert "agent_control_plane_http_requests_total" in script
 
 
 def test_dev_runtime_bootstrap_script_is_present_and_documented() -> None:

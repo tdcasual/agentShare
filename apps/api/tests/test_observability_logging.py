@@ -19,6 +19,26 @@ def test_request_logging_emits_structured_record(client, caplog) -> None:
     assert payload["request_id"]
     assert payload["method"] == "GET"
     assert payload["path"] == "/healthz"
-    assert payload["status_code"] == 200
+    assert payload["status"] == 200
     assert payload["duration_ms"] >= 0
     assert response.headers["x-request-id"] == payload["request_id"]
+
+
+def test_request_logging_preserves_supplied_request_id(client, caplog) -> None:
+    caplog.set_level(logging.INFO, logger="app.request")
+
+    response = client.get("/healthz", headers={"x-request-id": "req-observed-123"})
+
+    assert response.status_code == 200
+
+    matching_records = [
+        record for record in caplog.records if record.name == "app.request"
+    ]
+    assert matching_records
+
+    payload = json.loads(matching_records[-1].message)
+    assert payload["request_id"] == "req-observed-123"
+    assert payload["method"] == "GET"
+    assert payload["path"] == "/healthz"
+    assert payload["status"] == 200
+    assert response.headers["x-request-id"] == "req-observed-123"

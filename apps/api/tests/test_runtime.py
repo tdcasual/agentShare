@@ -1,5 +1,7 @@
 import importlib
 
+import pytest
+from fastapi import FastAPI
 from fastapi import Depends, Request
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect
@@ -27,6 +29,18 @@ def test_get_db_uses_request_runtime_session_factory(tmp_path):
 
     assert response.status_code == 200
     assert observed["uses_runtime_engine"] is True
+
+
+def test_get_db_requires_runtime_attached_to_app_state():
+    app = FastAPI()
+
+    @app.get("/_runtime/db-check")
+    def db_check(session: Session = Depends(get_db)) -> dict[str, bool]:
+        del session
+        return {"ok": True}
+
+    with TestClient(app) as client, pytest.raises(RuntimeError, match="App runtime is not attached"):
+        client.get("/_runtime/db-check")
 
 
 def test_db_module_defers_default_runtime_until_needed(monkeypatch):

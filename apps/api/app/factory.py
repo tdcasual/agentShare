@@ -2,7 +2,7 @@ import json
 import hashlib
 import logging
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from contextlib import asynccontextmanager
 from time import monotonic
 
@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app import db as db_module
 from app.config import Settings
 from app.errors import DomainError
-from app.observability import record_http_request
+from app.observability import build_request_log_event, record_http_request
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.runtime import AppRuntime, build_runtime
@@ -22,6 +22,8 @@ from app.services.secret_backend import validate_secret_backend_settings
 
 request_logger = logging.getLogger("app.request")
 startup_logger = logging.getLogger("app.startup")
+AppConfigurer = Callable[[FastAPI, Settings], None]
+RouteRegistrar = Callable[[FastAPI], None]
 
 
 def _hash_key(key: str) -> str:
@@ -56,19 +58,14 @@ def add_request_logging_middleware(app: FastAPI) -> None:
         response = await call_next(request)
         duration_ms = round((monotonic() - started_at) * 1000, 3)
         response.headers["x-request-id"] = request_id
-        record_http_request(response.status_code)
-        request_logger.info(
-            json.dumps(
-                {
-                    "event": "http_request",
-                    "request_id": request_id,
-                    "method": request.method,
-                    "path": request.url.path,
-                    "status_code": response.status_code,
-                    "duration_ms": duration_ms,
-                }
-            )
-        )
+        record_http_request(request.method, request.url.path, response.status_code)
+        request_logger.info(json.dumps(build_request_log_event(
+            request_id=request_id,
+            method=request.method,
+            path=request.url.path,
+            status=response.status_code,
+            duration_ms=duration_ms,
+        )))
         return response
 
 
@@ -96,6 +93,13 @@ def register_core_routes(app: FastAPI) -> None:
         return {"status": "ok"}
 
 
+def configure_default_app(app: FastAPI, settings: Settings) -> None:
+    add_request_logging_middleware(app)
+    add_idempotency_middleware(app, settings)
+    add_domain_error_handlers(app)
+    register_core_routes(app)
+
+
 def add_domain_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(DomainError)
     async def handle_domain_error(request: Request, exc: DomainError) -> JSONResponse:
@@ -106,7 +110,13 @@ def add_domain_error_handlers(app: FastAPI) -> None:
         )
 
 
-def create_app(settings: Settings | None = None, runtime: AppRuntime | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    runtime: AppRuntime | None = None,
+    *,
+    app_configurers: Iterable[AppConfigurer] | None = None,
+    route_registrar: RouteRegistrar | None = register_routes,
+) -> FastAPI:
     if settings is not None:
         current_settings = settings
     elif runtime is not None:
@@ -145,10 +155,9 @@ def create_app(settings: Settings | None = None, runtime: AppRuntime | None = No
     app.state.settings = current_settings
     app.state.runtime = current_runtime
 
-    add_request_logging_middleware(app)
-    add_idempotency_middleware(app, current_settings)
-    add_domain_error_handlers(app)
-    register_core_routes(app)
-    register_routes(app)
+    for configure_app in app_configurers or (configure_default_app,):
+        configure_app(app, current_settings)
+    if route_registrar is not None:
+        route_registrar(app)
 
     return app

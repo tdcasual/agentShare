@@ -51,6 +51,8 @@ curl -sS \
 
 Expected: `200 OK`, `status=authenticated`, a non-empty `session_id`, and a `management_session` cookie written into `ACP_COOKIE_JAR`.
 
+That cookie is not the only source of truth. The API now persists each management session server-side, so logout or incident-driven revocation can invalidate the cookie before its TTL expires.
+
 ## 2. Create A Runtime Agent Key (Admin Management Path)
 
 ```bash
@@ -229,7 +231,7 @@ Successful invoke responses now include:
 - `upstream_status`
 - `result`
 
-Management sessions are intentionally short-lived. Every successful login mints a fresh `session_id`, and retries after expiry should start with a new `/api/session/login` exchange instead of assuming a stale cookie can be reused.
+Management sessions are intentionally short-lived. Every successful login mints a fresh `session_id`, and retries after expiry should start with a new `/api/session/login` exchange instead of assuming a stale cookie can be reused. The same is true after logout or explicit operator revocation: a previously issued cookie is expected to stop authorizing immediately.
 
 Management routes may also enforce role boundaries. `operator` can review approvals, `admin` can manage secrets and agent inventory, and `owner` is required for destructive agent-management actions such as deletion.
 

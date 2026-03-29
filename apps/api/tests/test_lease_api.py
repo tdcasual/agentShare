@@ -1,3 +1,8 @@
+from conftest import TEST_SETTINGS
+
+from app.errors import ServiceUnavailableError
+
+
 def test_proxy_only_capability_cannot_issue_lease(client, management_client):
     secret = management_client.post(
         "/api/secrets",
@@ -88,6 +93,123 @@ def test_lease_capability_can_issue_short_lived_lease(client, management_client)
     assert response.json()["expires_in"] == 120
     assert response.json()["lease_type"] == "metadata_placeholder"
     assert response.json()["secret_value_included"] is False
+
+
+def test_lease_uses_runtime_settings_for_coordination_lock(client, management_client, monkeypatch):
+    captured: list[tuple[str, str]] = []
+
+    def fake_acquire_lock(key: str, ttl_seconds: int, settings):
+        del ttl_seconds
+        captured.append((key, settings.redis_url))
+        return True
+
+    def fake_release_lock(key: str, settings):
+        captured.append((key, settings.redis_url))
+
+    monkeypatch.setattr("app.services.gateway.acquire_lock", fake_acquire_lock, raising=False)
+    monkeypatch.setattr("app.services.gateway.release_lock", fake_release_lock, raising=False)
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "GitHub token",
+            "kind": "api_token",
+            "value": "ghp_example",
+            "provider": "github",
+            "provider_scopes": ["repo"],
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "github.repo.read.locked",
+            "secret_id": secret["id"],
+            "risk_level": "low",
+            "allowed_mode": "proxy_or_lease",
+            "lease_ttl_seconds": 120,
+            "required_provider": "github",
+            "required_provider_scopes": ["repo"],
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Read repo metadata with coordination",
+            "task_type": "account_read",
+            "required_capability_ids": [capability["id"]],
+            "lease_allowed": True,
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/lease",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "purpose": "git cli"},
+    )
+
+    expected_key = f"task:{task['id']}:capability:{capability['id']}:lease"
+    assert response.status_code == 201
+    assert captured == [
+        (expected_key, TEST_SETTINGS.redis_url),
+        (expected_key, TEST_SETTINGS.redis_url),
+    ]
+
+
+def test_lease_returns_503_when_coordination_is_unavailable(client, management_client, monkeypatch):
+    def fail_acquire_lock(key: str, ttl_seconds: int, settings):
+        del key, ttl_seconds, settings
+        raise ServiceUnavailableError("Runtime coordination is unavailable")
+
+    monkeypatch.setattr("app.services.gateway.acquire_lock", fail_acquire_lock, raising=False)
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "GitHub token",
+            "kind": "api_token",
+            "value": "ghp_example",
+            "provider": "github",
+            "provider_scopes": ["repo"],
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "github.repo.read.unavailable",
+            "secret_id": secret["id"],
+            "risk_level": "low",
+            "allowed_mode": "proxy_or_lease",
+            "lease_ttl_seconds": 120,
+            "required_provider": "github",
+            "required_provider_scopes": ["repo"],
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Read repo metadata when coordination is down",
+            "task_type": "account_read",
+            "required_capability_ids": [capability["id"]],
+            "lease_allowed": True,
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/lease",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "purpose": "git cli"},
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Runtime coordination is unavailable"}
 
 
 from app.repositories.approval_repo import ApprovalRequestRepository

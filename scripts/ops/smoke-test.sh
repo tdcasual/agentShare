@@ -26,8 +26,29 @@ check_health_headers() {
 	trap - EXIT INT TERM
 }
 
+check_metrics_signal() {
+	metrics_file="$(mktemp)"
+	trap 'rm -f "${metrics_file}"' EXIT INT TERM
+
+	if printf '%s' "${APP_BASE_URL}" | grep -q '^https://'; then
+		curl --fail --silent --show-error --location \
+			--resolve "${PUBLIC_HOST}:443:127.0.0.1" \
+			"${APP_BASE_URL}/metrics" >"${metrics_file}"
+	else
+		curl --fail --silent --show-error --location \
+			-H "Host: ${PUBLIC_HOST}" \
+			"${APP_BASE_URL}/metrics" >"${metrics_file}"
+	fi
+
+	grep -q 'agent_control_plane_http_requests_total{' "${metrics_file}"
+	grep -q 'agent_control_plane_http_errors_total' "${metrics_file}"
+	rm -f "${metrics_file}"
+	trap - EXIT INT TERM
+}
+
 check_once() {
 	check_health_headers
+	check_metrics_signal
 
 	if printf '%s' "${APP_BASE_URL}" | grep -q '^https://'; then
 		curl --fail --silent --show-error --location \

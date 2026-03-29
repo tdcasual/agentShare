@@ -26,10 +26,8 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/web/package-lock.json
 
-      - name: Install API dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e 'apps/api[dev]'
+      - name: Bootstrap shared dev runtime
+        run: PYTHON_BIN=python ./scripts/ops/bootstrap-dev-runtime.sh
 
       - name: Run API migrations
         working-directory: apps/api
@@ -40,10 +38,6 @@ jobs:
 
       - name: Validate Docker Compose
         run: docker compose config
-
-      - name: Install web dependencies
-        working-directory: apps/web
-        run: npm ci
 
       - name: Run web typecheck
         working-directory: apps/web

@@ -113,9 +113,11 @@ def get_secret_backend(settings: Settings | None = None) -> SecretBackend:
     validate_secret_backend_settings(current_settings)
     if current_settings.secret_backend == "memory":
         return InMemorySecretBackend(current_settings)
-    if current_settings.secret_backend == "openbao" and current_settings.openbao_addr and current_settings.openbao_token:
+    if current_settings.secret_backend == "openbao":
         return OpenBaoSecretBackend(current_settings)
-    return InMemorySecretBackend(current_settings)
+    raise SecretBackendConfigurationError(
+        f"Unsupported secret backend '{current_settings.secret_backend}'."
+    )
 
 
 def get_secret_backend_for_ref(backend_ref: str | None, settings: Settings | None = None) -> SecretBackend:
@@ -141,3 +143,6 @@ def validate_secret_backend_settings(settings: Settings) -> None:
             raise SecretBackendConfigurationError(
                 "APP_ENV staging/production requires OpenBao credentials when SECRET_BACKEND=openbao."
             )
+        raise SecretBackendConfigurationError(
+            "SECRET_BACKEND=openbao requires OPENBAO_ADDR and OPENBAO_TOKEN. Use SECRET_BACKEND=memory for local development and tests."
+        )

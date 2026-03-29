@@ -3,6 +3,7 @@ import type { Locale } from "../i18n-shared";
 import { adaptResourceCatalog, createVariantBehaviorMap } from "./catalog-adapter";
 import { requireGeneratedCatalogResource } from "./generated-catalog";
 import type { IntakeVariantContract, ValidationErrors } from "./types";
+import { serializeContractValues } from "./utils";
 import { mergeValidationErrors, validateJsonField, validateRequiredFields } from "./validators";
 
 function validateTask(
@@ -34,21 +35,20 @@ function validateTask(
   return mergeValidationErrors(errors);
 }
 
-function createTaskBehavior(
-  defaultTaskType: string,
-  defaultInput: string,
-): Pick<IntakeVariantContract, "serialize" | "validate"> {
+const TASK_PAYLOAD_KEYS = [
+  "title",
+  "task_type",
+  "lease_allowed",
+  "approval_mode",
+  "input",
+  "approval_rules",
+  "playbook_ids",
+] as const;
+
+function createTaskBehavior(): Pick<IntakeVariantContract, "serialize" | "validate"> {
   return {
-    serialize(values) {
-      return {
-        title: String(values.title ?? ""),
-        task_type: String(values.task_type ?? defaultTaskType),
-        lease_allowed: String(values.lease_allowed ?? "false"),
-        approval_mode: String(values.approval_mode ?? "auto"),
-        input: String(values.input ?? defaultInput),
-        approval_rules: String(values.approval_rules ?? "[]"),
-        playbook_ids: String(values.playbook_ids ?? ""),
-      };
+    serialize(this: IntakeVariantContract, values) {
+      return serializeContractValues(this, values, [...TASK_PAYLOAD_KEYS]);
     },
     validate(this: IntakeVariantContract, values, locale) {
       return validateTask(this, values, locale);
@@ -60,12 +60,9 @@ const taskResource = requireGeneratedCatalogResource("task");
 
 export const defaultTaskVariant = taskResource.default_variant;
 
-const taskBehaviors: Record<string, Pick<IntakeVariantContract, "serialize" | "validate">> = {
-  custom_task: createTaskBehavior("", '{"provider":"qq"}'),
-  prompt_run: createTaskBehavior("prompt_run", '{"provider":"openai"}'),
-  config_sync: createTaskBehavior("config_sync", '{"provider":"github"}'),
-  account_read: createTaskBehavior("account_read", '{"provider":"github"}'),
-};
+const taskBehaviors = Object.fromEntries(
+  taskResource.variants.map((variant) => [variant.variant, createTaskBehavior()]),
+) as Record<string, Pick<IntakeVariantContract, "serialize" | "validate">>;
 
 export const taskContracts: IntakeVariantContract[] = adaptResourceCatalog(
   taskResource,

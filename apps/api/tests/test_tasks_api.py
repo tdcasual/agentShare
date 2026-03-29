@@ -2,6 +2,7 @@ import hashlib
 
 from conftest import TEST_SETTINGS
 
+from app.errors import ServiceUnavailableError
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 
@@ -59,6 +60,30 @@ def test_agent_claim_uses_runtime_settings_for_redis_lock(client, management_cli
 
     assert response.status_code == 200
     assert captured == [TEST_SETTINGS.redis_url, TEST_SETTINGS.redis_url]
+
+
+def test_agent_claim_returns_503_when_coordination_is_unavailable(client, management_client, monkeypatch):
+    def fail_acquire_lock(key: str, ttl_seconds: int, settings):
+        del key, ttl_seconds, settings
+        raise ServiceUnavailableError("Runtime coordination is unavailable")
+
+    monkeypatch.setattr("app.services.task_service.acquire_lock", fail_acquire_lock)
+
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Coordination blocked claim",
+            "task_type": "config_sync",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/tasks/{created['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Runtime coordination is unavailable"}
 
 
 def test_management_can_publish_task_with_playbook_references(management_client):

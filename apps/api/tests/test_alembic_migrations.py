@@ -38,3 +38,9 @@ def test_alembic_upgrade_creates_expected_tables(tmp_path) -> None:
         "approval_requests",
         "audit_events",
     }.issubset(set(inspector.get_table_names()))
+
+
+def test_pytest_database_fixture_uses_migrated_schema(db_session) -> None:
+    tables = set(inspect(db_session.bind).get_table_names())
+
+    assert "alembic_version" in tables

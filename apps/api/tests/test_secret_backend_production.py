@@ -1,7 +1,8 @@
+import pytest
 from pydantic import ValidationError
 
 from app.config import Settings
-from app.services.secret_backend import OpenBaoSecretBackend, get_secret_backend
+from app.services.secret_backend import OpenBaoSecretBackend, SecretBackendConfigurationError, get_secret_backend
 
 
 def test_production_openbao_backend_requires_credentials() -> None:
@@ -34,14 +35,25 @@ def test_staging_openbao_backend_requires_credentials() -> None:
         raise AssertionError("Expected staging settings to reject missing OpenBao credentials")
 
 
-def test_development_openbao_backend_can_fall_back_to_memory() -> None:
+def test_development_openbao_backend_requires_explicit_configuration() -> None:
+    with pytest.raises(SecretBackendConfigurationError, match="SECRET_BACKEND=memory"):
+        get_secret_backend(
+            Settings(
+                _env_file=None,
+                app_env="development",
+                secret_backend="openbao",
+                openbao_addr=None,
+                openbao_token=None,
+            )
+        )
+
+
+def test_development_memory_backend_remains_available_for_local_use() -> None:
     backend = get_secret_backend(
         Settings(
             _env_file=None,
             app_env="development",
-            secret_backend="openbao",
-            openbao_addr=None,
-            openbao_token=None,
+            secret_backend="memory",
         )
     )
 

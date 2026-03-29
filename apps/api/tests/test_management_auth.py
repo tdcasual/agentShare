@@ -2,6 +2,7 @@ import hashlib
 
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
+from app.services.session_service import revoke_management_session
 
 from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY
 
@@ -134,3 +135,22 @@ def test_agent_management_routes_require_bootstrap_identity(client, management_c
     deletion = management_client.delete("/api/agents/agent-delete")
     assert deletion.status_code == 403
     assert deletion.json()["detail"] == "owner role required"
+
+
+def test_revoked_management_session_cookie_no_longer_authorizes_management_routes(management_client, db_session):
+    session_me = management_client.get("/api/session/me")
+    assert session_me.status_code == 200
+
+    revoke_management_session(db_session, session_me.json()["session_id"])
+
+    response = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    )
+
+    assert response.status_code == 401

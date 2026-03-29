@@ -1,6 +1,9 @@
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-from app.errors import AuthorizationError, ConflictError, NotFoundError
+from app.errors import AuthorizationError, ConflictError, NotFoundError, ServiceUnavailableError
+from app.factory import add_domain_error_handlers
 from app.models.agent import AgentIdentity
 from app.orm.task import TaskModel
 from app.repositories.task_repo import TaskRepository
@@ -68,3 +71,18 @@ def test_capability_service_raises_not_found_error(db_session):
 def test_playbook_service_raises_not_found_error(db_session):
     with pytest.raises(NotFoundError, match="Playbook not found"):
         get_playbook(db_session, "playbook-missing")
+
+
+def test_domain_error_handler_maps_service_unavailable_error_to_503():
+    app = FastAPI()
+    add_domain_error_handlers(app)
+
+    @app.get("/_coordination/fail")
+    def fail() -> None:
+        raise ServiceUnavailableError("Runtime coordination is unavailable")
+
+    with TestClient(app) as client:
+        response = client.get("/_coordination/fail")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Runtime coordination is unavailable"}

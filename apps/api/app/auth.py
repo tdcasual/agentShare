@@ -13,7 +13,7 @@ from app.db import get_db
 from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
 from app.repositories.agent_repo import AgentRepository
-from app.services.session_service import decode_management_session_token
+from app.services.session_service import authenticate_management_session_token
 
 security = HTTPBearer(auto_error=False)
 management_security = APIKeyCookie(
@@ -88,6 +88,7 @@ def require_bootstrap_agent(agent: AgentIdentity = Depends(require_agent)) -> Ag
 
 def require_management_session(
     request: Request,
+    session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
     _documented_session_token: str | None = Depends(management_security),
 ) -> ManagementIdentity:
@@ -99,7 +100,7 @@ def require_management_session(
         )
 
     try:
-        payload = decode_management_session_token(session_token, settings)
+        payload = authenticate_management_session_token(session_token, settings, session)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

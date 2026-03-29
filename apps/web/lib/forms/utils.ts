@@ -167,3 +167,17 @@ export function buildPreviewPayload(
     return accumulator;
   }, {});
 }
+
+export function serializeContractValues(
+  contract: IntakeVariantContract,
+  values: FormValues,
+  keys: string[],
+): SerializedFormValues {
+  const defaultValues = getDefaultValues(contract);
+
+  return keys.reduce<SerializedFormValues>((accumulator, key) => {
+    const value = values[key] ?? defaultValues[key] ?? "";
+    accumulator[key] = stringifyFormValue(value);
+    return accumulator;
+  }, {});
+}

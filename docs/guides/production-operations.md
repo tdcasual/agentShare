@@ -19,7 +19,10 @@
 - Check the deploy smoke logs first if a release just completed.
 - The smoke script should confirm both reachability and the presence of an `x-request-id` header on `/healthz`, so early failures still leave a trace handle for request-log correlation.
 - Check `/healthz` and `/metrics` before debugging application routes.
+- On `/metrics`, inspect `agent_control_plane_http_requests_total{method,path,status}` to see which method/path/status combinations are failing or spiking first.
 - Capture the `x-request-id` from the failing response and use it to trace the matching structured request log entry.
+- The structured request log now records `request_id`, method, path, status, and duration, so responders can align a failing response with its API-side timing without reading source code.
+- Idempotent write replay is scoped to `method + path + payload` fingerprinting, not just the bare `Idempotency-Key`; retries that change endpoint or body are treated as new operations.
 - Treat the external secret backend, Postgres, and Redis as the first three upstream dependencies to verify.
 
 ## Minimum Recovery Procedure

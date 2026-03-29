@@ -38,6 +38,11 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
     provider_field = _field_for(openai_secret, "provider")
     assert provider_field["default_value"] == "openai"
     assert provider_field["read_only"] is True
+    kind_field = _field_for(openai_secret, "kind")
+    assert kind_field["default_value"] == "api_token"
+    assert kind_field["read_only"] is True
+    secret_metadata_field = _field_for(openai_secret, "metadata")
+    assert secret_metadata_field["advanced"] is True
 
     capability_catalog = resource_kinds["capability"]
     assert capability_catalog["default_variant"] == "generic_capability"
@@ -55,6 +60,17 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
     secret_binding_field = _field_for(generic_capability, "secret_id")
     assert secret_binding_field["control"] == "select"
     assert secret_binding_field["options_source"] == "management_secret_inventory"
+    openai_capability = next(
+        variant
+        for variant in capability_catalog["variants"]
+        if variant["variant"] == "openai_chat_proxy"
+    )
+    adapter_type_field = _field_for(openai_capability, "adapter_type")
+    assert adapter_type_field["default_value"] == "openai"
+    assert adapter_type_field["read_only"] is True
+    required_provider_field = _field_for(openai_capability, "required_provider")
+    assert required_provider_field["default_value"] == "openai"
+    assert required_provider_field["read_only"] is True
 
     task_catalog = resource_kinds["task"]
     assert {variant["variant"] for variant in task_catalog["variants"]} == {
@@ -69,6 +85,10 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
     task_type_field = _field_for(prompt_run, "task_type")
     assert task_type_field["default_value"] == "prompt_run"
     assert task_type_field["read_only"] is True
+    prompt_input_field = _field_for(prompt_run, "input")
+    assert prompt_input_field["default_value"] == '{"provider":"openai"}'
+    lease_allowed_field = _field_for(prompt_run, "lease_allowed")
+    assert lease_allowed_field["default_value"] == "false"
 
     agent_catalog = resource_kinds["agent"]
     assert {variant["variant"] for variant in agent_catalog["variants"]} == {
@@ -85,5 +105,7 @@ def test_intake_catalog_exposes_resource_variants_and_field_metadata(management_
         for section in task_scoped["sections"]
         for field in section["fields"]
     }
+    risk_tier_field = _field_for(task_scoped, "risk_tier")
+    assert risk_tier_field["default_value"] == "medium"
     assert "allowed_task_types" in scoped_field_keys
     assert "allowed_capability_ids" not in scoped_field_keys

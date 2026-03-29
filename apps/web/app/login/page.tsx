@@ -66,6 +66,9 @@ export default async function LoginPage({ searchParams }: PageProps) {
           <p className="muted">
             {tr(locale, "Every successful login mints a fresh session id and expires automatically after the configured session TTL.", "每次成功登录都会生成新的 session id，并在配置的 session TTL 到期后自动失效。")}
           </p>
+          <p className="muted">
+            {tr(locale, "Logout and operator-driven revocation both invalidate the server-side session immediately, even if the browser still holds the cookie.", "即使浏览器里还保留 cookie，主动退出和运维侧撤销都会立即使服务端会话失效。")}
+          </p>
         </div>
         <form className="form" action={loginManagementAction}>
           <input type="hidden" name="next" value={nextPath} />

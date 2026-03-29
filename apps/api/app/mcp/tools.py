@@ -147,6 +147,7 @@ def execute_tool(
             parsed.task_id,
             parsed.purpose,
             agent,
+            settings=settings,
         )
 
     raise ToolExecutionError(status_code=404, detail=f"Unknown MCP tool: {name}")

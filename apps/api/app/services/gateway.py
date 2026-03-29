@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import contextmanager
 from typing import Any
 
 import httpx
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import ensure_capability_allowed
 from app.config import Settings
+from app.errors import ConflictError
 from app.models.agent import AgentIdentity
 from app.observability import record_capability_invoke
 from app.repositories.secret_repo import SecretRepository
@@ -17,10 +19,12 @@ from app.services.approval_service import ApprovalRequiredError, PolicyDeniedErr
 from app.services.audit_service import write_audit_event
 from app.services.capability_service import get_capability
 from app.services.policy_service import PolicyContext
+from app.services.redis_client import acquire_lock, release_lock
 from app.services.scope_policy import ensure_runtime_compatible
 from app.services.secret_backend import get_secret_backend_for_ref
 
 logger = logging.getLogger(__name__)
+COORDINATION_LOCK_TTL_SECONDS = 30
 
 
 class GatewayExecutionError(RuntimeError):
@@ -39,73 +43,79 @@ def proxy_invoke(
     agent: AgentIdentity,
     settings: Settings | None = None,
 ) -> dict:
-    capability, task, secret_record = _authorize_capability_use(
-        session=session,
-        capability_id=capability_id,
+    with _coordination_lock(
         task_id=task_id,
-        agent=agent,
-        require_lease=False,
-    )
-
-    adapter_type = capability.get("adapter_type", "generic_http")
-    adapter_config = capability.get("adapter_config", {})
-
-    try:
-        backend = get_secret_backend_for_ref(secret_record.backend_ref, settings)
-        secret_value = backend.read_secret(secret_record.id, secret_record.backend_ref)
-    except Exception as exc:
-        record_capability_invoke(False)
-        raise GatewayExecutionError(
-            "Capability secret backend failed during proxy execution"
-        ) from exc
-
-    try:
-        adapter = get_adapter(adapter_type)
-    except KeyError as exc:
-        record_capability_invoke(False)
-        raise GatewayConfigurationError(
-            f"Unknown capability adapter '{adapter_type}'"
-        ) from exc
-
-    try:
-        result = adapter.invoke(
-            secret_value=secret_value,
-            adapter_config=adapter_config,
-            parameters=parameters,
+        capability_id=capability_id,
+        action="invoke",
+        settings=settings,
+    ):
+        capability, task, secret_record = _authorize_capability_use(
+            session=session,
+            capability_id=capability_id,
+            task_id=task_id,
+            agent=agent,
+            require_lease=False,
         )
-    except (httpx.HTTPError, ValueError) as exc:
-        record_capability_invoke(False)
-        raise GatewayExecutionError(
-            f"Capability adapter '{adapter_type}' failed during proxy execution"
-        ) from exc
-    except (KeyError, TypeError) as exc:
-        record_capability_invoke(False)
-        raise GatewayConfigurationError(
-            f"Capability adapter '{adapter_type}' is misconfigured"
-        ) from exc
-    except Exception as exc:
-        record_capability_invoke(False)
-        raise GatewayConfigurationError(
-            f"Capability adapter '{adapter_type}' crashed during proxy execution"
-        ) from exc
 
-    _write_audit_event_best_effort(session, "capability_invoked", {
-        "agent_id": agent.id, "task_id": task.id,
-        "capability_id": capability_id, "mode": "proxy",
-        "adapter_type": adapter_type,
-    })
-    record_capability_invoke(True)
+        adapter_type = capability.get("adapter_type", "generic_http")
+        adapter_config = capability.get("adapter_config", {})
 
-    return {
-        "status": "completed",
-        "mode": "proxy",
-        "task_id": task.id,
-        "capability_id": capability_id,
-        "provider": capability["name"],
-        "adapter_type": result.get("adapter_type", adapter_type),
-        "upstream_status": result.get("upstream_status"),
-        "result": result.get("body", result),
-    }
+        try:
+            backend = get_secret_backend_for_ref(secret_record.backend_ref, settings)
+            secret_value = backend.read_secret(secret_record.id, secret_record.backend_ref)
+        except Exception as exc:
+            record_capability_invoke(False)
+            raise GatewayExecutionError(
+                "Capability secret backend failed during proxy execution"
+            ) from exc
+
+        try:
+            adapter = get_adapter(adapter_type)
+        except KeyError as exc:
+            record_capability_invoke(False)
+            raise GatewayConfigurationError(
+                f"Unknown capability adapter '{adapter_type}'"
+            ) from exc
+
+        try:
+            result = adapter.invoke(
+                secret_value=secret_value,
+                adapter_config=adapter_config,
+                parameters=parameters,
+            )
+        except (httpx.HTTPError, ValueError) as exc:
+            record_capability_invoke(False)
+            raise GatewayExecutionError(
+                f"Capability adapter '{adapter_type}' failed during proxy execution"
+            ) from exc
+        except (KeyError, TypeError) as exc:
+            record_capability_invoke(False)
+            raise GatewayConfigurationError(
+                f"Capability adapter '{adapter_type}' is misconfigured"
+            ) from exc
+        except Exception as exc:
+            record_capability_invoke(False)
+            raise GatewayConfigurationError(
+                f"Capability adapter '{adapter_type}' crashed during proxy execution"
+            ) from exc
+
+        _write_audit_event_best_effort(session, "capability_invoked", {
+            "agent_id": agent.id, "task_id": task.id,
+            "capability_id": capability_id, "mode": "proxy",
+            "adapter_type": adapter_type,
+        })
+        record_capability_invoke(True)
+
+        return {
+            "status": "completed",
+            "mode": "proxy",
+            "task_id": task.id,
+            "capability_id": capability_id,
+            "provider": capability["name"],
+            "adapter_type": result.get("adapter_type", adapter_type),
+            "upstream_status": result.get("upstream_status"),
+            "result": result.get("body", result),
+        }
 
 
 def issue_lease(
@@ -114,31 +124,38 @@ def issue_lease(
     task_id: str,
     purpose: str,
     agent: AgentIdentity,
+    settings: Settings | None = None,
 ) -> dict:
-    capability, task, secret_record = _authorize_capability_use(
-        session=session,
-        capability_id=capability_id,
+    with _coordination_lock(
         task_id=task_id,
-        agent=agent,
-        require_lease=True,
-    )
+        capability_id=capability_id,
+        action="lease",
+        settings=settings,
+    ):
+        capability, task, secret_record = _authorize_capability_use(
+            session=session,
+            capability_id=capability_id,
+            task_id=task_id,
+            agent=agent,
+            require_lease=True,
+        )
 
-    lease = {
-        "lease_id": f"lease-{task.id}-{capability_id}",
-        "capability_id": capability_id,
-        "task_id": task.id,
-        "issued_to": agent.id,
-        "purpose": purpose,
-        "expires_in": capability["lease_ttl_seconds"],
-        "lease_type": "metadata_placeholder",
-        "secret_value_included": False,
-        "secret_ref": secret_record.backend_ref if secret_record else "",
-    }
-    _write_audit_event_best_effort(session, "lease_issued", {
-        "agent_id": agent.id, "task_id": task.id,
-        "capability_id": capability_id, "lease_id": lease["lease_id"],
-    })
-    return lease
+        lease = {
+            "lease_id": f"lease-{task.id}-{capability_id}",
+            "capability_id": capability_id,
+            "task_id": task.id,
+            "issued_to": agent.id,
+            "purpose": purpose,
+            "expires_in": capability["lease_ttl_seconds"],
+            "lease_type": "metadata_placeholder",
+            "secret_value_included": False,
+            "secret_ref": secret_record.backend_ref if secret_record else "",
+        }
+        _write_audit_event_best_effort(session, "lease_issued", {
+            "agent_id": agent.id, "task_id": task.id,
+            "capability_id": capability_id, "lease_id": lease["lease_id"],
+        })
+        return lease
 
 
 def _authorize_capability_use(
@@ -204,3 +221,21 @@ def _write_audit_event_best_effort(session: Session, event_type: str, payload: d
         write_audit_event(session, event_type, payload)
     except Exception:
         logger.exception("Failed to write audit event", extra={"event_type": event_type})
+
+
+@contextmanager
+def _coordination_lock(
+    *,
+    task_id: str,
+    capability_id: str,
+    action: str,
+    settings: Settings | None = None,
+):
+    lock_key = f"task:{task_id}:capability:{capability_id}:{action}"
+    if not acquire_lock(lock_key, ttl_seconds=COORDINATION_LOCK_TTL_SECONDS, settings=settings):
+        raise ConflictError(f"Capability {action} is already in progress for this task")
+
+    try:
+        yield
+    finally:
+        release_lock(lock_key, settings=settings)

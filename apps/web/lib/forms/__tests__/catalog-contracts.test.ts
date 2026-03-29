@@ -109,6 +109,76 @@ const catalog: IntakeCatalogResponse = {
                   required: true,
                   options_source: "management_secret_inventory",
                 },
+                {
+                  key: "allowed_mode",
+                  control: "select",
+                  label: { en: "Allowed mode", zh: "允许模式" },
+                  required: true,
+                  default_value: "proxy_or_lease",
+                },
+                {
+                  key: "risk_level",
+                  control: "select",
+                  label: { en: "Risk level", zh: "风险等级" },
+                  required: true,
+                  default_value: "high",
+                },
+                {
+                  key: "lease_ttl_seconds",
+                  control: "number",
+                  label: { en: "Lease TTL", zh: "租约时长" },
+                  required: true,
+                  default_value: "300",
+                },
+                {
+                  key: "adapter_type",
+                  control: "text",
+                  label: { en: "Adapter type", zh: "适配器类型" },
+                  required: true,
+                  default_value: "github",
+                  read_only: true,
+                },
+                {
+                  key: "required_provider",
+                  control: "text",
+                  label: { en: "Required provider", zh: "要求的 Provider" },
+                  required: true,
+                  default_value: "github",
+                  read_only: true,
+                },
+                {
+                  key: "approval_mode",
+                  control: "select",
+                  label: { en: "Approval mode", zh: "审批模式" },
+                  required: true,
+                  default_value: "manual",
+                },
+                {
+                  key: "adapter_config",
+                  control: "json",
+                  label: { en: "Adapter config", zh: "适配器配置" },
+                  required: true,
+                  default_value: "{\"path\":\"/repos/{owner}/{repo}\"}",
+                },
+                {
+                  key: "approval_rules",
+                  control: "json",
+                  label: { en: "Approval rules", zh: "审批规则" },
+                  required: true,
+                  default_value: "[{\"action\":\"review\"}]",
+                },
+                {
+                  key: "required_provider_scopes",
+                  control: "chips",
+                  label: { en: "Required provider scopes", zh: "要求的 Provider scopes" },
+                  default_value: "repo:write",
+                },
+                {
+                  key: "allowed_environments",
+                  control: "chips",
+                  label: { en: "Allowed environments", zh: "允许环境" },
+                  default_value: "staging",
+                },
               ],
             },
           ],
@@ -155,14 +225,14 @@ const catalog: IntakeCatalogResponse = {
                   control: "select",
                   label: { en: "Approval mode", zh: "审批模式" },
                   required: true,
-                  default_value: "auto",
+                  default_value: "manual",
                 },
                 {
                   key: "input",
                   control: "json",
                   label: { en: "Input", zh: "输入" },
                   required: true,
-                  default_value: "{\"provider\":\"openai\"}",
+                  default_value: "{\"provider\":\"anthropic\"}",
                 },
               ],
             },
@@ -195,7 +265,7 @@ const catalog: IntakeCatalogResponse = {
                   control: "select",
                   label: { en: "Risk tier", zh: "风险等级" },
                   required: true,
-                  default_value: "medium",
+                  default_value: "high",
                 },
                 {
                   key: "allowed_task_types",
@@ -226,13 +296,13 @@ test("buildSecretContractsFromCatalog uses backend metadata and existing seriali
     display_name: "OpenAI prod key",
     value: "sk-live",
     environment: "production",
-    provider_scopes: "responses.read",
     resource_selector: "org:core",
-    metadata: "{}",
   });
 
   assert.equal(payload?.provider, "openai");
   assert.equal(payload?.kind, "api_token");
+  assert.equal(payload?.provider_scopes, "responses.read");
+  assert.equal(payload?.metadata, "{}");
 });
 
 test("buildCapabilityContractsFromCatalog injects secret inventory into backend-driven field definitions", () => {
@@ -248,6 +318,22 @@ test("buildCapabilityContractsFromCatalog injects secret inventory into backend-
     },
   ]);
   assert.equal(resource.contracts[0]?.sections[0]?.fields[1]?.optionsSource, "management_secret_inventory");
+
+  const payload = resource.contracts[0]?.serialize({
+    name: "github.repo.sync",
+    secret_id: "secret-1",
+  });
+
+  assert.equal(payload?.allowed_mode, "proxy_or_lease");
+  assert.equal(payload?.risk_level, "high");
+  assert.equal(payload?.lease_ttl_seconds, "300");
+  assert.equal(payload?.adapter_type, "github");
+  assert.equal(payload?.required_provider, "github");
+  assert.equal(payload?.approval_mode, "manual");
+  assert.equal(payload?.adapter_config, "{\"path\":\"/repos/{owner}/{repo}\"}");
+  assert.equal(payload?.approval_rules, "[{\"action\":\"review\"}]");
+  assert.equal(payload?.required_provider_scopes, "repo:write");
+  assert.equal(payload?.allowed_environments, "staging");
 });
 
 test("buildTaskContractsFromCatalog and buildAgentContractsFromCatalog keep backend defaults", () => {
@@ -257,8 +343,11 @@ test("buildTaskContractsFromCatalog and buildAgentContractsFromCatalog keep back
   assert.equal(tasks.defaultVariant, "prompt_run");
   assert.equal(tasks.contracts[0]?.title.en, "Backend prompt run");
   assert.equal(tasks.contracts[0]?.serialize({ title: "Task title" }).task_type, "prompt_run");
+  assert.equal(tasks.contracts[0]?.serialize({ title: "Task title" }).approval_mode, "manual");
+  assert.equal(tasks.contracts[0]?.serialize({ title: "Task title" }).input, "{\"provider\":\"anthropic\"}");
 
   assert.equal(agents.defaultVariant, "fully_scoped");
   assert.equal(agents.contracts[0]?.title.en, "Backend fully scoped agent");
+  assert.equal(agents.contracts[0]?.serialize({ name: "agent" }).risk_tier, "high");
   assert.equal(agents.contracts[0]?.serialize({ name: "agent" }).allowed_task_types, "");
 });

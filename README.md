@@ -202,12 +202,19 @@ That script:
 - creates or refreshes the root `.venv`;
 - installs the editable API dev dependencies into `.venv`;
 - runs `npm ci` in `apps/web`;
+- runs `alembic upgrade head` against the default local SQLite database;
 - installs the Chromium browser used by Playwright when the local binary is available.
 
 If you keep Python somewhere else, you can override the interpreter:
 
 ```bash
 PYTHON_BIN=python3.12 ./scripts/ops/bootstrap-dev-runtime.sh
+```
+
+If you want the bootstrap script to prepare a different local database path, override `DEV_DATABASE_URL`:
+
+```bash
+DEV_DATABASE_URL=sqlite:///./.tmp/dev-agent-share.db ./scripts/ops/bootstrap-dev-runtime.sh
 ```
 
 Playwright will look for `.venv/bin/uvicorn` by default. If you need to use a different binary, set:
@@ -381,6 +388,12 @@ SECRET_BACKEND=openbao OPENBAO_ADDR=http://127.0.0.1:8200 OPENBAO_TOKEN=root .ve
 cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
+For lightweight local development without OpenBao, you can run the API with the default in-memory secret backend:
+
+```bash
+.venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
+```
+
 6. Run verification locally:
 
 ```bash
@@ -393,11 +406,9 @@ cd apps/web && npm run build && npx playwright test
 The API now supports two secret backend modes:
 
 - `SECRET_BACKEND=openbao`
-  This is the intended production direction. When `OPENBAO_ADDR` and `OPENBAO_TOKEN` are set, secrets are written to OpenBao through the KV v2 API.
+  This is the intended production direction. It requires both `OPENBAO_ADDR` and `OPENBAO_TOKEN`; if either is missing, the API now fails with an explicit configuration error instead of silently changing backends.
 - `SECRET_BACKEND=memory`
-  This is the local fallback mode for tests and lightweight development.
-
-If `SECRET_BACKEND` is left as `openbao` but the OpenBao address or token is missing, the app safely falls back to the in-memory backend instead of failing during local development.
+  This is the default local mode for tests and lightweight development.
 
 ## Local OpenBao Dev Server
 

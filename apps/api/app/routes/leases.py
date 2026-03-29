@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth import require_agent
+from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
 from app.schemas.invoke import LeaseRequest
 from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError
@@ -23,9 +25,17 @@ def issue_lease_route(
     payload: LeaseRequest,
     agent: AgentIdentity = Depends(require_agent),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
     try:
-        return issue_lease(session, capability_id, payload.task_id, payload.purpose, agent)
+        return issue_lease(
+            session,
+            capability_id,
+            payload.task_id,
+            payload.purpose,
+            agent,
+            settings=settings,
+        )
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PolicyDeniedError as exc:

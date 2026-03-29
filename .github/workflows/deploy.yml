@@ -104,6 +104,6 @@ jobs:
             docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
 
             chmod +x scripts/ops/smoke-test.sh
-            echo "Running smoke checks through caddy..."
+            echo "Running smoke checks through caddy (/healthz, /metrics, x-request-id)..."
             ./scripts/ops/smoke-test.sh
             docker image prune -f

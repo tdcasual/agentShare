@@ -3,6 +3,7 @@ import type { Locale } from "../i18n-shared";
 import { adaptResourceCatalog, createVariantBehaviorMap } from "./catalog-adapter";
 import { requireGeneratedCatalogResource } from "./generated-catalog";
 import type { FieldOption, IntakeVariantContract, ValidationErrors } from "./types";
+import { serializeContractValues } from "./utils";
 import {
   mergeValidationErrors,
   validateJsonField,
@@ -63,38 +64,25 @@ function toSecretOptions(secrets: SecretBindingOption[]): FieldOption[] {
   }));
 }
 
-function createCapabilityBehavior(config: {
-  defaultName?: string;
-  defaultAllowedMode?: string;
-  fixedAllowedMode?: string;
-  defaultRiskLevel?: string;
-  defaultLeaseTtlSeconds?: string;
-  defaultAdapterType?: string;
-  fixedAdapterType?: string;
-  defaultRequiredProvider?: string;
-  fixedRequiredProvider?: string;
-  defaultApprovalMode?: string;
-  defaultAdapterConfig?: string;
-  defaultApprovalRules?: string;
-  defaultRequiredProviderScopes?: string;
-  defaultAllowedEnvironments?: string;
-}): Pick<IntakeVariantContract, "serialize" | "validate"> {
+const CAPABILITY_PAYLOAD_KEYS = [
+  "name",
+  "secret_id",
+  "allowed_mode",
+  "risk_level",
+  "lease_ttl_seconds",
+  "adapter_type",
+  "required_provider",
+  "approval_mode",
+  "adapter_config",
+  "approval_rules",
+  "required_provider_scopes",
+  "allowed_environments",
+] as const;
+
+function createCapabilityBehavior(): Pick<IntakeVariantContract, "serialize" | "validate"> {
   return {
-    serialize(values) {
-      return {
-        name: String(values.name ?? config.defaultName ?? ""),
-        secret_id: String(values.secret_id ?? ""),
-        allowed_mode: config.fixedAllowedMode ?? String(values.allowed_mode ?? config.defaultAllowedMode ?? "proxy_only"),
-        risk_level: String(values.risk_level ?? config.defaultRiskLevel ?? "medium"),
-        lease_ttl_seconds: String(values.lease_ttl_seconds ?? config.defaultLeaseTtlSeconds ?? "60"),
-        adapter_type: config.fixedAdapterType ?? String(values.adapter_type ?? config.defaultAdapterType ?? "generic_http"),
-        required_provider: config.fixedRequiredProvider ?? String(values.required_provider ?? config.defaultRequiredProvider ?? ""),
-        approval_mode: String(values.approval_mode ?? config.defaultApprovalMode ?? "auto"),
-        adapter_config: String(values.adapter_config ?? config.defaultAdapterConfig ?? "{}"),
-        approval_rules: String(values.approval_rules ?? config.defaultApprovalRules ?? "[]"),
-        required_provider_scopes: String(values.required_provider_scopes ?? config.defaultRequiredProviderScopes ?? ""),
-        allowed_environments: String(values.allowed_environments ?? config.defaultAllowedEnvironments ?? ""),
-      };
+    serialize(this: IntakeVariantContract, values) {
+      return serializeContractValues(this, values, [...CAPABILITY_PAYLOAD_KEYS]);
     },
     validate(this: IntakeVariantContract, values, locale) {
       return validateCapability(this, values, locale);
@@ -106,52 +94,9 @@ const capabilityResource = requireGeneratedCatalogResource("capability");
 
 export const defaultCapabilityVariant = capabilityResource.default_variant;
 
-const capabilityBehaviors: Record<string, Pick<IntakeVariantContract, "serialize" | "validate">> = {
-  generic_capability: createCapabilityBehavior({
-    defaultAllowedMode: "proxy_only",
-    defaultRiskLevel: "medium",
-    defaultLeaseTtlSeconds: "60",
-    defaultAdapterType: "generic_http",
-    defaultApprovalMode: "auto",
-    defaultAdapterConfig: "{}",
-    defaultApprovalRules: "[]",
-  }),
-  openai_chat_proxy: createCapabilityBehavior({
-    defaultName: "openai.chat.invoke",
-    defaultAllowedMode: "proxy_only",
-    defaultRiskLevel: "medium",
-    defaultLeaseTtlSeconds: "60",
-    fixedAdapterType: "openai",
-    fixedRequiredProvider: "openai",
-    defaultApprovalMode: "auto",
-    defaultAdapterConfig: "{}",
-    defaultApprovalRules: "[]",
-    defaultRequiredProviderScopes: "responses.read",
-    defaultAllowedEnvironments: "production",
-  }),
-  github_rest_proxy: createCapabilityBehavior({
-    defaultName: "github.repo.sync",
-    defaultAllowedMode: "proxy_or_lease",
-    defaultRiskLevel: "medium",
-    defaultLeaseTtlSeconds: "180",
-    fixedAdapterType: "github",
-    fixedRequiredProvider: "github",
-    defaultApprovalMode: "auto",
-    defaultAdapterConfig: '{"method":"GET","path":"/repos/{owner}/{repo}/issues"}',
-    defaultApprovalRules: "[]",
-    defaultRequiredProviderScopes: "repo:read",
-    defaultAllowedEnvironments: "production",
-  }),
-  lease_enabled_generic_http: createCapabilityBehavior({
-    fixedAllowedMode: "proxy_or_lease",
-    defaultRiskLevel: "medium",
-    defaultLeaseTtlSeconds: "120",
-    fixedAdapterType: "generic_http",
-    defaultApprovalMode: "auto",
-    defaultAdapterConfig: "{}",
-    defaultApprovalRules: "[]",
-  }),
-};
+const capabilityBehaviors = Object.fromEntries(
+  capabilityResource.variants.map((variant) => [variant.variant, createCapabilityBehavior()]),
+) as Record<string, Pick<IntakeVariantContract, "serialize" | "validate">>;
 
 export function buildCapabilityContracts(secrets: SecretBindingOption[]): IntakeVariantContract[] {
   return adaptResourceCatalog(

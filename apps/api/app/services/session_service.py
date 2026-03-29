@@ -5,13 +5,16 @@ import hashlib
 import hmac
 import json
 import time
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.config import Settings
+from app.orm.management_session import ManagementSessionModel
 from app.repositories.agent_repo import AgentRepository
+from app.repositories.management_session_repo import ManagementSessionRepository
 from app.schemas.sessions import ManagementSessionPayload
 
 
@@ -42,6 +45,22 @@ def build_management_session_payload(settings: Settings) -> ManagementSessionPay
         exp=now + settings.management_session_ttl_seconds,
         ver=1,
     )
+
+
+def create_management_session(
+    session: Session,
+    settings: Settings,
+) -> ManagementSessionPayload:
+    payload = build_management_session_payload(settings)
+    repo = ManagementSessionRepository(session)
+    repo.create(ManagementSessionModel(
+        session_id=payload.session_id,
+        actor_id=payload.actor_id,
+        role=payload.role,
+        issued_at=_timestamp_to_datetime(payload.iat),
+        expires_at=_timestamp_to_datetime(payload.exp),
+    ))
+    return payload
 
 
 def issue_management_session_token(
@@ -89,6 +108,34 @@ def decode_management_session_token(
     return payload
 
 
+def revoke_management_session(session: Session, session_id: str) -> None:
+    repo = ManagementSessionRepository(session)
+    repo.revoke(session_id)
+
+
+def authenticate_management_session_token(
+    token: str,
+    settings: Settings,
+    session: Session,
+) -> ManagementSessionPayload:
+    payload = decode_management_session_token(token, settings)
+    record = ManagementSessionRepository(session).get(payload.session_id)
+    if record is None:
+        raise ManagementSessionError("Unknown management session")
+    if record.revoked_at is not None:
+        raise ManagementSessionError("Management session revoked")
+    if _datetime_to_timestamp(record.expires_at) <= int(time.time()):
+        raise ManagementSessionError("Management session expired")
+    if (
+        record.actor_id != payload.actor_id
+        or record.role != payload.role
+        or _datetime_to_timestamp(record.issued_at) != payload.iat
+        or _datetime_to_timestamp(record.expires_at) != payload.exp
+    ):
+        raise ManagementSessionError("Management session payload does not match persisted session")
+    return payload
+
+
 def _encode_component(raw: bytes) -> str:
     return base64.urlsafe_b64encode(raw).decode().rstrip("=")
 
@@ -96,3 +143,12 @@ def _encode_component(raw: bytes) -> str:
 def _decode_component(raw: str) -> bytes:
     padding = "=" * (-len(raw) % 4)
     return base64.urlsafe_b64decode(f"{raw}{padding}")
+
+
+def _timestamp_to_datetime(timestamp: int) -> datetime:
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+
+
+def _datetime_to_timestamp(value: datetime) -> int:
+    normalized = value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+    return int(normalized.timestamp())

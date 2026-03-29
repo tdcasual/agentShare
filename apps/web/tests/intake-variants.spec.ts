@@ -1,8 +1,48 @@
+import type { APIRequestContext, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 import { loginToManagementConsole } from "./helpers";
 
 const API_BASE_URL = process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:3800";
+
+async function getCatalogVariantIds(
+  page: Page,
+  request: APIRequestContext,
+  kind: string,
+) {
+  const cookies = await page.context().cookies(API_BASE_URL);
+  const managementSession = cookies.find((cookie) => cookie.name === "management_session");
+  expect(managementSession, "management session cookie should be available").toBeTruthy();
+
+  const response = await request.get(`${API_BASE_URL}/api/intake-catalog`, {
+    headers: {
+      Cookie: `management_session=${managementSession?.value ?? ""}`,
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+
+  const payload = await response.json() as {
+    resource_kinds: Array<{
+      kind: string;
+      variants: Array<{ variant: string }>;
+    }>;
+  };
+  const resource = payload.resource_kinds.find((item) => item.kind === kind);
+  return resource ? resource.variants.map((variant) => variant.variant) : [];
+}
+
+async function expectVariantPickerToMatchCatalog(
+  page: Page,
+  request: APIRequestContext,
+  kind: string,
+) {
+  const apiVariants = await getCatalogVariantIds(page, request, kind);
+  const uiVariants = await page.locator("[data-testid^='variant-option-']").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("data-testid")?.replace("variant-option-", "") ?? ""),
+  );
+
+  expect(uiVariants).toEqual(apiVariants);
+}
 
 test("intake variants update defaults and submit scoped agent policies", async ({ page, request }) => {
   const suffix = Date.now().toString();
@@ -10,6 +50,7 @@ test("intake variants update defaults and submit scoped agent policies", async (
   await loginToManagementConsole(page, "/secrets");
 
   await expect(page.getByTestId("intake-variant-picker")).toBeVisible();
+  await expectVariantPickerToMatchCatalog(page, request, "secret");
   await page.getByTestId("variant-option-openai_api_token").click();
   await expect(page.getByLabel("Provider", { exact: true })).toHaveValue("openai");
   await expect(page.getByLabel("Kind")).toHaveValue("api_token");
@@ -24,6 +65,7 @@ test("intake variants update defaults and submit scoped agent policies", async (
 
   await page.goto("/tasks");
 
+  await expectVariantPickerToMatchCatalog(page, request, "task");
   await page.getByTestId("variant-option-prompt_run").click();
   await expect(page.getByLabel("Task type")).toHaveValue("prompt_run");
   await expect(page.getByLabel("Input")).toHaveValue('{"provider":"openai"}');
@@ -38,6 +80,7 @@ test("intake variants update defaults and submit scoped agent policies", async (
   await page.goto("/agents");
   await page.locator("summary").filter({ hasText: "Register new agent" }).click();
 
+  await expectVariantPickerToMatchCatalog(page, request, "agent");
   await page.getByTestId("variant-option-task_scoped").click();
   await expect(page.getByLabel("Allowed task types")).toBeVisible();
   await expect(page.getByLabel("Allowed capability IDs")).toBeHidden();

@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 import {
+  buildPlaywrightApiServerCommand,
   createPlaywrightDatabaseRuntime,
   toSqliteDatabaseUrl,
 } from "./test-db";
@@ -37,4 +38,25 @@ test("createPlaywrightDatabaseRuntime creates temp-rooted unique directories and
 
   assert.equal(fs.existsSync(runtimeA.directory), false);
   assert.equal(fs.existsSync(runtimeB.directory), false);
+});
+
+test("buildPlaywrightApiServerCommand makes migrations explicit before booting uvicorn", () => {
+  const runtime = createPlaywrightDatabaseRuntime("run-api");
+  const command = buildPlaywrightApiServerCommand({
+    apiDir: "/workspace/apps/api",
+    pythonBin: "/workspace/.venv/bin/python",
+    uvicornBin: "/workspace/.venv/bin/uvicorn",
+    databaseUrl: runtime.databaseUrl,
+  });
+
+  assert.match(command, /cd '?\/workspace\/apps\/api'?/);
+  assert.match(command, /DATABASE_URL=/);
+  assert.match(command, /SECRET_BACKEND=memory/);
+  assert.match(command, /bootstrap_agent_key|BOOTSTRAP_AGENT_KEY/i);
+  assert.match(command, /alembic/i);
+  assert.match(command, /upgrade/);
+  assert.match(command, /head/);
+  assert.match(command, /uvicorn/);
+
+  runtime.cleanup();
 });

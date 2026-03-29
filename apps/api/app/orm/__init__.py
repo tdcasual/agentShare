@@ -7,6 +7,7 @@ from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
 from app.orm.audit_event import AuditEventModel
 from app.orm.approval_request import ApprovalRequestModel
+from app.orm.management_session import ManagementSessionModel
 
 __all__ = [
     "Base",
@@ -18,4 +19,5 @@ __all__ = [
     "PlaybookModel",
     "AuditEventModel",
     "ApprovalRequestModel",
+    "ManagementSessionModel",
 ]

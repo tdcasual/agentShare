@@ -1,19 +1,24 @@
 import httpx
+import pytest
 
 from app.config import Settings
-from app.services.secret_backend import OpenBaoSecretBackend, get_secret_backend
+from app.services.secret_backend import (
+    OpenBaoSecretBackend,
+    SecretBackendConfigurationError,
+    get_secret_backend,
+)
 
 
-def test_get_secret_backend_falls_back_to_memory_without_openbao_credentials():
-    backend = get_secret_backend(
-        Settings(
-            secret_backend="openbao",
-            openbao_addr=None,
-            openbao_token=None,
+def test_get_secret_backend_rejects_openbao_without_credentials():
+    with pytest.raises(SecretBackendConfigurationError, match="SECRET_BACKEND=memory"):
+        get_secret_backend(
+            Settings(
+                _env_file=None,
+                secret_backend="openbao",
+                openbao_addr=None,
+                openbao_token=None,
+            )
         )
-    )
-
-    assert backend.backend_name == "memory"
 
 
 def test_openbao_backend_uses_kv_v2_data_paths_for_write_and_read():

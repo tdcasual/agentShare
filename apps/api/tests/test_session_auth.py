@@ -2,6 +2,8 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
+from app.repositories.management_session_repo import ManagementSessionRepository
+from app.services.session_service import revoke_management_session
 from conftest import BOOTSTRAP_AGENT_KEY
 
 
@@ -24,6 +26,22 @@ def test_management_login_sets_cookie_and_allows_session_introspection(anonymous
     assert session_me.json()["expires_at"] > session_me.json()["issued_at"]
 
 
+def test_management_login_persists_server_side_session_record(anonymous_client, db_session):
+    login = anonymous_client.post(
+        "/api/session/login",
+        json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+    )
+
+    assert login.status_code == 200
+
+    session_id = login.json()["session_id"]
+    record = ManagementSessionRepository(db_session).get(session_id)
+
+    assert record is not None
+    assert record.session_id == session_id
+    assert record.revoked_at is None
+
+
 def test_management_login_rejects_invalid_bootstrap_credential(anonymous_client):
     response = anonymous_client.post(
         "/api/session/login",
@@ -33,15 +51,33 @@ def test_management_login_rejects_invalid_bootstrap_credential(anonymous_client)
     assert response.status_code == 401
 
 
-def test_management_logout_clears_cookie(anonymous_client):
+def test_management_logout_revokes_server_session_and_clears_cookie(anonymous_client, db_session):
+    login = anonymous_client.post(
+        "/api/session/login",
+        json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
+    )
+    assert login.status_code == 200
+    session_id = login.json()["session_id"]
+
+    logout = anonymous_client.post("/api/session/logout")
+    assert logout.status_code == 200
+
+    record = ManagementSessionRepository(db_session).get(session_id)
+    assert record is not None
+    assert record.revoked_at is not None
+
+    session_me = anonymous_client.get("/api/session/me")
+    assert session_me.status_code == 401
+
+
+def test_revoked_management_cookie_is_rejected(anonymous_client, db_session):
     login = anonymous_client.post(
         "/api/session/login",
         json={"bootstrap_key": BOOTSTRAP_AGENT_KEY},
     )
     assert login.status_code == 200
 
-    logout = anonymous_client.post("/api/session/logout")
-    assert logout.status_code == 200
+    revoke_management_session(db_session, login.json()["session_id"])
 
     session_me = anonymous_client.get("/api/session/me")
     assert session_me.status_code == 401

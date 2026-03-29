@@ -9,7 +9,7 @@ def test_settings_default_to_local_services():
 
     assert "agent_share" in settings.database_url
     assert settings.redis_url == "redis://localhost:6379/0"
-    assert settings.secret_backend == "openbao"
+    assert settings.secret_backend == "memory"
 
 
 def test_production_settings_reject_default_bootstrap_agent_key():

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     app_env: Literal["development", "staging", "production"] = "development"
     database_url: str = "sqlite:///./agent_share.db"
     redis_url: str = "redis://localhost:6379/0"
-    secret_backend: str = "openbao"
+    secret_backend: str = "memory"
     openbao_addr: str | None = Field(
         default=None,
         validation_alias=AliasChoices("openbao_addr", "OPENBAO_ADDR", "secret_backend_url", "SECRET_BACKEND_URL"),

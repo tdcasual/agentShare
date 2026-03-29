@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 VENV_DIR="${ROOT_DIR}/.venv"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 PLAYWRIGHT_BIN="${ROOT_DIR}/apps/web/node_modules/.bin/playwright"
+DEV_DATABASE_URL="${DEV_DATABASE_URL:-sqlite:///./agent_share.db}"
 
 if [ ! -d "${VENV_DIR}" ]; then
   "${PYTHON_BIN}" -m venv "${VENV_DIR}"
@@ -18,6 +19,12 @@ fi
   npm ci
 )
 
+(
+  cd "${ROOT_DIR}/apps/api"
+  DATABASE_URL="${DEV_DATABASE_URL}" "${VENV_DIR}/bin/python" -c \
+    "from alembic.config import main; main(argv=['-c', 'alembic.ini', 'upgrade', 'head'])"
+)
+
 if [ -x "${PLAYWRIGHT_BIN}" ]; then
   "${PLAYWRIGHT_BIN}" install chromium
 fi
@@ -25,3 +32,4 @@ fi
 printf 'Bootstrapped dev runtime at %s\n' "${ROOT_DIR}"
 printf 'Python env: %s\n' "${VENV_DIR}"
 printf 'Web deps: %s\n' "${ROOT_DIR}/apps/web/node_modules"
+printf 'Migrated dev database: %s\n' "${DEV_DATABASE_URL}"

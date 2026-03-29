@@ -1,6 +1,6 @@
 """Route modules."""
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 
 from app.mcp.server import router as mcp_router
 from app.routes.agents import router as agents_router
@@ -17,17 +17,28 @@ from app.routes.session import router as session_router
 from app.routes.tasks import router as tasks_router
 
 
-def register_routes(app: FastAPI) -> None:
-    app.include_router(agents_router)
-    app.include_router(session_router)
-    app.include_router(approvals_router)
-    app.include_router(intake_catalog_router)
-    app.include_router(secrets_router)
-    app.include_router(capabilities_router)
-    app.include_router(tasks_router)
-    app.include_router(invoke_router)
-    app.include_router(leases_router)
-    app.include_router(mcp_router)
-    app.include_router(metrics_router)
-    app.include_router(runs_router)
-    app.include_router(playbooks_router)
+def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
+    routers: list[APIRouter] = [
+        agents_router,
+        session_router,
+        approvals_router,
+        intake_catalog_router,
+        secrets_router,
+        capabilities_router,
+        tasks_router,
+        invoke_router,
+        leases_router,
+    ]
+    if include_mcp:
+        routers.append(mcp_router)
+    routers.extend([
+        metrics_router,
+        runs_router,
+        playbooks_router,
+    ])
+    return tuple(routers)
+
+
+def register_routes(app: FastAPI, *, include_mcp: bool = True) -> None:
+    for router in get_default_routers(include_mcp=include_mcp):
+        app.include_router(router)

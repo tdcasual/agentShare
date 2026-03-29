@@ -5,6 +5,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings
+from app.dependencies import get_attached_runtime
 from app.runtime import AppRuntime, build_runtime
 
 
@@ -35,10 +36,7 @@ def init_db(target_engine: Engine | None = None) -> None:
 
 def get_db(request: Request) -> Generator[Session, None, None]:
     """FastAPI dependency that yields a DB session per request."""
-    session_factory: sessionmaker[Session] = _get_default_runtime().session_factory
-    if hasattr(request.app.state, "runtime"):
-        session_factory = request.app.state.runtime.session_factory
-
+    session_factory: sessionmaker[Session] = get_attached_runtime(request).session_factory
     session = session_factory()
     try:
         yield session

@@ -1,19 +1,19 @@
 import { adaptResourceCatalog, createVariantBehaviorMap } from "./catalog-adapter";
 import { requireGeneratedCatalogResource } from "./generated-catalog";
 import type { IntakeVariantContract } from "./types";
+import { serializeContractValues } from "./utils";
 
-function createAgentBehavior(
-  includeTaskScope: boolean,
-  includeCapabilityScope: boolean,
-): Pick<IntakeVariantContract, "serialize"> {
+const AGENT_PAYLOAD_KEYS = [
+  "name",
+  "risk_tier",
+  "allowed_task_types",
+  "allowed_capability_ids",
+] as const;
+
+function createAgentBehavior(): Pick<IntakeVariantContract, "serialize"> {
   return {
-    serialize(values) {
-      return {
-        name: String(values.name ?? ""),
-        risk_tier: String(values.risk_tier ?? "medium"),
-        allowed_task_types: includeTaskScope ? String(values.allowed_task_types ?? "") : "",
-        allowed_capability_ids: includeCapabilityScope ? String(values.allowed_capability_ids ?? "") : "",
-      };
+    serialize(this: IntakeVariantContract, values) {
+      return serializeContractValues(this, values, [...AGENT_PAYLOAD_KEYS]);
     },
   };
 }
@@ -22,12 +22,9 @@ const agentResource = requireGeneratedCatalogResource("agent");
 
 export const defaultAgentVariant = agentResource.default_variant;
 
-const agentBehaviors: Record<string, Pick<IntakeVariantContract, "serialize">> = {
-  general_agent: createAgentBehavior(false, false),
-  task_scoped: createAgentBehavior(true, false),
-  capability_scoped: createAgentBehavior(false, true),
-  fully_scoped: createAgentBehavior(true, true),
-};
+const agentBehaviors = Object.fromEntries(
+  agentResource.variants.map((variant) => [variant.variant, createAgentBehavior()]),
+) as Record<string, Pick<IntakeVariantContract, "serialize">>;
 
 export const agentContracts: IntakeVariantContract[] = adaptResourceCatalog(
   agentResource,

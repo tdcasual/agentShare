@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from conftest import TEST_SETTINGS
 
+from app.errors import ServiceUnavailableError
 from app.repositories.approval_repo import ApprovalRequestRepository
 
 
@@ -123,6 +124,141 @@ def test_proxy_invocation_uses_runtime_settings_for_secret_backend(mock_post, cl
 
     assert response.status_code == 200
     assert captured == [TEST_SETTINGS.secret_backend]
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_proxy_invocation_uses_runtime_settings_for_coordination_lock(
+    mock_post,
+    client,
+    management_client,
+    monkeypatch,
+):
+    captured: list[tuple[str, str]] = []
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": "ok"}
+    mock_response.raise_for_status = MagicMock()
+    mock_post.return_value = mock_response
+
+    def fake_acquire_lock(key: str, ttl_seconds: int, settings):
+        del ttl_seconds
+        captured.append((key, settings.redis_url))
+        return True
+
+    def fake_release_lock(key: str, settings):
+        captured.append((key, settings.redis_url))
+
+    monkeypatch.setattr("app.services.gateway.acquire_lock", fake_acquire_lock, raising=False)
+    monkeypatch.setattr("app.services.gateway.release_lock", fake_release_lock, raising=False)
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke.locked",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run with coordination",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    expected_key = f"task:{task['id']}:capability:{capability['id']}:invoke"
+    assert response.status_code == 200
+    assert captured == [
+        (expected_key, TEST_SETTINGS.redis_url),
+        (expected_key, TEST_SETTINGS.redis_url),
+    ]
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_proxy_invocation_returns_503_when_coordination_is_unavailable(
+    mock_post,
+    client,
+    management_client,
+    monkeypatch,
+):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": "ok"}
+    mock_response.raise_for_status = MagicMock()
+    mock_post.return_value = mock_response
+
+    def fail_acquire_lock(key: str, ttl_seconds: int, settings):
+        del key, ttl_seconds, settings
+        raise ServiceUnavailableError("Runtime coordination is unavailable")
+
+    monkeypatch.setattr("app.services.gateway.acquire_lock", fail_acquire_lock, raising=False)
+
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke.unavailable",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run coordination down",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Runtime coordination is unavailable"}
+    mock_post.assert_not_called()
 
 
 @patch("app.services.gateway.write_audit_event")
