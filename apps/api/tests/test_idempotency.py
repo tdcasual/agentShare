@@ -27,6 +27,7 @@ def idempotent_app(fake_redis_client):
         "plain": 0,
         "cookie_json": 0,
         "location_json": 0,
+        "etag_json": 0,
         "stream": 0,
         "stream_bg": 0,
         "json_stream": 0,
@@ -79,6 +80,14 @@ def idempotent_app(fake_redis_client):
         value = counters["location_json"]
         response = JSONResponse({"count": value})
         response.headers["Location"] = f"/next/{value}"
+        return response
+
+    @test_app.post("/etag-json")
+    def etag_json_endpoint():
+        counters["etag_json"] += 1
+        value = counters["etag_json"]
+        response = JSONResponse({"count": value})
+        response.headers["ETag"] = f"v{value}"
         return response
 
     @test_app.post("/stream")
@@ -213,6 +222,19 @@ def test_json_responses_with_location_header_are_not_cached(idempotent_app):
     assert second.json() == {"count": 2}
     assert first.headers["location"] == "/next/1"
     assert second.headers["location"] == "/next/2"
+
+
+def test_json_responses_with_etag_header_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "etag-key"}
+    first = idempotent_app.post("/etag-json", headers=headers)
+    second = idempotent_app.post("/etag-json", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == {"count": 1}
+    assert second.json() == {"count": 2}
+    assert first.headers["etag"] == "v1"
+    assert second.headers["etag"] == "v2"
 
 
 def test_streaming_responses_are_bypassed_without_transformation(idempotent_app):

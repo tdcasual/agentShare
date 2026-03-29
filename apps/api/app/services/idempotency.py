@@ -13,10 +13,9 @@ from starlette.responses import JSONResponse, Response, StreamingResponse
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     _MAX_CACHEABLE_RESPONSE_BYTES = 64 * 1024
-    _REPLAY_UNSAFE_HEADERS = {
-        "set-cookie",
-        "location",
-        "content-location",
+    _REPLAY_SAFE_HEADERS = {
+        "content-type",
+        "content-length",
     }
 
     def __init__(self, app: Any, redis_client: redis.Redis, ttl_seconds: int = 300) -> None:
@@ -94,7 +93,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             return False
 
         header_names = {key.lower() for key in response.headers.keys()}
-        if header_names.intersection(self._REPLAY_UNSAFE_HEADERS):
+        if not header_names.issubset(self._REPLAY_SAFE_HEADERS):
             return False
 
         return True
