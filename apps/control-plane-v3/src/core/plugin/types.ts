@@ -172,7 +172,7 @@ export const ExtensionPoints = {
 // Service Identifiers
 export function createServiceIdentifier<T>(name: string): ServiceIdentifier<T> {
   return {
-    symbol: Symbol(name),
+    symbol: Symbol.for(name),
     name,
   };
 }

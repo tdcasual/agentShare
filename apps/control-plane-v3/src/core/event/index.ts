@@ -16,10 +16,16 @@ export class EventBusImpl implements EventBus {
         try {
           const result = handler(payload);
           if (result instanceof Promise) {
-            result.catch(err => console.error(`Error in event handler for ${event}:`, err));
+            result.catch(err => {
+              if (process.env.NODE_ENV === 'development') {
+                console.error(`Error in event handler for ${event}:`, err);
+              }
+            });
           }
         } catch (err) {
-          console.error(`Error in event handler for ${event}:`, err);
+          if (process.env.NODE_ENV === 'development') {
+            console.error(`Error in event handler for ${event}:`, err);
+          }
         }
       });
     }
@@ -31,7 +37,9 @@ export class EventBusImpl implements EventBus {
         try {
           handler(payload);
         } catch (err) {
-          console.error(`Error in once handler for ${event}:`, err);
+          if (process.env.NODE_ENV === 'development') {
+            console.error(`Error in once handler for ${event}:`, err);
+          }
         }
       });
       this.onceHandlers.delete(event);

@@ -1,16 +1,21 @@
 // ============================================
 // Core Runtime - Composition Root
 // ============================================
+// 重构版本：解决 Core 层反向依赖 Domain 层的问题
+// 同时保持向后兼容
 
-import type { CoreRuntime, RouteConfig, Disposable, ThemeDefinition } from './plugin/types';
+import type { CoreRuntime, RouteConfig, Disposable, ThemeDefinition, Plugin } from './plugin/types';
 import { PluginRegistry } from './plugin';
 import { EventBusImpl, TypedEventBus } from './event';
 import { DIContainerImpl } from './di';
 import { StateContainerImpl } from './state';
-import { IdentityDomainPlugin } from '../domains/identity/plugin';
 import type { DomainEvents } from '../shared/types';
+import * as React from 'react';
 
-// Placeholder implementations for now
+// ============================================
+// 基础设施实现
+// ============================================
+
 class RouterManagerImpl {
   private routes: Map<string, RouteConfig> = new Map();
   
@@ -20,7 +25,12 @@ class RouterManagerImpl {
   }
   
   navigate(path: string): void {
-    console.log(`Navigating to: ${path}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Navigating to: ${path}`);
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
   }
   
   getCurrentRoute(): RouteConfig | undefined {
@@ -91,7 +101,9 @@ class ThemeEngineImpl {
   }
 
   setVariable(key: string, value: string): void {
-    document.documentElement.style.setProperty(key, value);
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty(key, value);
+    }
   }
 }
 
@@ -126,8 +138,17 @@ class I18nEngineImpl {
   }
 }
 
-export function createCoreRuntime(): CoreRuntime {
-  // Create infrastructure
+// ============================================
+// 重构后的 Runtime Factory（新增）
+// ============================================
+
+export interface RuntimeConfig {
+  plugins?: Plugin[];
+  initialLocale?: string;
+}
+
+export function createCoreRuntime(config: RuntimeConfig = {}): CoreRuntime {
+  // 创建基础设施
   const eventBus = new EventBusImpl();
   const diContainer = new DIContainerImpl();
   const stateContainer = new StateContainerImpl();
@@ -136,9 +157,13 @@ export function createCoreRuntime(): CoreRuntime {
   const themeEngine = new ThemeEngineImpl();
   const i18nEngine = new I18nEngineImpl();
 
-  // Create runtime object
+  if (config.initialLocale) {
+    i18nEngine.setLocale(config.initialLocale);
+  }
+
+  // 创建运行时对象
   const runtime: CoreRuntime = {
-    plugin: null as unknown as PluginRegistry, // Will be set after creation
+    plugin: null as unknown as PluginRegistry,
     event: eventBus,
     state: stateContainer,
     router: routerManager,
@@ -148,20 +173,64 @@ export function createCoreRuntime(): CoreRuntime {
     i18n: i18nEngine,
   };
 
-  // Create plugin registry with runtime reference
+  // 创建插件注册表
   runtime.plugin = new PluginRegistry(runtime);
+
+  // 注册初始插件（由调用方传入，而非硬编码）
+  if (config.plugins) {
+    for (const plugin of config.plugins) {
+      runtime.plugin.register(plugin);
+    }
+  }
 
   return runtime;
 }
 
-// Typed event bus for domain events
-export function createTypedEventBus(runtime: CoreRuntime) {
-  return new TypedEventBus<DomainEvents>(runtime.event);
+// 初始化函数改为接收运行时实例和可选的插件ID列表
+export async function initializeRuntime(
+  runtime: CoreRuntime,
+  pluginIds?: string[]
+): Promise<CoreRuntime> {
+  const pluginsToActivate = pluginIds ?? runtime.plugin.getAll().map(p => p.id);
+  
+  for (const pluginId of pluginsToActivate) {
+    if (!runtime.plugin.isActive(pluginId)) {
+      await runtime.plugin.activatePlugin(pluginId);
+    }
+  }
+
+  return runtime;
 }
 
-// Global runtime instance (singleton for app)
+// ============================================
+// React Context（新增 - 替代全局单例）
+// ============================================
+
+export const RuntimeContext = React.createContext<CoreRuntime | null>(null);
+
+export function useRuntime(): CoreRuntime {
+  const runtime = React.useContext(RuntimeContext);
+  if (!runtime) {
+    throw new Error('useRuntime must be used within RuntimeProvider');
+  }
+  return runtime;
+}
+
+// 用于测试的 Hook，允许可选的 Runtime
+export function useRuntimeOptional(): CoreRuntime | null {
+  return React.useContext(RuntimeContext);
+}
+
+// ============================================
+// 向后兼容的全局单例（标记为 deprecated）
+// ============================================
+
 let globalRuntime: CoreRuntime | null = null;
 
+/**
+ * @deprecated 使用 RuntimeContext + useRuntime() 替代
+ * 将在 v2.0 中移除
+ */
 export function getRuntime(): CoreRuntime {
   if (!globalRuntime) {
     globalRuntime = createCoreRuntime();
@@ -169,11 +238,23 @@ export function getRuntime(): CoreRuntime {
   return globalRuntime;
 }
 
+/**
+ * @deprecated 使用 createCoreRuntime({ plugins: [...] }) 替代
+ * 将在 v2.0 中移除
+ */
 export function setRuntime(runtime: CoreRuntime): void {
   globalRuntime = runtime;
 }
 
-export async function initializeRuntime(runtime: CoreRuntime = getRuntime()): Promise<CoreRuntime> {
+// 向后兼容的初始化函数（自动注册 Identity 插件）
+/**
+ * @deprecated 使用 initializeRuntime(runtime, plugins) 替代
+ * 将在 v2.0 中移除
+ */
+export async function initializeRuntimeLegacy(runtime: CoreRuntime = getRuntime()): Promise<CoreRuntime> {
+  // 动态导入以避免循环依赖
+  const { IdentityDomainPlugin } = await import('../domains/identity/plugin');
+  
   const identityPluginId = 'domain.identity';
 
   if (!runtime.plugin.get(identityPluginId)) {
@@ -185,4 +266,9 @@ export async function initializeRuntime(runtime: CoreRuntime = getRuntime()): Pr
   }
 
   return runtime;
+}
+
+// Typed event bus for domain events
+export function createTypedEventBus(runtime: CoreRuntime) {
+  return new TypedEventBus<DomainEvents>(runtime.event);
 }
