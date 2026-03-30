@@ -6,6 +6,7 @@ from app.errors import BadRequestError, NotFoundError
 from app.orm.capability import CapabilityModel
 from app.repositories.capability_repo import CapabilityRepository
 from app.schemas.capabilities import CapabilityCreate
+from app.services.access_policy import serialize_token_access_policy, validate_token_access_policy
 from app.services.identifiers import new_resource_id
 from app.services.review_service import publication_status_for_actor
 from app.services.scope_policy import ensure_binding_compatible
@@ -15,6 +16,7 @@ def create_capability(session: Session, payload: CapabilityCreate, secret, *, ac
     if actor is None:
         actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
     repo = CapabilityRepository(session)
+    access_policy = validate_token_access_policy(session, payload.access_policy)
     try:
         ensure_binding_compatible(secret, payload)
     except ValueError as exc:
@@ -30,6 +32,7 @@ def create_capability(session: Session, payload: CapabilityCreate, secret, *, ac
         approval_mode=payload.approval_mode,
         approval_rules=[rule.model_dump() for rule in payload.approval_rules],
         allowed_audience=payload.allowed_audience,
+        access_policy=access_policy.model_dump(),
         required_provider=payload.required_provider,
         required_provider_scopes=payload.required_provider_scopes,
         allowed_environments=payload.allowed_environments,
@@ -70,6 +73,7 @@ def _to_dict(model: CapabilityModel) -> dict:
         "approval_mode": model.approval_mode,
         "approval_rules": model.approval_rules or [],
         "allowed_audience": model.allowed_audience or [],
+        "access_policy": serialize_token_access_policy(model.access_policy),
         "required_provider": model.required_provider,
         "required_provider_scopes": model.required_provider_scopes or [],
         "allowed_environments": model.allowed_environments or [],

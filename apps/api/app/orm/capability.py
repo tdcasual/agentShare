@@ -18,6 +18,7 @@ class CapabilityModel(Base, TimestampMixin):
     approval_mode: Mapped[str] = mapped_column(String, default="auto")
     approval_rules: Mapped[list] = mapped_column(JSON, default=list)
     allowed_audience: Mapped[list] = mapped_column(JSON, default=list)
+    access_policy: Mapped[dict] = mapped_column(JSON, default=dict)
     required_provider: Mapped[str | None] = mapped_column(String, nullable=True)
     required_provider_scopes: Mapped[list] = mapped_column(JSON, default=list)
     allowed_environments: Mapped[list] = mapped_column(JSON, default=list)

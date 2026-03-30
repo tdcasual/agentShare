@@ -1,5 +1,8 @@
 from collections.abc import Generator
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 from fastapi import Request
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -10,6 +13,7 @@ from app.runtime import AppRuntime, build_runtime
 
 
 _default_runtime: AppRuntime | None = None
+ALEMBIC_INI_PATH = Path(__file__).resolve().parents[1] / "alembic.ini"
 
 
 def _get_default_runtime() -> AppRuntime:
@@ -32,6 +36,15 @@ def init_db(target_engine: Engine | None = None) -> None:
     engine_to_use = target_engine or _get_default_runtime().engine
 
     Base.metadata.create_all(bind=engine_to_use)
+
+
+def migrate_db(database_url: str | None = None) -> None:
+    config = Config(str(ALEMBIC_INI_PATH))
+    config.set_main_option(
+        "sqlalchemy.url",
+        database_url or _get_default_runtime().settings.database_url,
+    )
+    command.upgrade(config, "head")
 
 
 def get_db(request: Request) -> Generator[Session, None, None]:

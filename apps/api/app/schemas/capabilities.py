@@ -2,6 +2,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.access_policy import TokenAccessPolicy
 from app.schemas.policy import ApprovalRule
 
 
@@ -25,6 +26,10 @@ class CapabilityCreate(BaseModel):
                 }
             ],
             "allowed_audience": ["agent"],
+            "access_policy": {
+                "mode": "all_tokens",
+                "token_ids": [],
+            },
             "required_provider": "github",
             "required_provider_scopes": ["repo"],
             "allowed_environments": ["production"],
@@ -56,6 +61,10 @@ class CapabilityCreate(BaseModel):
     allowed_audience: list[str] = Field(
         default_factory=list,
         description="Optional audience labels that may use this capability.",
+    )
+    access_policy: TokenAccessPolicy = Field(
+        default_factory=TokenAccessPolicy,
+        description="Token-scoped access policy for this capability. Defaults to all active tokens.",
     )
     required_provider: str | None = Field(
         default=None,
@@ -97,6 +106,10 @@ class CapabilityResponse(BaseModel):
                 }
             ],
             "allowed_audience": ["agent"],
+            "access_policy": {
+                "mode": "all_tokens",
+                "token_ids": [],
+            },
             "required_provider": "github",
             "required_provider_scopes": ["repo"],
             "allowed_environments": ["production"],
@@ -114,6 +127,7 @@ class CapabilityResponse(BaseModel):
     approval_mode: Literal["auto", "manual"]
     approval_rules: list[ApprovalRule]
     allowed_audience: list[str]
+    access_policy: TokenAccessPolicy
     required_provider: str | None
     required_provider_scopes: list[str]
     allowed_environments: list[str]

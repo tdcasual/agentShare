@@ -136,3 +136,99 @@ def test_init_db_does_not_backfill_legacy_task_columns(monkeypatch, tmp_path):
         }
 
     assert "playbook_ids" not in columns
+
+
+def test_app_startup_upgrades_legacy_schema_with_alembic(monkeypatch, tmp_path):
+    db_path = tmp_path / "startup-legacy-migrate.db"
+    bootstrap_key = "bootstrap-key-xyz"
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
+    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", bootstrap_key)
+
+    from app import db as db_module
+    from app import main as main_module
+
+    db_module = importlib.reload(db_module)
+    with db_module.engine.begin() as connection:
+        connection.exec_driver_sql(
+            """
+            CREATE TABLE tasks (
+                id VARCHAR PRIMARY KEY,
+                title VARCHAR NOT NULL,
+                task_type VARCHAR NOT NULL,
+                input JSON,
+                required_capability_ids JSON,
+                lease_allowed BOOLEAN,
+                approval_mode VARCHAR,
+                priority VARCHAR,
+                status VARCHAR,
+                created_by VARCHAR,
+                claimed_by VARCHAR
+            )
+            """
+        )
+        connection.exec_driver_sql(
+            """
+            CREATE TABLE runs (
+                id VARCHAR PRIMARY KEY,
+                task_id VARCHAR NOT NULL,
+                agent_id VARCHAR NOT NULL,
+                status VARCHAR NOT NULL,
+                started_at DATETIME,
+                finished_at DATETIME,
+                summary VARCHAR
+            )
+            """
+        )
+        connection.exec_driver_sql(
+            """
+            CREATE TABLE secrets (
+                id VARCHAR PRIMARY KEY,
+                name VARCHAR NOT NULL,
+                scope VARCHAR NOT NULL,
+                kind VARCHAR NOT NULL,
+                backend_ref VARCHAR NOT NULL,
+                value_ref VARCHAR NOT NULL
+            )
+            """
+        )
+
+    main_module = importlib.reload(main_module)
+
+    with TestClient(main_module.app) as client:
+        assert client.get("/healthz").status_code == 200
+
+    with db_module.engine.connect() as connection:
+        task_columns = {
+            row[1]
+            for row in connection.execute(text("PRAGMA table_info(tasks)")).all()
+        }
+        run_columns = {
+            row[1]
+            for row in connection.execute(text("PRAGMA table_info(runs)")).all()
+        }
+        secret_columns = {
+            row[1]
+            for row in connection.execute(text("PRAGMA table_info(secrets)")).all()
+        }
+        migrated_revision = connection.execute(
+            text("SELECT version_num FROM alembic_version")
+        ).scalar_one()
+
+    assert {
+        "created_by_actor_type",
+        "created_by_actor_id",
+        "created_via_token_id",
+        "publication_status",
+        "reviewed_by_actor_id",
+        "reviewed_at",
+    }.issubset(task_columns)
+    assert {"token_id", "task_target_id"}.issubset(run_columns)
+    assert {
+        "created_by_actor_type",
+        "created_by_actor_id",
+        "created_via_token_id",
+        "publication_status",
+        "reviewed_by_actor_id",
+        "reviewed_at",
+    }.issubset(secret_columns)
+    assert migrated_revision == "20260330_01"

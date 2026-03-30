@@ -127,12 +127,11 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app_instance: FastAPI):
-        runtime = app_instance.state.runtime
         settings = app_instance.state.settings
 
         validate_secret_backend_settings(settings)
-        db_module.init_db(runtime.engine)
-        ensure_bootstrap_agent(settings, runtime.session_factory)
+        db_module.migrate_db(settings.database_url)
+        ensure_bootstrap_agent(settings, app_instance.state.runtime.session_factory)
         yield
 
     app = FastAPI(

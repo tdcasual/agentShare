@@ -6,6 +6,8 @@ node_modules/
 *.egg-info/
 playwright-report/
 test-results/
+.playwright-cli/
+output/
 dist/
 build/
 .DS_Store
@@ -15,3 +17,6 @@ agent_share_playwright_*.db
 *.db-wal
 *.db-shm
 *.db-journal
+*.tsbuildinfo
+*.backup
+.env.local
