@@ -16,7 +16,7 @@ from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
 from app.repositories.task_target_repo import TaskTargetRepository
 from app.services.adapters.registry import get_adapter
-from app.services.access_policy import ensure_token_access_allowed
+from app.services.access_policy import ensure_runtime_access_allowed
 from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError, require_runtime_approval
 from app.services.audit_service import write_audit_event
 from app.services.capability_service import get_capability
@@ -170,7 +170,7 @@ def _authorize_capability_use(
 ) -> tuple[dict, Any, Any]:
     capability = get_capability(session, capability_id, require_active=True)
     ensure_capability_allowed(agent, capability_id)
-    ensure_token_access_allowed(capability.get("access_policy"), agent.token_id)
+    ensure_runtime_access_allowed(capability.get("access_policy"), agent)
 
     task = TaskRepository(session).get(task_id)
     if task is None:

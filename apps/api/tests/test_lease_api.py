@@ -95,7 +95,7 @@ def test_lease_capability_can_issue_short_lived_lease(client, management_client)
     assert response.json()["secret_value_included"] is False
 
 
-def test_lease_rejects_token_outside_capability_access_policy(client, management_client):
+def test_lease_rejects_token_outside_token_selector_access_policy(client, management_client):
     allowed_token = management_client.post(
         "/api/agents/test-agent/tokens",
         json={"display_name": "Lease restricted token"},
@@ -121,8 +121,10 @@ def test_lease_rejects_token_outside_capability_access_policy(client, management
             "required_provider": "github",
             "required_provider_scopes": ["repo"],
             "access_policy": {
-                "mode": "explicit_tokens",
-                "token_ids": [allowed_token["id"]],
+                "mode": "selectors",
+                "selectors": [
+                    {"kind": "token", "ids": [allowed_token["id"]]},
+                ],
             },
         },
     ).json()
@@ -148,6 +150,135 @@ def test_lease_rejects_token_outside_capability_access_policy(client, management
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Capability is not accessible to this token"
+
+
+def test_lease_allows_agent_selector_matches(client, management_client):
+    agent = management_client.post(
+        "/api/agents",
+        json={
+            "name": "Lease Selector Agent",
+            "risk_tier": "medium",
+            "allowed_task_types": ["account_read"],
+        },
+    ).json()
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "GitHub token",
+            "kind": "api_token",
+            "value": "ghp_example",
+            "provider": "github",
+            "provider_scopes": ["repo"],
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "github.repo.read.agent-selector",
+            "secret_id": secret["id"],
+            "risk_level": "low",
+            "allowed_mode": "proxy_or_lease",
+            "lease_ttl_seconds": 120,
+            "required_provider": "github",
+            "required_provider_scopes": ["repo"],
+            "access_policy": {
+                "mode": "selectors",
+                "selectors": [
+                    {"kind": "agent", "ids": [agent["id"]]},
+                ],
+            },
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Read repo metadata",
+            "task_type": "account_read",
+            "required_capability_ids": [capability["id"]],
+            "lease_allowed": True,
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": f"Bearer {agent['api_key']}"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/lease",
+        headers={"Authorization": f"Bearer {agent['api_key']}"},
+        json={"task_id": task["id"], "purpose": "git cli"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["capability_id"] == capability["id"]
+
+
+def test_lease_allows_token_label_selector_matches(client, management_client):
+    agent = management_client.post(
+        "/api/agents",
+        json={
+            "name": "Lease Label Agent",
+            "risk_tier": "medium",
+            "allowed_task_types": ["account_read"],
+        },
+    ).json()
+    runtime_token = management_client.post(
+        f"/api/agents/{agent['id']}/tokens",
+        json={
+            "display_name": "Prod lease token",
+            "labels": {"environment": "prod"},
+        },
+    ).json()
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "GitHub token",
+            "kind": "api_token",
+            "value": "ghp_example",
+            "provider": "github",
+            "provider_scopes": ["repo"],
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "github.repo.read.label-selector",
+            "secret_id": secret["id"],
+            "risk_level": "low",
+            "allowed_mode": "proxy_or_lease",
+            "lease_ttl_seconds": 120,
+            "required_provider": "github",
+            "required_provider_scopes": ["repo"],
+            "access_policy": {
+                "mode": "selectors",
+                "selectors": [
+                    {"kind": "token_label", "key": "environment", "values": ["prod"]},
+                ],
+            },
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Read repo metadata",
+            "task_type": "account_read",
+            "required_capability_ids": [capability["id"]],
+            "lease_allowed": True,
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/lease",
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
+        json={"task_id": task["id"], "purpose": "git cli"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["capability_id"] == capability["id"]
 
 
 def test_lease_uses_runtime_settings_for_coordination_lock(client, management_client, monkeypatch):

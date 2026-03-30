@@ -1,8 +1,16 @@
-export type TokenAccessPolicyMode = 'all_tokens' | 'explicit_tokens';
+export type CapabilityAccessPolicyMode = 'all_tokens' | 'selectors';
+export type CapabilityAccessSelectorKind = 'token' | 'agent' | 'token_label';
 
-export interface TokenAccessPolicy {
-  readonly mode: TokenAccessPolicyMode;
-  readonly token_ids: string[];
+export interface CapabilityAccessSelector {
+  readonly kind: CapabilityAccessSelectorKind;
+  readonly ids?: string[];
+  readonly key?: string;
+  readonly values?: string[];
+}
+
+export interface CapabilityAccessPolicy {
+  readonly mode: CapabilityAccessPolicyMode;
+  readonly selectors: CapabilityAccessSelector[];
 }
 
 export interface GovernedSecret {
@@ -28,7 +36,7 @@ export interface GovernedCapability {
   readonly approval_mode: 'auto' | 'manual';
   readonly approval_rules: Array<Record<string, unknown>>;
   readonly allowed_audience: string[];
-  readonly access_policy: TokenAccessPolicy;
+  readonly access_policy: CapabilityAccessPolicy;
   readonly required_provider?: string | null;
   readonly required_provider_scopes: string[];
   readonly allowed_environments: string[];
@@ -57,7 +65,7 @@ export interface CapabilityCreateInput {
   readonly approval_mode?: 'auto' | 'manual';
   readonly approval_rules?: Array<Record<string, unknown>>;
   readonly allowed_audience?: string[];
-  readonly access_policy?: TokenAccessPolicy;
+  readonly access_policy?: CapabilityAccessPolicy;
   readonly required_provider?: string | null;
   readonly required_provider_scopes?: string[];
   readonly allowed_environments?: string[];

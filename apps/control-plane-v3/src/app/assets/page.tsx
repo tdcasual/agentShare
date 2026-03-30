@@ -25,9 +25,13 @@ import { Modal } from '@/shared/ui-primitives/modal';
 type FlattenedToken = {
   id: string;
   label: string;
+  agentId: string;
   agentName: string;
   status: string;
+  labels: Record<string, string>;
 };
+
+type AccessComposerMode = 'all_tokens' | 'specific_tokens' | 'specific_agents' | 'token_label';
 
 const selectClassName =
   'w-full rounded-2xl border-2 border-pink-100 bg-white px-4 py-3 text-base text-gray-700 outline-none transition-all duration-200 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]';
@@ -77,8 +81,11 @@ function AssetsContent() {
     lease_ttl_seconds: '120',
     required_provider: '',
     required_provider_scopes: '',
-    access_mode: 'all_tokens' as 'all_tokens' | 'explicit_tokens',
+    access_mode: 'all_tokens' as AccessComposerMode,
     token_ids: [] as string[],
+    agent_ids: [] as string[],
+    label_key: '',
+    label_values: [] as string[],
   });
 
   const secrets = secretsQuery.data?.items ?? [];
@@ -89,8 +96,10 @@ function AssetsContent() {
         (tokensByAgent[agent.id] ?? []).map((token) => ({
           id: token.id,
           label: token.display_name ?? token.displayName ?? token.id,
+          agentId: agent.id,
           agentName: agent.name,
           status: token.status,
+          labels: token.labels ?? {},
         })),
       ),
     [agents, tokensByAgent],
@@ -99,6 +108,26 @@ function AssetsContent() {
     () => Object.fromEntries(allTokens.map((token) => [token.id, `${token.label} · ${token.agentName}`])),
     [allTokens],
   );
+  const agentNameById = useMemo(
+    () => Object.fromEntries(agents.map((agent) => [agent.id, agent.name])),
+    [agents],
+  );
+  const tokenLabelOptions = useMemo(() => {
+    const valuesByKey = new Map<string, Set<string>>();
+    for (const token of allTokens) {
+      for (const [key, value] of Object.entries(token.labels)) {
+        if (!value) {
+          continue;
+        }
+        const bucket = valuesByKey.get(key) ?? new Set<string>();
+        bucket.add(value);
+        valuesByKey.set(key, bucket);
+      }
+    }
+    return Object.fromEntries(
+      Array.from(valuesByKey.entries()).map(([key, values]) => [key, Array.from(values).sort()]),
+    ) as Record<string, string[]>;
+  }, [allTokens]);
 
   const loading = gateLoading || tokensLoading || secretsQuery.isLoading || capabilitiesQuery.isLoading;
   const combinedError =
@@ -109,7 +138,7 @@ function AssetsContent() {
     (capabilitiesQuery.error instanceof Error ? capabilitiesQuery.error.message : null);
 
   const restrictedCapabilities = capabilities.filter(
-    (capability) => capability.access_policy.mode === 'explicit_tokens',
+    (capability) => capability.access_policy.mode === 'selectors',
   ).length;
   const activeTokens = allTokens.filter((token) => token.status === 'active').length;
 
@@ -170,8 +199,19 @@ function AssetsContent() {
       setError(t('assets.capabilities.selectSecretError'));
       return;
     }
-    if (capabilityForm.access_mode === 'explicit_tokens' && capabilityForm.token_ids.length === 0) {
+    if (capabilityForm.access_mode === 'specific_tokens' && capabilityForm.token_ids.length === 0) {
       setError(t('assets.capabilities.tokenRequiredError'));
+      return;
+    }
+    if (capabilityForm.access_mode === 'specific_agents' && capabilityForm.agent_ids.length === 0) {
+      setError('选择指定 agent 时，至少需要勾选一个 agent。');
+      return;
+    }
+    if (
+      capabilityForm.access_mode === 'token_label' &&
+      (!capabilityForm.label_key || capabilityForm.label_values.length === 0)
+    ) {
+      setError('按 token 标签限制时，请选择标签键和值。');
       return;
     }
 
@@ -187,10 +227,7 @@ function AssetsContent() {
         lease_ttl_seconds: Number(capabilityForm.lease_ttl_seconds) || 60,
         required_provider: capabilityForm.required_provider.trim() || null,
         required_provider_scopes: parseCommaSeparatedList(capabilityForm.required_provider_scopes),
-        access_policy: {
-          mode: capabilityForm.access_mode,
-          token_ids: capabilityForm.access_mode === 'explicit_tokens' ? capabilityForm.token_ids : [],
-        },
+        access_policy: buildCapabilityAccessPolicy(capabilityForm),
       });
       setCapabilityForm({
         name: '',
@@ -202,6 +239,9 @@ function AssetsContent() {
         required_provider_scopes: '',
         access_mode: 'all_tokens',
         token_ids: [],
+        agent_ids: [],
+        label_key: '',
+        label_values: [],
       });
       setShowCapabilityModal(false);
     } catch (submitError) {
@@ -232,6 +272,24 @@ function AssetsContent() {
       token_ids: current.token_ids.includes(tokenId)
         ? current.token_ids.filter((item) => item !== tokenId)
         : [...current.token_ids, tokenId],
+    }));
+  }
+
+  function toggleCapabilityAgent(agentId: string) {
+    setCapabilityForm((current) => ({
+      ...current,
+      agent_ids: current.agent_ids.includes(agentId)
+        ? current.agent_ids.filter((item) => item !== agentId)
+        : [...current.agent_ids, agentId],
+    }));
+  }
+
+  function toggleCapabilityLabelValue(value: string) {
+    setCapabilityForm((current) => ({
+      ...current,
+      label_values: current.label_values.includes(value)
+        ? current.label_values.filter((item) => item !== value)
+        : [...current.label_values, value],
     }));
   }
 
@@ -286,7 +344,12 @@ function AssetsContent() {
       </Card>
 
       {combinedError ? (
-        <Card className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+        <Card 
+          role="alert" 
+          aria-live="assertive" 
+          aria-atomic="true"
+          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+        >
           {combinedError}
         </Card>
       ) : null}
@@ -385,7 +448,7 @@ function AssetsContent() {
                     <div className="flex flex-wrap gap-2">
                       <Badge variant={statusVariant(capability.publication_status)}>{capability.publication_status}</Badge>
                       <Badge variant={capability.access_policy.mode === 'all_tokens' ? 'success' : 'warning'}>
-                        {capability.access_policy.mode === 'all_tokens' ? t('assets.capabilities.allTokens') : t('assets.capabilities.explicitTokens')}
+                        {capability.access_policy.mode === 'all_tokens' ? t('assets.capabilities.allTokens') : '定向访问'}
                       </Badge>
                     </div>
                   </div>
@@ -404,7 +467,7 @@ function AssetsContent() {
                     />
                     <InfoBlock
                       label={t('assets.capabilities.tokenAccess')}
-                      value={formatAccessPolicy(capability, tokenNameById, t)}
+                      value={formatAccessPolicy(capability, tokenNameById, agentNameById)}
                     />
                   </div>
                 </Card>
@@ -566,20 +629,66 @@ function AssetsContent() {
                 <button
                   type="button"
                   className={policyButtonClass(capabilityForm.access_mode === 'all_tokens')}
-                  onClick={() => setCapabilityForm((current) => ({ ...current, access_mode: 'all_tokens', token_ids: [] }))}
+                  onClick={() =>
+                    setCapabilityForm((current) => ({
+                      ...current,
+                      access_mode: 'all_tokens',
+                      token_ids: [],
+                      agent_ids: [],
+                      label_key: '',
+                      label_values: [],
+                    }))
+                  }
                 >
                   {t('assets.capabilities.allTokens')}
                 </button>
                 <button
                   type="button"
-                  className={policyButtonClass(capabilityForm.access_mode === 'explicit_tokens')}
-                  onClick={() => setCapabilityForm((current) => ({ ...current, access_mode: 'explicit_tokens' }))}
+                  className={policyButtonClass(capabilityForm.access_mode === 'specific_tokens')}
+                  onClick={() =>
+                    setCapabilityForm((current) => ({
+                      ...current,
+                      access_mode: 'specific_tokens',
+                      agent_ids: [],
+                      label_key: '',
+                      label_values: [],
+                    }))
+                  }
                 >
                   指定 token
                 </button>
+                <button
+                  type="button"
+                  className={policyButtonClass(capabilityForm.access_mode === 'specific_agents')}
+                  onClick={() =>
+                    setCapabilityForm((current) => ({
+                      ...current,
+                      access_mode: 'specific_agents',
+                      token_ids: [],
+                      label_key: '',
+                      label_values: [],
+                    }))
+                  }
+                >
+                  指定 agent
+                </button>
+                <button
+                  type="button"
+                  className={policyButtonClass(capabilityForm.access_mode === 'token_label')}
+                  onClick={() =>
+                    setCapabilityForm((current) => ({
+                      ...current,
+                      access_mode: 'token_label',
+                      token_ids: [],
+                      agent_ids: [],
+                    }))
+                  }
+                >
+                  按 token 标签
+                </button>
               </div>
 
-              {capabilityForm.access_mode === 'explicit_tokens' ? (
+              {capabilityForm.access_mode === 'specific_tokens' ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   {allTokens.length === 0 ? (
                     <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">{t('assets.capabilities.noTokens')}</p>
@@ -604,6 +713,89 @@ function AssetsContent() {
                       </label>
                     ))
                   )}
+                </div>
+              ) : null}
+
+              {capabilityForm.access_mode === 'specific_agents' ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {agents.length === 0 ? (
+                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">还没有可选 agent，请先创建 agent。</p>
+                  ) : (
+                    agents.map((agent) => (
+                      <label
+                        key={agent.id}
+                        className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E8E8EC]"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={capabilityForm.agent_ids.includes(agent.id)}
+                          onChange={() => toggleCapabilityAgent(agent.id)}
+                          className="mt-1 h-4 w-4 rounded border-pink-300 text-pink-500 focus:ring-pink-400"
+                        />
+                        <span className="space-y-1">
+                          <span className="block font-medium">{agent.name}</span>
+                          <span className="block text-xs text-gray-500 dark:text-[#9CA3AF]">
+                            {agent.id} · {agent.status}
+                          </span>
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              ) : null}
+
+              {capabilityForm.access_mode === 'token_label' ? (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">标签键</label>
+                    <select
+                      className={selectClassName}
+                      value={capabilityForm.label_key}
+                      onChange={(event) =>
+                        setCapabilityForm((current) => ({
+                          ...current,
+                          label_key: event.target.value,
+                          label_values: [],
+                        }))
+                      }
+                    >
+                      <option value="">选择一个 token 标签键</option>
+                      {Object.keys(tokenLabelOptions).map((key) => (
+                        <option key={key} value={key}>
+                          {key}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {capabilityForm.label_key && (tokenLabelOptions[capabilityForm.label_key] ?? []).length > 0 ? (
+                      tokenLabelOptions[capabilityForm.label_key].map((value) => (
+                        <label
+                          key={value}
+                          className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E8E8EC]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={capabilityForm.label_values.includes(value)}
+                            onChange={() => toggleCapabilityLabelValue(value)}
+                            className="mt-1 h-4 w-4 rounded border-pink-300 text-pink-500 focus:ring-pink-400"
+                          />
+                          <span className="space-y-1">
+                            <span className="block font-medium">{value}</span>
+                            <span className="block text-xs text-gray-500 dark:text-[#9CA3AF]">
+                              {capabilityForm.label_key} = {value}
+                            </span>
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                        {Object.keys(tokenLabelOptions).length === 0
+                          ? '当前 token 还没有标签，无法按标签限制。'
+                          : '先选择一个标签键，再勾选允许的值。'}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -684,14 +876,26 @@ function statusVariant(status: string) {
   return 'secondary' as const;
 }
 
-function formatAccessPolicy(capability: GovernedCapability, tokenNameById: Record<string, string>, t: (key: string) => string) {
+function formatAccessPolicy(
+  capability: GovernedCapability,
+  tokenNameById: Record<string, string>,
+  agentNameById: Record<string, string>,
+) {
   if (capability.access_policy.mode === 'all_tokens') {
-    return t('assets.capabilities.allTokens');
+    return '所有 token';
   }
 
-  return capability.access_policy.token_ids
-    .map((tokenId) => tokenNameById[tokenId] ?? tokenId)
-    .join(', ');
+  return capability.access_policy.selectors
+    .map((selector) => {
+      if (selector.kind === 'token') {
+        return `Token: ${(selector.ids ?? []).map((tokenId) => tokenNameById[tokenId] ?? tokenId).join(', ')}`;
+      }
+      if (selector.kind === 'agent') {
+        return `Agent: ${(selector.ids ?? []).map((agentId) => agentNameById[agentId] ?? agentId).join(', ')}`;
+      }
+      return `Label: ${selector.key} = ${(selector.values ?? []).join(', ')}`;
+    })
+    .join(' | ');
 }
 
 function policyButtonClass(active: boolean) {
@@ -701,4 +905,54 @@ function policyButtonClass(active: boolean) {
       ? 'border-pink-400 bg-pink-500 text-white'
       : 'border-pink-200 bg-white text-gray-700 hover:bg-pink-50 dark:border-[#3D3D5C] dark:bg-[#252540] dark:text-[#E8E8EC]',
   ].join(' ');
+}
+
+function buildCapabilityAccessPolicy(form: {
+  access_mode: AccessComposerMode;
+  token_ids: string[];
+  agent_ids: string[];
+  label_key: string;
+  label_values: string[];
+}) {
+  if (form.access_mode === 'all_tokens') {
+    return {
+      mode: 'all_tokens' as const,
+      selectors: [],
+    };
+  }
+
+  if (form.access_mode === 'specific_tokens') {
+    return {
+      mode: 'selectors' as const,
+      selectors: [
+        {
+          kind: 'token' as const,
+          ids: form.token_ids,
+        },
+      ],
+    };
+  }
+
+  if (form.access_mode === 'specific_agents') {
+    return {
+      mode: 'selectors' as const,
+      selectors: [
+        {
+          kind: 'agent' as const,
+          ids: form.agent_ids,
+        },
+      ],
+    };
+  }
+
+  return {
+    mode: 'selectors' as const,
+    selectors: [
+      {
+        kind: 'token_label' as const,
+        key: form.label_key,
+        values: form.label_values,
+      },
+    ],
+  };
 }

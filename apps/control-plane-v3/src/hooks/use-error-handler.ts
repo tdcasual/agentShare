@@ -7,7 +7,7 @@
  * - 错误上报
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   AppError, 
@@ -172,6 +172,20 @@ export function useFormError() {
 export function useRetry(maxRetries = 3) {
   const [retryCount, setRetryCount] = useState(0);
   const [lastError, setLastError] = useState<AppError | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isActiveRef = useRef(true);
+
+  // 清理函数
+  useEffect(() => {
+    isActiveRef.current = true;
+    return () => {
+      isActiveRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const retry = useCallback(async <T>(
     fn: () => Promise<T>,
@@ -201,7 +215,17 @@ export function useRetry(maxRetries = 3) {
 
         // 指数退避
         const delay = Math.min(1000 * Math.pow(2, nextCount), 10000);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => {
+          timeoutRef.current = setTimeout(() => {
+            timeoutRef.current = null;
+            resolve(undefined);
+          }, delay);
+        });
+
+        // 如果组件已卸载，不再继续
+        if (!isActiveRef.current) {
+          throw new Error('Component unmounted during retry');
+        }
 
         return retry(fn, options);
       }

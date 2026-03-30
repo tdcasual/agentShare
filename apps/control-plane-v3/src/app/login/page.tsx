@@ -137,7 +137,14 @@ export default function LoginPage() {
             {/* Status message */}
             <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-pink-50/50 dark:bg-[#1A1A2E]/50 px-4 py-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
               {error ? (
-                <span className="text-red-500 dark:text-red-400">{error}</span>
+                <span 
+                  role="alert" 
+                  aria-live="assertive" 
+                  aria-atomic="true"
+                  className="text-red-500 dark:text-red-400"
+                >
+                  {error}
+                </span>
               ) : checking ? (
                 <span className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 animate-pulse" />

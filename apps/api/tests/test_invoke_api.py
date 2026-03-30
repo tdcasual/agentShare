@@ -65,7 +65,7 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client, management
 
 
 @patch("app.services.adapters.generic_http.httpx.post")
-def test_proxy_invocation_rejects_token_outside_capability_access_policy(mock_post, client, management_client):
+def test_proxy_invocation_rejects_token_outside_token_selector_access_policy(mock_post, client, management_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"result": "ok"}
@@ -95,8 +95,10 @@ def test_proxy_invocation_rejects_token_outside_capability_access_policy(mock_po
             "adapter_type": "generic_http",
             "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
             "access_policy": {
-                "mode": "explicit_tokens",
-                "token_ids": [allowed_token["id"]],
+                "mode": "selectors",
+                "selectors": [
+                    {"kind": "token", "ids": [allowed_token["id"]]},
+                ],
             },
         },
     ).json()
@@ -121,6 +123,143 @@ def test_proxy_invocation_rejects_token_outside_capability_access_policy(mock_po
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Capability is not accessible to this token"
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_proxy_invocation_allows_agent_selector_matches(mock_post, client, management_client):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": "ok"}
+    mock_response.raise_for_status = MagicMock()
+    mock_post.return_value = mock_response
+
+    agent = management_client.post(
+        "/api/agents",
+        json={
+            "name": "Selector Runtime Agent",
+            "risk_tier": "medium",
+            "allowed_task_types": ["prompt_run"],
+        },
+    ).json()
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke.agent-selector",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+            "access_policy": {
+                "mode": "selectors",
+                "selectors": [
+                    {"kind": "agent", "ids": [agent["id"]]},
+                ],
+            },
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": f"Bearer {agent['api_key']}"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": f"Bearer {agent['api_key']}"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["capability_id"] == capability["id"]
+
+
+@patch("app.services.adapters.generic_http.httpx.post")
+def test_proxy_invocation_allows_token_label_selector_matches(mock_post, client, management_client):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"result": "ok"}
+    mock_response.raise_for_status = MagicMock()
+    mock_post.return_value = mock_response
+
+    agent = management_client.post(
+        "/api/agents",
+        json={
+            "name": "Label Runtime Agent",
+            "risk_tier": "medium",
+            "allowed_task_types": ["prompt_run"],
+        },
+    ).json()
+    runtime_token = management_client.post(
+        f"/api/agents/{agent['id']}/tokens",
+        json={
+            "display_name": "Prod runtime token",
+            "labels": {"environment": "prod"},
+        },
+    ).json()
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+        },
+    ).json()
+    capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "openai.chat.invoke.label-selector",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+            "adapter_type": "generic_http",
+            "adapter_config": {"url": "https://api.example.com/v1/run", "method": "POST"},
+            "access_policy": {
+                "mode": "selectors",
+                "selectors": [
+                    {"kind": "token_label", "key": "environment", "values": ["prod"]},
+                ],
+            },
+        },
+    ).json()
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Prompt run",
+            "task_type": "prompt_run",
+            "required_capability_ids": [capability["id"]],
+        },
+    ).json()
+    client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
+    )
+
+    response = client.post(
+        f"/api/capabilities/{capability['id']}/invoke",
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
+        json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["capability_id"] == capability["id"]
 
 
 @patch("app.services.adapters.generic_http.httpx.post")

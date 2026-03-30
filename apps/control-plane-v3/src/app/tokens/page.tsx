@@ -234,7 +234,12 @@ function TokensContent() {
 
       {/* Error */}
       {gateError || error || dataError ? (
-        <Card className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400">
+        <Card 
+          role="alert" 
+          aria-live="assertive" 
+          aria-atomic="true"
+          className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+        >
           {gateError ?? error ?? (dataError instanceof Error ? dataError.message : 'Failed to load data')}
         </Card>
       ) : null}

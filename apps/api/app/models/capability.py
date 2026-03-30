@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from app.models.access_policy import TokenAccessPolicy
+from app.models.access_policy import CapabilityAccessPolicy
 
 
 class CapabilityRecord(BaseModel):
@@ -12,6 +12,6 @@ class CapabilityRecord(BaseModel):
     risk_level: str
     approval_mode: str = "auto"
     allowed_audience: list[str] = Field(default_factory=list)
-    access_policy: TokenAccessPolicy = Field(default_factory=TokenAccessPolicy)
+    access_policy: CapabilityAccessPolicy = Field(default_factory=CapabilityAccessPolicy)
     adapter_type: str = "generic_http"
     adapter_config: dict = Field(default_factory=dict)

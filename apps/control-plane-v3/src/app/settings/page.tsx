@@ -252,7 +252,12 @@ function SettingsContent() {
       </div>
 
       {(gateError || error || dataError) && (
-        <Card className="border border-red-100 bg-red-50/80 text-red-700">
+        <Card 
+          role="alert" 
+          aria-live="assertive" 
+          aria-atomic="true"
+          className="border border-red-100 bg-red-50/80 text-red-700"
+        >
           {gateError ?? error ?? (dataError instanceof Error ? dataError.message : 'Failed to load accounts')}
         </Card>
       )}

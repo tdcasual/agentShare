@@ -1,10 +1,34 @@
+import json
 import hashlib
 import importlib
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect, text
 
 from app.repositories.agent_repo import AgentRepository
+
+
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def _run_alembic_upgrade(database_url: str, revision: str) -> None:
+    env = os.environ.copy()
+    env["DATABASE_URL"] = database_url
+
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            f"from alembic.config import main; main(argv=['-c', 'alembic.ini', 'upgrade', '{revision}'])",
+        ],
+        cwd=ROOT / "apps/api",
+        check=True,
+        env=env,
+    )
 
 
 def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
@@ -231,4 +255,112 @@ def test_app_startup_upgrades_legacy_schema_with_alembic(monkeypatch, tmp_path):
         "reviewed_by_actor_id",
         "reviewed_at",
     }.issubset(secret_columns)
-    assert migrated_revision == "20260330_01"
+    assert migrated_revision == "20260330_02"
+
+
+def test_app_startup_migrates_legacy_capability_access_policy(monkeypatch, tmp_path):
+    db_path = tmp_path / "startup-selector-policy.db"
+    database_url = f"sqlite:///{db_path}"
+    bootstrap_key = "bootstrap-key-xyz"
+    monkeypatch.setenv("DATABASE_URL", database_url)
+    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", bootstrap_key)
+
+    _run_alembic_upgrade(database_url, "20260330_01")
+
+    from app import db as db_module
+    from app import main as main_module
+
+    db_module = importlib.reload(db_module)
+    with db_module.engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO capabilities (
+                    id,
+                    name,
+                    secret_id,
+                    allowed_mode,
+                    lease_ttl_seconds,
+                    risk_level,
+                    approval_mode,
+                    approval_rules,
+                    allowed_audience,
+                    access_policy,
+                    required_provider_scopes,
+                    allowed_environments,
+                    adapter_type,
+                    adapter_config,
+                    created_by_actor_type,
+                    created_by_actor_id,
+                    publication_status
+                )
+                VALUES (
+                    :id,
+                    :name,
+                    :secret_id,
+                    :allowed_mode,
+                    :lease_ttl_seconds,
+                    :risk_level,
+                    :approval_mode,
+                    :approval_rules,
+                    :allowed_audience,
+                    :access_policy,
+                    :required_provider_scopes,
+                    :allowed_environments,
+                    :adapter_type,
+                    :adapter_config,
+                    :created_by_actor_type,
+                    :created_by_actor_id,
+                    :publication_status
+                )
+                """
+            ),
+            {
+                "id": "capability-legacy",
+                "name": "legacy.policy",
+                "secret_id": "secret-legacy",
+                "allowed_mode": "proxy_only",
+                "lease_ttl_seconds": 60,
+                "risk_level": "medium",
+                "approval_mode": "auto",
+                "approval_rules": json.dumps([]),
+                "allowed_audience": json.dumps([]),
+                "access_policy": json.dumps(
+                    {
+                        "mode": "explicit_tokens",
+                        "token_ids": ["token-legacy"],
+                    }
+                ),
+                "required_provider_scopes": json.dumps([]),
+                "allowed_environments": json.dumps([]),
+                "adapter_type": "generic_http",
+                "adapter_config": json.dumps({}),
+                "created_by_actor_type": "human",
+                "created_by_actor_id": "test",
+                "publication_status": "active",
+            },
+        )
+
+    main_module = importlib.reload(main_module)
+
+    with TestClient(main_module.app) as client:
+        assert client.get("/healthz").status_code == 200
+
+    with db_module.engine.connect() as connection:
+        raw_policy = connection.execute(
+            text("SELECT access_policy FROM capabilities WHERE id = 'capability-legacy'")
+        ).scalar_one()
+        migrated_revision = connection.execute(
+            text("SELECT version_num FROM alembic_version")
+        ).scalar_one()
+
+    if isinstance(raw_policy, str):
+        raw_policy = json.loads(raw_policy)
+
+    assert raw_policy == {
+        "mode": "selectors",
+        "selectors": [
+            {"kind": "token", "ids": ["token-legacy"]},
+        ],
+    }
+    assert migrated_revision == "20260330_02"
