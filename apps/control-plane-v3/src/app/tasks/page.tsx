@@ -1,11 +1,14 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { CheckCircle2, ClipboardList, MessageSquarePlus, Plus, RefreshCw, Sparkles, Target } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
-import { ApiError, api, type TaskCreateInput, type TokenFeedbackCreateInput } from '@/lib/api';
+import { useTaskDashboard, useCreateTask, useCreateTaskTargetFeedback } from '@/domains/task';
+import { useAgentsWithTokens } from '@/domains/identity';
+import { ApiError } from '@/lib/api-client';
 import { useManagementSessionGate } from '@/lib/session';
-import type { AgentTokenSummary, RunSummary, TaskSummary, TokenFeedbackSummary } from '@/shared/types';
+import { useI18n } from '@/components/i18n-provider';
+import type { Task, AgentToken, Run, TokenFeedback } from '@/domains/task';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -15,9 +18,9 @@ import { Modal } from '@/shared/ui-primitives/modal';
 interface TaskTargetView {
   targetId: string;
   tokenId: string;
-  token: AgentTokenSummary | null;
-  run: RunSummary | null;
-  feedback: TokenFeedbackSummary[];
+  token: AgentToken | null;
+  run: Run | null;
+  feedback: TokenFeedback[];
   status: 'pending' | 'claimed' | 'completed';
 }
 
@@ -37,13 +40,26 @@ export default function TasksPage() {
 }
 
 function TasksContent() {
+  const { t } = useI18n();
   const { session, loading: gateLoading, error: gateError } = useManagementSessionGate();
-  const [tasks, setTasks] = useState<TaskSummary[]>([]);
-  const [runs, setRuns] = useState<RunSummary[]>([]);
-  const [tokensById, setTokensById] = useState<Record<string, AgentTokenSummary>>({});
-  const [loading, setLoading] = useState(false);
+  
+  // 使用新的 SWR hooks
+  const { 
+    tasks, 
+    runs, 
+    tokensById, 
+    feedbackByTargetId, 
+    isLoading, 
+    error: dataError, 
+    mutate 
+  } = useTaskDashboard();
+  
+  const { agents, tokensByAgent } = useAgentsWithTokens();
+  const createTask = useCreateTask();
+  const createFeedback = useCreateTaskTargetFeedback();
+  
+  // 本地 UI 状态
   const [error, setError] = useState<string | null>(null);
-  const [refreshNonce, setRefreshNonce] = useState(0);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [feedbackTarget, setFeedbackTarget] = useState<FeedbackTargetState | null>(null);
@@ -64,81 +80,15 @@ function TasksContent() {
   const [feedbackFormError, setFeedbackFormError] = useState<string | null>(null);
   const [submittingTask, setSubmittingTask] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
-  const [feedbackByTargetId, setFeedbackByTargetId] = useState<Record<string, TokenFeedbackSummary[]>>({});
-
-  useEffect(() => {
-    if (!session) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const [taskItems, runItems, agentItems] = await Promise.all([
-          api.getTasks(),
-          api.getRuns(),
-          api.getAgents(),
-        ]);
-
-        const tokenBatches = await Promise.all(
-          agentItems.items.map(async (agent) => (await api.getAgentTokens(agent.id)).items)
-        );
-        const flatTokens = tokenBatches.flat();
-        const tokenMap = Object.fromEntries(flatTokens.map((token) => [token.id, token]));
-        const uniqueTargetTokenIds = Array.from(
-          new Set(taskItems.items.flatMap((task) => task.target_token_ids))
-        );
-        const feedbackEntries = await Promise.all(
-          uniqueTargetTokenIds.map(async (tokenId) => [tokenId, (await api.getTokenFeedback(tokenId)).items] as const)
-        );
-        const nextFeedbackByTargetId = feedbackEntries.reduce<Record<string, TokenFeedbackSummary[]>>(
-          (accumulator, [, items]) => {
-            items.forEach((item) => {
-              accumulator[item.task_target_id] = [...(accumulator[item.task_target_id] ?? []), item];
-            });
-            return accumulator;
-          },
-          {}
-        );
-
-        if (cancelled) {
-          return;
-        }
-
-        setTasks(taskItems.items);
-        setRuns(runItems.items);
-        setTokensById(tokenMap);
-        setFeedbackByTargetId(nextFeedbackByTargetId);
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : 'Failed to load task dashboard');
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshNonce, session]);
 
   const allTokens = useMemo(() => Object.values(tokensById), [tokensById]);
-  const taskViews = useMemo(
-    () =>
-      tasks.map((task) => ({
-        task,
-        targets: buildTaskTargets(task, tokensById, runs, feedbackByTargetId),
-      })),
-    [feedbackByTargetId, runs, tasks, tokensById]
-  );
+  
+  const taskViews = useMemo(() => {
+    return tasks.map((task) => ({
+      task,
+      targets: buildTaskTargets(task, tokensById, runs, feedbackByTargetId),
+    }));
+  }, [tasks, tokensById, runs, feedbackByTargetId]);
 
   const totalTargets = taskViews.reduce((total, item) => total + item.targets.length, 0);
   const completedTargets = taskViews.reduce(
@@ -157,18 +107,18 @@ function TasksContent() {
     try {
       const parsedInput = parseJsonObject(taskForm.input_json);
       if (taskForm.target_mode === 'explicit_tokens' && taskForm.target_token_ids.length === 0) {
-        throw new Error('Choose at least one target token or switch to broadcast mode.');
+        throw new Error(t('tasks.errors.noTargetTokens') || 'Choose at least one target token or switch to broadcast mode.');
       }
 
-      const payload: TaskCreateInput = {
+      await createTask({
         title: taskForm.title.trim(),
         task_type: taskForm.task_type.trim(),
         priority: taskForm.priority,
         input: parsedInput,
         target_mode: taskForm.target_mode,
         target_token_ids: taskForm.target_mode === 'explicit_tokens' ? taskForm.target_token_ids : [],
-      };
-      await api.createTask(payload);
+      });
+      
       setTaskForm({
         title: '',
         task_type: 'account_read',
@@ -178,12 +128,11 @@ function TasksContent() {
         input_json: '{\n  "provider": "github"\n}',
       });
       setShowCreateTaskModal(false);
-      setRefreshNonce((current) => current + 1);
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setTaskFormError(submitError.detail);
       } else {
-        setTaskFormError(submitError instanceof Error ? submitError.message : 'Failed to create task');
+        setTaskFormError(submitError instanceof Error ? submitError.message : t('tasks.errors.createFailed') || 'Failed to create task');
       }
     } finally {
       setSubmittingTask(false);
@@ -192,29 +141,26 @@ function TasksContent() {
 
   async function handleSubmitFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!feedbackTarget) {
-      return;
-    }
+    if (!feedbackTarget) return;
 
     setSubmittingFeedback(true);
     setFeedbackFormError(null);
     setError(null);
 
     try {
-      const payload: TokenFeedbackCreateInput = {
+      await createFeedback(feedbackTarget.targetId, {
         score: Number(feedbackForm.score),
         verdict: feedbackForm.verdict.trim(),
         summary: feedbackForm.summary.trim(),
-      };
-      await api.createTaskTargetFeedback(feedbackTarget.targetId, payload);
+      });
+      
       setFeedbackForm({ score: '5', verdict: 'accepted', summary: '' });
       setFeedbackTarget(null);
-      setRefreshNonce((current) => current + 1);
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setFeedbackFormError(submitError.detail);
       } else {
-        setFeedbackFormError(submitError instanceof Error ? submitError.message : 'Failed to save feedback');
+        setFeedbackFormError(submitError instanceof Error ? submitError.message : t('tasks.errors.feedbackFailed') || 'Failed to save feedback');
       }
     } finally {
       setSubmittingFeedback(false);
@@ -236,53 +182,53 @@ function TasksContent() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm text-pink-700 border border-pink-100">
             <Target className="h-4 w-4" />
-            Token-targeted delivery
+            {t('tasks.tokenTargetedDelivery') || 'Token-targeted delivery'}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Task orchestration</h1>
-            <p className="mt-1 text-gray-600">
-              Publish work to specific runtime tokens, watch completion per token, and close the loop with feedback.
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{t('tasks.title') || 'Task orchestration'}</h1>
+            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">
+              {t('tasks.description') || 'Publish work to specific runtime tokens, watch completion per token, and close the loop with feedback.'}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" onClick={() => setRefreshNonce((current) => current + 1)}>
+          <Button variant="secondary" onClick={() => mutate()}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+            {t('common.refresh') || 'Refresh'}
           </Button>
           <Button onClick={() => setShowCreateTaskModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Publish Task
+            {t('tasks.publishTask') || 'Publish Task'}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Published tasks" value={tasks.length.toString()} hint="currently visible active tasks" />
-        <MetricCard label="Targeted tokens" value={totalTargets.toString()} hint="explicit token assignments" />
-        <MetricCard label="Completed targets" value={completedTargets.toString()} hint="token-linked run records" />
-        <MetricCard label="Feedback records" value={totalFeedback.toString()} hint="human review notes on finished work" />
+        <MetricCard label={t('tasks.metrics.publishedTasks') || 'Published tasks'} value={tasks.length.toString()} hint={t('tasks.hints.publishedTasks') || 'currently visible active tasks'} />
+        <MetricCard label={t('tasks.metrics.targetedTokens') || 'Targeted tokens'} value={totalTargets.toString()} hint={t('tasks.hints.targetedTokens') || 'explicit token assignments'} />
+        <MetricCard label={t('tasks.metrics.completedTargets') || 'Completed targets'} value={completedTargets.toString()} hint={t('tasks.hints.completedTargets') || 'token-linked run records'} />
+        <MetricCard label={t('tasks.metrics.feedbackRecords') || 'Feedback records'} value={totalFeedback.toString()} hint={t('tasks.hints.feedbackRecords') || 'human review notes on finished work'} />
       </div>
 
-      {(gateError || error) && (
+      {(gateError || error || dataError) && (
         <Card className="border border-red-100 bg-red-50/80 text-red-700">
-          {gateError ?? error}
+          {gateError ?? error ?? (dataError instanceof Error ? dataError.message : 'Failed to load tasks')}
         </Card>
       )}
 
-      {gateLoading || loading ? (
-        <Card className="text-gray-600">Loading targeted tasks, token runs, and feedback...</Card>
+      {gateLoading || isLoading ? (
+        <Card className="text-gray-600 dark:text-[#9CA3AF]">{t('tasks.loading') || 'Loading targeted tasks, token runs, and feedback...'}</Card>
       ) : null}
 
-      {!gateLoading && !loading && taskViews.length === 0 ? (
+      {!gateLoading && !isLoading && taskViews.length === 0 ? (
         <Card variant="feature" className="space-y-3 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-pink-100 text-pink-500">
             <ClipboardList className="h-7 w-7" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-gray-800">No tasks published yet</h2>
-            <p className="text-gray-600">Create a task and target it to one or more runtime tokens from this page.</p>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('tasks.empty.title') || 'No tasks published yet'}</h2>
+            <p className="text-gray-600 dark:text-[#9CA3AF]">{t('tasks.empty.description') || 'Create a task and target it to one or more runtime tokens from this page.'}</p>
           </div>
         </Card>
       ) : null}
@@ -315,29 +261,29 @@ function TasksContent() {
                     </Badge>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-gray-800">{task.title}</h2>
-                    <p className="text-sm text-gray-500">
+                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{task.title}</h2>
+                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                       {task.task_type} • created by {task.created_by_actor_type}:{task.created_by_actor_id}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid min-w-[220px] gap-2 rounded-3xl border border-pink-100 bg-white/80 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Feedback summary</p>
-                  <p className="text-sm font-medium text-gray-800">
-                    {feedbackItems.length > 0 ? `${feedbackItems.length} reviews • avg ${averageScore?.toFixed(1)}` : 'No feedback yet'}
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">{t('tasks.feedbackSummary') || 'Feedback summary'}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-[#E8E8EC]">
+                    {feedbackItems.length > 0 ? `${feedbackItems.length} ${t('tasks.reviews') || 'reviews'} • ${t('tasks.avg') || 'avg'} ${averageScore?.toFixed(1)}` : t('tasks.noFeedback') || 'No feedback yet'}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {targets.filter((target) => target.status === 'completed').length}/{targets.length} targets completed
+                  <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">
+                    {targets.filter((target) => target.status === 'completed').length}/{targets.length} {t('tasks.targetsCompleted') || 'targets completed'}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500">Target tokens</p>
+                <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">{t('tasks.targetTokens') || 'Target tokens'}</p>
                 <div className="flex flex-wrap gap-2">
                   {targets.length === 0 ? (
-                    <Badge variant="default">No token targets</Badge>
+                    <Badge variant="default">{t('tasks.noTokenTargets') || 'No token targets'}</Badge>
                   ) : (
                     targets.map((target) => (
                       <Badge key={target.targetId} variant={targetStatusVariant(target.status)} className="text-xs">
@@ -352,46 +298,47 @@ function TasksContent() {
         })}
       </div>
 
+      {/* Modals 保持不变... */}
       <Modal
         isOpen={showCreateTaskModal}
         onClose={() => setShowCreateTaskModal(false)}
-        title="Publish task"
-        description="Choose the concrete runtime tokens that should receive this work."
+        title={t('tasks.publishTask') || 'Publish task'}
+        description={t('tasks.publishTaskDescription') || 'Choose the concrete runtime tokens that should receive this work.'}
         size="lg"
       >
         <form className="space-y-4" onSubmit={handleCreateTask}>
           <Input
-            label="Title"
+            label={t('tasks.form.title') || 'Title'}
             value={taskForm.title}
             onChange={(event) => setTaskForm((current) => ({ ...current, title: event.target.value }))}
-            placeholder="Sync staging provider config"
+            placeholder={t('tasks.form.titlePlaceholder') || 'Sync staging provider config'}
             required
           />
           <div className="grid gap-4 md:grid-cols-2">
             <Input
-              label="Task type"
+              label={t('tasks.form.taskType') || 'Task type'}
               value={taskForm.task_type}
               onChange={(event) => setTaskForm((current) => ({ ...current, task_type: event.target.value }))}
-              placeholder="config_sync"
+              placeholder={t('tasks.form.taskTypePlaceholder') || 'config_sync'}
               required
             />
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Priority</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.priority') || 'Priority'}</label>
               <select
                 className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
                 value={taskForm.priority}
                 onChange={(event) => setTaskForm((current) => ({ ...current, priority: event.target.value }))}
               >
-                <option value="low">low</option>
-                <option value="normal">normal</option>
-                <option value="high">high</option>
-                <option value="critical">critical</option>
+                <option value="low">{t('tasks.priorities.low') || 'low'}</option>
+                <option value="normal">{t('tasks.priorities.normal') || 'normal'}</option>
+                <option value="high">{t('tasks.priorities.high') || 'high'}</option>
+                <option value="critical">{t('tasks.priorities.critical') || 'critical'}</option>
               </select>
             </div>
           </div>
 
           <Textarea
-            label="Input payload (JSON)"
+            label={t('tasks.form.inputPayload') || 'Input payload (JSON)'}
             value={taskForm.input_json}
             onChange={(event) => setTaskForm((current) => ({ ...current, input_json: event.target.value }))}
             className="min-h-[180px] font-mono text-sm"
@@ -399,8 +346,8 @@ function TasksContent() {
 
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">Target mode</p>
-              <p className="text-sm text-gray-500">Explicit targets let you see completion by token directly.</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.targetMode') || 'Target mode'}</p>
+              <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('tasks.form.targetModeDescription') || 'Explicit targets let you see completion by token directly.'}</p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <button
@@ -412,8 +359,8 @@ function TasksContent() {
                     : 'border-pink-100 bg-white'
                 }`}
               >
-                <p className="font-medium text-gray-800">Explicit tokens</p>
-                <p className="mt-1 text-sm text-gray-500">Send only to chosen tokens.</p>
+                <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{t('tasks.form.explicitTokens') || 'Explicit tokens'}</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">{t('tasks.form.explicitTokensDesc') || 'Send only to chosen tokens.'}</p>
               </button>
               <button
                 type="button"
@@ -424,8 +371,8 @@ function TasksContent() {
                     : 'border-pink-100 bg-white'
                 }`}
               >
-                <p className="font-medium text-gray-800">Broadcast</p>
-                <p className="mt-1 text-sm text-gray-500">Snapshot all active tokens at publish time.</p>
+                <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{t('tasks.form.broadcast') || 'Broadcast'}</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">{t('tasks.form.broadcastDesc') || 'Snapshot all active tokens at publish time.'}</p>
               </button>
             </div>
           </div>
@@ -433,12 +380,12 @@ function TasksContent() {
           {taskForm.target_mode === 'explicit_tokens' ? (
             <div className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-gray-700">Target tokens</p>
-                <p className="text-sm text-gray-500">Choose one or more managed tokens.</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.targetTokens') || 'Target tokens'}</p>
+                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('tasks.form.targetTokensDescription') || 'Choose one or more managed tokens.'}</p>
               </div>
               <div className="grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-pink-100 bg-pink-50/30 p-4">
                 {allTokens.length === 0 ? (
-                  <p className="text-sm text-gray-500">No managed tokens available yet. Create one from the Tokens page first.</p>
+                  <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('tasks.form.noTokensAvailable') || 'No managed tokens available yet. Create one from the Tokens page first.'}</p>
                 ) : (
                   allTokens.map((token) => (
                     <label
@@ -452,9 +399,9 @@ function TasksContent() {
                         onChange={() => toggleTargetToken(token.id)}
                       />
                       <div>
-                        <p className="font-medium text-gray-800">{token.display_name}</p>
-                        <p className="text-sm text-gray-500">
-                          {token.id} • {token.agent_id} • trust {token.trust_score.toFixed(2)}
+                        <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{token.display_name}</p>
+                        <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                          {token.id} • {token.agent_id ?? token.agentId} • {t('tasks.form.trust') || 'trust'} {(token.trust_score ?? token.trustScore).toFixed(2)}
                         </p>
                       </div>
                     </label>
@@ -472,15 +419,16 @@ function TasksContent() {
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowCreateTaskModal(false)}>
-              Cancel
+              {t('common.cancel') || 'Cancel'}
             </Button>
             <Button type="submit" loading={submittingTask}>
-              Publish Task
+              {t('tasks.publishTask') || 'Publish Task'}
             </Button>
           </div>
         </form>
       </Modal>
 
+      {/* Selected Task Modal */}
       <Modal
         isOpen={selectedTask !== null}
         onClose={() => setSelectedTaskId(null)}
@@ -509,28 +457,28 @@ function TasksContent() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-              <Card className="space-y-3 border border-pink-100 bg-white/90">
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500">Input payload</p>
+              <Card className="space-y-3 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
+                <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">{t('tasks.inputPayload') || 'Input payload'}</p>
                 <pre className="overflow-x-auto rounded-2xl bg-gray-900 px-4 py-4 text-sm text-pink-50">
                   {JSON.stringify(selectedTask.task.input ?? {}, null, 2)}
                 </pre>
               </Card>
 
-              <Card className="space-y-3 border border-pink-100 bg-white/90">
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500">Publishing context</p>
-                <div className="space-y-2 text-sm text-gray-700">
-                  <p>Actor: {selectedTask.task.created_by_actor_type}:{selectedTask.task.created_by_actor_id}</p>
-                  <p>Via token: {selectedTask.task.created_via_token_id ?? 'Direct human publish'}</p>
-                  <p>Claimed by agent: {selectedTask.task.claimed_by ?? 'Not currently claimed'}</p>
+              <Card className="space-y-3 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
+                <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">{t('tasks.publishingContext') || 'Publishing context'}</p>
+                <div className="space-y-2 text-sm text-gray-700 dark:text-[#E8E8EC]">
+                  <p>{t('tasks.actor') || 'Actor'}: {selectedTask.task.created_by_actor_type}:{selectedTask.task.created_by_actor_id}</p>
+                  <p>{t('tasks.viaToken') || 'Via token'}: {(selectedTask.task.created_via_token_id ?? (t('tasks.directHumanPublish') || 'Direct human publish'))}</p>
+                  <p>{t('tasks.claimedBy') || 'Claimed by agent'}: {(selectedTask.task.claimed_by ?? (t('tasks.notClaimed') || 'Not currently claimed'))}</p>
                 </div>
               </Card>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">Per-token status</h3>
-                <p className="text-sm text-gray-500">
-                  {selectedTask.targets.filter((target) => target.status === 'completed').length}/{selectedTask.targets.length} completed
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('tasks.perTokenStatus') || 'Per-token status'}</h3>
+                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                  {selectedTask.targets.filter((target) => target.status === 'completed').length}/{selectedTask.targets.length} {t('tasks.completed') || 'completed'}
                 </p>
               </div>
 
@@ -544,8 +492,8 @@ function TasksContent() {
                           <Badge variant="secondary">{target.token?.display_name ?? target.tokenId}</Badge>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-800">{target.token?.token_prefix ?? target.tokenId}</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{target.token?.token_prefix ?? target.tokenId}</p>
+                          <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                             Agent {target.token?.agent_id ?? 'unknown'} • target {target.targetId}
                           </p>
                         </div>
@@ -567,28 +515,28 @@ function TasksContent() {
                         disabled={target.run === null}
                       >
                         <MessageSquarePlus className="mr-2 h-4 w-4" />
-                        Leave feedback
+                        {t('tasks.leaveFeedback') || 'Leave feedback'}
                       </Button>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-3">
                       <DetailStat
-                        label="Run result"
-                        value={target.run?.result_summary ?? (target.status === 'pending' ? 'Waiting to run' : 'Claimed, not completed')}
+                        label={t('tasks.runResult') || 'Run result'}
+                        value={target.run?.result_summary ?? (target.status === 'pending' ? t('tasks.waitingToRun') || 'Waiting to run' : t('tasks.claimedNotCompleted') || 'Claimed, not completed')}
                       />
                       <DetailStat
-                        label="Token trust"
-                        value={target.token ? target.token.trust_score.toFixed(2) : 'Unknown'}
+                        label={t('tasks.tokenTrust') || 'Token trust'}
+                        value={target.token ? (target.token.trust_score ?? target.token.trustScore).toFixed(2) : t('tasks.unknown') || 'Unknown'}
                       />
                       <DetailStat
-                        label="Feedback count"
+                        label={t('tasks.feedbackCount') || 'Feedback count'}
                         value={target.feedback.length.toString()}
                       />
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       {target.feedback.length === 0 ? (
-                        <Badge variant="default">No feedback yet</Badge>
+                        <Badge variant="default">{t('tasks.noFeedback') || 'No feedback yet'}</Badge>
                       ) : (
                         target.feedback.map((item) => (
                           <Badge key={item.id} variant={item.verdict === 'accepted' ? 'success' : 'warning'} className="text-xs">
@@ -605,16 +553,17 @@ function TasksContent() {
         ) : null}
       </Modal>
 
+      {/* Feedback Modal */}
       <Modal
         isOpen={feedbackTarget !== null}
         onClose={() => setFeedbackTarget(null)}
-        title={feedbackTarget ? `Feedback for ${feedbackTarget.tokenLabel}` : 'Feedback'}
+        title={feedbackTarget ? `${t('tasks.feedbackFor') || 'Feedback for'} ${feedbackTarget.tokenLabel}` : t('tasks.feedback') || 'Feedback'}
         description={feedbackTarget ? `${feedbackTarget.taskTitle} • ${feedbackTarget.targetId}` : undefined}
       >
         <form className="space-y-4" onSubmit={handleSubmitFeedback}>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Score</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.score') || 'Score'}</label>
               <select
                 className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
                 value={feedbackForm.score}
@@ -628,20 +577,20 @@ function TasksContent() {
               </select>
             </div>
             <Input
-              label="Verdict"
+              label={t('tasks.form.verdict') || 'Verdict'}
               value={feedbackForm.verdict}
               onChange={(event) => setFeedbackForm((current) => ({ ...current, verdict: event.target.value }))}
-              placeholder="accepted"
+              placeholder={t('tasks.form.verdictPlaceholder') || 'accepted'}
               required
             />
           </div>
 
           <Textarea
-            label="Summary"
+            label={t('tasks.form.summary') || 'Summary'}
             value={feedbackForm.summary}
             onChange={(event) => setFeedbackForm((current) => ({ ...current, summary: event.target.value }))}
             className="min-h-[140px]"
-            placeholder="Call out what went well, what should change, and whether this token should be trusted with similar work."
+            placeholder={t('tasks.form.summaryPlaceholder') || 'Call out what went well, what should change, and whether this token should be trusted with similar work.'}
           />
 
           {feedbackFormError ? (
@@ -652,10 +601,10 @@ function TasksContent() {
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setFeedbackTarget(null)}>
-              Cancel
+              {t('common.cancel') || 'Cancel'}
             </Button>
             <Button type="submit" loading={submittingFeedback}>
-              Save feedback
+              {t('tasks.saveFeedback') || 'Save feedback'}
             </Button>
           </div>
         </form>
@@ -666,10 +615,10 @@ function TasksContent() {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-pink-100 bg-white/90">
-      <p className="text-sm uppercase tracking-[0.2em] text-gray-500">{label}</p>
-      <p className="text-3xl font-bold text-gray-800">{value}</p>
-      <p className="text-sm text-gray-500">{hint}</p>
+    <Card className="space-y-2 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
+      <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">{label}</p>
+      <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
+      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{hint}</p>
     </Card>
   );
 }
@@ -677,30 +626,32 @@ function MetricCard({ label, value, hint }: { label: string; value: string; hint
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.15em] text-gray-400">{label}</p>
-      <p className="mt-2 text-sm font-medium text-gray-800">{value}</p>
+      <p className="text-xs uppercase tracking-[0.15em] text-gray-400 dark:text-[#9CA3AF]">{label}</p>
+      <p className="mt-2 text-sm font-medium text-gray-800 dark:text-[#E8E8EC]">{value}</p>
     </div>
   );
 }
 
 function buildTaskTargets(
-  task: TaskSummary,
-  tokensById: Record<string, AgentTokenSummary>,
-  runs: RunSummary[],
-  feedbackByTargetId: Record<string, TokenFeedbackSummary[]>
+  task: Task,
+  tokensById: Record<string, AgentToken>,
+  runs: Run[],
+  feedbackByTargetId: Record<string, TokenFeedback[]>
 ): TaskTargetView[] {
-  return task.target_token_ids.map((tokenId, index) => {
-    const targetId = task.target_ids[index] ?? `${task.id}:${tokenId}`;
+  const targetTokenIds = task.target_token_ids ?? task.targetTokenIds ?? [];
+  
+  return targetTokenIds.map((tokenId: string, index: number) => {
+    const targetId = (task.target_ids ?? task.targetIds ?? [])[index] ?? `${task.id}:${tokenId}`;
     const token = tokensById[tokenId] ?? null;
     const run =
-      runs.find((item) => item.task_target_id === targetId) ??
+      runs.find((item) => item.task_id === task.id && item.task_target_id === targetId) ??
       runs.find((item) => item.task_id === task.id && item.token_id === tokenId) ??
       null;
 
     let status: TaskTargetView['status'] = 'pending';
-    if (run) {
+    if (run?.status === 'completed') {
       status = 'completed';
-    } else if (task.status === 'claimed' && task.claimed_by && token?.agent_id === task.claimed_by) {
+    } else if (run?.status === 'running' || (task.status === 'claimed' && task.claimed_by)) {
       status = 'claimed';
     }
 

@@ -9,7 +9,7 @@
   --font-sans: 'Nunito', 'Quicksand', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: 'Quicksand', 'Nunito', 'PingFang SC', sans-serif;
   
-  /* Kawaii Theme Variables */
+  /* Light Mode - Kawaii Theme Variables */
   --kw-primary-50: #FFF0F5;
   --kw-primary-100: #FFE4E1;
   --kw-primary-200: #FFC0CB;
@@ -29,7 +29,7 @@
   --kw-error: #FF6B6B;
   --kw-info: #87CEFA;
   
-  --kw-bg: #FFFAFA;
+  --kw-bg: #FFF5F7;
   --kw-surface: #FFFFFF;
   --kw-surface-alt: #F8F8FF;
   --kw-border: #E6E6FA;
@@ -38,6 +38,24 @@
   
   --kw-human-accent: #87CEEB;
   --kw-agent-accent: #98FB98;
+  
+  /* Dark Mode - Soft Anime Theme (No Neon) */
+  --kw-dark-bg: #1A1A2E;
+  --kw-dark-surface: #252540;
+  --kw-dark-surface-alt: #2D2D50;
+  --kw-dark-border: #3D3D5C;
+  --kw-dark-text: #E8E8EC;
+  --kw-dark-text-muted: #9CA3AF;
+  
+  /* Muted accent colors for dark mode */
+  --kw-dark-primary: #E891C0;
+  --kw-dark-primary-soft: #C77DAA;
+  --kw-dark-primary-muted: #A66B8F;
+  --kw-dark-human: #6B9AC4;
+  --kw-dark-agent: #7FB883;
+  --kw-dark-success: #7DB88A;
+  --kw-dark-warning: #D4A85A;
+  --kw-dark-error: #C97B7B;
 }
 
 * {
@@ -50,9 +68,28 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background: linear-gradient(135deg, #FFF5F7 0%, #FFF0F5 50%, #F8F0FF 100%);
   min-height: 100vh;
   font-family: var(--font-sans);
+}
+
+/* Light mode (default) */
+html {
+  background: linear-gradient(135deg, #FFF5F7 0%, #FFF0F5 50%, #F8F0FF 100%);
+}
+
+/* Dark mode - Soft purple-gray instead of pure black */
+html.dark {
+  background: linear-gradient(135deg, #1A1A2E 0%, #1E1E36 50%, #252540 100%);
+  color-scheme: dark;
+}
+
+body {
+  background: inherit;
+  color: var(--kw-text);
+}
+
+.dark body {
+  color: var(--kw-dark-text);
 }
 
 /* Kawaii Typography */
@@ -62,6 +99,7 @@ h1, h2, h3, h4 {
   letter-spacing: -0.02em;
 }
 
+/* Gradient text - adapts to mode */
 .gradient-text {
   background: linear-gradient(135deg, var(--kw-primary-400), var(--kw-primary-500));
   -webkit-background-clip: text;
@@ -69,7 +107,14 @@ h1, h2, h3, h4 {
   background-clip: text;
 }
 
-/* Custom scrollbar */
+.dark .gradient-text {
+  background: linear-gradient(135deg, var(--kw-dark-primary), var(--kw-dark-primary-soft));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Custom scrollbar - adapts to mode */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -80,13 +125,25 @@ h1, h2, h3, h4 {
   border-radius: 4px;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: var(--kw-dark-surface-alt);
+}
+
 ::-webkit-scrollbar-thumb {
   background: var(--kw-primary-200);
   border-radius: 4px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--kw-dark-primary-muted);
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--kw-primary-300);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--kw-dark-primary-soft);
 }
 
 /* Animations */
@@ -98,6 +155,11 @@ h1, h2, h3, h4 {
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px rgba(255, 105, 180, 0.2); }
   50% { box-shadow: 0 0 40px rgba(255, 105, 180, 0.5); }
+}
+
+.dark @keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(232, 145, 192, 0.1); }
+  50% { box-shadow: 0 0 30px rgba(232, 145, 192, 0.2); }
 }
 
 @keyframes slide-up {
@@ -132,33 +194,47 @@ h1, h2, h3, h4 {
   box-shadow: 0 4px 20px rgba(255, 105, 180, 0.15);
 }
 
+.dark .shadow-soft {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
 .shadow-medium {
   box-shadow: 0 8px 30px rgba(255, 105, 180, 0.2);
+}
+
+.dark .shadow-medium {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 .shadow-glow {
   box-shadow: 0 0 20px rgba(255, 105, 180, 0.4);
 }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, var(--kw-primary-400), var(--kw-primary-500));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.dark .shadow-glow {
+  box-shadow: 0 0 20px rgba(232, 145, 192, 0.15);
 }
 
-/* Glass effect */
+/* Glass effect - adapts to mode */
 .glass {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* Kawaii card hover */
+.dark .glass {
+  background: rgba(37, 37, 64, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Kawaii card hover - adapts to mode */
 .card-kawaii {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,245,247,0.8) 100%);
+}
+
+.dark .card-kawaii {
+  background: linear-gradient(135deg, rgba(37, 37, 64, 0.95) 0%, rgba(45, 45, 80, 0.8) 100%);
 }
 
 .card-kawaii:hover {
@@ -166,6 +242,12 @@ h1, h2, h3, h4 {
   box-shadow: 
     0 20px 40px rgba(255, 105, 180, 0.12),
     0 0 0 1px rgba(255, 105, 180, 0.08);
+}
+
+.dark .card-kawaii:hover {
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(232, 145, 192, 0.15);
 }
 
 /* Shimmer effect for buttons */
@@ -179,6 +261,17 @@ h1, h2, h3, h4 {
     90deg,
     rgba(255,255,255,0) 0%,
     rgba(255,255,255,0.3) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.dark .btn-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.1) 50%,
     rgba(255,255,255,0) 100%
   );
   background-size: 200% 100%;
@@ -200,10 +293,80 @@ h1, h2, h3, h4 {
   animation: pulse-ring 1.5s ease-out infinite;
 }
 
+.dark .status-online::before {
+  border-color: #7FB883;
+  opacity: 0.7;
+}
+
 /* Cute emoji decorations */
 .deco-corner {
   position: absolute;
   font-size: 1.5rem;
   opacity: 0.2;
   pointer-events: none;
+}
+
+.dark .deco-corner {
+  opacity: 0.15;
+}
+
+/* Dark mode specific utilities */
+.dark-surface {
+  background: var(--kw-dark-surface);
+  border-color: var(--kw-dark-border);
+}
+
+.dark-text-primary {
+  color: var(--kw-dark-text);
+}
+
+.dark-text-muted {
+  color: var(--kw-dark-text-muted);
+}
+
+.dark-border {
+  border-color: var(--kw-dark-border);
+}
+
+/* Soft glow for dark mode elements */
+.dark-glow {
+  box-shadow: 0 0 30px rgba(232, 145, 192, 0.1);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(255, 105, 180, 0.3);
+}
+
+/* Safe area support for mobile devices with notches */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.dark ::selection {
+  background: rgba(232, 145, 192, 0.25);
+}
+
+/* Respect user motion preferences for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-slide-up,
+  .animate-bounce-in,
+  .btn-shimmer {
+    animation: none !important;
+  }
 }

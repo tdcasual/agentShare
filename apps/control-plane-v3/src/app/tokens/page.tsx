@@ -1,17 +1,18 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Bot, Clock3, Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Sparkles, Star } from 'lucide-react';
+import { FormEvent, useMemo, useState } from 'react';
+import { useI18n } from '@/components/i18n-provider';
+import { Bot, Clock3, Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Sparkles, Star, Heart } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
-import {
-  AgentCreateResponse,
-  ApiError,
-  api,
-  type AgentCreateInput,
-  type AgentTokenCreateInput,
-} from '@/lib/api';
+import { 
+  useAgents, 
+  useAgentsWithTokens, 
+  useCreateAgent, 
+  useCreateAgentToken, 
+  useRevokeAgentToken 
+} from '@/domains/identity';
+import { ApiError, type AgentCreateInput, type AgentTokenCreateInput } from '@/lib/api-client';
 import { useManagementSessionGate } from '@/lib/session';
-import type { AgentSummary, AgentTokenSummary } from '@/shared/types';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -27,12 +28,20 @@ export default function TokensPage() {
 }
 
 function TokensContent() {
+  const t = useI18n().t;
   const { session, loading: gateLoading, error: gateError } = useManagementSessionGate();
-  const [agents, setAgents] = useState<AgentSummary[]>([]);
-  const [tokensByAgent, setTokensByAgent] = useState<Record<string, AgentTokenSummary[]>>({});
-  const [loading, setLoading] = useState(false);
+  
+  // 使用新的 SWR hooks 替代手动 useEffect
+  const { agents, tokensByAgent, isLoading, error: dataError, mutate } = useAgentsWithTokens({
+    refreshInterval: 10000, // 10秒自动刷新
+  });
+  
+  const createAgent = useCreateAgent();
+  const createAgentToken = useCreateAgentToken();
+  const revokeAgentToken = useRevokeAgentToken();
+  
+  // 本地 UI 状态
   const [error, setError] = useState<string | null>(null);
-  const [refreshNonce, setRefreshNonce] = useState(0);
   const [showCreateAgentModal, setShowCreateAgentModal] = useState(false);
   const [showCreateTokenModal, setShowCreateTokenModal] = useState(false);
   const [issuingAgentId, setIssuingAgentId] = useState<string | null>(null);
@@ -54,46 +63,6 @@ function TokensContent() {
     apiKey: string;
   } | null>(null);
 
-  useEffect(() => {
-    if (!session) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const agentItems = (await api.getAgents()).items;
-        const tokenEntries = await Promise.all(
-          agentItems.map(async (agent) => [agent.id, (await api.getAgentTokens(agent.id)).items] as const)
-        );
-
-        if (cancelled) {
-          return;
-        }
-
-        setAgents(agentItems);
-        setTokensByAgent(Object.fromEntries(tokenEntries));
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : 'Failed to load agents and tokens');
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshNonce, session]);
-
   const allTokens = useMemo(
     () => agents.flatMap((agent) => tokensByAgent[agent.id] ?? []),
     [agents, tokensByAgent]
@@ -101,7 +70,7 @@ function TokensContent() {
   const activeAgents = agents.filter((agent) => agent.status === 'active').length;
   const activeTokens = allTokens.filter((token) => token.status === 'active').length;
   const averageTrust =
-    allTokens.length > 0 ? allTokens.reduce((total, token) => total + token.trust_score, 0) / allTokens.length : 0;
+    allTokens.length > 0 ? allTokens.reduce((total, token) => total + (token.trust_score ?? token.trustScore), 0) / allTokens.length : 0;
   const tokensWithFeedback = allTokens.filter((token) => token.last_feedback_at).length;
 
   async function handleCreateAgent(event: FormEvent<HTMLFormElement>) {
@@ -115,7 +84,7 @@ function TokensContent() {
         risk_tier: createAgentForm.risk_tier,
         allowed_task_types: parseCommaSeparatedList(createAgentForm.allowed_task_types),
       };
-      const created = await api.createAgent(payload);
+      const created = await createAgent(payload);
       setRevealedSecret(secretFromAgentResponse(created));
       setCreateAgentForm({
         name: '',
@@ -123,7 +92,6 @@ function TokensContent() {
         allowed_task_types: 'config_sync, account_read',
       });
       setShowCreateAgentModal(false);
-      setRefreshNonce((current) => current + 1);
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
@@ -152,7 +120,7 @@ function TokensContent() {
         labels: parseLabels(createTokenForm.labels),
         expires_at: createTokenForm.expires_at ? new Date(createTokenForm.expires_at).toISOString() : null,
       };
-      const created = await api.createAgentToken(issuingAgentId, payload);
+      const created = await createAgentToken(issuingAgentId, payload);
       setRevealedSecret({
         label: created.display_name,
         prefix: created.token_prefix,
@@ -165,7 +133,6 @@ function TokensContent() {
         expires_at: '',
       });
       setShowCreateTokenModal(false);
-      setRefreshNonce((current) => current + 1);
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
@@ -177,11 +144,10 @@ function TokensContent() {
     }
   }
 
-  async function handleRevokeToken(tokenId: string) {
+  async function handleRevokeToken(tokenId: string, agentId: string) {
     setError(null);
     try {
-      await api.revokeAgentToken(tokenId);
-      setRefreshNonce((current) => current + 1);
+      await revokeAgentToken(tokenId, agentId);
     } catch (revokeError) {
       if (revokeError instanceof ApiError) {
         setError(revokeError.detail);
@@ -201,105 +167,113 @@ function TokensContent() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm text-pink-700 border border-pink-100">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/80 dark:bg-[#252540]/80 px-4 py-2 text-sm text-pink-700 dark:text-[#E891C0] border border-pink-100 dark:border-[#3D3D5C]">
             <ShieldCheck className="h-4 w-4" />
-            Invite-only management active
+            {t('tokens.subtitle')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Token operations</h1>
-            <p className="mt-1 text-gray-600">
-              Bootstrap now leads into human login, then into managed runtime token lifecycle for every agent.
-            </p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{t('tokens.title')}</h1>
+            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">{t('tokens.description')}</p>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" onClick={() => setRefreshNonce((current) => current + 1)}>
+          <Button variant="secondary" onClick={() => mutate()}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+            {t('tokens.actions.refresh')}
           </Button>
           <Button onClick={() => setShowCreateAgentModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Create Agent
+            {t('tokens.actions.createAgent')}
           </Button>
         </div>
       </div>
 
+      {/* Revealed Secret */}
       {revealedSecret ? (
-        <Card variant="feature" className="space-y-4 border border-pink-100">
+        <Card variant="feature" className="space-y-4 border border-pink-100 dark:border-[#3D3D5C] dark:from-[#252540] dark:to-[#2D2D50]">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-1">
-              <p className="text-sm uppercase tracking-[0.3em] text-pink-500">One-time reveal</p>
-              <h2 className="text-xl font-semibold text-gray-800">{revealedSecret.label}</h2>
-              <p className="text-sm text-gray-600">
-                This value is only returned once. Prefix: <span className="font-mono">{revealedSecret.prefix}</span>
+              <p className="text-sm uppercase tracking-[0.3em] text-pink-500 dark:text-[#E891C0]">🌸 {t('tokens.token.oneTimeReveal')}</p>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{revealedSecret.label}</h2>
+              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                Prefix: <span className="font-mono">{revealedSecret.prefix}</span>
               </p>
             </div>
             <Button variant="secondary" onClick={() => copySecret(revealedSecret.apiKey)}>
               <Copy className="mr-2 h-4 w-4" />
-              Copy Token
+              {t('tokens.token.copyToken')}
             </Button>
           </div>
-          <div className="rounded-2xl border border-pink-100 bg-white/90 p-4 font-mono text-sm text-gray-700 break-all">
+          <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#1A1A2E] p-4 font-mono text-sm text-gray-700 dark:text-[#E8E8EC] break-all">
             {revealedSecret.apiKey}
           </div>
         </Card>
       ) : null}
 
+      {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Active agents" value={activeAgents.toString()} hint={`${agents.length} total registered`} />
-        <MetricCard label="Active tokens" value={activeTokens.toString()} hint={`${allTokens.length} total runtime credentials`} />
-        <MetricCard label="Average trust" value={formatDecimal(averageTrust)} hint="feedback-derived confidence" />
-        <MetricCard label="Tokens with feedback" value={tokensWithFeedback.toString()} hint="review loop is active" />
+        <MetricCard label={t('tokens.metrics.activeAgents')} value={activeAgents.toString()} hint={`${agents.length} total`} />
+        <MetricCard label={t('tokens.metrics.activeTokens')} value={activeTokens.toString()} hint={`${allTokens.length} total`} />
+        <MetricCard label={t('tokens.metrics.averageTrust')} value={formatDecimal(averageTrust)} hint="feedback" />
+        <MetricCard label={t('tokens.metrics.tokensWithFeedback')} value={tokensWithFeedback.toString()} hint="reviewed" />
       </div>
 
-      <Card className="border border-pink-100 bg-white/90">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-          <Badge variant="primary">Current operator</Badge>
-          <span>{session?.email ?? 'Loading session...'}</span>
-          <span className="text-gray-300">•</span>
-          <span>Role: {session?.role ?? '...'}</span>
-          <span className="text-gray-300">•</span>
-          <span>Public registration remains closed after owner bootstrap.</span>
+      {/* Session Info */}
+      <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <Badge variant="primary">Operator</Badge>
+          <span className="dark:text-[#E8E8EC]">{session?.email ?? 'Loading...'}</span>
+          <span className="text-gray-300 dark:text-[#3D3D5C]">•</span>
+          <span>{session?.role ?? '...'}</span>
         </div>
       </Card>
 
-      {gateError || error ? (
-        <Card className="border border-red-100 bg-red-50/80 text-red-700">
-          {gateError ?? error}
+      {/* Error */}
+      {gateError || error || dataError ? (
+        <Card className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400">
+          {gateError ?? error ?? (dataError instanceof Error ? dataError.message : 'Failed to load data')}
         </Card>
       ) : null}
 
-      {gateLoading || loading ? (
-        <Card className="text-gray-600">Loading managed agents and token inventory...</Card>
+      {/* Loading */}
+      {gateLoading || isLoading ? (
+        <Card className="text-gray-600 dark:text-[#9CA3AF] flex items-center gap-3">
+          <span className="animate-spin">🌸</span>
+          Loading agents and tokens...
+        </Card>
       ) : null}
 
-      {!gateLoading && !loading && agents.length === 0 ? (
-        <Card variant="kawaii" className="space-y-3 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-pink-100 text-pink-500">
-            <Bot className="h-7 w-7" />
+      {/* Empty State */}
+      {!gateLoading && !isLoading && agents.length === 0 ? (
+        <Card variant="kawaii" className="space-y-4 text-center dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-pink-100 dark:bg-[#3D3D5C] text-pink-500 dark:text-[#E891C0]">
+            <Bot className="h-8 w-8" />
           </div>
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-gray-800">No agents yet</h2>
-            <p className="text-gray-600">Create the first managed agent and its primary runtime token from this console.</p>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('tokens.agent.noAgents')}</h2>
+            <p className="text-gray-600 dark:text-[#9CA3AF] max-w-sm mx-auto">{t('tokens.agent.createFirst')}</p>
           </div>
           <div className="flex justify-center">
             <Button onClick={() => setShowCreateAgentModal(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Agent
+              {t('tokens.actions.createAgent')}
             </Button>
           </div>
         </Card>
       ) : null}
 
+      {/* Agents List */}
       <div className="grid gap-5">
         {agents.map((agent) => {
           const tokens = tokensByAgent[agent.id] ?? [];
 
           return (
-            <Card key={agent.id} variant="kawaii" className="space-y-5">
+            <Card key={agent.id} variant="kawaii" className="space-y-5 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]">
+              {/* Agent Header */}
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
@@ -308,8 +282,8 @@ function TokensContent() {
                     <Badge variant="default">{agent.auth_method}</Badge>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-gray-800">{agent.name}</h2>
-                    <p className="text-sm text-gray-500">Agent ID: {agent.id}</p>
+                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{agent.name}</h2>
+                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">ID: {agent.id}</p>
                   </div>
                 </div>
 
@@ -322,19 +296,21 @@ function TokensContent() {
                     }}
                   >
                     <KeyRound className="mr-2 h-4 w-4" />
-                    Mint Token
+                    {t('tokens.actions.mintToken')}
                   </Button>
                 </div>
               </div>
 
+              {/* Tokens Grid */}
               <div className="grid gap-4 xl:grid-cols-2">
                 {tokens.length === 0 ? (
-                  <Card className="border border-dashed border-pink-200 bg-pink-50/40 text-gray-600 xl:col-span-2">
-                    No active managed tokens for this agent yet.
+                  <Card className="border border-dashed border-pink-200 dark:border-[#3D3D5C] bg-pink-50/40 dark:bg-[#1A1A2E]/40 text-gray-600 dark:text-[#9CA3AF] xl:col-span-2 text-center py-8">
+                    <span className="text-2xl mr-2">🌸</span>
+                    {t('tokens.agent.noTokens')}
                   </Card>
                 ) : (
                   tokens.map((token) => (
-                    <Card key={token.id} className="space-y-4 border border-pink-100 bg-white/90">
+                    <Card key={token.id} className="space-y-4 border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#1A1A2E]/90">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
@@ -342,61 +318,61 @@ function TokensContent() {
                             <Badge variant="primary">{token.display_name}</Badge>
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-800">{token.token_prefix}</h3>
-                            <p className="text-sm text-gray-500">Token ID: {token.id}</p>
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{token.token_prefix}</h3>
+                            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">ID: {token.id}</p>
                           </div>
                         </div>
 
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRevokeToken(token.id)}
+                          onClick={() => handleRevokeToken(token.id, agent.id)}
                           disabled={token.status !== 'active'}
                         >
-                          Revoke
+                          {t('tokens.actions.revoke')}
                         </Button>
                       </div>
 
                       <div className="grid gap-3 sm:grid-cols-2">
                         <DataPoint
-                          icon={<Clock3 className="h-4 w-4 text-pink-500" />}
-                          label="Last used"
-                          value={formatDateTime(token.last_used_at)}
+                          icon={<Clock3 className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
+                          label={t('tokens.token.lastUsed')}
+                          value={formatDateTime(token.last_used_at ?? null)}
                         />
                         <DataPoint
-                          icon={<Sparkles className="h-4 w-4 text-pink-500" />}
-                          label="Last feedback"
-                          value={formatDateTime(token.last_feedback_at)}
+                          icon={<Sparkles className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
+                          label={t('tokens.token.lastFeedback')}
+                          value={formatDateTime(token.last_feedback_at ?? null)}
                         />
                         <DataPoint
-                          icon={<ShieldCheck className="h-4 w-4 text-pink-500" />}
-                          label="Success rate"
-                          value={`${Math.round(token.success_rate * 100)}%`}
+                          icon={<ShieldCheck className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
+                          label={t('tokens.token.successRate')}
+                          value={`${Math.round((token.success_rate ?? 0) * 100)}%`}
                         />
                         <DataPoint
-                          icon={<Star className="h-4 w-4 text-pink-500" />}
-                          label="Trust score"
-                          value={formatDecimal(token.trust_score)}
+                          icon={<Star className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
+                          label={t('tokens.token.trustScore')}
+                          value={formatDecimal(token.trust_score ?? token.trustScore)}
                         />
                       </div>
 
                       <div className="flex flex-wrap gap-2">
-                        {(token.scopes.length > 0 ? token.scopes : ['runtime']).map((scope) => (
+                        {((token.scopes?.length ?? 0) > 0 ? token.scopes : ['runtime'])!.map((scope: string) => (
                           <Badge key={scope} variant="secondary" className="text-xs">
                             {scope}
                           </Badge>
                         ))}
-                        {Object.entries(token.labels).map(([key, value]) => (
+                        {Object.entries(token.labels ?? {}).map(([key, value]) => (
                           <Badge key={`${key}:${value}`} variant="default" className="text-xs">
-                            {key}={value}
+                            {key}={value as string}
                           </Badge>
                         ))}
                       </div>
 
                       <div className="grid gap-3 sm:grid-cols-3">
-                        <MiniStat label="Completed runs" value={token.completed_runs.toString()} />
-                        <MiniStat label="Successful runs" value={token.successful_runs.toString()} />
-                        <MiniStat label="Issuer" value={token.issued_by_actor_id} />
+                        <MiniStat label={t('tokens.token.completedRuns')} value={(token.completed_runs ?? 0).toString()} />
+                        <MiniStat label={t('tokens.token.successfulRuns')} value={(token.successful_runs ?? 0).toString()} />
+                        <MiniStat label={t('tokens.token.issuer')} value={token.issued_by_actor_id ?? '-'} />
                       </div>
                     </Card>
                   ))
@@ -407,10 +383,11 @@ function TokensContent() {
         })}
       </div>
 
+      {/* Create Agent Modal */}
       <Modal
         isOpen={showCreateAgentModal}
         onClose={() => setShowCreateAgentModal(false)}
-        title="Create managed agent"
+        title={t('tokens.actions.createAgent')}
         description="Creating an agent automatically mints its primary token."
       >
         <form className="space-y-4" onSubmit={handleCreateAgent}>
@@ -420,11 +397,12 @@ function TokensContent() {
             onChange={(event) => setCreateAgentForm((current) => ({ ...current, name: event.target.value }))}
             placeholder="deploy-bot"
             required
+            className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
           />
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Risk tier</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">Risk tier</label>
             <select
-              className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
+              className="w-full rounded-2xl border-2 border-pink-200 dark:border-[#3D3D5C] bg-white dark:bg-[#1A1A2E] px-4 py-3 text-base outline-none focus:border-pink-400 dark:focus:border-[#E891C0] focus:ring-4 focus:ring-pink-100 dark:focus:ring-pink-500/10 text-gray-800 dark:text-[#E8E8EC]"
               value={createAgentForm.risk_tier}
               onChange={(event) => setCreateAgentForm((current) => ({ ...current, risk_tier: event.target.value }))}
             >
@@ -442,6 +420,7 @@ function TokensContent() {
             }
             placeholder="config_sync, account_read"
             helper="Comma-separated. Leave blank to keep the allowlist open until policy UI expands."
+            className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
           />
 
           <div className="flex justify-end gap-3">
@@ -449,30 +428,30 @@ function TokensContent() {
               Cancel
             </Button>
             <Button type="submit" loading={submitting}>
-              Create Agent
+              {submitting ? <span className="animate-spin mr-2">🌸</span> : <Plus className="mr-2 h-4 w-4" />}
+              {t('tokens.actions.createAgent')}
             </Button>
           </div>
         </form>
       </Modal>
 
+      {/* Create Token Modal */}
       <Modal
         isOpen={showCreateTokenModal}
         onClose={() => setShowCreateTokenModal(false)}
-        title="Mint managed token"
+        title={t('tokens.actions.mintToken')}
         description="Issue another runtime credential for an existing agent."
       >
         <form className="space-y-4" onSubmit={handleCreateToken}>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Agent</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">Agent</label>
             <select
-              className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
+              className="w-full rounded-2xl border-2 border-pink-200 dark:border-[#3D3D5C] bg-white dark:bg-[#1A1A2E] px-4 py-3 text-base outline-none focus:border-pink-400 dark:focus:border-[#E891C0] focus:ring-4 focus:ring-pink-100 dark:focus:ring-pink-500/10 text-gray-800 dark:text-[#E8E8EC]"
               value={issuingAgentId ?? ''}
               onChange={(event) => setIssuingAgentId(event.target.value)}
               required
             >
-              <option value="" disabled>
-                Select an agent
-              </option>
+              <option value="" disabled>Select an agent</option>
               {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>
                   {agent.name}
@@ -487,6 +466,7 @@ function TokensContent() {
             onChange={(event) => setCreateTokenForm((current) => ({ ...current, display_name: event.target.value }))}
             placeholder="Staging worker token"
             required
+            className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
           />
           <Input
             label="Scopes"
@@ -494,6 +474,7 @@ function TokensContent() {
             onChange={(event) => setCreateTokenForm((current) => ({ ...current, scopes: event.target.value }))}
             placeholder="runtime"
             helper="Comma-separated scope labels."
+            className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
           />
           <Input
             label="Labels"
@@ -501,12 +482,14 @@ function TokensContent() {
             onChange={(event) => setCreateTokenForm((current) => ({ ...current, labels: event.target.value }))}
             placeholder="environment=staging, pool=blue"
             helper="Comma-separated key=value labels."
+            className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
           />
           <Input
             label="Expires at"
             type="datetime-local"
             value={createTokenForm.expires_at}
             onChange={(event) => setCreateTokenForm((current) => ({ ...current, expires_at: event.target.value }))}
+            className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
           />
 
           <div className="flex justify-end gap-3">
@@ -514,7 +497,8 @@ function TokensContent() {
               Cancel
             </Button>
             <Button type="submit" loading={submitting}>
-              Mint Token
+              {submitting ? <span className="animate-spin mr-2">🌸</span> : <KeyRound className="mr-2 h-4 w-4" />}
+              {t('tokens.actions.mintToken')}
             </Button>
           </div>
         </form>
@@ -525,31 +509,31 @@ function TokensContent() {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-pink-100 bg-white/90">
-      <p className="text-sm uppercase tracking-[0.2em] text-gray-500">{label}</p>
-      <p className="text-3xl font-bold text-gray-800">{value}</p>
-      <p className="text-sm text-gray-500">{hint}</p>
+    <Card className="space-y-2 border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+      <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">{label}</p>
+      <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
+      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{hint}</p>
     </Card>
   );
 }
 
 function DataPoint({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-pink-100 bg-pink-50/40 p-3">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+    <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-pink-50/40 dark:bg-[#1A1A2E]/60 p-3">
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
         {icon}
         {label}
       </div>
-      <p className="mt-2 text-sm font-medium text-gray-800">{value}</p>
+      <p className="mt-2 text-sm font-medium text-gray-800 dark:text-[#E8E8EC]">{value}</p>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-gray-50 px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.15em] text-gray-400">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-gray-800 break-all">{value}</p>
+    <div className="rounded-2xl bg-gray-50 dark:bg-[#1A1A2E] px-4 py-3">
+      <p className="text-xs uppercase tracking-[0.15em] text-gray-400 dark:text-[#9CA3AF]">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-gray-800 dark:text-[#E8E8EC] break-all">{value}</p>
     </div>
   );
 }
@@ -590,7 +574,7 @@ function formatDecimal(value: number) {
   return value.toFixed(2);
 }
 
-function secretFromAgentResponse(response: AgentCreateResponse) {
+function secretFromAgentResponse(response: { name: string; token_prefix: string; api_key: string }) {
   return {
     label: `${response.name} primary token`,
     prefix: response.token_prefix,
