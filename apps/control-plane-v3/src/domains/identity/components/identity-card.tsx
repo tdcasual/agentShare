@@ -83,7 +83,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
             </div>
             
             {identity.profile.bio && (
-              <p className="text-sm text-gray-500 mb-2 line-clamp-2">
+              <p className="text-sm text-gray-500 dark:text-[#9CA3AF] mb-2 line-clamp-2">
                 {identity.profile.bio}
               </p>
             )}
@@ -107,7 +107,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
 
             {/* Agent-specific info */}
             {isAgent && (identity as AgentIdentity).runtime && (
-              <div className="mt-3 flex items-center gap-3 text-xs text-gray-500">
+              <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-[#9CA3AF]">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-green-400" />
                   {(identity as AgentIdentity).runtime!.adapterType}
@@ -119,7 +119,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
 
             {/* Human-specific info */}
             {isHuman && (
-              <div className="mt-3 flex items-center gap-3 text-xs text-gray-500">
+              <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-[#9CA3AF]">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-sky-400" />
                   {(identity as HumanIdentity).session?.managementRole || 'member'}

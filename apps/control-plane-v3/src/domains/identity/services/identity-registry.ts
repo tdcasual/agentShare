@@ -19,8 +19,8 @@ export const IdentityRegistryServiceId = createServiceIdentifier<IdentityRegistr
 
 export interface IdentityRegistry {
   // Registration
-  registerHuman(identity: Omit<HumanIdentity, 'id'>): HumanIdentity;
-  registerAgent(identity: Omit<AgentIdentity, 'id'>): AgentIdentity;
+  registerHuman(identity: Omit<HumanIdentity, 'id' | 'createdAt' | 'updatedAt'>): HumanIdentity;
+  registerAgent(identity: Omit<AgentIdentity, 'id' | 'createdAt' | 'updatedAt'>): AgentIdentity;
   unregister(identityId: string): void;
   
   // Retrieval
@@ -55,11 +55,14 @@ export class IdentityRegistryImpl implements IdentityRegistry {
     this.runtime = runtime;
   }
 
-  registerHuman(identityData: Omit<HumanIdentity, 'id'>): HumanIdentity {
+  registerHuman(identityData: Omit<HumanIdentity, 'id' | 'createdAt' | 'updatedAt'>): HumanIdentity {
     const id = this.generateId('human');
+    const now = new Date();
     const identity: HumanIdentity = {
       ...identityData,
       id,
+      createdAt: now,
+      updatedAt: now,
     } as HumanIdentity;
 
     this.identities.set(id, identity);
@@ -70,11 +73,14 @@ export class IdentityRegistryImpl implements IdentityRegistry {
     return identity;
   }
 
-  registerAgent(identityData: Omit<AgentIdentity, 'id'>): AgentIdentity {
+  registerAgent(identityData: Omit<AgentIdentity, 'id' | 'createdAt' | 'updatedAt'>): AgentIdentity {
     const id = this.generateId('agent');
+    const now = new Date();
     const identity: AgentIdentity = {
       ...identityData,
       id,
+      createdAt: now,
+      updatedAt: now,
     } as AgentIdentity;
 
     this.identities.set(id, identity);
@@ -139,7 +145,7 @@ export class IdentityRegistryImpl implements IdentityRegistry {
 
   findByCapability(capability: string): Identity[] {
     return Array.from(this.identities.values()).filter(identity =>
-      identity.capabilities.canExecute.includes(capability)
+      identity.capabilities?.canExecute.includes(capability)
     );
   }
 

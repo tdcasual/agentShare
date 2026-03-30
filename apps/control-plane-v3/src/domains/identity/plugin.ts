@@ -160,7 +160,9 @@ export class IdentityDomainPlugin implements Plugin {
       },
     });
 
-    console.log('Demo identities seeded');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Demo identities seeded');
+    }
   }
 }
 
