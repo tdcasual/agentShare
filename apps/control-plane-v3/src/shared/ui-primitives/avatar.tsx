@@ -52,12 +52,17 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         {src && !error ? (
           <img
             src={src}
-            alt={alt}
+            alt={alt || (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')}
             className="w-full h-full object-cover"
             onError={() => setError(true)}
+            loading="lazy"
           />
         ) : (
-          <span className="flex items-center justify-center w-full h-full bg-gradient-to-br from-pink-100 to-purple-100">
+          <span 
+            className="flex items-center justify-center w-full h-full bg-gradient-to-br from-pink-100 to-purple-100"
+            role="img"
+            aria-label={alt || (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')}
+          >
             {getFallback()}
           </span>
         )}
@@ -95,7 +100,7 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
       <div ref={ref} className={cn('flex -space-x-2', className)} {...props}>
         {showChildren}
         {remaining > 0 && (
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-600 ring-2 ring-white">
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-600 dark:text-[#9CA3AF] ring-2 ring-white">
             +{remaining}
           </div>
         )}

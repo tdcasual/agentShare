@@ -9,14 +9,14 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Button variants following Kawaii theme
+// Button variants following Kawaii theme - uses CSS custom properties for theming
 const buttonVariants = {
-  primary: 'bg-gradient-to-r from-[#FF69B4] to-[#FF1493] text-white shadow-lg shadow-pink-300/30 hover:shadow-pink-400/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95',
-  secondary: 'bg-white border-2 border-[#FFB6C1] text-[#FF1493] hover:bg-pink-50 hover:border-[#FF69B4] hover:-translate-y-0.5',
-  ghost: 'text-[#FF1493] hover:bg-pink-100 hover:scale-105',
-  gradient: 'bg-gradient-to-r from-[#87CEEB] to-[#98FB98] text-white shadow-lg shadow-teal-300/30 hover:shadow-teal-400/40 hover:-translate-y-0.5',
-  outline: 'bg-transparent border-2 border-[#FF1493] text-[#FF1493] hover:bg-pink-50 hover:-translate-y-0.5',
-  kawaii: 'bg-gradient-to-r from-[#FF69B4] via-[#FF1493] to-[#FF69B4] text-white shadow-lg shadow-pink-400/40 hover:shadow-pink-500/50 hover:-translate-y-1 active:translate-y-0 bg-[length:200%_100%]',
+  primary: 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-lg shadow-pink-300/30 hover:shadow-pink-400/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95',
+  secondary: 'bg-white border-2 border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] hover:bg-pink-50 hover:border-[var(--kw-primary-400)] hover:-translate-y-0.5',
+  ghost: 'text-[var(--kw-primary-500)] hover:bg-pink-100 hover:scale-105',
+  gradient: 'bg-gradient-to-r from-[var(--kw-sky)] to-[var(--kw-mint)] text-white shadow-lg shadow-teal-300/30 hover:shadow-teal-400/40 hover:-translate-y-0.5',
+  outline: 'bg-transparent border-2 border-[var(--kw-primary-500)] text-[var(--kw-primary-500)] hover:bg-pink-50 hover:-translate-y-0.5',
+  kawaii: 'bg-gradient-to-r from-[var(--kw-primary-400)] via-[var(--kw-primary-500)] to-[var(--kw-primary-400)] text-white shadow-lg shadow-pink-400/40 hover:shadow-pink-500/50 hover:-translate-y-1 active:translate-y-0 bg-[length:200%_100%]',
 } as const;
 
 const buttonSizes = {
@@ -45,15 +45,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     rightIcon,
     children, 
     disabled, 
+    type = 'button',
     ...props 
   }, ref) => {
     return (
       <button
         ref={ref}
+        type={type}
         className={cn(
           'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 rounded-full',
           'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100',
-          'relative overflow-hidden',
+          'relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
           buttonVariants[variant],
           buttonSizes[size],
           className

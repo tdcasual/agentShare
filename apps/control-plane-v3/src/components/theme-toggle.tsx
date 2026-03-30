@@ -1,0 +1,120 @@
+'use client';
+
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
+import { Sun, Moon, Monitor } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+type Theme = 'light' | 'dark' | 'system';
+
+export function ThemeToggle({ className }: { className?: string }) {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // 避免 hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className={cn(
+        'w-10 h-10 rounded-full flex items-center justify-center',
+        'bg-white/80 border border-pink-200',
+        className
+      )}>
+        <div className="w-5 h-5 bg-gray-200 rounded-full animate-pulse" />
+      </div>
+    );
+  }
+
+  const themes: { value: Theme; icon: React.ReactNode; label: string }[] = [
+    { value: 'light', icon: <Sun className="w-4 h-4" />, label: '浅色' },
+    { value: 'dark', icon: <Moon className="w-4 h-4" />, label: '深色' },
+    { value: 'system', icon: <Monitor className="w-4 h-4" />, label: '跟随系统' },
+  ];
+
+  return (
+    <div className={cn(
+      'flex items-center gap-1 p-1 rounded-full',
+      'bg-white/80 dark:bg-[#252540]/80',
+      'border border-pink-200 dark:border-[#3D3D5C]',
+      className
+    )}>
+      {themes.map(({ value, icon, label }) => {
+        const isActive = theme === value;
+        return (
+          <button
+            key={value}
+            onClick={() => setTheme(value)}
+            className={cn(
+              'relative p-2 rounded-full transition-all duration-200',
+              'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
+              isActive && 'bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-md'
+            )}
+            title={label}
+          >
+            <span className={cn(
+              'transition-colors',
+              !isActive && 'text-gray-600 dark:text-[#9CA3AF]'
+            )}>
+              {icon}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// 简化的主题切换按钮（只在 light/dark 之间切换）
+export function SimpleThemeToggle({ className }: { className?: string }) {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className={cn(
+        'w-10 h-10 rounded-full flex items-center justify-center',
+        'bg-white/80 border border-pink-200',
+        className
+      )}>
+        <div className="w-5 h-5 bg-gray-200 rounded-full animate-pulse" />
+      </div>
+    );
+  }
+
+  const isDark = resolvedTheme === 'dark';
+
+  return (
+    <button
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className={cn(
+        'relative w-10 h-10 rounded-full flex items-center justify-center',
+        'bg-white/80 dark:bg-[#252540]/80',
+        'border border-pink-200 dark:border-[#3D3D5C]',
+        'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
+        'transition-all duration-300',
+        className
+      )}
+      title={isDark ? '切换到浅色模式' : '切换到深色模式'}
+    >
+      <span className={cn(
+        'transition-all duration-300',
+        isDark ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'
+      )}>
+        <Moon className="w-5 h-5 text-[#E891C0]" />
+      </span>
+      <span className={cn(
+        'absolute transition-all duration-300',
+        !isDark ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
+      )}>
+        <Sun className="w-5 h-5 text-pink-500" />
+      </span>
+    </button>
+  );
+}

@@ -9,7 +9,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const cardVariants = {
-  default: 'bg-white/90 backdrop-blur-sm border border-pink-100/50',
+  default: 'bg-white/90 dark:bg-[#252540]/90 backdrop-blur-sm border border-pink-100/50',
   elevated: 'bg-white shadow-lg shadow-pink-100/50',
   glass: 'bg-white/70 backdrop-blur-md border border-white/60',
   gradient: 'bg-gradient-to-br from-pink-50/80 via-white/90 to-purple-50/80 border border-pink-100/30',
@@ -59,14 +59,14 @@ CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-xl font-bold text-gray-800', className)} {...props} />
+    <h3 ref={ref} className={cn('text-xl font-bold text-gray-800 dark:text-[#E8E8EC]', className)} {...props} />
   )
 );
 CardTitle.displayName = 'CardTitle';
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-gray-500', className)} {...props} />
+    <p ref={ref} className={cn('text-sm text-gray-500 dark:text-[#9CA3AF]', className)} {...props} />
   )
 );
 CardDescription.displayName = 'CardDescription';

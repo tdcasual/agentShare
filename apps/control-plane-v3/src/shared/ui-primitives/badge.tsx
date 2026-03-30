@@ -9,7 +9,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const badgeVariants = {
-  default: 'bg-gray-100 text-gray-700',
+  default: 'bg-gray-100 text-gray-700 dark:text-[#E8E8EC]',
   primary: 'bg-pink-100 text-pink-700 border border-pink-200',
   secondary: 'bg-purple-100 text-purple-700 border border-purple-200',
   success: 'bg-green-100 text-green-700 border border-green-200',
@@ -21,7 +21,7 @@ const badgeVariants = {
   agent: 'bg-green-100 text-green-700 border border-green-200',
   // Status
   online: 'bg-green-100 text-green-700 border border-green-200',
-  offline: 'bg-gray-100 text-gray-500 border border-gray-200',
+  offline: 'bg-gray-100 text-gray-500 dark:text-[#9CA3AF] border border-gray-200',
   away: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
   busy: 'bg-red-100 text-red-700 border border-red-200',
 } as const;
