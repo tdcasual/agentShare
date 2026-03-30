@@ -1,0 +1,463 @@
+{
+  "metadata": {
+    "title": "Control Plane V3 - Dual Cosmos",
+    "description": "Human and Agent shared control plane"
+  },
+  "navigation": {
+    "hub": "Hub",
+    "identities": "Identities",
+    "assets": "Assets",
+    "spaces": "Spaces",
+    "tokens": "Tokens",
+    "tasks": "Tasks",
+    "reviews": "Reviews",
+    "marketplace": "Marketplace",
+    "settings": "Settings"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "share": "Share",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "copy": "Copy",
+    "copied": "Copied",
+    "refresh": "Refresh",
+    "online": "Online",
+    "offline": "Offline",
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "more": "More",
+    "view": "View",
+    "all": "All",
+    "switchLanguage": "Switch language"
+  },
+  "auth": {
+    "login": {
+      "title": "Management Login",
+      "subtitle": "Invite-only access",
+      "description": "Use the persisted admin account you bootstrapped or were invited into.",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign In",
+      "checking": "Checking bootstrap and session state..."
+    },
+    "setup": {
+      "title": "Create the Founding Owner Account",
+      "subtitle": "First-run bootstrap",
+      "bootstrapKey": "Bootstrap Key",
+      "ownerEmail": "Owner Email",
+      "displayName": "Display Name",
+      "createAccount": "Create Owner Account",
+      "step1": "Owner bootstrap flips the system into initialized mode",
+      "step2": "Normal management access switches to email and password",
+      "step3": "New human accounts can only be created from the admin console",
+      "whatNext": "What Next",
+      "creating": "Creating",
+      "password": "Password"
+    }
+  },
+  "tokens": {
+    "title": "Token Operations",
+    "subtitle": "Invite-only management active",
+    "description": "Bootstrap now leads into human login, then into managed runtime token lifecycle for every agent.",
+    "metrics": {
+      "activeAgents": "Active agents",
+      "activeTokens": "Active tokens",
+      "averageTrust": "Average trust",
+      "tokensWithFeedback": "Tokens with feedback"
+    },
+    "actions": {
+      "createAgent": "Create Agent",
+      "mintToken": "Mint Token",
+      "revoke": "Revoke"
+    },
+    "agent": {
+      "noAgents": "No agents yet",
+      "createFirst": "Create the first managed agent and its primary runtime token from this console.",
+      "riskTier": "Risk tier",
+      "authMethod": "Auth method",
+      "noTokens": "No active managed tokens for this agent yet."
+    },
+    "token": {
+      "lastUsed": "Last used",
+      "lastFeedback": "Last feedback",
+      "successRate": "Success rate",
+      "trustScore": "Trust score",
+      "completedRuns": "Completed runs",
+      "successfulRuns": "Successful runs",
+      "issuer": "Issuer",
+      "oneTimeReveal": "One-time reveal",
+      "copyToken": "Copy Token"
+    }
+  },
+  "reviews": {
+    "title": "Pending Reviews",
+    "subtitle": "Human review gate",
+    "description": "Agent-published assets stay inactive until a human operator approves or rejects them here.",
+    "metrics": {
+      "pendingItems": "Pending items",
+      "tasksQueued": "Tasks queued",
+      "playbooksQueued": "Playbooks queued",
+      "secretsCapabilities": "Secrets + capabilities"
+    },
+    "actions": {
+      "refreshQueue": "Refresh queue",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "empty": {
+      "title": "Review queue is clear",
+      "description": "All pending agent-submitted assets have already been handled."
+    },
+    "item": {
+      "submittedBy": "Submitted by",
+      "tokenProvenance": "Token provenance",
+      "createdDirectly": "Created directly by human",
+      "lastReview": "Last review"
+    },
+    "loading": "Loading pending review items...",
+    "reviewer": "Reviewer",
+    "awaitingDecision": "Awaiting first decision",
+    "onlyPending": "Only pending runtime submissions appear here"
+  },
+  "hub": {
+    "welcome": "Welcome to",
+    "dualCosmos": "Dual Cosmos",
+    "unableToOpen": "Unable to open the console",
+    "loadingError": "Failed to load",
+    "routing": "Routing you to the right control surface",
+    "checkingStatus": "Checking bootstrap status and current management session...",
+    "signedInAs": "Signed in as",
+    "withRole": "with",
+    "access": "access. Bootstrap, tokens, reviews, and tasks are now all live.",
+    "openTokenOps": "Open Token Ops",
+    "inviteOnly": "Invite-only management",
+    "publicRegistrationClosed": "Public registration is closed after first-run owner bootstrap.",
+    "runtimeTokens": "Runtime tokens are managed separately from human sessions.",
+    "stats": {
+      "humansTrend": "+1 invited this week",
+      "agentsTrend": "managed by tokens",
+      "tokensTrend": "issue, revoke, review",
+      "tasksTrend": "token-targeted flow"
+    },
+    "activity": {
+      "completedTask": "completed task",
+      "approvedAsset": "approved asset",
+      "publishedToken": "published token",
+      "createdAsset": "created asset"
+    },
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "publishTask": "Publish Task",
+    "manageTokens": "Manage Tokens",
+    "reviewQueue": "Review Queue",
+    "inviteAdmin": "Invite Admin",
+    "onlineNow": "Online Now",
+    "controlSurfaceReady": "Control Surface Ready",
+    "bootstrap": "Bootstrap",
+    "initialized": "Initialized",
+    "managementSession": "Management Session",
+    "active": "Active",
+    "reviewGate": "Review Gate",
+    "enabled": "Enabled",
+    "subtitle": "Human and Agent, coexisting as equals in a unified control plane",
+    "stats": {
+      "humans": "Humans",
+      "agents": "Agents",
+      "spaces": "Spaces",
+      "tasksToday": "Tasks Today"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createTask": "Create Task",
+      "joinSpace": "Join Space",
+      "deployAgent": "Deploy Agent",
+      "inviteIdentity": "Invite Identity"
+    },
+    "onlineNow": "Online Now",
+    "systemStatus": "System Status",
+    "systemHealthy": "System Healthy",
+    "apiLatency": "API Latency",
+    "activeConnections": "Active Connections",
+    "queueDepth": "Queue Depth"
+  },
+  "marketplace": {
+    "title": "Asset Marketplace",
+    "description": "Discover, share, and install assets created by the community. Both humans and agents can publish here.",
+    "searchPlaceholder": "Search marketplace...",
+    "categories": {
+      "popular": "Popular",
+      "new": "New",
+      "agentCreated": "Agent-Created"
+    },
+    "comingSoon": "Marketplace coming soon...",
+    "items": "items"
+  },
+  "assets": {
+    "title": "Assets",
+    "description": "Manage tokens, tasks, secrets, and other shared resources",
+    "createAsset": "Create Asset",
+    "allTypes": "All Types",
+    "searchPlaceholder": "Search assets...",
+    "filter": "Filter",
+    "visibility": {
+      "private": "Private",
+      "public": "Public",
+      "shared": "Shared",
+      "restricted": "Restricted"
+    },
+    "updatedAt": "Updated",
+    "noAssets": "No assets yet",
+    "createFirst": "Create your first asset",
+    "chooseType": "Choose the type of asset you want to create",
+    "owner": "Owner",
+    "visibilityLabel": "Visibility"
+  },
+  "identities": {
+    "title": "Identity Universe",
+    "description": "Browse and manage all identities in the system",
+    "humans": "Humans",
+    "agents": "Agents",
+    "total": "Total Identities",
+    "createIdentity": "Create Identity",
+    "searchPlaceholder": "Search identities...",
+    "showing": "Showing",
+    "of": "of",
+    "identities": "identities",
+    "chooseType": "Choose the type of identity you want to create",
+    "createHumanDesc": "Create a human user account",
+    "createAgentDesc": "Create an AI agent",
+    "type": {
+      "human": "Human",
+      "agent": "Agent"
+    },
+    "searchPlaceholder": "Search identities...",
+    "createIdentity": "Create Identity",
+    "type": {
+      "human": "Human",
+      "agent": "Agent"
+    },
+    "status": {
+      "online": "Online",
+      "away": "Away",
+      "busy": "Busy",
+      "offline": "Offline"
+    }
+  },
+  "settings": {
+    "title": "Management Settings",
+    "description": "Owner bootstrap is complete. Human access is now controlled through invited admin accounts only.",
+    "inviteOnlyAccess": "Invite-only admin access",
+    "accounts": "Accounts",
+    "accountsHint": "Persisted management identities",
+    "owners": "Owners",
+    "ownersHint": "Bootstrap-created founding operators",
+    "admins": "Admins",
+    "adminsHint": "Full management access",
+    "operatorsViewers": "Operators + Viewers",
+    "operatorsViewersHint": "Invite-only supporting roles",
+    "inviteAccount": "Invite Management Account",
+    "createAdminTitle": "Create a New Admin Identity",
+    "createAdminDesc": "After first-run bootstrap, this is the only supported path for adding new human operators.",
+    "email": "Email",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Operations Lead",
+    "initialPassword": "Initial Password",
+    "passwordPlaceholder": "At least 12 characters",
+    "role": "Role",
+    "roles": {
+      "viewer": "viewer",
+      "operator": "operator",
+      "admin": "admin"
+    },
+    "inviteNotice": "Public sign-up stays disabled. New accounts are created only through this invite workflow.",
+    "currentSession": "Current Session",
+    "operatorPosture": "Operator Posture",
+    "operatorPostureDesc": "The bootstrap credential is now reserved for first-run setup only and no longer acts as day-to-day login.",
+    "signedInAs": "Signed in as",
+    "sessionId": "Session ID",
+    "expires": "Expires",
+    "accessModel": "Access Model Now Enforced",
+    "accessModel1": "Bootstrap happens once to create the founding owner.",
+    "accessModel2": "Registration is closed after bootstrap finishes.",
+    "accessModel3": "Only invited admin accounts can open management sessions.",
+    "invitedAccounts": "Invited Accounts",
+    "managementRoster": "Management Roster",
+    "rosterDesc": "Disable non-owner accounts here without reopening public registration.",
+    "disable": "Disable",
+    "accountId": "Account ID",
+    "lastLogin": "Last Login",
+    "never": "Never",
+    "availability": "Availability",
+    "canLogin": "Can log in",
+    "accessDisabled": "Access disabled",
+    "signOut": "Sign out",
+    "loadError": "Failed to load admin accounts",
+    "inviteError": "Failed to invite management account",
+    "disableError": "Failed to disable account",
+    "logoutError": "Failed to log out",
+    "loadingInventory": "Loading management account inventory...",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "security": "Security",
+    "appearance": "Appearance",
+    "language": "Language",
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar"
+  },
+  "spaces": {
+    "title": "Spaces",
+    "createSpace": "Create Space",
+    "searchPlaceholder": "Search spaces...",
+    "members": "members",
+    "invite": "Invite",
+    "today": "Today",
+    "system": "System",
+    "selectSpace": "Select a Space",
+    "selectSpaceDescription": "Choose a space from the list to start collaborating",
+    "spaceName": "Space Name",
+    "spaceNamePlaceholder": "e.g., Project Alpha",
+    "spaceType": "Space Type",
+    "createSpaceDescription": "Create a new collaboration space",
+    "messagePlaceholder": "Message @DeployBot or the group...",
+    "messageInput": "Message input",
+    "sendMessage": "Send message",
+    "addAttachment": "Add attachment",
+    "welcomeTo": "Welcome to",
+    "thisIsA": "This is a",
+    "space": "space",
+    "type": {
+      "channel": "Channel",
+      "channelDesc": "Open discussion",
+      "project": "Project",
+      "projectDesc": "Task-focused",
+      "ai_human_pair": "AI-Human Pair",
+      "aiHumanPairDesc": "Close collaboration",
+      "swarm": "Swarm",
+      "swarmDesc": "Multi-agent"
+    },
+    "demoMessages": {
+      "human1": "Hey everyone! Let's discuss the deployment strategy for today.",
+      "agent1": "I've analyzed the current environment. Here are my recommendations:",
+      "recommendation1": "Use blue-green deployment for zero downtime",
+      "recommendation2": "Run smoke tests before switching traffic",
+      "recommendation3": "Monitor error rates for 5 minutes post-deploy",
+      "human2": "Sounds good @DeployBot! Let's proceed with the blue-green deployment. Can you prepare the staging environment?",
+      "preparing": "Preparing staging environment..."
+    }
+  },
+  "error": {
+    "title": "Oops! Something went wrong",
+    "description": "We apologize for the inconvenience. Please try refreshing the page or go back to the home page.",
+    "reload": "Reload Page",
+    "goHome": "Go Home"
+  },
+  "tasks": {
+    "title": "Task orchestration",
+    "tokenTargetedDelivery": "Token-targeted delivery",
+    "description": "Publish work to specific runtime tokens, watch completion per token, and close the loop with feedback.",
+    "loadError": "Failed to load task dashboard",
+    "loading": "Loading targeted tasks, token runs, and feedback...",
+    "errors": {
+      "noTargetTokens": "Choose at least one target token or switch to broadcast mode.",
+      "createFailed": "Failed to create task",
+      "feedbackFailed": "Failed to save feedback"
+    },
+    "metrics": {
+      "publishedTasks": "Published tasks",
+      "targetedTokens": "Targeted tokens",
+      "completedTargets": "Completed targets",
+      "feedbackRecords": "Feedback records"
+    },
+    "hints": {
+      "publishedTasks": "currently visible active tasks",
+      "targetedTokens": "explicit token assignments",
+      "completedTargets": "token-linked run records",
+      "feedbackRecords": "human review notes on finished work"
+    },
+    "feedbackSummary": "Feedback summary",
+    "reviews": "reviews",
+    "avg": "avg",
+    "noFeedback": "No feedback yet",
+    "targetsCompleted": "targets completed",
+    "targetTokens": "Target tokens",
+    "noTokenTargets": "No token targets",
+    "publishTask": "Publish Task",
+    "publishTaskDescription": "Choose the concrete runtime tokens that should receive this work.",
+    "empty": {
+      "title": "No tasks published yet",
+      "description": "Create a task and target it to one or more runtime tokens from this page."
+    },
+    "priorities": {
+      "low": "low",
+      "normal": "normal",
+      "high": "high",
+      "critical": "critical"
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "Sync staging provider config",
+      "taskType": "Task type",
+      "taskTypePlaceholder": "config_sync",
+      "priority": "Priority",
+      "inputPayload": "Input payload (JSON)",
+      "targetMode": "Target mode",
+      "targetModeDescription": "Explicit targets let you see completion by token directly.",
+      "explicitTokens": "Explicit tokens",
+      "explicitTokensDesc": "Send only to chosen tokens.",
+      "broadcast": "Broadcast",
+      "broadcastDesc": "Snapshot all active tokens at publish time.",
+      "targetTokens": "Target tokens",
+      "targetTokensDescription": "Choose one or more managed tokens.",
+      "noTokensAvailable": "No managed tokens available yet. Create one from the Tokens page first.",
+      "trust": "trust",
+      "score": "Score",
+      "verdict": "Verdict",
+      "verdictPlaceholder": "accepted",
+      "summary": "Summary",
+      "summaryPlaceholder": "Call out what went well, what should change, and whether this token should be trusted with similar work."
+    },
+    "inputPayload": "Input payload",
+    "publishingContext": "Publishing context",
+    "actor": "Actor",
+    "viaToken": "Via token",
+    "directHumanPublish": "Direct human publish",
+    "claimedBy": "Claimed by agent",
+    "notClaimed": "Not currently claimed",
+    "perTokenStatus": "Per-token status",
+    "completed": "completed",
+    "leaveFeedback": "Leave feedback",
+    "runResult": "Run result",
+    "waitingToRun": "Waiting to run",
+    "claimedNotCompleted": "Claimed, not completed",
+    "tokenTrust": "Token trust",
+    "unknown": "Unknown",
+    "feedbackCount": "Feedback count",
+    "feedbackFor": "Feedback for",
+    "feedback": "Feedback",
+    "saveFeedback": "Save feedback"
+  }
+}

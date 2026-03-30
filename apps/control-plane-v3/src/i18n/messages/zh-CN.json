@@ -1,0 +1,463 @@
+{
+  "metadata": {
+    "title": "Control Plane V3 - 双生宇宙",
+    "description": "人类与智能体共享的控制平面"
+  },
+  "navigation": {
+    "hub": "首页",
+    "identities": "身份",
+    "assets": "资产",
+    "spaces": "空间",
+    "tokens": "令牌",
+    "tasks": "任务",
+    "reviews": "审核",
+    "marketplace": "市场",
+    "settings": "设置"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "出错了",
+    "retry": "重试",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "share": "分享",
+    "create": "创建",
+    "search": "搜索",
+    "filter": "筛选",
+    "close": "关闭",
+    "back": "返回",
+    "next": "下一步",
+    "submit": "提交",
+    "copy": "复制",
+    "copied": "已复制",
+    "refresh": "刷新",
+    "online": "在线",
+    "offline": "离线",
+    "active": "活跃",
+    "inactive": "非活跃",
+    "pending": "待处理",
+    "approved": "已通过",
+    "rejected": "已拒绝",
+    "more": "更多",
+    "view": "查看",
+    "all": "全部",
+    "switchLanguage": "切换语言"
+  },
+  "auth": {
+    "login": {
+      "title": "管理登录",
+      "subtitle": "邀请制访问",
+      "description": "使用您引导创建或受邀加入的持久管理员账户。",
+      "email": "邮箱",
+      "password": "密码",
+      "signIn": "登录",
+      "checking": "正在检查引导状态和会话..."
+    },
+    "setup": {
+      "title": "创建创始所有者账户",
+      "subtitle": "首次引导",
+      "bootstrapKey": "引导密钥",
+      "ownerEmail": "所有者邮箱",
+      "displayName": "显示名称",
+      "createAccount": "创建所有者账户",
+      "step1": "所有者引导将系统切换到初始化模式",
+      "step2": "普通管理访问切换到邮箱和密码",
+      "step3": "新的人类账户只能从管理控制台创建",
+      "whatNext": "下一步",
+      "creating": "创建中",
+      "password": "密码"
+    }
+  },
+  "tokens": {
+    "title": "令牌管理",
+    "subtitle": "邀请制管理已激活",
+    "description": "引导现在进入人类登录，然后进入每个智能体的托管运行时令牌生命周期。",
+    "metrics": {
+      "activeAgents": "活跃智能体",
+      "activeTokens": "活跃令牌",
+      "averageTrust": "平均信任分",
+      "tokensWithFeedback": "有反馈的令牌"
+    },
+    "actions": {
+      "createAgent": "创建智能体",
+      "mintToken": "铸造令牌",
+      "revoke": "撤销"
+    },
+    "agent": {
+      "noAgents": "还没有智能体",
+      "createFirst": "从此控制台创建第一个托管智能体及其主运行时令牌。",
+      "riskTier": "风险等级",
+      "authMethod": "认证方式",
+      "noTokens": "此智能体还没有活跃的托管令牌。"
+    },
+    "token": {
+      "lastUsed": "最后使用",
+      "lastFeedback": "最后反馈",
+      "successRate": "成功率",
+      "trustScore": "信任分数",
+      "completedRuns": "已完成运行",
+      "successfulRuns": "成功运行",
+      "issuer": "发行者",
+      "oneTimeReveal": "一次性展示",
+      "copyToken": "复制令牌"
+    }
+  },
+  "reviews": {
+    "title": "待审核",
+    "subtitle": "人工审核门",
+    "description": "智能体发布的资产保持非活跃状态，直到人类操作员在此处批准或拒绝。",
+    "metrics": {
+      "pendingItems": "待处理项目",
+      "tasksQueued": "任务队列",
+      "playbooksQueued": "剧本队列",
+      "secretsCapabilities": "密钥和能力"
+    },
+    "actions": {
+      "refreshQueue": "刷新队列",
+      "approve": "通过",
+      "reject": "拒绝"
+    },
+    "empty": {
+      "title": "审核队列已清空",
+      "description": "所有待处理的智能体提交资产已处理完毕。"
+    },
+    "item": {
+      "submittedBy": "提交者",
+      "tokenProvenance": "令牌来源",
+      "createdDirectly": "由人类直接创建",
+      "lastReview": "最后审核"
+    },
+    "loading": "加载待审核项目...",
+    "reviewer": "审核员",
+    "awaitingDecision": "等待首次决定",
+    "onlyPending": "仅显示待处理的运行时提交"
+  },
+  "hub": {
+    "welcome": "欢迎来到",
+    "dualCosmos": "双生宇宙",
+    "unableToOpen": "无法打开控制台",
+    "loadingError": "加载失败",
+    "routing": "正在路由到正确的控制界面",
+    "checkingStatus": "正在检查引导状态和当前管理会话...",
+    "signedInAs": "登录为",
+    "withRole": "角色为",
+    "access": "访问权限。引导、令牌、审核和任务现已全部上线。",
+    "openTokenOps": "打开令牌操作",
+    "inviteOnly": "仅限邀请管理",
+    "publicRegistrationClosed": "首次运行所有者引导后，公开注册已关闭。",
+    "runtimeTokens": "运行时令牌与人类会话分开管理。",
+    "stats": {
+      "humansTrend": "本周邀请了 +1",
+      "agentsTrend": "由令牌管理",
+      "tokensTrend": "发行、撤销、审核",
+      "tasksTrend": "令牌目标流程"
+    },
+    "activity": {
+      "completedTask": "完成了任务",
+      "approvedAsset": "批准了资产",
+      "publishedToken": "发布了令牌",
+      "createdAsset": "创建了资产"
+    },
+    "recentActivity": "最近活动",
+    "quickActions": "快速操作",
+    "publishTask": "发布任务",
+    "manageTokens": "管理令牌",
+    "reviewQueue": "审核队列",
+    "inviteAdmin": "邀请管理员",
+    "onlineNow": "在线中",
+    "controlSurfaceReady": "控制面已就绪",
+    "bootstrap": "引导",
+    "initialized": "已初始化",
+    "managementSession": "管理会话",
+    "active": "活跃",
+    "reviewGate": "审核门",
+    "enabled": "已启用",
+    "subtitle": "人类与智能体，在统一的控制平面中平等共存",
+    "stats": {
+      "humans": "人类",
+      "agents": "智能体",
+      "spaces": "空间",
+      "tasksToday": "今日任务"
+    },
+    "quickActions": {
+      "title": "快速操作",
+      "createTask": "创建任务",
+      "joinSpace": "加入空间",
+      "deployAgent": "部署智能体",
+      "inviteIdentity": "邀请身份"
+    },
+    "onlineNow": "在线中",
+    "systemStatus": "系统状态",
+    "systemHealthy": "系统健康",
+    "apiLatency": "API 延迟",
+    "activeConnections": "活跃连接",
+    "queueDepth": "队列深度"
+  },
+  "marketplace": {
+    "title": "资产市场",
+    "description": "发现、分享和安装社区创建的资产。人类和智能体都可以在此处发布。",
+    "searchPlaceholder": "搜索市场...",
+    "categories": {
+      "popular": "热门",
+      "new": "最新",
+      "agentCreated": "智能体创建"
+    },
+    "comingSoon": "市场功能即将推出...",
+    "items": "项目"
+  },
+  "assets": {
+    "title": "资产管理",
+    "description": "管理令牌、任务、密钥和其他共享资源",
+    "createAsset": "创建资产",
+    "allTypes": "所有类型",
+    "searchPlaceholder": "搜索资产...",
+    "filter": "筛选",
+    "visibility": {
+      "private": "私有",
+      "public": "公开",
+      "shared": "共享",
+      "restricted": "受限"
+    },
+    "updatedAt": "更新时间",
+    "noAssets": "暂无资产",
+    "createFirst": "创建您的第一个资产",
+    "chooseType": "选择您要创建的资产类型",
+    "owner": "所有者",
+    "visibilityLabel": "可见性"
+  },
+  "identities": {
+    "title": "身份宇宙",
+    "description": "浏览和管理系统中的所有身份",
+    "humans": "人类",
+    "agents": "智能体",
+    "total": "总身份数",
+    "createIdentity": "创建身份",
+    "searchPlaceholder": "搜索身份...",
+    "showing": "显示",
+    "of": "共",
+    "identities": "个身份",
+    "chooseType": "选择您要创建的身份类型",
+    "createHumanDesc": "创建人类用户账户",
+    "createAgentDesc": "创建 AI 智能体",
+    "type": {
+      "human": "人类",
+      "agent": "智能体"
+    },
+    "searchPlaceholder": "搜索身份...",
+    "createIdentity": "创建身份",
+    "type": {
+      "human": "人类",
+      "agent": "智能体"
+    },
+    "status": {
+      "online": "在线",
+      "away": "离开",
+      "busy": "忙碌",
+      "offline": "离线"
+    }
+  },
+  "settings": {
+    "title": "管理设置",
+    "description": "所有者引导已完成。人类访问现在仅通过受邀管理员账户控制。",
+    "inviteOnlyAccess": "仅限邀请的管理员访问",
+    "accounts": "账户",
+    "accountsHint": "持久化管理身份",
+    "owners": "所有者",
+    "ownersHint": "引导创建的创始操作员",
+    "admins": "管理员",
+    "adminsHint": "完全管理访问权限",
+    "operatorsViewers": "操作员 + 观察者",
+    "operatorsViewersHint": "仅限邀请的支持角色",
+    "inviteAccount": "邀请管理账户",
+    "createAdminTitle": "创建新的管理员身份",
+    "createAdminDesc": "首次运行引导后，这是添加新人类操作员的唯一支持路径。",
+    "email": "邮箱",
+    "displayName": "显示名称",
+    "displayNamePlaceholder": "运营负责人",
+    "initialPassword": "初始密码",
+    "passwordPlaceholder": "至少 12 个字符",
+    "role": "角色",
+    "roles": {
+      "viewer": "观察者",
+      "operator": "操作员",
+      "admin": "管理员"
+    },
+    "inviteNotice": "公开注册保持禁用。新账户仅通过此邀请流程创建。",
+    "currentSession": "当前会话",
+    "operatorPosture": "操作员状态",
+    "operatorPostureDesc": "引导凭证现在仅保留用于首次运行设置，不再作为日常登录使用。",
+    "signedInAs": "登录为",
+    "sessionId": "会话 ID",
+    "expires": "过期时间",
+    "accessModel": "访问模型现已强制执行",
+    "accessModel1": "引导发生一次以创建创始所有者。",
+    "accessModel2": "引导完成后注册关闭。",
+    "accessModel3": "只有受邀管理员账户可以打开管理会话。",
+    "invitedAccounts": "已邀请账户",
+    "managementRoster": "管理名册",
+    "rosterDesc": "在此处禁用非所有者账户，无需重新开放公开注册。",
+    "disable": "禁用",
+    "accountId": "账户 ID",
+    "lastLogin": "最后登录",
+    "never": "从未",
+    "availability": "可用性",
+    "canLogin": "可以登录",
+    "accessDisabled": "访问已禁用",
+    "signOut": "退出登录",
+    "loadError": "加载管理员账户失败",
+    "inviteError": "邀请管理账户失败",
+    "disableError": "禁用账户失败",
+    "logoutError": "退出登录失败",
+    "loadingInventory": "加载管理账户清单...",
+    "profile": "个人资料",
+    "notifications": "通知",
+    "security": "安全",
+    "appearance": "外观",
+    "language": "语言",
+    "theme": {
+      "title": "主题",
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统"
+    }
+  },
+  "sidebar": {
+    "expand": "展开侧边栏",
+    "collapse": "折叠侧边栏"
+  },
+  "spaces": {
+    "title": "空间",
+    "createSpace": "创建空间",
+    "searchPlaceholder": "搜索空间...",
+    "members": "成员",
+    "invite": "邀请",
+    "today": "今天",
+    "system": "系统",
+    "selectSpace": "选择一个空间",
+    "selectSpaceDescription": "从列表中选择一个空间开始协作",
+    "spaceName": "空间名称",
+    "spaceNamePlaceholder": "例如：Project Alpha",
+    "spaceType": "空间类型",
+    "createSpaceDescription": "创建一个新的协作空间",
+    "messagePlaceholder": "向 @DeployBot 或群组发送消息...",
+    "messageInput": "消息输入",
+    "sendMessage": "发送消息",
+    "addAttachment": "添加附件",
+    "welcomeTo": "欢迎来到",
+    "thisIsA": "这是一个",
+    "space": "空间",
+    "type": {
+      "channel": "频道",
+      "channelDesc": "开放讨论",
+      "project": "项目",
+      "projectDesc": "任务导向",
+      "ai_human_pair": "AI-人类配对",
+      "aiHumanPairDesc": "紧密协作",
+      "swarm": "群体",
+      "swarmDesc": "多智能体"
+    },
+    "demoMessages": {
+      "human1": "大家好！让我们来讨论今天的部署策略。",
+      "agent1": "我已经分析了当前环境。以下是我的建议：",
+      "recommendation1": "使用蓝绿部署实现零停机",
+      "recommendation2": "切换流量前运行冒烟测试",
+      "recommendation3": "部署后监控错误率 5 分钟",
+      "human2": "听起来不错 @DeployBot！让我们继续进行蓝绿部署。你能准备暂存环境吗？",
+      "preparing": "正在准备暂存环境..."
+    }
+  },
+  "error": {
+    "title": "哎呀！出错了",
+    "description": "非常抱歉给您带来不便。请尝试刷新页面或返回首页。",
+    "reload": "刷新页面",
+    "goHome": "返回首页"
+  },
+  "tasks": {
+    "title": "任务编排",
+    "tokenTargetedDelivery": "令牌定向交付",
+    "description": "将工作发布到特定的运行时令牌，观察每个令牌的完成情况，并通过反馈闭环。",
+    "loadError": "加载任务仪表板失败",
+    "loading": "正在加载定向任务、令牌运行和反馈...",
+    "errors": {
+      "noTargetTokens": "至少选择一个目标令牌或切换到广播模式。",
+      "createFailed": "创建任务失败",
+      "feedbackFailed": "保存反馈失败"
+    },
+    "metrics": {
+      "publishedTasks": "已发布任务",
+      "targetedTokens": "目标令牌",
+      "completedTargets": "已完成目标",
+      "feedbackRecords": "反馈记录"
+    },
+    "hints": {
+      "publishedTasks": "当前可见的活跃任务",
+      "targetedTokens": "显式令牌分配",
+      "completedTargets": "令牌关联的运行记录",
+      "feedbackRecords": "已完成工作的人工审核记录"
+    },
+    "feedbackSummary": "反馈摘要",
+    "reviews": "评论",
+    "avg": "平均",
+    "noFeedback": "暂无反馈",
+    "targetsCompleted": "目标已完成",
+    "targetTokens": "目标令牌",
+    "noTokenTargets": "无令牌目标",
+    "publishTask": "发布任务",
+    "publishTaskDescription": "选择应接收此工作的具体运行时令牌。",
+    "empty": {
+      "title": "尚未发布任务",
+      "description": "从此页面创建任务并将其定向到一个或多个运行时令牌。"
+    },
+    "priorities": {
+      "low": "低",
+      "normal": "正常",
+      "high": "高",
+      "critical": "紧急"
+    },
+    "form": {
+      "title": "标题",
+      "titlePlaceholder": "同步暂存提供程序配置",
+      "taskType": "任务类型",
+      "taskTypePlaceholder": "config_sync",
+      "priority": "优先级",
+      "inputPayload": "输入负载 (JSON)",
+      "targetMode": "目标模式",
+      "targetModeDescription": "显式目标让您可以直接按令牌查看完成情况。",
+      "explicitTokens": "显式令牌",
+      "explicitTokensDesc": "仅发送到选定的令牌。",
+      "broadcast": "广播",
+      "broadcastDesc": "发布时快照所有活跃令牌。",
+      "targetTokens": "目标令牌",
+      "targetTokensDescription": "选择一个或多个托管令牌。",
+      "noTokensAvailable": "暂无托管令牌可用。请先从令牌页面创建一个。",
+      "trust": "信任",
+      "score": "分数",
+      "verdict": "裁决",
+      "verdictPlaceholder": "已接受",
+      "summary": "摘要",
+      "summaryPlaceholder": "指出哪些做得好、哪些需要改变，以及该令牌是否应该被信任以执行类似的工作。"
+    },
+    "inputPayload": "输入负载",
+    "publishingContext": "发布上下文",
+    "actor": "执行者",
+    "viaToken": "通过令牌",
+    "directHumanPublish": "直接人工发布",
+    "claimedBy": "被智能体认领",
+    "notClaimed": "当前未被认领",
+    "perTokenStatus": "每个令牌的状态",
+    "completed": "已完成",
+    "leaveFeedback": "留下反馈",
+    "runResult": "运行结果",
+    "waitingToRun": "等待运行",
+    "claimedNotCompleted": "已认领，未完成",
+    "tokenTrust": "令牌信任度",
+    "unknown": "未知",
+    "feedbackCount": "反馈数量",
+    "feedbackFor": "反馈：",
+    "feedback": "反馈",
+    "saveFeedback": "保存反馈"
+  }
+}
