@@ -18,7 +18,6 @@ import { useIdentities } from '@/hooks/use-identity';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui-primitives/button';
-import type { Identity } from '@/shared/types';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -188,3 +187,6 @@ export function SimpleLayout({
     </div>
   );
 }
+
+// 类型导入
+import type { Identity } from '@/shared/types';

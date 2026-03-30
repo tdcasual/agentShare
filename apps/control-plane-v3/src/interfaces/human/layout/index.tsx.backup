@@ -1,0 +1,114 @@
+'use client';
+
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { Sidebar } from './sidebar';
+import { Header } from './header';
+import { MobileNav } from '@/components/mobile-nav';
+import { getRuntime, initializeRuntime } from '../../../core/runtime';
+import { IdentityRegistryServiceId } from '../../../domains/identity/services/identity-registry';
+import type { Identity } from '../../../shared/types';
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export function Layout({ children }: LayoutProps) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentIdentity, setCurrentIdentity] = useState<Identity | null>(null);
+  const [onlineIdentities, setOnlineIdentities] = useState<Identity[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const init = async () => {
+      const runtime = await initializeRuntime(getRuntime());
+
+      // Get registry
+      const registry = runtime.di.resolve(IdentityRegistryServiceId);
+      
+      // Get all identities
+      const allIdentities = registry.getAll();
+      
+      // Set current identity (first human for demo)
+      const firstHuman = allIdentities.find(i => i.type === 'human');
+      if (firstHuman) {
+        setCurrentIdentity(firstHuman);
+        registry.setPresence(firstHuman.id, 'online');
+      }
+
+      // Get online identities
+      const online = allIdentities.filter(i => i.presence === 'online');
+      setOnlineIdentities(online);
+
+      // Listen for presence changes
+      const unsubscribe = registry.onPresenceChanged((id, presence) => {
+        const identity = registry.getById(id);
+        if (identity) {
+          setOnlineIdentities(prev => {
+            if (presence === 'online') {
+              return prev.find(i => i.id === id) ? prev : [...prev, identity];
+            } else {
+              return prev.filter(i => i.id !== id);
+            }
+          });
+        }
+      });
+
+      setIsLoading(false);
+
+      // Cleanup subscription on unmount
+      return () => {
+        unsubscribe?.();
+      };
+    };
+
+    init();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-pink-200 border-t-pink-500 animate-spin" />
+          <p className="text-gray-500 dark:text-[#9CA3AF]">Initializing Dual Cosmos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
+      {/* Desktop Sidebar - hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar 
+          collapsed={sidebarCollapsed} 
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+        />
+      </div>
+      
+      {/* Main Content - Full width on mobile, with margin on desktop */}
+      <div 
+        className={`
+          transition-all duration-300
+          lg:ml-0
+          ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}
+        `}
+      >
+        <Header
+          currentIdentity={currentIdentity}
+          onlineIdentities={onlineIdentities}
+          onCreateClick={() => setShowCreateModal(true)}
+        />
+        
+        {/* Add padding for mobile bottom nav */}
+        <main className="p-4 md:p-6 pb-24 lg:pb-6">
+          {children}
+        </main>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
+    </div>
+  );
+}
