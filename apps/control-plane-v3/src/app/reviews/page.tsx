@@ -6,7 +6,7 @@ import { CheckCircle2, Clock3, RefreshCw, ShieldAlert, ShieldCheck, XCircle, Hea
 import { Layout } from '@/interfaces/human/layout';
 import { useReviews, useApproveReview, useRejectReview } from '@/domains/review';
 import { ApiError } from '@/lib/api-client';
-import { useManagementSessionGate } from '@/lib/session';
+import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import type { ReviewQueueItem } from '@/domains/review';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
@@ -22,12 +22,18 @@ export default function ReviewsPage() {
 
 function ReviewsContent() {
   const t = useI18n().t;
-  const { session, loading: gateLoading, error: gateError } = useManagementSessionGate();
-  
   // 使用 SWR hooks 替代手动 useEffect
   const { data: reviewsData, isLoading, error: dataError, mutate } = useReviews({
     refreshInterval: 10000, // 10秒自动刷新
   });
+  const {
+    session,
+    loading: gateLoading,
+    error: gateError,
+    shouldShowSessionExpired,
+    clearSessionExpired,
+    consumeUnauthorized,
+  } = useManagementPageSessionRecovery(dataError);
   
   const approveReview = useApproveReview();
   const rejectReview = useRejectReview();
@@ -35,6 +41,8 @@ function ReviewsContent() {
   // 本地 UI 状态
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const items = reviewsData?.items ?? [];
 
@@ -45,10 +53,31 @@ function ReviewsContent() {
     }, {});
   }, [items]);
 
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    setRefreshError(null);
+    clearSessionExpired();
+
+    try {
+      await mutate();
+    } catch (refreshFailure) {
+      if (consumeUnauthorized(refreshFailure)) {
+        return;
+      }
+
+      setRefreshError(
+        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh reviews'
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
   async function handleDecision(item: ReviewQueueItem, decision: 'approve' | 'reject') {
     const nextActionKey = `${decision}:${item.resource_kind}:${item.resource_id}`;
     setActionKey(nextActionKey);
     setError(null);
+    clearSessionExpired();
 
     try {
       if (decision === 'approve') {
@@ -57,6 +86,10 @@ function ReviewsContent() {
         await rejectReview(item.resource_kind, item.resource_id, { reason: '' });
       }
     } catch (decisionError) {
+      if (consumeUnauthorized(decisionError)) {
+        return;
+      }
+
       if (decisionError instanceof ApiError) {
         setError(decisionError.detail);
       } else {
@@ -95,7 +128,7 @@ function ReviewsContent() {
           </div>
         </div>
 
-        <Button variant="secondary" onClick={() => mutate()}>
+        <Button variant="secondary" onClick={handleRefresh} loading={isRefreshing}>
           <RefreshCw className="mr-2 h-4 w-4" />
           {t('reviews.actions.refreshQueue')}
         </Button>
@@ -135,8 +168,23 @@ function ReviewsContent() {
         </div>
       </Card>
 
+      {shouldShowSessionExpired ? (
+        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep reviewing live queue items." />
+      ) : null}
+
+      {refreshError ? (
+        <Card
+          role="alert"
+          aria-live="polite"
+          aria-atomic="true"
+          className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+        >
+          {refreshError}
+        </Card>
+      ) : null}
+
       {/* Error */}
-      {gateError || error || dataError ? (
+      {gateError || error || (!shouldShowSessionExpired && dataError) ? (
         <Card 
           role="alert" 
           aria-live="assertive" 
@@ -156,7 +204,7 @@ function ReviewsContent() {
       ) : null}
 
       {/* Empty State */}
-      {!gateLoading && !isLoading && items.length === 0 ? (
+      {!gateLoading && !isLoading && !shouldShowSessionExpired && items.length === 0 ? (
         <Card variant="feature" className="space-y-6 text-center py-12 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-[#2D4A3D] text-green-600 dark:text-green-400">
             <ShieldCheck className="h-10 w-10" />

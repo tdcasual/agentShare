@@ -25,12 +25,12 @@ import type { AgentToken } from '../task/types';
 // ============================================
 
 export function getBootstrapStatus() {
-  return apiFetch<BootstrapStatus>('/api/bootstrap/status');
+  return apiFetch<BootstrapStatus>('/bootstrap/status');
 }
 
 export function setupOwner(payload: SetupOwnerInput) {
   return apiFetch<{ initialized: boolean; account: { id: string; email: string; display_name: string; role: string; status: string } }>(
-    '/api/bootstrap/setup-owner',
+    '/bootstrap/setup-owner',
     {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -43,18 +43,18 @@ export function setupOwner(payload: SetupOwnerInput) {
 // ============================================
 
 export function login(payload: LoginInput) {
-  return apiFetch<ManagementSessionSummary>('/api/session/login', {
+  return apiFetch<ManagementSessionSummary>('/session/login', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function logout() {
-  return apiFetch<{ status: string }>('/api/session/logout', { method: 'POST' });
+  return apiFetch<{ status: string }>('/session/logout', { method: 'POST' });
 }
 
 export function getSession() {
-  return apiFetch<ManagementSessionSummary>('/api/session/me');
+  return apiFetch<ManagementSessionSummary>('/session/me');
 }
 
 // ============================================
@@ -62,11 +62,11 @@ export function getSession() {
 // ============================================
 
 export function getAgents() {
-  return apiFetch<{ items: Agent[] }>('/api/agents');
+  return apiFetch<{ items: Agent[] }>('/agents');
 }
 
 export function createAgent(payload: AgentCreateInput) {
-  return apiFetch<AgentCreateResponse>('/api/agents', {
+  return apiFetch<AgentCreateResponse>('/agents', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -77,18 +77,18 @@ export function createAgent(payload: AgentCreateInput) {
 // ============================================
 
 export function getAdminAccounts() {
-  return apiFetch<{ items: AdminAccountSummary[] }>('/api/admin-accounts');
+  return apiFetch<{ items: AdminAccountSummary[] }>('/admin-accounts');
 }
 
 export function createAdminAccount(payload: AdminAccountCreateInput) {
-  return apiFetch<AdminAccountSummary>('/api/admin-accounts', {
+  return apiFetch<AdminAccountSummary>('/admin-accounts', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function disableAdminAccount(accountId: string) {
-  return apiFetch<{ id: string; status: string }>(`/api/admin-accounts/${accountId}/disable`, {
+  return apiFetch<{ id: string; status: string }>(`/admin-accounts/${accountId}/disable`, {
     method: 'POST',
     body: JSON.stringify({}),
   });
@@ -99,18 +99,18 @@ export function disableAdminAccount(accountId: string) {
 // ============================================
 
 export function getAgentTokens(agentId: string) {
-  return apiFetch<{ items: AgentToken[] }>(`/api/agents/${agentId}/tokens`);
+  return apiFetch<{ items: AgentToken[] }>(`/agents/${agentId}/tokens`);
 }
 
 export function createAgentToken(agentId: string, payload: AgentTokenCreateInput) {
-  return apiFetch<AgentTokenCreateResponse>(`/api/agents/${agentId}/tokens`, {
+  return apiFetch<AgentTokenCreateResponse>(`/agents/${agentId}/tokens`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function revokeAgentToken(tokenId: string) {
-  return apiFetch<{ id: string; status: string }>(`/api/agent-tokens/${tokenId}/revoke`, {
+  return apiFetch<{ id: string; status: string }>(`/agent-tokens/${tokenId}/revoke`, {
     method: 'POST',
     body: JSON.stringify({}),
   });

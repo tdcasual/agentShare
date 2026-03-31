@@ -14,7 +14,7 @@ import type { ReviewQueueItem, ApproveReviewInput, RejectReviewInput } from './t
 // ============================================
 
 export function getReviews() {
-  return apiFetch<{ items: ReviewQueueItem[] }>('/api/reviews');
+  return apiFetch<{ items: ReviewQueueItem[] }>('/reviews');
 }
 
 // ============================================
@@ -22,14 +22,14 @@ export function getReviews() {
 // ============================================
 
 export function approveReview(resourceKind: string, resourceId: string, payload: ApproveReviewInput = {}) {
-  return apiFetch<ReviewQueueItem>(`/api/reviews/${resourceKind}/${resourceId}/approve`, {
+  return apiFetch<ReviewQueueItem>(`/reviews/${resourceKind}/${resourceId}/approve`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function rejectReview(resourceKind: string, resourceId: string, payload: RejectReviewInput = { reason: '' }) {
-  return apiFetch<ReviewQueueItem>(`/api/reviews/${resourceKind}/${resourceId}/reject`, {
+  return apiFetch<ReviewQueueItem>(`/reviews/${resourceKind}/${resourceId}/reject`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });

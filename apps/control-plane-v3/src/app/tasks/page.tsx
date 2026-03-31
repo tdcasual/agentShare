@@ -1,12 +1,12 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import { CheckCircle2, ClipboardList, MessageSquarePlus, Plus, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { ClipboardList, MessageSquarePlus, Plus, RefreshCw, Target } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useTaskDashboard, useCreateTask, useCreateTaskTargetFeedback } from '@/domains/task';
 import { useAgentsWithTokens } from '@/domains/identity';
 import { ApiError } from '@/lib/api-client';
-import { useManagementSessionGate } from '@/lib/session';
+import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import { useI18n } from '@/components/i18n-provider';
 import type { Task, AgentToken, Run, TokenFeedback } from '@/domains/task';
 import { Badge } from '@/shared/ui-primitives/badge';
@@ -41,8 +41,6 @@ export default function TasksPage() {
 
 function TasksContent() {
   const { t } = useI18n();
-  const { session, loading: gateLoading, error: gateError } = useManagementSessionGate();
-  
   // 使用新的 SWR hooks
   const { 
     tasks, 
@@ -53,13 +51,22 @@ function TasksContent() {
     error: dataError, 
     mutate 
   } = useTaskDashboard();
+  const {
+    loading: gateLoading,
+    error: gateError,
+    shouldShowSessionExpired,
+    clearSessionExpired,
+    consumeUnauthorized,
+  } = useManagementPageSessionRecovery(dataError);
   
-  const { agents, tokensByAgent } = useAgentsWithTokens();
+  useAgentsWithTokens();
   const createTask = useCreateTask();
   const createFeedback = useCreateTaskTargetFeedback();
   
   // 本地 UI 状态
   const [error, setError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [feedbackTarget, setFeedbackTarget] = useState<FeedbackTargetState | null>(null);
@@ -97,6 +104,26 @@ function TasksContent() {
   );
   const totalFeedback = Object.values(feedbackByTargetId).reduce((total, items) => total + items.length, 0);
   const selectedTask = taskViews.find((item) => item.task.id === selectedTaskId) ?? null;
+
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    setRefreshError(null);
+    clearSessionExpired();
+
+    try {
+      await mutate();
+    } catch (refreshFailure) {
+      if (consumeUnauthorized(refreshFailure)) {
+        return;
+      }
+
+      setRefreshError(
+        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh tasks'
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
 
   async function handleCreateTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -141,7 +168,9 @@ function TasksContent() {
 
   async function handleSubmitFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!feedbackTarget) return;
+    if (!feedbackTarget) {
+      return;
+    }
 
     setSubmittingFeedback(true);
     setFeedbackFormError(null);
@@ -193,7 +222,7 @@ function TasksContent() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" onClick={() => mutate()}>
+          <Button variant="secondary" onClick={handleRefresh} loading={isRefreshing}>
             <RefreshCw className="mr-2 h-4 w-4" />
             {t('common.refresh') || 'Refresh'}
           </Button>
@@ -211,7 +240,22 @@ function TasksContent() {
         <MetricCard label={t('tasks.metrics.feedbackRecords') || 'Feedback records'} value={totalFeedback.toString()} hint={t('tasks.hints.feedbackRecords') || 'human review notes on finished work'} />
       </div>
 
-      {(gateError || error || dataError) && (
+      {shouldShowSessionExpired ? (
+        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live task data." />
+      ) : null}
+
+      {refreshError && (
+        <Card 
+          role="alert" 
+          aria-live="polite" 
+          aria-atomic="true"
+          className="border border-red-100 bg-red-50/80 text-red-700"
+        >
+          {refreshError}
+        </Card>
+      )}
+
+      {(gateError || error || (!shouldShowSessionExpired && dataError)) && (
         <Card 
           role="alert" 
           aria-live="assertive" 
@@ -328,8 +372,9 @@ function TasksContent() {
               required
             />
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.priority') || 'Priority'}</label>
+              <label htmlFor="task-priority" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.priority') || 'Priority'}</label>
               <select
+                id="task-priority"
                 className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
                 value={taskForm.priority}
                 onChange={(event) => setTaskForm((current) => ({ ...current, priority: event.target.value }))}
@@ -573,8 +618,9 @@ function TasksContent() {
         <form className="space-y-4" onSubmit={handleSubmitFeedback}>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.score') || 'Score'}</label>
+              <label htmlFor="feedback-score" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('tasks.form.score') || 'Score'}</label>
               <select
+                id="feedback-score"
                 className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
                 value={feedbackForm.score}
                 onChange={(event) => setFeedbackForm((current) => ({ ...current, score: event.target.value }))}

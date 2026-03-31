@@ -1,12 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '@/lib/utils';
 
 const cardVariants = {
   default: 'bg-white/90 dark:bg-[#252540]/90 backdrop-blur-sm border border-pink-100/50',
@@ -21,13 +16,20 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: keyof typeof cardVariants;
   hover?: boolean;
   decoration?: boolean;
+  role?: string;
+  'aria-label'?: string;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = 'default', hover = false, decoration = false, children, ...props }, ref) => {
+  ({ className, variant = 'default', hover = false, decoration = false, role, 'aria-label': ariaLabel, children, ...props }, ref) => {
+    // 自动推断角色：如果有 hover 效果，可能是可交互的
+    const inferredRole = role ?? (hover ? 'button' : 'region');
+    
     return (
       <div
         ref={ref}
+        role={inferredRole}
+        aria-label={ariaLabel}
         className={cn(
           'rounded-3xl p-6 relative',
           cardVariants[variant],
@@ -38,7 +40,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       >
         {/* Decorative corner */}
         {decoration && (
-          <span className="absolute top-3 right-3 text-xl opacity-20 select-none">
+          <span className="absolute top-3 right-3 text-xl opacity-20 select-none" aria-hidden="true">
             🌸
           </span>
         )}

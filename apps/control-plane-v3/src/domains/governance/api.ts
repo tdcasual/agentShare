@@ -7,22 +7,22 @@ import type {
 } from './types';
 
 export function getSecrets() {
-  return apiFetch<{ items: GovernedSecret[] }>('/api/secrets');
+  return apiFetch<{ items: GovernedSecret[] }>('/secrets');
 }
 
 export function createSecret(payload: SecretCreateInput) {
-  return apiFetch<GovernedSecret>('/api/secrets', {
+  return apiFetch<GovernedSecret>('/secrets', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function getCapabilities() {
-  return apiFetch<{ items: GovernedCapability[] }>('/api/capabilities');
+  return apiFetch<{ items: GovernedCapability[] }>('/capabilities');
 }
 
 export function createCapability(payload: CapabilityCreateInput) {
-  return apiFetch<GovernedCapability>('/api/capabilities', {
+  return apiFetch<GovernedCapability>('/capabilities', {
     method: 'POST',
     body: JSON.stringify(payload),
   });

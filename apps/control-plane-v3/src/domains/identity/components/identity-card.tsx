@@ -1,16 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 import type { Identity, HumanIdentity, AgentIdentity } from '../../../shared/types';
 import { Card, CardContent } from '../../../shared/ui-primitives/card';
 import { Badge } from '../../../shared/ui-primitives/badge';
 import { SparkleEffect } from '@/components/kawaii/sparkle-effect';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface IdentityCardProps {
   identity: Identity;

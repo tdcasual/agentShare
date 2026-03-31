@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Layout } from '@/interfaces/human/layout';
 import { useAdminAccounts, useCreateAdminAccount, useDisableAdminAccount, useLogout } from '@/domains/identity';
 import { ApiError } from '@/lib/api-client';
-import { useManagementSessionGate } from '@/lib/session';
+import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import { useI18n } from '@/components/i18n-provider';
 import type { AdminAccountCreateInput } from '@/lib/api-client';
 import { Badge } from '@/shared/ui-primitives/badge';
@@ -25,10 +25,16 @@ export default function SettingsPage() {
 function SettingsContent() {
   const { t } = useI18n();
   const router = useRouter();
-  const { session, loading: gateLoading, error: gateError } = useManagementSessionGate();
-  
   // 使用 SWR hooks
   const { data: accountsData, isLoading, error: dataError } = useAdminAccounts();
+  const {
+    session,
+    loading: gateLoading,
+    error: gateError,
+    shouldShowSessionExpired,
+    clearSessionExpired,
+    consumeUnauthorized,
+  } = useManagementPageSessionRecovery(dataError);
   const createAdminAccount = useCreateAdminAccount();
   const disableAdminAccount = useDisableAdminAccount();
   const logout = useLogout();
@@ -57,6 +63,7 @@ function SettingsContent() {
     event.preventDefault();
     setSubmittingInvite(true);
     setError(null);
+    clearSessionExpired();
 
     try {
       const payload: AdminAccountCreateInput = {
@@ -73,6 +80,10 @@ function SettingsContent() {
         role: 'admin',
       });
     } catch (inviteError) {
+      if (consumeUnauthorized(inviteError)) {
+        return;
+      }
+
       if (inviteError instanceof ApiError) {
         setError(inviteError.detail);
       } else {
@@ -85,9 +96,14 @@ function SettingsContent() {
 
   async function handleDisable(accountId: string) {
     setError(null);
+    clearSessionExpired();
     try {
       await disableAdminAccount(accountId);
     } catch (disableError) {
+      if (consumeUnauthorized(disableError)) {
+        return;
+      }
+
       if (disableError instanceof ApiError) {
         setError(disableError.detail);
       } else {
@@ -99,10 +115,16 @@ function SettingsContent() {
   async function handleLogout() {
     setSigningOut(true);
     setError(null);
+    clearSessionExpired();
     try {
       await logout();
       router.push('/login');
     } catch (logoutError) {
+      if (consumeUnauthorized(logoutError)) {
+        router.push('/login');
+        return;
+      }
+
       if (logoutError instanceof ApiError) {
         setError(logoutError.detail);
       } else {
@@ -182,8 +204,9 @@ function SettingsContent() {
               required
             />
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('settings.role')}</label>
+              <label htmlFor="role-select" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('settings.role')}</label>
               <select
+                id="role-select"
                 className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
                 value={inviteForm.role}
                 onChange={(event) =>
@@ -251,7 +274,14 @@ function SettingsContent() {
         </Card>
       </div>
 
-      {(gateError || error || dataError) && (
+      {shouldShowSessionExpired ? (
+        <ManagementSessionExpiredAlert
+          className="border-red-100 bg-red-50/80 text-red-700"
+          message="Your management session has expired. Sign in again to continue managing operators and access."
+        />
+      ) : null}
+
+      {(gateError || error || (!shouldShowSessionExpired && dataError)) && (
         <Card 
           role="alert" 
           aria-live="assertive" 

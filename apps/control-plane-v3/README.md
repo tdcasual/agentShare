@@ -32,8 +32,18 @@ npm install
 # Run development server
 npm run dev
 
-# Open http://localhost:3001
+# Open http://localhost:3000
 ```
+
+## API Contract
+
+- 浏览器代码统一访问同域 `/api/*`
+- domain API 只传业务路径，例如 `/session/login`、`/session/me`、`/agents`
+- Next.js 代理负责把这些浏览器请求转发到后端管理 API
+- `BACKEND_API_URL` 可以配置为:
+  - `http://localhost:8000`
+  - `http://localhost:8000/api`
+- 代理层会把这两种配置都归一化到单层 `/api/*` 后端目标
 
 ## 📁 Architecture
 

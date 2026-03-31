@@ -1,63 +1,74 @@
+/**
+ * Header - 全局顶部导航栏
+ * 
+ * 包含：搜索、在线用户、创建菜单、通知、消息、用户菜单
+ * 
+ * @CPRV3-MIGRATION: 已修复 - 使用真实功能的组件替代占位符
+ * - Create 按钮: 使用 CreateMenu 组件提供真实创建选项
+ * - 搜索: 使用 GlobalSearch 组件实现真实搜索功能
+ * - 通知: 使用 Notifications 组件绑定真实数据
+ */
+
 'use client';
 
-import * as React from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import {
-  Search,
-  Bell,
-  Plus,
-  MessageSquare,
-  Command,
+import { 
+  MessageSquare, 
+  User, 
+  Settings, 
   LogOut,
-  User,
-  Settings,
+  X,
 } from 'lucide-react';
-import { Input } from '../../../shared/ui-primitives/input';
-import { Avatar, AvatarGroup } from '../../../shared/ui-primitives/avatar';
-import { Button } from '../../../shared/ui-primitives/button';
+import { Avatar, AvatarGroup } from '@/shared/ui-primitives/avatar';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { SimpleThemeToggle } from '@/components/theme-toggle';
-import type { Identity } from '../../../shared/types';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { ThemeToggle } from '@/components/theme-toggle';
+import { GlobalSearch } from '@/components/global-search';
+import { CreateMenu } from '@/components/create-menu';
+import { Notifications } from '@/components/notifications';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
+import { cn } from '@/lib/utils';
+import type { Identity } from '@/domains/identity/types';
 
 interface HeaderProps {
   currentIdentity: Identity | null;
   onlineIdentities: Identity[];
-  onCreateClick: () => void;
 }
 
-export function Header({ currentIdentity, onlineIdentities, onCreateClick }: HeaderProps) {
-  const router = useRouter();
-  const [showUserMenu, setShowUserMenu] = React.useState(false);
-  const [showNotifications, setShowNotifications] = React.useState(false);
+const USER_MENU_ACTIONS = {
+  profile: '/settings',
+  settings: '/settings',
+  logout: '/logout',
+} as const;
 
-  const notifications = [
-    { id: 1, type: 'agent', message: 'DeployBot completed task "API Deployment"', time: '2m ago' },
-    { id: 2, type: 'human', message: 'Alice mentioned you in #project-alpha', time: '5m ago' },
-    { id: 3, type: 'system', message: 'New Agent DataAnalyzer joined the workspace', time: '1h ago' },
+export function getUserMenuTargets() {
+  return [
+    USER_MENU_ACTIONS.profile,
+    USER_MENU_ACTIONS.settings,
+    USER_MENU_ACTIONS.logout,
   ];
+}
+
+export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
+  const router = useRouter();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+
+  // 焦点陷阱 refs
+  const { containerRef: userMenuRef } = useFocusTrap({
+    isActive: showUserMenu,
+    onEscape: () => setShowUserMenu(false),
+  });
+  const { containerRef: messagesRef } = useFocusTrap({
+    isActive: showMessages,
+    onEscape: () => setShowMessages(false),
+  });
 
   return (
     <header className="h-16 bg-white/80 dark:bg-[#252540]/80 backdrop-blur-md border-b border-pink-100 dark:border-[#3D3D5C] flex items-center justify-between px-6 sticky top-0 z-30">
       {/* Left - Search */}
       <div className="flex-1 max-w-xl">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#9CA3AF]" />
-          <input
-            type="text"
-            placeholder="Search identities, assets, spaces..."
-            className="w-full pl-11 pr-4 py-2 rounded-full bg-gray-100/80 dark:bg-[#1A1A2E]/80 border-none text-sm text-gray-800 dark:text-[#E8E8EC] focus:ring-2 focus:ring-pink-200 dark:focus:ring-[#E891C0]/30 focus:bg-white dark:focus:bg-[#1A1A2E] transition-all"
-          />
-          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-[#1A1A2E] rounded text-xs text-gray-400 dark:text-[#9CA3AF] border border-gray-200 dark:border-[#3D3D5C]">
-            <Command className="w-3 h-3" />
-            <span>K</span>
-          </kbd>
-        </div>
+        <GlobalSearch />
       </div>
 
       {/* Right - Actions */}
@@ -66,18 +77,18 @@ export function Header({ currentIdentity, onlineIdentities, onCreateClick }: Hea
         <div className="flex items-center gap-2">
           <div className="md:hidden flex items-center gap-1">
             <LanguageSwitcher compact />
-            <SimpleThemeToggle />
+            <ThemeToggle />
           </div>
           <div className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
-            <SimpleThemeToggle />
+            <ThemeToggle />
           </div>
         </div>
 
         {/* Online Users */}
         {onlineIdentities.length > 0 && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 dark:bg-[#2D4A3D] border border-green-100 dark:border-green-800">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
             <span className="text-sm text-green-700 dark:text-green-400">{onlineIdentities.length} online</span>
             <AvatarGroup className="ml-1">
               {onlineIdentities.slice(0, 3).map((identity) => (
@@ -92,79 +103,86 @@ export function Header({ currentIdentity, onlineIdentities, onCreateClick }: Hea
           </div>
         )}
 
-        {/* Create Button */}
-        <Button variant="primary" size="sm" onClick={onCreateClick}>
-          <Plus className="w-4 h-4 mr-1" />
-          Create
-        </Button>
+        {/* Create Button - 使用真实功能的 CreateMenu */}
+        <CreateMenu variant="primary" size="sm" />
 
-        {/* Notifications */}
+        {/* Notifications - 使用真实数据绑定的 Notifications 组件 */}
+        <Notifications />
+
+        {/* Messages - 简化实现，标记为即将推出 */}
         <div className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2.5 rounded-full text-gray-500 dark:text-[#9CA3AF] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] hover:text-pink-600 dark:hover:text-[#E891C0] transition-colors relative"
+            type="button"
+            onClick={() => {
+              setShowMessages(!showMessages);
+              setShowUserMenu(false);
+            }}
+            aria-expanded={showMessages}
+            aria-haspopup="menu"
+            aria-label="Messages"
+            className={cn(
+              'p-2.5 rounded-full transition-colors relative focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
+              showMessages
+                ? 'bg-pink-50 dark:bg-[#3D3D5C] text-pink-600 dark:text-[#E891C0]'
+                : 'text-gray-500 dark:text-[#9CA3AF] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] hover:text-pink-600 dark:hover:text-[#E891C0]'
+            )}
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-pink-500 text-white text-[10px] flex items-center justify-center">
-              {notifications.length}
-            </span>
+            <MessageSquare className="w-5 h-5" aria-hidden="true" />
           </button>
 
-          {/* Notifications Dropdown */}
-          {showNotifications && (
+          {/* Messages Dropdown - 显示不可用状态 */}
+          {showMessages && (
             <>
               <div
                 className="fixed inset-0 z-40"
-                onClick={() => setShowNotifications(false)}
+                onClick={() => setShowMessages(false)}
+                aria-hidden="true"
               />
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up">
+              <div
+                ref={messagesRef}
+                role="menu"
+                aria-label="Messages"
+                className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up"
+              >
                 <div className="p-4 border-b border-pink-100 dark:border-[#3D3D5C] flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Notifications</h3>
-                  <button className="text-sm text-pink-600 dark:text-[#E891C0] hover:text-pink-700 dark:hover:text-[#C77DAA]">
-                    Mark all read
+                  <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Messages</h3>
+                  <button
+                    onClick={() => setShowMessages(false)}
+                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#3D3D5C] text-gray-400 dark:text-[#9CA3AF] transition-colors"
+                    aria-label="Close messages"
+                  >
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="max-h-80 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className="p-4 hover:bg-pink-50/50 dark:hover:bg-[#2D2D50] transition-colors border-b border-pink-50 dark:border-[#3D3D5C]/50 last:border-0 cursor-pointer"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={cn(
-                          'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                          notification.type === 'agent' && 'bg-green-100 dark:bg-[#2D4A3D] text-green-600 dark:text-green-400',
-                          notification.type === 'human' && 'bg-sky-100 dark:bg-[#2D4A5D] text-sky-600 dark:text-sky-400',
-                          notification.type === 'system' && 'bg-purple-100 dark:bg-[#3D2D4A] text-purple-600 dark:text-purple-400'
-                        )}>
-                          {notification.type === 'agent' && '🤖'}
-                          {notification.type === 'human' && '👤'}
-                          {notification.type === 'system' && '⚡'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-700 dark:text-[#E8E8EC]">{notification.message}</p>
-                          <p className="text-xs text-gray-400 dark:text-[#9CA3AF] mt-1">{notification.time}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="p-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#3D3D5C] flex items-center justify-center mx-auto mb-3">
+                    <MessageSquare className="w-6 h-6 text-gray-400 dark:text-[#9CA3AF]" />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                    Messages coming soon
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-[#9CA3AF] mt-1">
+                    Stay tuned for updates
+                  </p>
                 </div>
               </div>
             </>
           )}
         </div>
 
-        {/* Messages */}
-        <button className="p-2.5 rounded-full text-gray-500 dark:text-[#9CA3AF] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] hover:text-pink-600 dark:hover:text-[#E891C0] transition-colors">
-          <MessageSquare className="w-5 h-5" />
-        </button>
-
         {/* User Menu */}
         {currentIdentity && (
           <div className="relative">
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#3D3D5C] transition-colors"
+              type="button"
+              onClick={() => {
+                setShowUserMenu(!showUserMenu);
+                setShowMessages(false);
+              }}
+              aria-expanded={showUserMenu}
+              aria-haspopup="menu"
+              aria-label={`User menu for ${currentIdentity.profile.name}`}
+              className="flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#3D3D5C] transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2"
             >
               <Avatar
                 src={currentIdentity.profile.avatar}
@@ -182,8 +200,14 @@ export function Header({ currentIdentity, onlineIdentities, onCreateClick }: Hea
                 <div
                   className="fixed inset-0 z-40"
                   onClick={() => setShowUserMenu(false)}
+                  aria-hidden="true"
                 />
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up">
+                <div
+                  ref={userMenuRef}
+                  role="menu"
+                  aria-label="User menu"
+                  className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up"
+                >
                   <div className="p-4 border-b border-pink-100 dark:border-[#3D3D5C]">
                     <p className="font-semibold text-gray-800 dark:text-[#E8E8EC]">{currentIdentity.profile.name}</p>
                     <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
@@ -191,17 +215,32 @@ export function Header({ currentIdentity, onlineIdentities, onCreateClick }: Hea
                     </p>
                   </div>
                   <div className="p-2">
-                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] transition-colors">
-                      <User className="w-4 h-4" />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => router.push(USER_MENU_ACTIONS.profile)}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 text-left"
+                    >
+                      <User className="w-4 h-4" aria-hidden="true" />
                       <span>Profile</span>
                     </button>
-                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] transition-colors">
-                      <Settings className="w-4 h-4" />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => router.push(USER_MENU_ACTIONS.settings)}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 text-left"
+                    >
+                      <Settings className="w-4 h-4" aria-hidden="true" />
                       <span>Settings</span>
                     </button>
                     <hr className="my-2 border-pink-100 dark:border-[#3D3D5C]" />
-                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                      <LogOut className="w-4 h-4" />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => router.push(USER_MENU_ACTIONS.logout)}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 text-left"
+                    >
+                      <LogOut className="w-4 h-4" aria-hidden="true" />
                       <span>Sign out</span>
                     </button>
                   </div>

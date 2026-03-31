@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
+import { useIsMobile } from '@/hooks/use-device-type';
 import {
   LayoutDashboard,
   Users,
@@ -26,11 +27,27 @@ const getNavItems = (t: (key: string) => string) => [
   { href: '/reviews', label: t('navigation.reviews'), icon: ShieldCheck },
 ];
 
+export function getMobileShellNavTargets() {
+  return [
+    '/',
+    '/identities',
+    '/spaces',
+    '/tokens',
+    '/tasks',
+    '/reviews',
+    '/settings',
+  ];
+}
+
 export function MobileNav() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const isMobile = useIsMobile();
   const navItems = getNavItems(t);
   const [showMore, setShowMore] = React.useState(false);
+
+  // 仅在移动端显示
+  if (!isMobile) return null;
 
   // 只显示前4个主要导航项，其他放入"更多"
   const mainItems = navItems.slice(0, 4);
@@ -39,7 +56,9 @@ export function MobileNav() {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-[#252540]/90 backdrop-blur-md border-t border-pink-100 dark:border-[#3D3D5C] z-50 lg:hidden safe-area-pb">
+      <nav 
+        className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-[#252540]/90 backdrop-blur-md border-t border-pink-100 dark:border-[#3D3D5C] z-50 safe-area-pb"
+      >
         <div className="flex items-center justify-around px-2 py-2">
           {mainItems.map((item) => {
             const Icon = item.icon;
@@ -87,10 +106,10 @@ export function MobileNav() {
       {showMore && (
         <>
           <div 
-            className="fixed inset-0 bg-black/20 dark:bg-black/40 z-50 lg:hidden"
+            className="fixed inset-0 bg-black/20 dark:bg-black/40 z-50"
             onClick={() => setShowMore(false)}
           />
-          <div className="fixed bottom-20 left-4 right-4 bg-white dark:bg-[#252540] rounded-3xl shadow-2xl border border-pink-100 dark:border-[#3D3D5C] z-50 lg:hidden animate-slide-up">
+          <div className="fixed bottom-20 left-4 right-4 bg-white dark:bg-[#252540] rounded-3xl shadow-2xl border border-pink-100 dark:border-[#3D3D5C] z-50 animate-slide-up">
             <div className="p-4 space-y-1">
               {moreItems.map((item) => {
                 const Icon = item.icon;

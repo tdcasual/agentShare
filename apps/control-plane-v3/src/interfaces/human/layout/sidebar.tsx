@@ -3,8 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 import {
   LayoutDashboard,
@@ -19,10 +18,6 @@ import {
   KeyRound,
   ShieldCheck,
 } from 'lucide-react';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface NavItem {
   href: string;
@@ -77,7 +72,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           aria-label="Sakura logo"
           role="img"
         >
-          🌸
+          <span aria-hidden="true">🌸</span>
         </div>
         {!collapsed && (
           <div className="ml-3 overflow-hidden">

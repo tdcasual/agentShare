@@ -4,6 +4,7 @@
 
 import type { Plugin, CoreRuntime } from '../../core/plugin/types';
 import { IdentityRegistryImpl, IdentityRegistryServiceId } from './services/identity-registry';
+import { logger } from '@/lib/logger';
 
 export class IdentityDomainPlugin implements Plugin {
   readonly id = 'domain.identity';
@@ -38,11 +39,11 @@ export class IdentityDomainPlugin implements Plugin {
     // Seed with demo identities
     this.seedDemoData();
     
-    console.log('Identity domain activated');
+    logger.runtime.info('Identity domain activated');
   }
 
   deactivate(): void {
-    console.log('Identity domain deactivated');
+    logger.runtime.info('Identity domain deactivated');
   }
 
   uninstall(): void {
@@ -161,7 +162,7 @@ export class IdentityDomainPlugin implements Plugin {
     });
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('Demo identities seeded');
+      logger.runtime.debug('Demo identities seeded');
     }
   }
 }

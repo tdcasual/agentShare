@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { useEffect, useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Layout } from '../interfaces/human/layout';
 import { useRuntime } from '../core/runtime';
@@ -15,7 +16,7 @@ import { resolveAppEntryState, type AppEntryState } from '@/lib/session';
 import { useI18n } from '@/components/i18n-provider';
 import {
   Users, Bot, Globe, Zap, CheckSquare,
-  TrendingUp, Clock, ArrowRight, Sparkles, KeyRound, ShieldCheck
+  ArrowRight, Sparkles, KeyRound, ShieldCheck
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -36,12 +37,16 @@ export default function HubPage() {
           return;
         }
         setEntryState(nextState);
-        if (nextState.kind === 'setup') {
+        if (nextState.kind === 'bootstrap_required') {
           router.replace('/setup');
           return;
         }
-        if (nextState.kind === 'login') {
+        if (nextState.kind === 'login_required') {
           router.replace('/login');
+          return;
+        }
+        if (nextState.kind === 'unavailable') {
+          setError(nextState.error);
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -59,7 +64,12 @@ export default function HubPage() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
-        <Card variant="feature" className="max-w-lg w-full text-center space-y-4">
+        <Card 
+          role="alert"
+          aria-live="assertive"
+          variant="feature" 
+          className="max-w-lg w-full text-center space-y-4"
+        >
           <div className="space-y-2">
             <p className="text-sm uppercase tracking-[0.35em] text-pink-500">Control Plane V3</p>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{t('hub.unableToOpen')}</h1>
@@ -70,7 +80,7 @@ export default function HubPage() {
     );
   }
 
-  if (!entryState || entryState.kind !== 'ready') {
+  if (!entryState || entryState.kind !== 'authenticated_ready') {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
         <Card variant="feature" className="max-w-lg w-full text-center space-y-4">
@@ -91,7 +101,7 @@ export default function HubPage() {
   );
 }
 
-function HubContent({ email, role }: { email: string; role: string }) {
+const HubContent = memo(function HubContent({ email, role }: { email: string; role: string }) {
   const { t } = useI18n();
   const runtime = useRuntime();
   const [identities, setIdentities] = useState<Identity[]>([]);
@@ -235,9 +245,12 @@ function HubContent({ email, role }: { email: string; role: string }) {
                     key={activity.id}
                     className="p-4 flex items-center gap-4 hover:bg-pink-50/30 transition-colors"
                   >
-                    <img
+                    <Image
                       src={activity.actor.profile.avatar}
                       alt={activity.actor.profile.name}
+                      width={40}
+                      height={40}
+                      sizes="40px"
                       className="w-10 h-10 rounded-full object-cover"
                     />
                     <div className="flex-1 min-w-0">
@@ -307,9 +320,9 @@ function HubContent({ email, role }: { email: string; role: string }) {
       </div>
     </div>
   );
-}
+});
 
-function StatCard({
+const StatCard = memo(function StatCard({
   icon,
   label,
   value,
@@ -341,17 +354,17 @@ function StatCard({
       </div>
     </Card>
   );
-}
+});
 
-function ActionButton({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+const ActionButton = memo(function ActionButton({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
     <Link href={href} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 transition-colors text-left">
       <span className="text-pink-500">{icon}</span>
       <span className="font-medium">{label}</span>
     </Link>
   );
-}
+});
 
-function cn(...inputs: ClassValue[]) {
+const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
-}
+};

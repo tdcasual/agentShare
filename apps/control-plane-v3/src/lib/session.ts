@@ -3,36 +3,57 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { BootstrapStatus, ManagementSessionSummary } from '@/shared/types';
-import { ApiError, api } from '@/lib/api';
+import { api } from '@/lib/api';
+import { resolveEntryState, type ResolvedEntryState } from '@/lib/entry-state';
+import { setGlobalSession } from '@/lib/session-state';
 
 export type AppEntryState =
-  | { kind: 'setup'; bootstrap: BootstrapStatus }
-  | { kind: 'login'; bootstrap: BootstrapStatus }
-  | { kind: 'ready'; bootstrap: BootstrapStatus; session: ManagementSessionSummary };
+  | { kind: 'bootstrap_required'; bootstrap: BootstrapStatus }
+  | { kind: 'login_required'; bootstrap: BootstrapStatus }
+  | { kind: 'authenticated_ready'; bootstrap: BootstrapStatus; session: ManagementSessionSummary }
+  | { kind: 'unavailable'; error: string; bootstrap?: BootstrapStatus; status?: number };
 
-export async function resolveAppEntryState(): Promise<AppEntryState> {
-  const bootstrap = await api.getBootstrapStatus();
-  if (!bootstrap.initialized) {
-    return { kind: 'setup', bootstrap };
+function syncGlobalSession(entryState: AppEntryState) {
+  if (entryState.kind === 'authenticated_ready') {
+    setGlobalSession({
+      state: 'authenticated',
+      email: entryState.session.email,
+      role: entryState.session.role,
+      sessionId: entryState.session.session_id ?? entryState.session.id,
+      lastLoadedAt: Date.now(),
+    });
+    return;
   }
 
-  try {
-    const session = await api.getSession();
-    return { kind: 'ready', bootstrap, session };
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      return { kind: 'login', bootstrap };
-    }
-    throw error;
+  if (entryState.kind === 'login_required') {
+    setGlobalSession({
+      state: 'anonymous',
+      lastLoadedAt: Date.now(),
+    });
   }
 }
 
-export function useManagementSessionGate() {
+export async function resolveAppEntryState(): Promise<AppEntryState> {
+  const entryState = await resolveEntryState({
+    getBootstrapStatus: api.getBootstrapStatus,
+    getSession: api.getSession,
+  });
+
+  syncGlobalSession(entryState);
+  return entryState;
+}
+
+interface ManagementSessionGateOptions {
+  redirectOnMissingSession?: boolean;
+}
+
+export function useManagementSessionGate(options: ManagementSessionGateOptions = {}) {
   const router = useRouter();
   const [session, setSession] = useState<ManagementSessionSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const redirectOnMissingSession = options.redirectOnMissingSession ?? true;
 
   useEffect(() => {
     let cancelled = false;
@@ -42,29 +63,38 @@ export function useManagementSessionGate() {
       setError(null);
 
       try {
-        const bootstrap = await api.getBootstrapStatus();
         if (cancelled) {
           return;
         }
-        if (!bootstrap.initialized) {
+        const nextState = await resolveAppEntryState();
+        if (cancelled) {
+          return;
+        }
+
+        if (nextState.kind === 'bootstrap_required') {
           router.replace('/setup');
           return;
         }
 
-        const currentSession = await api.getSession();
-        if (cancelled) {
+        if (nextState.kind === 'login_required') {
+          if (redirectOnMissingSession) {
+            router.replace('/login');
+          } else {
+            setSession(null);
+          }
           return;
         }
-        setSession(currentSession);
+
+        if (nextState.kind === 'unavailable') {
+          setError(nextState.error);
+          return;
+        }
+
+        setSession(nextState.session);
       } catch (loadError) {
-        if (cancelled) {
-          return;
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : 'Failed to load management session');
         }
-        if (loadError instanceof ApiError && loadError.status === 401) {
-          router.replace('/login');
-          return;
-        }
-        setError(loadError instanceof Error ? loadError.message : 'Failed to load management session');
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -76,7 +106,7 @@ export function useManagementSessionGate() {
     return () => {
       cancelled = true;
     };
-  }, [refreshNonce, router]);
+  }, [redirectOnMissingSession, refreshNonce, router]);
 
   return {
     session,

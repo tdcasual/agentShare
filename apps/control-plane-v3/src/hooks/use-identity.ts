@@ -126,7 +126,9 @@ export function useIdentity(identityId: string | null) {
     
     async function load() {
       setIsLoading(true);
-      if (!identityId) return;
+      if (!identityId) {
+        return;
+      }
       const found = registry.getById(identityId);
       if (mounted) {
         setIdentity(found || null);

@@ -1,0 +1,34 @@
+import { access } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
+import { getCreateActionTargets } from '@/components/create-menu';
+import { getUserMenuTargets } from '@/interfaces/human/layout/header';
+import { getRoutePolicy, isRouteAllowed } from '@/lib/route-policy';
+
+const appDir = path.dirname(fileURLToPath(import.meta.url));
+
+describe('shell route integrity', () => {
+  it('does not point create-menu actions to missing routes', () => {
+    expect(getCreateActionTargets()).toEqual([
+      '/tokens',
+      '/settings',
+      '/tokens',
+      '/spaces',
+      '/settings',
+    ]);
+  });
+
+  it('retargets user menu actions to existing routes', () => {
+    expect(getUserMenuTargets()).toEqual(['/settings', '/settings', '/logout']);
+  });
+
+  it('allows logout as a functional auth transition route', () => {
+    expect(getRoutePolicy('/logout')).toBeDefined();
+    expect(isRouteAllowed('/logout', 'authenticated')).toEqual({ allowed: true });
+  });
+
+  it('ships a real logout page', async () => {
+    await expect(access(path.join(appDir, 'logout/page.tsx'))).resolves.toBeUndefined();
+  });
+});

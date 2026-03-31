@@ -14,11 +14,14 @@ import { useState } from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { MobileNav } from '@/components/mobile-nav';
-import { useIdentities } from '@/hooks/use-identity';
+import { TabletSidebar } from '@/components/tablet-sidebar';
+import { useDeviceType } from '@/hooks/use-device-type';
+import { useShellIdentity } from '@/hooks/use-shell-identity';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui-primitives/button';
 import type { Identity } from '@/shared/types';
+import { cn } from '@/lib/utils';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -39,13 +42,14 @@ interface LayoutProps {
  */
 export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const device = useDeviceType();
   const { 
     currentIdentity, 
     onlineIdentities, 
     isLoading, 
     error,
     refresh 
-  } = useIdentities();
+  } = useShellIdentity();
 
   // 加载状态
   if (isLoading) {
@@ -59,7 +63,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar - lg 及以上显示 */}
       <div className="hidden lg:block">
         <Sidebar 
           collapsed={sidebarCollapsed} 
@@ -67,25 +71,45 @@ export function Layout({ children }: LayoutProps) {
         />
       </div>
 
+      {/* Tablet Sidebar - md 到 lg 之间显示 */}
+      <TabletSidebar />
+
       {/* Main Content Area */}
-      <div className={`transition-all duration-300 lg:ml-0 ${
-        sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
-      }`}>
+      <div 
+        className={cn(
+          'transition-all duration-300',
+          // 移动端无侧边栏
+          device.isMobile && 'ml-0 pb-20',
+          // 平板竖屏：可折叠侧边栏
+          device.isTabletPortrait && 'md:ml-14',
+          // 平板横屏：图标侧边栏
+          device.isTabletLandscape && 'ml-20',
+          // 桌面端：根据侧边栏状态
+          device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
+        )}
+      >
         <Header 
           currentIdentity={currentIdentity} 
           onlineIdentities={onlineIdentities} 
-          onCreateClick={() => {}}
         />
         
-        <main className="p-4 md:p-6 pb-24 lg:pb-6">
+        <main className={cn(
+          'touch-pan-y',
+          // 移动端更多底部空间给底部导航
+          device.isMobile && 'p-4 pb-24',
+          // 平板适中内边距
+          device.isTablet && 'p-6',
+          // 桌面端宽松内边距
+          device.isDesktop && 'p-6'
+        )}>
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
         </main>
       </div>
 
-      {/* Mobile Navigation */}
-      <MobileNav />
+      {/* Mobile Navigation - 仅移动端显示（不包括平板） */}
+      {device.isMobile && <MobileNav />}
     </div>
   );
 }
@@ -156,6 +180,7 @@ export function SimpleLayout({
   isLoading = false 
 }: SimpleLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const device = useDeviceType();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -163,28 +188,41 @@ export function SimpleLayout({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
+      {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar 
           collapsed={sidebarCollapsed} 
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
         />
       </div>
+
+      {/* Tablet Sidebar */}
+      <TabletSidebar />
       
-      <div className={`transition-all duration-300 lg:ml-0 ${
-        sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
-      }`}>
+      <div 
+        className={cn(
+          'transition-all duration-300',
+          device.isMobile && 'ml-0 pb-20',
+          device.isTabletPortrait && 'md:ml-14',
+          device.isTabletLandscape && 'ml-20',
+          device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
+        )}
+      >
         <Header 
           currentIdentity={currentIdentity} 
           onlineIdentities={onlineIdentities} 
-          onCreateClick={() => {}}
         />
         
-        <main className="p-4 md:p-6 pb-24 lg:pb-6">
+        <main className={cn(
+          device.isMobile && 'p-4 pb-24',
+          device.isTablet && 'p-6',
+          device.isDesktop && 'p-6'
+        )}>
           {children}
         </main>
       </div>
       
-      <MobileNav />
+      {device.isMobile && <MobileNav />}
     </div>
   );
 }

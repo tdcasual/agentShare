@@ -75,6 +75,7 @@ export function KawaiiBackground() {
             fontSize: item.size,
             opacity: isDark ? 0.1 : 0.15,
           }}
+          aria-hidden="true"
         >
           {item.emoji}
         </div>

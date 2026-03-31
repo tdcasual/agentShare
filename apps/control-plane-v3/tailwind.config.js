@@ -39,8 +39,8 @@ module.exports = {
       animation: {
         'float': 'float 3s ease-in-out infinite',
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-        'slide-up': 'slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        'bounce-in': 'bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'slide-up': 'slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        'scale-in': 'scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         float: {
@@ -55,10 +55,9 @@ module.exports = {
           from: { opacity: '0', transform: 'translateY(20px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
-        'bounce-in': {
-          '0%': { opacity: '0', transform: 'scale(0.8)' },
-          '50%': { transform: 'scale(1.05)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.95)' },
+          to: { opacity: '1', transform: 'scale(1)' },
         },
       },
     },

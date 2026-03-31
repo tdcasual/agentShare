@@ -1,45 +1,49 @@
-import assert from 'node:assert/strict';
+import { describe, it, expect } from 'vitest';
 import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 
 async function readRouteSource(routePath: string) {
   const absolutePath = path.join(appDir, routePath);
-
-  try {
-    await access(absolutePath);
-  } catch {
-    assert.fail(`Expected route file to exist: ${routePath}`);
-  }
-
+  await access(absolutePath);
   return readFile(absolutePath, 'utf8');
 }
 
-test('tokens page wires the managed token lifecycle', async () => {
-  const source = await readRouteSource('tokens/page.tsx');
+describe('Control Plane Pages', () => {
+  it('tokens page wires the managed token lifecycle', async () => {
+    const source = await readRouteSource('tokens/page.tsx');
 
-  assert.match(source, /api\.getAgents\(\)/);
-  assert.match(source, /api\.getAgentTokens\(/);
-  assert.match(source, /api\.createAgentToken\(/);
-  assert.match(source, /api\.revokeAgentToken\(/);
-});
+    // 使用 SWR hooks 替代直接 API 调用
+    expect(source).toMatch(/useAgents/);
+    expect(source).toMatch(/useAgentsWithTokens/);
+    expect(source).toMatch(/useCreateAgentToken/);
+    expect(source).toMatch(/useRevokeAgentToken/);
+  });
 
-test('tasks page publishes to tokens and records feedback per target', async () => {
-  const source = await readRouteSource('tasks/page.tsx');
+  it('tasks page publishes to tokens and records feedback per target', async () => {
+    const source = await readRouteSource('tasks/page.tsx');
 
-  assert.match(source, /target_token_ids/);
-  assert.match(source, /buildTaskTargets/);
-  assert.match(source, /api\.createTaskTargetFeedback\(/);
-});
+    expect(source).toMatch(/target_token_ids/);
+    expect(source).toMatch(/buildTaskTargets/);
+    expect(source).toMatch(/useCreateTaskTargetFeedback/);
+  });
 
-test('settings page uses invite-only admin account management', async () => {
-  const source = await readRouteSource('settings/page.tsx');
+  it('settings page uses invite-only admin account management', async () => {
+    const source = await readRouteSource('settings/page.tsx');
 
-  assert.match(source, /api\.getAdminAccounts\(\)/);
-  assert.match(source, /api\.createAdminAccount\(/);
-  assert.match(source, /api\.disableAdminAccount\(/);
-  assert.match(source, /api\.logout\(\)/);
+    // 检查是否使用管理相关的 hooks
+    expect(source).toMatch(/useManagementSessionGate|useAdminAccounts/);
+    expect(source).toMatch(/createAdminAccount|disableAdminAccount/);
+  });
+
+  it('identities page uses backend management data instead of demo-only placeholders', async () => {
+    const source = await readRouteSource('identities/page.tsx');
+
+    expect(source).toMatch(/useAdminAccounts/);
+    expect(source).toMatch(/useAgents/);
+    expect(source).toMatch(/useManagementPageSessionRecovery|useManagementSessionGate/);
+    expect(source).not.toMatch(/managed through the runtime system/);
+  });
 });

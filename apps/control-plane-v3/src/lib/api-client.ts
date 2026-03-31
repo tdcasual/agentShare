@@ -9,7 +9,8 @@
 
 'use client';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? '').replace(/\/$/, '');
+// 使用同域代理路径，避免跨域问题
+const API_BASE_URL = '/api';
 
 type JsonValue = Record<string, unknown> | Array<unknown> | string | number | boolean | null;
 

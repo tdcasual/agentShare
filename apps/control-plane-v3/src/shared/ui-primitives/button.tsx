@@ -1,13 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 import { CuteSpinner } from '@/components/kawaii/cute-spinner';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 // Button variants following Kawaii theme - uses CSS custom properties for theming
 const buttonVariants = {
@@ -61,6 +56,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         disabled={disabled || loading}
+        aria-busy={loading ? 'true' : undefined}
+        aria-disabled={disabled || loading ? 'true' : undefined}
         {...props}
       >
         {/* Shimmer overlay */}

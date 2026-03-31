@@ -15,11 +15,11 @@ import type { Task, Run, TokenFeedback } from './types';
 // ============================================
 
 export function getTasks() {
-  return apiFetch<{ items: Task[] }>('/api/tasks');
+  return apiFetch<{ items: Task[] }>('/tasks');
 }
 
 export function createTask(payload: TaskCreateInput) {
-  return apiFetch<Task>('/api/tasks', {
+  return apiFetch<Task>('/tasks', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -30,7 +30,7 @@ export function createTask(payload: TaskCreateInput) {
 // ============================================
 
 export function getRuns() {
-  return apiFetch<{ items: Run[] }>('/api/runs');
+  return apiFetch<{ items: Run[] }>('/runs');
 }
 
 // ============================================
@@ -38,14 +38,14 @@ export function getRuns() {
 // ============================================
 
 export function createTaskTargetFeedback(targetId: string, payload: TokenFeedbackCreateInput) {
-  return apiFetch<TokenFeedback>(`/api/task-targets/${targetId}/feedback`, {
+  return apiFetch<TokenFeedback>(`/task-targets/${targetId}/feedback`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function getTokenFeedback(tokenId: string) {
-  return apiFetch<{ items: TokenFeedback[] }>(`/api/agent-tokens/${tokenId}/feedback`);
+  return apiFetch<{ items: TokenFeedback[] }>(`/agent-tokens/${tokenId}/feedback`);
 }
 
 // ============================================

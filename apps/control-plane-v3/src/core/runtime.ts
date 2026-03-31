@@ -10,6 +10,7 @@ import { EventBusImpl, TypedEventBus } from './event';
 import { DIContainerImpl } from './di';
 import { StateContainerImpl } from './state';
 import type { DomainEvents } from '../shared/types';
+import { logger } from '@/lib/logger';
 import * as React from 'react';
 
 // ============================================
@@ -25,9 +26,7 @@ class RouterManagerImpl {
   }
   
   navigate(path: string): void {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Navigating to: ${path}`);
-    }
+    logger.runtime.debug(`Navigating to: ${path}`);
     if (typeof window !== 'undefined') {
       window.location.href = path;
     }

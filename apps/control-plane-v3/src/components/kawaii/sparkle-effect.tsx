@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface Sparkle {
@@ -19,9 +19,24 @@ interface SparkleEffectProps {
 export function SparkleEffect({ children, className }: SparkleEffectProps) {
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
   const [isHovering, setIsHovering] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleMouseEnter = () => {
     setIsHovering(true);
+    // 清除之前的定时器
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     const newSparkles = [...Array(4)].map((_, i) => ({
       id: Math.random().toString(36).slice(2),
       x: Math.random() * 100,
@@ -34,7 +49,7 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
 
   const handleMouseLeave = () => {
     setIsHovering(false);
-    setTimeout(() => setSparkles([]), 500);
+    timeoutRef.current = setTimeout(() => setSparkles([]), 500);
   };
 
   return (

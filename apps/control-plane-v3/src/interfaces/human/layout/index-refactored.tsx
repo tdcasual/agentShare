@@ -73,7 +73,6 @@ export function Layout({ children }: LayoutProps) {
         <Header 
           currentIdentity={currentIdentity} 
           onlineIdentities={onlineIdentities} 
-          onCreateClick={() => {}}
         />
         
         <main className="p-4 md:p-6 pb-24 lg:pb-6">
@@ -175,7 +174,6 @@ export function SimpleLayout({
         <Header 
           currentIdentity={currentIdentity} 
           onlineIdentities={onlineIdentities} 
-          onCreateClick={() => {}}
         />
         
         <main className="p-4 md:p-6 pb-24 lg:pb-6">

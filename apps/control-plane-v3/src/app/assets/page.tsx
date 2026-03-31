@@ -4,9 +4,14 @@ import { FormEvent, useMemo, useState } from 'react';
 import { Cpu, KeyRound, LockKeyhole, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 
 import { Layout } from '@/interfaces/human/layout';
-import { useManagementSessionGate } from '@/lib/session';
 import { useI18n } from '@/components/i18n-provider';
 import { ApiError } from '@/lib/api-client';
+import {
+  isUnauthorizedError,
+  ManagementSessionExpiredAlert,
+  ManagementSessionRecoveryNotice,
+  useManagementPageSessionRecovery,
+} from '@/lib/management-session-recovery';
 import { useAgentsWithTokens } from '@/domains/identity';
 import {
   useCapabilities,
@@ -46,7 +51,6 @@ export default function AssetsPage() {
 
 function AssetsContent() {
   const { t } = useI18n();
-  const { session, loading: gateLoading, error: gateError } = useManagementSessionGate();
   const {
     agents,
     tokensByAgent,
@@ -56,10 +60,24 @@ function AssetsContent() {
   } = useAgentsWithTokens();
   const secretsQuery = useSecrets();
   const capabilitiesQuery = useCapabilities();
+  const {
+    session,
+    loading: gateLoading,
+    error: gateError,
+    shouldShowSessionExpired,
+    clearSessionExpired,
+    consumeUnauthorized,
+  } = useManagementPageSessionRecovery([
+    tokensError,
+    secretsQuery.error,
+    capabilitiesQuery.error,
+  ]);
   const createSecret = useCreateSecret();
   const createCapability = useCreateCapability();
 
   const [error, setError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSecretModal, setShowSecretModal] = useState(false);
   const [showCapabilityModal, setShowCapabilityModal] = useState(false);
   const [submittingSecret, setSubmittingSecret] = useState(false);
@@ -133,9 +151,9 @@ function AssetsContent() {
   const combinedError =
     gateError ??
     error ??
-    (tokensError instanceof Error ? tokensError.message : null) ??
-    (secretsQuery.error instanceof Error ? secretsQuery.error.message : null) ??
-    (capabilitiesQuery.error instanceof Error ? capabilitiesQuery.error.message : null);
+    (tokensError instanceof Error && !isUnauthorizedError(tokensError) ? tokensError.message : null) ??
+    (secretsQuery.error instanceof Error && !isUnauthorizedError(secretsQuery.error) ? secretsQuery.error.message : null) ??
+    (capabilitiesQuery.error instanceof Error && !isUnauthorizedError(capabilitiesQuery.error) ? capabilitiesQuery.error.message : null);
 
   const restrictedCapabilities = capabilities.filter(
     (capability) => capability.access_policy.mode === 'selectors',
@@ -144,17 +162,34 @@ function AssetsContent() {
 
   async function handleRefresh() {
     setError(null);
-    await Promise.all([
-      secretsQuery.mutate(),
-      capabilitiesQuery.mutate(),
-      mutateTokens(),
-    ]);
+    setRefreshError(null);
+    setIsRefreshing(true);
+    clearSessionExpired();
+
+    try {
+      await Promise.all([
+        secretsQuery.mutate(),
+        capabilitiesQuery.mutate(),
+        mutateTokens(),
+      ]);
+    } catch (refreshFailure) {
+      if (consumeUnauthorized(refreshFailure)) {
+        return;
+      }
+
+      setRefreshError(
+        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh governance assets'
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
   }
 
   async function handleCreateSecret(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmittingSecret(true);
     setError(null);
+    clearSessionExpired();
 
     try {
       const created = await createSecret({
@@ -183,6 +218,10 @@ function AssetsContent() {
       }));
       setShowSecretModal(false);
     } catch (submitError) {
+      if (consumeUnauthorized(submitError)) {
+        return;
+      }
+
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
@@ -217,6 +256,7 @@ function AssetsContent() {
 
     setSubmittingCapability(true);
     setError(null);
+    clearSessionExpired();
 
     try {
       await createCapability({
@@ -245,6 +285,10 @@ function AssetsContent() {
       });
       setShowCapabilityModal(false);
     } catch (submitError) {
+      if (consumeUnauthorized(submitError)) {
+        return;
+      }
+
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
@@ -310,7 +354,7 @@ function AssetsContent() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" onClick={handleRefresh}>
+          <Button variant="secondary" onClick={handleRefresh} loading={isRefreshing}>
             <RefreshCw className="mr-2 h-4 w-4" />
             {t('common.refresh')}
           </Button>
@@ -342,6 +386,21 @@ function AssetsContent() {
           <span>{t('assets.policyNote')}</span>
         </div>
       </Card>
+
+      {shouldShowSessionExpired ? (
+        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to continue managing secrets, capabilities, and token access." />
+      ) : null}
+
+      {refreshError ? (
+        <Card 
+          role="alert" 
+          aria-live="polite" 
+          aria-atomic="true"
+          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+        >
+          {refreshError}
+        </Card>
+      ) : null}
 
       {combinedError ? (
         <Card 
@@ -381,12 +440,14 @@ function AssetsContent() {
           </div>
 
           <div className="space-y-3">
-            {secrets.length === 0 ? (
+            {!shouldShowSessionExpired && secrets.length === 0 ? (
               <EmptyState
                 icon={<Sparkles className="h-8 w-8" />}
                 title={t('assets.secrets.emptyTitle')}
                 description={t('assets.secrets.emptyDesc')}
               />
+            ) : shouldShowSessionExpired && isUnauthorizedError(secretsQuery.error) ? (
+              <ManagementSessionRecoveryNotice message="Sign in again to reload the secret inventory." />
             ) : (
               secrets.map((secret) => (
                 <Card key={secret.id} className="border border-pink-100/80 bg-white/80 p-5 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
@@ -429,12 +490,14 @@ function AssetsContent() {
           </div>
 
           <div className="space-y-3">
-            {capabilities.length === 0 ? (
+            {!shouldShowSessionExpired && capabilities.length === 0 ? (
               <EmptyState
                 icon={<ShieldCheck className="h-8 w-8" />}
                 title={t('assets.capabilities.emptyTitle')}
                 description={t('assets.capabilities.emptyDesc')}
               />
+            ) : shouldShowSessionExpired && isUnauthorizedError(capabilitiesQuery.error) ? (
+              <ManagementSessionRecoveryNotice message="Sign in again to reload capability policy data." />
             ) : (
               capabilities.map((capability) => (
                 <Card key={capability.id} className="border border-pink-100/80 bg-white/80 p-5 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
@@ -559,8 +622,9 @@ function AssetsContent() {
               placeholder="openai.config.bootstrap"
             />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.bindSecret')}</label>
+              <label htmlFor="capability-secret" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.bindSecret')}</label>
               <select
+                id="capability-secret"
                 className={selectClassName}
                 value={capabilityForm.secret_id}
                 onChange={(event) => handleCapabilitySecretChange(event.target.value)}
@@ -574,8 +638,9 @@ function AssetsContent() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.riskLevel')}</label>
+              <label htmlFor="capability-risk" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.riskLevel')}</label>
               <select
+                id="capability-risk"
                 className={selectClassName}
                 value={capabilityForm.risk_level}
                 onChange={(event) => setCapabilityForm((current) => ({ ...current, risk_level: event.target.value }))}
@@ -586,8 +651,9 @@ function AssetsContent() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.allowedMode')}</label>
+              <label htmlFor="capability-mode" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.allowedMode')}</label>
               <select
+                id="capability-mode"
                 className={selectClassName}
                 value={capabilityForm.allowed_mode}
                 onChange={(event) => setCapabilityForm((current) => ({ ...current, allowed_mode: event.target.value }))}
@@ -747,8 +813,9 @@ function AssetsContent() {
               {capabilityForm.access_mode === 'token_label' ? (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">标签键</label>
+                    <label htmlFor="token-label-key" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">标签键</label>
                     <select
+                      id="token-label-key"
                       className={selectClassName}
                       value={capabilityForm.label_key}
                       onChange={(event) =>

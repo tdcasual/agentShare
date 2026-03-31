@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
 import { LockKeyhole, Mail, Sparkles, Heart } from 'lucide-react';
 import { ApiError, api } from '@/lib/api';
+import { resolveAppEntryState } from '@/lib/session';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
@@ -24,15 +25,23 @@ export default function LoginPage() {
 
     async function load() {
       try {
-        const bootstrap = await api.getBootstrapStatus();
-        if (!cancelled && !bootstrap.initialized) {
+        const entryState = await resolveAppEntryState();
+        if (cancelled) {
+          return;
+        }
+
+        if (entryState.kind === 'bootstrap_required') {
           router.replace('/setup');
           return;
         }
 
-        const session = await api.getSession();
-        if (!cancelled && session.status === 'authenticated') {
+        if (entryState.kind === 'authenticated_ready') {
           router.replace('/tokens');
+          return;
+        }
+
+        if (entryState.kind === 'unavailable') {
+          setError(entryState.error);
         }
       } catch (loadError) {
         if (!cancelled && !(loadError instanceof ApiError && loadError.status === 401)) {

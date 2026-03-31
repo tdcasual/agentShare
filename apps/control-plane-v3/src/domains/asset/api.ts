@@ -14,25 +14,25 @@ import type { Asset, AssetReview, CreateAssetInput, UpdateAssetInput, SubmitForR
 // ============================================
 
 export function getAssets() {
-  return apiFetch<{ items: Asset[] }>('/api/assets');
+  return apiFetch<{ items: Asset[] }>('/assets');
 }
 
 export function createAsset(payload: CreateAssetInput) {
-  return apiFetch<Asset>('/api/assets', {
+  return apiFetch<Asset>('/assets', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function updateAsset(assetId: string, payload: UpdateAssetInput) {
-  return apiFetch<Asset>(`/api/assets/${assetId}`, {
+  return apiFetch<Asset>(`/assets/${assetId}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
 }
 
 export function deleteAsset(assetId: string) {
-  return apiFetch<{ id: string; status: string }>(`/api/assets/${assetId}`, {
+  return apiFetch<{ id: string; status: string }>(`/assets/${assetId}`, {
     method: 'DELETE',
   });
 }
@@ -42,14 +42,14 @@ export function deleteAsset(assetId: string) {
 // ============================================
 
 export function submitForReview(assetId: string, payload: SubmitForReviewInput = {}) {
-  return apiFetch<Asset>(`/api/assets/${assetId}/submit-for-review`, {
+  return apiFetch<Asset>(`/assets/${assetId}/submit-for-review`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export function reviewAsset(assetId: string, payload: ReviewAssetInput) {
-  return apiFetch<AssetReview>(`/api/assets/${assetId}/review`, {
+  return apiFetch<AssetReview>(`/assets/${assetId}/review`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });

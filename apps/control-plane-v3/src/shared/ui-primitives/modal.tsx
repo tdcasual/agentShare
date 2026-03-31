@@ -1,13 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface ModalProps {
   isOpen: boolean;
@@ -42,27 +37,27 @@ export function Modal({
 
   // Handle focus trap and initial focus
   React.useEffect(() => {
-    if (isOpen) {
-      // Store previous focus
-      previousFocusRef.current = document.activeElement as HTMLElement;
-      
-      // Set initial focus
-      if (initialFocusRef?.current) {
-        initialFocusRef.current.focus();
-      } else if (modalRef.current) {
-        const firstFocusable = modalRef.current.querySelector<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        firstFocusable?.focus();
-      }
-
-      document.body.style.overflow = 'hidden';
+    if (!isOpen) return;
+    
+    // Store previous focus
+    previousFocusRef.current = document.activeElement as HTMLElement;
+    
+    // Set initial focus
+    if (initialFocusRef?.current) {
+      initialFocusRef.current.focus();
+    } else if (modalRef.current) {
+      const firstFocusable = modalRef.current.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      firstFocusable?.focus();
     }
+
+    document.body.style.overflow = 'hidden';
 
     return () => {
       document.body.style.overflow = 'unset';
       // Restore previous focus when modal closes
-      if (previousFocusRef.current) {
+      if (previousFocusRef.current && document.body.contains(previousFocusRef.current)) {
         previousFocusRef.current.focus();
       }
     };
@@ -103,7 +98,9 @@ export function Modal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -122,7 +119,7 @@ export function Modal({
         aria-describedby={description ? 'modal-description' : undefined}
         className={cn(
           'relative w-full bg-white rounded-3xl shadow-2xl overflow-hidden',
-          'animate-bounce-in',
+          'animate-scale-in',
           modalSizes[size]
         )}
       >

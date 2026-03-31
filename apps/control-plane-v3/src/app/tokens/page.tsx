@@ -12,7 +12,7 @@ import {
   useRevokeAgentToken 
 } from '@/domains/identity';
 import { ApiError, type AgentCreateInput, type AgentTokenCreateInput } from '@/lib/api-client';
-import { useManagementSessionGate } from '@/lib/session';
+import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -29,12 +29,18 @@ export default function TokensPage() {
 
 function TokensContent() {
   const t = useI18n().t;
-  const { session, loading: gateLoading, error: gateError } = useManagementSessionGate();
-  
   // 使用新的 SWR hooks 替代手动 useEffect
   const { agents, tokensByAgent, isLoading, error: dataError, mutate } = useAgentsWithTokens({
     refreshInterval: 10000, // 10秒自动刷新
   });
+  const {
+    session,
+    loading: gateLoading,
+    error: gateError,
+    shouldShowSessionExpired,
+    clearSessionExpired,
+    consumeUnauthorized,
+  } = useManagementPageSessionRecovery(dataError);
   
   const createAgent = useCreateAgent();
   const createAgentToken = useCreateAgentToken();
@@ -42,6 +48,8 @@ function TokensContent() {
   
   // 本地 UI 状态
   const [error, setError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCreateAgentModal, setShowCreateAgentModal] = useState(false);
   const [showCreateTokenModal, setShowCreateTokenModal] = useState(false);
   const [issuingAgentId, setIssuingAgentId] = useState<string | null>(null);
@@ -72,6 +80,26 @@ function TokensContent() {
   const averageTrust =
     allTokens.length > 0 ? allTokens.reduce((total, token) => total + (token.trust_score ?? token.trustScore), 0) / allTokens.length : 0;
   const tokensWithFeedback = allTokens.filter((token) => token.last_feedback_at).length;
+
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    setRefreshError(null);
+    clearSessionExpired();
+
+    try {
+      await mutate();
+    } catch (refreshFailure) {
+      if (consumeUnauthorized(refreshFailure)) {
+        return;
+      }
+
+      setRefreshError(
+        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh tokens'
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
 
   async function handleCreateAgent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -181,7 +209,7 @@ function TokensContent() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" onClick={() => mutate()}>
+          <Button variant="secondary" onClick={handleRefresh} loading={isRefreshing}>
             <RefreshCw className="mr-2 h-4 w-4" />
             {t('tokens.actions.refresh')}
           </Button>
@@ -232,8 +260,23 @@ function TokensContent() {
         </div>
       </Card>
 
+      {shouldShowSessionExpired ? (
+        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live token data." />
+      ) : null}
+
+      {refreshError ? (
+        <Card 
+          role="alert" 
+          aria-live="polite" 
+          aria-atomic="true"
+          className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+        >
+          {refreshError}
+        </Card>
+      ) : null}
+
       {/* Error */}
-      {gateError || error || dataError ? (
+      {gateError || error || (!shouldShowSessionExpired && dataError) ? (
         <Card 
           role="alert" 
           aria-live="assertive" 
@@ -405,8 +448,9 @@ function TokensContent() {
             className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
           />
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">Risk tier</label>
+            <label htmlFor="agent-risk-tier" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">Risk tier</label>
             <select
+              id="agent-risk-tier"
               className="w-full rounded-2xl border-2 border-pink-200 dark:border-[#3D3D5C] bg-white dark:bg-[#1A1A2E] px-4 py-3 text-base outline-none focus:border-pink-400 dark:focus:border-[#E891C0] focus:ring-4 focus:ring-pink-100 dark:focus:ring-pink-500/10 text-gray-800 dark:text-[#E8E8EC]"
               value={createAgentForm.risk_tier}
               onChange={(event) => setCreateAgentForm((current) => ({ ...current, risk_tier: event.target.value }))}
@@ -449,8 +493,9 @@ function TokensContent() {
       >
         <form className="space-y-4" onSubmit={handleCreateToken}>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">Agent</label>
+            <label htmlFor="token-agent-select" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">Agent</label>
             <select
+              id="token-agent-select"
               className="w-full rounded-2xl border-2 border-pink-200 dark:border-[#3D3D5C] bg-white dark:bg-[#1A1A2E] px-4 py-3 text-base outline-none focus:border-pink-400 dark:focus:border-[#E891C0] focus:ring-4 focus:ring-pink-100 dark:focus:ring-pink-500/10 text-gray-800 dark:text-[#E8E8EC]"
               value={issuingAgentId ?? ''}
               onChange={(event) => setIssuingAgentId(event.target.value)}

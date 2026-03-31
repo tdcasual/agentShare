@@ -1,57 +1,48 @@
-'use client';
+/**
+ * Marketplace - 显式不可用页面
+ * 
+ * 根据重构需求，此路由必须显式声明为不可用
+ * 不伪装为活跃产品区域
+ */
 
-import { Layout } from '@/interfaces/human/layout';
-import { Card } from '@/shared/ui-primitives/card';
-import { Button } from '@/shared/ui-primitives/button';
-import { useI18n } from '@/components/i18n-provider';
-import { Sparkles, Search } from 'lucide-react';
+import { Construction, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export default function MarketplacePage() {
-  const { t } = useI18n();
-
-  const categories = [
-    { name: t('marketplace.categories.popular'), count: `128 ${t('marketplace.items')}` },
-    { name: t('marketplace.categories.new'), count: `24 ${t('marketplace.items')}` },
-    { name: t('marketplace.categories.agentCreated'), count: `56 ${t('marketplace.items')}` },
-  ];
-
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="text-center py-12">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center mx-auto mb-6">
-            <Sparkles className="w-10 h-10 text-pink-500" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC] mb-2">{t('marketplace.title')}</h1>
-          <p className="text-gray-600 dark:text-[#9CA3AF] max-w-md mx-auto">
-            {t('marketplace.description')}
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540] p-4">
+      <div className="max-w-lg w-full bg-white dark:bg-[#252540] rounded-3xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] p-8 text-center">
+        {/* 图标 */}
+        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
+          <Construction className="w-10 h-10 text-amber-600 dark:text-amber-400" />
         </div>
-
-        <div className="max-w-xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#9CA3AF]" />
-            <input
-              type="text"
-              placeholder={t('marketplace.searchPlaceholder')}
-              className="w-full pl-12 pr-4 py-4 rounded-full bg-white border border-pink-200 text-base focus:ring-2 focus:ring-pink-200 outline-none shadow-soft"
-            />
-          </div>
+        
+        {/* 标题 */}
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC] mb-3">
+          Marketplace Coming Soon
+        </h1>
+        
+        {/* 说明 */}
+        <p className="text-gray-600 dark:text-[#9CA3AF] mb-6">
+          The marketplace feature is currently under development. 
+          Check back later for updates on agents, capabilities, and integrations.
+        </p>
+        
+        {/* 状态标识 */}
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm mb-6">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          Not Yet Available
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {categories.map((category) => (
-            <Card key={category.name} hover className="p-6 text-center cursor-pointer">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{category.name}</h3>
-              <p className="text-gray-500 dark:text-[#9CA3AF]">{category.count}</p>
-            </Card>
-          ))}
-        </div>
-
-        <div className="text-center py-12">
-          <p className="text-gray-400 dark:text-[#9CA3AF]">🚧 {t('marketplace.comingSoon')}</p>
-        </div>
+        
+        {/* 返回链接 */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 text-white font-medium hover:shadow-lg transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </Link>
       </div>
-    </Layout>
+    </div>
   );
 }
