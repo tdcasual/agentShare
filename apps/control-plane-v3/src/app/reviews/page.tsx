@@ -48,11 +48,11 @@ function ReviewsContent() {
   const reviewItems = items ?? [];
 
   const countByKind = useMemo(() => {
-    return reviewItems.reduce<Record<string, number>>((accumulator, item) => {
+    return (items ?? []).reduce<Record<string, number>>((accumulator, item) => {
       accumulator[item.resource_kind] = (accumulator[item.resource_kind] ?? 0) + 1;
       return accumulator;
     }, {});
-  }, [reviewItems]);
+  }, [items]);
 
   async function handleRefresh() {
     setIsRefreshing(true);

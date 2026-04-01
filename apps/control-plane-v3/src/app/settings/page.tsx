@@ -54,11 +54,11 @@ function SettingsContent() {
   });
 
   const roleCounts = useMemo(() => {
-    return accountList.reduce<Record<string, number>>((accumulator, account) => {
+    return (accounts ?? []).reduce<Record<string, number>>((accumulator, account) => {
       accumulator[account.role] = (accumulator[account.role] ?? 0) + 1;
       return accumulator;
     }, {});
-  }, [accountList]);
+  }, [accounts]);
 
   async function handleInvite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
