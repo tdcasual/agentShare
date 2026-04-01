@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 
@@ -13,115 +12,19 @@ sys.path.insert(0, str(ROOT / "apps/api"))
 from app.services.intake_catalog import get_intake_catalog  # noqa: E402
 
 
-FRONTEND_CONTRACT_SUMMARY_SCRIPT = ROOT / "apps/web" / "scripts" / "print-contract-summary.ts"
+FRONTEND_PACKAGE_JSON = ROOT / "apps" / "control-plane-v3" / "package.json"
+FRONTEND_SNAPSHOT_PATH = ROOT / "apps" / "control-plane-v3" / "src" / "lib" / "forms" / "generated" / "intake-catalog.json"
 
 
-def _normalize_default_value(value):
-    return None if value in (None, "") else value
+def backend_contract_snapshot() -> dict:
+    return get_intake_catalog().model_dump(mode="json")
 
 
-def _summarize_field(field) -> dict:
-    return {
-        "key": field.key,
-        "control": field.control,
-        "required": bool(field.required),
-        "advanced": bool(field.advanced),
-        "read_only": bool(field.read_only),
-        "default_value": _normalize_default_value(field.default_value),
-        "options_source": field.options_source,
-        "option_values": [option.value for option in field.options],
-    }
+def frontend_contract_snapshot() -> dict:
+    if not FRONTEND_SNAPSHOT_PATH.exists():
+        raise RuntimeError(f"Frontend snapshot is missing: {FRONTEND_SNAPSHOT_PATH}")
 
-
-def _summarize_variant(variant) -> dict:
-    return {
-        "title": {
-            "en": variant.title.en,
-            "zh": variant.title.zh,
-        },
-        "summary": {
-            "en": variant.summary.en,
-            "zh": variant.summary.zh,
-        },
-        "sections": [
-            {
-                "id": section.id,
-                "title": {
-                    "en": section.title.en,
-                    "zh": section.title.zh,
-                },
-                "fields": [_summarize_field(field) for field in section.fields],
-            }
-            for section in variant.sections
-        ],
-    }
-
-
-def backend_contract_summaries() -> dict[str, dict]:
-    catalog = get_intake_catalog()
-    return {
-        resource.kind: {
-            "default_variant": resource.default_variant,
-            "variants": {
-                variant.variant: _summarize_variant(variant)
-                for variant in resource.variants
-            },
-        }
-        for resource in catalog.resource_kinds
-    }
-
-
-def frontend_contract_summaries() -> dict[str, dict]:
-    try:
-        result = subprocess.run(
-            ["npx", "tsx", str(FRONTEND_CONTRACT_SUMMARY_SCRIPT.relative_to(ROOT / "apps/web"))],
-            cwd=ROOT / "apps/web",
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except subprocess.CalledProcessError as exc:
-        message = exc.stderr.strip() or exc.stdout.strip() or str(exc)
-        raise RuntimeError(f"Could not load frontend contract summary: {message}") from exc
-
-    return json.loads(result.stdout)
-
-
-def compare_contract_summaries(
-    backend: dict[str, dict],
-    frontend: dict[str, dict],
-) -> list[str]:
-    failures: list[str] = []
-
-    for kind, backend_resource in backend.items():
-        frontend_resource = frontend.get(kind)
-        if frontend_resource is None:
-            failures.append(f"{kind} contract summary missing from frontend export")
-            continue
-
-        backend_default = backend_resource["default_variant"]
-        frontend_default = frontend_resource.get("default_variant")
-        if backend_default != frontend_default:
-            failures.append(
-                f"{kind} default variant drifted: backend={backend_default!r} frontend={frontend_default!r}"
-            )
-
-        backend_variants = backend_resource["variants"]
-        frontend_variants = frontend_resource.get("variants", {})
-        if set(backend_variants) != set(frontend_variants):
-            failures.append(
-                f"{kind} variants drifted: backend={sorted(backend_variants)} frontend={sorted(frontend_variants)}"
-            )
-            continue
-
-        for variant, backend_summary in backend_variants.items():
-            frontend_summary = frontend_variants.get(variant)
-            if frontend_summary != backend_summary:
-                failures.append(
-                    f"{kind} variant '{variant}' drifted between backend and frontend contract summaries"
-                )
-
-    return failures
+    return json.loads(FRONTEND_SNAPSHOT_PATH.read_text())
 
 
 def ensure_ci_runs_drift_check() -> list[str]:
@@ -131,23 +34,60 @@ def ensure_ci_runs_drift_check() -> list[str]:
     if "npm run test:contracts" not in ci_workflow:
         failures.append("CI workflow must run `npm run test:contracts`.")
 
-    package_json = (ROOT / "apps/web/package.json").read_text()
+    package_json = FRONTEND_PACKAGE_JSON.read_text()
     if '"test:contracts": "python3 ../../scripts/check-intake-drift.py"' not in package_json:
-        failures.append("apps/web/package.json must expose `test:contracts`.")
+        failures.append("apps/control-plane-v3/package.json must expose `test:contracts`.")
+
+    return failures
+
+
+def compare_contract_summaries(backend: dict, frontend: dict) -> list[str]:
+    if "resource_kinds" in backend or "resource_kinds" in frontend:
+        return [] if backend == frontend else ["Frontend intake snapshot drifted from backend export."]
+
+    failures: list[str] = []
+
+    for resource_type, backend_summary in backend.items():
+        frontend_summary = frontend.get(resource_type)
+        if frontend_summary is None:
+            failures.append(f"{resource_type} is missing from frontend contract summaries")
+            continue
+
+        backend_default = backend_summary.get("default_variant")
+        frontend_default = frontend_summary.get("default_variant")
+        if backend_default != frontend_default:
+            failures.append(
+                f"{resource_type} default variant drifted: backend={backend_default!r} frontend={frontend_default!r}"
+            )
+            continue
+
+        backend_variants = backend_summary.get("variants", {})
+        frontend_variants = frontend_summary.get("variants", {})
+        for variant_name, backend_variant in backend_variants.items():
+            frontend_variant = frontend_variants.get(variant_name)
+            if frontend_variant != backend_variant:
+                failures.append(
+                    f"{resource_type} variant {variant_name!r} drifted between backend and frontend contract summaries"
+                )
+
+    for resource_type in frontend:
+        if resource_type not in backend:
+            failures.append(f"{resource_type} exists in frontend contract summaries but not backend")
 
     return failures
 
 
 def main() -> int:
     failures = ensure_ci_runs_drift_check()
-    backend = backend_contract_summaries()
+    backend = backend_contract_snapshot()
     try:
-        frontend = frontend_contract_summaries()
+        frontend = frontend_contract_snapshot()
     except RuntimeError as exc:
         failures.append(str(exc))
-        frontend = {}
+        frontend = None
 
-    failures.extend(compare_contract_summaries(backend, frontend))
+    if frontend is not None:
+        failures.extend(compare_contract_summaries(backend, frontend))
 
     if failures:
         print("Intake drift check failed:", file=sys.stderr)

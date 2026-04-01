@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { BootstrapStatus, ManagementSessionSummary } from '@/shared/types';
 import { api } from '@/lib/api';
-import { resolveEntryState, type ResolvedEntryState } from '@/lib/entry-state';
+import { resolveEntryState } from '@/lib/entry-state';
 import { setGlobalSession } from '@/lib/session-state';
 
 export type AppEntryState =

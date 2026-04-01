@@ -7,11 +7,11 @@
 'use client';
 
 import useSWR, { SWRConfiguration, mutate } from 'swr';
-import { swrConfig, pollingConfig, staticConfig } from '@/lib/swr-config';
+import { swrConfig, staticConfig } from '@/lib/swr-config';
 import * as api from './api';
-import type { Identity, Agent, BootstrapStatus, ManagementSessionSummary, AdminAccountSummary } from './types';
+import type { Agent, BootstrapStatus, ManagementSessionSummary, AdminAccountSummary } from './types';
 import type { AgentToken } from '../task/types';
-import type { AgentCreateInput, AdminAccountCreateInput, LoginInput, SetupOwnerInput, AgentTokenCreateInput } from '@/lib/api-client';
+import type { AgentCreateInput, AdminAccountCreateInput, LoginInput, AgentTokenCreateInput } from '@/lib/api-client';
 
 const AGENT_TOKENS_BULK_KEY = 'bulk:agent-tokens';
 

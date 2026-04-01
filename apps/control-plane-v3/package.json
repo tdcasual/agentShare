@@ -9,11 +9,14 @@
     "start": "next start",
     "lint": "npx eslint src --ext .ts,.tsx",
     "lint:fix": "npx eslint src --ext .ts,.tsx --fix",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "rm -f tsconfig.tsbuildinfo && rm -rf .next/types && next typegen && tsc --noEmit --incremental false",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
     "test": "vitest",
+    "test:unit": "vitest --run",
     "test:coverage": "vitest run --coverage",
+    "sync:contracts": "python3 ../../scripts/export-intake-catalog.py --write",
+    "test:contracts": "python3 ../../scripts/check-intake-drift.py",
     "check": "npm run typecheck && npm run lint && npm run format:check"
   },
   "dependencies": {

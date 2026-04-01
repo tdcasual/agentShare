@@ -2,7 +2,7 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { useI18n } from '@/components/i18n-provider';
-import { Bot, Clock3, Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Sparkles, Star, Heart } from 'lucide-react';
+import { Bot, Clock3, Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Sparkles, Star } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { 
   useAgentsWithTokens, 

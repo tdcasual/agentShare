@@ -21,14 +21,12 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale);
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('app-locale') as Locale | null;
     if (saved && (saved === 'zh-CN' || saved === 'en')) {
       setLocaleState(saved);
     }
-    setIsClient(true);
   }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {

@@ -68,9 +68,9 @@ export function ResponsiveGrid({
   
   // 动态确定列数
   const getGridCols = () => {
-    if (device.isMobile) return 'grid-cols-1';
-    if (device.isTabletPortrait) return 'grid-cols-2';
-    if (device.isTabletLandscape) return 'grid-cols-3';
+    if (device.isMobile) {return 'grid-cols-1';}
+    if (device.isTabletPortrait) {return 'grid-cols-2';}
+    if (device.isTabletLandscape) {return 'grid-cols-3';}
     return 'grid-cols-4';
   };
 
@@ -156,15 +156,15 @@ export function DeviceRender({
   const device = useDeviceType();
   
   const shouldRender = () => {
-    if (mobile && device.isMobile) return true;
-    if (tablet && device.isTablet) return true;
-    if (desktop && device.isDesktop) return true;
-    if (tabletPortrait && device.isTabletPortrait) return true;
-    if (tabletLandscape && device.isTabletLandscape) return true;
+    if (mobile && device.isMobile) {return true;}
+    if (tablet && device.isTablet) {return true;}
+    if (desktop && device.isDesktop) {return true;}
+    if (tabletPortrait && device.isTabletPortrait) {return true;}
+    if (tabletLandscape && device.isTabletLandscape) {return true;}
     return false;
   };
   
-  if (!shouldRender()) return null;
+  if (!shouldRender()) {return null;}
   
   return <>{children}</>;
 }

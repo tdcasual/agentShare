@@ -175,7 +175,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
 export function getRoutePolicy(path: string): RoutePolicy | undefined {
   // 精确匹配优先
   const exact = ROUTE_POLICIES.find(p => p.path === path);
-  if (exact) return exact;
+  if (exact) {return exact;}
   
   // 前缀匹配
   return ROUTE_POLICIES.find(p => path.startsWith(p.path + '/'));

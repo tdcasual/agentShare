@@ -144,10 +144,10 @@ export function useTouchGestures(
 export function useSidebarSwipe(onOpen: () => void, onClose: () => void, isOpen: boolean) {
   return useTouchGestures({
     onSwipeRight: () => {
-      if (!isOpen) onOpen();
+      if (!isOpen) {onOpen();}
     },
     onSwipeLeft: () => {
-      if (isOpen) onClose();
+      if (isOpen) {onClose();}
     },
   }, {
     threshold: 80,

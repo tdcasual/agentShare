@@ -37,7 +37,7 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    const newSparkles = [...Array(4)].map((_, i) => ({
+    const newSparkles = [...Array(4)].map(() => ({
       id: Math.random().toString(36).slice(2),
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -53,8 +53,9 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
   };
 
   return (
-    <div 
+    <div
       className={cn('relative inline-block', className)}
+      role="presentation"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

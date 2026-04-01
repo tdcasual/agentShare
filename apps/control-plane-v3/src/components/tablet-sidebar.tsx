@@ -34,17 +34,6 @@ export function getTabletShellNavTargets() {
   return navItems.map((item) => item.href);
 }
 
-// 使用 CSS 变量或 Tailwind 主题颜色
-const colors = {
-  primary: 'var(--kw-primary-500, #FF1493)',
-  primaryLight: 'var(--kw-primary-400, #FF69B4)',
-  text: 'var(--kw-text, #4A4A4A)',
-  textMuted: 'var(--kw-text-muted, #8B8B8B)',
-  border: 'var(--kw-border, #E6E6FA)',
-  surface: 'var(--kw-surface, #FFFFFF)',
-  surfaceAlt: 'var(--kw-surface-alt, #F8F8FF)',
-};
-
 /**
  * TabletSidebar - 平板专用侧边栏
  * 
@@ -58,13 +47,12 @@ export function TabletSidebar() {
   const device = useDeviceType();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const toggleSidebar = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
+  }, []);
 
   // 只在平板设备显示
-  if (!device.isTablet) return null;
-
-  const toggleSidebar = useCallback(() => {
-    setIsCollapsed(prev => !prev);
-  }, []);
+  if (!device.isTablet) {return null;}
 
   const width = device.isTabletLandscape || isCollapsed ? 'w-20' : 'w-56';
 
@@ -202,7 +190,7 @@ export function TabletBottomNav() {
   const pathname = usePathname();
 
   // 只在平板竖屏且需要时显示
-  if (!device.isTabletPortrait) return null;
+  if (!device.isTabletPortrait) {return null;}
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)] border-t border-[var(--kw-border)] dark:border-[var(--kw-dark-border)] z-50 md:hidden">

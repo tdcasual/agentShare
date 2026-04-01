@@ -224,7 +224,9 @@ export function useRetry(maxRetries = 3) {
 
         // 如果组件已卸载，不再继续
         if (!isActiveRef.current) {
-          throw new Error('Component unmounted during retry');
+          throw new Error('Component unmounted during retry', {
+            cause: error,
+          });
         }
 
         return retry(fn, options);

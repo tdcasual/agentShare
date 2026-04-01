@@ -34,6 +34,7 @@ export interface UseIdentityReturn {
 export function useIdentities(options: UseIdentityOptions = {}): UseIdentityReturn {
   const runtime = useRuntime();
   const registry = runtime.di.resolve(IdentityRegistryServiceId);
+  void options;
   
   const [identities, setIdentities] = useState<Identity[]>([]);
   const [currentIdentity, setCurrentIdentity] = useState<Identity | null>(null);

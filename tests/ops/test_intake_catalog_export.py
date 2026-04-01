@@ -9,7 +9,7 @@ from app.services.intake_catalog import get_intake_catalog
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = ROOT / "scripts" / "export-intake-catalog.py"
-SNAPSHOT_PATH = ROOT / "apps" / "web" / "lib" / "forms" / "generated" / "intake-catalog.json"
+SNAPSHOT_PATH = ROOT / "apps" / "control-plane-v3" / "src" / "lib" / "forms" / "generated" / "intake-catalog.json"
 
 
 def _load_export_module():
@@ -37,7 +37,7 @@ def test_generated_web_snapshot_matches_backend_export() -> None:
 
 
 def test_web_package_exposes_snapshot_refresh_script() -> None:
-    package_json = (ROOT / "apps" / "web" / "package.json").read_text()
+    package_json = (ROOT / "apps" / "control-plane-v3" / "package.json").read_text()
 
     assert '"sync:contracts": "python3 ../../scripts/export-intake-catalog.py --write"' in package_json
 

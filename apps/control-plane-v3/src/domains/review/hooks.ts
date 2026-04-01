@@ -7,7 +7,7 @@
 'use client';
 
 import useSWR, { SWRConfiguration, mutate } from 'swr';
-import { swrConfig, pollingConfig } from '@/lib/swr-config';
+import { pollingConfig } from '@/lib/swr-config';
 import * as api from './api';
 import type { ReviewQueueItem, ApproveReviewInput, RejectReviewInput } from './types';
 

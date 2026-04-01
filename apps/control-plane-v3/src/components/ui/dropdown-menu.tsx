@@ -6,7 +6,6 @@
 
 'use client';
 
-import { useRef } from 'react';
 import { useFocusTrap, useClickOutside } from '@/hooks/use-focus-trap';
 import { cn } from '@/lib/utils';
 
@@ -35,7 +34,7 @@ export function DropdownMenu({
 
   useClickOutside(isOpen, containerRef, onClose, triggerRef ? [triggerRef] : undefined);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <>

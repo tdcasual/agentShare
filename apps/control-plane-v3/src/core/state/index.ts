@@ -2,6 +2,7 @@
 // State Management
 // ============================================
 
+import { useEffect, useState } from 'react';
 import type { StateContainer, Store, StateInitializer, Disposable } from '../plugin/types';
 
 export class StateContainerImpl implements StateContainer {
@@ -99,9 +100,9 @@ class StoreImpl<T> implements Store<T> {
 // React integration helper
 export function createReactHook<T>(store: Store<T>) {
   return function useStore(): [T, Store<T>['setState']] {
-    const [state, setState] = (require('react').useState)(store.getState());
+    const [state, setState] = useState(store.getState());
     
-    (require('react').useEffect)(() => {
+    useEffect(() => {
       return store.subscribe((newState) => {
         setState(newState);
       });

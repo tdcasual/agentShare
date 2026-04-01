@@ -65,12 +65,12 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     { ...pollingConfig, ...options, revalidateOnFocus: false }
   );
 
-  const tokensById = tokensQuery.data ?? {};
+  const tokensById = tokensQuery.data;
 
-  const tasks = tasksQuery.data?.items ?? [];
+  const tasks = tasksQuery.data?.items;
   const targetTokenIds = useMemo(() => {
     const ids = new Set<string>();
-    tasks.forEach(task => {
+    (tasks ?? []).forEach(task => {
       (task.target_token_ids ?? []).forEach(id => ids.add(id));
     });
     return Array.from(ids);
@@ -93,14 +93,14 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     { ...pollingConfig, ...options, revalidateOnFocus: false }
   );
 
-  const feedbackByTargetId = feedbackQuery.data ?? {};
+  const feedbackByTargetId = feedbackQuery.data;
 
   // 构建任务视图
-  const runs = runsQuery.data?.items ?? [];
+  const runs = runsQuery.data?.items;
   const taskViews: TaskView[] = useMemo(() => {
-    return tasks.map(task => ({
+    return (tasks ?? []).map(task => ({
       task,
-      targets: buildTaskTargets(task, tokensById, runs, feedbackByTargetId),
+      targets: buildTaskTargets(task, tokensById ?? {}, runs ?? [], feedbackByTargetId ?? {}),
     }));
   }, [tasks, tokensById, runs, feedbackByTargetId]);
 
@@ -130,11 +130,11 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   };
 
   return {
-    tasks,
-    runs,
-    tokensById,
+    tasks: tasks ?? [],
+    runs: runs ?? [],
+    tokensById: tokensById ?? {},
     taskViews,
-    feedbackByTargetId,
+    feedbackByTargetId: feedbackByTargetId ?? {},
     isLoading,
     error,
     mutate,

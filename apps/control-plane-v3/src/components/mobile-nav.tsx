@@ -9,7 +9,6 @@ import { useIsMobile } from '@/hooks/use-device-type';
 import {
   LayoutDashboard,
   Users,
-  Package,
   Globe,
   CheckSquare,
   ShieldCheck,
@@ -47,7 +46,7 @@ export function MobileNav() {
   const [showMore, setShowMore] = React.useState(false);
 
   // 仅在移动端显示
-  if (!isMobile) return null;
+  if (!isMobile) {return null;}
 
   // 只显示前4个主要导航项，其他放入"更多"
   const mainItems = navItems.slice(0, 4);
@@ -105,8 +104,10 @@ export function MobileNav() {
       {/* More Menu Overlay */}
       {showMore && (
         <>
-          <div 
+          <button
             className="fixed inset-0 bg-black/20 dark:bg-black/40 z-50"
+            aria-label="Close navigation menu"
+            type="button"
             onClick={() => setShowMore(false)}
           />
           <div className="fixed bottom-20 left-4 right-4 bg-white dark:bg-[#252540] rounded-3xl shadow-2xl border border-pink-100 dark:border-[#3D3D5C] z-50 animate-slide-up">
