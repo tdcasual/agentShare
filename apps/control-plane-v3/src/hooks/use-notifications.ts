@@ -7,26 +7,43 @@ import { EVENTS_FEED_KEY, useEvents, useMarkEventRead } from '@/domains/event';
 
 export type Notification = Event;
 
-export type NotificationsSource = { kind: 'backend'; endpoint: string };
+export type NotificationsSource =
+  | { kind: 'backend'; endpoint: string }
+  | { kind: 'unavailable'; reason: string };
+
+export type NotificationsAvailability = NotificationsSource['kind'];
 
 export const NOTIFICATIONS_KEY = EVENTS_FEED_KEY;
 const NOTIFICATIONS_SOURCE: NotificationsSource = { kind: 'backend', endpoint: NOTIFICATIONS_KEY };
 
-type NotificationsResponse = Pick<Response, 'ok' | 'status' | 'json'>;
-type FetchLike = (input: string, init?: RequestInit) => Promise<NotificationsResponse>;
+type FetchLike = typeof fetch;
+
+interface UseNotificationsResult {
+  availability: NotificationsAvailability;
+  unavailableReason: string | null;
+  notifications: Notification[];
+  isLoading: boolean;
+  error: unknown;
+  mutate: () => Promise<unknown>;
+}
 
 export function getNotificationsSource(): NotificationsSource {
   return NOTIFICATIONS_SOURCE;
 }
 
 export function getNotificationsSWRKey(source: NotificationsSource): string | null {
-  return source.endpoint;
+  return source.kind === 'backend' ? source.endpoint : null;
 }
 
 export async function loadNotifications(
   source: NotificationsSource,
   fetchImpl: FetchLike = fetch,
 ): Promise<Notification[]> {
+  if (source.kind === 'unavailable') {
+    logger.notifications.info(source.reason);
+    return [];
+  }
+
   try {
     const response = await fetchImpl(source.endpoint, {
       credentials: 'include',
@@ -52,16 +69,21 @@ export async function markAllNotificationsReadForSource(
   source: NotificationsSource,
   fetchImpl: FetchLike = fetch,
 ): Promise<void> {
+  if (source.kind === 'unavailable') {
+    logger.notifications.info('Notifications unavailable; skipping mark-all-read');
+    return;
+  }
+
   await fetchImpl(source.endpoint, {
     credentials: 'include',
   });
 }
 
-export function useNotifications() {
+export function useNotifications(): UseNotificationsResult {
   const { events, isLoading, error, mutate } = useEvents();
 
   return {
-    availability: 'backend' as const,
+    availability: 'backend',
     unavailableReason: null,
     notifications: events,
     isLoading,

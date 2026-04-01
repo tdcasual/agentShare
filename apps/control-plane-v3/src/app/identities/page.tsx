@@ -1,9 +1,18 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowRight, Bot, Building2, ChevronDown, ChevronUp, FlaskConical, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
-import { refreshAdminAccounts, refreshAgents, refreshSession, useAgents, useAdminAccounts } from '@/domains/identity';
+import { useSearchParams } from 'next/navigation';
+import { Bot, Building2, ChevronDown, ChevronUp, RefreshCw, Search, ShieldCheck, Trash2, Users } from 'lucide-react';
+import {
+  refreshAdminAccounts,
+  refreshAgents,
+  refreshSession,
+  useAgentTokens,
+  useAdminAccounts,
+  useAgentsWithTokens,
+  useDeleteAgent,
+} from '@/domains/identity';
+import { useEvents } from '@/domains/event';
 import { Layout } from '@/interfaces/human/layout';
 import {
   isUnauthorizedError,
@@ -11,6 +20,7 @@ import {
   ManagementSessionRecoveryNotice,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
+import { readFocusedEntry } from '@/lib/focused-entry';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -24,8 +34,12 @@ export default function IdentitiesPage() {
 }
 
 function IdentitiesContent() {
+  const searchParams = useSearchParams();
+  const focus = readFocusedEntry(searchParams);
   const { data: adminAccountsData, isLoading: isAccountsLoading, error: accountsError } = useAdminAccounts();
-  const { data: agentsData, isLoading: isAgentsLoading, error: agentsError } = useAgents();
+  const agentsQuery = useAgentsWithTokens();
+  const eventsQuery = useEvents();
+  const deleteAgent = useDeleteAgent();
   const {
     session,
     loading: gateLoading,
@@ -33,33 +47,51 @@ function IdentitiesContent() {
     shouldShowSessionExpired,
     clearSessionExpired,
     consumeUnauthorized,
-  } = useManagementPageSessionRecovery([accountsError, agentsError]);
+  } = useManagementPageSessionRecovery([accountsError, agentsQuery.error, eventsQuery.error]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshingAction, setRefreshingAction] = useState<'all' | 'accounts' | 'agents' | null>(null);
-  const [expandedAccounts, setExpandedAccounts] = useState<string[]>([]);
-  const [expandedAgents, setExpandedAgents] = useState<string[]>([]);
+  const [expandedAccounts, setExpandedAccounts] = useState<string[]>(() => (focus.adminId ? [focus.adminId] : []));
+  const [expandedAgents, setExpandedAgents] = useState<string[]>(() => (focus.agentId ? [focus.agentId] : []));
+  const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const adminAccounts = adminAccountsData?.items;
-  const agents = agentsData?.items;
-  const adminAccountsList = adminAccounts ?? [];
-  const agentList = agents ?? [];
+  const agents = agentsQuery.agents;
+  const tokensByAgent = agentsQuery.tokensByAgent;
+  const adminAccountList = adminAccounts ?? [];
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredAdminAccounts = useMemo(
     () => (adminAccounts ?? []).filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
     [adminAccounts, normalizedQuery]
   );
   const filteredAgents = useMemo(
-    () => (agents ?? []).filter((agent) => matchesAgentQuery(agent, normalizedQuery)),
+    () => agents.filter((agent) => matchesAgentQuery(agent, normalizedQuery)),
     [agents, normalizedQuery]
   );
+  const focusedAdminAccount = adminAccountList.find((account) => account.id === focus.adminId) ?? null;
+  const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
+  const focusedIdentity = focusedAgent ?? focusedAdminAccount;
+  const focusedIdentityLabel = focusedAgent ? 'Agent' : focusedAdminAccount ? 'Human operator' : null;
 
-  const operatorCount = adminAccountsList.filter((account) => account.status === 'active').length;
-  const ownerCount = adminAccountsList.filter((account) => account.role === 'owner').length;
-  const activeAgentCount = agentList.filter((agent) => agent.status === 'active').length;
+  const operatorCount = adminAccountList.filter((account) => account.status === 'active').length;
+  const ownerCount = adminAccountList.filter((account) => account.role === 'owner').length;
+  const activeAgentCount = agents.filter((agent) => agent.status === 'active').length;
+  const agentFeedbackCounts = useMemo(
+    () =>
+      eventsQuery.events
+        .filter((event) => event.actor_type === 'agent')
+        .reduce<Record<string, number>>((counts, event) => {
+          counts[event.actor_id] = (counts[event.actor_id] ?? 0) + 1;
+          return counts;
+        }, {}),
+    [eventsQuery.events]
+  );
+  const agentsWithLinkedTokensCount = agents.filter((agent) => (tokensByAgent[agent.id] ?? []).length > 0).length;
+  const agentsWithFeedbackCount = agents.filter((agent) => (agentFeedbackCounts[agent.id] ?? 0) > 0).length;
   const guardedError = gateError;
   const accountsErrorMessage = accountsError instanceof Error ? accountsError.message : null;
-  const agentsErrorMessage = agentsError instanceof Error ? agentsError.message : null;
+  const agentsErrorMessage = agentsQuery.error instanceof Error ? agentsQuery.error.message : null;
+  const eventsErrorMessage = eventsQuery.error instanceof Error ? eventsQuery.error.message : null;
 
   const isLoading = gateLoading;
   const hasActiveSearch = normalizedQuery.length > 0;
@@ -100,6 +132,25 @@ function IdentitiesContent() {
 
   async function retryAgents() {
     await runRefreshAction('agents', refreshAgents);
+  }
+
+  async function handleDeleteAgent(agentId: string) {
+    setDeletingAgentId(agentId);
+    setActionError(null);
+    clearSessionExpired();
+
+    try {
+      await deleteAgent(agentId);
+      setExpandedAgents((current) => current.filter((id) => id !== agentId));
+    } catch (error) {
+      if (consumeUnauthorized(error)) {
+        return;
+      }
+
+      setActionError(error instanceof Error ? error.message : 'Failed to delete agent');
+    } finally {
+      setDeletingAgentId(null);
+    }
   }
 
   return (
@@ -152,48 +203,104 @@ function IdentitiesContent() {
         </div>
       </Card>
 
-      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-            <ShieldCheck className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
-              Backend-Backed Identity Snapshot
-            </h2>
-            <p className="text-amber-700 dark:text-amber-300 mb-4">
-              This route now reads persisted management accounts and registered agents from the backend.
-              Profile editing and relationship management are still pending, so the demo route remains available for exploration-only interactions.
+      {focusedIdentity ? (
+        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+              Focused identity
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/demo/identities"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
-              >
-                <FlaskConical className="w-4 h-4" />
-                Try Demo Version
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              {'name' in focusedIdentity ? focusedIdentity.name : focusedIdentity.display_name}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              {focusedIdentityLabel} · {focusedIdentity.id}
+            </p>
+          </div>
+        </Card>
+      ) : null}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="border border-sky-100 dark:border-[#3D3D5C] bg-sky-50/70 dark:bg-[#1E1E32]/80">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-[#2D4A5D] dark:text-sky-300">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">Human supervisors</h2>
+              <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
+                Human operators supervise policy, approvals, and account hygiene across the control plane.
+              </p>
             </div>
           </div>
-        </div>
+        </Card>
+
+        <Card className="border border-green-100 dark:border-[#3D3D5C] bg-green-50/70 dark:bg-[#1E1E32]/80">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-100 text-green-700 dark:bg-[#2D4A3D] dark:text-green-300">
+              <Bot className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">Agent-managed identities</h2>
+              <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
+                Agents maintain their own execution identity, while humans can still inspect and manage their status.
+              </p>
+            </div>
+          </div>
+        </Card>
       </div>
+
+      <Card className="border border-amber-200 bg-amber-50/90 dark:border-amber-800 dark:bg-amber-900/20">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                Management coverage
+              </h2>
+              <p className="text-amber-700 dark:text-amber-300">
+                This route now reads persisted management accounts and registered agents from the backend.
+                Humans supervise governance and account hygiene while agents surface their runtime identity through linked tokens and feedback events.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <CoverageMetric
+              label="Human coverage"
+              value={`${ownerCount} owner${ownerCount === 1 ? '' : 's'}`}
+              hint={`${operatorCount} active operator${operatorCount === 1 ? '' : 's'} on duty`}
+            />
+            <CoverageMetric
+              label="Agents with linked tokens"
+              value={agentsWithLinkedTokensCount.toString()}
+              hint={`${Math.max(agents.length - agentsWithLinkedTokensCount, 0)} awaiting token coverage`}
+            />
+            <CoverageMetric
+              label="Agents with feedback"
+              value={agentsWithFeedbackCount.toString()}
+              hint={`${Math.max(agents.length - agentsWithFeedbackCount, 0)} without recent feedback`}
+            />
+          </div>
+        </div>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           label="Active Operators"
           value={accountsErrorMessage ? 'N/A' : operatorCount.toString()}
-          hint={accountsErrorMessage ? 'accounts unavailable' : `${adminAccountsList.length} total accounts`}
+          hint={accountsErrorMessage ? 'accounts unavailable' : `${adminAccountList.length} total accounts`}
         />
         <MetricCard
           label="Owners"
           value={accountsErrorMessage ? 'N/A' : ownerCount.toString()}
-          hint={accountsErrorMessage ? 'accounts unavailable' : 'bootstrap and governance'}
+          hint={accountsErrorMessage ? 'accounts unavailable' : 'governance and account custody'}
         />
         <MetricCard
           label="Active Agents"
           value={agentsErrorMessage ? 'N/A' : activeAgentCount.toString()}
-          hint={agentsErrorMessage ? 'agents unavailable' : `${agentList.length} registered`}
+          hint={agentsErrorMessage ? 'agents unavailable' : `${agents.length} registered`}
         />
       </div>
 
@@ -251,7 +358,7 @@ function IdentitiesContent() {
                   Persisted admin accounts from `/api/admin-accounts`
                 </p>
               </div>
-              <Badge variant="human">{adminAccountsList.length}</Badge>
+              <Badge variant="human">{adminAccountList.length}</Badge>
             </div>
 
             {isAccountsLoading ? (
@@ -265,7 +372,7 @@ function IdentitiesContent() {
                 onRetry={retryAccounts}
                 isRefreshing={refreshingAction === 'accounts'}
               />
-            ) : adminAccountsList.length === 0 ? (
+            ) : adminAccountList.length === 0 ? (
               <EmptyState icon={<Users className="w-6 h-6" />} message="No admin accounts have been invited yet." />
             ) : filteredAdminAccounts.length === 0 ? (
               <EmptyState
@@ -277,7 +384,13 @@ function IdentitiesContent() {
                 {filteredAdminAccounts.map((account) => (
                   <div
                     key={account.id}
-                    className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90 p-4"
+                    data-testid={`admin-card-${account.id}`}
+                    data-focus-state={account.id === focus.adminId ? 'focused' : 'default'}
+                    className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
+                      account.id === focus.adminId
+                        ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
+                        : 'border-pink-100 dark:border-[#3D3D5C]'
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -340,12 +453,12 @@ function IdentitiesContent() {
                   Registered agent identities from `/api/agents`
                 </p>
               </div>
-              <Badge variant="agent">{agentList.length}</Badge>
+              <Badge variant="agent">{agents.length}</Badge>
             </div>
 
-            {isAgentsLoading ? (
+            {agentsQuery.isLoading ? (
               <SectionLoading message="Loading agents..." />
-            ) : shouldShowSessionExpired && isUnauthorizedError(agentsError) ? (
+            ) : shouldShowSessionExpired && isUnauthorizedError(agentsQuery.error) ? (
               <ManagementSessionRecoveryNotice message="Sign in again to reload agents." />
             ) : agentsErrorMessage ? (
               <SectionError
@@ -354,7 +467,7 @@ function IdentitiesContent() {
                 onRetry={retryAgents}
                 isRefreshing={refreshingAction === 'agents'}
               />
-            ) : agentList.length === 0 ? (
+            ) : agents.length === 0 ? (
               <EmptyState icon={<Bot className="w-6 h-6" />} message="No agents are registered yet." />
             ) : filteredAgents.length === 0 ? (
               <EmptyState
@@ -363,61 +476,88 @@ function IdentitiesContent() {
               />
             ) : (
               <div className="space-y-3">
-                {filteredAgents.map((agent) => (
-                  <div
-                    key={agent.id}
-                    className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                          {agent.name}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-[#9CA3AF] break-all">
-                          {agent.id}
-                        </p>
+                {filteredAgents.map((agent) => {
+                  const linkedTokens = tokensByAgent[agent.id] ?? [];
+                  const feedbackCount = agentFeedbackCounts[agent.id] ?? 0;
+
+                  return (
+                    <div
+                      key={agent.id}
+                      data-testid={`agent-card-${agent.id}`}
+                      data-focus-state={agent.id === focus.agentId ? 'focused' : 'default'}
+                      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
+                        agent.id === focus.agentId
+                          ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
+                          : 'border-pink-100 dark:border-[#3D3D5C]'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                            {agent.name}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-[#9CA3AF] break-all">
+                            {agent.id}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Badge variant="secondary">
+                              {linkedTokens.length} linked token{linkedTokens.length === 1 ? '' : 's'}
+                            </Badge>
+                            <Badge variant="secondary">
+                              {feedbackCount} recent feedback event{feedbackCount === 1 ? '' : 's'}
+                            </Badge>
+                          </div>
+                          {linkedTokens.length > 0 ? (
+                            <p className="mt-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                              {linkedTokens
+                                .slice(0, 2)
+                                .map((token) => token.display_name ?? token.displayName ?? token.id)
+                                .join(' · ')}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Badge variant="agent">{agent.risk_tier}</Badge>
+                          <Badge variant="info">{agent.auth_method}</Badge>
+                          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Badge variant="agent">{agent.risk_tier}</Badge>
-                        <Badge variant="info">{agent.auth_method}</Badge>
-                        <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+                      <div className="mt-4 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-expanded={expandedAgents.includes(agent.id)}
+                          onClick={() => {
+                            setExpandedAgents((current) =>
+                              current.includes(agent.id)
+                                ? current.filter((id) => id !== agent.id)
+                                : [...current, agent.id]
+                            );
+                          }}
+                          rightIcon={
+                            expandedAgents.includes(agent.id)
+                              ? <ChevronUp className="h-4 w-4" />
+                              : <ChevronDown className="h-4 w-4" />
+                          }
+                        >
+                          {expandedAgents.includes(agent.id)
+                            ? `Hide details for ${agent.name}`
+                            : `View details for ${agent.name}`}
+                        </Button>
                       </div>
+                      {expandedAgents.includes(agent.id) ? (
+                        <AgentManagementCard
+                          agent={agent}
+                          canDelete={session?.role === 'owner'}
+                          events={eventsQuery.events.filter((event) => event.actor_id === agent.id)}
+                          eventsErrorMessage={eventsErrorMessage}
+                          isDeleting={deletingAgentId === agent.id}
+                          onDelete={() => handleDeleteAgent(agent.id)}
+                        />
+                      ) : null}
                     </div>
-                    <div className="mt-4 flex justify-end">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-expanded={expandedAgents.includes(agent.id)}
-                        onClick={() => {
-                          setExpandedAgents((current) =>
-                            current.includes(agent.id)
-                              ? current.filter((id) => id !== agent.id)
-                              : [...current, agent.id]
-                          );
-                        }}
-                        rightIcon={
-                          expandedAgents.includes(agent.id)
-                            ? <ChevronUp className="h-4 w-4" />
-                            : <ChevronDown className="h-4 w-4" />
-                        }
-                      >
-                        {expandedAgents.includes(agent.id)
-                          ? `Hide details for ${agent.name}`
-                          : `View details for ${agent.name}`}
-                      </Button>
-                    </div>
-                    {expandedAgents.includes(agent.id) ? (
-                      <IdentityDetailsGrid
-                        items={[
-                          ['Agent ID', agent.id],
-                          ['Created', formatSnapshotTimestamp(agent.created_at)],
-                          ['Updated', formatSnapshotTimestamp(agent.updated_at)],
-                          ['Authentication', agent.auth_method],
-                        ]}
-                      />
-                    ) : null}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </Card>
@@ -432,12 +572,12 @@ function IdentitiesContent() {
             </div>
             <div>
               <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC] mb-1">
-                {hasActiveSearch ? 'Filtered snapshot' : 'What is still pending'}
+                {hasActiveSearch ? 'Filtered snapshot' : 'Live management snapshot'}
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
                 {hasActiveSearch
                   ? `Showing ${filteredAdminAccounts.length} human operators and ${filteredAgents.length} agents that match the current query. Metrics above still reflect the full backend snapshot.`
-                  : 'This page is now backed by persisted identity data, but editing profiles, ownership relationships, and richer activity views still need dedicated backend endpoints.'}
+                  : 'Humans and agents are now rendered from persisted backend data, including token coverage and recent feedback visibility for each registered agent.'}
               </p>
             </div>
           </div>
@@ -454,6 +594,16 @@ function MetricCard({ label, value, hint }: { label: string; value: string; hint
       <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
       <p className="text-xs text-gray-400 dark:text-[#9CA3AF]">{hint}</p>
     </Card>
+  );
+}
+
+function CoverageMetric({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <div className="rounded-2xl border border-amber-200/80 bg-white/70 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-950/10">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-amber-900 dark:text-amber-100">{value}</p>
+      <p className="mt-1 text-xs text-amber-700/80 dark:text-amber-300/80">{hint}</p>
+    </div>
   );
 }
 
@@ -520,6 +670,122 @@ function IdentityDetailsGrid({ items }: { items: Array<[string, string]> }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+function AgentManagementCard({
+  agent,
+  canDelete,
+  events,
+  eventsErrorMessage,
+  isDeleting,
+  onDelete,
+}: {
+  agent: {
+    id: string;
+    name: string;
+    risk_tier: string;
+    auth_method: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  };
+  canDelete: boolean;
+  events: Array<{
+    id: string;
+    summary: string;
+    event_type: string;
+    created_at: string;
+  }>;
+  eventsErrorMessage: string | null;
+  isDeleting: boolean;
+  onDelete: () => Promise<void>;
+}) {
+  const tokensQuery = useAgentTokens(agent.id);
+  const tokens = tokensQuery.data?.items ?? [];
+
+  return (
+    <div className="mt-4 space-y-4">
+      <IdentityDetailsGrid
+        items={[
+          ['Agent ID', agent.id],
+          ['Created', formatSnapshotTimestamp(agent.created_at)],
+          ['Updated', formatSnapshotTimestamp(agent.updated_at)],
+          ['Authentication', agent.auth_method],
+        ]}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#1E1E32]/60 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+              Linked Tokens
+            </h3>
+            <Badge variant="info">{tokens.length}</Badge>
+          </div>
+
+          {tokensQuery.isLoading ? (
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Loading linked tokens...</p>
+          ) : tokens.length === 0 ? (
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No active tokens are linked to this agent.</p>
+          ) : (
+            <div className="space-y-2">
+              {tokens.map((token) => (
+                <div key={token.id} className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 p-3">
+                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                    {token.display_name ?? token.displayName}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                    {(token.status ?? 'unknown').toUpperCase()} · trust {(token.trust_score ?? token.trustScore ?? 0).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#1E1E32]/60 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+              Recent Events
+            </h3>
+            <Badge variant="secondary">{events.length}</Badge>
+          </div>
+
+          {eventsErrorMessage ? (
+            <p className="text-sm text-red-600 dark:text-red-400">Event feed unavailable. {eventsErrorMessage}</p>
+          ) : events.length === 0 ? (
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No recent agent feedback events yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {events.slice(0, 3).map((event) => (
+                <div key={event.id} className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 p-3">
+                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{event.summary}</p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                    {event.event_type.replaceAll('_', ' ')} · {formatSnapshotTimestamp(event.created_at)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {canDelete ? (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            loading={isDeleting}
+            onClick={onDelete}
+            leftIcon={!isDeleting ? <Trash2 className="h-4 w-4" /> : undefined}
+            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+          >
+            Delete {agent.name}
+          </Button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

@@ -52,6 +52,7 @@ function TokensContent() {
   const [showCreateAgentModal, setShowCreateAgentModal] = useState(false);
   const [showCreateTokenModal, setShowCreateTokenModal] = useState(false);
   const [issuingAgentId, setIssuingAgentId] = useState<string | null>(null);
+  const [selectedHealthFilter, setSelectedHealthFilter] = useState<'all' | 'needs_feedback' | 'low_trust'>('all');
   const [createAgentForm, setCreateAgentForm] = useState({
     name: '',
     risk_tier: 'medium',
@@ -79,6 +80,8 @@ function TokensContent() {
   const averageTrust =
     allTokens.length > 0 ? allTokens.reduce((total, token) => total + (token.trust_score ?? token.trustScore), 0) / allTokens.length : 0;
   const tokensWithFeedback = allTokens.filter((token) => token.last_feedback_at).length;
+  const tokensNeedingFeedback = allTokens.filter((token) => !token.last_feedback_at).length;
+  const lowTrustTokens = allTokens.filter((token) => (token.trust_score ?? token.trustScore) < 0.6).length;
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -249,6 +252,50 @@ function TokensContent() {
         <MetricCard label={t('tokens.metrics.tokensWithFeedback')} value={tokensWithFeedback.toString()} hint="reviewed" />
       </div>
 
+      <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+        <div className="flex flex-col gap-5">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">Token supervision</h2>
+            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              Human operators can quickly isolate tokens that still need feedback or have fallen below the trust threshold.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <Badge variant="secondary">
+              {tokensNeedingFeedback} token{tokensNeedingFeedback === 1 ? '' : 's'} need{tokensNeedingFeedback === 1 ? 's' : ''} feedback
+            </Badge>
+            <Badge variant="warning">
+              {lowTrustTokens} low-trust token{lowTrustTokens === 1 ? '' : 's'}
+            </Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedHealthFilter === 'all' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedHealthFilter('all')}
+            >
+              All tokens
+            </Button>
+            <Button
+              variant={selectedHealthFilter === 'needs_feedback' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedHealthFilter('needs_feedback')}
+            >
+              Needs feedback
+            </Button>
+            <Button
+              variant={selectedHealthFilter === 'low_trust' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedHealthFilter('low_trust')}
+            >
+              Low trust
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       {/* Session Info */}
       <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
@@ -316,7 +363,19 @@ function TokensContent() {
       {/* Agents List */}
       <div className="grid gap-5">
         {agents.map((agent) => {
-          const tokens = tokensByAgent[agent.id] ?? [];
+          const tokens = (tokensByAgent[agent.id] ?? []).filter((token) => {
+            if (selectedHealthFilter === 'needs_feedback') {
+              return !token.last_feedback_at;
+            }
+            if (selectedHealthFilter === 'low_trust') {
+              return (token.trust_score ?? token.trustScore) < 0.6;
+            }
+            return true;
+          });
+
+          if (selectedHealthFilter !== 'all' && tokens.length === 0) {
+            return null;
+          }
 
           return (
             <Card key={agent.id} variant="kawaii" className="space-y-5 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]">

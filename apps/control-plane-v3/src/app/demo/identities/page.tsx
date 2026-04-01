@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useMemo, memo } from 'react';
 import Image from 'next/image';
 import { useMockIdentities } from '@/hooks/use-identity';
@@ -10,7 +11,7 @@ import { Badge } from '@/shared/ui-primitives/badge';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { Card } from '@/shared/ui-primitives/card';
 import { useI18n } from '@/components/i18n-provider';
-import { Search, Plus, Grid, List, Users, Bot } from 'lucide-react';
+import { Search, Plus, Grid, List, Users, Bot, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Identity } from '@/shared/types';
 
@@ -122,6 +123,33 @@ function IdentitiesContent() {
           {t('identities.createIdentity')}
         </Button>
       </div>
+
+      <Card className="border border-amber-200 bg-amber-50/80 dark:border-amber-800 dark:bg-amber-900/10">
+        <div className="space-y-2 p-4">
+          <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+            Identity interaction sandbox
+          </p>
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            Use this page to demo identity cards, filtering, and create flows with fixture data. It is not the live management roster.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Link
+              href="/demo"
+              className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 transition-colors hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Sandbox Directory
+            </Link>
+            <Link
+              href="/identities"
+              className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-[#252540] dark:text-stone-100 dark:hover:bg-[#2A2A45]"
+            >
+              View live identities
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

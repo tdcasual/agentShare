@@ -67,6 +67,22 @@ describe('settings page', () => {
             status: 'active',
             last_login_at: null,
           },
+          {
+            id: 'operator-1',
+            email: 'operator@example.com',
+            display_name: 'Operator',
+            role: 'operator',
+            status: 'active',
+            last_login_at: '2026-03-31T00:00:00.000Z',
+          },
+          {
+            id: 'viewer-1',
+            email: 'viewer@example.com',
+            display_name: 'Viewer',
+            role: 'viewer',
+            status: 'inactive',
+            last_login_at: null,
+          },
         ],
       },
       isLoading: false,
@@ -109,5 +125,32 @@ describe('settings page', () => {
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+  });
+
+  it('surfaces supervision coverage and filters the roster by role', async () => {
+    const user = userEvent.setup();
+
+    render(<SettingsPage />);
+
+    expect(screen.getByText('1 owner account')).toBeInTheDocument();
+    expect(screen.getByText('2 active operators')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /operators/i }));
+
+    expect(screen.queryByText('Owner')).not.toBeInTheDocument();
+    expect(screen.getByText('Operator')).toBeInTheDocument();
+    expect(screen.queryByText('Viewer')).not.toBeInTheDocument();
+  });
+
+  it('filters the roster to accounts needing human follow-up', async () => {
+    const user = userEvent.setup();
+
+    render(<SettingsPage />);
+
+    await user.click(screen.getByRole('button', { name: /inactive accounts/i }));
+
+    expect(screen.queryByText('Owner')).not.toBeInTheDocument();
+    expect(screen.queryByText('Operator')).not.toBeInTheDocument();
+    expect(screen.getByText('Viewer')).toBeInTheDocument();
   });
 });

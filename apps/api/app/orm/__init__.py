@@ -9,6 +9,7 @@ from app.orm.token_feedback import TokenFeedbackModel
 from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
 from app.orm.audit_event import AuditEventModel
+from app.orm.event import EventModel
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.management_session import ManagementSessionModel
 from app.orm.human_account import HumanAccountModel
@@ -26,6 +27,7 @@ __all__ = [
     "RunModel",
     "PlaybookModel",
     "AuditEventModel",
+    "EventModel",
     "ApprovalRequestModel",
     "ManagementSessionModel",
     "HumanAccountModel",

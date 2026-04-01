@@ -17,12 +17,13 @@ import { assetApi } from './asset';
 import { governanceApi } from './governance';
 import { reviewApi } from './review';
 import { eventApi } from './event';
+import { searchApi } from './search';
 
 // ============================================
 // Domain APIs 命名空间导出
 // ============================================
 
-export { identityApi, taskApi, assetApi, governanceApi, reviewApi, eventApi };
+export { identityApi, taskApi, assetApi, governanceApi, reviewApi, eventApi, searchApi };
 
 // ============================================
 // Identity Domain 全部导出
@@ -59,3 +60,9 @@ export * from './review';
 // ============================================
 
 export * from './event';
+
+// ============================================
+// Search Domain 全部导出
+// ============================================
+
+export * from './search';

@@ -223,6 +223,30 @@ Playwright will look for `.venv/bin/uvicorn` by default. If you need to use a di
 export AGENT_SHARE_API_UVICORN_BIN=/absolute/path/to/uvicorn
 ```
 
+### One-Command Demo Stack
+
+To run the current backend plus `control-plane-v3` with persisted demo data in one command:
+
+```bash
+./scripts/ops/start-control-plane-demo.sh
+```
+
+This script:
+
+- migrates a dedicated local demo database;
+- enables `DEMO_SEED_ENABLED=true` for the API so inbox, marketplace, reviews, and search start with real local fixture records;
+- starts the API on `http://127.0.0.1:8000`;
+- starts `apps/control-plane-v3` on `http://127.0.0.1:3000`;
+- prints the demo owner login:
+  - `owner@example.com`
+  - `correct horse battery staple`
+
+If you want to inspect the exact commands and environment first:
+
+```bash
+./scripts/ops/start-control-plane-demo.sh --print-config
+```
+
 ## Quality Floor
 
 The repo's clean repo state is defined by these commands:

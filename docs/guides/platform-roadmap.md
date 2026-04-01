@@ -44,3 +44,13 @@ These items are owned outside this repository because they require long-lived in
 - Operators authenticate through SSO or an equivalent managed identity flow
 - Secret rotation is exercised and documented as a routine operation
 - Alerts exist for deploy failure, health failure, metrics regressions, and backup failures
+
+## Control Plane Closure Walkthrough
+
+Use this operator walkthrough to verify the control plane still closes the loop after each major workflow change:
+
+1. Open an inbox event and confirm it lands on a focused management surface instead of a generic list page.
+2. Jump from that event into the matching task, review, identity, asset, or space page and confirm the target card is highlighted.
+3. Perform one human governance action, such as approving or rejecting an agent-originated submission.
+4. Verify the marketplace and assets views reflect the same governance state without inventing a second approval path.
+5. Compare the equivalent `/demo` route only as a sandbox reference, then confirm the live route remains the canonical operator surface.

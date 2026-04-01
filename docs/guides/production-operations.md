@@ -32,3 +32,13 @@
 3. Restore Redis from the latest valid snapshot if the incident requires it.
 4. Validate the external secret backend is reachable and unchanged.
 5. Bring the application stack back and rerun smoke checks.
+
+## Control Plane Verification Flow
+
+Run this workflow after shipping navigation, governance, or demo-sandbox changes in the management console:
+
+1. Open an inbox event and verify the deep link lands in a focused task, review, identity, asset, or space context.
+2. Confirm the selected management page shows the focused summary state and highlights the relevant item.
+3. Perform one human governance action and confirm the review queue updates without breaking marketplace ownership semantics.
+4. Check the marketplace and assets pages to confirm they now display the same governance outcome.
+5. Open the equivalent `/demo` route only as a sandbox comparison and confirm the page still points operators back to the live management surface.

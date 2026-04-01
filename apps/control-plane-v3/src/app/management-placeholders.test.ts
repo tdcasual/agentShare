@@ -12,20 +12,34 @@ async function readRouteSource(routePath: string) {
 }
 
 describe('management placeholders', () => {
-  it('identities page is backend-backed and keeps the demo route explicit', async () => {
+  it('identities page is backend-backed and replaces the demo placeholder with live coverage', async () => {
     const source = await readRouteSource('identities/page.tsx');
 
     expect(source).toMatch(/useAdminAccounts/);
-    expect(source).toMatch(/useAgents/);
+    expect(source).toMatch(/useAgentsWithTokens/);
     expect(source).toMatch(/persisted management accounts and registered agents from the backend/);
     expect(source).not.toMatch(/managed through the runtime system/);
-    expect(source).toMatch(/\/demo\/identities/);
+    expect(source).toMatch(/Management coverage/);
+    expect(source).not.toMatch(/\/demo\/identities/);
   });
 
-  it('spaces page declares backend unavailability explicitly', async () => {
+  it('spaces page is backed by real management data instead of an unavailable placeholder', async () => {
     const source = await readRouteSource('spaces/page.tsx');
 
-    expect(source).toMatch(/not yet backed by a production API/);
-    expect(source).toMatch(/\/demo\/spaces/);
+    expect(source).toMatch(/useEvents/);
+    expect(source).toMatch(/useReviews/);
+    expect(source).toMatch(/useAgentsWithTokens/);
+    expect(source).toMatch(/Operations Space/);
+    expect(source).not.toMatch(/not yet backed by a production API/);
+  });
+
+  it('marketplace page is backed by review and governance data instead of a coming-soon placeholder', async () => {
+    const source = await readRouteSource('marketplace/page.tsx');
+
+    expect(source).toMatch(/useReviews/);
+    expect(source).toMatch(/useSecrets/);
+    expect(source).toMatch(/useCapabilities/);
+    expect(source).toMatch(/Only agents publish here/);
+    expect(source).not.toMatch(/Marketplace Coming Soon/);
   });
 });

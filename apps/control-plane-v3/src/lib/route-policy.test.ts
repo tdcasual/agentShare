@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { getRoutePolicy, isRouteAllowed } from './route-policy';
 
 describe('route-policy', () => {
+  it('keeps the demo hub readable without authentication', () => {
+    expect(getRoutePolicy('/demo')?.mode).toBe('demo');
+    expect(isRouteAllowed('/demo', 'anonymous')).toEqual({ allowed: true });
+  });
+
   it('blocks anonymous access to identities', () => {
     expect(isRouteAllowed('/identities', 'anonymous')).toEqual({
       allowed: false,
@@ -23,11 +28,10 @@ describe('route-policy', () => {
     expect(isRouteAllowed('/demo/identities', 'anonymous')).toEqual({ allowed: true });
   });
 
-  it('marks marketplace as explicitly unavailable', () => {
-    expect(getRoutePolicy('/marketplace')?.mode).toBe('unavailable');
+  it('guards marketplace as an authenticated management surface', () => {
+    expect(getRoutePolicy('/marketplace')?.mode).toBe('authenticated');
     expect(isRouteAllowed('/marketplace', 'authenticated')).toEqual({
-      allowed: false,
-      reason: 'Route not implemented',
+      allowed: true,
     });
   });
 });

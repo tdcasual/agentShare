@@ -4,15 +4,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
 import IdentitiesPage from './page';
 
+let mockSearchParams = new URLSearchParams();
 const useManagementSessionGateMock = vi.fn();
 const useAdminAccountsMock = vi.fn();
-const useAgentsMock = vi.fn();
+const useAgentsWithTokensMock = vi.fn();
+const useAgentTokensMock = vi.fn();
+const useEventsMock = vi.fn();
+const useDeleteAgentMock = vi.fn();
+const deleteAgentMock = vi.fn();
 const refreshSessionMock = vi.fn();
 const refreshAdminAccountsMock = vi.fn();
 const refreshAgentsMock = vi.fn();
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => mockSearchParams,
 }));
 
 vi.mock('@/components/route-guard', () => ({
@@ -29,15 +38,22 @@ vi.mock('@/lib/session', () => ({
 
 vi.mock('@/domains/identity', () => ({
   useAdminAccounts: () => useAdminAccountsMock(),
-  useAgents: () => useAgentsMock(),
+  useAgentsWithTokens: () => useAgentsWithTokensMock(),
+  useAgentTokens: (agentId: string | null) => useAgentTokensMock(agentId),
+  useDeleteAgent: () => useDeleteAgentMock(),
   refreshSession: () => refreshSessionMock(),
   refreshAdminAccounts: () => refreshAdminAccountsMock(),
   refreshAgents: () => refreshAgentsMock(),
 }));
 
+vi.mock('@/domains/event', () => ({
+  useEvents: () => useEventsMock(),
+}));
+
 describe('identities page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = new URLSearchParams();
 
     useManagementSessionGateMock.mockReturnValue({
       session: {
@@ -75,32 +91,81 @@ describe('identities page', () => {
       error: null,
     });
 
-    useAgentsMock.mockReturnValue({
+    useAgentsWithTokensMock.mockReturnValue({
+      agents: [
+        {
+          id: 'bootstrap',
+          name: 'Bootstrap Agent',
+          risk_tier: 'high',
+          auth_method: 'api_key',
+          status: 'active',
+          created_at: '2026-03-31T00:00:00.000Z',
+          updated_at: '2026-03-31T00:00:00.000Z',
+        },
+        {
+          id: 'analyzer',
+          name: 'Analyzer Agent',
+          risk_tier: 'medium',
+          auth_method: 'oauth',
+          status: 'inactive',
+          created_at: '2026-03-31T00:00:00.000Z',
+          updated_at: '2026-03-31T00:00:00.000Z',
+        },
+      ],
+      tokensByAgent: {
+        bootstrap: [
+          {
+            id: 'token-bootstrap',
+            display_name: 'Bootstrap Primary',
+            status: 'active',
+            trust_score: 0.92,
+            created_at: '2026-03-31T00:00:00.000Z',
+          },
+        ],
+        analyzer: [],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    useAgentTokensMock.mockReturnValue({
       data: {
         items: [
           {
-            id: 'bootstrap',
-            name: 'Bootstrap Agent',
-            risk_tier: 'high',
-            auth_method: 'api_key',
+            id: 'token-bootstrap',
+            display_name: 'Bootstrap Primary',
             status: 'active',
+            trust_score: 0.92,
             created_at: '2026-03-31T00:00:00.000Z',
-            updated_at: '2026-03-31T00:00:00.000Z',
-          },
-          {
-            id: 'analyzer',
-            name: 'Analyzer Agent',
-            risk_tier: 'medium',
-            auth_method: 'oauth',
-            status: 'inactive',
-            created_at: '2026-03-31T00:00:00.000Z',
-            updated_at: '2026-03-31T00:00:00.000Z',
           },
         ],
       },
       isLoading: false,
       error: null,
     });
+
+    useEventsMock.mockReturnValue({
+      events: [
+        {
+          id: 'event-1',
+          actor_id: 'bootstrap',
+          actor_type: 'agent',
+          event_type: 'task_completed',
+          subject_type: 'task',
+          subject_id: 'task-1',
+          summary: 'Bootstrap completed Sync Config',
+          details: 'Published follow-up feedback',
+          created_at: '2026-03-31T00:00:00.000Z',
+          updated_at: '2026-03-31T00:00:00.000Z',
+        },
+      ],
+      isLoading: false,
+      error: null,
+      mutate: vi.fn(),
+    });
+
+    deleteAgentMock.mockResolvedValue({ status: 'deleted', id: 'bootstrap' });
+    useDeleteAgentMock.mockReturnValue(deleteAgentMock);
   });
 
   it('filters human and agent lists locally from the search query', async () => {
@@ -140,8 +205,9 @@ describe('identities page', () => {
     refreshSessionMock.mockResolvedValue(undefined);
     refreshAgentsMock.mockResolvedValue(undefined);
 
-    useAgentsMock.mockReturnValue({
-      data: undefined,
+    useAgentsWithTokensMock.mockReturnValue({
+      agents: [],
+      tokensByAgent: {},
       isLoading: false,
       error: new Error('Agents backend unavailable'),
     });
@@ -160,8 +226,9 @@ describe('identities page', () => {
   });
 
   it('keeps the healthy section visible when only agent data fails', async () => {
-    useAgentsMock.mockReturnValue({
-      data: undefined,
+    useAgentsWithTokensMock.mockReturnValue({
+      agents: [],
+      tokensByAgent: {},
       isLoading: false,
       error: new Error('Agents backend unavailable'),
     });
@@ -186,6 +253,51 @@ describe('identities page', () => {
     expect(screen.getByRole('button', { name: /hide details for founding owner/i })).toBeInTheDocument();
   });
 
+  it('frames humans as supervisors and agents as self-maintained identities', () => {
+    render(<IdentitiesPage />);
+
+    expect(screen.getByText(/Human operators supervise policy, approvals, and account hygiene/i)).toBeInTheDocument();
+    expect(screen.getByText(/Agents maintain their own execution identity, while humans can still inspect and manage their status/i)).toBeInTheDocument();
+  });
+
+  it('shows token and feedback coverage for agents before details are expanded', () => {
+    render(<IdentitiesPage />);
+
+    expect(screen.getByText('1 linked token')).toBeInTheDocument();
+    expect(screen.getByText('1 recent feedback event')).toBeInTheDocument();
+    expect(screen.getByText('0 linked tokens')).toBeInTheDocument();
+  });
+
+  it('replaces the demo placeholder with a live supervision coverage summary', () => {
+    render(<IdentitiesPage />);
+
+    expect(screen.getByText(/Management coverage/i)).toBeInTheDocument();
+    expect(screen.getByText(/Agents with linked tokens/i)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /try demo version/i })).not.toBeInTheDocument();
+  });
+
+  it('shows related tokens and recent events for an expanded agent', async () => {
+    const user = userEvent.setup();
+
+    render(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: /view details for bootstrap agent/i }));
+
+    expect(screen.getAllByText('Bootstrap Primary').length).toBeGreaterThan(0);
+    expect(screen.getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
+  });
+
+  it('lets owners delete an agent from the management view', async () => {
+    const user = userEvent.setup();
+
+    render(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: /view details for bootstrap agent/i }));
+    await user.click(screen.getByRole('button', { name: /delete bootstrap agent/i }));
+
+    expect(deleteAgentMock).toHaveBeenCalledWith('bootstrap');
+  });
+
   it('shows a relogin recovery state when refresh hits an expired session', async () => {
     const user = userEvent.setup();
     refreshSessionMock.mockRejectedValue(new ApiError(401, 'Missing management session'));
@@ -202,8 +314,9 @@ describe('identities page', () => {
   });
 
   it('shows a relogin recovery state when backend queries return unauthorized', () => {
-    useAgentsMock.mockReturnValue({
-      data: undefined,
+    useAgentsWithTokensMock.mockReturnValue({
+      agents: [],
+      tokensByAgent: {},
       isLoading: false,
       error: new ApiError(401, 'Missing management session'),
     });
@@ -212,5 +325,15 @@ describe('identities page', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+  });
+
+  it('highlights and expands the focused agent from the query string', () => {
+    mockSearchParams = new URLSearchParams('agentId=bootstrap');
+
+    render(<IdentitiesPage />);
+
+    expect(screen.getByText('Focused identity')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /hide details for bootstrap agent/i })).toBeInTheDocument();
+    expect(screen.getByTestId('agent-card-bootstrap')).toHaveAttribute('data-focus-state', 'focused');
   });
 });

@@ -1,5 +1,12 @@
 export type CapabilityAccessPolicyMode = 'all_tokens' | 'selectors';
 export type CapabilityAccessSelectorKind = 'token' | 'agent' | 'token_label';
+export type GovernancePublicationStatus = 'pending_review' | 'approved' | 'rejected' | 'active' | 'expired';
+
+type GovernanceStatusSubject = {
+  readonly publication_status?: string | null;
+  readonly created_by_actor_type?: string | null;
+  readonly reviewed_at?: string | null;
+};
 
 export interface CapabilityAccessSelector {
   readonly kind: CapabilityAccessSelectorKind;
@@ -24,6 +31,10 @@ export interface GovernedSecret {
   readonly metadata: Record<string, unknown>;
   readonly backend_ref: string;
   readonly publication_status: string;
+  readonly created_by_actor_type?: string | null;
+  readonly created_by_actor_id?: string | null;
+  readonly created_via_token_id?: string | null;
+  readonly reviewed_at?: string | null;
 }
 
 export interface GovernedCapability {
@@ -43,6 +54,10 @@ export interface GovernedCapability {
   readonly adapter_type: string;
   readonly adapter_config: Record<string, unknown>;
   readonly publication_status: string;
+  readonly created_by_actor_type?: string | null;
+  readonly created_by_actor_id?: string | null;
+  readonly created_via_token_id?: string | null;
+  readonly reviewed_at?: string | null;
 }
 
 export interface SecretCreateInput {
@@ -71,4 +86,47 @@ export interface CapabilityCreateInput {
   readonly allowed_environments?: string[];
   readonly adapter_type?: string;
   readonly adapter_config?: Record<string, unknown>;
+}
+
+export function normalizeGovernancePublicationStatus(status?: string | null): GovernancePublicationStatus {
+  if (status === 'pending') {
+    return 'pending_review';
+  }
+  if (
+    status === 'pending_review' ||
+    status === 'approved' ||
+    status === 'rejected' ||
+    status === 'active' ||
+    status === 'expired'
+  ) {
+    return status;
+  }
+  return 'active';
+}
+
+export function deriveGovernanceStatus(subject: GovernanceStatusSubject): GovernancePublicationStatus {
+  const normalized = normalizeGovernancePublicationStatus(subject.publication_status);
+  if (normalized === 'active' && subject.created_by_actor_type === 'agent' && subject.reviewed_at) {
+    return 'approved';
+  }
+  return normalized;
+}
+
+export function isGovernanceInventoryActive(status: GovernancePublicationStatus) {
+  return status === 'active' || status === 'approved';
+}
+
+export function governanceStatusLabel(status: GovernancePublicationStatus) {
+  switch (status) {
+    case 'pending_review':
+      return 'Awaiting human review';
+    case 'approved':
+      return 'Approved by human review';
+    case 'rejected':
+      return 'Rejected by human review';
+    case 'expired':
+      return 'Expired';
+    default:
+      return 'Active';
+  }
 }

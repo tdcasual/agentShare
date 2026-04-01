@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useEvents, useMarkEventRead } from '@/domains/event';
+import type { Event } from '@/domains/event';
 import { Badge } from '@/shared/ui-primitives/badge';
 import {
   Card,
@@ -39,6 +40,27 @@ function formatRelativeTime(timeString: string) {
   return date.toLocaleDateString();
 }
 
+function getActionLabel(event: Event) {
+  switch (event.subject_type) {
+    case 'task':
+    case 'task_target':
+      return 'Open task';
+    case 'review':
+      return 'Open review item';
+    case 'agent':
+    case 'admin_account':
+    case 'human':
+      return 'Open identity';
+    case 'space':
+      return 'Open space';
+    case 'secret':
+    case 'capability':
+      return 'Open asset';
+    default:
+      return 'Open action';
+  }
+}
+
 export default function InboxPage() {
   return (
     <Layout>
@@ -49,10 +71,16 @@ export default function InboxPage() {
 
 function InboxContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { events, isLoading, error, mutate } = useEvents();
   const markEventRead = useMarkEventRead();
+  const selectedEventId = searchParams.get('eventId');
 
   const unreadCount = useMemo(() => events.filter((event) => !event.read_at).length, [events]);
+  const focusedEvent = useMemo(
+    () => events.find((event) => event.id === selectedEventId) ?? null,
+    [events, selectedEventId],
+  );
 
   const handleMarkRead = useCallback(
     async (eventId: string) => {
@@ -66,14 +94,14 @@ function InboxContent() {
   );
 
   const handleActionNavigate = useCallback(
-    (action_url?: string) => {
-      if (!action_url) {return;}
-      if (action_url.startsWith('/')) {
-        router.push(action_url);
+    (actionUrl?: string) => {
+      if (!actionUrl) {return;}
+      if (actionUrl.startsWith('/')) {
+        router.push(actionUrl);
         return;
       }
       if (typeof window !== 'undefined') {
-        window.open(action_url, '_blank', 'noopener,noreferrer');
+        window.open(actionUrl, '_blank', 'noopener,noreferrer');
       }
     },
     [router]
@@ -99,7 +127,7 @@ function InboxContent() {
       </header>
 
       {isLoading && (
-        <div className="flex items-center justify-center gap-2 rounded-3xl border border-dashed border-gray-200 bg-white/80 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] py-12 text-sm text-gray-500 dark:text-[#9CA3AF]">
+        <div className="flex items-center justify-center gap-2 rounded-3xl border border-dashed border-gray-200 bg-white/80 py-12 text-sm text-gray-500 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#9CA3AF]">
           <Loader2 className="w-5 h-5 animate-spin" />
           Loading inbox...
         </div>
@@ -129,12 +157,52 @@ function InboxContent() {
         </Card>
       )}
 
+      {!isLoading && !error && focusedEvent && (
+        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+          <CardHeader>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+                  Focused event
+                </p>
+                <CardTitle>{focusedEvent.summary}</CardTitle>
+              </div>
+              <span className="text-xs text-gray-400 dark:text-[#9CA3AF]">
+                {formatRelativeTime(focusedEvent.created_at)}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              {focusedEvent.details ?? 'No additional context provided.'}
+            </p>
+          </CardContent>
+          <CardFooter>
+            <div className="flex flex-wrap items-center gap-2">
+              {focusedEvent.action_url && (
+                <Button variant="ghost" size="sm" onClick={() => handleActionNavigate(focusedEvent.action_url)}>
+                  {getActionLabel(focusedEvent)}
+                </Button>
+              )}
+              {!focusedEvent.read_at && (
+                <Button variant="ghost" size="sm" onClick={() => handleMarkRead(focusedEvent.id)}>
+                  Mark as read
+                </Button>
+              )}
+            </div>
+          </CardFooter>
+        </Card>
+      )}
+
       <div className="grid gap-4">
         {!isLoading && !error && events.map((event) => (
           <Card
             key={event.id}
+            data-testid={`inbox-event-${event.id}`}
+            data-focus-state={event.id === selectedEventId ? 'focused' : 'default'}
             className={cn(
               'border-2 border-transparent',
+              event.id === selectedEventId && 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400',
               !event.read_at && 'border-pink-200 dark:border-pink-500/60'
             )}
           >
@@ -164,7 +232,7 @@ function InboxContent() {
               <div className="flex flex-wrap items-center gap-2">
                 {event.action_url && (
                   <Button variant="ghost" size="sm" onClick={() => handleActionNavigate(event.action_url)}>
-                    Open action
+                    {getActionLabel(event)}
                   </Button>
                 )}
                 {!event.read_at && (

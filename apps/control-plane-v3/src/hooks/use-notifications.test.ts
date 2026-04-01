@@ -11,19 +11,19 @@ describe('notifications contract', () => {
     const source = getNotificationsSource();
 
     expect(source.kind).toBe('backend');
+    if (source.kind !== 'backend') {
+      throw new Error('Expected backend notifications source');
+    }
+
     expect(source.endpoint).toBe('/api/events');
     expect(getNotificationsSWRKey(source)).toBe('/api/events');
   });
 
   it('loads events from the backend feed when available', async () => {
     const fetchMock = vi.fn(async () =>
-      new Response(
-        JSON.stringify({ items: [{ id: 'event-1', summary: 'feedback' }] }),
-        {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }
-      )
+      new Response(JSON.stringify({ items: [{ id: 'event-1', summary: 'feedback' }] }), {
+        status: 200,
+      })
     );
 
     const notifications = await loadNotifications(getNotificationsSource(), fetchMock);

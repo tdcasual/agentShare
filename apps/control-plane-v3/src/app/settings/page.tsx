@@ -46,6 +46,7 @@ function SettingsContent() {
   const [error, setError] = useState<string | null>(null);
   const [submittingInvite, setSubmittingInvite] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [selectedRosterFilter, setSelectedRosterFilter] = useState<'all' | 'owner' | 'admin' | 'operator' | 'inactive'>('all');
   const [inviteForm, setInviteForm] = useState({
     email: '',
     display_name: '',
@@ -59,6 +60,17 @@ function SettingsContent() {
       return accumulator;
     }, {});
   }, [accounts]);
+  const activeAccountsCount = accountList.filter((account) => account.status === 'active').length;
+  const inactiveAccountsCount = accountList.filter((account) => account.status !== 'active').length;
+  const visibleAccounts = accountList.filter((account) => {
+    if (selectedRosterFilter === 'inactive') {
+      return account.status !== 'active';
+    }
+    if (selectedRosterFilter === 'all') {
+      return true;
+    }
+    return account.role === selectedRosterFilter;
+  });
 
   async function handleInvite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -164,6 +176,61 @@ function SettingsContent() {
         <MetricCard label={t('settings.admins')} value={(roleCounts.admin ?? 0).toString()} hint={t('settings.adminsHint')} />
         <MetricCard label={t('settings.operatorsViewers')} value={((roleCounts.operator ?? 0) + (roleCounts.viewer ?? 0)).toString()} hint={t('settings.operatorsViewersHint')} />
       </div>
+
+      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+        <div className="flex flex-col gap-5">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">Human supervision coverage</h2>
+            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              Owners and operators manage the human control surface itself. Use these filters to focus on role boundaries and accounts that need follow-up.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <Badge variant="primary">{roleCounts.owner ?? 0} owner account{(roleCounts.owner ?? 0) === 1 ? '' : 's'}</Badge>
+            <Badge variant="human">{activeAccountsCount} active operators</Badge>
+            <Badge variant="warning">{inactiveAccountsCount} inactive account{inactiveAccountsCount === 1 ? '' : 's'}</Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedRosterFilter === 'all' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedRosterFilter('all')}
+            >
+              All accounts
+            </Button>
+            <Button
+              variant={selectedRosterFilter === 'owner' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedRosterFilter('owner')}
+            >
+              Owners
+            </Button>
+            <Button
+              variant={selectedRosterFilter === 'admin' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedRosterFilter('admin')}
+            >
+              Admins
+            </Button>
+            <Button
+              variant={selectedRosterFilter === 'operator' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedRosterFilter('operator')}
+            >
+              Operators
+            </Button>
+            <Button
+              variant={selectedRosterFilter === 'inactive' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedRosterFilter('inactive')}
+            >
+              Inactive accounts
+            </Button>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Card variant="kawaii" className="space-y-5">
@@ -312,7 +379,7 @@ function SettingsContent() {
         </div>
 
         <div className="grid gap-4">
-          {accountList.map((account) => {
+          {visibleAccounts.map((account) => {
             const isCurrentUser = session?.actor_id === account.id;
             const canDisable = account.role !== 'owner' && account.status === 'active';
 
@@ -353,6 +420,11 @@ function SettingsContent() {
               </Card>
             );
           })}
+          {visibleAccounts.length === 0 ? (
+            <Card className="border border-dashed border-pink-100 bg-white/80 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#9CA3AF]">
+              No accounts match the current supervision filter.
+            </Card>
+          ) : null}
         </div>
       </Card>
     </div>

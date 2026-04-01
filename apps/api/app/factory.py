@@ -18,6 +18,7 @@ from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.runtime import AppRuntime, build_runtime
 from app.routes import register_routes
+from app.services.demo_seed_service import seed_demo_fixture_data
 from app.services.secret_backend import validate_secret_backend_settings
 
 request_logger = logging.getLogger("app.request")
@@ -132,6 +133,7 @@ def create_app(
         validate_secret_backend_settings(settings)
         db_module.migrate_db(settings.database_url)
         ensure_bootstrap_agent(settings, app_instance.state.runtime.session_factory)
+        seed_demo_fixture_data(settings, app_instance.state.runtime.session_factory)
         yield
 
     app = FastAPI(

@@ -34,6 +34,12 @@ describe('shell route integrity', () => {
     await expect(access(path.join(appDir, 'inbox/page.tsx'))).resolves.toBeUndefined();
   });
 
+  it('ships a readable demo hub page', async () => {
+    expect(getRoutePolicy('/demo')).toBeDefined();
+    expect(isRouteAllowed('/demo', 'anonymous')).toEqual({ allowed: true });
+    await expect(access(path.join(appDir, 'demo/page.tsx'))).resolves.toBeUndefined();
+  });
+
   it('ships a real logout page', async () => {
     await expect(access(path.join(appDir, 'logout/page.tsx'))).resolves.toBeUndefined();
   });

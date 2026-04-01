@@ -72,7 +72,7 @@ export function Notifications({ className }: NotificationsProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const { notifications, isLoading, error, mutate } = useNotifications();
+  const { availability, notifications, isLoading, error, mutate } = useNotifications();
   const { markAllRead, markOneRead, isMarking } = useMarkNotificationsRead();
 
   const unreadEvents = useMemo(() => notifications.filter((event) => !event.read_at), [notifications]);
@@ -135,7 +135,7 @@ export function Notifications({ className }: NotificationsProps) {
     [markOneRead, router]
   );
 
-  const hubLabel = 'Notifications';
+  const hubLabel = availability === 'unavailable' ? 'Notifications unavailable' : 'Notifications';
 
   return (
     <div className={cn('relative', className)}>
@@ -213,7 +213,21 @@ export function Notifications({ className }: NotificationsProps) {
                 </div>
               )}
 
-              {!isLoading && error && (
+              {!isLoading && availability === 'unavailable' && (
+                <div className="p-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#3D3D5C] flex items-center justify-center mx-auto mb-3">
+                    <Bell className="w-6 h-6 text-gray-400 dark:text-[#9CA3AF]" />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                    Notifications are unavailable
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-[#9CA3AF] mt-1">
+                    This environment does not yet publish an events feed.
+                  </p>
+                </div>
+              )}
+
+              {!isLoading && availability !== 'unavailable' && Boolean(error) && (
                 <div className="p-6 text-center">
                   <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-3">
                     <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
@@ -228,7 +242,7 @@ export function Notifications({ className }: NotificationsProps) {
                 </div>
               )}
 
-              {!isLoading && !error && eventsToShow.length === 0 && (
+              {!isLoading && availability !== 'unavailable' && !error && eventsToShow.length === 0 && (
                 <div className="p-8 text-center">
                   <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#3D3D5C] flex items-center justify-center mx-auto mb-3">
                     <Bell className="w-6 h-6 text-gray-400 dark:text-[#9CA3AF]" />
@@ -238,7 +252,7 @@ export function Notifications({ className }: NotificationsProps) {
                 </div>
               )}
 
-              {!isLoading && !error && eventsToShow.length > 0 && (
+              {!isLoading && availability !== 'unavailable' && !error && eventsToShow.length > 0 && (
                 <div className="divide-y divide-pink-50 dark:divide-[#3D3D5C]/50">
                   {eventsToShow.map((notification) => {
                     const style = getSeverityStyle(notification.severity);

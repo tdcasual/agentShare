@@ -52,7 +52,6 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // 焦点陷阱 refs
   const { containerRef: userMenuRef } = useFocusTrap({
     isActive: showUserMenu,
     onEscape: () => setShowUserMenu(false),

@@ -17,6 +17,7 @@ describe('Inbox page', () => {
 
     expect(source).toMatch(/useEvents/);
     expect(source).toMatch(/useMarkEventRead/);
+    expect(source).toMatch(/useSearchParams/);
     expect(source).toMatch(/Layout/);
   });
 });

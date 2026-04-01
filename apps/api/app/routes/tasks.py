@@ -9,6 +9,7 @@ from app.models.agent import AgentIdentity
 from app.schemas.task_targets import TaskTargetListResponse, TaskTargetResponse
 from app.schemas.tasks import TaskComplete, TaskCreate
 from app.services.audit_service import actor_payload, write_audit_event
+from app.services.event_service import record_event
 from app.services.review_service import publication_status_for_actor
 from app.services.task_service import (
     claim_task,
@@ -109,6 +110,22 @@ def complete_task_target_route(
     session: Session = Depends(get_db),
 ) -> dict:
     target = complete_task_target(session, target_id, agent, payload.result_summary, payload.output_payload)
+    record_event(
+        session,
+        event_type="task_completed",
+        actor_type="agent",
+        actor_id=agent.id,
+        subject_type="task_target",
+        subject_id=target_id,
+        summary=f"{agent.name} completed task target {target_id}",
+        details=payload.result_summary or "",
+        action_url="/tasks",
+        metadata={
+            "task_id": target["task_id"],
+            "token_id": agent.token_id,
+            "result_summary": payload.result_summary,
+        },
+    )
     write_audit_event(session, "task_target_completed", {
         "task_target_id": target_id,
         "task_id": target["task_id"],
@@ -148,5 +165,21 @@ def complete_task_route(
     session: Session = Depends(get_db),
 ) -> dict:
     task = complete_task(session, task_id, agent, payload.result_summary, payload.output_payload)
+    record_event(
+        session,
+        event_type="task_completed",
+        actor_type="agent",
+        actor_id=agent.id,
+        subject_type="task",
+        subject_id=task_id,
+        summary=f"{agent.name} completed task {task_id}",
+        details=payload.result_summary or "",
+        action_url="/tasks",
+        metadata={
+            "task_id": task_id,
+            "token_id": agent.token_id,
+            "result_summary": payload.result_summary,
+        },
+    )
     write_audit_event(session, "task_completed", {"task_id": task_id, "agent_id": agent.id})
     return task

@@ -72,6 +72,12 @@ export function createAgent(payload: AgentCreateInput) {
   });
 }
 
+export function deleteAgent(agentId: string) {
+  return apiFetch<{ id: string; status: string }>(`/agents/${agentId}`, {
+    method: 'DELETE',
+  });
+}
+
 // ============================================
 // Admin Accounts
 // ============================================
@@ -131,6 +137,7 @@ export const identityApi = {
   // Agents
   getAgents,
   createAgent,
+  deleteAgent,
   // Admin Accounts
   getAdminAccounts,
   createAdminAccount,

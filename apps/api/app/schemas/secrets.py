@@ -1,4 +1,5 @@
-from typing import Any
+from datetime import datetime
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -95,4 +96,8 @@ class SecretResponse(BaseModel):
     resource_selector: str | None
     metadata: dict[str, Any]
     backend_ref: str
-    publication_status: str
+    publication_status: Literal["pending_review", "approved", "rejected", "active", "expired"]
+    created_by_actor_type: str | None = None
+    created_by_actor_id: str | None = None
+    created_via_token_id: str | None = None
+    reviewed_at: datetime | None = None

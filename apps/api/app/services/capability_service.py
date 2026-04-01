@@ -83,4 +83,8 @@ def _to_dict(model: CapabilityModel) -> dict:
         "adapter_type": model.adapter_type or "generic_http",
         "adapter_config": model.adapter_config or {},
         "publication_status": model.publication_status,
+        "created_by_actor_type": model.created_by_actor_type,
+        "created_by_actor_id": model.created_by_actor_id,
+        "created_via_token_id": model.created_via_token_id,
+        "reviewed_at": model.reviewed_at,
     }
