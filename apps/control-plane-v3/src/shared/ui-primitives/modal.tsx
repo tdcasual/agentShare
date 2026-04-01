@@ -37,7 +37,7 @@ export function Modal({
 
   // Handle focus trap and initial focus
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
     
     // Store previous focus
     previousFocusRef.current = document.activeElement as HTMLElement;
@@ -105,8 +105,10 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div
+      <button
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        aria-label="Close modal"
+        type="button"
         onClick={onClose}
       />
 

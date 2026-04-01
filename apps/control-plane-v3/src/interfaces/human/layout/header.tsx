@@ -13,12 +13,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  MessageSquare, 
-  User, 
-  Settings, 
+import {
+  MessageSquare,
+  User,
+  Settings,
   LogOut,
-  X,
 } from 'lucide-react';
 import { Avatar, AvatarGroup } from '@/shared/ui-primitives/avatar';
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -52,16 +51,11 @@ export function getUserMenuTargets() {
 export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMessages, setShowMessages] = useState(false);
 
   // 焦点陷阱 refs
   const { containerRef: userMenuRef } = useFocusTrap({
     isActive: showUserMenu,
     onEscape: () => setShowUserMenu(false),
-  });
-  const { containerRef: messagesRef } = useFocusTrap({
-    isActive: showMessages,
-    onEscape: () => setShowMessages(false),
   });
 
   return (
@@ -109,65 +103,21 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
         {/* Notifications - 使用真实数据绑定的 Notifications 组件 */}
         <Notifications />
 
-        {/* Messages - 简化实现，标记为即将推出 */}
         <div className="relative">
           <button
             type="button"
             onClick={() => {
-              setShowMessages(!showMessages);
+              router.push('/inbox');
               setShowUserMenu(false);
             }}
-            aria-expanded={showMessages}
-            aria-haspopup="menu"
-            aria-label="Messages"
+            aria-label="Inbox"
             className={cn(
               'p-2.5 rounded-full transition-colors relative focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
-              showMessages
-                ? 'bg-pink-50 dark:bg-[#3D3D5C] text-pink-600 dark:text-[#E891C0]'
-                : 'text-gray-500 dark:text-[#9CA3AF] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] hover:text-pink-600 dark:hover:text-[#E891C0]'
+              'text-gray-500 dark:text-[#9CA3AF] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] hover:text-pink-600 dark:hover:text-[#E891C0]'
             )}
           >
             <MessageSquare className="w-5 h-5" aria-hidden="true" />
           </button>
-
-          {/* Messages Dropdown - 显示不可用状态 */}
-          {showMessages && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setShowMessages(false)}
-                aria-hidden="true"
-              />
-              <div
-                ref={messagesRef}
-                role="menu"
-                aria-label="Messages"
-                className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up"
-              >
-                <div className="p-4 border-b border-pink-100 dark:border-[#3D3D5C] flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Messages</h3>
-                  <button
-                    onClick={() => setShowMessages(false)}
-                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#3D3D5C] text-gray-400 dark:text-[#9CA3AF] transition-colors"
-                    aria-label="Close messages"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#3D3D5C] flex items-center justify-center mx-auto mb-3">
-                    <MessageSquare className="w-6 h-6 text-gray-400 dark:text-[#9CA3AF]" />
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-                    Messages coming soon
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-[#9CA3AF] mt-1">
-                    Stay tuned for updates
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
         </div>
 
         {/* User Menu */}
@@ -177,7 +127,6 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
               type="button"
               onClick={() => {
                 setShowUserMenu(!showUserMenu);
-                setShowMessages(false);
               }}
               aria-expanded={showUserMenu}
               aria-haspopup="menu"

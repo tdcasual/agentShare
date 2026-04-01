@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 // 通用的媒体查询 hook
 export function useMediaQuery(query: string): boolean {

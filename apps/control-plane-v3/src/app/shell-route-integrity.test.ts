@@ -28,6 +28,12 @@ describe('shell route integrity', () => {
     expect(isRouteAllowed('/logout', 'authenticated')).toEqual({ allowed: true });
   });
 
+  it('ships an inbox page guarded by authenticated policy', async () => {
+    expect(getRoutePolicy('/inbox')).toBeDefined();
+    expect(isRouteAllowed('/inbox', 'authenticated')).toEqual({ allowed: true });
+    await expect(access(path.join(appDir, 'inbox/page.tsx'))).resolves.toBeUndefined();
+  });
+
   it('ships a real logout page', async () => {
     await expect(access(path.join(appDir, 'logout/page.tsx'))).resolves.toBeUndefined();
   });

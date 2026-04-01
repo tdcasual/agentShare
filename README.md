@@ -12,7 +12,7 @@ This repository now ships two first-class container images:
 They are built by GitHub Actions from:
 
 - `apps/api/Dockerfile`
-- `apps/web/Dockerfile`
+- `apps/control-plane-v3/Dockerfile`
 
 ### GitHub Actions image publishing
 
@@ -201,7 +201,7 @@ That script:
 
 - creates or refreshes the root `.venv`;
 - installs the editable API dev dependencies into `.venv`;
-- runs `npm ci` in `apps/web`;
+- runs `npm ci` in `apps/control-plane-v3`;
 - runs `alembic upgrade head` against the default local SQLite database;
 - installs the Chromium browser used by Playwright when the local binary is available.
 
@@ -229,11 +229,11 @@ The repo's clean repo state is defined by these commands:
 
 ```bash
 PYTHONPATH=apps/api .venv/bin/pytest apps/api/tests tests/ops -q
-cd apps/web && npm run typecheck
-cd apps/web && npm run lint
-cd apps/web && npm run test:contracts
-cd apps/web && npm run test:unit
-cd apps/web && npx playwright test
+cd apps/control-plane-v3 && npm run typecheck
+cd apps/control-plane-v3 && npm run lint
+cd apps/control-plane-v3 && npm run test:contracts
+cd apps/control-plane-v3 && npm run test:unit
+cd apps/control-plane-v3 && npm run build
 ```
 
 If one of these fails, treat the branch as below the quality floor until the failure is explained or fixed.
@@ -241,11 +241,11 @@ If one of these fails, treat the branch as below the quality floor until the fai
 When the backend intake catalog changes, refresh the frontend fallback snapshot before committing:
 
 ```bash
-cd apps/web && npm run sync:contracts
-cd apps/web && npm run test:contracts
+cd apps/control-plane-v3 && npm run sync:contracts
+cd apps/control-plane-v3 && npm run test:contracts
 ```
 
-`npm run sync:contracts` rewrites `apps/web/lib/forms/generated/intake-catalog.json` from the backend source of truth. `npm run test:contracts` then verifies the committed snapshot and the frontend fallback contracts still match the backend catalog.
+`npm run sync:contracts` rewrites `apps/control-plane-v3/src/lib/forms/generated/intake-catalog.json` from the backend source of truth. `npm run test:contracts` then verifies the committed snapshot still matches the backend catalog.
 
 ## Agent Quickstart
 
@@ -398,14 +398,14 @@ docker compose up -d openbao postgres redis
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e 'apps/api[dev]'
-cd apps/web && npm install
+cd apps/control-plane-v3 && npm install
 ```
 
 5. Start the API and web apps:
 
 ```bash
 SECRET_BACKEND=openbao OPENBAO_ADDR=http://127.0.0.1:8200 OPENBAO_TOKEN=root .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
-cd apps/web && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
+cd apps/control-plane-v3 && AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
 For lightweight local development without OpenBao, you can run the API with the default in-memory secret backend:
@@ -418,7 +418,7 @@ For lightweight local development without OpenBao, you can run the API with the 
 
 ```bash
 .venv/bin/pytest apps/api/tests -q
-cd apps/web && npm run build && npx playwright test
+cd apps/control-plane-v3 && npm run build
 ```
 
 ## Secret Backend Modes

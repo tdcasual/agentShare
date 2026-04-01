@@ -4,7 +4,6 @@ import { useState, useMemo, memo } from 'react';
 import Image from 'next/image';
 import { useMockIdentities } from '@/hooks/use-identity';
 import { IdentityCard } from '@/domains/identity/components/identity-card';
-import type { Identity } from '@/shared/types';
 import { Input } from '@/shared/ui-primitives/input';
 import { Button } from '@/shared/ui-primitives/button';
 import { Badge } from '@/shared/ui-primitives/badge';
@@ -13,6 +12,40 @@ import { Card } from '@/shared/ui-primitives/card';
 import { useI18n } from '@/components/i18n-provider';
 import { Search, Plus, Grid, List, Users, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Identity } from '@/shared/types';
+
+const demoIdentities: Identity[] = [
+  {
+    id: 'demo-human-1',
+    type: 'human',
+    profile: {
+      name: 'Demo Operator',
+      avatar: '',
+      bio: 'Demonstration user',
+      tags: ['demo'],
+      createdAt: new Date(),
+    },
+    presence: 'online',
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'demo-agent-1',
+    type: 'agent',
+    profile: {
+      name: 'Demo Agent',
+      avatar: '',
+      bio: 'Demonstration agent',
+      tags: ['demo'],
+      createdAt: new Date(),
+    },
+    presence: 'offline',
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
 
 export default function DemoIdentitiesPage() {
   return <IdentitiesContent />;
@@ -22,38 +55,7 @@ function IdentitiesContent() {
   const { t } = useI18n();
   // 使用演示数据
   const { identities, isLoading, error } = useMockIdentities({
-    identities: [
-      {
-        id: 'demo-human-1',
-        type: 'human',
-        profile: {
-          name: 'Demo Operator',
-          avatar: '',
-          bio: 'Demonstration user',
-          tags: ['demo'],
-          createdAt: new Date(),
-        },
-        presence: 'online',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: 'demo-agent-1',
-        type: 'agent',
-        profile: {
-          name: 'Demo Agent',
-          avatar: '',
-          bio: 'Demonstration agent',
-          tags: ['demo'],
-          createdAt: new Date(),
-        },
-        presence: 'offline',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ] as any,
+    identities: demoIdentities,
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'human' | 'agent'>('all');

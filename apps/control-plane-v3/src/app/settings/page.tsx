@@ -39,7 +39,8 @@ function SettingsContent() {
   const disableAdminAccount = useDisableAdminAccount();
   const logout = useLogout();
   
-  const accounts = accountsData?.items ?? [];
+  const accounts = accountsData?.items;
+  const accountList = accounts ?? [];
   
   // 本地 UI 状态
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +54,11 @@ function SettingsContent() {
   });
 
   const roleCounts = useMemo(() => {
-    return accounts.reduce<Record<string, number>>((accumulator, account) => {
+    return accountList.reduce<Record<string, number>>((accumulator, account) => {
       accumulator[account.role] = (accumulator[account.role] ?? 0) + 1;
       return accumulator;
     }, {});
-  }, [accounts]);
+  }, [accountList]);
 
   async function handleInvite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -158,7 +159,7 @@ function SettingsContent() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label={t('settings.accounts')} value={accounts.length.toString()} hint={t('settings.accountsHint')} />
+        <MetricCard label={t('settings.accounts')} value={accountList.length.toString()} hint={t('settings.accountsHint')} />
         <MetricCard label={t('settings.owners')} value={(roleCounts.owner ?? 0).toString()} hint={t('settings.ownersHint')} />
         <MetricCard label={t('settings.admins')} value={(roleCounts.admin ?? 0).toString()} hint={t('settings.adminsHint')} />
         <MetricCard label={t('settings.operatorsViewers')} value={((roleCounts.operator ?? 0) + (roleCounts.viewer ?? 0)).toString()} hint={t('settings.operatorsViewersHint')} />
@@ -311,7 +312,7 @@ function SettingsContent() {
         </div>
 
         <div className="grid gap-4">
-          {accounts.map((account) => {
+          {accountList.map((account) => {
             const isCurrentUser = session?.actor_id === account.id;
             const canDisable = account.role !== 'owner' && account.status === 'active';
 

@@ -21,7 +21,7 @@ export class IdentityDomainPlugin implements Plugin {
     runtime.di.register(IdentityRegistryServiceId, this.registry);
     
     // Create identity state store
-    runtime.state.create('identity.current', (set, get) => ({
+    runtime.state.create('identity.current', (set) => ({
       currentIdentity: null as Identity | null,
       isAuthenticated: false,
       

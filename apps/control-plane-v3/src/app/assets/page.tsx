@@ -19,7 +19,6 @@ import {
   useCreateSecret,
   useSecrets,
   type GovernedCapability,
-  type GovernedSecret,
 } from '@/domains/governance';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';

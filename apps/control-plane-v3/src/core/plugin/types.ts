@@ -102,6 +102,7 @@ export interface DIScope {
 export interface ServiceIdentifier<T> {
   readonly symbol: symbol;
   readonly name: string;
+  readonly __type?: T;
 }
 
 export type Constructor<T> = new (...args: unknown[]) => T;

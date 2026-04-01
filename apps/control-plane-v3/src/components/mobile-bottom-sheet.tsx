@@ -40,7 +40,7 @@ export function MobileBottomSheet({
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging.current) return;
+    if (!isDragging.current) {return;}
     
     currentY.current = e.touches[0].clientY;
     const diff = currentY.current - startY.current;
@@ -55,7 +55,7 @@ export function MobileBottomSheet({
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (!isDragging.current) return;
+    if (!isDragging.current) {return;}
     
     isDragging.current = false;
     const diff = currentY.current - startY.current;

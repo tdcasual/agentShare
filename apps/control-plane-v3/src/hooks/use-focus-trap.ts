@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface UseFocusTrapOptions {
   isActive: boolean;
@@ -41,10 +41,10 @@ export function useFocusTrap({
 
   // 管理焦点陷阱
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {return;}
 
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {return;}
 
     // 获取所有可聚焦元素
     const getFocusableElements = (): HTMLElement[] => {
@@ -85,10 +85,10 @@ export function useFocusTrap({
         return;
       }
 
-      if (e.key !== 'Tab') return;
+      if (e.key !== 'Tab') {return;}
 
       const elements = getFocusableElements();
-      if (elements.length === 0) return;
+      if (elements.length === 0) {return;}
 
       const firstElement = elements[0];
       const lastElement = elements[elements.length - 1];
@@ -142,7 +142,7 @@ export function useEscapeKey(
   onEscape: () => void
 ): void {
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {return;}
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -165,7 +165,7 @@ export function useClickOutside(
   excludeRefs?: React.RefObject<HTMLElement | null>[]
 ): void {
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {return;}
 
     const handleClick = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -179,7 +179,7 @@ export function useClickOutside(
       const isExcluded = excludeRefs?.some(
         ref => ref.current?.contains(target)
       );
-      if (isExcluded) return;
+      if (isExcluded) {return;}
 
       onClickOutside();
     };

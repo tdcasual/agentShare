@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, memo } from 'react';
+import { memo } from 'react';
+import { List as ReactWindowList } from 'react-window';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { cn } from '@/lib/utils';
 
-// Using require for compatibility with react-window ES modules
-const { FixedSizeList, VariableSizeList } = require('react-window');
-const AutoSizer = require('react-virtualized-auto-sizer').default;
+const FixedSizeList = ReactWindowList as unknown as React.ComponentType<Record<string, unknown>>;
+const VariableSizeList = ReactWindowList as unknown as React.ComponentType<Record<string, unknown>>;
 
 interface ListChildComponentProps<T> {
   index: number;
@@ -34,7 +35,7 @@ const Row = memo(function Row<T>({
   const { items, renderItem } = data;
   const item = items[index];
   
-  if (!item) return null;
+  if (!item) {return null;}
   
   return (
     <div 
@@ -79,13 +80,13 @@ export function VirtualList<T>({
 
   return (
     <div className={cn('h-full w-full', className)}>
-      <AutoSizer>
-        {({ height, width }: { height: number; width: number }) => (
+      <AutoSizer
+        renderProp={({ height, width }) => (
           <FixedSizeList
-            height={height}
+            height={height ?? 0}
             itemCount={items.length}
             itemSize={rowHeight}
-            width={width}
+            width={width ?? 0}
             itemData={itemData}
             overscanCount={overscanCount}
             className="scrollbar-thin scrollbar-thumb-pink-200 scrollbar-track-transparent"
@@ -93,7 +94,7 @@ export function VirtualList<T>({
             {Row}
           </FixedSizeList>
         )}
-      </AutoSizer>
+      />
     </div>
   );
 }
@@ -135,13 +136,13 @@ export function VariableSizeVirtualList<T>({
 
   return (
     <div className={cn('h-full w-full', className)}>
-      <AutoSizer>
-        {({ height, width }: { height: number; width: number }) => (
+      <AutoSizer
+        renderProp={({ height, width }) => (
           <VariableSizeList
-            height={height}
+            height={height ?? 0}
             itemCount={items.length}
             itemSize={getItemHeight}
-            width={width}
+            width={width ?? 0}
             itemData={itemData}
             overscanCount={overscanCount}
             className="scrollbar-thin scrollbar-thumb-pink-200 scrollbar-track-transparent"
@@ -149,7 +150,7 @@ export function VariableSizeVirtualList<T>({
             {Row}
           </VariableSizeList>
         )}
-      </AutoSizer>
+      />
     </div>
   );
 }

@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, Command, Loader2, X } from 'lucide-react';
+import { Search, Command, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
@@ -67,7 +67,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
       // 模拟 API 延迟
       await new Promise(resolve => setTimeout(resolve, 200));
       setResults(mockResults);
-    } catch (err) {
+    } catch {
       setError('Search failed');
       setResults([]);
     } finally {

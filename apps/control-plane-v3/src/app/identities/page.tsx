@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Bot, Building2, ChevronDown, ChevronUp, FlaskConical, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
 import { refreshAdminAccounts, refreshAgents, refreshSession, useAgents, useAdminAccounts } from '@/domains/identity';
-import { ApiError } from '@/lib/api-client';
 import { Layout } from '@/interfaces/human/layout';
 import {
   isUnauthorizedError,
@@ -41,29 +40,29 @@ function IdentitiesContent() {
   const [expandedAgents, setExpandedAgents] = useState<string[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const adminAccounts = adminAccountsData?.items ?? [];
-  const agents = agentsData?.items ?? [];
+  const adminAccounts = adminAccountsData?.items;
+  const agents = agentsData?.items;
+  const adminAccountsList = adminAccounts ?? [];
+  const agentList = agents ?? [];
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredAdminAccounts = useMemo(
-    () => adminAccounts.filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
+    () => (adminAccounts ?? []).filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
     [adminAccounts, normalizedQuery]
   );
   const filteredAgents = useMemo(
-    () => agents.filter((agent) => matchesAgentQuery(agent, normalizedQuery)),
+    () => (agents ?? []).filter((agent) => matchesAgentQuery(agent, normalizedQuery)),
     [agents, normalizedQuery]
   );
 
-  const operatorCount = adminAccounts.filter((account) => account.status === 'active').length;
-  const ownerCount = adminAccounts.filter((account) => account.role === 'owner').length;
-  const activeAgentCount = agents.filter((agent) => agent.status === 'active').length;
+  const operatorCount = adminAccountsList.filter((account) => account.status === 'active').length;
+  const ownerCount = adminAccountsList.filter((account) => account.role === 'owner').length;
+  const activeAgentCount = agentList.filter((agent) => agent.status === 'active').length;
   const guardedError = gateError;
   const accountsErrorMessage = accountsError instanceof Error ? accountsError.message : null;
   const agentsErrorMessage = agentsError instanceof Error ? agentsError.message : null;
 
   const isLoading = gateLoading;
   const hasActiveSearch = normalizedQuery.length > 0;
-  const isRefreshing = refreshingAction !== null;
-
   async function runRefreshAction(
     action: 'all' | 'accounts' | 'agents',
     operation: () => Promise<unknown>
@@ -184,7 +183,7 @@ function IdentitiesContent() {
         <MetricCard
           label="Active Operators"
           value={accountsErrorMessage ? 'N/A' : operatorCount.toString()}
-          hint={accountsErrorMessage ? 'accounts unavailable' : `${adminAccounts.length} total accounts`}
+          hint={accountsErrorMessage ? 'accounts unavailable' : `${adminAccountsList.length} total accounts`}
         />
         <MetricCard
           label="Owners"
@@ -194,7 +193,7 @@ function IdentitiesContent() {
         <MetricCard
           label="Active Agents"
           value={agentsErrorMessage ? 'N/A' : activeAgentCount.toString()}
-          hint={agentsErrorMessage ? 'agents unavailable' : `${agents.length} registered`}
+          hint={agentsErrorMessage ? 'agents unavailable' : `${agentList.length} registered`}
         />
       </div>
 
@@ -252,7 +251,7 @@ function IdentitiesContent() {
                   Persisted admin accounts from `/api/admin-accounts`
                 </p>
               </div>
-              <Badge variant="human">{adminAccounts.length}</Badge>
+              <Badge variant="human">{adminAccountsList.length}</Badge>
             </div>
 
             {isAccountsLoading ? (
@@ -266,7 +265,7 @@ function IdentitiesContent() {
                 onRetry={retryAccounts}
                 isRefreshing={refreshingAction === 'accounts'}
               />
-            ) : adminAccounts.length === 0 ? (
+            ) : adminAccountsList.length === 0 ? (
               <EmptyState icon={<Users className="w-6 h-6" />} message="No admin accounts have been invited yet." />
             ) : filteredAdminAccounts.length === 0 ? (
               <EmptyState
@@ -341,7 +340,7 @@ function IdentitiesContent() {
                   Registered agent identities from `/api/agents`
                 </p>
               </div>
-              <Badge variant="agent">{agents.length}</Badge>
+              <Badge variant="agent">{agentList.length}</Badge>
             </div>
 
             {isAgentsLoading ? (
@@ -355,7 +354,7 @@ function IdentitiesContent() {
                 onRetry={retryAgents}
                 isRefreshing={refreshingAction === 'agents'}
               />
-            ) : agents.length === 0 ? (
+            ) : agentList.length === 0 ? (
               <EmptyState icon={<Bot className="w-6 h-6" />} message="No agents are registered yet." />
             ) : filteredAgents.length === 0 ? (
               <EmptyState

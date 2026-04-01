@@ -1,33 +1,46 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  getNotificationsSWRKey,
   getNotificationsSource,
+  getNotificationsSWRKey,
   loadNotifications,
   markAllNotificationsReadForSource,
 } from '@/hooks/use-notifications';
 
 describe('notifications contract', () => {
-  it('uses no swr key when notifications are explicitly unavailable', () => {
+  it('uses the events endpoint as the inbox source', () => {
     const source = getNotificationsSource();
 
-    expect(source.kind).toBe('unavailable');
-    expect(getNotificationsSWRKey(source)).toBeNull();
+    expect(source.kind).toBe('backend');
+    expect(source.endpoint).toBe('/api/events');
+    expect(getNotificationsSWRKey(source)).toBe('/api/events');
   });
 
-  it('does not call fetch when notifications are unavailable', async () => {
-    const fetchMock = vi.fn();
+  it('loads events from the backend feed when available', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({ items: [{ id: 'event-1', summary: 'feedback' }] }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }
+      )
+    );
 
     const notifications = await loadNotifications(getNotificationsSource(), fetchMock);
 
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(notifications).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledWith('/api/events', expect.objectContaining({ credentials: 'include' }));
+    expect(notifications).toEqual([{ id: 'event-1', summary: 'feedback' }]);
   });
 
-  it('no-ops mark-all-read when notifications are unavailable', async () => {
-    const fetchMock = vi.fn();
+  it('posts to the inbox feed when marking all events read', async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 200 }));
+    const source = getNotificationsSource();
 
-    await markAllNotificationsReadForSource(getNotificationsSource(), fetchMock);
+    await markAllNotificationsReadForSource(source, fetchMock);
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/events',
+      expect.objectContaining({ credentials: 'include' })
+    );
   });
 });

@@ -39,7 +39,7 @@ export default function DemoSpacesPage() {
   const [input, setInput] = useState('');
   
   const sendMessage = () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {return;}
     
     const newMessage: Message = {
       id: Date.now().toString(),

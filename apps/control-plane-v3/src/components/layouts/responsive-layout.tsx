@@ -141,9 +141,9 @@ export const ResponsiveGrid = memo(function ResponsiveGrid({
 
   // 动态确定列数
   const getCols = () => {
-    if (device.isMobile) return cols.mobile ?? 1;
-    if (device.isTabletPortrait) return cols.tabletPortrait ?? 2;
-    if (device.isTabletLandscape) return cols.tabletLandscape ?? 3;
+    if (device.isMobile) {return cols.mobile ?? 1;}
+    if (device.isTabletPortrait) {return cols.tabletPortrait ?? 2;}
+    if (device.isTabletLandscape) {return cols.tabletLandscape ?? 3;}
     return cols.desktop ?? 4;
   };
 
@@ -184,26 +184,28 @@ export const ResponsiveCard = memo(function ResponsiveCard({
   onClick,
 }: ResponsiveCardProps) {
   const device = useDeviceType();
+  const interactive = clickable && typeof onClick === 'function';
+  const cardClassName = cn(
+    'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)] rounded-2xl',
+    'border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
+    device.isMobile && 'shadow-sm',
+    device.isTablet && 'shadow-md',
+    device.isDesktop && 'shadow-lg',
+    hover && 'transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5',
+    clickable && 'cursor-pointer active:scale-[0.98]',
+    className
+  );
+
+  if (interactive && onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cardClassName}>
+        {children}
+      </button>
+    );
+  }
 
   return (
-    <div
-      onClick={onClick}
-      className={cn(
-        'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)] rounded-2xl',
-        'border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
-        // 移动端更小阴影
-        device.isMobile && 'shadow-sm',
-        // 平板适中阴影
-        device.isTablet && 'shadow-md',
-        // 桌面更大阴影
-        device.isDesktop && 'shadow-lg',
-        // Hover 效果
-        hover && 'transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5',
-        // 可点击
-        clickable && 'cursor-pointer active:scale-[0.98]',
-        className
-      )}
-    >
+    <div className={cardClassName}>
       {children}
     </div>
   );
@@ -348,8 +350,8 @@ export function ResponsiveSpacing({
     const base = baseSizes[size];
     
     // 平板使用稍大间距
-    if (device.isTablet) return base * 1.25;
-    if (device.isDesktop) return base * 1.5;
+    if (device.isTablet) {return base * 1.25;}
+    if (device.isDesktop) {return base * 1.5;}
     return base;
   };
 
