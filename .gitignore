@@ -12,6 +12,8 @@ dist/
 build/
 .DS_Store
 agent_share.db
+agent_share_demo.db
+agent_share_demo.db-*
 agent_share_playwright_*.db
 .worktrees/
 *.db-wal

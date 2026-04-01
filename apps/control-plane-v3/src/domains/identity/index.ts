@@ -41,6 +41,7 @@ export {
   getSession,
   getAgents,
   createAgent,
+  deleteAgent,
   getAdminAccounts,
   createAdminAccount,
   disableAdminAccount,
@@ -60,6 +61,7 @@ export {
   // Agents
   useAgents,
   useCreateAgent,
+  useDeleteAgent,
   // Admin Accounts
   useAdminAccounts,
   useCreateAdminAccount,

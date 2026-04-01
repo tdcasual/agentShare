@@ -7,6 +7,7 @@ from app.auth import ManagementIdentity, require_admin_management_session
 from app.db import get_db
 from app.schemas.token_feedback import TokenFeedbackCreate, TokenFeedbackListResponse, TokenFeedbackResponse
 from app.services.audit_service import write_audit_event
+from app.services.event_service import record_event
 from app.services.token_feedback_service import create_token_feedback, list_token_feedback
 
 router = APIRouter()
@@ -34,6 +35,23 @@ def create_token_feedback_route(
         summary=payload.summary,
         created_by_actor_type=manager.actor_type,
         created_by_actor_id=manager.id,
+    )
+    record_event(
+        session,
+        event_type="task_feedback_posted",
+        actor_type=manager.actor_type,
+        actor_id=manager.id,
+        subject_type="task_target",
+        subject_id=task_target_id,
+        summary=f"{manager.email} posted feedback for task target {task_target_id}",
+        details=payload.summary,
+        action_url="/tasks",
+        metadata={
+            "token_id": feedback["token_id"],
+            "run_id": feedback["run_id"],
+            "score": payload.score,
+            "verdict": payload.verdict,
+        },
     )
     write_audit_event(session, "token_feedback_created", {
         "task_target_id": task_target_id,

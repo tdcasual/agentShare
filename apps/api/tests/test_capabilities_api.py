@@ -56,6 +56,40 @@ def test_list_capabilities_returns_created_items(management_client):
     assert response.json()["items"][0]["name"] == "github.repo.read"
 
 
+def test_agent_created_capability_exposes_marketplace_provenance(client, management_client):
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "Capability market secret",
+            "kind": "api_token",
+            "value": "ghp_example",
+            "provider": "github",
+        },
+    ).json()
+
+    response = client.post(
+        "/api/capabilities",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "name": "agent.market.capability",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "github",
+        },
+    )
+
+    assert response.status_code == 202, response.text
+
+    listing = management_client.get("/api/capabilities")
+
+    assert listing.status_code == 200, listing.text
+    item = listing.json()["items"][0]
+    assert item["name"] == "agent.market.capability"
+    assert item["created_by_actor_type"] == "agent"
+    assert item["created_by_actor_id"] == "test-agent"
+    assert item["created_via_token_id"] == "token-test-agent"
+
+
 def test_create_capability_persists_adapter_contract(management_client):
     secret = management_client.post(
         "/api/secrets",
@@ -132,3 +166,37 @@ def test_runtime_created_capability_starts_pending_review(client, management_cli
 
     assert response.status_code == 202
     assert response.json()["publication_status"] == "pending_review"
+
+
+def test_approved_capability_exposes_review_timestamp(management_client, client):
+    secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "Approved capability backing secret",
+            "kind": "api_token",
+            "value": "secret-value",
+            "provider": "openai",
+        },
+    ).json()
+
+    created = client.post(
+        "/api/capabilities",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "name": "openai.chat.approved",
+            "secret_id": secret["id"],
+            "risk_level": "medium",
+            "required_provider": "openai",
+        },
+    )
+    assert created.status_code == 202, created.text
+
+    approved = management_client.post(f"/api/reviews/capability/{created.json()['id']}/approve", json={})
+    assert approved.status_code == 200, approved.text
+
+    listing = management_client.get("/api/capabilities")
+    assert listing.status_code == 200, listing.text
+
+    item = next(entry for entry in listing.json()["items"] if entry["id"] == created.json()["id"])
+    assert item["publication_status"] == "active"
+    assert item["reviewed_at"] is not None

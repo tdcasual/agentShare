@@ -2,12 +2,15 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { ClipboardList, MessageSquarePlus, Plus, RefreshCw, Target } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { Layout } from '@/interfaces/human/layout';
 import { useTaskDashboard, useCreateTask, useCreateTaskTargetFeedback } from '@/domains/task';
 import { useAgentsWithTokens } from '@/domains/identity';
 import { ApiError } from '@/lib/api-client';
+import { readFocusedEntry } from '@/lib/focused-entry';
 import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import { useI18n } from '@/components/i18n-provider';
+import { cn } from '@/lib/utils';
 import type { Task, AgentToken, Run, TokenFeedback } from '@/domains/task';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
@@ -41,6 +44,8 @@ export default function TasksPage() {
 
 function TasksContent() {
   const { t } = useI18n();
+  const searchParams = useSearchParams();
+  const focus = readFocusedEntry(searchParams);
   // 使用新的 SWR hooks
   const { 
     tasks, 
@@ -68,7 +73,7 @@ function TasksContent() {
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(() => focus.taskId ?? null);
   const [feedbackTarget, setFeedbackTarget] = useState<FeedbackTargetState | null>(null);
   const [taskForm, setTaskForm] = useState({
     title: '',
@@ -87,6 +92,7 @@ function TasksContent() {
   const [feedbackFormError, setFeedbackFormError] = useState<string | null>(null);
   const [submittingTask, setSubmittingTask] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [selectedTaskFilter, setSelectedTaskFilter] = useState<'all' | 'needs_feedback' | 'in_flight'>('all');
 
   const allTokens = useMemo(() => Object.values(tokensById), [tokensById]);
   
@@ -103,6 +109,24 @@ function TasksContent() {
     0
   );
   const totalFeedback = Object.values(feedbackByTargetId).reduce((total, items) => total + items.length, 0);
+  const completedTargetsAwaitingFeedback = taskViews.reduce(
+    (total, item) =>
+      total +
+      item.targets.filter((target) => target.status === 'completed' && target.feedback.length === 0).length,
+    0,
+  );
+  const inFlightTasksCount = taskViews.filter((item) =>
+    item.targets.some((target) => target.status === 'pending' || target.status === 'claimed'),
+  ).length;
+  const visibleTaskViews = taskViews.filter((item) => {
+    if (selectedTaskFilter === 'needs_feedback') {
+      return item.targets.some((target) => target.status === 'completed' && target.feedback.length === 0);
+    }
+    if (selectedTaskFilter === 'in_flight') {
+      return item.targets.some((target) => target.status === 'pending' || target.status === 'claimed');
+    }
+    return true;
+  });
   const selectedTask = taskViews.find((item) => item.task.id === selectedTaskId) ?? null;
 
   async function handleRefresh() {
@@ -240,6 +264,64 @@ function TasksContent() {
         <MetricCard label={t('tasks.metrics.feedbackRecords') || 'Feedback records'} value={totalFeedback.toString()} hint={t('tasks.hints.feedbackRecords') || 'human review notes on finished work'} />
       </div>
 
+      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+        <div className="flex flex-col gap-5">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">Human follow-up queue</h2>
+            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              Track which token-targeted runs are still in flight and which completed targets still need explicit feedback from a human supervisor.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <Badge variant="secondary">
+              {completedTargetsAwaitingFeedback} completed target{completedTargetsAwaitingFeedback === 1 ? '' : 's'} awaiting feedback
+            </Badge>
+            <Badge variant="info">
+              {inFlightTasksCount} in-flight task{inFlightTasksCount === 1 ? '' : 's'}
+            </Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedTaskFilter === 'all' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedTaskFilter('all')}
+            >
+              All tasks
+            </Button>
+            <Button
+              variant={selectedTaskFilter === 'needs_feedback' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedTaskFilter('needs_feedback')}
+            >
+              Needs feedback
+            </Button>
+            <Button
+              variant={selectedTaskFilter === 'in_flight' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedTaskFilter('in_flight')}
+            >
+              In flight
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {selectedTask ? (
+        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+              Focused task
+            </p>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{selectedTask.task.title}</h2>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              {selectedTask.targets.length} targeted token{selectedTask.targets.length === 1 ? '' : 's'} linked to this task.
+            </p>
+          </div>
+        </Card>
+      ) : null}
+
       {shouldShowSessionExpired ? (
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live task data." />
       ) : null}
@@ -282,20 +364,29 @@ function TasksContent() {
         </Card>
       ) : null}
 
+      {!gateLoading && !isLoading && taskViews.length > 0 && visibleTaskViews.length === 0 ? (
+        <Card className="border border-dashed border-pink-100 bg-white/80 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#9CA3AF]">
+          No tasks match the current supervision filter.
+        </Card>
+      ) : null}
+
       <div className="grid gap-5">
-        {taskViews.map(({ task, targets }) => {
+        {visibleTaskViews.map(({ task, targets }) => {
           const feedbackItems = targets.flatMap((target) => target.feedback);
           const averageScore =
             feedbackItems.length > 0
               ? feedbackItems.reduce((total, item) => total + item.score, 0) / feedbackItems.length
               : null;
+          const isFocusedTask = task.id === selectedTaskId;
 
           return (
             <Card
               key={task.id}
+              data-testid={`task-card-${task.id}`}
+              data-focus-state={isFocusedTask ? 'focused' : 'default'}
               variant="kawaii"
               hover
-              className="cursor-pointer space-y-4"
+              className={cn('cursor-pointer space-y-4', isFocusedTask && 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400')}
               onClick={() => setSelectedTaskId(task.id)}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

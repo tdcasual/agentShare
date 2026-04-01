@@ -100,4 +100,8 @@ def _to_secret_response(model: SecretModel) -> dict:
         "metadata": model.metadata_json or model.scope or {},
         "backend_ref": model.backend_ref,
         "publication_status": model.publication_status,
+        "created_by_actor_type": model.created_by_actor_type,
+        "created_by_actor_id": model.created_by_actor_id,
+        "created_via_token_id": model.created_via_token_id,
+        "reviewed_at": model.reviewed_at,
     }

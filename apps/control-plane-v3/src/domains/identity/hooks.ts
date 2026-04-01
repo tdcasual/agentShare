@@ -84,6 +84,16 @@ export function useCreateAgent() {
   };
 }
 
+export function useDeleteAgent() {
+  return async (agentId: string) => {
+    const result = await api.deleteAgent(agentId);
+    await mutate('/api/agents');
+    await mutate(`/api/agents/${agentId}/tokens`, { items: [] }, false);
+    await mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
+    return result;
+  };
+}
+
 // ============================================
 // Admin Accounts
 // ============================================

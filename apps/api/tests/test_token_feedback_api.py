@@ -64,3 +64,19 @@ def test_feedback_rolls_up_to_token_metrics(client, management_client):
     assert token["success_rate"] == 1.0
     assert token["last_feedback_at"] is not None
     assert token["trust_score"] == 1.0
+
+
+def test_feedback_creation_emits_event(client, management_client):
+    target_id, _ = _create_completed_target(client, management_client)
+
+    created = management_client.post(
+        f"/api/task-targets/{target_id}/feedback",
+        json={"score": 5, "verdict": "accepted", "summary": "Looks good"},
+    )
+
+    assert created.status_code == 201, created.text
+
+    events = management_client.get("/api/events")
+
+    assert events.status_code == 200, events.text
+    assert any(item["event_type"] == "task_feedback_posted" for item in events.json()["items"])

@@ -78,6 +78,29 @@ New human accounts are invite-only:
 - later admins, operators, and viewers are created through `POST /api/admin-accounts`;
 - public sign-up stays disabled.
 
+## Local Demo Fixture Mode
+
+For local demos, you can ask the API to seed a small persisted control-plane dataset on startup:
+
+```bash
+DEMO_SEED_ENABLED=true uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Behavior in this mode:
+
+- only available in `APP_ENV=development`
+- seeds a reusable owner account:
+  - email: `owner@example.com`
+  - password: `correct horse battery staple`
+- seeds persisted demo records for:
+  - inbox events
+  - marketplace assets and skills
+  - pending review items
+  - search-visible market task data
+
+The fixture data is stored in the real local database, so management routes still read backend truth instead of frontend-only placeholders.
+Event search results now open `/inbox?eventId=...`, letting operators inspect the event first and then follow its action target from the inbox card.
+
 ## Managed Agent Tokens
 
 Creating an agent also creates its primary runtime token:

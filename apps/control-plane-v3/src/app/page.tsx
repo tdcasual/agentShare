@@ -1,21 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useMemo, useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Layout } from '../interfaces/human/layout';
-import { useRuntime } from '../core/runtime';
-import { IdentityRegistryServiceId } from '../domains/identity/services/identity-registry';
-import { IdentityCard, IdentityCardCompact } from '../domains/identity/components/identity-card';
-import type { Identity } from '../shared/types';
+import { useEvents, type Event } from '@/domains/event';
+import { useAdminAccounts, useAgentsWithTokens } from '@/domains/identity';
+import { useReviews } from '@/domains/review';
 import { Card } from '../shared/ui-primitives/card';
 import { Button } from '../shared/ui-primitives/button';
 import { Badge } from '../shared/ui-primitives/badge';
 import { resolveAppEntryState, type AppEntryState } from '@/lib/session';
 import { useI18n } from '@/components/i18n-provider';
 import {
-  Users, Bot, Globe, Zap, CheckSquare,
+  Users, Bot, Zap, CheckSquare,
   ArrowRight, Sparkles, KeyRound, ShieldCheck
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
@@ -103,47 +101,34 @@ export default function HubPage() {
 
 const HubContent = memo(function HubContent({ email, role }: { email: string; role: string }) {
   const { t } = useI18n();
-  const runtime = useRuntime();
-  const [identities, setIdentities] = useState<Identity[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    humans: 0,
-    agents: 0,
-    spaces: 12,
-    tasksToday: 48,
-  });
+  const { events } = useEvents();
+  const adminAccountsQuery = useAdminAccounts();
+  const agentsWithTokensQuery = useAgentsWithTokens();
+  const reviewsQuery = useReviews();
 
-  useEffect(() => {
-    const registry = runtime.di.resolve(IdentityRegistryServiceId);
-    const allIdentities = registry.getAll();
-
-    setIdentities(allIdentities);
-    setStats({
-      humans: allIdentities.filter((identity) => identity.type === 'human').length,
-      agents: allIdentities.filter((identity) => identity.type === 'agent').length,
-      spaces: 12,
-      tasksToday: 48,
-    });
-
-    // 安全地生成活动数据，防止数组越界
-    const safeActor = (index: number) => allIdentities[index] || allIdentities[0] || {
-      id: 'unknown',
-      profile: { name: t('identities.type.human'), avatar: '', bio: '', tags: [], createdAt: new Date() },
-      type: 'human',
-      presence: 'offline',
-      status: 'active',
-    };
-
-    setRecentActivity([
-      { id: 1, type: 'task', actor: safeActor(1), action: t('hub.activity.completedTask'), target: 'API Deployment', time: '2m ago' },
-      { id: 2, type: 'review', actor: safeActor(0), action: t('hub.activity.approvedAsset'), target: 'queued playbook', time: '5m ago' },
-      { id: 3, type: 'token', actor: safeActor(2), action: t('hub.activity.publishedToken'), target: 'staging-worker', time: '1h ago' },
-      { id: 4, type: 'asset', actor: safeActor(0), action: t('hub.activity.createdAsset'), target: 'Production Config', time: '2h ago' },
-    ]);
-  }, [runtime, t]);
-
-  const humans = identities.filter((identity) => identity.type === 'human');
-  const agents = identities.filter((identity) => identity.type === 'agent');
+  const adminAccounts = adminAccountsQuery.data?.items ?? [];
+  const agents = agentsWithTokensQuery.agents;
+  const tokensByAgent = agentsWithTokensQuery.tokensByAgent;
+  const pendingReviews = useMemo(
+    () => (reviewsQuery.data?.items ?? []).filter((item) => item.publication_status === 'pending_review' || item.status === 'pending'),
+    [reviewsQuery.data]
+  );
+  const totalTokens = useMemo(
+    () => Object.values(tokensByAgent).reduce((count, tokens) => count + tokens.length, 0),
+    [tokensByAgent]
+  );
+  const tasksToday = useMemo(
+    () => events.filter((event) => isToday(event.created_at) && event.subject_type === 'task').length,
+    [events]
+  );
+  const actorDirectory = useMemo(
+    () => buildActorDirectory(adminAccounts, agents),
+    [adminAccounts, agents]
+  );
+  const recentActivity = useMemo(
+    () => events.slice(0, 6).map((event) => buildActivityItem(event, actorDirectory)),
+    [events, actorDirectory]
+  );
 
   return (
     <div className="space-y-8">
@@ -167,9 +152,9 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
       <Card className="p-4 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
           <Badge variant="primary">{t('hub.inviteOnly')}</Badge>
-          <span>{t('hub.publicRegistrationClosed')}</span>
+          <span>Live management snapshot for human supervisors and registered agents.</span>
           <span className="text-gray-300">•</span>
-          <span>{t('hub.runtimeTokens')}</span>
+          <span>Counts and activity below come from backend-backed identity, review, token, and event queries.</span>
         </div>
       </Card>
 
@@ -177,28 +162,28 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         <StatCard
           icon={<Users className="w-6 h-6 text-sky-600" />}
           label={t('identities.humans')}
-          value={stats.humans}
+          value={adminAccounts.length}
           trend={t('hub.stats.humansTrend')}
           color="sky"
         />
         <StatCard
           icon={<Bot className="w-6 h-6 text-green-600" />}
           label={t('identities.agents')}
-          value={stats.agents}
+          value={agents.length}
           trend={t('hub.stats.agentsTrend')}
           color="green"
         />
         <StatCard
           icon={<KeyRound className="w-6 h-6 text-purple-600" />}
           label={t('navigation.tokens')}
-          value={4}
+          value={totalTokens}
           trend={t('hub.stats.tokensTrend')}
           color="purple"
         />
         <StatCard
           icon={<CheckSquare className="w-6 h-6 text-orange-600" />}
-          label={t('hub.tasksToday')}
-          value={stats.tasksToday}
+          label={t('hub.reviewQueue')}
+          value={pendingReviews.length}
           trend={t('hub.stats.tasksTrend')}
           color="orange"
         />
@@ -210,64 +195,117 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('identities.title')}</h2>
               <div className="flex gap-2">
-                <Badge variant="human">{humans.length} {t('identities.humans')}</Badge>
+                <Badge variant="human">{adminAccounts.length} {t('identities.humans')}</Badge>
                 <Badge variant="agent">{agents.length} {t('identities.agents')}</Badge>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {identities.map((identity, index) => (
-                <div
-                  key={identity.id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <IdentityCard identity={identity} />
+              <Card className="p-5 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Human supervisors</h3>
+                  <Badge variant="human">{adminAccounts.length}</Badge>
                 </div>
-              ))}
+                <div className="space-y-3">
+                  {adminAccounts.map((account) => (
+                    <div key={account.id} className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:bg-[#1E1E32]/60 dark:border-[#3D3D5C]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{account.display_name}</p>
+                          <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF] break-all">{account.email}</p>
+                        </div>
+                        <Badge variant={account.status === 'active' ? 'success' : 'warning'}>{account.role}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {adminAccounts.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-500 dark:bg-[#1E1E32]/55 dark:border-[#3D3D5C] dark:text-[#9CA3AF]">
+                      No human supervisors have been loaded yet.
+                    </div>
+                  ) : null}
+                </div>
+              </Card>
+
+              <Card className="p-5 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Agent identities</h3>
+                  <Badge variant="agent">{agents.length}</Badge>
+                </div>
+                <div className="space-y-3">
+                  {agents.map((agent) => (
+                    <div key={agent.id} className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:bg-[#1E1E32]/60 dark:border-[#3D3D5C]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{agent.name}</p>
+                          <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF] break-all">{agent.id}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="agent">{agent.risk_tier}</Badge>
+                          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(tokensByAgent[agent.id] ?? []).map((token) => (
+                          <Badge key={token.id} variant="info">{token.display_name ?? token.displayName}</Badge>
+                        ))}
+                        {(tokensByAgent[agent.id] ?? []).length === 0 ? (
+                          <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">No linked tokens</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                  {agents.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-500 dark:bg-[#1E1E32]/55 dark:border-[#3D3D5C] dark:text-[#9CA3AF]">
+                      No registered agents have been loaded yet.
+                    </div>
+                  ) : null}
+                </div>
+              </Card>
             </div>
           </section>
 
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('hub.recentActivity')}</h2>
-              <Link href="/reviews">
+              <Link href="/inbox">
                 <Button variant="ghost" size="sm">
-                  {t('navigation.reviews')} <ArrowRight className="w-4 h-4 ml-1" />
+                  Open inbox <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
             </div>
 
             <Card className="p-0 overflow-hidden">
               <div className="divide-y divide-pink-100">
+                {recentActivity.length === 0 && (
+                  <div className="p-6 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                    Agent feedback, task completions, and system alerts will appear here once events start flowing.
+                  </div>
+                )}
                 {recentActivity.map((activity) => (
                   <div
                     key={activity.id}
                     className="p-4 flex items-center gap-4 hover:bg-pink-50/30 transition-colors"
                   >
-                    <Image
-                      src={activity.actor.profile.avatar}
-                      alt={activity.actor.profile.name}
-                      width={40}
-                      height={40}
-                      sizes="40px"
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <div className={cn(
+                      'w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-semibold flex-shrink-0',
+                      activity.actorType === 'agent'
+                        ? 'bg-green-100 text-green-700 dark:bg-[#2D4A3D] dark:text-green-300'
+                        : 'bg-sky-100 text-sky-700 dark:bg-[#2D4A5D] dark:text-sky-300'
+                    )}>
+                      {activity.actorLabel.slice(0, 1).toUpperCase()}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-800 dark:text-[#E8E8EC]">
-                        <span className="font-medium">{activity.actor.profile.name}</span>
-                        {' '}{activity.action}{' '}
-                        {activity.target && (
-                          <span className="text-pink-600">{activity.target}</span>
-                        )}
+                      <p className="text-sm text-gray-800 dark:text-[#E8E8EC]">{activity.summary}</p>
+                      <p className="text-xs text-gray-500 dark:text-[#9CA3AF] mt-0.5 truncate">
+                        {activity.actorLabel} · {activity.details}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">{activity.time}</p>
                     </div>
                     <Badge
-                      variant={activity.type === 'task' ? 'success' : activity.type === 'review' ? 'warning' : 'default'}
+                      variant={activity.badgeVariant}
                       className="flex-shrink-0"
                     >
-                      {activity.type}
+                      {activity.badgeLabel}
                     </Badge>
                   </div>
                 ))}
@@ -288,11 +326,22 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           </Card>
 
           <Card className="p-6">
-            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC] mb-4">{t('hub.onlineNow')}</h3>
+            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC] mb-4">{t('hub.reviewQueue')}</h3>
             <div className="space-y-2">
-              {identities.filter((identity) => identity.presence === 'online').map((identity) => (
-                <IdentityCardCompact key={identity.id} identity={identity} />
-              ))}
+              {pendingReviews.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-500 dark:bg-[#1E1E32]/55 dark:border-[#3D3D5C] dark:text-[#9CA3AF]">
+                  No pending reviews in the queue.
+                </div>
+              ) : (
+                pendingReviews.slice(0, 4).map((item) => (
+                  <div key={`${item.resource_kind}-${item.resource_id}`} className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:bg-[#1E1E32]/60 dark:border-[#3D3D5C]">
+                    <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{item.title}</p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                      {item.resource_kind} · {item.created_by_actor_id ?? 'unknown-agent'}
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
 
@@ -313,6 +362,10 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
               <div className="flex justify-between text-green-700">
                 <span>{t('hub.reviewGate')}</span>
                 <span className="font-medium">{t('hub.enabled')}</span>
+              </div>
+              <div className="flex justify-between text-green-700">
+                <span>{t('hub.tasksToday')}</span>
+                <span className="font-medium">{tasksToday}</span>
               </div>
             </div>
           </Card>
@@ -368,3 +421,90 @@ const ActionButton = memo(function ActionButton({ href, icon, label }: { href: s
 const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
 };
+
+function isToday(timestamp: string) {
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  return (
+    date.getFullYear() === now.getFullYear()
+    && date.getMonth() === now.getMonth()
+    && date.getDate() === now.getDate()
+  );
+}
+
+function formatRelativeTime(timeString: string) {
+  const date = new Date(timeString);
+  const now = new Date();
+  const diffMs = Math.max(0, now.getTime() - date.getTime());
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
+
+function eventBadgeVariant(event: Event): 'default' | 'success' | 'warning' | 'error' | 'info' {
+  switch (event.severity) {
+    case 'success':
+      return 'success';
+    case 'warning':
+      return 'warning';
+    case 'error':
+    case 'critical':
+      return 'error';
+    case 'info':
+      return 'info';
+    default:
+      return 'default';
+  }
+}
+
+function eventBadgeLabel(event: Event) {
+  return event.event_type.replace(/[_-]/g, ' ');
+}
+
+function buildActorDirectory(
+  adminAccounts: Array<{ id: string; display_name: string }>,
+  agents: Array<{ id: string; name: string }>
+) {
+  const actorMap = new Map<string, { label: string; type: 'human' | 'agent' }>();
+
+  adminAccounts.forEach((account) => {
+    actorMap.set(account.id, {
+      label: account.display_name,
+      type: 'human',
+    });
+  });
+
+  agents.forEach((agent) => {
+    actorMap.set(agent.id, {
+      label: agent.name,
+      type: 'agent',
+    });
+  });
+
+  return actorMap;
+}
+
+function buildActivityItem(
+  event: Event,
+  actorDirectory: Map<string, { label: string; type: 'human' | 'agent' }>
+) {
+  const actor = actorDirectory.get(event.actor_id);
+
+  return {
+    id: event.id,
+    summary: event.summary,
+    details: event.details ?? `${event.subject_type} ${event.subject_id}`,
+    time: formatRelativeTime(event.created_at),
+    actorLabel: actor?.label ?? event.actor_id,
+    actorType: actor?.type ?? event.actor_type,
+    badgeLabel: eventBadgeLabel(event),
+    badgeVariant: eventBadgeVariant(event),
+  };
+}

@@ -86,6 +86,14 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     redirectTo: '/login',
   },
   {
+    path: '/inbox',
+    mode: 'authenticated',
+    requiredSession: 'authenticated',
+    dataSource: 'backend',
+    unauthorizedBehavior: 'redirect',
+    redirectTo: '/login',
+  },
+  {
     path: '/reviews',
     mode: 'authenticated',
     requiredSession: 'authenticated',
@@ -120,6 +128,13 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   
   // Demo Routes (显式演示)
   {
+    path: '/demo',
+    mode: 'demo',
+    requiredSession: null,
+    dataSource: 'demo',
+    unauthorizedBehavior: 'allow_readonly',
+  },
+  {
     path: '/demo/identities',
     mode: 'demo',
     requiredSession: null,
@@ -137,10 +152,11 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   // Unavailable
   {
     path: '/marketplace',
-    mode: 'unavailable',
-    requiredSession: null,
-    dataSource: 'none',
-    unauthorizedBehavior: 'block',
+    mode: 'authenticated',
+    requiredSession: 'authenticated',
+    dataSource: 'backend',
+    unauthorizedBehavior: 'redirect',
+    redirectTo: '/login',
   },
   
   // Entry (特殊处理)

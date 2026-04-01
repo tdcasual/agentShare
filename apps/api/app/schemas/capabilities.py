@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -133,4 +134,8 @@ class CapabilityResponse(BaseModel):
     allowed_environments: list[str]
     adapter_type: str
     adapter_config: dict[str, Any]
-    publication_status: str
+    publication_status: Literal["pending_review", "approved", "rejected", "active", "expired"]
+    created_by_actor_type: str | None = None
+    created_by_actor_id: str | None = None
+    created_via_token_id: str | None = None
+    reviewed_at: datetime | None = None

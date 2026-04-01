@@ -2,10 +2,12 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { Cpu, KeyRound, LockKeyhole, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 import { Layout } from '@/interfaces/human/layout';
 import { useI18n } from '@/components/i18n-provider';
 import { ApiError } from '@/lib/api-client';
+import { readFocusedEntry } from '@/lib/focused-entry';
 import {
   isUnauthorizedError,
   ManagementSessionExpiredAlert,
@@ -14,6 +16,9 @@ import {
 } from '@/lib/management-session-recovery';
 import { useAgentsWithTokens } from '@/domains/identity';
 import {
+  deriveGovernanceStatus,
+  governanceStatusLabel,
+  isGovernanceInventoryActive,
   useCapabilities,
   useCreateCapability,
   useCreateSecret,
@@ -26,6 +31,7 @@ import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { Input } from '@/shared/ui-primitives/input';
 import { Modal } from '@/shared/ui-primitives/modal';
+import { cn } from '@/lib/utils';
 
 type FlattenedToken = {
   id: string;
@@ -51,6 +57,8 @@ export default function AssetsPage() {
 
 function AssetsContent() {
   const { t } = useI18n();
+  const searchParams = useSearchParams();
+  const focus = readFocusedEntry(searchParams);
   const {
     agents,
     tokensByAgent,
@@ -80,6 +88,16 @@ function AssetsContent() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSecretModal, setShowSecretModal] = useState(false);
   const [showCapabilityModal, setShowCapabilityModal] = useState(false);
+  const [selectedPublicationFilter, setSelectedPublicationFilter] = useState<'all' | 'pending_review' | 'active'>('all');
+  const [selectedResourceFilter, setSelectedResourceFilter] = useState<'all' | 'secrets' | 'capabilities'>(() => {
+    if (focus.resourceKind === 'secret') {
+      return 'secrets';
+    }
+    if (focus.resourceKind === 'capability') {
+      return 'capabilities';
+    }
+    return 'all';
+  });
   const [submittingSecret, setSubmittingSecret] = useState(false);
   const [submittingCapability, setSubmittingCapability] = useState(false);
   const [secretForm, setSecretForm] = useState({
@@ -159,6 +177,42 @@ function AssetsContent() {
     (capability) => capability.access_policy.mode === 'selectors',
   ).length;
   const activeTokens = allTokens.filter((token) => token.status === 'active').length;
+  const pendingReviewItems =
+    secrets.filter((secret) => deriveGovernanceStatus(secret) === 'pending_review').length +
+    capabilities.filter((capability) => deriveGovernanceStatus(capability) === 'pending_review').length;
+  const activeAssets =
+    secrets.filter((secret) => isGovernanceInventoryActive(deriveGovernanceStatus(secret))).length +
+    capabilities.filter((capability) => isGovernanceInventoryActive(deriveGovernanceStatus(capability))).length;
+  const visibleSecrets = secrets.filter((secret) => {
+    const governanceStatus = deriveGovernanceStatus(secret);
+    if (selectedResourceFilter === 'capabilities') {
+      return false;
+    }
+    if (selectedPublicationFilter === 'pending_review' && governanceStatus !== 'pending_review') {
+      return false;
+    }
+    if (selectedPublicationFilter === 'active' && !isGovernanceInventoryActive(governanceStatus)) {
+      return false;
+    }
+    return true;
+  });
+  const visibleCapabilities = capabilities.filter((capability) => {
+    const governanceStatus = deriveGovernanceStatus(capability);
+    if (selectedResourceFilter === 'secrets') {
+      return false;
+    }
+    if (selectedPublicationFilter === 'pending_review' && governanceStatus !== 'pending_review') {
+      return false;
+    }
+    if (selectedPublicationFilter === 'active' && !isGovernanceInventoryActive(governanceStatus)) {
+      return false;
+    }
+    return true;
+  });
+  const focusedSecret = secrets.find((secret) => focus.resourceKind === 'secret' && secret.id === focus.resourceId) ?? null;
+  const focusedCapability =
+    capabilities.find((capability) => focus.resourceKind === 'capability' && capability.id === focus.resourceId) ?? null;
+  const focusedAsset = focusedSecret ?? focusedCapability;
 
   async function handleRefresh() {
     setError(null);
@@ -377,6 +431,78 @@ function AssetsContent() {
       </div>
 
       <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+        <div className="flex flex-col gap-5">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">Governance inventory</h2>
+            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              Review what agents are trying to publish, what has already gone live, and which resource lane needs human attention next.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <Badge variant="warning">{pendingReviewItems} pending review items</Badge>
+            <Badge variant="success">{activeAssets} active asset{activeAssets === 1 ? '' : 's'}</Badge>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Publication state</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedPublicationFilter === 'all' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedPublicationFilter('all')}
+                >
+                  All states
+                </Button>
+                <Button
+                  variant={selectedPublicationFilter === 'pending_review' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedPublicationFilter('pending_review')}
+                >
+                  Pending Review
+                </Button>
+                <Button
+                  variant={selectedPublicationFilter === 'active' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedPublicationFilter('active')}
+                >
+                  Active
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Resource lane</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedResourceFilter === 'all' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedResourceFilter('all')}
+                >
+                  All resources
+                </Button>
+                <Button
+                  variant={selectedResourceFilter === 'secrets' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedResourceFilter('secrets')}
+                >
+                  Secrets
+                </Button>
+                <Button
+                  variant={selectedResourceFilter === 'capabilities' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedResourceFilter('capabilities')}
+                >
+                  Capabilities
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
           <Badge variant="primary">{t('common.operator')}</Badge>
           <span className="dark:text-[#E8E8EC]">{session?.email ?? t('common.loading')}</span>
@@ -420,6 +546,22 @@ function AssetsContent() {
         </Card>
       ) : null}
 
+      {focusedAsset ? (
+        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+              Focused asset
+            </p>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              {'display_name' in focusedAsset ? focusedAsset.display_name : focusedAsset.name}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              {focus.resourceKind} · {focusedAsset.id}
+            </p>
+          </div>
+        </Card>
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card variant="feature" className="space-y-4 dark:from-[#252540] dark:to-[#2D2D50]">
           <div className="flex items-start justify-between gap-4">
@@ -440,17 +582,33 @@ function AssetsContent() {
           </div>
 
           <div className="space-y-3">
-            {!shouldShowSessionExpired && secrets.length === 0 ? (
+            {!shouldShowSessionExpired && visibleSecrets.length === 0 ? (
               <EmptyState
                 icon={<Sparkles className="h-8 w-8" />}
-                title={t('assets.secrets.emptyTitle')}
-                description={t('assets.secrets.emptyDesc')}
+                title={selectedResourceFilter === 'capabilities' ? 'Secrets hidden by current filter' : t('assets.secrets.emptyTitle')}
+                description={
+                  selectedResourceFilter === 'capabilities'
+                    ? 'Switch resource lane back to Secrets or All resources to review secret inventory.'
+                    : selectedPublicationFilter === 'all'
+                      ? t('assets.secrets.emptyDesc')
+                      : 'No secrets match the current publication filter.'
+                }
               />
             ) : shouldShowSessionExpired && isUnauthorizedError(secretsQuery.error) ? (
               <ManagementSessionRecoveryNotice message="Sign in again to reload the secret inventory." />
             ) : (
-              secrets.map((secret) => (
-                <Card key={secret.id} className="border border-pink-100/80 bg-white/80 p-5 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
+              visibleSecrets.map((secret) => (
+                <Card
+                  key={secret.id}
+                  data-testid={`secret-card-${secret.id}`}
+                  data-focus-state={focus.resourceKind === 'secret' && focus.resourceId === secret.id ? 'focused' : 'default'}
+                  className={cn(
+                    'border bg-white/80 p-5 dark:bg-[#1A1A2E]/80',
+                    focus.resourceKind === 'secret' && focus.resourceId === secret.id
+                      ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
+                      : 'border-pink-100/80 dark:border-[#3D3D5C]',
+                  )}
+                >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1">
                       <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{secret.display_name}</h3>
@@ -458,8 +616,13 @@ function AssetsContent() {
                         {secret.provider} · {secret.kind}
                         {secret.environment ? ` · ${secret.environment}` : ''}
                       </p>
+                      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                        Governance state: {governanceStatusLabel(deriveGovernanceStatus(secret))}
+                      </p>
                     </div>
-                    <Badge variant={statusVariant(secret.publication_status)}>{secret.publication_status}</Badge>
+                    <Badge variant={statusVariant(deriveGovernanceStatus(secret))}>
+                      {governanceStatusLabel(deriveGovernanceStatus(secret))}
+                    </Badge>
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
                     <InfoBlock label={t('assets.secrets.providerScopes')} value={secret.provider_scopes.join(', ') || t('common.notSpecified')} />
@@ -490,26 +653,47 @@ function AssetsContent() {
           </div>
 
           <div className="space-y-3">
-            {!shouldShowSessionExpired && capabilities.length === 0 ? (
+            {!shouldShowSessionExpired && visibleCapabilities.length === 0 ? (
               <EmptyState
                 icon={<ShieldCheck className="h-8 w-8" />}
-                title={t('assets.capabilities.emptyTitle')}
-                description={t('assets.capabilities.emptyDesc')}
+                title={selectedResourceFilter === 'secrets' ? 'Capabilities hidden by current filter' : t('assets.capabilities.emptyTitle')}
+                description={
+                  selectedResourceFilter === 'secrets'
+                    ? 'Switch resource lane back to Capabilities or All resources to review capability inventory.'
+                    : selectedPublicationFilter === 'all'
+                      ? t('assets.capabilities.emptyDesc')
+                      : 'No capabilities match the current publication filter.'
+                }
               />
             ) : shouldShowSessionExpired && isUnauthorizedError(capabilitiesQuery.error) ? (
               <ManagementSessionRecoveryNotice message="Sign in again to reload capability policy data." />
             ) : (
-              capabilities.map((capability) => (
-                <Card key={capability.id} className="border border-pink-100/80 bg-white/80 p-5 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
+              visibleCapabilities.map((capability) => (
+                <Card
+                  key={capability.id}
+                  data-testid={`capability-card-${capability.id}`}
+                  data-focus-state={focus.resourceKind === 'capability' && focus.resourceId === capability.id ? 'focused' : 'default'}
+                  className={cn(
+                    'border bg-white/80 p-5 dark:bg-[#1A1A2E]/80',
+                    focus.resourceKind === 'capability' && focus.resourceId === capability.id
+                      ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
+                      : 'border-pink-100/80 dark:border-[#3D3D5C]',
+                  )}
+                >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1">
                       <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{capability.name}</h3>
                       <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                         Secret {capability.secret_id} · {capability.allowed_mode} · risk {capability.risk_level}
                       </p>
+                      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                        Governance state: {governanceStatusLabel(deriveGovernanceStatus(capability))}
+                      </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant={statusVariant(capability.publication_status)}>{capability.publication_status}</Badge>
+                      <Badge variant={statusVariant(deriveGovernanceStatus(capability))}>
+                        {governanceStatusLabel(deriveGovernanceStatus(capability))}
+                      </Badge>
                       <Badge variant={capability.access_policy.mode === 'all_tokens' ? 'success' : 'warning'}>
                         {capability.access_policy.mode === 'all_tokens' ? t('assets.capabilities.allTokens') : '定向访问'}
                       </Badge>
@@ -931,7 +1115,7 @@ function parseCommaSeparatedList(value: string) {
 }
 
 function statusVariant(status: string) {
-  if (status === 'active') {
+  if (status === 'active' || status === 'approved') {
     return 'success' as const;
   }
   if (status === 'pending_review') {

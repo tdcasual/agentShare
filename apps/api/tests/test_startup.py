@@ -125,6 +125,48 @@ def test_app_startup_bootstrap_route_initializes_once(monkeypatch, tmp_path):
     assert second.status_code == 409
 
 
+def test_app_startup_can_seed_demo_fixture_data(monkeypatch, tmp_path):
+    db_path = tmp_path / "startup-demo-seed.db"
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
+    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", "bootstrap-key-xyz")
+    monkeypatch.setenv("MANAGEMENT_SESSION_SECRET", "session-secret")
+    monkeypatch.setenv("DEMO_SEED_ENABLED", "true")
+
+    from app import main as main_module
+
+    main_module = importlib.reload(main_module)
+
+    with TestClient(main_module.app) as client:
+        bootstrap_status = client.get("/api/bootstrap/status")
+        assert bootstrap_status.status_code == 200, bootstrap_status.text
+        assert bootstrap_status.json() == {"initialized": True}
+
+        login = client.post(
+            "/api/session/login",
+            json={
+                "email": "owner@example.com",
+                "password": "correct horse battery staple",
+            },
+        )
+        assert login.status_code == 200, login.text
+
+        search = client.get("/api/search", params={"q": "market"})
+        assert search.status_code == 200, search.text
+        search_payload = search.json()
+        assert search_payload["assets"]
+        assert search_payload["skills"]
+        assert search_payload["events"]
+        assert search_payload["events"][0]["href"].startswith("/inbox?eventId=")
+
+        reviews = client.get("/api/reviews")
+        assert reviews.status_code == 200, reviews.text
+        assert reviews.json()["items"]
+
+        events = client.get("/api/events")
+        assert events.status_code == 200, events.text
+        assert events.json()["items"]
+
+
 def test_init_db_does_not_backfill_legacy_task_columns(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-legacy.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
@@ -255,7 +297,7 @@ def test_app_startup_upgrades_legacy_schema_with_alembic(monkeypatch, tmp_path):
         "reviewed_by_actor_id",
         "reviewed_at",
     }.issubset(secret_columns)
-    assert migrated_revision == "20260330_02"
+    assert migrated_revision == "20260331_01"
 
 
 def test_app_startup_migrates_legacy_capability_access_policy(monkeypatch, tmp_path):
@@ -363,4 +405,4 @@ def test_app_startup_migrates_legacy_capability_access_policy(monkeypatch, tmp_p
             {"kind": "token", "ids": ["token-legacy"]},
         ],
     }
-    assert migrated_revision == "20260330_02"
+    assert migrated_revision == "20260331_01"

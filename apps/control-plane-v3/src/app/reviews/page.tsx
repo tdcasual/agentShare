@@ -1,16 +1,20 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
 import { CheckCircle2, Clock3, RefreshCw, ShieldAlert, ShieldCheck, XCircle, Heart, Sparkles, FileText, Play, Lock } from 'lucide-react';
+import { deriveGovernanceStatus, governanceStatusLabel } from '@/domains/governance';
 import { Layout } from '@/interfaces/human/layout';
 import { useReviews, useApproveReview, useRejectReview } from '@/domains/review';
 import { ApiError } from '@/lib/api-client';
+import { readFocusedEntry } from '@/lib/focused-entry';
 import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import type { ReviewQueueItem } from '@/domains/review';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
+import { cn } from '@/lib/utils';
 
 export default function ReviewsPage() {
   return (
@@ -22,6 +26,8 @@ export default function ReviewsPage() {
 
 function ReviewsContent() {
   const t = useI18n().t;
+  const searchParams = useSearchParams();
+  const focus = readFocusedEntry(searchParams);
   // 使用 SWR hooks 替代手动 useEffect
   const { data: reviewsData, isLoading, error: dataError, mutate } = useReviews({
     refreshInterval: 10000, // 10秒自动刷新
@@ -43,6 +49,16 @@ function ReviewsContent() {
   const [error, setError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedProvenance, setSelectedProvenance] = useState<'all' | 'agent' | 'human' | 'token'>('all');
+  const [selectedKind, setSelectedKind] = useState<'all' | 'task' | 'playbook' | 'secret' | 'capability'>(
+    () =>
+      focus.resourceKind === 'task' ||
+      focus.resourceKind === 'playbook' ||
+      focus.resourceKind === 'secret' ||
+      focus.resourceKind === 'capability'
+        ? focus.resourceKind
+        : 'all',
+  );
 
   const items = reviewsData?.items ?? [];
 
@@ -52,6 +68,35 @@ function ReviewsContent() {
       return accumulator;
     }, {});
   }, [items]);
+  const agentSubmittedCount = items.filter((item) => item.created_by_actor_type === 'agent').length;
+  const humanSubmittedCount = items.filter((item) => item.created_by_actor_type === 'human').length;
+  const tokenOriginatedCount = items.filter((item) => Boolean(item.created_via_token_id)).length;
+  const visibleItems = useMemo(
+    () =>
+      items.filter((item) => {
+        if (selectedProvenance === 'agent' && item.created_by_actor_type !== 'agent') {
+          return false;
+        }
+        if (selectedProvenance === 'human' && item.created_by_actor_type !== 'human') {
+          return false;
+        }
+        if (selectedProvenance === 'token' && !item.created_via_token_id) {
+          return false;
+        }
+        if (selectedKind !== 'all' && item.resource_kind !== selectedKind) {
+          return false;
+        }
+        return true;
+      }),
+    [items, selectedKind, selectedProvenance],
+  );
+  const focusedReviewItem = useMemo(
+    () =>
+      visibleItems.find(
+        (item) => item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId,
+      ) ?? null,
+    [focus.resourceId, focus.resourceKind, visibleItems],
+  );
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -158,6 +203,100 @@ function ReviewsContent() {
         />
       </div>
 
+      <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">Governance coverage</h2>
+            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              Human reviewers can inspect which submissions came from agents directly, which were token-originated, and which resource lane needs attention first.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <Badge variant="agent">{agentSubmittedCount} agent submissions</Badge>
+            <Badge variant="human">{humanSubmittedCount} human submissions</Badge>
+            <Badge variant="secondary">{tokenOriginatedCount} token-originated</Badge>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Submission provenance</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedProvenance === 'all' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedProvenance('all')}
+                >
+                  All submissions
+                </Button>
+                <Button
+                  variant={selectedProvenance === 'agent' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedProvenance('agent')}
+                >
+                  Agent submissions
+                </Button>
+                <Button
+                  variant={selectedProvenance === 'human' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedProvenance('human')}
+                >
+                  Human submissions
+                </Button>
+                <Button
+                  variant={selectedProvenance === 'token' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedProvenance('token')}
+                >
+                  Token-originated
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Resource lane</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedKind === 'all' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedKind('all')}
+                >
+                  All resources
+                </Button>
+                <Button
+                  variant={selectedKind === 'task' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedKind('task')}
+                >
+                  Tasks
+                </Button>
+                <Button
+                  variant={selectedKind === 'capability' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedKind('capability')}
+                >
+                  Capabilities
+                </Button>
+                <Button
+                  variant={selectedKind === 'secret' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedKind('secret')}
+                >
+                  Secrets
+                </Button>
+                <Button
+                  variant={selectedKind === 'playbook' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setSelectedKind('playbook')}
+                >
+                  Playbooks
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       {/* Session Info */}
       <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
@@ -221,9 +360,30 @@ function ReviewsContent() {
         </Card>
       ) : null}
 
+      {!gateLoading && !isLoading && !shouldShowSessionExpired && items.length > 0 && visibleItems.length === 0 ? (
+        <Card className="border border-dashed border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 text-sm text-gray-600 dark:text-[#9CA3AF]">
+          No review items match the current provenance and resource filters.
+        </Card>
+      ) : null}
+
+      {focusedReviewItem ? (
+        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+              Focused review item
+            </p>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{focusedReviewItem.title}</h2>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              Resource {focusedReviewItem.resource_kind}:{focusedReviewItem.resource_id}
+            </p>
+          </div>
+        </Card>
+      ) : null}
+
       {/* Review Items */}
       <div className="grid gap-4">
-        {items.map((item, index) => {
+        {visibleItems.map((item, index) => {
+          const governanceStatus = deriveGovernanceStatus(item);
           const busy = actionKey !== null;
           const approveKey = `approve:${item.resource_kind}:${item.resource_id}`;
           const rejectKey = `reject:${item.resource_kind}:${item.resource_id}`;
@@ -231,15 +391,34 @@ function ReviewsContent() {
           return (
             <Card 
               key={`${item.resource_kind}:${item.resource_id}`} 
+              data-testid={`review-card-${item.resource_kind}-${item.resource_id}`}
+              data-focus-state={
+                item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId ? 'focused' : 'default'
+              }
               variant="kawaii" 
-              className="space-y-4 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C] animate-slide-up"
+              className={cn(
+                'space-y-4 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C] animate-slide-up',
+                item.resource_kind === focus.resourceKind &&
+                  item.resource_id === focus.resourceId &&
+                  'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400',
+              )}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Header */}
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="warning">{item.publication_status}</Badge>
+                    <Badge
+                      variant={
+                        governanceStatus === 'rejected'
+                          ? 'error'
+                          : governanceStatus === 'pending_review'
+                            ? 'warning'
+                            : 'success'
+                      }
+                    >
+                      {governanceStatusLabel(governanceStatus)}
+                    </Badge>
                     <Badge variant="secondary" className="flex items-center gap-1">
                       {getResourceIcon(item.resource_kind)}
                       {item.resource_kind}
@@ -251,28 +430,38 @@ function ReviewsContent() {
                   <div>
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{item.title}</h2>
                     <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">Resource ID: {item.resource_id}</p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                      Submitted by {item.created_by_actor_type ?? 'unknown'}:{item.created_by_actor_id ?? 'unknown'}
+                    </p>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      Governance state: {governanceStatusLabel(governanceStatus)}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="secondary"
-                    loading={actionKey === rejectKey}
-                    disabled={busy}
-                    onClick={() => handleDecision(item, 'reject')}
-                    className="border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  >
-                    <XCircle className="mr-2 h-4 w-4 text-red-500" />
-                    {t('reviews.actions.reject')}
-                  </Button>
-                  <Button
-                    loading={actionKey === approveKey}
-                    disabled={busy}
-                    onClick={() => handleDecision(item, 'approve')}
-                  >
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    {t('reviews.actions.approve')}
-                  </Button>
+                  {governanceStatus === 'pending_review' ? (
+                    <>
+                      <Button
+                        variant="secondary"
+                        loading={actionKey === rejectKey}
+                        disabled={busy}
+                        onClick={() => handleDecision(item, 'reject')}
+                        className="border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <XCircle className="mr-2 h-4 w-4 text-red-500" />
+                        {t('reviews.actions.reject')}
+                      </Button>
+                      <Button
+                        loading={actionKey === approveKey}
+                        disabled={busy}
+                        onClick={() => handleDecision(item, 'approve')}
+                      >
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        {t('reviews.actions.approve')}
+                      </Button>
+                    </>
+                  ) : null}
                 </div>
               </div>
 

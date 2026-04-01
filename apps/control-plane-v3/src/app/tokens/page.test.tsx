@@ -72,6 +72,21 @@ describe('tokens page', () => {
             last_used_at: null,
             last_feedback_at: null,
           },
+          {
+            id: 'token-2',
+            token_prefix: 'cp_tok_456',
+            display_name: 'Risk Scan Token',
+            status: 'active',
+            trust_score: 0.45,
+            success_rate: 0.5,
+            scopes: ['runtime'],
+            labels: { pool: 'risk' },
+            completed_runs: 2,
+            successful_runs: 1,
+            issued_by_actor_id: 'human-owner',
+            last_used_at: '2026-03-31T00:00:00.000Z',
+            last_feedback_at: '2026-03-31T01:00:00.000Z',
+          },
         ],
       },
       isLoading: false,
@@ -114,5 +129,30 @@ describe('tokens page', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+  });
+
+  it('surfaces token supervision metrics and filters tokens needing feedback', async () => {
+    const user = userEvent.setup();
+
+    render(<TokensPage />);
+
+    expect(screen.getByText('1 token needs feedback')).toBeInTheDocument();
+    expect(screen.getByText('1 low-trust token')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /needs feedback/i }));
+
+    expect(screen.getByText('Primary Token')).toBeInTheDocument();
+    expect(screen.queryByText('Risk Scan Token')).not.toBeInTheDocument();
+  });
+
+  it('filters tokens by low trust for human review', async () => {
+    const user = userEvent.setup();
+
+    render(<TokensPage />);
+
+    await user.click(screen.getByRole('button', { name: /low trust/i }));
+
+    expect(screen.queryByText('Primary Token')).not.toBeInTheDocument();
+    expect(screen.getByText('Risk Scan Token')).toBeInTheDocument();
   });
 });

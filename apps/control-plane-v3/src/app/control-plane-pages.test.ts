@@ -42,8 +42,32 @@ describe('Control Plane Pages', () => {
     const source = await readRouteSource('identities/page.tsx');
 
     expect(source).toMatch(/useAdminAccounts/);
-    expect(source).toMatch(/useAgents/);
+    expect(source).toMatch(/useAgentsWithTokens/);
     expect(source).toMatch(/useManagementPageSessionRecovery|useManagementSessionGate/);
     expect(source).not.toMatch(/managed through the runtime system/);
+    expect(source).toMatch(/Management coverage/);
+  });
+
+  it('global search is wired to backend grouped search instead of mock suggestions', async () => {
+    const source = await readRouteSource('../components/global-search.tsx');
+
+    expect(source).toMatch(/useGlobalSearch/);
+    expect(source).toMatch(/Assets/);
+    expect(source).toMatch(/Skills/);
+    expect(source).not.toMatch(/mockResults/);
+  });
+
+  it('hub activity feed is backed by live events instead of hardcoded samples', async () => {
+    const source = await readRouteSource('page.tsx');
+
+    expect(source).toMatch(/useEvents/);
+    expect(source).toMatch(/useAdminAccounts/);
+    expect(source).toMatch(/useAgentsWithTokens/);
+    expect(source).toMatch(/useReviews/);
+    expect(source).toMatch(/\/inbox/);
+    expect(source).not.toMatch(/IdentityRegistryServiceId/);
+    expect(source).not.toMatch(/spaces: 12/);
+    expect(source).not.toMatch(/API Deployment/);
+    expect(source).not.toMatch(/queued playbook/);
   });
 });

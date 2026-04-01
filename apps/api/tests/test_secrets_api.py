@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from app.config import Settings
 from app.factory import create_app
 from app.repositories.audit_repo import AuditEventRepository
-from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY, bootstrap_owner_account, login_management_account
+from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY, _run_alembic_upgrade, bootstrap_owner_account, login_management_account
 
 
 def test_create_secret_returns_reference_only(management_client):
@@ -48,6 +48,30 @@ def test_list_secrets_returns_redacted_metadata(management_client):
     assert "value" not in response.json()["items"][0]
 
 
+def test_agent_created_secret_exposes_marketplace_provenance(management_client, client):
+    response = client.post(
+        "/api/secrets",
+        headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
+        json={
+            "display_name": "Agent market secret",
+            "kind": "api_token",
+            "value": "agent-secret-value",
+            "provider": "openai",
+        },
+    )
+
+    assert response.status_code == 202, response.text
+
+    listing = management_client.get("/api/secrets")
+
+    assert listing.status_code == 200, listing.text
+    item = listing.json()["items"][0]
+    assert item["display_name"] == "Agent market secret"
+    assert item["created_by_actor_type"] == "agent"
+    assert item["created_by_actor_id"] == "test-agent"
+    assert item["created_via_token_id"] == "token-test-agent"
+
+
 def test_create_secret_uses_runtime_settings_for_secret_backend(monkeypatch, tmp_path):
     captured: list[str] = []
 
@@ -60,6 +84,7 @@ def test_create_secret_uses_runtime_settings_for_secret_backend(monkeypatch, tmp
         return FakeBackend()
 
     monkeypatch.setattr("app.routes.secrets.get_secret_backend", fake_get_secret_backend)
+    _run_alembic_upgrade(f"sqlite:///{tmp_path / 'secret-runtime.db'}")
     app = create_app(Settings(
         database_url=f"sqlite:///{tmp_path / 'secret-runtime.db'}",
         bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
@@ -108,3 +133,28 @@ def test_runtime_created_secret_starts_pending_review_and_tracks_token_provenanc
     assert created_events[-1].payload["actor_type"] == "agent"
     assert created_events[-1].payload["actor_id"] == "test-agent"
     assert created_events[-1].payload["via_token_id"] == "token-test-agent"
+
+
+def test_approved_secret_exposes_review_timestamp(management_client, client):
+    created = client.post(
+        "/api/secrets",
+        headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
+        json={
+            "display_name": "Approved market secret",
+            "kind": "api_token",
+            "value": "approved-secret-value",
+            "provider": "openai",
+        },
+    )
+
+    assert created.status_code == 202, created.text
+
+    approved = management_client.post(f"/api/reviews/secret/{created.json()['id']}/approve", json={})
+    assert approved.status_code == 200, approved.text
+
+    listing = management_client.get("/api/secrets")
+    assert listing.status_code == 200, listing.text
+
+    item = next(entry for entry in listing.json()["items"] if entry["id"] == created.json()["id"])
+    assert item["publication_status"] == "active"
+    assert item["reviewed_at"] is not None
