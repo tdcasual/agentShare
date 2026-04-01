@@ -7,9 +7,9 @@
 'use client';
 
 import useSWR, { SWRConfiguration, mutate } from 'swr';
-import { swrConfig, staticConfig } from '@/lib/swr-config';
+import { staticConfig } from '@/lib/swr-config';
 import * as api from './api';
-import type { Asset, AssetReview, CreateAssetInput, UpdateAssetInput, ReviewAssetInput } from './types';
+import type { Asset, CreateAssetInput, UpdateAssetInput, ReviewAssetInput } from './types';
 
 // ============================================
 // Assets

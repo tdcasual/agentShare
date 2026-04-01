@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 type Theme = 'light' | 'dark' | 'system';
 
 export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // 避免 hydration mismatch
@@ -69,7 +69,7 @@ export function ThemeToggle({ className }: { className?: string }) {
 
 // 简化的主题切换按钮（只在 light/dark 之间切换）
 export function SimpleThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

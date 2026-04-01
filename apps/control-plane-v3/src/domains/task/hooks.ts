@@ -11,7 +11,6 @@ import { swrConfig, pollingConfig } from '@/lib/swr-config';
 import * as api from './api';
 import type { Task, Run, TokenFeedback, TaskPriority, TaskTargetMode } from './types';
 import type { TaskCreateInput, TokenFeedbackCreateInput } from '@/lib/api-client';
-import { IdentityReference } from '../identity/types';
 import { TASK_DASHBOARD_FEEDBACK_KEY, TASK_DASHBOARD_TOKENS_KEY } from './hooks-dashboard';
 
 // ============================================

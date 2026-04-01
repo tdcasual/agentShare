@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
@@ -8,7 +9,7 @@ export function ServiceWorkerRegister() {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('Service Worker registered:', registration.scope);
+          logger.runtime.info('Service Worker registered', registration.scope);
           
           // 检查更新
           registration.addEventListener('updatefound', () => {
@@ -17,21 +18,21 @@ export function ServiceWorkerRegister() {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   // 新版本可用，可以提示用户刷新
-                  console.log('New version available');
+                  logger.runtime.info('New service worker version available');
                 }
               });
             }
           });
         })
         .catch((error) => {
-          console.log('Service Worker registration failed:', error);
+          logger.runtime.warn('Service Worker registration failed', error);
         });
 
       // 监听来自 Service Worker 的消息
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data.type === 'NOTIFICATION_CLICK') {
           // 处理通知点击
-          console.log('Notification clicked:', event.data.data);
+          logger.runtime.info('Notification clicked', event.data.data);
         }
       });
     }

@@ -44,14 +44,15 @@ function ReviewsContent() {
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const items = reviewsData?.items ?? [];
+  const items = reviewsData?.items;
+  const reviewItems = items ?? [];
 
   const countByKind = useMemo(() => {
-    return items.reduce<Record<string, number>>((accumulator, item) => {
+    return reviewItems.reduce<Record<string, number>>((accumulator, item) => {
       accumulator[item.resource_kind] = (accumulator[item.resource_kind] ?? 0) + 1;
       return accumulator;
     }, {});
-  }, [items]);
+  }, [reviewItems]);
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -138,7 +139,7 @@ function ReviewsContent() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard 
           label={t('reviews.metrics.pendingItems')} 
-          value={items.length.toString()} 
+          value={reviewItems.length.toString()} 
           icon={<ShieldAlert className="w-5 h-5 text-pink-500 dark:text-[#E891C0]" />}
         />
         <MetricCard 
@@ -204,7 +205,7 @@ function ReviewsContent() {
       ) : null}
 
       {/* Empty State */}
-      {!gateLoading && !isLoading && !shouldShowSessionExpired && items.length === 0 ? (
+      {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length === 0 ? (
         <Card variant="feature" className="space-y-6 text-center py-12 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-[#2D4A3D] text-green-600 dark:text-green-400">
             <ShieldCheck className="h-10 w-10" />
@@ -223,7 +224,7 @@ function ReviewsContent() {
 
       {/* Review Items */}
       <div className="grid gap-4">
-        {items.map((item, index) => {
+        {reviewItems.map((item, index) => {
           const busy = actionKey !== null;
           const approveKey = `approve:${item.resource_kind}:${item.resource_id}`;
           const rejectKey = `reject:${item.resource_kind}:${item.resource_id}`;
@@ -300,7 +301,7 @@ function ReviewsContent() {
       </div>
 
       {/* Footer decoration */}
-      {items.length > 0 && (
+      {reviewItems.length > 0 && (
         <div className="flex justify-center gap-2 text-2xl opacity-30 dark:opacity-20 pt-4">
           <span className="animate-float">🌸</span>
           <span className="animate-float" style={{ animationDelay: '0.5s' }}>✨</span>

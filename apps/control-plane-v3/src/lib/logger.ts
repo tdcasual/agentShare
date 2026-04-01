@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Logger - 统一日志管理
  * 
@@ -24,7 +25,7 @@ class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    if (!IS_DEV) return level === 'error';
+    if (!IS_DEV) {return level === 'error';}
     const levels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
     return levels.indexOf(level) >= levels.indexOf(this.level);
   }

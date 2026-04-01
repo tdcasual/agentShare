@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "apps/api"))
 from app.services.intake_catalog import get_intake_catalog  # noqa: E402
 
 
-DEFAULT_OUTPUT_PATH = ROOT / "apps" / "web" / "lib" / "forms" / "generated" / "intake-catalog.json"
+DEFAULT_OUTPUT_PATH = ROOT / "apps" / "control-plane-v3" / "src" / "lib" / "forms" / "generated" / "intake-catalog.json"
 
 
 def build_export_payload() -> dict:

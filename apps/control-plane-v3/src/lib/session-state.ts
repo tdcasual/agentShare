@@ -152,11 +152,13 @@ export function useSession() {
   const [isLoading, setIsLoading] = useState(session.state === 'unknown');
   
   useEffect(() => {
+    const initialSession = getGlobalSession();
+
     // 订阅全局会话变化
     const unsubscribe = subscribeToSession(setSession);
     
     // 初始解析（如果未知状态）
-    if (session.state === 'unknown') {
+    if (initialSession.state === 'unknown') {
       setIsLoading(true);
       resolveSession().then(newSession => {
         setGlobalSession(newSession);

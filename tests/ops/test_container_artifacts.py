@@ -10,7 +10,7 @@ def test_container_artifacts_exist() -> None:
     assert (ROOT / ".github/workflows/docker-images.yml").exists()
     assert (ROOT / ".github/workflows/deploy.yml").exists()
     assert (ROOT / "apps/api/Dockerfile").exists()
-    assert (ROOT / "apps/web/Dockerfile").exists()
+    assert (ROOT / "apps/control-plane-v3/Dockerfile").exists()
     assert (ROOT / "docker-compose.prod.yml").exists()
     assert (ROOT / "ops/caddy/Caddyfile").exists()
     assert (ROOT / "ops/compose/prod.env.example").exists()
@@ -33,7 +33,7 @@ def test_api_dockerfile_exposes_runtime_contract() -> None:
 
 
 def test_web_dockerfile_builds_next_app() -> None:
-    dockerfile = (ROOT / "apps/web/Dockerfile").read_text()
+    dockerfile = (ROOT / "apps/control-plane-v3/Dockerfile").read_text()
     assert "FROM node:22-bookworm-slim AS deps" in dockerfile
     assert "npm ci" in dockerfile
     assert "npm run build" in dockerfile
@@ -56,7 +56,7 @@ def test_compose_defines_complete_stack() -> None:
 def test_dev_compose_builds_local_app_services_without_pulling_fake_local_tags() -> None:
     compose = (ROOT / "docker-compose.yml").read_text()
     assert "dockerfile: apps/api/Dockerfile" in compose
-    assert "dockerfile: apps/web/Dockerfile" in compose
+    assert "dockerfile: apps/control-plane-v3/Dockerfile" in compose
     assert "agentshare-api:local" not in compose
     assert "agentshare-web:local" not in compose
 
@@ -72,7 +72,7 @@ def test_docker_workflow_builds_both_images_with_ghcr() -> None:
     assert "docker/login-action" in workflow
     assert "ghcr.io/" in workflow
     assert "apps/api/Dockerfile" in workflow
-    assert "apps/web/Dockerfile" in workflow
+    assert "apps/control-plane-v3/Dockerfile" in workflow
     assert "push: ${{ github.event_name != 'pull_request' }}" in workflow
     assert "docker/metadata-action" in workflow
 
@@ -186,13 +186,15 @@ def test_ci_and_deployment_docs_reference_migration_step() -> None:
 
 def test_repo_quality_floor_is_documented_and_enforced() -> None:
     ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
-    web_package = (ROOT / "apps/web/package.json").read_text()
+    web_package = (ROOT / "apps/control-plane-v3/package.json").read_text()
     readme = (ROOT / "README.md").read_text().lower()
 
     assert (ROOT / ".editorconfig").exists()
-    assert (ROOT / "apps/web/eslint.config.mjs").exists()
+    assert (ROOT / "apps/control-plane-v3/eslint.config.mjs").exists()
     assert '"typecheck"' in web_package
     assert '"lint"' in web_package
+    assert '"test:contracts"' in web_package
+    assert '"test:unit"' in web_package
     assert "npm run typecheck" in ci_workflow
     assert "npm run lint" in ci_workflow
     assert "quality floor" in readme
@@ -200,4 +202,4 @@ def test_repo_quality_floor_is_documented_and_enforced() -> None:
 
 
 def test_frontend_dead_design_token_layer_is_removed() -> None:
-    assert not (ROOT / "apps/web/lib/design-tokens.ts").exists()
+    assert not (ROOT / "apps/control-plane-v3/src/lib/design-tokens.ts").exists()

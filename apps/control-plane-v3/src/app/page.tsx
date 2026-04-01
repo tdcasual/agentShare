@@ -15,11 +15,20 @@ import { Badge } from '../shared/ui-primitives/badge';
 import { resolveAppEntryState, type AppEntryState } from '@/lib/session';
 import { useI18n } from '@/components/i18n-provider';
 import {
-  Users, Bot, Globe, Zap, CheckSquare,
+  Users, Bot, Zap, CheckSquare,
   ArrowRight, Sparkles, KeyRound, ShieldCheck
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+interface RecentActivityItem {
+  id: number;
+  type: 'task' | 'review' | 'token' | 'asset';
+  actor: Identity;
+  action: string;
+  target: string;
+  time: string;
+}
 
 export default function HubPage() {
   const router = useRouter();
@@ -105,7 +114,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   const { t } = useI18n();
   const runtime = useRuntime();
   const [identities, setIdentities] = useState<Identity[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([]);
   const [stats, setStats] = useState({
     humans: 0,
     agents: 0,
@@ -126,12 +135,14 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
     });
 
     // 安全地生成活动数据，防止数组越界
-    const safeActor = (index: number) => allIdentities[index] || allIdentities[0] || {
+    const safeActor = (index: number): Identity => allIdentities[index] || allIdentities[0] || {
       id: 'unknown',
       profile: { name: t('identities.type.human'), avatar: '', bio: '', tags: [], createdAt: new Date() },
       type: 'human',
       presence: 'offline',
       status: 'active',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     setRecentActivity([

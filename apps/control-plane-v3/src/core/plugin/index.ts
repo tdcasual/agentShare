@@ -65,7 +65,7 @@ export class PluginRegistry implements PluginSystem {
 
   async deactivatePlugin(pluginId: string): Promise<void> {
     const plugin = this.plugins.get(pluginId);
-    if (!plugin) return;
+    if (!plugin) {return;}
 
     // Deactivate dependent plugins first
     for (const [id, p] of this.plugins) {
@@ -132,7 +132,7 @@ export class PluginRegistry implements PluginSystem {
       if (temp.has(pluginId)) {
         throw new Error(`Circular dependency detected involving ${pluginId}`);
       }
-      if (visited.has(pluginId)) return;
+      if (visited.has(pluginId)) {return;}
 
       temp.add(pluginId);
       const plugin = this.plugins.get(pluginId);

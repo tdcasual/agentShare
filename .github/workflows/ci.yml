@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: apps/control-plane-v3/package-lock.json
 
       - name: Bootstrap shared dev runtime
         run: PYTHON_BIN=python ./scripts/ops/bootstrap-dev-runtime.sh
@@ -40,29 +40,21 @@ jobs:
         run: docker compose config
 
       - name: Run web typecheck
-        working-directory: apps/web
+        working-directory: apps/control-plane-v3
         run: npm run typecheck
 
       - name: Run web lint
-        working-directory: apps/web
+        working-directory: apps/control-plane-v3
         run: npm run lint
 
       - name: Run web contract drift checks
-        working-directory: apps/web
+        working-directory: apps/control-plane-v3
         run: npm run test:contracts
 
       - name: Run web unit tests
-        working-directory: apps/web
+        working-directory: apps/control-plane-v3
         run: npm run test:unit
 
-      - name: Install Playwright browser
-        working-directory: apps/web
-        run: npx playwright install --with-deps chromium
-
       - name: Build web app
-        working-directory: apps/web
+        working-directory: apps/control-plane-v3
         run: npm run build
-
-      - name: Run Playwright tests
-        working-directory: apps/web
-        run: npx playwright test

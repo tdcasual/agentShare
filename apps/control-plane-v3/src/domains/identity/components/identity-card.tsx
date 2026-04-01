@@ -134,11 +134,24 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
 export function IdentityCardCompact({ identity, onClick }: { identity: Identity; onClick?: () => void }) {
   const isHuman = identity.type === 'human';
   const isOnline = identity.presence === 'online';
+  const interactiveProps = onClick
+    ? {
+        onClick,
+        onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+          }
+        },
+        role: 'button' as const,
+        tabIndex: 0,
+      }
+    : {};
   
   return (
-    <div 
+    <div
       className="flex items-center gap-3 p-3 rounded-2xl hover:bg-pink-50/50 cursor-pointer transition-all duration-200 hover:scale-[1.02]"
-      onClick={onClick}
+      {...interactiveProps}
     >
       <div className="relative">
         <img

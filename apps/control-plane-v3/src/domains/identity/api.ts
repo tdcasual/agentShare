@@ -17,7 +17,7 @@ import {
   AgentTokenCreateInput,
   AgentTokenCreateResponse,
 } from '@/lib/api-client';
-import type { Identity, Agent, BootstrapStatus, ManagementSessionSummary, AdminAccountSummary } from './types';
+import type { Agent, BootstrapStatus, ManagementSessionSummary, AdminAccountSummary } from './types';
 import type { AgentToken } from '../task/types';
 
 // ============================================

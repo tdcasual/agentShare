@@ -49,7 +49,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   // 根据入口状态和当前路径决定行为
   useEffect(() => {
-    if (!entryState) return;
+    if (!entryState) {return;}
 
     // 引导状态特殊处理
     if (entryState.kind === 'bootstrap_required') {
