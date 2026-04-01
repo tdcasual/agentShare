@@ -55,25 +55,26 @@ function IdentitiesContent() {
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const adminAccounts = adminAccountsData?.items ?? [];
+  const adminAccounts = adminAccountsData?.items;
   const agents = agentsQuery.agents;
   const tokensByAgent = agentsQuery.tokensByAgent;
+  const adminAccountList = adminAccounts ?? [];
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredAdminAccounts = useMemo(
-    () => adminAccounts.filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
+    () => (adminAccounts ?? []).filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
     [adminAccounts, normalizedQuery]
   );
   const filteredAgents = useMemo(
     () => agents.filter((agent) => matchesAgentQuery(agent, normalizedQuery)),
     [agents, normalizedQuery]
   );
-  const focusedAdminAccount = adminAccounts.find((account) => account.id === focus.adminId) ?? null;
+  const focusedAdminAccount = adminAccountList.find((account) => account.id === focus.adminId) ?? null;
   const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
   const focusedIdentity = focusedAgent ?? focusedAdminAccount;
   const focusedIdentityLabel = focusedAgent ? 'Agent' : focusedAdminAccount ? 'Human operator' : null;
 
-  const operatorCount = adminAccounts.filter((account) => account.status === 'active').length;
-  const ownerCount = adminAccounts.filter((account) => account.role === 'owner').length;
+  const operatorCount = adminAccountList.filter((account) => account.status === 'active').length;
+  const ownerCount = adminAccountList.filter((account) => account.role === 'owner').length;
   const activeAgentCount = agents.filter((agent) => agent.status === 'active').length;
   const agentFeedbackCounts = useMemo(
     () =>
@@ -94,8 +95,6 @@ function IdentitiesContent() {
 
   const isLoading = gateLoading;
   const hasActiveSearch = normalizedQuery.length > 0;
-  const isRefreshing = refreshingAction !== null;
-
   async function runRefreshAction(
     action: 'all' | 'accounts' | 'agents',
     operation: () => Promise<unknown>
@@ -291,7 +290,7 @@ function IdentitiesContent() {
         <MetricCard
           label="Active Operators"
           value={accountsErrorMessage ? 'N/A' : operatorCount.toString()}
-          hint={accountsErrorMessage ? 'accounts unavailable' : `${adminAccounts.length} total accounts`}
+          hint={accountsErrorMessage ? 'accounts unavailable' : `${adminAccountList.length} total accounts`}
         />
         <MetricCard
           label="Owners"
@@ -359,7 +358,7 @@ function IdentitiesContent() {
                   Persisted admin accounts from `/api/admin-accounts`
                 </p>
               </div>
-              <Badge variant="human">{adminAccounts.length}</Badge>
+              <Badge variant="human">{adminAccountList.length}</Badge>
             </div>
 
             {isAccountsLoading ? (
@@ -373,7 +372,7 @@ function IdentitiesContent() {
                 onRetry={retryAccounts}
                 isRefreshing={refreshingAction === 'accounts'}
               />
-            ) : adminAccounts.length === 0 ? (
+            ) : adminAccountList.length === 0 ? (
               <EmptyState icon={<Users className="w-6 h-6" />} message="No admin accounts have been invited yet." />
             ) : filteredAdminAccounts.length === 0 ? (
               <EmptyState

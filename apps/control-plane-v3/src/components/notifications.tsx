@@ -59,10 +59,10 @@ function formatRelativeTime(timeString: string) {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) {return 'Just now';}
+  if (diffMins < 60) {return `${diffMins}m ago`;}
+  if (diffHours < 24) {return `${diffHours}h ago`;}
+  if (diffDays < 7) {return `${diffDays}d ago`;}
   return date.toLocaleDateString();
 }
 
@@ -102,7 +102,7 @@ export function Notifications({ className }: NotificationsProps) {
   }, [isOpen, handleClickOutside]);
 
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isOpen) {return undefined;}
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
@@ -113,7 +113,7 @@ export function Notifications({ className }: NotificationsProps) {
   }, [isOpen]);
 
   const handleMarkAllRead = useCallback(async () => {
-    if (unreadIds.length === 0) return;
+    if (unreadIds.length === 0) {return;}
     await markAllRead(unreadIds);
     mutate();
   }, [markAllRead, mutate, unreadIds]);

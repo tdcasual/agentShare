@@ -60,20 +60,21 @@ function ReviewsContent() {
         : 'all',
   );
 
-  const items = reviewsData?.items ?? [];
+  const items = reviewsData?.items;
+  const reviewItems = items ?? [];
 
   const countByKind = useMemo(() => {
-    return items.reduce<Record<string, number>>((accumulator, item) => {
+    return (items ?? []).reduce<Record<string, number>>((accumulator, item) => {
       accumulator[item.resource_kind] = (accumulator[item.resource_kind] ?? 0) + 1;
       return accumulator;
     }, {});
   }, [items]);
-  const agentSubmittedCount = items.filter((item) => item.created_by_actor_type === 'agent').length;
-  const humanSubmittedCount = items.filter((item) => item.created_by_actor_type === 'human').length;
-  const tokenOriginatedCount = items.filter((item) => Boolean(item.created_via_token_id)).length;
+  const agentSubmittedCount = reviewItems.filter((item) => item.created_by_actor_type === 'agent').length;
+  const humanSubmittedCount = reviewItems.filter((item) => item.created_by_actor_type === 'human').length;
+  const tokenOriginatedCount = reviewItems.filter((item) => Boolean(item.created_via_token_id)).length;
   const visibleItems = useMemo(
     () =>
-      items.filter((item) => {
+      (items ?? []).filter((item) => {
         if (selectedProvenance === 'agent' && item.created_by_actor_type !== 'agent') {
           return false;
         }
@@ -183,7 +184,7 @@ function ReviewsContent() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard 
           label={t('reviews.metrics.pendingItems')} 
-          value={items.length.toString()} 
+          value={reviewItems.length.toString()} 
           icon={<ShieldAlert className="w-5 h-5 text-pink-500 dark:text-[#E891C0]" />}
         />
         <MetricCard 
@@ -343,7 +344,7 @@ function ReviewsContent() {
       ) : null}
 
       {/* Empty State */}
-      {!gateLoading && !isLoading && !shouldShowSessionExpired && items.length === 0 ? (
+      {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length === 0 ? (
         <Card variant="feature" className="space-y-6 text-center py-12 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-[#2D4A3D] text-green-600 dark:text-green-400">
             <ShieldCheck className="h-10 w-10" />
@@ -360,7 +361,7 @@ function ReviewsContent() {
         </Card>
       ) : null}
 
-      {!gateLoading && !isLoading && !shouldShowSessionExpired && items.length > 0 && visibleItems.length === 0 ? (
+      {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length > 0 && visibleItems.length === 0 ? (
         <Card className="border border-dashed border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 text-sm text-gray-600 dark:text-[#9CA3AF]">
           No review items match the current provenance and resource filters.
         </Card>
@@ -489,7 +490,7 @@ function ReviewsContent() {
       </div>
 
       {/* Footer decoration */}
-      {items.length > 0 && (
+      {reviewItems.length > 0 && (
         <div className="flex justify-center gap-2 text-2xl opacity-30 dark:opacity-20 pt-4">
           <span className="animate-float">🌸</span>
           <span className="animate-float" style={{ animationDelay: '0.5s' }}>✨</span>

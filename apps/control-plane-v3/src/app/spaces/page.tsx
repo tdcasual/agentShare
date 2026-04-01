@@ -48,14 +48,15 @@ function SpacesContent() {
   ]);
 
   const events = eventsQuery.events;
-  const reviewItems = reviewsQuery.data?.items ?? [];
+  const reviewItems = reviewsQuery.data?.items;
   const agents = agentsQuery.agents;
   const tokensByAgent = agentsQuery.tokensByAgent;
   const secrets = secretsQuery.data?.items ?? [];
   const capabilities = capabilitiesQuery.data?.items ?? [];
+  const reviewItemList = reviewItems ?? [];
 
-  const pendingReviews = reviewItems.filter((item) => item.publication_status === 'pending_review');
-  const rejectedReviews = reviewItems.filter((item) => item.publication_status === 'rejected');
+  const pendingReviews = reviewItemList.filter((item) => item.publication_status === 'pending_review');
+  const rejectedReviews = reviewItemList.filter((item) => item.publication_status === 'rejected');
   const activeAgents = agents.filter((agent) => agent.status === 'active');
   const agentEventCounts = useMemo(
     () =>
@@ -91,7 +92,7 @@ function SpacesContent() {
     if (selectedReviewStatus === 'rejected') {
       return rejectedReviews;
     }
-    return reviewItems;
+    return reviewItems ?? [];
   }, [pendingReviews, rejectedReviews, reviewItems, selectedReviewStatus]);
   const publishedAssets = secrets.filter((item) => item.publication_status === 'active');
   const publishedSkills = capabilities.filter((item) => item.publication_status === 'active');
@@ -100,7 +101,7 @@ function SpacesContent() {
 
   async function handleApproveReview(resourceKind: string, resourceId: string) {
     const nextActionKey = `approve:${resourceKind}:${resourceId}`;
-    const reviewedItem = reviewItems.find(
+    const reviewedItem = reviewItemList.find(
       (item) => item.resource_kind === resourceKind && item.resource_id === resourceId
     );
     setActionKey(nextActionKey);
@@ -124,7 +125,7 @@ function SpacesContent() {
 
   async function handleRejectReview(resourceKind: string, resourceId: string) {
     const nextActionKey = `reject:${resourceKind}:${resourceId}`;
-    const reviewedItem = reviewItems.find(
+    const reviewedItem = reviewItemList.find(
       (item) => item.resource_kind === resourceKind && item.resource_id === resourceId
     );
     setActionKey(nextActionKey);

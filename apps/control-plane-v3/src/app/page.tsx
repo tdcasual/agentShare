@@ -106,9 +106,10 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   const agentsWithTokensQuery = useAgentsWithTokens();
   const reviewsQuery = useReviews();
 
-  const adminAccounts = adminAccountsQuery.data?.items ?? [];
+  const adminAccounts = adminAccountsQuery.data?.items;
   const agents = agentsWithTokensQuery.agents;
   const tokensByAgent = agentsWithTokensQuery.tokensByAgent;
+  const adminAccountList = adminAccounts ?? [];
   const pendingReviews = useMemo(
     () => (reviewsQuery.data?.items ?? []).filter((item) => item.publication_status === 'pending_review' || item.status === 'pending'),
     [reviewsQuery.data]
@@ -122,7 +123,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
     [events]
   );
   const actorDirectory = useMemo(
-    () => buildActorDirectory(adminAccounts, agents),
+    () => buildActorDirectory(adminAccounts ?? [], agents),
     [adminAccounts, agents]
   );
   const recentActivity = useMemo(
@@ -162,7 +163,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         <StatCard
           icon={<Users className="w-6 h-6 text-sky-600" />}
           label={t('identities.humans')}
-          value={adminAccounts.length}
+          value={adminAccountList.length}
           trend={t('hub.stats.humansTrend')}
           color="sky"
         />
@@ -195,7 +196,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('identities.title')}</h2>
               <div className="flex gap-2">
-                <Badge variant="human">{adminAccounts.length} {t('identities.humans')}</Badge>
+                <Badge variant="human">{adminAccountList.length} {t('identities.humans')}</Badge>
                 <Badge variant="agent">{agents.length} {t('identities.agents')}</Badge>
               </div>
             </div>
@@ -204,10 +205,10 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
               <Card className="p-5 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Human supervisors</h3>
-                  <Badge variant="human">{adminAccounts.length}</Badge>
+                  <Badge variant="human">{adminAccountList.length}</Badge>
                 </div>
                 <div className="space-y-3">
-                  {adminAccounts.map((account) => (
+                  {adminAccountList.map((account) => (
                     <div key={account.id} className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:bg-[#1E1E32]/60 dark:border-[#3D3D5C]">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -218,7 +219,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                       </div>
                     </div>
                   ))}
-                  {adminAccounts.length === 0 ? (
+                  {adminAccountList.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-500 dark:bg-[#1E1E32]/55 dark:border-[#3D3D5C] dark:text-[#9CA3AF]">
                       No human supervisors have been loaded yet.
                     </div>
@@ -441,10 +442,10 @@ function formatRelativeTime(timeString: string) {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) {return 'Just now';}
+  if (diffMins < 60) {return `${diffMins}m ago`;}
+  if (diffHours < 24) {return `${diffHours}h ago`;}
+  if (diffDays < 7) {return `${diffDays}d ago`;}
   return date.toLocaleDateString();
 }
 

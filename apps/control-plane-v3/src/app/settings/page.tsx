@@ -39,7 +39,8 @@ function SettingsContent() {
   const disableAdminAccount = useDisableAdminAccount();
   const logout = useLogout();
   
-  const accounts = accountsData?.items ?? [];
+  const accounts = accountsData?.items;
+  const accountList = accounts ?? [];
   
   // 本地 UI 状态
   const [error, setError] = useState<string | null>(null);
@@ -54,14 +55,14 @@ function SettingsContent() {
   });
 
   const roleCounts = useMemo(() => {
-    return accounts.reduce<Record<string, number>>((accumulator, account) => {
+    return (accounts ?? []).reduce<Record<string, number>>((accumulator, account) => {
       accumulator[account.role] = (accumulator[account.role] ?? 0) + 1;
       return accumulator;
     }, {});
   }, [accounts]);
-  const activeAccountsCount = accounts.filter((account) => account.status === 'active').length;
-  const inactiveAccountsCount = accounts.filter((account) => account.status !== 'active').length;
-  const visibleAccounts = accounts.filter((account) => {
+  const activeAccountsCount = accountList.filter((account) => account.status === 'active').length;
+  const inactiveAccountsCount = accountList.filter((account) => account.status !== 'active').length;
+  const visibleAccounts = accountList.filter((account) => {
     if (selectedRosterFilter === 'inactive') {
       return account.status !== 'active';
     }
@@ -170,7 +171,7 @@ function SettingsContent() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label={t('settings.accounts')} value={accounts.length.toString()} hint={t('settings.accountsHint')} />
+        <MetricCard label={t('settings.accounts')} value={accountList.length.toString()} hint={t('settings.accountsHint')} />
         <MetricCard label={t('settings.owners')} value={(roleCounts.owner ?? 0).toString()} hint={t('settings.ownersHint')} />
         <MetricCard label={t('settings.admins')} value={(roleCounts.admin ?? 0).toString()} hint={t('settings.adminsHint')} />
         <MetricCard label={t('settings.operatorsViewers')} value={((roleCounts.operator ?? 0) + (roleCounts.viewer ?? 0)).toString()} hint={t('settings.operatorsViewersHint')} />

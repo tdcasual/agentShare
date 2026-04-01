@@ -21,7 +21,6 @@ import {
   useSecrets,
 } from '@/domains/governance';
 import {
-  isUnauthorizedError,
   ManagementSessionExpiredAlert,
   ManagementSessionRecoveryNotice,
   useManagementPageSessionRecovery,
@@ -54,12 +53,12 @@ function MarketplaceContent() {
     capabilitiesQuery.error,
   ]);
 
-  const reviewItems = reviewsQuery.data?.items ?? [];
-  const secrets = secretsQuery.data?.items ?? [];
-  const capabilities = capabilitiesQuery.data?.items ?? [];
+  const reviewItems = reviewsQuery.data?.items;
+  const secrets = secretsQuery.data?.items;
+  const capabilities = capabilitiesQuery.data?.items;
 
   const pendingAgentSubmissions = useMemo(
-    () => reviewItems.filter(
+    () => (reviewItems ?? []).filter(
       (item) =>
         item.created_by_actor_type === 'agent' &&
         deriveGovernanceStatus(item) === 'pending_review'
@@ -67,7 +66,7 @@ function MarketplaceContent() {
     [reviewItems]
   );
   const rejectedAgentSubmissions = useMemo(
-    () => reviewItems.filter(
+    () => (reviewItems ?? []).filter(
       (item) =>
         item.created_by_actor_type === 'agent' &&
         deriveGovernanceStatus(item) === 'rejected'
@@ -76,7 +75,7 @@ function MarketplaceContent() {
   );
   const publishedAgentSecrets = useMemo(
     () =>
-      secrets.filter(
+      (secrets ?? []).filter(
         (item) =>
           item.created_by_actor_type === 'agent' &&
           isGovernanceInventoryActive(deriveGovernanceStatus(item))
@@ -85,7 +84,7 @@ function MarketplaceContent() {
   );
   const publishedAgentCapabilities = useMemo(
     () =>
-      capabilities.filter(
+      (capabilities ?? []).filter(
         (item) =>
           item.created_by_actor_type === 'agent' &&
           isGovernanceInventoryActive(deriveGovernanceStatus(item))
