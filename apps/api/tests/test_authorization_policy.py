@@ -1,7 +1,10 @@
 import hashlib
 
+import pytest
+
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
+from app.services import policy_service
 
 from conftest import TEST_AGENT_KEY
 
@@ -185,3 +188,17 @@ def test_lease_rejects_capabilities_outside_agent_allowlist(client, management_c
     )
 
     assert response.status_code == 403
+
+
+def test_management_action_policy_declares_expected_minimum_roles():
+    assert hasattr(policy_service, "minimum_role_for_management_action")
+    assert policy_service.minimum_role_for_management_action("reviews:decide") == "operator"
+    assert policy_service.minimum_role_for_management_action("tasks:create") == "operator"
+    assert policy_service.minimum_role_for_management_action("admin_accounts:create") == "admin"
+    assert policy_service.minimum_role_for_management_action("agents:delete") == "owner"
+
+
+def test_management_action_policy_rejects_viewer_for_task_creation():
+    assert hasattr(policy_service, "ensure_management_action_allowed")
+    with pytest.raises(PermissionError, match="operator role required"):
+        policy_service.ensure_management_action_allowed("viewer", "tasks:create")

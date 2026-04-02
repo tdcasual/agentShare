@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_admin_management_session
+from app.auth import ManagementIdentity, require_management_action
 from app.db import get_db
 from app.schemas.admin_accounts import (
     AdminAccountCreate,
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api/admin-accounts")
     description="Return persisted human management accounts. Requires an admin-or-higher management role.",
 )
 def list_accounts(
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("admin_accounts:list")),
     session: Session = Depends(get_db),
 ) -> dict:
     accounts = list_admin_accounts(session)
@@ -51,7 +51,7 @@ def list_accounts(
 )
 def create_account(
     payload: AdminAccountCreate,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("admin_accounts:create")),
     session: Session = Depends(get_db),
 ) -> dict:
     account = create_admin_account(
@@ -79,7 +79,7 @@ def create_account(
 )
 def disable_account(
     account_id: str,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("admin_accounts:disable")),
     session: Session = Depends(get_db),
 ) -> dict:
     account = disable_admin_account(session, account_id=account_id)

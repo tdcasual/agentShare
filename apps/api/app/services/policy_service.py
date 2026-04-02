@@ -3,9 +3,47 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
+from app.config import ManagementRole
+
 
 PolicyDecision = Literal["allow", "manual", "deny"]
 PolicySource = Literal["task", "capability", "default"]
+ManagementAction = Literal[
+    "admin_accounts:list",
+    "admin_accounts:create",
+    "admin_accounts:disable",
+    "agents:list",
+    "agents:create",
+    "agents:delete",
+    "reviews:list",
+    "reviews:decide",
+    "tasks:create",
+    "tokens:list",
+    "tokens:issue",
+    "tokens:revoke",
+]
+
+MANAGEMENT_ROLE_LEVELS: dict[ManagementRole, int] = {
+    "viewer": 0,
+    "operator": 1,
+    "admin": 2,
+    "owner": 3,
+}
+
+MANAGEMENT_ACTION_MINIMUM_ROLES: dict[ManagementAction, ManagementRole] = {
+    "admin_accounts:list": "admin",
+    "admin_accounts:create": "admin",
+    "admin_accounts:disable": "admin",
+    "agents:list": "admin",
+    "agents:create": "admin",
+    "agents:delete": "owner",
+    "reviews:list": "operator",
+    "reviews:decide": "operator",
+    "tasks:create": "operator",
+    "tokens:list": "admin",
+    "tokens:issue": "admin",
+    "tokens:revoke": "admin",
+}
 
 
 @dataclass(frozen=True)
@@ -34,6 +72,21 @@ class PolicyOutcome:
     decision: PolicyDecision
     reason: str
     source: PolicySource
+
+
+def minimum_role_for_management_action(action: ManagementAction) -> ManagementRole:
+    return MANAGEMENT_ACTION_MINIMUM_ROLES[action]
+
+
+def can_management_role_perform_action(role: ManagementRole, action: ManagementAction) -> bool:
+    minimum_role = minimum_role_for_management_action(action)
+    return MANAGEMENT_ROLE_LEVELS[role] >= MANAGEMENT_ROLE_LEVELS[minimum_role]
+
+
+def ensure_management_action_allowed(role: ManagementRole, action: ManagementAction) -> None:
+    minimum_role = minimum_role_for_management_action(action)
+    if not can_management_role_perform_action(role, action):
+        raise PermissionError(f"{minimum_role} role required")
 
 
 def evaluate_policy(

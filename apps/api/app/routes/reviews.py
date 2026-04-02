@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_admin_management_session
+from app.auth import ManagementIdentity, require_management_action
 from app.db import get_db
 from app.schemas.review_queue import (
     ReviewDecisionRequest,
@@ -21,10 +21,10 @@ router = APIRouter(prefix="/api/reviews")
     response_model=ReviewQueueResponse,
     tags=["Management"],
     summary="List pending review items",
-    description="Return governed assets that were created by runtime tokens and are awaiting human review.",
+    description="Return governed assets that were created by runtime tokens and are awaiting human review. Requires an operator-or-higher management role.",
 )
 def list_reviews_route(
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("reviews:list")),
     session: Session = Depends(get_db),
 ) -> dict:
     items = list_pending_reviews(session)
@@ -41,13 +41,13 @@ def list_reviews_route(
     response_model=ReviewDecisionResponse,
     tags=["Management"],
     summary="Approve a pending governed asset",
-    description="Promote a pending_review governed asset to active.",
+    description="Promote a pending_review governed asset to active. Requires an operator-or-higher management role.",
 )
 def approve_review_route(
     resource_kind: str,
     resource_id: str,
     payload: ReviewDecisionRequest,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("reviews:decide")),
     session: Session = Depends(get_db),
 ) -> dict:
     del payload
@@ -71,13 +71,13 @@ def approve_review_route(
     response_model=ReviewDecisionResponse,
     tags=["Management"],
     summary="Reject a pending governed asset",
-    description="Mark a pending_review governed asset as rejected.",
+    description="Mark a pending_review governed asset as rejected. Requires an operator-or-higher management role.",
 )
 def reject_review_route(
     resource_kind: str,
     resource_id: str,
     payload: ReviewDecisionRequest,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("reviews:decide")),
     session: Session = Depends(get_db),
 ) -> dict:
     del payload

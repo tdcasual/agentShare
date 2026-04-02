@@ -3,6 +3,7 @@
 This guide covers the security controls that live inside this repository. It complements the deployment and operations guides and assumes the production stack already runs behind `caddy`.
 
 For the platform-owned boundary around SSO, external secret backend operations, centralized alerting, and incident escalation, see `docs/guides/platform-handoff-checklist.md` and `docs/guides/platform-ownership-matrix.md`.
+For the app-owned management permission boundary, see `docs/guides/operator-policy-matrix.md`.
 
 ## Ingress Security
 

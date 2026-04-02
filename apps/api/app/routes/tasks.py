@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
-from app.auth import AuthenticatedActor, ManagementIdentity, require_agent, require_management_or_agent, require_management_session
+from app.auth import (
+    AuthenticatedActor,
+    ManagementIdentity,
+    require_agent,
+    require_management_or_agent_action,
+    require_management_session,
+)
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
@@ -35,7 +41,7 @@ task_targets_router = APIRouter(prefix="/api/task-targets")
 def create_task_route(
     payload: TaskCreate,
     response: Response,
-    actor: AuthenticatedActor = Depends(require_management_or_agent),
+    actor: AuthenticatedActor = Depends(require_management_or_agent_action("tasks:create")),
     session: Session = Depends(get_db),
 ) -> dict:
     task = create_task(session, payload, actor=actor)

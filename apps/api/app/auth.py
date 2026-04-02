@@ -18,6 +18,7 @@ from app.services.agent_token_service import (
     is_token_active,
     touch_agent_token,
 )
+from app.services.policy_service import ensure_management_action_allowed
 from app.services.session_service import authenticate_management_session_token
 
 security = HTTPBearer(auto_error=False)
@@ -216,6 +217,41 @@ def require_management_role(minimum_role: ManagementRole):
         return identity
 
     dependency.__name__ = f"require_management_{minimum_role}"
+    return dependency
+
+
+def require_management_action(action: str):
+    def dependency(
+        identity: ManagementIdentity = Depends(require_management_session),
+    ) -> ManagementIdentity:
+        try:
+            ensure_management_action_allowed(identity.role, action)
+        except PermissionError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=str(exc),
+            ) from exc
+        return identity
+
+    dependency.__name__ = f"require_management_action_{action.replace(':', '_')}"
+    return dependency
+
+
+def require_management_or_agent_action(action: str):
+    def dependency(
+        actor: AuthenticatedActor = Depends(require_management_or_agent),
+    ) -> AuthenticatedActor:
+        if actor.actor_type == "human" and actor.role is not None:
+            try:
+                ensure_management_action_allowed(actor.role, action)
+            except PermissionError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=str(exc),
+                ) from exc
+        return actor
+
+    dependency.__name__ = f"require_management_or_agent_action_{action.replace(':', '_')}"
     return dependency
 
 

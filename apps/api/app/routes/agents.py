@@ -5,9 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.auth import (
     ManagementIdentity,
-    require_admin_management_session,
     require_agent,
-    require_owner_management_session,
+    require_management_action,
 )
 from app.db import get_db
 from app.errors import NotFoundError
@@ -41,7 +40,7 @@ def get_current_agent(agent: AgentIdentity = Depends(require_agent)) -> dict:
 )
 def create_agent(
     payload: AgentCreate,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("agents:create")),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
@@ -85,7 +84,7 @@ def create_agent(
     description="Return management metadata for registered agents. Requires an admin-or-higher human management role.",
 )
 def list_agents(
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("agents:list")),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)
@@ -109,7 +108,7 @@ def list_agents(
 )
 def delete_agent(
     agent_id: str,
-    manager: ManagementIdentity = Depends(require_owner_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("agents:delete")),
     session: Session = Depends(get_db),
 ) -> dict:
     repo = AgentRepository(session)

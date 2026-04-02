@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_admin_management_session
+from app.auth import ManagementIdentity, require_management_action
 from app.db import get_db
 from app.schemas.agent_tokens import (
     AgentTokenCreate,
@@ -31,7 +31,7 @@ router = APIRouter()
 )
 def list_agent_tokens_route(
     agent_id: str,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("tokens:list")),
     session: Session = Depends(get_db),
 ) -> dict:
     items = list_agent_tokens(session, agent_id)
@@ -55,7 +55,7 @@ def list_agent_tokens_route(
 def create_agent_token_route(
     agent_id: str,
     payload: AgentTokenCreate,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("tokens:issue")),
     session: Session = Depends(get_db),
 ) -> dict:
     token, raw_token = mint_agent_token(
@@ -86,7 +86,7 @@ def create_agent_token_route(
 )
 def revoke_agent_token_route(
     token_id: str,
-    manager: ManagementIdentity = Depends(require_admin_management_session),
+    manager: ManagementIdentity = Depends(require_management_action("tokens:revoke")),
     session: Session = Depends(get_db),
 ) -> dict:
     token = revoke_agent_token(session, token_id)
