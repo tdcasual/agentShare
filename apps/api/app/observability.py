@@ -29,6 +29,7 @@ _http_request_dimensions: dict[tuple[str, str, str], int] = {}
 _counters = {
     "management_session_logins_total": 0,
     "management_session_login_failures_total": 0,
+    "management_session_logouts_total": 0,
     "task_claims_total": 0,
     "task_completions_total": 0,
     "approval_requests_total": 0,
@@ -75,6 +76,10 @@ def build_request_log_event(
 
 def record_management_session_login(success: bool) -> None:
     _increment_counter("management_session_logins_total" if success else "management_session_login_failures_total")
+
+
+def record_management_session_logout() -> None:
+    _increment_counter("management_session_logouts_total")
 
 
 def record_task_claim() -> None:

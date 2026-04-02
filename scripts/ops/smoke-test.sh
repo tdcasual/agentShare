@@ -42,6 +42,9 @@ check_metrics_signal() {
 
 	grep -q 'agent_control_plane_http_requests_total{' "${metrics_file}"
 	grep -q 'agent_control_plane_http_errors_total' "${metrics_file}"
+	grep -q 'agent_control_plane_management_session_logins_total' "${metrics_file}"
+	grep -q 'agent_control_plane_management_session_logouts_total' "${metrics_file}"
+	grep -q 'agent_control_plane_approval_approvals_total' "${metrics_file}"
 	rm -f "${metrics_file}"
 	trap - EXIT INT TERM
 }

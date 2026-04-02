@@ -29,6 +29,7 @@ def test_metrics_endpoint_exposes_prometheus_text(client) -> None:
     assert "agent_control_plane_http_errors_total" in response.text
     assert "agent_control_plane_management_session_logins_total" in response.text
     assert "agent_control_plane_management_session_login_failures_total" in response.text
+    assert "agent_control_plane_management_session_logouts_total" in response.text
     assert "agent_control_plane_task_claims_total" in response.text
     assert "agent_control_plane_task_completions_total" in response.text
     assert "agent_control_plane_approval_requests_total" in response.text
@@ -61,6 +62,7 @@ def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client,
     bootstrap_owner_account(client)
     failed_login = login_management_account(client, password="wrong-password")
     successful_login = login_management_account(client)
+    logout = client.post("/api/session/logout")
     claim = client.post(
         "/api/tasks/task-observed/claim",
         headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
@@ -98,10 +100,12 @@ def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client,
 
     assert failed_login.status_code == 401
     assert successful_login.status_code == 200
+    assert logout.status_code == 200
     assert claim.status_code == 200
     assert complete.status_code == 200
     assert "agent_control_plane_management_session_logins_total 1" in metrics.text
     assert "agent_control_plane_management_session_login_failures_total 1" in metrics.text
+    assert "agent_control_plane_management_session_logouts_total 1" in metrics.text
     assert "agent_control_plane_task_claims_total 1" in metrics.text
     assert "agent_control_plane_task_completions_total 1" in metrics.text
     assert "agent_control_plane_approval_requests_total 1" in metrics.text
