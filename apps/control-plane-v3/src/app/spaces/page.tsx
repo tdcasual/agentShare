@@ -8,6 +8,7 @@ import { useEvents } from '@/domains/event';
 import { useCapabilities, useSecrets } from '@/domains/governance';
 import { useAgentsWithTokens } from '@/domains/identity';
 import { useApproveReview, useRejectReview, useReviews } from '@/domains/review';
+import { useSpaces } from '@/domains/space';
 import { Layout } from '@/interfaces/human/layout';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import {
@@ -32,6 +33,7 @@ function SpacesContent() {
   const approveReview = useApproveReview();
   const rejectReview = useRejectReview();
   const agentsQuery = useAgentsWithTokens();
+  const spacesQuery = useSpaces({ agentId: focus.agentId ?? null });
   const secretsQuery = useSecrets();
   const capabilitiesQuery = useCapabilities();
   const {
@@ -43,6 +45,7 @@ function SpacesContent() {
     eventsQuery.error,
     reviewsQuery.error,
     agentsQuery.error,
+    spacesQuery.error,
     secretsQuery.error,
     capabilitiesQuery.error,
   ]);
@@ -54,6 +57,10 @@ function SpacesContent() {
   const secrets = secretsQuery.data?.items ?? [];
   const capabilities = capabilitiesQuery.data?.items ?? [];
   const reviewItemList = reviewItems ?? [];
+  const persistedSpaces = useMemo(
+    () => spacesQuery.data?.items ?? [],
+    [spacesQuery.data?.items]
+  );
 
   const pendingReviews = reviewItemList.filter((item) => item.publication_status === 'pending_review');
   const rejectedReviews = reviewItemList.filter((item) => item.publication_status === 'rejected');
@@ -98,6 +105,15 @@ function SpacesContent() {
   const publishedSkills = capabilities.filter((item) => item.publication_status === 'active');
   const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
   const focusedEvent = events.find((event) => event.id === focus.eventId) ?? null;
+  const focusedSpace = useMemo(
+    () =>
+      persistedSpaces.find((space) =>
+        focus.agentId
+          ? space.members.some((member) => member.member_type === 'agent' && member.member_id === focus.agentId)
+          : false
+      ) ?? null,
+    [focus.agentId, persistedSpaces]
+  );
 
   async function handleApproveReview(resourceKind: string, resourceId: string) {
     const nextActionKey = `approve:${resourceKind}:${resourceId}`;
@@ -173,12 +189,17 @@ function SpacesContent() {
         </div>
       </section>
 
-      {focusedAgent || focusedEvent ? (
+      {focusedAgent || focusedEvent || focusedSpace ? (
         <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
               Focused workspace context
             </p>
+            {focusedSpace ? (
+              <p className="text-sm font-medium text-gray-900 dark:text-[#E8E8EC]">
+                Persisted space: {focusedSpace.name}
+              </p>
+            ) : null}
             {focusedAgent ? (
               <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E8E8EC]">{focusedAgent.name}</h2>
             ) : null}
@@ -214,6 +235,61 @@ function SpacesContent() {
           {actionError ?? gateError}
         </Card>
       ) : null}
+
+      <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Persisted spaces</h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+              API-backed operational containers with explicit members and timeline history.
+            </p>
+          </div>
+          <Badge variant="info">{persistedSpaces.length}</Badge>
+        </div>
+
+        {spacesQuery.isLoading && persistedSpaces.length === 0 ? (
+          <SectionNotice message="Loading persisted spaces..." />
+        ) : persistedSpaces.length === 0 ? (
+          <SectionNotice message="No persisted spaces are available yet." />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {persistedSpaces.map((space) => (
+              <div
+                key={space.id}
+                role="group"
+                aria-label={`${space.name} space`}
+                className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{space.name}</p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">{space.summary}</p>
+                  </div>
+                  <Badge variant="secondary">{space.status}</Badge>
+                </div>
+
+                <p className="mt-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+                  Members: {space.members.map((member) => member.member_id).join(', ') || 'none'}
+                </p>
+
+                <div className="mt-3 space-y-2">
+                  {space.timeline.slice(0, 2).map((entry) => (
+                    <div key={entry.id} className="rounded-xl border border-white/70 bg-white/70 px-3 py-2 dark:border-[#3D3D5C] dark:bg-[#252540]/80">
+                      <p className="text-sm font-medium text-gray-900 dark:text-[#E8E8EC]">{entry.summary}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-[#9CA3AF]">
+                        {entry.entry_type.replaceAll('_', ' ')}
+                      </p>
+                    </div>
+                  ))}
+                  {space.timeline.length === 0 ? (
+                    <SectionNotice message="No timeline entries yet." />
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
@@ -282,7 +358,7 @@ function SpacesContent() {
           ) : recentAgentEvents.length === 0 ? (
             <SectionNotice message="No agent activity has landed in the workspace yet." />
           ) : (
-            <div className="space-y-3">
+            <div role="region" aria-label="Operations feed" className="space-y-3">
               {recentAgentEvents.map((event) => (
                 <div key={event.id} className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
                   <div className="flex items-start justify-between gap-3">

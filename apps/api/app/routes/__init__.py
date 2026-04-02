@@ -19,6 +19,7 @@ from app.routes.reviews import router as reviews_router
 from app.routes.secrets import router as secrets_router
 from app.routes.session import router as session_router
 from app.routes.search import router as search_router
+from app.routes.spaces import router as spaces_router
 from app.routes.tasks import router as tasks_router, task_targets_router
 from app.routes.token_feedback import router as token_feedback_router
 from app.routes.bootstrap import router as bootstrap_router
@@ -37,6 +38,7 @@ def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
         reviews_router,
         events_router,
         catalog_router,
+        spaces_router,
         intake_catalog_router,
         secrets_router,
         capabilities_router,

@@ -17,7 +17,14 @@ class CatalogItem(BaseModel):
     created_by_actor_id: str
     created_via_token_id: str | None = None
     adoption_count: int = 0
+    release_notes: str | None = None
+    prior_versions: int = 0
 
 
 class CatalogResponse(BaseModel):
     items: list[CatalogItem] = Field(default_factory=list)
+
+
+class CatalogReleaseHistoryResponse(BaseModel):
+    current_release: CatalogItem
+    prior_releases: list[CatalogItem] = Field(default_factory=list)

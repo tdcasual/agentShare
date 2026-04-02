@@ -2,6 +2,11 @@
 
 This guide captures the remaining platform work that is intentionally outside the current single-host repository baseline.
 
+Use it together with:
+
+- `docs/guides/platform-handoff-checklist.md`
+- `docs/guides/platform-ownership-matrix.md`
+
 ## Target P3 End State
 
 - Multi-host or managed high-availability topology instead of a single Docker host
@@ -27,6 +32,16 @@ This guide captures the remaining platform work that is intentionally outside th
 
 That single-host production baseline is the repository completion boundary for this codebase. Shipping everything above that line is an application responsibility; shipping everything below that line is platform work.
 
+## Readiness Thresholds
+
+### Trial-Run Ready
+
+`Trial-run ready` means the repository-owned single-host baseline is operational for a supervised environment, with smoke checks, backup cadence, governance spot-checks, and operator runbooks in place.
+
+### Enterprise-Ready
+
+`Enterprise-ready` means the platform-owned migration work is complete: managed Postgres, managed Redis, external secret backend lifecycle ownership, SSO, centralized alerting, incident escalation, and HA failover all have named owners and tested procedures.
+
 ## What Must Be Owned Outside This Repository
 
 - High-availability networking and DNS failover
@@ -36,6 +51,11 @@ That single-host production baseline is the repository completion boundary for t
 - Centralized alerting and incident escalation
 
 These items are owned outside this repository because they require long-lived infrastructure control, shared platform policy, or cross-service incident response beyond the app team's delivery scope.
+
+For the explicit handoff checklist and named responsibility split, see:
+
+- `docs/guides/platform-handoff-checklist.md`
+- `docs/guides/platform-ownership-matrix.md`
 
 ## Exit Criteria For Calling P3 Complete
 

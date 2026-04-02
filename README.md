@@ -170,6 +170,8 @@ This repository now ships baseline backup and restore helpers plus an operations
 - `docs/guides/production-operations.md`
 - `docs/guides/production-security.md`
 - `docs/guides/platform-roadmap.md`
+- `docs/guides/platform-handoff-checklist.md`
+- `docs/guides/platform-ownership-matrix.md`
 
 Production still needs you to schedule and store these artifacts safely:
 
@@ -187,7 +189,15 @@ The public ingress in `ops/caddy/Caddyfile` also applies baseline security heade
 
 `docker-compose.prod.yml` is a pragmatic single-host baseline, not a clustered platform. It is suitable for a controlled long-term deployment baseline, but it still needs follow-up work for richer observability, stricter production policy validation, and eventually more automated off-host backup scheduling.
 
-For the remaining P3 platformization work, use `docs/guides/platform-roadmap.md` as the migration checklist for high-availability, managed data services, SSO, and routine secret rotation.
+That baseline is `trial-run ready` when the repository-owned runbooks and checks are in place. It is not `enterprise-ready` until the platform-owned handoff work is complete.
+
+For the remaining P3 platformization work, use:
+
+- `docs/guides/platform-roadmap.md`
+- `docs/guides/platform-handoff-checklist.md`
+- `docs/guides/platform-ownership-matrix.md`
+
+Those documents define the migration checklist for high-availability, managed data services, SSO, centralized alerting, incident escalation, and the ownership boundary outside this repository.
 
 ## Local Development Runtime
 

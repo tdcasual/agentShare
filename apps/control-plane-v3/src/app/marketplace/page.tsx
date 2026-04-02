@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -14,6 +15,7 @@ import {
 import { Layout } from '@/interfaces/human/layout';
 import { useCatalog } from '@/domains/catalog';
 import { useReviews } from '@/domains/review';
+import { readFocusedEntry } from '@/lib/focused-entry';
 import {
   deriveGovernanceStatus,
   governanceStatusLabel,
@@ -26,6 +28,7 @@ import {
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
+import { cn } from '@/lib/utils';
 
 type MarketplaceFilter = 'all' | 'pending' | 'active' | 'rejected';
 
@@ -38,6 +41,8 @@ export default function MarketplacePage() {
 }
 
 function MarketplaceContent() {
+  const searchParams = useSearchParams();
+  const focus = readFocusedEntry(searchParams);
   const [selectedFilter, setSelectedFilter] = useState<MarketplaceFilter>('all');
   const reviewsQuery = useReviews();
   const catalogQuery = useCatalog();
@@ -51,6 +56,19 @@ function MarketplaceContent() {
 
   const reviewItems = reviewsQuery.data?.items;
   const catalogItems = catalogQuery.data?.items;
+  const focusedReviewItem = useMemo(
+    () => (reviewItems ?? []).find(
+      (item) => item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId,
+    ) ?? null,
+    [focus.resourceId, focus.resourceKind, reviewItems],
+  );
+  const focusedPublishedItem = useMemo(
+    () => (catalogItems ?? []).find(
+      (item) => item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId,
+    ) ?? null,
+    [catalogItems, focus.resourceId, focus.resourceKind],
+  );
+  const focusedMarketplaceItem = focusedPublishedItem ?? focusedReviewItem;
 
   const pendingAgentSubmissions = useMemo(
     () => (reviewItems ?? []).filter(
@@ -136,6 +154,24 @@ function MarketplaceContent() {
             <MetricCard label="Published skills" value={publishedAgentCapabilities.length.toString()} icon={<Wrench className="h-4 w-4" />} />
           </div>
         </div>
+
+        {focusedMarketplaceItem ? (
+          <div className="mt-6 rounded-3xl border border-pink-200/70 bg-white/75 p-4 dark:border-[#4A4568] dark:bg-[#1E1E32]/70">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:text-pink-300">
+                  Focused resource
+                </p>
+                <p className="mt-2 text-sm text-gray-700 dark:text-[#D5D5DB]">
+                  This marketplace is centered on <span className="font-semibold">{focusedMarketplaceItem.title}</span> so operators can review its current governance state in context.
+                </p>
+              </div>
+              <Badge variant={focusedPublishedItem ? 'success' : 'warning'}>
+                {focusedPublishedItem ? 'published context' : 'review context'}
+              </Badge>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
@@ -243,10 +279,15 @@ function MarketplaceContent() {
                 title="Assets"
                 items={publishedAgentSecrets.map((item) => ({
                   id: item.release_id,
+                  resourceKind: item.resource_kind,
+                  resourceId: item.resource_id,
                   title: item.title,
                   subtitle: item.subtitle ?? '',
                   badge: item.release_status,
                   version: item.version,
+                  releaseNotes: item.release_notes ?? null,
+                  priorVersions: item.prior_versions,
+                  highlighted: item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId,
                 }))}
               />
             ) : null}
@@ -256,16 +297,21 @@ function MarketplaceContent() {
                 title="Skills"
                 items={publishedAgentCapabilities.map((item) => ({
                   id: item.release_id,
+                  resourceKind: item.resource_kind,
+                  resourceId: item.resource_id,
                   title: item.title,
                   subtitle: item.subtitle ?? '',
                   badge: item.release_status,
                   version: item.version,
+                  releaseNotes: item.release_notes ?? null,
+                  priorVersions: item.prior_versions,
+                  highlighted: item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId,
                 }))}
               />
             ) : null}
 
             {!catalogError && publishedAgentSecrets.length === 0 && publishedAgentCapabilities.length === 0 ? (
-              <SectionNotice tone="default" message="No approved agent publications are visible yet." />
+              <SectionNotice tone="default" message="No release-backed agent publications are visible yet." />
             ) : null}
           </Card>
           ) : (
@@ -334,7 +380,18 @@ function CatalogSection({
   items,
 }: {
   title: string;
-  items: Array<{ id: string; title: string; subtitle: string; badge: string; version: number }>;
+  items: Array<{
+    id: string;
+    resourceKind: string;
+    resourceId: string;
+    title: string;
+    subtitle: string;
+    badge: string;
+    version: number;
+    releaseNotes: string | null;
+    priorVersions: number;
+    highlighted: boolean;
+  }>;
 }) {
   return (
     <div className="space-y-3">
@@ -344,12 +401,24 @@ function CatalogSection({
       </div>
       <div className="space-y-2">
         {items.map((item) => (
-          <div key={item.id} className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55">
+          <div
+            key={item.id}
+            className={cn(
+              'rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55',
+              item.highlighted ? 'ring-2 ring-pink-300 dark:ring-pink-400/60' : null,
+            )}
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{item.title}</p>
                 <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">{item.subtitle}</p>
                 <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">Version {item.version}</p>
+                {item.releaseNotes ? (
+                  <p className="mt-2 text-sm text-gray-700 dark:text-[#D5D5DB]">{item.releaseNotes}</p>
+                ) : null}
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-gray-400 dark:text-[#9CA3AF]">
+                  {item.priorVersions === 1 ? '1 prior version' : `${item.priorVersions} prior versions`}
+                </p>
               </div>
               <Badge variant="success">{item.badge}</Badge>
             </div>

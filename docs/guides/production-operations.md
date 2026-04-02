@@ -1,5 +1,7 @@
 # Production Operations
 
+This runbook covers the repository-owned operating baseline. For the platform handoff boundary, see `docs/guides/platform-handoff-checklist.md` and `docs/guides/platform-ownership-matrix.md`.
+
 ## Startup Verification
 
 - Confirm the deployment completed without compose diff or image-pull errors before opening the app to operators.
@@ -28,6 +30,8 @@
 3. Perform a governance workflow spot-check by approving or rejecting one agent-originated item and confirming the review outcome is visible on the related management surfaces.
 4. Confirm the latest backup completed and the restore drill notes are still current enough for the trial window.
 5. Record who is responsible for operator session revocation and secret rotation rehearsal during the trial run.
+
+This checklist is the repository-owned `trial-run ready` threshold. It does not by itself make the environment `enterprise-ready`; managed Postgres, managed Redis, the external secret backend lifecycle, HA failover, centralized alerting, and incident escalation move to platform ownership through the handoff package.
 
 ## Incident Entry Points
 

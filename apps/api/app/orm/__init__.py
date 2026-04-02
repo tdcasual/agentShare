@@ -11,6 +11,9 @@ from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
 from app.orm.audit_event import AuditEventModel
 from app.orm.event import EventModel
+from app.orm.space import SpaceModel
+from app.orm.space_member import SpaceMemberModel
+from app.orm.space_timeline_entry import SpaceTimelineEntryModel
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.management_session import ManagementSessionModel
 from app.orm.human_account import HumanAccountModel
@@ -30,6 +33,9 @@ __all__ = [
     "PlaybookModel",
     "AuditEventModel",
     "EventModel",
+    "SpaceModel",
+    "SpaceMemberModel",
+    "SpaceTimelineEntryModel",
     "ApprovalRequestModel",
     "ManagementSessionModel",
     "HumanAccountModel",

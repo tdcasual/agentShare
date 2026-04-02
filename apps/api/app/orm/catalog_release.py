@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.orm.base import Base, TimestampMixin
@@ -20,3 +20,4 @@ class CatalogReleaseModel(Base, TimestampMixin):
     created_by_actor_id: Mapped[str] = mapped_column(String, nullable=False)
     created_via_token_id: Mapped[str | None] = mapped_column(String, nullable=True)
     adoption_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    release_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
