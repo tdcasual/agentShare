@@ -10,6 +10,7 @@ from app.orm.capability import CapabilityModel
 from app.orm.playbook import PlaybookModel
 from app.orm.secret import SecretModel
 from app.orm.task import TaskModel
+from app.services.catalog_service import ensure_catalog_release
 
 REVIEW_PENDING = "pending_review"
 REVIEW_ACTIVE = "active"
@@ -53,6 +54,7 @@ def approve_review(
     model.reviewed_by_actor_id = reviewer_id
     model.reviewed_at = datetime.now(timezone.utc)
     session.flush()
+    ensure_catalog_release(session, resource_kind=resource_kind, model=model)
     return _to_review_dict(resource_kind, model)
 
 

@@ -196,6 +196,7 @@ function SettingsContent() {
             <Button
               variant={selectedRosterFilter === 'all' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedRosterFilter === 'all'}
               onClick={() => setSelectedRosterFilter('all')}
             >
               All accounts
@@ -203,6 +204,7 @@ function SettingsContent() {
             <Button
               variant={selectedRosterFilter === 'owner' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedRosterFilter === 'owner'}
               onClick={() => setSelectedRosterFilter('owner')}
             >
               Owners
@@ -210,6 +212,7 @@ function SettingsContent() {
             <Button
               variant={selectedRosterFilter === 'admin' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedRosterFilter === 'admin'}
               onClick={() => setSelectedRosterFilter('admin')}
             >
               Admins
@@ -217,6 +220,7 @@ function SettingsContent() {
             <Button
               variant={selectedRosterFilter === 'operator' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedRosterFilter === 'operator'}
               onClick={() => setSelectedRosterFilter('operator')}
             >
               Operators
@@ -224,6 +228,7 @@ function SettingsContent() {
             <Button
               variant={selectedRosterFilter === 'inactive' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedRosterFilter === 'inactive'}
               onClick={() => setSelectedRosterFilter('inactive')}
             >
               Inactive accounts

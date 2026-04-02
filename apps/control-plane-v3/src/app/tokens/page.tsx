@@ -274,6 +274,7 @@ function TokensContent() {
             <Button
               variant={selectedHealthFilter === 'all' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedHealthFilter === 'all'}
               onClick={() => setSelectedHealthFilter('all')}
             >
               All tokens
@@ -281,6 +282,7 @@ function TokensContent() {
             <Button
               variant={selectedHealthFilter === 'needs_feedback' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedHealthFilter === 'needs_feedback'}
               onClick={() => setSelectedHealthFilter('needs_feedback')}
             >
               Needs feedback
@@ -288,6 +290,7 @@ function TokensContent() {
             <Button
               variant={selectedHealthFilter === 'low_trust' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedHealthFilter === 'low_trust'}
               onClick={() => setSelectedHealthFilter('low_trust')}
             >
               Low trust

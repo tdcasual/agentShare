@@ -33,12 +33,11 @@ describe('management placeholders', () => {
     expect(source).not.toMatch(/not yet backed by a production API/);
   });
 
-  it('marketplace page is backed by review and governance data instead of a coming-soon placeholder', async () => {
+  it('marketplace page is backed by review and catalog data instead of a coming-soon placeholder', async () => {
     const source = await readRouteSource('marketplace/page.tsx');
 
     expect(source).toMatch(/useReviews/);
-    expect(source).toMatch(/useSecrets/);
-    expect(source).toMatch(/useCapabilities/);
+    expect(source).toMatch(/useCatalog/);
     expect(source).toMatch(/Only agents publish here/);
     expect(source).not.toMatch(/Marketplace Coming Soon/);
   });
