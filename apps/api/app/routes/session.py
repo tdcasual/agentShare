@@ -9,8 +9,8 @@ from app.errors import AuthorizationError, ConflictError
 from app.observability import record_management_session_login
 from app.schemas.sessions import ManagementLoginRequest, ManagementSessionResponse
 from app.services.audit_service import write_audit_event
-from app.services.admin_account_service import authenticate_admin_account
 from app.services.session_service import (
+    authenticate_management_operator,
     create_management_session,
     decode_management_session_token,
     issue_management_session_token,
@@ -34,8 +34,9 @@ def login_management_session(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     try:
-        account = authenticate_admin_account(
+        account = authenticate_management_operator(
             session,
+            settings,
             email=payload.email,
             password=payload.password,
         )
