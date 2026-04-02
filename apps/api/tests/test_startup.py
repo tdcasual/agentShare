@@ -297,7 +297,7 @@ def test_app_startup_upgrades_legacy_schema_with_alembic(monkeypatch, tmp_path):
         "reviewed_by_actor_id",
         "reviewed_at",
     }.issubset(secret_columns)
-    assert migrated_revision == "20260331_01"
+    assert migrated_revision == "20260402_01"
 
 
 def test_app_startup_migrates_legacy_capability_access_policy(monkeypatch, tmp_path):
@@ -405,4 +405,4 @@ def test_app_startup_migrates_legacy_capability_access_policy(monkeypatch, tmp_p
             {"kind": "token", "ids": ["token-legacy"]},
         ],
     }
-    assert migrated_revision == "20260331_01"
+    assert migrated_revision == "20260402_01"

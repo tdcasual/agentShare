@@ -450,6 +450,7 @@ function AssetsContent() {
                 <Button
                   variant={selectedPublicationFilter === 'all' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedPublicationFilter === 'all'}
                   onClick={() => setSelectedPublicationFilter('all')}
                 >
                   All states
@@ -457,6 +458,7 @@ function AssetsContent() {
                 <Button
                   variant={selectedPublicationFilter === 'pending_review' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedPublicationFilter === 'pending_review'}
                   onClick={() => setSelectedPublicationFilter('pending_review')}
                 >
                   Pending Review
@@ -464,6 +466,7 @@ function AssetsContent() {
                 <Button
                   variant={selectedPublicationFilter === 'active' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedPublicationFilter === 'active'}
                   onClick={() => setSelectedPublicationFilter('active')}
                 >
                   Active
@@ -477,6 +480,7 @@ function AssetsContent() {
                 <Button
                   variant={selectedResourceFilter === 'all' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedResourceFilter === 'all'}
                   onClick={() => setSelectedResourceFilter('all')}
                 >
                   All resources
@@ -484,6 +488,7 @@ function AssetsContent() {
                 <Button
                   variant={selectedResourceFilter === 'secrets' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedResourceFilter === 'secrets'}
                   onClick={() => setSelectedResourceFilter('secrets')}
                 >
                   Secrets
@@ -491,6 +496,7 @@ function AssetsContent() {
                 <Button
                   variant={selectedResourceFilter === 'capabilities' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedResourceFilter === 'capabilities'}
                   onClick={() => setSelectedResourceFilter('capabilities')}
                 >
                   Capabilities
@@ -877,6 +883,7 @@ function AssetsContent() {
               <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
+                  aria-pressed={capabilityForm.access_mode === 'all_tokens'}
                   className={policyButtonClass(capabilityForm.access_mode === 'all_tokens')}
                   onClick={() =>
                     setCapabilityForm((current) => ({
@@ -893,6 +900,7 @@ function AssetsContent() {
                 </button>
                 <button
                   type="button"
+                  aria-pressed={capabilityForm.access_mode === 'specific_tokens'}
                   className={policyButtonClass(capabilityForm.access_mode === 'specific_tokens')}
                   onClick={() =>
                     setCapabilityForm((current) => ({
@@ -908,6 +916,7 @@ function AssetsContent() {
                 </button>
                 <button
                   type="button"
+                  aria-pressed={capabilityForm.access_mode === 'specific_agents'}
                   className={policyButtonClass(capabilityForm.access_mode === 'specific_agents')}
                   onClick={() =>
                     setCapabilityForm((current) => ({
@@ -923,6 +932,7 @@ function AssetsContent() {
                 </button>
                 <button
                   type="button"
+                  aria-pressed={capabilityForm.access_mode === 'token_label'}
                   className={policyButtonClass(capabilityForm.access_mode === 'token_label')}
                   onClick={() =>
                     setCapabilityForm((current) => ({

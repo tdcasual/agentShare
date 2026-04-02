@@ -33,28 +33,5 @@ jobs:
         working-directory: apps/api
         run: alembic upgrade head
 
-      - name: Run API tests
-        run: PYTHONPATH=apps/api pytest apps/api/tests tests/ops -q
-
-      - name: Validate Docker Compose
-        run: docker compose config
-
-      - name: Run web typecheck
-        working-directory: apps/control-plane-v3
-        run: npm run typecheck
-
-      - name: Run web lint
-        working-directory: apps/control-plane-v3
-        run: npm run lint
-
-      - name: Run web contract drift checks
-        working-directory: apps/control-plane-v3
-        run: npm run test:contracts
-
-      - name: Run web unit tests
-        working-directory: apps/control-plane-v3
-        run: npm run test:unit
-
-      - name: Build web app
-        working-directory: apps/control-plane-v3
-        run: npm run build
+      - name: Run unified control plane verification
+        run: ./scripts/ops/verify-control-plane.sh

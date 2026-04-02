@@ -286,6 +286,7 @@ function TasksContent() {
             <Button
               variant={selectedTaskFilter === 'all' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedTaskFilter === 'all'}
               onClick={() => setSelectedTaskFilter('all')}
             >
               All tasks
@@ -293,6 +294,7 @@ function TasksContent() {
             <Button
               variant={selectedTaskFilter === 'needs_feedback' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedTaskFilter === 'needs_feedback'}
               onClick={() => setSelectedTaskFilter('needs_feedback')}
             >
               Needs feedback
@@ -300,6 +302,7 @@ function TasksContent() {
             <Button
               variant={selectedTaskFilter === 'in_flight' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedTaskFilter === 'in_flight'}
               onClick={() => setSelectedTaskFilter('in_flight')}
             >
               In flight
@@ -494,6 +497,7 @@ function TasksContent() {
               <button
                 type="button"
                 onClick={() => setTaskForm((current) => ({ ...current, target_mode: 'explicit_tokens' }))}
+                aria-pressed={taskForm.target_mode === 'explicit_tokens'}
                 className={`rounded-2xl border p-4 text-left transition-colors ${
                   taskForm.target_mode === 'explicit_tokens'
                     ? 'border-pink-300 bg-pink-50'
@@ -506,6 +510,7 @@ function TasksContent() {
               <button
                 type="button"
                 onClick={() => setTaskForm((current) => ({ ...current, target_mode: 'broadcast', target_token_ids: [] }))}
+                aria-pressed={taskForm.target_mode === 'broadcast'}
                 className={`rounded-2xl border p-4 text-left transition-colors ${
                   taskForm.target_mode === 'broadcast'
                     ? 'border-pink-300 bg-pink-50'

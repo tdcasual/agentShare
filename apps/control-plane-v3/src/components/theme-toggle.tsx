@@ -46,12 +46,15 @@ export function ThemeToggle({ className }: { className?: string }) {
         return (
           <button
             key={value}
+            type="button"
             onClick={() => setTheme(value)}
             className={cn(
               'relative p-2 rounded-full transition-all duration-200',
               'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
               isActive && 'bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-md'
             )}
+            aria-label={label}
+            aria-pressed={isActive}
             title={label}
           >
             <span className={cn(
@@ -92,6 +95,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
 
   return (
     <button
+      type="button"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
         'relative w-10 h-10 rounded-full flex items-center justify-center',
@@ -101,6 +105,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         'transition-all duration-300',
         className
       )}
+      aria-label={isDark ? '切换到浅色模式' : '切换到深色模式'}
       title={isDark ? '切换到浅色模式' : '切换到深色模式'}
     >
       <span className={cn(

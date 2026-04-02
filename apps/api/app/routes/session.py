@@ -6,11 +6,11 @@ from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
 from app.errors import AuthorizationError, ConflictError
-from app.observability import record_management_session_login
+from app.observability import record_management_session_login, record_management_session_logout
 from app.schemas.sessions import ManagementLoginRequest, ManagementSessionResponse
 from app.services.audit_service import write_audit_event
-from app.services.admin_account_service import authenticate_admin_account
 from app.services.session_service import (
+    authenticate_management_operator,
     create_management_session,
     decode_management_session_token,
     issue_management_session_token,
@@ -34,8 +34,9 @@ def login_management_session(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     try:
-        account = authenticate_admin_account(
+        account = authenticate_management_operator(
             session,
+            settings,
             email=payload.email,
             password=payload.password,
         )
@@ -101,6 +102,7 @@ def logout_management_session(
         try:
             payload = decode_management_session_token(session_token, settings)
             revoke_management_session(session, payload.session_id)
+            record_management_session_logout()
             write_audit_event(session, "management_session_ended", {
                 "actor_type": payload.actor_type,
                 "actor_id": payload.actor_id,

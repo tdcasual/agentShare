@@ -8,6 +8,7 @@ from app.routes.admin_accounts import router as admin_accounts_router
 from app.routes.agent_tokens import router as agent_tokens_router
 from app.routes.approvals import router as approvals_router
 from app.routes.capabilities import router as capabilities_router
+from app.routes.catalog import router as catalog_router
 from app.routes.intake_catalog import router as intake_catalog_router
 from app.routes.invoke import router as invoke_router
 from app.routes.leases import router as leases_router
@@ -35,6 +36,7 @@ def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
         approvals_router,
         reviews_router,
         events_router,
+        catalog_router,
         intake_catalog_router,
         secrets_router,
         capabilities_router,

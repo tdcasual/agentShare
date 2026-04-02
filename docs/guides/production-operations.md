@@ -1,5 +1,12 @@
 # Production Operations
 
+## Startup Verification
+
+- Confirm the deployment completed without compose diff or image-pull errors before opening the app to operators.
+- Run the smoke script and verify it succeeds against `/`, `/healthz`, and `/metrics`.
+- Confirm `/metrics` exposes request counts plus management-session and approval counters before declaring the stack trial-run ready.
+- Capture at least one `x-request-id` from a healthy response so responders can verify request-log correlation before the first incident.
+
 ## Backup Cadence
 
 - Run a Postgres logical backup at least daily and before every risky schema or release change.
@@ -13,6 +20,14 @@
 - Restore Postgres from the latest `pg_dump` artifact before reconnecting application traffic.
 - Restore Redis only after confirming the Postgres state you restored is the target recovery point.
 - Record restore duration, data gaps, and any manual steps after each drill.
+
+## Trial-Run Checklist
+
+1. Run `scripts/ops/smoke-test.sh` against the candidate environment and confirm root, health, and metrics endpoints all pass.
+2. Verify `agent_control_plane_management_session_logins_total`, `agent_control_plane_management_session_logouts_total`, and approval counters are present on `/metrics`.
+3. Perform a governance workflow spot-check by approving or rejecting one agent-originated item and confirming the review outcome is visible on the related management surfaces.
+4. Confirm the latest backup completed and the restore drill notes are still current enough for the trial window.
+5. Record who is responsible for operator session revocation and secret rotation rehearsal during the trial run.
 
 ## Incident Entry Points
 
@@ -42,3 +57,5 @@ Run this workflow after shipping navigation, governance, or demo-sandbox changes
 3. Perform one human governance action and confirm the review queue updates without breaking marketplace ownership semantics.
 4. Check the marketplace and assets pages to confirm they now display the same governance outcome.
 5. Open the equivalent `/demo` route only as a sandbox comparison and confirm the page still points operators back to the live management surface.
+
+That control plane verification flow is also the minimum governance workflow spot-check for a supervised trial run.

@@ -350,7 +350,9 @@ const FilterButton = memo(function FilterButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
         'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
         active

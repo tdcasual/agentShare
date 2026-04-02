@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     management_session_cookie_name: str = "management_session"
     management_session_ttl_seconds: int = 60 * 60 * 12
     management_session_secure: bool = False
+    operator_identity_provider: Literal["local"] = "local"
     management_operator_id: str = "management"
     management_operator_role: ManagementRole = "admin"
     metrics_enabled: bool = True

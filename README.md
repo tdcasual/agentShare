@@ -217,6 +217,12 @@ If you want the bootstrap script to prepare a different local database path, ove
 DEV_DATABASE_URL=sqlite:///./.tmp/dev-agent-share.db ./scripts/ops/bootstrap-dev-runtime.sh
 ```
 
+After the bootstrap completes, run the unified verification entrypoint:
+
+```bash
+./scripts/ops/verify-control-plane.sh
+```
+
 Playwright will look for `.venv/bin/uvicorn` by default. If you need to use a different binary, set:
 
 ```bash
@@ -249,7 +255,13 @@ If you want to inspect the exact commands and environment first:
 
 ## Quality Floor
 
-The repo's clean repo state is defined by these commands:
+The repo's clean repo state is defined by one documented verification entrypoint:
+
+```bash
+./scripts/ops/verify-control-plane.sh
+```
+
+That script runs these checks in order:
 
 ```bash
 PYTHONPATH=apps/api .venv/bin/pytest apps/api/tests tests/ops -q

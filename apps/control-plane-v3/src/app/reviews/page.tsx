@@ -226,6 +226,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedProvenance === 'all' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedProvenance === 'all'}
                   onClick={() => setSelectedProvenance('all')}
                 >
                   All submissions
@@ -233,6 +234,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedProvenance === 'agent' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedProvenance === 'agent'}
                   onClick={() => setSelectedProvenance('agent')}
                 >
                   Agent submissions
@@ -240,6 +242,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedProvenance === 'human' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedProvenance === 'human'}
                   onClick={() => setSelectedProvenance('human')}
                 >
                   Human submissions
@@ -247,6 +250,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedProvenance === 'token' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedProvenance === 'token'}
                   onClick={() => setSelectedProvenance('token')}
                 >
                   Token-originated
@@ -260,6 +264,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedKind === 'all' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedKind === 'all'}
                   onClick={() => setSelectedKind('all')}
                 >
                   All resources
@@ -267,6 +272,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedKind === 'task' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedKind === 'task'}
                   onClick={() => setSelectedKind('task')}
                 >
                   Tasks
@@ -274,6 +280,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedKind === 'capability' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedKind === 'capability'}
                   onClick={() => setSelectedKind('capability')}
                 >
                   Capabilities
@@ -281,6 +288,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedKind === 'secret' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedKind === 'secret'}
                   onClick={() => setSelectedKind('secret')}
                 >
                   Secrets
@@ -288,6 +296,7 @@ function ReviewsContent() {
                 <Button
                   variant={selectedKind === 'playbook' ? 'primary' : 'secondary'}
                   size="sm"
+                  aria-pressed={selectedKind === 'playbook'}
                   onClick={() => setSelectedKind('playbook')}
                 >
                   Playbooks

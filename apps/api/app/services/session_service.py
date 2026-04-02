@@ -18,6 +18,10 @@ from app.repositories.agent_repo import AgentRepository
 from app.repositories.human_account_repo import HumanAccountRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.schemas.sessions import ManagementSessionPayload
+from app.services.operator_identity_provider import (
+    OperatorIdentityProvider,
+    build_operator_identity_provider,
+)
 
 
 class ManagementSessionError(ValueError):
@@ -32,6 +36,22 @@ def authenticate_bootstrap_key(session: Session, bootstrap_key: str) -> bool:
     repo = AgentRepository(session)
     agent = repo.find_by_api_key_hash(hash_key(bootstrap_key))
     return agent is not None and agent.id == "bootstrap" and agent.status == "active"
+
+
+def authenticate_management_operator(
+    session: Session,
+    settings: Settings,
+    *,
+    email: str,
+    password: str,
+    provider: OperatorIdentityProvider | None = None,
+) -> HumanAccountModel:
+    current_provider = provider or build_operator_identity_provider(settings)
+    return current_provider.authenticate(
+        session,
+        email=email,
+        password=password,
+    )
 
 
 def build_management_session_payload(

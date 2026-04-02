@@ -4,8 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MarketplacePage from './page';
 
 const useReviewsMock = vi.fn();
-const useSecretsMock = vi.fn();
-const useCapabilitiesMock = vi.fn();
+const useCatalogMock = vi.fn();
 const useManagementSessionGateMock = vi.fn();
 
 vi.mock('next/link', () => ({
@@ -24,14 +23,9 @@ vi.mock('@/domains/review', () => ({
   useReviews: () => useReviewsMock(),
 }));
 
-vi.mock('@/domains/governance', async () => {
-  const actual = await vi.importActual<typeof import('@/domains/governance')>('@/domains/governance');
-  return {
-    ...actual,
-    useSecrets: () => useSecretsMock(),
-    useCapabilities: () => useCapabilitiesMock(),
-  };
-});
+vi.mock('@/domains/catalog', () => ({
+  useCatalog: () => useCatalogMock(),
+}));
 
 describe('marketplace page', () => {
   beforeEach(() => {
@@ -65,39 +59,34 @@ describe('marketplace page', () => {
       error: null,
     });
 
-    useSecretsMock.mockReturnValue({
+    useCatalogMock.mockReturnValue({
       data: {
         items: [
           {
-            id: 'secret-1',
-            display_name: 'Agent Market Secret',
-            provider: 'openai',
-            kind: 'api_token',
-            publication_status: 'active',
-            created_by_actor_type: 'agent',
+            release_id: 'catalog-release-1',
+            resource_kind: 'secret',
+            resource_id: 'secret-1',
+            title: 'Agent Market Secret',
+            subtitle: 'openai · api_token',
+            version: 1,
+            release_status: 'published',
+            released_at: '2026-03-31T00:00:00.000Z',
             created_by_actor_id: 'test-agent',
             created_via_token_id: 'token-test-agent',
-            reviewed_at: '2026-03-31T00:00:00.000Z',
+            adoption_count: 0,
           },
-        ],
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    useCapabilitiesMock.mockReturnValue({
-      data: {
-        items: [
           {
-            id: 'capability-1',
-            name: 'agent.market.capability',
-            risk_level: 'medium',
-            allowed_mode: 'proxy_only',
-            publication_status: 'active',
-            created_by_actor_type: 'agent',
+            release_id: 'catalog-release-2',
+            resource_kind: 'capability',
+            resource_id: 'capability-1',
+            title: 'agent.market.capability',
+            subtitle: 'proxy_only · risk medium',
+            version: 1,
+            release_status: 'published',
+            released_at: '2026-03-31T00:00:00.000Z',
             created_by_actor_id: 'test-agent',
             created_via_token_id: 'token-test-agent',
-            reviewed_at: '2026-03-31T00:00:00.000Z',
+            adoption_count: 2,
           },
         ],
       },
@@ -114,8 +103,8 @@ describe('marketplace page', () => {
     expect(screen.getAllByText('agent.market.capability').length).toBeGreaterThan(0);
     expect(screen.getByText('Agent Market Secret')).toBeInTheDocument();
     expect(screen.getAllByText(/Awaiting human review/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Approved by human review/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Governance state:/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Version 1/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/published/i).length).toBeGreaterThan(0);
   });
 
   it('filters the marketplace catalog by review state', async () => {

@@ -19,6 +19,7 @@ This guide covers the security controls that live inside this repository. It com
 - The deploy workflow rewrites `.env.production` on every run, so rotation changes are not silently ignored.
 - Rotate `SECRET_BACKEND_TOKEN` in the external secret backend according to the provider's least-privilege policy.
 - Rotate `BOOTSTRAP_AGENT_KEY` and `MANAGEMENT_SESSION_SECRET` whenever operator trust changes or after an incident.
+- Rehearse secret rotation and operator session revocation before each supervised trial run so responders know which secrets, cookies, and deploy inputs must change first.
 - When an operator session should stop immediately, revoke the session server-side or force a fresh login. Browser cookie deletion alone is not the source of truth anymore.
 
 ## Fail-Fast Configuration
@@ -26,6 +27,9 @@ This guide covers the security controls that live inside this repository. It com
 - Production and staging must replace the placeholder values `changeme-bootstrap-key` and `changeme-management-session-secret` before the API can boot.
 - Production and staging must set `MANAGEMENT_SESSION_SECURE=true` so browser session cookies are always marked secure.
 - Management sessions are intentionally short-lived, persisted server-side, and carry a distinct `session_id` for audit correlation. Treat each new login as a fresh operator session, not a renewable long-lived admin credential.
+- `OPERATOR_IDENTITY_PROVIDER=local` is the default management login mode in this repository and delegates browser login to the persisted human-account password flow.
+- The operator identity provider is now an explicit seam, so future SSO or external identity-provider work can replace the local credential check without rewriting session issuance, cookie policy, or audit semantics.
+- Keep a written rotation rehearsal for the local operator identity flow until external SSO replaces it; trial-run responders should know how to revoke operator sessions and reissue access without guessing.
 - If you customize operator identity through `MANAGEMENT_OPERATOR_ID` or `MANAGEMENT_OPERATOR_ROLE`, keep those values stable and human-readable so audit trails remain legible.
 - Supported management roles are `viewer`, `operator`, `admin`, and `owner`.
 - Use `viewer` for read-only management visibility such as capability inventory, runs, and playbook search.

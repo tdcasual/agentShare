@@ -12,13 +12,11 @@ import {
   Wrench,
 } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
+import { useCatalog } from '@/domains/catalog';
 import { useReviews } from '@/domains/review';
 import {
   deriveGovernanceStatus,
   governanceStatusLabel,
-  isGovernanceInventoryActive,
-  useCapabilities,
-  useSecrets,
 } from '@/domains/governance';
 import {
   ManagementSessionExpiredAlert,
@@ -42,20 +40,17 @@ export default function MarketplacePage() {
 function MarketplaceContent() {
   const [selectedFilter, setSelectedFilter] = useState<MarketplaceFilter>('all');
   const reviewsQuery = useReviews();
-  const secretsQuery = useSecrets();
-  const capabilitiesQuery = useCapabilities();
+  const catalogQuery = useCatalog();
   const {
     shouldShowSessionExpired,
     error: gateError,
   } = useManagementPageSessionRecovery([
     reviewsQuery.error,
-    secretsQuery.error,
-    capabilitiesQuery.error,
+    catalogQuery.error,
   ]);
 
   const reviewItems = reviewsQuery.data?.items;
-  const secrets = secretsQuery.data?.items;
-  const capabilities = capabilitiesQuery.data?.items;
+  const catalogItems = catalogQuery.data?.items;
 
   const pendingAgentSubmissions = useMemo(
     () => (reviewItems ?? []).filter(
@@ -74,28 +69,17 @@ function MarketplaceContent() {
     [reviewItems]
   );
   const publishedAgentSecrets = useMemo(
-    () =>
-      (secrets ?? []).filter(
-        (item) =>
-          item.created_by_actor_type === 'agent' &&
-          isGovernanceInventoryActive(deriveGovernanceStatus(item))
-      ),
-    [secrets]
+    () => (catalogItems ?? []).filter((item) => item.resource_kind === 'secret'),
+    [catalogItems]
   );
   const publishedAgentCapabilities = useMemo(
-    () =>
-      (capabilities ?? []).filter(
-        (item) =>
-          item.created_by_actor_type === 'agent' &&
-          isGovernanceInventoryActive(deriveGovernanceStatus(item))
-      ),
-    [capabilities]
+    () => (catalogItems ?? []).filter((item) => item.resource_kind === 'capability'),
+    [catalogItems]
   );
 
-  const loading = reviewsQuery.isLoading || secretsQuery.isLoading || capabilitiesQuery.isLoading;
+  const loading = reviewsQuery.isLoading || catalogQuery.isLoading;
   const reviewError = reviewsQuery.error instanceof Error ? reviewsQuery.error.message : null;
-  const secretError = secretsQuery.error instanceof Error ? secretsQuery.error.message : null;
-  const capabilityError = capabilitiesQuery.error instanceof Error ? capabilitiesQuery.error.message : null;
+  const catalogError = catalogQuery.error instanceof Error ? catalogQuery.error.message : null;
   const reviewFilterItems = [
     {
       key: 'all' as const,
@@ -161,6 +145,7 @@ function MarketplaceContent() {
               key={item.key}
               variant={selectedFilter === item.key ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedFilter === item.key}
               onClick={() => setSelectedFilter(item.key)}
             >
               {item.label} ({item.count})
@@ -248,39 +233,38 @@ function MarketplaceContent() {
                   Approved items already circulating through the agent ecosystem.
                 </p>
               </div>
-              <Badge variant="agent">{publishedAgentSecrets.length + publishedAgentCapabilities.length}</Badge>
+              <Badge variant="agent">{catalogItems?.length ?? 0}</Badge>
             </div>
 
-            {secretError ? <SectionNotice tone="error" message={`Assets are temporarily unavailable. ${secretError}`} /> : null}
-            {capabilityError ? <SectionNotice tone="error" message={`Skills are temporarily unavailable. ${capabilityError}`} /> : null}
+            {catalogError ? <SectionNotice tone="error" message={`Published catalog is temporarily unavailable. ${catalogError}`} /> : null}
 
-            {!secretError && publishedAgentSecrets.length > 0 ? (
+            {!catalogError && publishedAgentSecrets.length > 0 ? (
               <CatalogSection
                 title="Assets"
                 items={publishedAgentSecrets.map((item) => ({
-                  id: item.id,
-                  title: item.display_name,
-                  subtitle: `${item.provider} · ${item.kind}`,
-                  badge: governanceStatusLabel(deriveGovernanceStatus(item)),
-                  governanceState: governanceStatusLabel(deriveGovernanceStatus(item)),
+                  id: item.release_id,
+                  title: item.title,
+                  subtitle: item.subtitle ?? '',
+                  badge: item.release_status,
+                  version: item.version,
                 }))}
               />
             ) : null}
 
-            {!capabilityError && publishedAgentCapabilities.length > 0 ? (
+            {!catalogError && publishedAgentCapabilities.length > 0 ? (
               <CatalogSection
                 title="Skills"
                 items={publishedAgentCapabilities.map((item) => ({
-                  id: item.id,
-                  title: item.name,
-                  subtitle: `${item.allowed_mode} · risk ${item.risk_level}`,
-                  badge: governanceStatusLabel(deriveGovernanceStatus(item)),
-                  governanceState: governanceStatusLabel(deriveGovernanceStatus(item)),
+                  id: item.release_id,
+                  title: item.title,
+                  subtitle: item.subtitle ?? '',
+                  badge: item.release_status,
+                  version: item.version,
                 }))}
               />
             ) : null}
 
-            {!secretError && !capabilityError && publishedAgentSecrets.length === 0 && publishedAgentCapabilities.length === 0 ? (
+            {!catalogError && publishedAgentSecrets.length === 0 && publishedAgentCapabilities.length === 0 ? (
               <SectionNotice tone="default" message="No approved agent publications are visible yet." />
             ) : null}
           </Card>
@@ -350,7 +334,7 @@ function CatalogSection({
   items,
 }: {
   title: string;
-  items: Array<{ id: string; title: string; subtitle: string; badge: string; governanceState: string }>;
+  items: Array<{ id: string; title: string; subtitle: string; badge: string; version: number }>;
 }) {
   return (
     <div className="space-y-3">
@@ -365,7 +349,7 @@ function CatalogSection({
               <div className="min-w-0">
                 <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{item.title}</p>
                 <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">{item.subtitle}</p>
-                <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">Governance state: {item.governanceState}</p>
+                <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">Version {item.version}</p>
               </div>
               <Badge variant="success">{item.badge}</Badge>
             </div>

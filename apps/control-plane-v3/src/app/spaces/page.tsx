@@ -231,6 +231,7 @@ function SpacesContent() {
             <Button
               variant={selectedAgentId === null ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedAgentId === null}
               onClick={() => setSelectedAgentId(null)}
             >
               All agents
@@ -240,6 +241,7 @@ function SpacesContent() {
                 key={agent.id}
                 variant={selectedAgentId === agent.id ? 'primary' : 'secondary'}
                 size="sm"
+                aria-pressed={selectedAgentId === agent.id}
                 onClick={() => setSelectedAgentId(agent.id)}
                 aria-label={`Show activity for ${agent.id}`}
               >
@@ -252,6 +254,7 @@ function SpacesContent() {
             <Button
               variant={selectedEventType === 'all' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedEventType === 'all'}
               onClick={() => setSelectedEventType('all')}
             >
               All activity
@@ -259,6 +262,7 @@ function SpacesContent() {
             <Button
               variant={selectedEventType === 'completed' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedEventType === 'completed'}
               onClick={() => setSelectedEventType('completed')}
             >
               Completed
@@ -266,6 +270,7 @@ function SpacesContent() {
             <Button
               variant={selectedEventType === 'failed' ? 'primary' : 'secondary'}
               size="sm"
+              aria-pressed={selectedEventType === 'failed'}
               onClick={() => setSelectedEventType('failed')}
             >
               Failed
@@ -313,6 +318,7 @@ function SpacesContent() {
               <Button
                 variant={selectedReviewStatus === 'all' ? 'primary' : 'secondary'}
                 size="sm"
+                aria-pressed={selectedReviewStatus === 'all'}
                 onClick={() => setSelectedReviewStatus('all')}
               >
                 All reviews
@@ -320,6 +326,7 @@ function SpacesContent() {
               <Button
                 variant={selectedReviewStatus === 'pending' ? 'primary' : 'secondary'}
                 size="sm"
+                aria-pressed={selectedReviewStatus === 'pending'}
                 onClick={() => setSelectedReviewStatus('pending')}
               >
                 Pending Review
@@ -327,6 +334,7 @@ function SpacesContent() {
               <Button
                 variant={selectedReviewStatus === 'rejected' ? 'primary' : 'secondary'}
                 size="sm"
+                aria-pressed={selectedReviewStatus === 'rejected'}
                 onClick={() => setSelectedReviewStatus('rejected')}
               >
                 Rejected Review

@@ -9,11 +9,20 @@ from app.services.intake_catalog import get_intake_catalog
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = ROOT / "scripts" / "export-intake-catalog.py"
+DRIFT_CHECK_SCRIPT_PATH = ROOT / "scripts" / "check-intake-drift.py"
 SNAPSHOT_PATH = ROOT / "apps" / "control-plane-v3" / "src" / "lib" / "forms" / "generated" / "intake-catalog.json"
 
 
 def _load_export_module():
     spec = importlib.util.spec_from_file_location("export_intake_catalog", SCRIPT_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_drift_check_module():
+    spec = importlib.util.spec_from_file_location("check_intake_drift", DRIFT_CHECK_SCRIPT_PATH)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -47,3 +56,9 @@ def test_readme_documents_snapshot_refresh_and_drift_check() -> None:
 
     assert "npm run sync:contracts" in readme
     assert "npm run test:contracts" in readme
+
+
+def test_drift_check_accepts_unified_verification_entrypoint() -> None:
+    module = _load_drift_check_module()
+
+    assert module.ensure_ci_runs_drift_check() == []

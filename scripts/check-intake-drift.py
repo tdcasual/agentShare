@@ -31,8 +31,15 @@ def ensure_ci_runs_drift_check() -> list[str]:
     failures: list[str] = []
 
     ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
-    if "npm run test:contracts" not in ci_workflow:
-        failures.append("CI workflow must run `npm run test:contracts`.")
+    ci_runs_contract_drift_check = (
+        "npm run test:contracts" in ci_workflow
+        or "./scripts/ops/verify-control-plane.sh" in ci_workflow
+    )
+    if not ci_runs_contract_drift_check:
+        failures.append(
+            "CI workflow must run `npm run test:contracts` directly or through "
+            "`./scripts/ops/verify-control-plane.sh`."
+        )
 
     package_json = FRONTEND_PACKAGE_JSON.read_text()
     if '"test:contracts": "python3 ../../scripts/check-intake-drift.py"' not in package_json:
