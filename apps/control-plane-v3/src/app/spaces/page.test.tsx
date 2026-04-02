@@ -13,6 +13,7 @@ const useCapabilitiesMock = vi.fn();
 const useManagementSessionGateMock = vi.fn();
 const useApproveReviewMock = vi.fn();
 const useRejectReviewMock = vi.fn();
+const useSpacesMock = vi.fn();
 const approveReviewMock = vi.fn();
 const rejectReviewMock = vi.fn();
 
@@ -49,6 +50,10 @@ vi.mock('@/domains/identity', () => ({
 vi.mock('@/domains/governance', () => ({
   useSecrets: () => useSecretsMock(),
   useCapabilities: () => useCapabilitiesMock(),
+}));
+
+vi.mock('@/domains/space', () => ({
+  useSpaces: (...args: unknown[]) => useSpacesMock(...args),
 }));
 
 describe('spaces page', () => {
@@ -178,6 +183,43 @@ describe('spaces page', () => {
       error: null,
     });
 
+    useSpacesMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'space-1',
+            name: 'Ops Triage',
+            summary: 'Coordinate review and runtime follow-up',
+            status: 'active',
+            created_by_actor_id: 'human-admin',
+            created_at: '2026-03-31T00:00:00.000Z',
+            updated_at: '2026-03-31T00:00:00.000Z',
+            members: [
+              {
+                id: 'space-member-1',
+                member_type: 'agent',
+                member_id: 'bootstrap',
+                role: 'participant',
+                created_at: '2026-03-31T00:00:00.000Z',
+              },
+            ],
+            timeline: [
+              {
+                id: 'space-entry-1',
+                entry_type: 'task_completed',
+                subject_type: 'task',
+                subject_id: 'task-1',
+                summary: 'Bootstrap completed Sync Config',
+                created_at: '2026-03-31T00:00:00.000Z',
+              },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
     approveReviewMock.mockResolvedValue({ status: 'approved' });
     rejectReviewMock.mockResolvedValue({ status: 'rejected' });
     useApproveReviewMock.mockReturnValue(approveReviewMock);
@@ -188,11 +230,12 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
+    const operationsFeed = screen.getByRole('region', { name: /operations feed/i });
 
     await user.click(screen.getByRole('button', { name: /show activity for bootstrap/i }));
 
-    expect(screen.getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
-    expect(screen.queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
+    expect(within(operationsFeed).getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
+    expect(within(operationsFeed).queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
   });
 
   it('approves a governance item directly from the workspace', async () => {
@@ -211,11 +254,12 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
+    const operationsFeed = screen.getByRole('region', { name: /operations feed/i });
 
     await user.click(screen.getByRole('button', { name: /failed/i }));
 
-    expect(screen.getByText('Analyzer failed Risk Scan')).toBeInTheDocument();
-    expect(screen.queryByText('Bootstrap completed Sync Config')).not.toBeInTheDocument();
+    expect(within(operationsFeed).getByText('Analyzer failed Risk Scan')).toBeInTheDocument();
+    expect(within(operationsFeed).queryByText('Bootstrap completed Sync Config')).not.toBeInTheDocument();
   });
 
   it('shows rejected governance items when the rejected review filter is selected', async () => {
@@ -296,11 +340,12 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
+    const operationsFeed = screen.getByRole('region', { name: /operations feed/i });
 
     await user.click(screen.getByRole('button', { name: /focus bootstrap agent/i }));
 
-    expect(screen.getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
-    expect(screen.queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
+    expect(within(operationsFeed).getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
+    expect(within(operationsFeed).queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
   });
 
   it('brings focused agent and event context into the workspace header state', () => {
@@ -310,7 +355,17 @@ describe('spaces page', () => {
 
     expect(screen.getByText('Focused workspace context')).toBeInTheDocument();
     expect(screen.getByText('Bootstrap Agent')).toBeInTheDocument();
-    expect(screen.getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
+    expect(screen.getAllByText('Bootstrap completed Sync Config').length).toBeGreaterThan(0);
     expect(screen.queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
+  });
+
+  it('renders persisted space records with members and timeline summaries', () => {
+    render(<SpacesPage />);
+
+    expect(screen.getByText('Persisted spaces')).toBeInTheDocument();
+    expect(screen.getByText('Ops Triage')).toBeInTheDocument();
+    expect(screen.getByText('Coordinate review and runtime follow-up')).toBeInTheDocument();
+    expect(screen.getByText('Members: bootstrap')).toBeInTheDocument();
+    expect(screen.getAllByText('Bootstrap completed Sync Config').length).toBeGreaterThan(0);
   });
 });

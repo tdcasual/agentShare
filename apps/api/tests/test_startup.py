@@ -13,6 +13,7 @@ from app.repositories.agent_repo import AgentRepository
 
 
 ROOT = Path(__file__).resolve().parents[3]
+CURRENT_ALEMBIC_HEAD = "20260402_04"
 
 
 def _run_alembic_upgrade(database_url: str, revision: str) -> None:
@@ -297,7 +298,7 @@ def test_app_startup_upgrades_legacy_schema_with_alembic(monkeypatch, tmp_path):
         "reviewed_by_actor_id",
         "reviewed_at",
     }.issubset(secret_columns)
-    assert migrated_revision == "20260402_01"
+    assert migrated_revision == CURRENT_ALEMBIC_HEAD
 
 
 def test_app_startup_migrates_legacy_capability_access_policy(monkeypatch, tmp_path):
@@ -405,4 +406,4 @@ def test_app_startup_migrates_legacy_capability_access_policy(monkeypatch, tmp_p
             {"kind": "token", "ids": ["token-legacy"]},
         ],
     }
-    assert migrated_revision == "20260402_01"
+    assert migrated_revision == CURRENT_ALEMBIC_HEAD

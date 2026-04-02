@@ -87,3 +87,43 @@ def test_grouped_search_returns_matching_identities_tasks_assets_and_events(mana
     assert payload["skills"][0]["href"] == f"/assets?resourceKind=capability&resourceId={created_capability.json()['id']}"
     assert payload["events"][0]["title"] == "Signal event"
     assert payload["events"][0]["href"] == f"/inbox?eventId={payload['events'][0]['id']}"
+
+
+def test_grouped_search_links_agent_published_assets_into_marketplace_context(client, management_client):
+    secret = client.post(
+        "/api/secrets",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "display_name": "Market Search Secret",
+            "kind": "api_token",
+            "value": "market-search-secret",
+            "provider": "openai",
+        },
+    )
+    assert secret.status_code == 202, secret.text
+
+    capability = client.post(
+        "/api/capabilities",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "name": "market.search.capability",
+            "secret_id": secret.json()["id"],
+            "risk_level": "low",
+        },
+    )
+    assert capability.status_code == 202, capability.text
+
+    assert management_client.post(f"/api/reviews/secret/{secret.json()['id']}/approve", json={}).status_code == 200
+    assert management_client.post(
+        f"/api/reviews/capability/{capability.json()['id']}/approve",
+        json={},
+    ).status_code == 200
+
+    response = management_client.get("/api/search", params={"q": "market"})
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    secret_match = next(item for item in payload["assets"] if item["id"] == secret.json()["id"])
+    capability_match = next(item for item in payload["skills"] if item["id"] == capability.json()["id"])
+    assert secret_match["href"] == f"/marketplace?resourceKind=secret&resourceId={secret.json()['id']}"
+    assert capability_match["href"] == f"/marketplace?resourceKind=capability&resourceId={capability.json()['id']}"

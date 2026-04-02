@@ -3,12 +3,17 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MarketplacePage from './page';
 
+let mockSearchParams = new URLSearchParams();
 const useReviewsMock = vi.fn();
 const useCatalogMock = vi.fn();
 const useManagementSessionGateMock = vi.fn();
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => mockSearchParams,
 }));
 
 vi.mock('@/interfaces/human/layout', () => ({
@@ -30,6 +35,7 @@ vi.mock('@/domains/catalog', () => ({
 describe('marketplace page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = new URLSearchParams();
 
     useManagementSessionGateMock.mockReturnValue({
       session: {
@@ -74,6 +80,8 @@ describe('marketplace page', () => {
             created_by_actor_id: 'test-agent',
             created_via_token_id: 'token-test-agent',
             adoption_count: 0,
+            release_notes: 'Initial release',
+            prior_versions: 0,
           },
           {
             release_id: 'catalog-release-2',
@@ -87,6 +95,8 @@ describe('marketplace page', () => {
             created_by_actor_id: 'test-agent',
             created_via_token_id: 'token-test-agent',
             adoption_count: 2,
+            release_notes: 'Second release',
+            prior_versions: 1,
           },
         ],
       },
@@ -105,6 +115,8 @@ describe('marketplace page', () => {
     expect(screen.getAllByText(/Awaiting human review/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Version 1/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/published/i).length).toBeGreaterThan(0);
+    expect(screen.getByText('Second release')).toBeInTheDocument();
+    expect(screen.getByText(/1 prior version/i)).toBeInTheDocument();
   });
 
   it('filters the marketplace catalog by review state', async () => {
@@ -145,5 +157,15 @@ describe('marketplace page', () => {
 
     expect(screen.getByText('rejected.market.secret')).toBeInTheDocument();
     expect(screen.queryByText('Agent Market Secret')).not.toBeInTheDocument();
+  });
+
+  it('surfaces a focused marketplace resource from query context', () => {
+    mockSearchParams = new URLSearchParams('resourceKind=capability&resourceId=capability-1');
+
+    render(<MarketplacePage />);
+
+    expect(screen.getByText(/Focused resource/i)).toBeInTheDocument();
+    expect(screen.getByText(/marketplace is centered on/i)).toBeInTheDocument();
+    expect(screen.getAllByText('agent.market.capability').length).toBeGreaterThan(1);
   });
 });

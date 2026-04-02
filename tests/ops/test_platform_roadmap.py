@@ -17,5 +17,9 @@ def test_platform_roadmap_covers_p3_targets() -> None:
     assert "secret rotation" in guide
     assert "outside this repository" in guide
     assert "single-host production baseline" in guide
+    assert "trial-run ready" in guide
+    assert "enterprise-ready" in guide
+    assert "platform-handoff-checklist" in guide
+    assert "platform-ownership-matrix" in guide
     assert "platform-roadmap" in readme
     assert "single-host" in deployment_guide

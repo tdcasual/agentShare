@@ -43,6 +43,10 @@ def build_asset_href(resource_kind: str, resource_id: str) -> str:
     return _with_query("/assets", resourceKind=resource_kind, resourceId=resource_id)
 
 
+def build_marketplace_href(resource_kind: str, resource_id: str) -> str:
+    return _with_query("/marketplace", resourceKind=resource_kind, resourceId=resource_id)
+
+
 def build_review_href(resource_kind: str, resource_id: str) -> str:
     return _with_query("/reviews", resourceKind=resource_kind, resourceId=resource_id)
 

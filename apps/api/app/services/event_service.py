@@ -9,6 +9,7 @@ from app.orm.event import EventModel
 from app.repositories.event_repo import EventRepository
 from app.services.control_plane_links import derive_event_href
 from app.services.identifiers import new_resource_id
+from app.services.space_service import project_actor_activity_to_spaces
 
 
 def record_event(
@@ -39,6 +40,15 @@ def record_event(
         metadata_json=metadata or {},
     )
     EventRepository(session).create(model)
+    project_actor_activity_to_spaces(
+        session,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        entry_type=event_type,
+        subject_type=subject_type,
+        subject_id=subject_id,
+        summary=summary,
+    )
     return serialize_event(model)
 
 

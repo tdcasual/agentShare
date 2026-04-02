@@ -11,6 +11,7 @@ from app.orm.playbook import PlaybookModel
 from app.orm.secret import SecretModel
 from app.orm.task import TaskModel
 from app.services.catalog_service import ensure_catalog_release
+from app.services.space_service import project_review_decision_to_spaces
 
 REVIEW_PENDING = "pending_review"
 REVIEW_ACTIVE = "active"
@@ -55,6 +56,15 @@ def approve_review(
     model.reviewed_at = datetime.now(timezone.utc)
     session.flush()
     ensure_catalog_release(session, resource_kind=resource_kind, model=model)
+    project_review_decision_to_spaces(
+        session,
+        created_by_actor_type=getattr(model, "created_by_actor_type", None),
+        created_by_actor_id=getattr(model, "created_by_actor_id", None),
+        entry_type="review_approved",
+        subject_type=resource_kind,
+        subject_id=model.id,
+        summary=f"Review approved for {_to_review_dict(resource_kind, model)['title']}",
+    )
     return _to_review_dict(resource_kind, model)
 
 
@@ -72,6 +82,15 @@ def reject_review(
     model.reviewed_by_actor_id = reviewer_id
     model.reviewed_at = datetime.now(timezone.utc)
     session.flush()
+    project_review_decision_to_spaces(
+        session,
+        created_by_actor_type=getattr(model, "created_by_actor_type", None),
+        created_by_actor_id=getattr(model, "created_by_actor_id", None),
+        entry_type="review_rejected",
+        subject_type=resource_kind,
+        subject_id=model.id,
+        summary=f"Review rejected for {_to_review_dict(resource_kind, model)['title']}",
+    )
     return _to_review_dict(resource_kind, model)
 
 
