@@ -160,6 +160,14 @@ def test_dev_runtime_bootstrap_script_is_present_and_documented() -> None:
     assert ".venv" in readme
 
 
+def test_repo_verification_script_is_present_and_documented() -> None:
+    script_path = ROOT / "scripts/ops/verify-control-plane.sh"
+    readme = (ROOT / "README.md").read_text().lower()
+
+    assert script_path.exists()
+    assert "verify-control-plane.sh" in readme
+
+
 def test_operations_docs_reference_request_ids_for_incident_tracing() -> None:
     operations_guide = (ROOT / "docs/guides/production-operations.md").read_text()
     security_guide = (ROOT / "docs/guides/production-security.md").read_text()
@@ -195,8 +203,7 @@ def test_repo_quality_floor_is_documented_and_enforced() -> None:
     assert '"lint"' in web_package
     assert '"test:contracts"' in web_package
     assert '"test:unit"' in web_package
-    assert "npm run typecheck" in ci_workflow
-    assert "npm run lint" in ci_workflow
+    assert "./scripts/ops/verify-control-plane.sh" in ci_workflow
     assert "quality floor" in readme
     assert "clean repo state" in readme
 
