@@ -124,6 +124,58 @@ def test_mcp_claim_complete_and_search_playbooks_tools(client, management_client
     assert completed_task["status"] == "completed"
 
 
+def test_mcp_list_tasks_only_returns_tasks_visible_to_current_token(client, management_client):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Other MCP Agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    minted = management_client.post(
+        f"/api/agents/{created_agent.json()['id']}/tokens",
+        json={"display_name": "Other MCP token"},
+    )
+    assert minted.status_code == 201, minted.text
+
+    visible = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Visible MCP task",
+            "task_type": "account_read",
+            "target_token_ids": ["token-test-agent"],
+            "target_mode": "explicit_tokens",
+        },
+    )
+    assert visible.status_code == 201, visible.text
+
+    hidden = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Hidden MCP task",
+            "task_type": "account_read",
+            "target_token_ids": [minted.json()["id"]],
+            "target_mode": "explicit_tokens",
+        },
+    )
+    assert hidden.status_code == 201, hidden.text
+
+    response = client.post(
+        "/mcp",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json=_mcp_request(
+            "tools/call",
+            {"name": "list_tasks", "arguments": {}},
+            request_id=7,
+        ),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["result"]
+    assert payload["isError"] is False
+    items = payload["structuredContent"]["items"]
+    assert [item["id"] for item in items] == [visible.json()["id"]]
+
+
 @patch("app.services.adapters.generic_http.httpx.post")
 def test_mcp_invoke_capability_returns_policy_block_with_runtime_semantics(
     mock_post,

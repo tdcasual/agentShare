@@ -34,8 +34,8 @@ def hash_key(key: str) -> str:
 
 def authenticate_bootstrap_key(session: Session, bootstrap_key: str) -> bool:
     repo = AgentRepository(session)
-    agent = repo.find_by_api_key_hash(hash_key(bootstrap_key))
-    return agent is not None and agent.id == "bootstrap" and agent.status == "active"
+    agent = repo.find_bootstrap_by_api_key_hash(hash_key(bootstrap_key))
+    return agent is not None and agent.status == "active"
 
 
 def authenticate_management_operator(

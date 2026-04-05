@@ -153,6 +153,21 @@ def test_operator_can_review_approvals_but_cannot_manage_secrets_or_agents(tmp_p
     assert agents.json()["detail"] == "admin role required"
 
 
+def test_viewer_cannot_create_playbooks(tmp_path: Path) -> None:
+    with management_client_for_role(tmp_path, "viewer") as client:
+        response = client.post(
+            "/api/playbooks",
+            json={
+                "title": "Viewer draft",
+                "task_type": "account_read",
+                "body": "Should be blocked",
+            },
+        )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "operator role required"
+
+
 def test_admin_can_manage_secrets_and_agents_but_cannot_delete_agents(tmp_path: Path) -> None:
     with management_client_for_role(tmp_path, "admin") as client:
         secret = client.post(

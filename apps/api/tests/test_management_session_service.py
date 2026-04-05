@@ -1,12 +1,15 @@
+import hashlib
 from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from app.config import Settings
+from app.orm.agent import AgentIdentityModel
 from app.orm.human_account import HumanAccountModel
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.services.session_service import (
     ManagementSessionError,
+    authenticate_bootstrap_key,
     authenticate_management_session_token,
     build_management_session_payload,
     create_management_session,
@@ -152,3 +155,18 @@ def test_management_session_helpers_require_explicit_settings():
 
     with pytest.raises(TypeError):
         decode_management_session_token("signed-token")
+
+
+def test_authenticate_bootstrap_key_rejects_non_bootstrap_agent(db_session):
+    db_session.add(AgentIdentityModel(
+        id="agent-1",
+        name="Regular Agent",
+        api_key_hash=hashlib.sha256("shared-bootstrap-key".encode()).hexdigest(),
+        status="active",
+        allowed_capability_ids=[],
+        allowed_task_types=[],
+        risk_tier="medium",
+    ))
+    db_session.flush()
+
+    assert authenticate_bootstrap_key(db_session, "shared-bootstrap-key") is False

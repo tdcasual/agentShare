@@ -15,6 +15,7 @@ class ReviewQueueItem(BaseModel):
     created_via_token_id: str | None = None
     reviewed_by_actor_id: str | None = None
     reviewed_at: datetime | None = None
+    review_reason: str = ""
 
 
 class ReviewQueueResponse(BaseModel):
@@ -31,3 +32,4 @@ class ReviewDecisionResponse(BaseModel):
     publication_status: str
     reviewed_by_actor_id: str | None = None
     reviewed_at: datetime | None = None
+    review_reason: str = ""

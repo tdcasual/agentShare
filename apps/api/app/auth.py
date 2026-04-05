@@ -13,7 +13,6 @@ from app.models.agent import AgentIdentity
 from app.repositories.agent_repo import AgentRepository
 from app.repositories.agent_token_repo import AgentTokenRepository
 from app.services.agent_token_service import (
-    build_legacy_runtime_token_id,
     hash_token,
     is_token_active,
     touch_agent_token,
@@ -60,40 +59,25 @@ def resolve_agent_from_api_key(api_key: str, session: Session) -> AgentIdentity 
     key_hash = hash_token(api_key)
     token_repo = AgentTokenRepository(session)
     token_model = token_repo.find_by_token_hash(key_hash)
-    if token_model is not None:
-        agent_model = AgentRepository(session).get(token_model.agent_id)
-        if agent_model is None or agent_model.status != "active" or not is_token_active(token_model):
-            return None
-        touch_agent_token(session, token_model)
-        return AgentIdentity(
-            id=agent_model.id,
-            name=agent_model.name,
-            issuer=agent_model.issuer,
-            auth_method=agent_model.auth_method,
-            status=agent_model.status,
-            token_id=token_model.id,
-            token_prefix=token_model.token_prefix,
-            expires_at=token_model.expires_at,
-            scopes=token_model.scopes or [],
-            labels=token_model.labels or {},
-            allowed_capability_ids=agent_model.allowed_capability_ids or [],
-            allowed_task_types=agent_model.allowed_task_types or [],
-            risk_tier=agent_model.risk_tier,
-        )
-
-    repo = AgentRepository(session)
-    agent_model = repo.find_by_api_key_hash(key_hash)
-    if agent_model is None or agent_model.status != "active":
+    if token_model is None:
         return None
 
+    agent_model = AgentRepository(session).get(token_model.agent_id)
+    if agent_model is None or agent_model.status != "active" or not is_token_active(token_model):
+        return None
+
+    touch_agent_token(session, token_model)
     return AgentIdentity(
         id=agent_model.id,
         name=agent_model.name,
         issuer=agent_model.issuer,
         auth_method=agent_model.auth_method,
         status=agent_model.status,
-        token_id="bootstrap" if agent_model.id == "bootstrap" else build_legacy_runtime_token_id(agent_model),
-        token_prefix=api_key[:10],
+        token_id=token_model.id,
+        token_prefix=token_model.token_prefix,
+        expires_at=token_model.expires_at,
+        scopes=token_model.scopes or [],
+        labels=token_model.labels or {},
         allowed_capability_ids=agent_model.allowed_capability_ids or [],
         allowed_task_types=agent_model.allowed_task_types or [],
         risk_tier=agent_model.risk_tier,
@@ -104,22 +88,11 @@ def require_agent(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     session: Session = Depends(get_db),
 ) -> AgentIdentity:
-    if credentials is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
-
-    agent = resolve_agent_from_api_key(credentials.credentials, session)
-    if agent is None:
+    agent = _require_known_agent(credentials, session)
+    if is_bootstrap_agent(agent):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
+    ensure_runtime_scope_allowed(agent)
 
-    return agent
-
-
-def require_bootstrap_agent(agent: AgentIdentity = Depends(require_agent)) -> AgentIdentity:
-    if not is_bootstrap_agent(agent):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bootstrap management credential required",
-        )
     return agent
 
 
@@ -173,16 +146,26 @@ def require_management_or_agent(
 ) -> AuthenticatedActor:
     if credentials is not None:
         agent = resolve_agent_from_api_key(credentials.credentials, session)
-        if agent is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
-        if is_bootstrap_agent(agent):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
+        if agent is not None and not is_bootstrap_agent(agent):
+            ensure_runtime_scope_allowed(agent)
+            return AuthenticatedActor(
+                actor_type="agent",
+                id=agent.id,
+                auth_method=agent.auth_method,
+                token_id=agent.token_id,
+            )
+
+    if request.cookies.get(settings.management_session_cookie_name) is not None:
+        identity = _resolve_management_identity(request, session, settings)
         return AuthenticatedActor(
-            actor_type="agent",
-            id=agent.id,
-            auth_method=agent.auth_method,
-            token_id=agent.token_id,
+            actor_type=identity.actor_type,
+            id=identity.id,
+            auth_method=identity.auth_method,
+            role=identity.role,
         )
+
+    if credentials is not None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
 
     identity = _resolve_management_identity(request, session, settings)
     return AuthenticatedActor(
@@ -260,6 +243,19 @@ require_admin_management_session = require_management_role("admin")
 require_owner_management_session = require_management_role("owner")
 
 
+def _require_known_agent(
+    credentials: HTTPAuthorizationCredentials | None,
+    session: Session,
+) -> AgentIdentity:
+    if credentials is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
+
+    agent = resolve_agent_from_api_key(credentials.credentials, session)
+    if agent is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
+    return agent
+
+
 def is_bootstrap_agent(agent: AgentIdentity) -> bool:
     return agent.id == "bootstrap"
 
@@ -276,3 +272,13 @@ def ensure_capability_allowed(agent: AgentIdentity, capability_id: str) -> None:
         return
     if agent.allowed_capability_ids and capability_id not in agent.allowed_capability_ids:
         raise PermissionError("Agent is not allowed to use this capability")
+
+
+def ensure_runtime_scope_allowed(agent: AgentIdentity) -> None:
+    if is_bootstrap_agent(agent):
+        return
+    if agent.scopes and "runtime" not in set(agent.scopes):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Agent token lacks runtime scope",
+        )

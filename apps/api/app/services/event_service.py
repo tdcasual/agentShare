@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from sqlalchemy.orm import Session
 
 from app.errors import NotFoundError
@@ -58,12 +56,9 @@ def list_events(session: Session, *, limit: int = 100) -> list[dict]:
 
 def mark_event_read(session: Session, event_id: str) -> dict:
     repo = EventRepository(session)
-    event = repo.get(event_id)
+    event = repo.mark_read(event_id)
     if event is None:
         raise NotFoundError("Event not found")
-    if event.read_at is None:
-        event.read_at = datetime.now(timezone.utc)
-        repo.mark_read(event_id)
     return serialize_event(event)
 
 

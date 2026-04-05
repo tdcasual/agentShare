@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.policy import ApprovalRule
 
@@ -62,6 +62,16 @@ class TaskCreate(BaseModel):
         default="broadcast",
         description="Whether to target explicit token ids or broadcast to all currently active tokens.",
     )
+
+    @model_validator(mode="after")
+    def validate_target_tokens(self) -> "TaskCreate":
+        if len(set(self.target_token_ids)) != len(self.target_token_ids):
+            raise ValueError("target_token_ids must be unique")
+        if self.target_mode == "broadcast" and self.target_token_ids:
+            raise ValueError("broadcast target_mode cannot include target_token_ids")
+        if self.target_mode == "explicit_tokens" and not self.target_token_ids:
+            raise ValueError("explicit_tokens target_mode requires target_token_ids")
+        return self
 
 
 class TaskComplete(BaseModel):

@@ -9,6 +9,7 @@ from app.factory import create_app
 
 def test_create_app_logs_idempotency_degradation_in_development(monkeypatch, caplog, tmp_path):
     def fail_from_url(url: str, decode_responses: bool):
+        del url, decode_responses
         raise redis.RedisError("redis unavailable")
 
     monkeypatch.setattr("redis.from_url", fail_from_url)
@@ -27,6 +28,7 @@ def test_create_app_logs_idempotency_degradation_in_development(monkeypatch, cap
 
 def test_create_app_fails_fast_on_idempotency_initialization_in_production(monkeypatch, tmp_path):
     def fail_from_url(url: str, decode_responses: bool):
+        del url, decode_responses
         raise redis.RedisError("redis unavailable")
 
     monkeypatch.setattr("redis.from_url", fail_from_url)

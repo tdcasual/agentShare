@@ -1,7 +1,5 @@
 from unittest.mock import patch, MagicMock
 
-import pytest
-
 from app.services.adapters.openai_adapter import OpenAIAdapter
 from app.services.adapters.registry import get_adapter
 

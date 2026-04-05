@@ -41,6 +41,8 @@ def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
         approval_mode=payload.approval_mode,
         approval_rules=[rule.model_dump() for rule in payload.approval_rules],
         priority=payload.priority,
+        target_mode=payload.target_mode,
+        target_token_ids=payload.target_token_ids,
         created_by=actor.actor_type,
         created_by_actor_type=actor.actor_type,
         created_by_actor_id=actor.id,
@@ -48,12 +50,23 @@ def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
         publication_status=publication_status_for_actor(actor.actor_type),
     )
     repo.create(model)
-    targets = _create_task_targets(session, model, payload)
+    targets = _create_task_targets(session, model, payload) if model.publication_status == "active" else []
     return _task_to_dict(model, targets=targets)
 
 
-def list_tasks(session: Session) -> list[dict]:
+def list_tasks(session: Session, *, actor=None) -> list[dict]:
     target_repo = TaskTargetRepository(session)
+    if getattr(actor, "token_id", None):
+        items: list[dict] = []
+        for target in target_repo.list_assigned(actor.token_id):
+            if target.status != "pending":
+                continue
+            task = TaskRepository(session).get(target.task_id)
+            if task is None or task.publication_status != "active":
+                continue
+            items.append(_task_to_dict(task, targets=[target]))
+        return items
+
     return [
         _task_to_dict(model, targets=target_repo.list_by_task(model.id))
         for model in TaskRepository(session).list_active()
@@ -68,7 +81,7 @@ def list_assigned_task_targets(session: Session, agent: AgentIdentity) -> list[d
     items: list[dict] = []
     for target in target_repo.list_assigned(agent.token_id):
         task = task_repo.get(target.task_id)
-        if task is None or task.publication_status != "active":
+        if task is None or task.publication_status != "active" or target.status == "completed":
             continue
         items.append(_task_target_to_dict(target, task))
     return items
@@ -81,11 +94,14 @@ def claim_task(
     settings: Settings | None = None,
 ) -> dict:
     if agent.token_id:
-        target = TaskTargetRepository(session).find_by_task_and_token(task_id, agent.token_id)
+        target_repo = TaskTargetRepository(session)
+        target = target_repo.find_by_task_and_token(task_id, agent.token_id)
         if target is not None:
             claimed = claim_task_target(session, target.id, agent, settings=settings)
             task = TaskRepository(session).get(task_id)
-            return _compat_task_dict(task, claimed)
+            return _task_response_for_target_transition(task, claimed)
+        if target_repo.list_by_task(task_id):
+            raise AuthorizationError("Task is not assigned to this token")
     lock_key = f"task:{task_id}:claim"
     if not acquire_lock(lock_key, ttl_seconds=10, settings=settings):
         raise ConflictError("Task claim is being processed by another agent")
@@ -123,12 +139,14 @@ def complete_task(
         if target is not None:
             completed = complete_task_target(session, target.id, agent, result_summary, output_payload)
             task = TaskRepository(session).get(task_id)
-            return _compat_task_dict(task, completed)
+            return _task_response_for_target_transition(task, completed)
     task_repo = TaskRepository(session)
     run_repo = RunRepository(session)
     task = task_repo.get(task_id)
     if task is None:
         raise NotFoundError("Task not found")
+    if task.status != "claimed":
+        raise ConflictError("Task is not claimed")
     if task.claimed_by != agent.id:
         raise AuthorizationError("Task is not claimed by this agent")
     task.status = "completed"
@@ -187,8 +205,8 @@ def claim_task_target(
         target.claimed_by_agent_id = agent.id
         target.claimed_at = datetime.now(timezone.utc)
         target_repo.update(target)
-        task.status = "claimed"
-        task.claimed_by = agent.id
+        sibling_targets = target_repo.list_by_task(task.id)
+        _sync_task_state_from_targets(task, sibling_targets)
         task_repo.update(task)
         record_task_claim()
         return _task_target_to_dict(target, task)
@@ -213,7 +231,11 @@ def complete_task_target(
     target = target_repo.get(target_id)
     if target is None:
         raise NotFoundError("Task target not found")
-    if target.target_token_id != agent.token_id or target.claimed_by_token_id != agent.token_id:
+    if target.target_token_id != agent.token_id:
+        raise AuthorizationError("Task target is not assigned to this token")
+    if target.status != "claimed":
+        raise ConflictError("Task target is not claimed")
+    if target.claimed_by_token_id != agent.token_id:
         raise AuthorizationError("Task target is not claimed by this token")
 
     task = task_repo.get(target.task_id)
@@ -239,10 +261,7 @@ def complete_task_target(
     target_repo.update(target)
 
     sibling_targets = target_repo.list_by_task(task.id)
-    if sibling_targets and all(item.status == "completed" for item in sibling_targets):
-        task.status = "completed"
-    else:
-        task.status = "claimed"
+    _sync_task_state_from_targets(task, sibling_targets)
     task_repo.update(task)
     record_task_completion()
     return _task_target_to_dict(target, task)
@@ -261,6 +280,7 @@ def _task_to_dict(model: TaskModel, *, targets: list[TaskTargetModel] | None = N
         "approval_mode": model.approval_mode,
         "approval_rules": model.approval_rules,
         "priority": model.priority,
+        "target_mode": model.target_mode,
         "status": model.status,
         "created_by": model.created_by,
         "created_by_actor_type": model.created_by_actor_type,
@@ -269,7 +289,7 @@ def _task_to_dict(model: TaskModel, *, targets: list[TaskTargetModel] | None = N
         "publication_status": model.publication_status,
         "claimed_by": model.claimed_by,
         "target_ids": [target.id for target in target_rows],
-        "target_token_ids": [target.target_token_id for target in target_rows],
+        "target_token_ids": [target.target_token_id for target in target_rows] or (model.target_token_ids or []),
     }
 
 
@@ -289,7 +309,7 @@ def _task_target_to_dict(target: TaskTargetModel, task: TaskModel) -> dict:
     }
 
 
-def _compat_task_dict(task: TaskModel | None, target_payload: dict) -> dict:
+def _task_response_for_target_transition(task: TaskModel | None, target_payload: dict) -> dict:
     if task is None:
         return target_payload
     return {
@@ -297,6 +317,26 @@ def _compat_task_dict(task: TaskModel | None, target_payload: dict) -> dict:
         "status": target_payload["status"],
         "claimed_by": target_payload.get("claimed_by_agent_id"),
     }
+
+
+def _sync_task_state_from_targets(task: TaskModel, targets: list[TaskTargetModel]) -> None:
+    if not targets:
+        task.status = "pending"
+        task.claimed_by = None
+        return
+
+    if all(target.status == "completed" for target in targets):
+        task.status = "completed"
+        task.claimed_by = None
+        return
+
+    if any(target.status in {"claimed", "completed"} for target in targets):
+        task.status = "claimed"
+    else:
+        task.status = "pending"
+
+    claimed_targets = [target for target in targets if target.status == "claimed" and target.claimed_by_agent_id]
+    task.claimed_by = claimed_targets[0].claimed_by_agent_id if len(claimed_targets) == 1 else None
 
 
 def _ensure_playbooks_exist(session: Session, playbook_ids: list[str]) -> None:

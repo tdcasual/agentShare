@@ -80,3 +80,19 @@ def test_feedback_creation_emits_event(client, management_client):
 
     assert events.status_code == 200, events.text
     assert any(item["event_type"] == "task_feedback_posted" for item in events.json()["items"])
+
+
+def test_feedback_cannot_be_created_twice_for_the_same_target(client, management_client):
+    target_id, _ = _create_completed_target(client, management_client)
+
+    first = management_client.post(
+        f"/api/task-targets/{target_id}/feedback",
+        json={"score": 5, "verdict": "accepted", "summary": "Looks good"},
+    )
+    second = management_client.post(
+        f"/api/task-targets/{target_id}/feedback",
+        json={"score": 1, "verdict": "rejected", "summary": "Duplicate"},
+    )
+
+    assert first.status_code == 201, first.text
+    assert second.status_code == 409, second.text

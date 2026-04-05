@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
+import logging
 from typing import Any
+from uuid import uuid4
 
 import redis
 from starlette.concurrency import iterate_in_threadpool
@@ -10,9 +13,12 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+logger = logging.getLogger(__name__)
+
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     _MAX_CACHEABLE_RESPONSE_BYTES = 64 * 1024
+    _LOCK_POLL_INTERVAL_SECONDS = 0.01
     _REPLAY_SAFE_HEADERS = {
         "content-type",
         "content-length",
@@ -33,28 +39,45 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
         request_fingerprint = await self._build_request_fingerprint(request)
         cache_key = f"idempotency:{idem_key}:{request_fingerprint}"
+        lock_key = f"{cache_key}:lock"
+        lock_token = uuid4().hex
 
-        cached = self.redis.get(cache_key)
-        if cached:
-            data = json.loads(cached)
-            return JSONResponse(
-                content=data["body"],
-                status_code=data["status_code"],
-                media_type=data.get("media_type", "application/json"),
-            )
+        try:
+            while True:
+                cached = self._load_cached_response(cache_key)
+                if cached is not None:
+                    return cached
 
-        response = await call_next(request)
-        if not self._is_explicitly_cacheable_response(response):
+                if self._try_acquire_lock(lock_key, lock_token):
+                    break
+
+                await asyncio.sleep(self._LOCK_POLL_INTERVAL_SECONDS)
+        except redis.RedisError:
+            logger.warning("Idempotency middleware bypassed because Redis failed at request time", exc_info=True)
+            return await call_next(request)
+
+        try:
+            response = await call_next(request)
+            if not self._is_explicitly_cacheable_response(response):
+                return response
+            if self._response_content_length(response) > self._MAX_CACHEABLE_RESPONSE_BYTES:
+                return response
+
+            body_bytes = await self._read_response_body(response)
+            cache_envelope = self._build_cache_envelope(response, body_bytes)
+            if cache_envelope is not None:
+                try:
+                    self.redis.setex(cache_key, self.ttl, json.dumps(cache_envelope))
+                except redis.RedisError:
+                    logger.warning("Idempotency middleware failed to persist a cached response", exc_info=True)
+
+            self._restore_response_body(response, body_bytes)
             return response
-
-        body_bytes = await self._read_response_body(response)
-
-        cache_envelope = self._build_cache_envelope(response, body_bytes)
-        if cache_envelope is not None:
-            self.redis.setex(cache_key, self.ttl, json.dumps(cache_envelope))
-
-        self._restore_response_body(response, body_bytes)
-        return response
+        finally:
+            try:
+                self._release_lock(lock_key, lock_token)
+            except redis.RedisError:
+                logger.warning("Idempotency middleware failed to release a request lock", exc_info=True)
 
     async def _build_request_fingerprint(self, request: Request) -> str:
         body_bytes = await request.body()
@@ -75,6 +98,34 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         }
         normalized_context = json.dumps(auth_context, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(normalized_context.encode("utf-8")).hexdigest()
+
+    def _load_cached_response(self, cache_key: str) -> JSONResponse | None:
+        cached = self.redis.get(cache_key)
+        if not cached:
+            return None
+
+        data = json.loads(cached)
+        return JSONResponse(
+            content=data["body"],
+            status_code=data["status_code"],
+            media_type=data.get("media_type", "application/json"),
+        )
+
+    def _try_acquire_lock(self, lock_key: str, lock_token: str) -> bool:
+        return bool(self.redis.set(lock_key, lock_token, nx=True, ex=self.ttl))
+
+    def _release_lock(self, lock_key: str, lock_token: str) -> None:
+        self.redis.eval(
+            """
+            if redis.call('get', KEYS[1]) == ARGV[1] then
+                return redis.call('del', KEYS[1])
+            end
+            return 0
+            """,
+            1,
+            lock_key,
+            lock_token,
+        )
 
     def _build_cache_envelope(self, response: Response, body_bytes: bytes) -> dict[str, Any] | None:
         if len(body_bytes) > self._MAX_CACHEABLE_RESPONSE_BYTES:
@@ -105,6 +156,15 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             return False
 
         return True
+
+    def _response_content_length(self, response: Response) -> int:
+        raw_value = response.headers.get("content-length")
+        if raw_value is None:
+            return 0
+        try:
+            return int(raw_value)
+        except ValueError:
+            return 0
 
     async def _read_response_body(self, response: Response) -> bytes:
         body_bytes = b""

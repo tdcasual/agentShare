@@ -70,3 +70,26 @@ def test_revoked_token_fails_auth_without_deleting_parent_agent(client, manageme
     listed = management_client.get("/api/agents")
     assert listed.status_code == 200
     assert agent_id in {item["id"] for item in listed.json()["items"]}
+
+
+def test_token_without_runtime_scope_cannot_access_runtime_routes(client, management_client):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Scoped Token Agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+    agent_id = created_agent.json()["id"]
+
+    minted = management_client.post(
+        f"/api/agents/{agent_id}/tokens",
+        json={"display_name": "Non-runtime token", "scopes": ["reports"]},
+    )
+    assert minted.status_code == 201, minted.text
+
+    response = client.get(
+        "/api/agents/me",
+        headers={"Authorization": f"Bearer {minted.json()['api_key']}"},
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Agent token lacks runtime scope"}

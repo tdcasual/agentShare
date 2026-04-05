@@ -1,4 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor
 import json
+import threading
+import time
 
 import fakeredis
 import pytest
@@ -32,6 +35,7 @@ def idempotent_app(fake_redis_client):
         "cookie_json": 0,
         "location_json": 0,
         "etag_json": 0,
+        "slow": 0,
         "stream": 0,
         "stream_bg": 0,
         "json_stream": 0,
@@ -117,6 +121,17 @@ def idempotent_app(fake_redis_client):
         response = JSONResponse({"count": value})
         response.headers["ETag"] = f"v{value}"
         return response
+
+    @test_app.post("/slow")
+    def slow_endpoint():
+        counters["slow"] += 1
+        time.sleep(0.1)
+        return {"count": counters["slow"]}
+
+    @test_app.post("/large-json")
+    def large_json_endpoint():
+        counters["json_stream"] += 1
+        return {"count": counters["json_stream"], "payload": "x" * (70 * 1024)}
 
     @test_app.post("/stream")
     def stream_endpoint():
@@ -360,3 +375,35 @@ def test_fixed_length_json_streaming_responses_are_explicitly_cacheable(idempote
     assert second.status_code == 200
     assert first.json() == {"count": 1}
     assert second.json() == {"count": 1}
+
+
+def test_same_key_concurrent_requests_are_serialized(idempotent_app):
+    headers = {"Idempotency-Key": "slow-key"}
+    barrier = threading.Barrier(2)
+
+    def send() -> tuple[int, dict]:
+        barrier.wait()
+        response = idempotent_app.post("/slow", headers=headers)
+        return response.status_code, response.json()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first_future = executor.submit(send)
+        second_future = executor.submit(send)
+        first = first_future.result()
+        second = second_future.result()
+
+    assert first[0] == 200
+    assert second[0] == 200
+    assert first[1] == {"count": 1}
+    assert second[1] == {"count": 1}
+
+
+def test_large_json_responses_are_not_cached(idempotent_app):
+    headers = {"Idempotency-Key": "large-json-key"}
+    first = idempotent_app.post("/large-json", headers=headers)
+    second = idempotent_app.post("/large-json", headers=headers)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["count"] == 1
+    assert second.json()["count"] == 2

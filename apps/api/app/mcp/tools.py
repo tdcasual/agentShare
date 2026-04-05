@@ -100,7 +100,7 @@ def execute_tool(
         raise ToolExecutionError(status_code=422, detail=exc.errors()) from exc
 
     if name == "list_tasks":
-        result = list_tasks(session)
+        result = list_tasks(session, actor=agent)
         if parsed.status:
             result = [item for item in result if item["status"] == parsed.status]
         if parsed.task_type:

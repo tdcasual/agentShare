@@ -3,7 +3,7 @@ import pytest
 
 from app.config import Settings
 from app.errors import ServiceUnavailableError
-from app.services.redis_client import acquire_lock, release_lock, get_redis
+from app.services.redis_client import acquire_lock, release_lock
 
 
 @pytest.fixture(autouse=True)

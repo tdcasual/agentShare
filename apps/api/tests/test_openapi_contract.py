@@ -1,3 +1,5 @@
+from app.config import Settings
+from app.factory import create_app
 from app.main import app
 
 
@@ -40,6 +42,9 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     list_reviews_op = schema["paths"]["/api/reviews"]["get"]
     approve_review_op = schema["paths"]["/api/reviews/{resource_kind}/{resource_id}/approve"]["post"]
     reject_review_op = schema["paths"]["/api/reviews/{resource_kind}/{resource_id}/reject"]["post"]
+    create_secret_op = schema["paths"]["/api/secrets"]["post"]
+    create_capability_op = schema["paths"]["/api/capabilities"]["post"]
+    create_playbook_op = schema["paths"]["/api/playbooks"]["post"]
 
     assert bootstrap_status_op["summary"]
     assert bootstrap_status_op["description"]
@@ -61,6 +66,13 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert create_task_op["summary"]
     assert create_task_op["description"]
     assert create_task_op["security"] == [{"HTTPBearer": []}, {"ManagementSession": []}]
+    assert "pending-review" in create_task_op["description"].lower()
+    assert create_secret_op["security"] == [{"HTTPBearer": []}, {"ManagementSession": []}]
+    assert "runtime agents may submit" in create_secret_op["description"].lower()
+    assert create_capability_op["security"] == [{"HTTPBearer": []}, {"ManagementSession": []}]
+    assert "pending-review capability" in create_capability_op["description"].lower()
+    assert create_playbook_op["security"] == [{"HTTPBearer": []}, {"ManagementSession": []}]
+    assert "pending-review playbook" in create_playbook_op["description"].lower()
     assert intake_catalog_op["summary"]
     assert intake_catalog_op["description"]
     assert intake_catalog_op["security"] == [{"ManagementSession": []}]
@@ -103,3 +115,17 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert schemas["ManagementLoginRequest"]["example"]["password"] == "correct horse battery staple"
     assert schemas["AgentTokenCreate"]["example"]["display_name"] == "Staging worker token"
     assert schemas["TokenFeedbackCreate"]["example"]["score"] == 5
+
+
+def test_openapi_uses_runtime_management_cookie_name_for_docs(tmp_path):
+    app = create_app(
+        Settings(
+            database_url=f"sqlite:///{tmp_path / 'openapi-cookie.db'}",
+            management_session_cookie_name="ops_session",
+        )
+    )
+
+    schema = app.openapi()
+
+    management_scheme = schema["components"]["securitySchemes"]["ManagementSession"]
+    assert management_scheme["name"] == "ops_session"

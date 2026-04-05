@@ -26,3 +26,4 @@ class SecretModel(Base, TimestampMixin):
     publication_status: Mapped[str] = mapped_column(String, default="active")
     reviewed_by_actor_id: Mapped[str | None] = mapped_column(String, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    review_reason: Mapped[str] = mapped_column(String, default="", server_default="")

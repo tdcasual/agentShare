@@ -1,6 +1,5 @@
 from unittest.mock import patch, MagicMock
 
-import httpx
 import pytest
 
 from app.services.adapters.base import CapabilityAdapter

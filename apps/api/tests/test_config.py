@@ -1,5 +1,4 @@
 import pytest
-from pydantic import ValidationError
 
 from app.config import Settings
 
@@ -48,12 +47,4 @@ def test_production_settings_require_secure_management_cookie():
             bootstrap_agent_key="custom-bootstrap-key",
             management_session_secret="custom-management-secret",
             management_session_secure=False,
-        )
-
-
-def test_settings_reject_unknown_management_operator_role():
-    with pytest.raises(ValidationError, match="management_operator_role"):
-        Settings(
-            _env_file=None,
-            management_operator_role="superadmin",
         )

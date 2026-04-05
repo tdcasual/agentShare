@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.orm.catalog_release import CatalogReleaseModel
@@ -40,7 +41,13 @@ def ensure_catalog_release(session: Session, *, resource_kind: str, model: Any) 
         adoption_count=0,
         release_notes=None,
     )
-    return repo.create(release)
+    try:
+        return repo.create(release)
+    except IntegrityError:
+        existing = repo.find_latest_by_resource(resource_kind=resource_kind, resource_id=model.id)
+        if existing is not None:
+            return existing
+        raise
 
 
 def list_catalog_items(
