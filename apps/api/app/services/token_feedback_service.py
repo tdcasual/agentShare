@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import ConflictError, NotFoundError
@@ -44,7 +45,10 @@ def create_token_feedback(
         created_by_actor_type=created_by_actor_type,
         created_by_actor_id=created_by_actor_id,
     )
-    TokenFeedbackRepository(session).create(model)
+    try:
+        TokenFeedbackRepository(session).create(model)
+    except IntegrityError as exc:
+        raise ConflictError("Feedback already exists for this task target") from exc
     _recompute_token_aggregates(session, token.id)
     return serialize_token_feedback(model)
 

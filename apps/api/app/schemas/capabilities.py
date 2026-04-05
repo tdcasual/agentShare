@@ -134,7 +134,7 @@ class CapabilityResponse(BaseModel):
     allowed_environments: list[str]
     adapter_type: str
     adapter_config: dict[str, Any]
-    publication_status: Literal["pending_review", "approved", "rejected", "active", "expired"]
+    publication_status: Literal["pending_review", "rejected", "active"]
     created_by_actor_type: str | None = None
     created_by_actor_id: str | None = None
     created_via_token_id: str | None = None

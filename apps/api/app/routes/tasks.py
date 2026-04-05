@@ -3,10 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.auth import (
     AuthenticatedActor,
-    ManagementIdentity,
     require_agent,
+    require_management_or_agent,
     require_management_or_agent_action,
-    require_management_session,
 )
 from app.config import Settings
 from app.db import get_db
@@ -34,9 +33,12 @@ task_targets_router = APIRouter(prefix="/api/task-targets")
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
-    tags=["Management"],
-    summary="Publish a task",
-    description="Create a new task that agents may later list, claim, invoke capabilities for, and complete.",
+    tags=["Management", "Agent Runtime"],
+    summary="Publish or submit a task",
+    description=(
+        "Management sessions may publish an active task immediately. "
+        "Authenticated runtime agents may submit a pending-review task proposal for human approval."
+    ),
 )
 def create_task_route(
     payload: TaskCreate,
@@ -59,10 +61,13 @@ def create_task_route(
     "",
     tags=["Knowledge"],
     summary="List available tasks",
-    description="Public task queue listing so agents can discover work before authenticating to claim it.",
+    description="Authenticated task queue listing for runtime agents and management sessions.",
 )
-def list_tasks_route(session: Session = Depends(get_db)) -> dict:
-    return {"items": list_tasks(session)}
+def list_tasks_route(
+    actor: AuthenticatedActor = Depends(require_management_or_agent),
+    session: Session = Depends(get_db),
+) -> dict:
+    return {"items": list_tasks(session, actor=actor)}
 
 
 @router.get(

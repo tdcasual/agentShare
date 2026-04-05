@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, Text
+from sqlalchemy import Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.orm.base import Base, TimestampMixin
@@ -6,6 +6,9 @@ from app.orm.base import Base, TimestampMixin
 
 class TokenFeedbackModel(Base, TimestampMixin):
     __tablename__ = "token_feedback"
+    __table_args__ = (
+        UniqueConstraint("task_target_id", name="uq_token_feedback_task_target_id"),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     token_id: Mapped[str] = mapped_column(String, nullable=False)

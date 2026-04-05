@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.orm.base import Base, TimestampMixin
@@ -8,6 +8,9 @@ from app.orm.base import Base, TimestampMixin
 
 class TaskTargetModel(Base, TimestampMixin):
     __tablename__ = "task_targets"
+    __table_args__ = (
+        UniqueConstraint("task_id", "target_token_id", name="uq_task_targets_task_token"),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     task_id: Mapped[str] = mapped_column(String, nullable=False)

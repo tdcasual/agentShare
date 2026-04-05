@@ -1,6 +1,7 @@
 from conftest import TEST_SETTINGS
 
 from app.errors import ServiceUnavailableError
+from app.repositories.approval_repo import ApprovalRequestRepository
 
 
 def test_proxy_only_capability_cannot_issue_lease(client, management_client):
@@ -396,10 +397,6 @@ def test_lease_returns_503_when_coordination_is_unavailable(client, management_c
 
     assert response.status_code == 503
     assert response.json() == {"detail": "Runtime coordination is unavailable"}
-
-
-from app.repositories.approval_repo import ApprovalRequestRepository
-
 
 def test_lease_requires_manual_approval_returns_409(client, management_client, db_session):
     secret = management_client.post(

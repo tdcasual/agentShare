@@ -1,10 +1,10 @@
-import hashlib
-
 import pytest
 
 from app.orm.agent import AgentIdentityModel
+from app.orm.agent_token import AgentTokenModel
 from app.repositories.agent_repo import AgentRepository
 from app.services import policy_service
+from app.services.agent_token_service import hash_token
 
 from conftest import TEST_AGENT_KEY
 
@@ -25,11 +25,23 @@ def _seed_agent(
     repo.create(AgentIdentityModel(
         id=agent_id,
         name=agent_id,
-        api_key_hash=hashlib.sha256(api_key.encode()).hexdigest(),
+        api_key_hash=None,
         status="active",
         allowed_capability_ids=allowed_capability_ids or [],
         allowed_task_types=allowed_task_types or [],
         risk_tier="medium",
+    ))
+    db_session.add(AgentTokenModel(
+        id=f"token-{agent_id}",
+        agent_id=agent_id,
+        display_name=f"{agent_id} token",
+        token_hash=hash_token(api_key),
+        token_prefix=api_key[:10],
+        status="active",
+        issued_by_actor_type="system",
+        issued_by_actor_id="test-fixture",
+        scopes=[],
+        labels={},
     ))
     db_session.flush()
 

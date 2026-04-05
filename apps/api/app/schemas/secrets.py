@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SecretCreate(BaseModel):
@@ -39,31 +39,6 @@ class SecretCreate(BaseModel):
         description="Display-only metadata that is not used for runtime authorization checks.",
     )
 
-    @model_validator(mode="before")
-    @classmethod
-    def upgrade_legacy_scope(cls, value: Any) -> Any:
-        if not isinstance(value, dict):
-            return value
-
-        scope = value.pop("scope", None)
-        if not isinstance(scope, dict):
-            return value
-
-        metadata = value.get("metadata")
-        if not isinstance(metadata, dict):
-            metadata = {}
-
-        known_fields = {"provider", "environment", "provider_scopes", "resource_selector", "metadata"}
-        extras = {key: item for key, item in scope.items() if key not in known_fields}
-
-        value.setdefault("provider", scope.get("provider"))
-        value.setdefault("environment", scope.get("environment"))
-        value.setdefault("provider_scopes", scope.get("provider_scopes", []))
-        value.setdefault("resource_selector", scope.get("resource_selector"))
-        value["metadata"] = {**metadata, **scope.get("metadata", {}), **extras}
-        return value
-
-
 class SecretResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -96,8 +71,9 @@ class SecretResponse(BaseModel):
     resource_selector: str | None
     metadata: dict[str, Any]
     backend_ref: str
-    publication_status: Literal["pending_review", "approved", "rejected", "active", "expired"]
+    publication_status: Literal["pending_review", "rejected", "active"]
     created_by_actor_type: str | None = None
     created_by_actor_id: str | None = None
     created_via_token_id: str | None = None
     reviewed_at: datetime | None = None
+    review_reason: str = ""

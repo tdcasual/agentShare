@@ -24,17 +24,17 @@ def ensure_secret_satisfies_capability(secret: Any, capability: Any, error_cls: 
 def compatibility_errors(secret: Any, capability: Any) -> list[str]:
     errors: list[str] = []
 
-    secret_provider = _read(secret, "provider") or _legacy_scope(secret).get("provider")
+    secret_provider = _read(secret, "provider")
     required_provider = _read(capability, "required_provider")
     if required_provider and secret_provider != required_provider:
         errors.append(f"Secret provider {secret_provider or 'unknown'} does not satisfy required provider {required_provider}")
 
-    secret_environment = _read(secret, "environment") or _legacy_scope(secret).get("environment")
+    secret_environment = _read(secret, "environment")
     allowed_environments = _as_list(_read(capability, "allowed_environments"))
     if allowed_environments and secret_environment not in allowed_environments:
         errors.append("Secret environment is outside the capability contract")
 
-    secret_scopes = set(_as_list(_read(secret, "provider_scopes") or _legacy_scope(secret).get("provider_scopes")))
+    secret_scopes = set(_as_list(_read(secret, "provider_scopes")))
     required_scopes = set(_as_list(_read(capability, "required_provider_scopes")))
     missing_scopes = sorted(required_scopes - secret_scopes)
     if missing_scopes:
@@ -47,11 +47,6 @@ def _read(value: Any, field: str) -> Any:
     if isinstance(value, dict):
         return value.get(field)
     return getattr(value, field, None)
-
-
-def _legacy_scope(value: Any) -> dict[str, Any]:
-    scope = _read(value, "scope")
-    return scope if isinstance(scope, dict) else {}
 
 
 def _as_list(value: Any) -> list[str]:

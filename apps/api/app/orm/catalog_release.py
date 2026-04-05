@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, Text
+from sqlalchemy import DateTime, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.orm.base import Base, TimestampMixin
@@ -8,6 +8,14 @@ from app.orm.base import Base, TimestampMixin
 
 class CatalogReleaseModel(Base, TimestampMixin):
     __tablename__ = "catalog_releases"
+    __table_args__ = (
+        UniqueConstraint(
+            "resource_kind",
+            "resource_id",
+            "version",
+            name="uq_catalog_releases_resource_version",
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     resource_kind: Mapped[str] = mapped_column(String, nullable=False)

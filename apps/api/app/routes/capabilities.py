@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from app.auth import (
     AuthenticatedActor,
     ManagementIdentity,
-    require_admin_management_session,
     require_admin_management_or_agent,
     require_management_session,
 )
@@ -23,9 +22,12 @@ router = APIRouter(prefix="/api/capabilities")
     "",
     response_model=CapabilityResponse,
     status_code=status.HTTP_201_CREATED,
-    tags=["Management"],
-    summary="Create a capability binding",
-    description="Bind a stored secret into a capability contract and verify the secret scope satisfies the capability requirements. Requires an admin management session.",
+    tags=["Management", "Agent Runtime"],
+    summary="Create or submit a capability binding",
+    description=(
+        "Admin management sessions may publish an active capability binding immediately. "
+        "Authenticated runtime agents may submit a pending-review capability proposal that references an existing secret."
+    ),
 )
 def create_capability_route(
     payload: CapabilityCreate,

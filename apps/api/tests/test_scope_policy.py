@@ -1,3 +1,6 @@
+import pytest
+
+from app.services.scope_policy import ensure_binding_compatible
 from app.orm.secret import SecretModel
 
 from conftest import TEST_AGENT_KEY
@@ -103,3 +106,21 @@ def test_runtime_invoke_rechecks_secret_scope_compatibility(management_client, c
     )
 
     assert response.status_code == 403
+
+
+def test_scope_policy_does_not_read_legacy_scope_container():
+    secret = {
+        "scope": {
+            "provider": "github",
+            "provider_scopes": ["repo"],
+            "environment": "production",
+        }
+    }
+    capability = {
+        "required_provider": "github",
+        "required_provider_scopes": ["repo"],
+        "allowed_environments": ["production"],
+    }
+
+    with pytest.raises(ValueError):
+        ensure_binding_compatible(secret, capability)

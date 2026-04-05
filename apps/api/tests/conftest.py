@@ -1,4 +1,3 @@
-import hashlib
 import os
 import subprocess
 import sys
@@ -21,7 +20,7 @@ from app.repositories.agent_repo import AgentRepository
 from app.runtime import AppRuntime
 from app.observability import reset_metrics
 from app.services.agent_token_service import hash_token
-from app.services.secret_backend import InMemorySecretBackend, reset_secret_counter
+from app.services.secret_backend import InMemorySecretBackend
 
 ROOT = Path(__file__).resolve().parents[3]
 API_ROOT = ROOT / "apps/api"
@@ -100,7 +99,6 @@ def test_session_factory(test_engine):
 @pytest.fixture(autouse=True)
 def db_session(test_session_factory):
     InMemorySecretBackend.reset_store()
-    reset_secret_counter()
     session = test_session_factory()
     try:
         yield session
@@ -119,7 +117,6 @@ def seeded_app(db_session, test_engine, test_session_factory, test_settings):
 
     # Seed a test agent for auth
     repo = AgentRepository(db_session)
-    key_hash = hashlib.sha256(TEST_AGENT_KEY.encode()).hexdigest()
     repo.create(AgentIdentityModel(
         id="test-agent",
         name="Test Agent",

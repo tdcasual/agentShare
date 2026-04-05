@@ -98,7 +98,7 @@ def test_invalid_key_returns_401(client):
     assert resp.status_code == 401
 
 
-def test_valid_api_key_returns_agent(client, db_session):
+def test_legacy_agent_api_key_is_rejected_for_runtime_auth(client, db_session):
     api_key = "test-api-key-12345"
     repo = AgentRepository(db_session)
     repo.create(AgentIdentityModel(
@@ -107,8 +107,7 @@ def test_valid_api_key_returns_agent(client, db_session):
     ))
     db_session.flush()
     resp = client.get("/api/agents/me", headers={"Authorization": f"Bearer {api_key}"})
-    assert resp.status_code == 200
-    assert resp.json()["name"] == "Test Bot"
+    assert resp.status_code == 401
 
 
 def test_create_agent_returns_api_key(client, db_session):
@@ -139,7 +138,7 @@ def test_delete_agent_requires_owner_role(client, db_session):
         status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="high",
     ))
     repo.create(AgentIdentityModel(
-        id="agent-del", name="Deletable", api_key_hash=_hash_key("x"),
+        id="agent-del", name="Deletable", api_key_hash=None,
         status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="low",
     ))
     db_session.flush()
