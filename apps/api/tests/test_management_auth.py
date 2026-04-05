@@ -1,5 +1,3 @@
-import hashlib
-
 from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.services.session_service import revoke_management_session
@@ -42,6 +40,20 @@ def test_management_bootstrap_bearer_no_longer_authorizes(client):
         },
     )
     assert response.status_code == 401
+
+
+def test_bootstrap_bearer_cannot_access_runtime_routes(client):
+    agent_me = client.get(
+        "/api/agents/me",
+        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
+    )
+    assigned = client.get(
+        "/api/tasks/assigned",
+        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
+    )
+
+    assert agent_me.status_code == 401
+    assert assigned.status_code == 401
 
 
 def test_capability_and_task_creation_allow_runtime_submission_but_keep_management_active_publish(client, management_client):
@@ -105,7 +117,7 @@ def test_agent_management_routes_require_bootstrap_identity(client, management_c
     repo.create(AgentIdentityModel(
         id="agent-delete",
         name="Delete Me",
-        api_key_hash=hashlib.sha256("delete-me".encode()).hexdigest(),
+        api_key_hash=None,
         status="active",
         allowed_capability_ids=[],
         allowed_task_types=[],
@@ -157,3 +169,13 @@ def test_revoked_management_session_cookie_no_longer_authorizes_management_route
     )
 
     assert response.status_code == 401
+
+
+def test_management_cookie_can_fallback_when_bearer_token_is_invalid(management_client):
+    response = management_client.get(
+        "/api/tasks",
+        headers=_auth_header("invalid-runtime-token"),
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"items": []}

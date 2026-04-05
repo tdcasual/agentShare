@@ -131,6 +131,7 @@ def test_get_redis_uses_explicit_settings(monkeypatch) -> None:
         pass
 
     def fake_from_url(url: str, decode_responses: bool):
+        del decode_responses
         captured.append(url)
         return FakeRedis()
 

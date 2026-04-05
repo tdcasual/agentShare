@@ -1,7 +1,9 @@
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
-from app.auth import ManagementIdentity, require_management_session
+from app.auth import ManagementIdentity, management_security, require_management_session
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
@@ -77,7 +79,7 @@ def login_management_session(
         "auth_method": payload.auth_method,
         "session_id": payload.session_id,
         "email": payload.email,
-        "expires_in": settings.management_session_ttl_seconds,
+        "expires_in": _remaining_expires_in(payload.exp),
         "issued_at": payload.iat,
         "expires_at": payload.exp,
     }
@@ -92,11 +94,11 @@ def login_management_session(
 def logout_management_session(
     request: Request,
     response: Response,
-    manager: ManagementIdentity = Depends(require_management_session),
+    _documented_session_token: str | None = Depends(management_security),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    del manager
+    del _documented_session_token
     session_token = request.cookies.get(settings.management_session_cookie_name)
     if session_token:
         try:
@@ -129,7 +131,6 @@ def logout_management_session(
 )
 def get_management_session(
     identity: ManagementIdentity = Depends(require_management_session),
-    settings: Settings = Depends(get_settings),
 ) -> dict:
     return {
         "status": "authenticated",
@@ -139,7 +140,11 @@ def get_management_session(
         "auth_method": identity.auth_method,
         "session_id": identity.session_id,
         "email": identity.email,
-        "expires_in": settings.management_session_ttl_seconds,
+        "expires_in": _remaining_expires_in(identity.expires_at),
         "issued_at": identity.issued_at,
         "expires_at": identity.expires_at,
     }
+
+
+def _remaining_expires_in(expires_at: int) -> int:
+    return max(0, expires_at - int(time.time()))

@@ -5,12 +5,9 @@ import httpx
 from app.config import Settings
 from app.services.identifiers import new_resource_id
 
+
 def _next_secret_id() -> str:
     return new_resource_id("secret")
-
-
-def reset_secret_counter() -> None:
-    """Backward-compatible no-op now that secret IDs are UUID-based."""
 
 
 def _resolve_settings(settings: Settings | None) -> Settings:
@@ -23,10 +20,13 @@ class SecretBackend:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-    def write_secret(self, value: str) -> tuple[str, str]:
+    def write_secret(self, value: str, *, secret_id: str | None = None) -> tuple[str, str]:
         raise NotImplementedError
 
     def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
+        raise NotImplementedError
+
+    def delete_secret(self, secret_id: str, backend_ref: str | None = None) -> None:
         raise NotImplementedError
 
 
@@ -40,8 +40,8 @@ class InMemorySecretBackend(SecretBackend):
     # Class-level store shared across all InMemorySecretBackend instances
     _store: dict[str, str] = {}
 
-    def write_secret(self, value: str) -> tuple[str, str]:
-        secret_id = _next_secret_id()
+    def write_secret(self, value: str, *, secret_id: str | None = None) -> tuple[str, str]:
+        secret_id = secret_id or _next_secret_id()
         backend_ref = f"{self.backend_name}:{secret_id}"
         InMemorySecretBackend._store[secret_id] = value
         return secret_id, backend_ref
@@ -49,9 +49,30 @@ class InMemorySecretBackend(SecretBackend):
     def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
         return InMemorySecretBackend._store[secret_id]
 
+    def delete_secret(self, secret_id: str, backend_ref: str | None = None) -> None:
+        del backend_ref
+        InMemorySecretBackend._store.pop(secret_id, None)
+
     @classmethod
     def reset_store(cls) -> None:
         cls._store.clear()
+
+
+class DemoSecretBackend(SecretBackend):
+    backend_name = "demo"
+
+    def write_secret(self, value: str, *, secret_id: str | None = None) -> tuple[str, str]:
+        secret_id = secret_id or _next_secret_id()
+        del value
+        return secret_id, f"{self.backend_name}://{secret_id}"
+
+    def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
+        del backend_ref
+        return f"demo-secret-value-for-{secret_id}"
+
+    def delete_secret(self, secret_id: str, backend_ref: str | None = None) -> None:
+        del secret_id
+        del backend_ref
 
 
 class OpenBaoSecretBackend(SecretBackend):
@@ -62,11 +83,11 @@ class OpenBaoSecretBackend(SecretBackend):
         settings: Settings | None = None,
         transport: httpx.BaseTransport | None = None,
     ) -> None:
-        super().__init__(settings)
+        super().__init__(_resolve_settings(settings))
         self.transport = transport
 
-    def write_secret(self, value: str) -> tuple[str, str]:
-        secret_id = _next_secret_id()
+    def write_secret(self, value: str, *, secret_id: str | None = None) -> tuple[str, str]:
+        secret_id = secret_id or _next_secret_id()
         path = self._secret_path(secret_id)
         self._request("POST", self._kv_v2_path(self.settings.openbao_mount, path), json={"data": {"value": value}})
         backend_ref = f"{self.backend_name}:{self.settings.openbao_mount}:{path}"
@@ -76,6 +97,10 @@ class OpenBaoSecretBackend(SecretBackend):
         mount, path = self._resolve_location(secret_id, backend_ref)
         payload = self._request("GET", self._kv_v2_path(mount, path))
         return payload["data"]["data"]["value"]
+
+    def delete_secret(self, secret_id: str, backend_ref: str | None = None) -> None:
+        mount, path = self._resolve_location(secret_id, backend_ref)
+        self._request("DELETE", self._kv_v2_path(mount, path))
 
     def _secret_path(self, secret_id: str) -> str:
         prefix = (self.settings.openbao_prefix or "").strip("/")
@@ -105,6 +130,8 @@ class OpenBaoSecretBackend(SecretBackend):
         ) as client:
             response = client.request(method, path, json=json)
             response.raise_for_status()
+            if not response.content:
+                return {}
             return response.json()
 
 
@@ -122,10 +149,16 @@ def get_secret_backend(settings: Settings | None = None) -> SecretBackend:
 
 def get_secret_backend_for_ref(backend_ref: str | None, settings: Settings | None = None) -> SecretBackend:
     current_settings = _resolve_settings(settings)
-    if backend_ref and backend_ref.startswith("openbao:"):
+    if backend_ref is None or backend_ref.startswith("memory:"):
+        return InMemorySecretBackend(current_settings)
+    if backend_ref.startswith("demo://"):
+        return DemoSecretBackend(current_settings)
+    if backend_ref.startswith("openbao:"):
         validate_secret_backend_settings(current_settings)
         return OpenBaoSecretBackend(current_settings)
-    return InMemorySecretBackend(current_settings)
+    raise SecretBackendConfigurationError(
+        f"Unsupported secret backend reference '{backend_ref}'."
+    )
 
 
 def validate_secret_backend_settings(settings: Settings) -> None:

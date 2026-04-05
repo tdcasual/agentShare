@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.auth import AuthenticatedActor, ManagementIdentity, require_management_or_agent, require_management_session
+from app.auth import (
+    AuthenticatedActor,
+    ManagementIdentity,
+    require_management_or_agent_action,
+    require_management_session,
+)
 from app.db import get_db
 from app.schemas.playbooks import PlaybookCreate, PlaybookResponse, PlaybookSearchResponse
 from app.services.audit_service import actor_payload, write_audit_event
@@ -15,14 +20,17 @@ router = APIRouter(prefix="/api/playbooks")
     "",
     status_code=status.HTTP_201_CREATED,
     response_model=PlaybookResponse,
-    tags=["Management"],
-    summary="Create a playbook",
-    description="Write a reusable playbook entry through the bootstrap management credential.",
+    tags=["Management", "Agent Runtime"],
+    summary="Create or submit a playbook",
+    description=(
+        "Management sessions may create an active reusable playbook immediately. "
+        "Authenticated runtime agents may submit a pending-review playbook draft."
+    ),
 )
 def create_playbook_route(
     payload: PlaybookCreate,
     response: Response,
-    actor: AuthenticatedActor = Depends(require_management_or_agent),
+    actor: AuthenticatedActor = Depends(require_management_or_agent_action("playbooks:create")),
     session: Session = Depends(get_db),
 ) -> dict:
     record = create_playbook(session, payload, actor=actor)

@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.errors import ConflictError, NotFoundError
-from app.orm.agent import AgentIdentityModel
 from app.orm.agent_token import AgentTokenModel
 from app.repositories.agent_repo import AgentRepository
 from app.repositories.agent_token_repo import AgentTokenRepository
@@ -102,7 +101,3 @@ def serialize_agent_token(model: AgentTokenModel, *, api_key: str | None = None)
         "trust_score": model.trust_score,
         "api_key": api_key,
     }
-
-
-def build_legacy_runtime_token_id(agent: AgentIdentityModel) -> str:
-    return f"legacy-{agent.id}"

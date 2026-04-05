@@ -2,12 +2,12 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
+from app.repositories.audit_repo import AuditEventRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.services.session_service import revoke_management_session
 from conftest import (
     BOOTSTRAP_AGENT_KEY,
     OWNER_EMAIL,
-    OWNER_PASSWORD,
     bootstrap_owner_account,
     login_management_account,
 )
@@ -53,6 +53,19 @@ def test_management_login_rejects_invalid_bootstrap_credential(anonymous_client)
     assert response.status_code == 401
 
 
+def test_failed_management_login_persists_rejection_audit(anonymous_client, db_session):
+    bootstrap_owner_account(anonymous_client)
+
+    response = login_management_account(anonymous_client, password="wrong-password")
+
+    assert response.status_code == 401
+
+    events = AuditEventRepository(db_session).list_all()
+    rejected = [event for event in events if event.event_type == "management_session_rejected"]
+    assert rejected
+    assert rejected[-1].payload["actor_id"] == OWNER_EMAIL
+
+
 def test_management_logout_revokes_server_session_and_clears_cookie(anonymous_client, db_session):
     bootstrap_owner_account(anonymous_client)
     login = login_management_account(anonymous_client)
@@ -68,6 +81,15 @@ def test_management_logout_revokes_server_session_and_clears_cookie(anonymous_cl
 
     session_me = anonymous_client.get("/api/session/me")
     assert session_me.status_code == 401
+
+
+def test_management_logout_clears_invalid_cookie_without_requiring_live_session(anonymous_client):
+    anonymous_client.cookies.set("management_session", "bad-token")
+
+    logout = anonymous_client.post("/api/session/logout")
+
+    assert logout.status_code == 200
+    assert "management_session=" in logout.headers["set-cookie"]
 
 
 def test_revoked_management_cookie_is_rejected(anonymous_client, db_session):
@@ -138,3 +160,20 @@ def test_management_login_returns_bootstrapped_owner_identity(tmp_path):
     assert session_me.json()["actor_id"] == bootstrap["account"]["id"]
     assert session_me.json()["role"] == "owner"
     assert session_me.json()["email"] == OWNER_EMAIL
+
+
+def test_session_me_reports_remaining_session_lifetime(anonymous_client, monkeypatch):
+    bootstrap_owner_account(anonymous_client)
+    login = login_management_account(anonymous_client)
+
+    assert login.status_code == 200
+    issued_at = login.json()["issued_at"]
+    expires_at = login.json()["expires_at"]
+
+    monkeypatch.setattr("app.services.session_service.time.time", lambda: issued_at + 60)
+    monkeypatch.setattr("app.routes.session.time.time", lambda: issued_at + 60)
+
+    session_me = anonymous_client.get("/api/session/me")
+
+    assert session_me.status_code == 200
+    assert session_me.json()["expires_in"] == expires_at - (issued_at + 60)

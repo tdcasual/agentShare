@@ -6,6 +6,7 @@ from app.services.secret_backend import (
     OpenBaoSecretBackend,
     SecretBackendConfigurationError,
     get_secret_backend,
+    get_secret_backend_for_ref,
 )
 
 
@@ -61,3 +62,28 @@ def test_openbao_backend_uses_kv_v2_data_paths_for_write_and_read():
     assert captured[0][2]["token"] == "root-token"
     assert captured[1][0] == "GET"
     assert captured[1][1] == f"/v1/secret/data/agent-share/{secret_id}"
+
+
+def test_get_secret_backend_for_ref_supports_demo_seed_refs():
+    backend = get_secret_backend_for_ref(
+        "demo://secret-demo-market-active",
+        Settings(secret_backend="memory"),
+    )
+
+    assert backend.backend_name == "demo"
+    assert backend.read_secret("secret-demo-market-active", "demo://secret-demo-market-active")
+
+
+def test_get_secret_backend_for_ref_rejects_unknown_prefixes():
+    with pytest.raises(SecretBackendConfigurationError, match="Unsupported secret backend reference"):
+        get_secret_backend_for_ref(
+            "bogus://secret-1",
+            Settings(secret_backend="memory"),
+        )
+
+
+def test_openbao_backend_without_explicit_settings_fails_with_configuration_error():
+    backend = OpenBaoSecretBackend()
+
+    with pytest.raises(RuntimeError, match="not configured"):
+        backend.write_secret("remote-secret")
