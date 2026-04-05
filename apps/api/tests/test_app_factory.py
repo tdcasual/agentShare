@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
 from app.config import Settings
 from app.factory import create_app
@@ -27,15 +28,16 @@ def test_create_app_registers_core_routes():
     assert "/api/task-targets/{task_target_id}/feedback" in route_paths
 
 
-def test_create_app_runs_bootstrap_initializer_once(monkeypatch):
+def test_create_app_runs_bootstrap_initializer_once(monkeypatch, tmp_path):
     calls: list[Settings] = []
+    db_path = tmp_path / "factory-bootstrap.db"
 
     def fake_initializer(settings: Settings, session_factory) -> None:
         calls.append(settings)
 
     monkeypatch.setattr("app.factory.ensure_bootstrap_agent", fake_initializer)
 
-    app = create_app(Settings())
+    app = create_app(Settings(database_url=f"sqlite:///{db_path}"))
     with TestClient(app):
         pass
 
@@ -79,6 +81,23 @@ def test_create_app_accepts_prebuilt_runtime_without_rebuilding(tmp_path, monkey
 
     assert app.state.runtime is runtime
     assert app.state.settings is settings
+
+
+def test_create_app_rejects_conflicting_settings_and_runtime(tmp_path):
+    settings = Settings(
+        database_url=f"sqlite:///{tmp_path / 'settings.db'}",
+        bootstrap_agent_key="settings-bootstrap-key",
+    )
+    runtime = build_runtime(Settings(
+        database_url=f"sqlite:///{tmp_path / 'runtime.db'}",
+        bootstrap_agent_key="runtime-bootstrap-key",
+    ))
+
+    try:
+        with pytest.raises(ValueError, match="settings and runtime"):
+            create_app(settings, runtime=runtime)
+    finally:
+        runtime.engine.dispose()
 
 
 def test_create_app_accepts_custom_route_registrar():

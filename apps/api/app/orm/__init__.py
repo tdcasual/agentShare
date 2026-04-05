@@ -9,6 +9,7 @@ from app.orm.task_target import TaskTargetModel
 from app.orm.token_feedback import TokenFeedbackModel
 from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
+from app.orm.pending_secret_material import PendingSecretMaterialModel
 from app.orm.audit_event import AuditEventModel
 from app.orm.event import EventModel
 from app.orm.space import SpaceModel
@@ -31,6 +32,7 @@ __all__ = [
     "TokenFeedbackModel",
     "RunModel",
     "PlaybookModel",
+    "PendingSecretMaterialModel",
     "AuditEventModel",
     "EventModel",
     "SpaceModel",

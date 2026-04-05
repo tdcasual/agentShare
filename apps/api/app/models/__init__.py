@@ -1,1 +1,1 @@
-"""Data models for the in-memory MVP store."""
+"""Shared Pydantic models used across runtime/auth policy boundaries."""

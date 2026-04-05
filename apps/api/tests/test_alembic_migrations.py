@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
@@ -10,6 +9,7 @@ from sqlalchemy import create_engine, inspect, text
 
 
 ROOT = Path(__file__).resolve().parents[3]
+CURRENT_ALEMBIC_HEAD = "20260405_01"
 
 
 def _run_alembic_upgrade(database_url: str, revision: str) -> None:
@@ -28,136 +28,79 @@ def _run_alembic_upgrade(database_url: str, revision: str) -> None:
     )
 
 
-def test_alembic_upgrade_creates_expected_tables(tmp_path) -> None:
-    db_path = tmp_path / "alembic.db"
-    env = os.environ.copy()
-    env["DATABASE_URL"] = f"sqlite:///{db_path}"
-
-    subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            "from alembic.config import main; main(argv=['-c', 'alembic.ini', 'upgrade', 'head'])",
-        ],
-        cwd=ROOT / "apps/api",
-        check=True,
-        env=env,
+def test_alembic_versions_directory_contains_single_baseline_revision() -> None:
+    version_files = sorted(
+        path.name
+        for path in (ROOT / "apps/api/alembic/versions").glob("*.py")
+        if path.name != "__init__.py"
     )
 
-    inspector = inspect(create_engine(f"sqlite:///{db_path}"))
-    assert {
-        "agents",
-        "secrets",
-        "capabilities",
-        "tasks",
-        "runs",
-        "playbooks",
-        "approval_requests",
-        "audit_events",
-    }.issubset(set(inspector.get_table_names()))
-    capability_columns = {column["name"] for column in inspector.get_columns("capabilities")}
-    assert "access_policy" in capability_columns
+    assert version_files == ["20260405_01_clean_baseline.py"]
+
+
+def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
+    db_path = tmp_path / "alembic.db"
+    database_url = f"sqlite:///{db_path}"
+
+    _run_alembic_upgrade(database_url, "head")
+
+    engine = create_engine(database_url)
+    try:
+        inspector = inspect(engine)
+        assert {
+            "agents",
+            "agent_tokens",
+            "human_accounts",
+            "management_sessions",
+            "system_settings",
+            "secrets",
+            "pending_secret_materials",
+            "capabilities",
+            "tasks",
+            "task_targets",
+            "runs",
+            "playbooks",
+            "audit_events",
+            "approval_requests",
+            "events",
+            "spaces",
+            "space_members",
+            "space_timeline_entries",
+            "catalog_releases",
+            "token_feedback",
+        }.issubset(set(inspector.get_table_names()))
+
+        capability_columns = {column["name"] for column in inspector.get_columns("capabilities")}
+        assert "access_policy" in capability_columns
+        secret_columns = {column["name"] for column in inspector.get_columns("secrets")}
+        assert "review_reason" in secret_columns
+        token_feedback_constraints = inspector.get_unique_constraints("token_feedback")
+        assert any(
+            constraint["column_names"] == ["task_target_id"]
+            for constraint in token_feedback_constraints
+        )
+        task_target_constraints = inspector.get_unique_constraints("task_targets")
+        assert any(
+            constraint["column_names"] == ["task_id", "target_token_id"]
+            for constraint in task_target_constraints
+        )
+        catalog_release_constraints = inspector.get_unique_constraints("catalog_releases")
+        assert any(
+            constraint["column_names"] == ["resource_kind", "resource_id", "version"]
+            for constraint in catalog_release_constraints
+        )
+
+        with engine.connect() as connection:
+            migrated_revision = connection.execute(
+                text("SELECT version_num FROM alembic_version")
+            ).scalar_one()
+
+        assert migrated_revision == CURRENT_ALEMBIC_HEAD
+    finally:
+        engine.dispose()
 
 
 def test_pytest_database_fixture_uses_migrated_schema(db_session) -> None:
     tables = set(inspect(db_session.bind).get_table_names())
 
     assert "alembic_version" in tables
-
-
-def test_alembic_upgrade_migrates_legacy_capability_access_policy(tmp_path) -> None:
-    db_path = tmp_path / "alembic-capability-policy.db"
-    database_url = f"sqlite:///{db_path}"
-
-    _run_alembic_upgrade(database_url, "20260330_01")
-
-    engine = create_engine(database_url)
-    try:
-        with engine.begin() as connection:
-            connection.execute(
-                text(
-                    """
-                    INSERT INTO capabilities (
-                        id,
-                        name,
-                        secret_id,
-                        allowed_mode,
-                        lease_ttl_seconds,
-                        risk_level,
-                        approval_mode,
-                        approval_rules,
-                        allowed_audience,
-                        access_policy,
-                        required_provider_scopes,
-                        allowed_environments,
-                        adapter_type,
-                        adapter_config,
-                        created_by_actor_type,
-                        created_by_actor_id,
-                        publication_status
-                    )
-                    VALUES (
-                        :id,
-                        :name,
-                        :secret_id,
-                        :allowed_mode,
-                        :lease_ttl_seconds,
-                        :risk_level,
-                        :approval_mode,
-                        :approval_rules,
-                        :allowed_audience,
-                        :access_policy,
-                        :required_provider_scopes,
-                        :allowed_environments,
-                        :adapter_type,
-                        :adapter_config,
-                        :created_by_actor_type,
-                        :created_by_actor_id,
-                        :publication_status
-                    )
-                    """
-                ),
-                {
-                    "id": "capability-legacy",
-                    "name": "legacy.policy",
-                    "secret_id": "secret-legacy",
-                    "allowed_mode": "proxy_only",
-                    "lease_ttl_seconds": 60,
-                    "risk_level": "medium",
-                    "approval_mode": "auto",
-                    "approval_rules": json.dumps([]),
-                    "allowed_audience": json.dumps([]),
-                    "access_policy": json.dumps(
-                        {
-                            "mode": "explicit_tokens",
-                            "token_ids": ["token-legacy"],
-                        }
-                    ),
-                    "required_provider_scopes": json.dumps([]),
-                    "allowed_environments": json.dumps([]),
-                    "adapter_type": "generic_http",
-                    "adapter_config": json.dumps({}),
-                    "created_by_actor_type": "human",
-                    "created_by_actor_id": "test",
-                    "publication_status": "active",
-                },
-            )
-
-        _run_alembic_upgrade(database_url, "head")
-
-        with engine.connect() as connection:
-            raw_policy = connection.execute(
-                text("SELECT access_policy FROM capabilities WHERE id = 'capability-legacy'")
-            ).scalar_one()
-
-        if isinstance(raw_policy, str):
-            raw_policy = json.loads(raw_policy)
-
-        assert raw_policy == {
-            "mode": "selectors",
-            "selectors": [
-                {"kind": "token", "ids": ["token-legacy"]},
-            ],
-        }
-    finally:
-        engine.dispose()

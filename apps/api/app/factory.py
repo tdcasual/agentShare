@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from time import monotonic
 
 from fastapi import FastAPI, Request
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -36,16 +37,22 @@ def ensure_bootstrap_agent(settings: Settings, session_factory: Callable[[], Ses
     try:
         repo = AgentRepository(session)
         existing = repo.get("bootstrap")
+        desired_api_key_hash = _hash_key(settings.bootstrap_agent_key)
         if existing is None:
             repo.create(AgentIdentityModel(
                 id="bootstrap",
                 name="Bootstrap Agent",
-                api_key_hash=_hash_key(settings.bootstrap_agent_key),
+                api_key_hash=desired_api_key_hash,
                 status="active",
                 allowed_capability_ids=[],
                 allowed_task_types=[],
                 risk_tier="high",
             ))
+            session.commit()
+            return
+
+        if existing.api_key_hash != desired_api_key_hash:
+            existing.api_key_hash = desired_api_key_hash
             session.commit()
     finally:
         session.close()
@@ -56,15 +63,33 @@ def add_request_logging_middleware(app: FastAPI) -> None:
     async def log_request(request: Request, call_next):
         started_at = monotonic()
         request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
-        response = await call_next(request)
+        request.state.request_id = request_id
+        try:
+            response = await call_next(request)
+            status_code = response.status_code
+        except Exception:
+            status_code = 500
+            response = JSONResponse(
+                status_code=status_code,
+                content={"detail": "Internal Server Error"},
+            )
+            request_logger.exception(
+                "Unhandled request failure",
+                extra={
+                    "request_id": request_id,
+                    "method": request.method,
+                    "path": request.url.path,
+                },
+            )
+
         duration_ms = round((monotonic() - started_at) * 1000, 3)
         response.headers["x-request-id"] = request_id
-        record_http_request(request.method, request.url.path, response.status_code)
+        record_http_request(request.method, request.url.path, status_code)
         request_logger.info(json.dumps(build_request_log_event(
             request_id=request_id,
             method=request.method,
             path=request.url.path,
-            status=response.status_code,
+            status=status_code,
             duration_ms=duration_ms,
         )))
         return response
@@ -98,17 +123,42 @@ def configure_default_app(app: FastAPI, settings: Settings) -> None:
     add_request_logging_middleware(app)
     add_idempotency_middleware(app, settings)
     add_domain_error_handlers(app)
+    add_runtime_openapi_customizer(app)
     register_core_routes(app)
 
 
 def add_domain_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(DomainError)
     async def handle_domain_error(request: Request, exc: DomainError) -> JSONResponse:
-        del request
-        return JSONResponse(
+        response = JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
+        request_id = getattr(request.state, "request_id", None)
+        if request_id:
+            response.headers["x-request-id"] = request_id
+        return response
+
+
+def add_runtime_openapi_customizer(app: FastAPI) -> None:
+    def custom_openapi():
+        if app.openapi_schema is not None:
+            return app.openapi_schema
+
+        schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            description=app.description,
+            routes=app.routes,
+            tags=app.openapi_tags,
+        )
+        management_scheme = schema.get("components", {}).get("securitySchemes", {}).get("ManagementSession")
+        if management_scheme is not None:
+            management_scheme["name"] = app.state.settings.management_session_cookie_name
+        app.openapi_schema = schema
+        return schema
+
+    app.openapi = custom_openapi
 
 
 def create_app(
@@ -118,6 +168,9 @@ def create_app(
     app_configurers: Iterable[AppConfigurer] | None = None,
     route_registrar: RouteRegistrar | None = register_routes,
 ) -> FastAPI:
+    if settings is not None and runtime is not None and runtime.settings != settings:
+        raise ValueError("create_app settings and runtime must describe the same configuration")
+
     if settings is not None:
         current_settings = settings
     elif runtime is not None:

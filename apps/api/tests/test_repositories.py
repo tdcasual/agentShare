@@ -2,21 +2,18 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+import app.repositories as repositories
 from app.orm.base import Base
 from app.orm.secret import SecretModel
-from app.orm.capability import CapabilityModel
 from app.orm.agent import AgentIdentityModel
-from app.orm.task import TaskModel
-from app.orm.run import RunModel
-from app.orm.playbook import PlaybookModel
 from app.orm.audit_event import AuditEventModel
+from app.orm.event import EventModel
+from app.orm.task import TaskModel
 from app.repositories.secret_repo import SecretRepository
-from app.repositories.capability_repo import CapabilityRepository
 from app.repositories.agent_repo import AgentRepository
-from app.repositories.task_repo import TaskRepository
-from app.repositories.run_repo import RunRepository
-from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.audit_repo import AuditEventRepository
+from app.repositories.event_repo import EventRepository
+from app.repositories.task_repo import TaskRepository
 
 
 @pytest.fixture
@@ -53,16 +50,16 @@ def test_secret_repo_list(db_session: Session):
 
 # --- AgentRepository ---
 
-def test_agent_repo_find_by_api_key_hash(db_session: Session):
+def test_agent_repo_find_bootstrap_by_api_key_hash(db_session: Session):
     repo = AgentRepository(db_session)
     repo.create(AgentIdentityModel(
-        id="agent-1", name="Bot", api_key_hash="hash123",
+        id="bootstrap", name="Bootstrap", api_key_hash="hash123",
         allowed_capability_ids=[], allowed_task_types=[], risk_tier="medium",
     ))
-    found = repo.find_by_api_key_hash("hash123")
+    found = repo.find_bootstrap_by_api_key_hash("hash123")
     assert found is not None
-    assert found.name == "Bot"
-    assert repo.find_by_api_key_hash("wrong") is None
+    assert found.name == "Bootstrap"
+    assert repo.find_bootstrap_by_api_key_hash("wrong") is None
 
 
 # --- TaskRepository ---
@@ -90,3 +87,32 @@ def test_audit_repo_create_auto_id(db_session: Session):
     created = repo.create(evt)
     assert created.id is not None
     assert created.id >= 1
+
+
+def test_repositories_package_exports_current_repository_facade():
+    assert hasattr(repositories, "AgentTokenRepository")
+    assert hasattr(repositories, "CatalogReleaseRepository")
+    assert hasattr(repositories, "EventRepository")
+    assert hasattr(repositories, "ManagementSessionRepository")
+    assert hasattr(repositories, "PendingSecretMaterialRepository")
+    assert hasattr(repositories, "TokenFeedbackRepository")
+    assert hasattr(repositories, "SpaceRepository")
+    assert hasattr(repositories, "TaskTargetRepository")
+
+
+def test_event_repo_mark_read_sets_timestamp(db_session: Session):
+    repo = EventRepository(db_session)
+    event = repo.create(EventModel(
+        id="event-1",
+        event_type="task_completed",
+        actor_type="agent",
+        actor_id="agent-1",
+        subject_type="task",
+        subject_id="task-1",
+        summary="done",
+    ))
+
+    updated = repo.mark_read(event.id)
+
+    assert updated is not None
+    assert updated.read_at is not None

@@ -1,14 +1,7 @@
 from sqlalchemy import inspect
 
-from app.db import SessionLocal, engine
+from app.db import engine
 from app.orm.base import Base
-from app.orm.secret import SecretModel
-from app.orm.capability import CapabilityModel
-from app.orm.agent import AgentIdentityModel
-from app.orm.task import TaskModel
-from app.orm.run import RunModel
-from app.orm.playbook import PlaybookModel
-from app.orm.audit_event import AuditEventModel
 
 
 def test_all_tables_created():

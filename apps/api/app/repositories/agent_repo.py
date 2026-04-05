@@ -20,9 +20,10 @@ class AgentRepository:
     def list_all(self) -> list[AgentIdentityModel]:
         return list(self.session.query(AgentIdentityModel).all())
 
-    def find_by_api_key_hash(self, api_key_hash: str) -> AgentIdentityModel | None:
+    def find_bootstrap_by_api_key_hash(self, api_key_hash: str) -> AgentIdentityModel | None:
         return (
             self.session.query(AgentIdentityModel)
+            .filter(AgentIdentityModel.id == "bootstrap")
             .filter(AgentIdentityModel.api_key_hash == api_key_hash)
             .first()
         )
