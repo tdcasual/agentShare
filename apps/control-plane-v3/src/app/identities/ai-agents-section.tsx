@@ -1,0 +1,194 @@
+/**
+ * AI Agents Section Component
+ */
+
+import { ChevronDown, ChevronUp, Bot } from 'lucide-react';
+import { Badge } from '@/shared/ui-primitives/badge';
+import { Button } from '@/shared/ui-primitives/button';
+import { Card } from '@/shared/ui-primitives/card';
+import { ManagementSessionRecoveryNotice, isForbiddenError, isUnauthorizedError } from '@/lib/management-session-recovery';
+import { AgentManagementCard } from './agent-management-card';
+import { EmptyState, SectionLoading, SectionError } from './components';
+import type { Agent, AgentToken } from '@/domains/identity';
+import type { Event } from '@/domains/event';
+
+export interface AIAgentsSectionProps {
+  agents: Agent[];
+  filteredAgents: Agent[];
+  tokensByAgent: Record<string, AgentToken[]>;
+  eventCounts: Record<string, number>;
+  events: Event[];
+  eventsErrorMessage: string | null;
+  isLoading: boolean;
+  error: Error | null;
+  searchQuery: string;
+  expandedAgents: string[];
+  deletingAgentId: string | null;
+  shouldShowSessionExpired: boolean;
+  shouldShowForbidden?: boolean;
+  canDelete: boolean;
+  isRefreshing: boolean;
+  focusedAgentId?: string | null;
+  onToggleExpand: (agentId: string) => void;
+  onRetry: () => Promise<void>;
+  onDelete: (agentId: string) => Promise<void>;
+}
+
+export function AIAgentsSection({
+  agents,
+  filteredAgents,
+  tokensByAgent,
+  eventCounts,
+  events,
+  eventsErrorMessage,
+  isLoading,
+  error,
+  searchQuery,
+  expandedAgents,
+  deletingAgentId,
+  shouldShowSessionExpired,
+  shouldShowForbidden,
+  canDelete,
+  isRefreshing,
+  focusedAgentId,
+  onToggleExpand,
+  onRetry,
+  onDelete,
+}: AIAgentsSectionProps) {
+  const errorMessage = error instanceof Error ? error.message : null;
+
+  return (
+    <Card variant="feature" className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">AI Agents</h2>
+          <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+            Registered agent identities from `/api/agents`
+          </p>
+        </div>
+        <Badge variant="agent">{agents.length}</Badge>
+      </div>
+
+      {isLoading ? (
+        <SectionLoading message="Loading agents..." />
+      ) : shouldShowSessionExpired && isUnauthorizedError(error) ? (
+        <ManagementSessionRecoveryNotice message="Sign in again to reload agents." />
+      ) : shouldShowForbidden && isForbiddenError(error) ? (
+        <ManagementSessionRecoveryNotice message="An admin session is required to manage agent identities." />
+      ) : errorMessage ? (
+        <SectionError
+          message={`Agent data is temporarily unavailable. ${errorMessage}`}
+          actionLabel="Retry agents"
+          onRetry={onRetry}
+          isRefreshing={isRefreshing}
+        />
+      ) : agents.length === 0 ? (
+        <EmptyState icon={<Bot className="w-6 h-6" />} message="No agents are registered yet." />
+      ) : filteredAgents.length === 0 ? (
+        <EmptyState
+          icon={<Bot className="w-6 h-6" />}
+          message={`No AI agents match "${searchQuery.trim()}".`}
+        />
+      ) : (
+        <div className="space-y-3">
+          {filteredAgents.map((agent) => {
+            const linkedTokens = tokensByAgent[agent.id] ?? [];
+            const feedbackCount = eventCounts[agent.id] ?? 0;
+            const isExpanded = expandedAgents.includes(agent.id);
+
+            return (
+              <AgentCard
+                key={agent.id}
+                agent={agent}
+                linkedTokens={linkedTokens}
+                feedbackCount={feedbackCount}
+                isExpanded={isExpanded}
+                isFocused={agent.id === focusedAgentId}
+                onToggleExpand={() => onToggleExpand(agent.id)}
+              >
+                {isExpanded && (
+                  <AgentManagementCard
+                    agent={agent}
+                    canDelete={canDelete}
+                    events={events.filter((event) => event.actor_id === agent.id)}
+                    eventsErrorMessage={eventsErrorMessage}
+                    isDeleting={deletingAgentId === agent.id}
+                    onDelete={() => onDelete(agent.id)}
+                  />
+                )}
+              </AgentCard>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+interface AgentCardProps {
+  agent: Agent;
+  linkedTokens: AgentToken[];
+  feedbackCount: number;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  children?: React.ReactNode;
+  isFocused?: boolean;
+}
+
+function AgentCard({ agent, linkedTokens, feedbackCount, isExpanded, onToggleExpand, children, isFocused }: AgentCardProps) {
+  return (
+    <div
+      data-testid={`agent-card-${agent.id}`}
+      data-focus-state={isFocused ? 'focused' : 'default'}
+      className={`rounded-2xl border bg-white/90 dark:bg-[#252540]/90 p-4 ${
+        isFocused
+          ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
+          : 'border-pink-100 dark:border-[#3D3D5C]'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+            {agent.name}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-[#9CA3AF] break-all">
+            {agent.id}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge variant="secondary">
+              {linkedTokens.length} linked token{linkedTokens.length === 1 ? '' : 's'}
+            </Badge>
+            <Badge variant="secondary">
+              {feedbackCount} recent feedback event{feedbackCount === 1 ? '' : 's'}
+            </Badge>
+          </div>
+          {linkedTokens.length > 0 ? (
+            <p className="mt-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
+              {linkedTokens
+                .slice(0, 2)
+                .map((token) => token.display_name ?? (token as unknown as { displayName?: string }).displayName ?? token.id)
+                .join(' · ')}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Badge variant="agent">{agent.risk_tier}</Badge>
+          <Badge variant="info">{agent.auth_method}</Badge>
+          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+        </div>
+      </div>
+      <div className="mt-4 flex justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-expanded={isExpanded}
+          onClick={onToggleExpand}
+          rightIcon={isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        >
+          {isExpanded ? `Hide details for ${agent.name}` : `View details for ${agent.name}`}
+        </Button>
+      </div>
+      {children}
+    </div>
+  );
+}

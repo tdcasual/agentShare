@@ -1,45 +1,87 @@
 'use client';
 
+/**
+ * Spaces Page - 空间管理页面
+ * 
+ * ⚠️ 已知权限边界偏移（H2）:
+ * - 后端 spaces API: viewer/operator 可读
+ * - 但页面耦合了 admin-only 面板：events, reviews, agents, secrets, capabilities
+ * 
+ * 当前行为:
+ * - 前端路由角色: viewer（基础空间视图）
+ * - admin-only 面板根据角色降级隐藏
+ * 
+ * 建议解决方案（需产品决策）:
+ * 1. 拆分页面：基础空间视图（viewer+）+ 管理面板（admin）
+ * 2. 保留当前 admin-only 复合页面，viewer/operator 通过其他入口只读空间
+ * 3. 条件渲染：根据角色显示/隐藏 admin-only 面板
+ * 
+ * 当前缓解措施:
+ * - 路由设为 viewer，基础空间视图对低权限会话保持可读
+ * - admin-only 面板按角色隐藏，并暂停对应查询
+ * - 使用 useManagementPageSessionRecovery 处理 401/403
+ */
+
 import { useMemo, useState } from 'react';
-import { Bot, Boxes, CheckCircle2, ShieldCheck, Sparkles, Wrench, XCircle } from 'lucide-react';
+import { Bot, ShieldCheck, Sparkles } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { ManagementRouteGuard } from '@/components/route-guard';
 import { useEvents } from '@/domains/event';
 import { useCapabilities, useSecrets } from '@/domains/governance';
 import { useAgentsWithTokens } from '@/domains/identity';
 import { useApproveReview, useRejectReview, useReviews } from '@/domains/review';
-import { useSpaces } from '@/domains/space';
+import { useSpaces, useCreateSpace, useAddSpaceMember } from '@/domains/space';
+import { CreateSpaceModal } from '@/domains/space/components/create-space-modal';
 import { Layout } from '@/interfaces/human/layout';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import {
+  ManagementForbiddenAlert,
   ManagementSessionExpiredAlert,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
+import { hasRequiredRole, isValidRole } from '@/lib/role-system';
+import { useManagementSessionGate } from '@/lib/session';
 import { Badge } from '@/shared/ui-primitives/badge';
-import { Button } from '@/shared/ui-primitives/button';
+
 import { Card } from '@/shared/ui-primitives/card';
+import { OperationsFeed } from './operations-feed';
+import { GovernancePanel } from './governance-panel';
+import { IdentityPanel } from './identity-panel';
+import { SpacesList } from './spaces-list';
+import { MetricCard, MarketInventoryPanel } from './components';
 
 function SpacesContent() {
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
+  const { session } = useManagementSessionGate({ redirectOnMissingSession: false });
+  const sessionRole = session?.role ?? null;
+  const role = isValidRole(sessionRole ?? '') ? sessionRole : null;
+  const canManageSpaces = hasRequiredRole(role, 'operator');
+  const canViewAdminPanels = hasRequiredRole(role, 'admin');
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(() => focus.agentId ?? null);
   const [selectedEventType, setSelectedEventType] = useState<'all' | 'completed' | 'failed'>('all');
   const [selectedReviewStatus, setSelectedReviewStatus] = useState<'all' | 'pending' | 'rejected'>('pending');
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
-  const eventsQuery = useEvents();
-  const reviewsQuery = useReviews();
+  // 空间管理状态
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null);
+  const { create, isCreating } = useCreateSpace();
+  const { addMember, isAdding } = useAddSpaceMember(activeSpaceId || '', { agentId: focus.agentId ?? null });
+  const eventsQuery = useEvents({ isPaused: () => !canViewAdminPanels });
+  const reviewsQuery = useReviews({ isPaused: () => !canViewAdminPanels });
   const approveReview = useApproveReview();
   const rejectReview = useRejectReview();
-  const agentsQuery = useAgentsWithTokens();
+  const agentsQuery = useAgentsWithTokens({ isPaused: () => !canViewAdminPanels });
   const spacesQuery = useSpaces({ agentId: focus.agentId ?? null });
-  const secretsQuery = useSecrets();
-  const capabilitiesQuery = useCapabilities();
+  const secretsQuery = useSecrets({ isPaused: () => !canViewAdminPanels });
+  const capabilitiesQuery = useCapabilities({ isPaused: () => !canViewAdminPanels });
   const {
     error: gateError,
+    shouldShowForbidden,
     shouldShowSessionExpired,
-    clearSessionExpired,
+    clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery([
     eventsQuery.error,
@@ -56,10 +98,10 @@ function SpacesContent() {
   const tokensByAgent = agentsQuery.tokensByAgent;
   const secrets = secretsQuery.data?.items ?? [];
   const capabilities = capabilitiesQuery.data?.items ?? [];
-  const reviewItemList = reviewItems ?? [];
+  const reviewItemList = useMemo(() => reviewItems ?? [], [reviewItems]);
   const persistedSpaces = useMemo(
-    () => spacesQuery.data?.items ?? [],
-    [spacesQuery.data?.items]
+    () => spacesQuery.spaces ?? [],
+    [spacesQuery.spaces]
   );
 
   const pendingReviews = reviewItemList.filter((item) => item.publication_status === 'pending_review');
@@ -99,8 +141,8 @@ function SpacesContent() {
     if (selectedReviewStatus === 'rejected') {
       return rejectedReviews;
     }
-    return reviewItems ?? [];
-  }, [pendingReviews, rejectedReviews, reviewItems, selectedReviewStatus]);
+    return reviewItemList ?? [];
+  }, [pendingReviews, rejectedReviews, reviewItemList, selectedReviewStatus]);
   const publishedAssets = secrets.filter((item) => item.publication_status === 'active');
   const publishedSkills = capabilities.filter((item) => item.publication_status === 'active');
   const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
@@ -123,7 +165,7 @@ function SpacesContent() {
     setActionKey(nextActionKey);
     setActionError(null);
     setActionNotice(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await approveReview(resourceKind, resourceId);
@@ -132,7 +174,6 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-
       setActionError(error instanceof Error ? error.message : 'Failed to approve review item');
     } finally {
       setActionKey(null);
@@ -147,7 +188,7 @@ function SpacesContent() {
     setActionKey(nextActionKey);
     setActionError(null);
     setActionNotice(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await rejectReview(resourceKind, resourceId, { reason: '' });
@@ -156,39 +197,63 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-
       setActionError(error instanceof Error ? error.message : 'Failed to reject review item');
     } finally {
       setActionKey(null);
     }
   }
 
+  async function handleAddMember(spaceId: string, input: { memberType: 'agent' | 'human'; memberId: string; role: string }) {
+    if (!canManageSpaces) {
+      return;
+    }
+
+    setActiveSpaceId(spaceId);
+    setActionError(null);
+    setActionNotice(null);
+    clearAllAuthErrors();
+
+    try {
+      await addMember(input);
+      setActionNotice(`Added ${input.memberType} ${input.memberId} to the workspace.`);
+    } catch (error) {
+      if (consumeUnauthorized(error)) {
+        return;
+      }
+      setActionError(error instanceof Error ? error.message : 'Failed to add member to the workspace');
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-pink-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-8 dark:border-[#3D3D5C] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-orange-600 dark:border-[#4A4568] dark:bg-[#1E1E32]/70 dark:text-orange-300">
-              <Sparkles className="h-3.5 w-3.5" />
-              Operations Space
+      {/* Hero Section */}
+      {canViewAdminPanels ? (
+        <section className="relative overflow-hidden rounded-[2rem] border border-pink-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-8 dark:border-[#3D3D5C] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-orange-600 dark:border-[#4A4568] dark:bg-[#1E1E32]/70 dark:text-orange-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                Operations Space
+              </div>
+              <h1 className="mt-4 text-4xl font-bold tracking-tight text-gray-900 dark:text-[#E8E8EC]">
+                Live collaboration workspace for humans and agents.
+              </h1>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600 dark:text-[#9CA3AF]">
+                This space aggregates the current operating picture across agent feedback, governance review, identities,
+                and published market inventory so human supervisors can coordinate from one backend-backed surface.
+              </p>
             </div>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight text-gray-900 dark:text-[#E8E8EC]">
-              Live collaboration workspace for humans and agents.
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600 dark:text-[#9CA3AF]">
-              This space aggregates the current operating picture across agent feedback, governance review, identities,
-              and published market inventory so human supervisors can coordinate from one backend-backed surface.
-            </p>
-          </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <MetricCard label="Recent events" value={events.length.toString()} icon={<Sparkles className="h-4 w-4" />} />
-            <MetricCard label="Pending reviews" value={pendingReviews.length.toString()} icon={<ShieldCheck className="h-4 w-4" />} />
-            <MetricCard label="Active agents" value={activeAgents.length.toString()} icon={<Bot className="h-4 w-4" />} />
+            <div className="grid gap-3 sm:grid-cols-3">
+              <MetricCard label="Recent events" value={events.length.toString()} icon={<Sparkles className="h-4 w-4" />} />
+              <MetricCard label="Pending reviews" value={pendingReviews.length.toString()} icon={<ShieldCheck className="h-4 w-4" />} />
+              <MetricCard label="Active agents" value={activeAgents.length.toString()} icon={<Bot className="h-4 w-4" />} />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
+      {/* Focused Context */}
       {focusedAgent || focusedEvent || focusedSpace ? (
         <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
           <div className="space-y-2">
@@ -210,8 +275,13 @@ function SpacesContent() {
         </Card>
       ) : null}
 
+      {/* Alerts */}
       {shouldShowSessionExpired ? (
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep operating the workspace." />
+      ) : null}
+
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to access some workspace data. Admin-only panels are hidden until a higher-privilege session is available." />
       ) : null}
 
       {actionNotice ? (
@@ -225,7 +295,7 @@ function SpacesContent() {
         </Card>
       ) : null}
 
-      {!shouldShowSessionExpired && (actionError || gateError) ? (
+      {!shouldShowSessionExpired && !shouldShowForbidden && (actionError || gateError) ? (
         <Card
           role="alert"
           aria-live="assertive"
@@ -236,307 +306,56 @@ function SpacesContent() {
         </Card>
       ) : null}
 
-      <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Persisted spaces</h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-              API-backed operational containers with explicit members and timeline history.
-            </p>
-          </div>
-          <Badge variant="info">{persistedSpaces.length}</Badge>
-        </div>
+      {/* Spaces List */}
+      <SpacesList
+        spaces={persistedSpaces}
+        isLoading={spacesQuery.isLoading}
+        activeSpaceId={activeSpaceId}
+        isAdding={isAdding}
+        canManageSpaces={canManageSpaces}
+        onShowCreateModal={() => setShowCreateModal(true)}
+        onAddMember={handleAddMember}
+        setActiveSpaceId={setActiveSpaceId}
+      />
 
-        {spacesQuery.isLoading && persistedSpaces.length === 0 ? (
-          <SectionNotice message="Loading persisted spaces..." />
-        ) : persistedSpaces.length === 0 ? (
-          <SectionNotice message="No persisted spaces are available yet." />
-        ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {persistedSpaces.map((space) => (
-              <div
-                key={space.id}
-                role="group"
-                aria-label={`${space.name} space`}
-                className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{space.name}</p>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">{space.summary}</p>
-                  </div>
-                  <Badge variant="secondary">{space.status}</Badge>
-                </div>
-
-                <p className="mt-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
-                  Members: {space.members.map((member) => member.member_id).join(', ') || 'none'}
-                </p>
-
-                <div className="mt-3 space-y-2">
-                  {space.timeline.slice(0, 2).map((entry) => (
-                    <div key={entry.id} className="rounded-xl border border-white/70 bg-white/70 px-3 py-2 dark:border-[#3D3D5C] dark:bg-[#252540]/80">
-                      <p className="text-sm font-medium text-gray-900 dark:text-[#E8E8EC]">{entry.summary}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-[#9CA3AF]">
-                        {entry.entry_type.replaceAll('_', ' ')}
-                      </p>
-                    </div>
-                  ))}
-                  {space.timeline.length === 0 ? (
-                    <SectionNotice message="No timeline entries yet." />
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
+      {/* Main Content Grid */}
+      {canViewAdminPanels ? (
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Operations Space</h2>
-              <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                Recent agent feedback and runtime activity flowing through the inbox event stream.
-              </p>
-            </div>
-            <Badge variant="agent">{recentAgentEvents.length}</Badge>
-          </div>
+        {/* Operations Feed */}
+        <OperationsFeed
+          events={recentAgentEvents}
+          agents={agents}
+          isLoading={eventsQuery.isLoading}
+          selectedAgentId={selectedAgentId}
+          selectedEventType={selectedEventType}
+          onSelectAgent={setSelectedAgentId}
+          onSelectEventType={setSelectedEventType}
+        />
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedAgentId === null ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedAgentId === null}
-              onClick={() => setSelectedAgentId(null)}
-            >
-              All agents
-            </Button>
-            {activeAgents.map((agent) => (
-              <Button
-                key={agent.id}
-                variant={selectedAgentId === agent.id ? 'primary' : 'secondary'}
-                size="sm"
-                aria-pressed={selectedAgentId === agent.id}
-                onClick={() => setSelectedAgentId(agent.id)}
-                aria-label={`Show activity for ${agent.id}`}
-              >
-                Agent {agent.name}
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedEventType === 'all' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedEventType === 'all'}
-              onClick={() => setSelectedEventType('all')}
-            >
-              All activity
-            </Button>
-            <Button
-              variant={selectedEventType === 'completed' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedEventType === 'completed'}
-              onClick={() => setSelectedEventType('completed')}
-            >
-              Completed
-            </Button>
-            <Button
-              variant={selectedEventType === 'failed' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedEventType === 'failed'}
-              onClick={() => setSelectedEventType('failed')}
-            >
-              Failed
-            </Button>
-          </div>
-
-          {eventsQuery.isLoading && recentAgentEvents.length === 0 ? (
-            <SectionNotice message="Loading event activity..." />
-          ) : recentAgentEvents.length === 0 ? (
-            <SectionNotice message="No agent activity has landed in the workspace yet." />
-          ) : (
-            <div role="region" aria-label="Operations feed" className="space-y-3">
-              {recentAgentEvents.map((event) => (
-                <div key={event.id} className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{event.summary}</p>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                        {event.actor_id} · {event.event_type.replaceAll('_', ' ')}
-                      </p>
-                    </div>
-                    <Badge variant="secondary">{formatTimestamp(event.created_at)}</Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
+        {/* Right Panel */}
         <div className="space-y-6">
-          <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Governance Space</h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  Human review backlog for agent-originated market submissions.
-                </p>
-              </div>
-              <Badge variant={selectedReviewStatus === 'rejected' ? 'secondary' : 'warning'}>
-                {visibleReviews.length}
-              </Badge>
-            </div>
+          {/* Governance Panel */}
+          <GovernancePanel
+            reviews={visibleReviews}
+            isLoading={reviewsQuery.isLoading}
+            selectedStatus={selectedReviewStatus}
+            actionKey={actionKey}
+            onSelectStatus={setSelectedReviewStatus}
+            onApprove={handleApproveReview}
+            onReject={handleRejectReview}
+          />
 
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedReviewStatus === 'all' ? 'primary' : 'secondary'}
-                size="sm"
-                aria-pressed={selectedReviewStatus === 'all'}
-                onClick={() => setSelectedReviewStatus('all')}
-              >
-                All reviews
-              </Button>
-              <Button
-                variant={selectedReviewStatus === 'pending' ? 'primary' : 'secondary'}
-                size="sm"
-                aria-pressed={selectedReviewStatus === 'pending'}
-                onClick={() => setSelectedReviewStatus('pending')}
-              >
-                Pending Review
-              </Button>
-              <Button
-                variant={selectedReviewStatus === 'rejected' ? 'primary' : 'secondary'}
-                size="sm"
-                aria-pressed={selectedReviewStatus === 'rejected'}
-                onClick={() => setSelectedReviewStatus('rejected')}
-              >
-                Rejected Review
-              </Button>
-            </div>
+          {/* Identity Panel */}
+          <IdentityPanel
+            agents={agents}
+            tokensByAgent={tokensByAgent}
+            eventCounts={agentEventCounts}
+            isLoading={agentsQuery.isLoading}
+            selectedAgentId={selectedAgentId}
+            onSelectAgent={setSelectedAgentId}
+          />
 
-            {reviewsQuery.isLoading && visibleReviews.length === 0 ? (
-              <SectionNotice message="Loading governance queue..." />
-            ) : visibleReviews.length === 0 ? (
-              <SectionNotice
-                message={
-                  selectedReviewStatus === 'rejected'
-                    ? 'No rejected submissions are visible right now.'
-                    : selectedReviewStatus === 'all'
-                      ? 'No review items are visible right now.'
-                      : 'No submissions are waiting for governance review.'
-                }
-              />
-            ) : (
-              <div className="space-y-2">
-                {visibleReviews.slice(0, 4).map((item) => (
-                  <div key={`${item.resource_kind}-${item.resource_id}`} className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{item.title}</p>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                          {item.resource_kind} · submitted by {item.created_by_actor_id ?? 'unknown-agent'}
-                        </p>
-                      </div>
-                      {item.publication_status === 'pending_review' ? (
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            loading={actionKey === `reject:${item.resource_kind}:${item.resource_id}`}
-                            onClick={() => handleRejectReview(item.resource_kind, item.resource_id)}
-                            leftIcon={
-                              actionKey !== `reject:${item.resource_kind}:${item.resource_id}`
-                                ? <XCircle className="h-4 w-4" />
-                                : undefined
-                            }
-                          >
-                            Reject {item.title}
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            loading={actionKey === `approve:${item.resource_kind}:${item.resource_id}`}
-                            onClick={() => handleApproveReview(item.resource_kind, item.resource_id)}
-                            leftIcon={
-                              actionKey !== `approve:${item.resource_kind}:${item.resource_id}`
-                                ? <CheckCircle2 className="h-4 w-4" />
-                                : undefined
-                            }
-                          >
-                            Approve {item.title}
-                          </Button>
-                        </div>
-                      ) : (
-                        <Badge variant="secondary">{item.publication_status}</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Identity Space</h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  Active agent roster available to the management control plane.
-                </p>
-              </div>
-              <Badge variant="info">{agents.length}</Badge>
-            </div>
-
-            {agentsQuery.isLoading && agents.length === 0 ? (
-              <SectionNotice message="Loading agent roster..." />
-            ) : agents.length === 0 ? (
-              <SectionNotice message="No agents are registered yet." />
-            ) : (
-              <div className="space-y-2">
-                {agents.slice(0, 4).map((agent) => (
-                  <div
-                    key={agent.id}
-                    role="group"
-                    aria-label={`${agent.name} identity`}
-                    className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">Identity: {agent.name}</p>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                          {agent.id} · {agent.auth_method}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {(tokensByAgent[agent.id] ?? []).map((token) => (
-                            <Badge key={token.id} variant="secondary">
-                              {token.display_name ?? token.displayName ?? token.id}
-                            </Badge>
-                          ))}
-                          <Badge variant="secondary">
-                            {agentEventCounts[agent.id] ?? 0} recent event{(agentEventCounts[agent.id] ?? 0) === 1 ? '' : 's'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
-                        <Button
-                          variant={selectedAgentId === agent.id ? 'primary' : 'secondary'}
-                          size="sm"
-                          onClick={() => setSelectedAgentId(agent.id)}
-                        >
-                          Focus {agent.name}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
+          {/* Market Inventory */}
           <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -550,84 +369,43 @@ function SpacesContent() {
                 <Badge variant="secondary">{publishedSkills.length} skills</Badge>
               </div>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <InventoryCard
-                icon={<Boxes className="h-4 w-4" />}
-                title="Published assets"
-                items={publishedAssets.slice(0, 3).map((item) => item.display_name)}
-              />
-              <InventoryCard
-                icon={<Wrench className="h-4 w-4" />}
-                title="Published skills"
-                items={publishedSkills.slice(0, 3).map((item) => item.name)}
-              />
-            </div>
+            <MarketInventoryPanel 
+              data={{
+                assets: publishedAssets.slice(0, 3).map((item) => item.display_name),
+                skills: publishedSkills.slice(0, 3).map((item) => item.name),
+              }} 
+            />
           </Card>
         </div>
       </div>
+      ) : null}
+
+      {/* Create Space Modal */}
+      {canManageSpaces && showCreateModal && (
+        <CreateSpaceModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={async (input) => {
+            setActionError(null);
+            setActionNotice(null);
+            clearAllAuthErrors();
+
+            try {
+              await create(input);
+              setShowCreateModal(false);
+              setActionNotice(`Created workspace ${input.name}.`);
+              await spacesQuery.refresh();
+            } catch (error) {
+              if (consumeUnauthorized(error)) {
+                return;
+              }
+              setActionError(error instanceof Error ? error.message : 'Failed to create workspace');
+            }
+          }}
+          isCreating={isCreating}
+        />
+      )}
     </div>
   );
-}
-
-function MetricCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-orange-100 bg-white/75 px-4 py-3 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/65">
-      <div className="flex items-center gap-2 text-orange-600 dark:text-orange-300">
-        {icon}
-        <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
-      </div>
-      <p className="mt-3 text-3xl font-semibold text-gray-900 dark:text-[#E8E8EC]">{value}</p>
-    </div>
-  );
-}
-
-function SectionNotice({ message }: { message: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55 dark:text-[#9CA3AF]">
-      {message}
-    </div>
-  );
-}
-
-function InventoryCard({
-  icon,
-  title,
-  items,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  items: string[];
-}) {
-  return (
-    <div className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55">
-      <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-[#E8E8EC]">
-        {icon}
-        {title}
-      </div>
-      <div className="mt-3 space-y-2">
-        {items.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">Nothing published yet.</p>
-        ) : (
-          items.map((item) => (
-            <p key={item} className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-              {item}
-            </p>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-function formatTimestamp(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toISOString().replace('T', ' ').replace('.000Z', ' UTC');
 }
 
 export default function SpacesPage() {

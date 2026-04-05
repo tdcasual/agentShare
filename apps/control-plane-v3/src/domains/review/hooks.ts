@@ -17,7 +17,7 @@ import type { ReviewQueueItem, ApproveReviewInput, RejectReviewInput } from './t
 
 export function useReviews(options?: SWRConfiguration) {
   return useSWR<{ items: ReviewQueueItem[] }>(
-    '/api/reviews',
+    options?.isPaused ? null : '/api/reviews',
     () => api.getReviews(),
     {
       ...pollingConfig,  // Review 队列需要较新鲜的数据

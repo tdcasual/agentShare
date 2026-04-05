@@ -45,17 +45,7 @@ export type {
   TaskTargetView,
 } from '@/domains/task/types';
 
-export type {
-  Asset,
-  AssetType,
-  AssetVisibility,
-  AssetStatus,
-  AssetMetadata,
-  AssetReview,
-  AssetEvents,
-  CreateAssetInput,
-  UpdateAssetInput,
-} from '@/domains/asset/types';
+// Asset domain types removed - domain is being deprecated
 
 export type {
   ReviewQueueItem,
@@ -91,11 +81,11 @@ export interface PaginatedResponse<T> {
 
 import type { IdentityEvents } from '@/domains/identity/types';
 import type { TaskEvents } from '@/domains/task/types';
-import type { AssetEvents } from '@/domains/asset/types';
+// Asset domain removed
 import type { ReviewEvents } from '@/domains/review/types';
 
 // 合并所有领域事件
-export type DomainEvents = IdentityEvents & TaskEvents & AssetEvents & ReviewEvents;
+export type DomainEvents = IdentityEvents & TaskEvents & ReviewEvents;
 
 // ============================================
 // 向后兼容的别名
@@ -110,9 +100,6 @@ export type TaskSummary = import('@/domains/task/types').Task;
 export type RunSummary = import('@/domains/task/types').Run;
 export type TokenFeedbackSummary = import('@/domains/task/types').TokenFeedback;
 export type AgentTokenSummary = import('@/domains/task/types').AgentToken;
-
-// 资产相关别名
-export type AssetSummary = import('@/domains/asset/types').Asset;
 
 // 输入类型别名
 export type TaskCreateInput = import('@/domains/task/types').CreateTaskInput;
@@ -147,26 +134,63 @@ export interface BootstrapStatus {
   readonly setup_required?: boolean;
 }
 
-export interface ManagementSessionSummary {
-  readonly id: string;
-  readonly session_id?: string;
-  readonly account_id?: string;
-  readonly actor_id?: string;
-  readonly identity_id?: string;
-  readonly email?: string;
+// ============================================
+// Management Session Types
+// ============================================
+
+// 从 identity domain 重新导出，避免重复定义
+export type { ManagementSessionSummary } from '@/domains/identity/types';
+
+import type { ManagementSessionSummary } from '@/domains/identity/types';
+
+/**
+ * 前端使用的Domain Model
+ * 使用 camelCase 和 Date 对象
+ */
+export interface ManagementSession {
+  readonly actorId: string;
+  readonly actorType: string;
+  readonly sessionId: string;
+  readonly email: string;
   readonly role: string;
-  readonly status: string;
-  readonly created_at: string;
-  readonly expires_at: string | number;
+  readonly authMethod: string;
+  readonly expiresIn: number;
+  readonly issuedAt: Date;
+  readonly expiresAt: Date;
+}
+
+// Session转换函数
+export function toManagementSession(dto: ManagementSessionSummary): ManagementSession {
+  return {
+    actorId: dto.actor_id,
+    actorType: dto.actor_type,
+    sessionId: dto.session_id,
+    email: dto.email,
+    role: dto.role,
+    authMethod: dto.auth_method,
+    expiresIn: dto.expires_in,
+    issuedAt: new Date(dto.issued_at * 1000),
+    expiresAt: new Date(dto.expires_at * 1000),
+  };
+}
+
+export function toManagementSessionDTO(model: ManagementSession): Omit<ManagementSessionSummary, 'status' | 'auth_method' | 'expires_in'> & { issued_at: number; expires_at: number } {
+  return {
+    actor_id: model.actorId,
+    actor_type: model.actorType,
+    session_id: model.sessionId,
+    email: model.email,
+    role: model.role as 'viewer' | 'operator' | 'admin' | 'owner',
+    issued_at: Math.floor(model.issuedAt.getTime() / 1000),
+    expires_at: Math.floor(model.expiresAt.getTime() / 1000),
+  };
 }
 
 // ============================================
 // 弃用警告（开发时提示）
 // ============================================
 
-// 这些类型将在 v2.0 中移除，请直接使用领域类型
-/** @deprecated 使用 AssetType 替代 */
-export type AssetKind = import('@/domains/asset/types').AssetType;
+
 
 // ============================================
 // 公共枚举

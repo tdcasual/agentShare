@@ -34,4 +34,31 @@ describe('route-policy', () => {
       allowed: true,
     });
   });
+
+  it('blocks anonymous access to approvals', () => {
+    expect(getRoutePolicy('/approvals')).toBeDefined();
+    expect(isRouteAllowed('/approvals', 'anonymous')).toEqual({
+      allowed: false,
+      redirect: '/login',
+      reason: 'Authentication required for /approvals',
+    });
+  });
+
+  it('blocks anonymous access to playbooks', () => {
+    expect(getRoutePolicy('/playbooks')).toBeDefined();
+    expect(isRouteAllowed('/playbooks', 'anonymous')).toEqual({
+      allowed: false,
+      redirect: '/login',
+      reason: 'Authentication required for /playbooks',
+    });
+  });
+
+  it('blocks anonymous access to runs', () => {
+    expect(getRoutePolicy('/runs')).toBeDefined();
+    expect(isRouteAllowed('/runs', 'anonymous')).toEqual({
+      allowed: false,
+      redirect: '/login',
+      reason: 'Authentication required for /runs',
+    });
+  });
 });

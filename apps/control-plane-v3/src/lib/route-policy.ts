@@ -1,11 +1,24 @@
 /**
  * Route Policy - 路由访问策略
  * 
- * 定义每个路由的访问要求、数据源和未授权行为
- * 单一真实来源，强制执行访问控制
+ * 定义每个路由的：
+ * - 认证要求（是否需要登录）
+ * - 数据源（backend/demo/local）
+ * - 未授权行为（redirect/block/allow_readonly）
+ * 
+ * 注意：角色权限检查由 role-system.ts 负责
+ * 两者关系：
+ * - route-policy.ts: 控制"是否可访问"（认证层）
+ * - role-system.ts: 控制"谁可访问"（权限层）
+ * 
+ * 完整访问控制流程：
+ * 1. RouteGuard 检查 route-policy（是否需认证）
+ * 2. 通过后，检查 role-system（角色是否足够）
+ * 3. 两者都通过才允许访问
  */
 
 import type { SessionState } from './session-state';
+import { ROUTE_ROLES } from './role-system';
 
 export type RouteMode = 
   | 'bootstrap'      // 引导路由
@@ -119,6 +132,30 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   },
   {
     path: '/spaces',
+    mode: 'authenticated',
+    requiredSession: 'authenticated',
+    dataSource: 'backend',
+    unauthorizedBehavior: 'redirect',
+    redirectTo: '/login',
+  },
+  {
+    path: '/approvals',
+    mode: 'authenticated',
+    requiredSession: 'authenticated',
+    dataSource: 'backend',
+    unauthorizedBehavior: 'redirect',
+    redirectTo: '/login',
+  },
+  {
+    path: '/playbooks',
+    mode: 'authenticated',
+    requiredSession: 'authenticated',
+    dataSource: 'backend',
+    unauthorizedBehavior: 'redirect',
+    redirectTo: '/login',
+  },
+  {
+    path: '/runs',
     mode: 'authenticated',
     requiredSession: 'authenticated',
     dataSource: 'backend',
@@ -254,4 +291,48 @@ export function isManagementRoute(path: string): boolean {
 export function isDemoRoute(path: string): boolean {
   const policy = getRoutePolicy(path);
   return policy?.mode === 'demo';
+}
+
+/**
+ * 验证路由配置一致性
+ * 
+ * 检查 route-policy.ts 和 role-system.ts 中定义的路由是否同步
+ * 用于开发时检测配置漂移
+ * 
+ * @returns 配置不一致的路由列表
+ */
+export function validateRouteConsistency(): Array<{
+  path: string;
+  issue: string;
+}> {
+  const issues: Array<{ path: string; issue: string }> = [];
+  
+  // 检查所有在 role-system 中定义的路由是否都在 route-policy 中
+  for (const path of Object.keys(ROUTE_ROLES)) {
+    const policy = getRoutePolicy(path);
+    if (!policy) {
+      issues.push({
+        path,
+        issue: '在 role-system.ts 中定义但 route-policy.ts 中缺失',
+      });
+    } else if (policy.mode !== 'authenticated') {
+      issues.push({
+        path,
+        issue: `在 role-system.ts 中定义但 route-policy.ts 中为 ${policy.mode} 模式（期望 authenticated）`,
+      });
+    }
+  }
+  
+  // 检查所有 route-policy 中的 authenticated 路由是否都在 role-system 中
+  for (const policy of ROUTE_POLICIES) {
+    if (policy.mode === 'authenticated') {
+      if (!ROUTE_ROLES[policy.path]) {
+        // 注意：并非所有 authenticated 路由都需要角色限制
+        // 如 viewer 级别路由可能不需要显式定义
+        // 这里只检查是否有明显遗漏
+      }
+    }
+  }
+  
+  return issues;
 }

@@ -1,13 +1,14 @@
 {
-  "name": "Control Plane V3",
+  "name": "Control Plane V3 - 双生宇宙",
   "short_name": "Control Plane",
-  "description": "人类与智能体共享的控制平面",
+  "description": "人类与智能体共享的控制平面，支持离线使用",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFF5F7",
   "theme_color": "#FF1493",
-  "orientation": "portrait",
+  "orientation": "any",
   "scope": "/",
+  "id": "/",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

@@ -13,28 +13,52 @@ export function isUnauthorizedError(error: unknown): error is ApiError {
   return error instanceof ApiError && error.status === 401;
 }
 
+export function isForbiddenError(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.status === 403;
+}
+
+export function isAuthError(error: unknown): error is ApiError {
+  return error instanceof ApiError && (error.status === 401 || error.status === 403);
+}
+
 export function useManagementPageSessionRecovery(queryErrors: QueryErrorInput) {
   const gate = useManagementSessionGate({
     redirectOnMissingSession: false,
   });
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [forbidden, setForbidden] = useState(false);
 
-  const querySessionExpired = normalizeErrors(queryErrors).some(isUnauthorizedError);
+  const normalizedErrors = normalizeErrors(queryErrors);
+  const querySessionExpired = normalizedErrors.some(isUnauthorizedError);
+  const queryForbidden = normalizedErrors.some(isForbiddenError);
   const shouldShowSessionExpired = sessionExpired || querySessionExpired;
+  const shouldShowForbidden = forbidden || queryForbidden;
 
   return {
     ...gate,
     querySessionExpired,
+    queryForbidden,
     shouldShowSessionExpired,
+    shouldShowForbidden,
     sessionExpired,
+    forbidden,
     clearSessionExpired: () => setSessionExpired(false),
+    clearForbidden: () => setForbidden(false),
+    clearAllAuthErrors: () => {
+      setSessionExpired(false);
+      setForbidden(false);
+    },
     markSessionExpired: () => setSessionExpired(true),
+    markForbidden: () => setForbidden(true),
     consumeUnauthorized: (error: unknown) => {
       if (isUnauthorizedError(error)) {
         setSessionExpired(true);
         return true;
       }
-
+      if (isForbiddenError(error)) {
+        setForbidden(true);
+        return true;
+      }
       return false;
     },
   };
@@ -65,6 +89,30 @@ export function ManagementSessionExpiredAlert({
         >
           Return to Login
         </Link>
+      </div>
+    </Card>
+  );
+}
+
+export function ManagementForbiddenAlert({
+  message,
+  className,
+}: {
+  message: string;
+  className?: string;
+}) {
+  return (
+    <Card
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      className={cn(
+        'border border-amber-100 bg-amber-50/80 text-amber-700 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-400',
+        className
+      )}
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <span>{message}</span>
       </div>
     </Card>
   );

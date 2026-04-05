@@ -71,25 +71,21 @@ export interface Task {
 }
 
 // ============================================
-// 实体: Run
+// 实体: Run - 与后端 /api/runs 返回对齐
 // ============================================
 
 export interface Run {
   readonly id: string;
-  readonly taskId: string;
-  readonly task_id?: string;  // API 返回 snake_case
-  readonly targetId: string;
-  readonly task_target_id?: string;  // API 返回 snake_case
-  readonly tokenId: string;
-  readonly token_id?: string;  // API 返回 snake_case
+  readonly task_id: string;
+  readonly agent_id: string;
+  readonly token_id: string;
+  readonly task_target_id: string;
   readonly status: RunStatus;
-  readonly result?: unknown;
-  readonly resultSummary?: string;
-  readonly result_summary?: string;  // API 返回 snake_case
-  readonly errorMessage?: string;
-  readonly startedAt?: string;
-  readonly completedAt?: string;
-  readonly createdAt: string;
+  readonly result_summary?: string;
+  readonly output_payload?: unknown;
+  readonly error_summary?: string;
+  readonly capability_invocations?: unknown;
+  readonly lease_events?: unknown;
 }
 
 // ============================================

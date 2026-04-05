@@ -37,16 +37,34 @@ const BREAKPOINTS = {
  * }
  */
 export function useDeviceType(): DeviceTypeInfo {
-  const [deviceInfo, setDeviceInfo] = useState<DeviceTypeInfo>({
-    type: 'desktop',
-    isMobile: false,
-    isTablet: false,
-    isTabletPortrait: false,
-    isTabletLandscape: false,
-    isDesktop: true,
-    orientation: 'landscape',
-    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
-    height: typeof window !== 'undefined' ? window.innerHeight : 1080,
+  // 使用 lazy initialization 避免 SSR 不匹配
+  const [deviceInfo, setDeviceInfo] = useState<DeviceTypeInfo>(() => {
+    // 服务端渲染默认值
+    if (typeof window === 'undefined') {
+      return {
+        type: 'desktop',
+        isMobile: false,
+        isTablet: false,
+        isTabletPortrait: false,
+        isTabletLandscape: false,
+        isDesktop: true,
+        orientation: 'landscape',
+        width: 1920,
+        height: 1080,
+      };
+    }
+    // 客户端初始值
+    return {
+      type: 'desktop',
+      isMobile: false,
+      isTablet: false,
+      isTabletPortrait: false,
+      isTabletLandscape: false,
+      isDesktop: true,
+      orientation: 'landscape',
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
   });
 
   useEffect(() => {

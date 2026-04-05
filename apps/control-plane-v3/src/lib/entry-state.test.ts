@@ -12,13 +12,16 @@ function createBootstrapStatus(overrides: Partial<BootstrapStatus> = {}): Bootst
 
 function createSession(overrides: Partial<ManagementSessionSummary> = {}): ManagementSessionSummary {
   return {
-    id: 'session-1',
+    status: 'authenticated',
+    actor_type: 'human',
+    actor_id: 'management',
+    role: 'owner',
+    auth_method: 'password',
     session_id: 'session-1',
     email: 'owner@example.com',
-    role: 'owner',
-    status: 'authenticated',
-    created_at: '2026-03-31T00:00:00Z',
-    expires_at: '2026-04-01T00:00:00Z',
+    expires_in: 43200,
+    issued_at: 1711584000,
+    expires_at: 1711627200,
     ...overrides,
   };
 }

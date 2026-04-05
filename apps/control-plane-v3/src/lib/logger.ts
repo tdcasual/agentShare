@@ -67,6 +67,7 @@ export const logger = {
   ui: new Logger({ namespace: 'UI', level: 'warn' }),
   error: new Logger({ namespace: 'Error', level: 'error' }),
   notifications: new Logger({ namespace: 'Notifications', level: 'info' }),
+  pwa: new Logger({ namespace: 'PWA', level: 'info' }),
 };
 
 export function createLogger(namespace: string, level?: LogLevel): Logger {

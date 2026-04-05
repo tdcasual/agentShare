@@ -43,4 +43,22 @@ describe('shell route integrity', () => {
   it('ships a real logout page', async () => {
     await expect(access(path.join(appDir, 'logout/page.tsx'))).resolves.toBeUndefined();
   });
+
+  it('ships an approvals page guarded by authenticated policy', async () => {
+    expect(getRoutePolicy('/approvals')).toBeDefined();
+    expect(isRouteAllowed('/approvals', 'authenticated')).toEqual({ allowed: true });
+    await expect(access(path.join(appDir, 'approvals/page.tsx'))).resolves.toBeUndefined();
+  });
+
+  it('ships a playbooks page guarded by authenticated policy', async () => {
+    expect(getRoutePolicy('/playbooks')).toBeDefined();
+    expect(isRouteAllowed('/playbooks', 'authenticated')).toEqual({ allowed: true });
+    await expect(access(path.join(appDir, 'playbooks/page.tsx'))).resolves.toBeUndefined();
+  });
+
+  it('ships a runs page guarded by authenticated policy', async () => {
+    expect(getRoutePolicy('/runs')).toBeDefined();
+    expect(isRouteAllowed('/runs', 'authenticated')).toEqual({ allowed: true });
+    await expect(access(path.join(appDir, 'runs/page.tsx'))).resolves.toBeUndefined();
+  });
 });

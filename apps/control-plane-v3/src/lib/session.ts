@@ -19,7 +19,7 @@ function syncGlobalSession(entryState: AppEntryState) {
       state: 'authenticated',
       email: entryState.session.email,
       role: entryState.session.role,
-      sessionId: entryState.session.session_id ?? entryState.session.id,
+      sessionId: entryState.session.session_id,
       lastLoadedAt: Date.now(),
     });
     return;

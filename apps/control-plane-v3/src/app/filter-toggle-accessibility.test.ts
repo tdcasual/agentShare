@@ -41,16 +41,19 @@ describe('filter toggle accessibility', () => {
   });
 
   it('marks settings, spaces, and tokens filters as pressed state toggles', async () => {
-    const [settingsSource, spacesSource, tokensSource] = await Promise.all([
+    const [settingsSource, _spacesSource, operationsFeedSource, governancePanelSource, tokensSource] = await Promise.all([
       readRouteSource('settings/page.tsx'),
       readRouteSource('spaces/page.tsx'),
+      readRouteSource('spaces/operations-feed.tsx'),
+      readRouteSource('spaces/governance-panel.tsx'),
       readRouteSource('tokens/page.tsx'),
     ]);
 
     expect(settingsSource).toMatch(/aria-pressed=\{selectedRosterFilter === 'all'\}/);
-    expect(spacesSource).toMatch(/aria-pressed=\{selectedAgentId === null\}/);
-    expect(spacesSource).toMatch(/aria-pressed=\{selectedEventType === 'all'\}/);
-    expect(spacesSource).toMatch(/aria-pressed=\{selectedReviewStatus === 'all'\}/);
+    // Spaces page aria-pressed attributes are now in sub-components
+    expect(operationsFeedSource).toMatch(/aria-pressed=\{selectedAgentId === null\}/);
+    expect(operationsFeedSource).toMatch(/aria-pressed=\{selectedEventType === 'all'\}/);
+    expect(governancePanelSource).toMatch(/aria-pressed=\{selectedStatus === 'all'\}/);
     expect(tokensSource).toMatch(/aria-pressed=\{selectedHealthFilter === 'all'\}/);
   });
 });

@@ -67,7 +67,7 @@ export function useLogout() {
 
 export function useAgents(options?: SWRConfiguration) {
   return useSWR<{ items: Agent[] }>(
-    '/api/agents',
+    options?.isPaused ? null : '/api/agents',
     () => api.getAgents(),
     {
       ...swrConfig,
@@ -141,6 +141,14 @@ export function refreshAdminAccounts() {
   return mutate('/api/admin-accounts');
 }
 
+export function refreshAgentsWithTokens() {
+  // 刷新 agents 列表
+  return mutate('/api/agents').then(() => {
+    // 刷新 bulk tokens 缓存
+    return mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
+  });
+}
+
 // ============================================
 // Prefetch
 // ============================================
@@ -200,7 +208,7 @@ export function useAgentsWithTokens(options?: SWRConfiguration) {
   
   const agentIds = agentsQuery.data?.items.map(a => a.id) ?? [];
   const tokensQuery = useSWR<Record<string, AgentToken[]>>(
-    agentIds.length > 0 ? [AGENT_TOKENS_BULK_KEY, ...agentIds] : null,
+    options?.isPaused || agentIds.length === 0 ? null : [AGENT_TOKENS_BULK_KEY, ...agentIds],
     async () => {
       const entries = await Promise.all(
         agentIds.map(async (agentId) => {

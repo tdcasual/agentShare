@@ -24,7 +24,6 @@
 
 export * from '@/domains/identity/hooks';
 export * from '@/domains/task/hooks';
-export * from '@/domains/asset/hooks';
 export * from '@/domains/review/hooks';
 
 // ============================================

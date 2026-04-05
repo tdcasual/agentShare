@@ -1,39 +1,52 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Bot, Building2, ChevronDown, ChevronUp, RefreshCw, Search, ShieldCheck, Trash2, Users } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Bot, Building2, RefreshCw, Search, ShieldCheck, Users, UserPlus, KeyRound, Plus } from 'lucide-react';
 import {
   refreshAdminAccounts,
-  refreshAgents,
+  refreshAgentsWithTokens,
   refreshSession,
-  useAgentTokens,
   useAdminAccounts,
   useAgentsWithTokens,
   useDeleteAgent,
 } from '@/domains/identity';
-import { useEvents } from '@/domains/event';
+import { useEvents, refreshEvents } from '@/domains/event';
 import { Layout } from '@/interfaces/human/layout';
 import {
-  isUnauthorizedError,
+  ManagementForbiddenAlert,
   ManagementSessionExpiredAlert,
-  ManagementSessionRecoveryNotice,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
+import { MetricCard, CoverageMetric } from './components';
+import { HumanOperatorsSection } from './human-operators-section';
+import { AIAgentsSection } from './ai-agents-section';
+import type { AdminAccountSummary, Agent } from '@/domains/identity';
 
-export default function IdentitiesPage() {
-  return (
-    <Layout>
-      <IdentitiesContent />
-    </Layout>
-  );
+function matchesAdminAccountQuery(
+  account: AdminAccountSummary,
+  query: string
+) {
+  if (!query) {return true;}
+  return [account.display_name, account.email, account.role, account.status, account.id]
+    .some((value) => value.toLowerCase().includes(query));
+}
+
+function matchesAgentQuery(
+  agent: Agent,
+  query: string
+) {
+  if (!query) {return true;}
+  return [agent.name, agent.id, agent.risk_tier, agent.auth_method, agent.status]
+    .some((value) => value.toLowerCase().includes(query));
 }
 
 function IdentitiesContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   const { data: adminAccountsData, isLoading: isAccountsLoading, error: accountsError } = useAdminAccounts();
@@ -44,8 +57,9 @@ function IdentitiesContent() {
     session,
     loading: gateLoading,
     error: gateError,
+    shouldShowForbidden,
     shouldShowSessionExpired,
-    clearSessionExpired,
+    clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery([accountsError, agentsQuery.error, eventsQuery.error]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,21 +109,19 @@ function IdentitiesContent() {
 
   const isLoading = gateLoading;
   const hasActiveSearch = normalizedQuery.length > 0;
+
   async function runRefreshAction(
     action: 'all' | 'accounts' | 'agents',
     operation: () => Promise<unknown>
   ) {
     setRefreshingAction(action);
     setActionError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await operation();
     } catch (error) {
-      if (consumeUnauthorized(error)) {
-        return;
-      }
-
+      if (consumeUnauthorized(error)) {return;}
       setActionError(error instanceof Error ? error.message : 'Failed to refresh identity data');
     } finally {
       setRefreshingAction(null);
@@ -121,7 +133,8 @@ function IdentitiesContent() {
       await Promise.all([
         refreshSession(),
         refreshAdminAccounts(),
-        refreshAgents(),
+        refreshAgentsWithTokens(),
+        refreshEvents(),
       ]);
     });
   }
@@ -131,30 +144,44 @@ function IdentitiesContent() {
   }
 
   async function retryAgents() {
-    await runRefreshAction('agents', refreshAgents);
+    await runRefreshAction('agents', refreshAgentsWithTokens);
   }
 
   async function handleDeleteAgent(agentId: string) {
     setDeletingAgentId(agentId);
     setActionError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await deleteAgent(agentId);
       setExpandedAgents((current) => current.filter((id) => id !== agentId));
     } catch (error) {
-      if (consumeUnauthorized(error)) {
-        return;
-      }
-
+      if (consumeUnauthorized(error)) {return;}
       setActionError(error instanceof Error ? error.message : 'Failed to delete agent');
     } finally {
       setDeletingAgentId(null);
     }
   }
 
+  const handleToggleAccount = (accountId: string) => {
+    setExpandedAccounts((current) =>
+      current.includes(accountId)
+        ? current.filter((id) => id !== accountId)
+        : [...current, accountId]
+    );
+  };
+
+  const handleToggleAgent = (agentId: string) => {
+    setExpandedAgents((current) =>
+      current.includes(agentId)
+        ? current.filter((id) => id !== agentId)
+        : [...current, agentId]
+    );
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC] mb-2">
@@ -164,16 +191,54 @@ function IdentitiesContent() {
             Review the persisted human operators and registered agents available to the management control plane.
           </p>
         </div>
-        <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
-          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
-            <Badge variant="primary">Operator</Badge>
-            <span className="dark:text-[#E8E8EC]">{session?.email ?? 'Loading...'}</span>
-            <span className="text-gray-300 dark:text-[#3D3D5C]">•</span>
-            <span>{session?.role ?? '...'}</span>
+        <div className="flex flex-col gap-3">
+          <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <Badge variant="primary">Operator</Badge>
+              <span className="dark:text-[#E8E8EC]">{session?.email ?? 'Loading...'}</span>
+              <span className="text-gray-300 dark:text-[#3D3D5C]">•</span>
+              <span>{session?.role ?? '...'}</span>
+            </div>
+          </Card>
+          {/* Management Actions */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => router.push('/settings')}
+              leftIcon={<UserPlus className="h-4 w-4" />}
+            >
+              Invite Operator
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => router.push('/tokens')}
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
+              Create Agent
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => router.push('/tokens')}
+              leftIcon={<KeyRound className="h-4 w-4" />}
+            >
+              Issue Token
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => router.push('/settings')}
+              leftIcon={<Building2 className="h-4 w-4" />}
+            >
+              Disable Account
+            </Button>
           </div>
-        </Card>
+        </div>
       </div>
 
+      {/* Search */}
       <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
@@ -203,6 +268,7 @@ function IdentitiesContent() {
         </div>
       </Card>
 
+      {/* Focused Identity */}
       {focusedIdentity ? (
         <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
           <div className="space-y-2">
@@ -219,6 +285,7 @@ function IdentitiesContent() {
         </Card>
       ) : null}
 
+      {/* Info Cards */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="border border-sky-100 dark:border-[#3D3D5C] bg-sky-50/70 dark:bg-[#1E1E32]/80">
           <div className="flex items-start gap-3">
@@ -249,6 +316,7 @@ function IdentitiesContent() {
         </Card>
       </div>
 
+      {/* Coverage Card */}
       <Card className="border border-amber-200 bg-amber-50/90 dark:border-amber-800 dark:bg-amber-900/20">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
@@ -286,6 +354,7 @@ function IdentitiesContent() {
         </div>
       </Card>
 
+      {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           label="Active Operators"
@@ -304,8 +373,13 @@ function IdentitiesContent() {
         />
       </div>
 
+      {/* Alerts */}
       {shouldShowSessionExpired ? (
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live identity data." />
+      ) : null}
+
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to access some identity data. Use an admin session to manage the full identity surface." />
       ) : null}
 
       {actionError ? (
@@ -341,6 +415,7 @@ function IdentitiesContent() {
         </Card>
       ) : null}
 
+      {/* Loading State */}
       {isLoading ? (
         <Card className="text-gray-600 dark:text-[#9CA3AF] flex items-center gap-3">
           <span className="animate-spin">🌸</span>
@@ -348,222 +423,49 @@ function IdentitiesContent() {
         </Card>
       ) : null}
 
+      {/* Main Content */}
       {!isLoading && !guardedError ? (
         <div className="grid gap-6 xl:grid-cols-2">
-          <Card variant="kawaii" className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">Human Operators</h2>
-                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  Persisted admin accounts from `/api/admin-accounts`
-                </p>
-              </div>
-              <Badge variant="human">{adminAccountList.length}</Badge>
-            </div>
+          <HumanOperatorsSection
+            accounts={adminAccountList}
+            filteredAccounts={filteredAdminAccounts}
+            isLoading={isAccountsLoading}
+            error={accountsError}
+            searchQuery={searchQuery}
+            expandedAccounts={expandedAccounts}
+            shouldShowSessionExpired={shouldShowSessionExpired}
+            shouldShowForbidden={shouldShowForbidden}
+            isRefreshing={refreshingAction === 'accounts'}
+            focusedAccountId={focus.adminId}
+            onToggleExpand={handleToggleAccount}
+            onRetry={retryAccounts}
+          />
 
-            {isAccountsLoading ? (
-              <SectionLoading message="Loading admin accounts..." />
-            ) : shouldShowSessionExpired && isUnauthorizedError(accountsError) ? (
-              <ManagementSessionRecoveryNotice message="Sign in again to reload human operators." />
-            ) : accountsErrorMessage ? (
-              <SectionError
-                message={`Human operator data is temporarily unavailable. ${accountsErrorMessage}`}
-                actionLabel="Retry human operators"
-                onRetry={retryAccounts}
-                isRefreshing={refreshingAction === 'accounts'}
-              />
-            ) : adminAccountList.length === 0 ? (
-              <EmptyState icon={<Users className="w-6 h-6" />} message="No admin accounts have been invited yet." />
-            ) : filteredAdminAccounts.length === 0 ? (
-              <EmptyState
-                icon={<Users className="w-6 h-6" />}
-                message={`No human operators match "${searchQuery.trim()}".`}
-              />
-            ) : (
-              <div className="space-y-3">
-                {filteredAdminAccounts.map((account) => (
-                  <div
-                    key={account.id}
-                    data-testid={`admin-card-${account.id}`}
-                    data-focus-state={account.id === focus.adminId ? 'focused' : 'default'}
-                    className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
-                      account.id === focus.adminId
-                        ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-                        : 'border-pink-100 dark:border-[#3D3D5C]'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                          {account.display_name}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-[#9CA3AF] break-all">
-                          {account.email}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Badge variant="human">{account.role}</Badge>
-                        <Badge variant={account.status === 'active' ? 'success' : 'warning'}>{account.status}</Badge>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-expanded={expandedAccounts.includes(account.id)}
-                        onClick={() => {
-                          setExpandedAccounts((current) =>
-                            current.includes(account.id)
-                              ? current.filter((id) => id !== account.id)
-                              : [...current, account.id]
-                          );
-                        }}
-                        rightIcon={
-                          expandedAccounts.includes(account.id)
-                            ? <ChevronUp className="h-4 w-4" />
-                            : <ChevronDown className="h-4 w-4" />
-                        }
-                      >
-                        {expandedAccounts.includes(account.id)
-                          ? `Hide details for ${account.display_name}`
-                          : `View details for ${account.display_name}`}
-                      </Button>
-                    </div>
-                    {expandedAccounts.includes(account.id) ? (
-                      <IdentityDetailsGrid
-                        items={[
-                          ['Account ID', account.id],
-                          ['Created', formatSnapshotTimestamp(account.created_at)],
-                          ['Updated', formatSnapshotTimestamp(account.updated_at)],
-                          ['Last login', formatOptionalTimestamp(account.last_login_at, 'Never signed in')],
-                        ]}
-                      />
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          <Card variant="feature" className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">AI Agents</h2>
-                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  Registered agent identities from `/api/agents`
-                </p>
-              </div>
-              <Badge variant="agent">{agents.length}</Badge>
-            </div>
-
-            {agentsQuery.isLoading ? (
-              <SectionLoading message="Loading agents..." />
-            ) : shouldShowSessionExpired && isUnauthorizedError(agentsQuery.error) ? (
-              <ManagementSessionRecoveryNotice message="Sign in again to reload agents." />
-            ) : agentsErrorMessage ? (
-              <SectionError
-                message={`Agent data is temporarily unavailable. ${agentsErrorMessage}`}
-                actionLabel="Retry agents"
-                onRetry={retryAgents}
-                isRefreshing={refreshingAction === 'agents'}
-              />
-            ) : agents.length === 0 ? (
-              <EmptyState icon={<Bot className="w-6 h-6" />} message="No agents are registered yet." />
-            ) : filteredAgents.length === 0 ? (
-              <EmptyState
-                icon={<Bot className="w-6 h-6" />}
-                message={`No AI agents match "${searchQuery.trim()}".`}
-              />
-            ) : (
-              <div className="space-y-3">
-                {filteredAgents.map((agent) => {
-                  const linkedTokens = tokensByAgent[agent.id] ?? [];
-                  const feedbackCount = agentFeedbackCounts[agent.id] ?? 0;
-
-                  return (
-                    <div
-                      key={agent.id}
-                      data-testid={`agent-card-${agent.id}`}
-                      data-focus-state={agent.id === focus.agentId ? 'focused' : 'default'}
-                      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
-                        agent.id === focus.agentId
-                          ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-                          : 'border-pink-100 dark:border-[#3D3D5C]'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                            {agent.name}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-[#9CA3AF] break-all">
-                            {agent.id}
-                          </p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <Badge variant="secondary">
-                              {linkedTokens.length} linked token{linkedTokens.length === 1 ? '' : 's'}
-                            </Badge>
-                            <Badge variant="secondary">
-                              {feedbackCount} recent feedback event{feedbackCount === 1 ? '' : 's'}
-                            </Badge>
-                          </div>
-                          {linkedTokens.length > 0 ? (
-                            <p className="mt-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                              {linkedTokens
-                                .slice(0, 2)
-                                .map((token) => token.display_name ?? token.displayName ?? token.id)
-                                .join(' · ')}
-                            </p>
-                          ) : null}
-                        </div>
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Badge variant="agent">{agent.risk_tier}</Badge>
-                          <Badge variant="info">{agent.auth_method}</Badge>
-                          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          aria-expanded={expandedAgents.includes(agent.id)}
-                          onClick={() => {
-                            setExpandedAgents((current) =>
-                              current.includes(agent.id)
-                                ? current.filter((id) => id !== agent.id)
-                                : [...current, agent.id]
-                            );
-                          }}
-                          rightIcon={
-                            expandedAgents.includes(agent.id)
-                              ? <ChevronUp className="h-4 w-4" />
-                              : <ChevronDown className="h-4 w-4" />
-                          }
-                        >
-                          {expandedAgents.includes(agent.id)
-                            ? `Hide details for ${agent.name}`
-                            : `View details for ${agent.name}`}
-                        </Button>
-                      </div>
-                      {expandedAgents.includes(agent.id) ? (
-                        <AgentManagementCard
-                          agent={agent}
-                          canDelete={session?.role === 'owner'}
-                          events={eventsQuery.events.filter((event) => event.actor_id === agent.id)}
-                          eventsErrorMessage={eventsErrorMessage}
-                          isDeleting={deletingAgentId === agent.id}
-                          onDelete={() => handleDeleteAgent(agent.id)}
-                        />
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Card>
+          <AIAgentsSection
+            agents={agents}
+            filteredAgents={filteredAgents}
+            tokensByAgent={tokensByAgent}
+            eventCounts={agentFeedbackCounts}
+            events={eventsQuery.events}
+            eventsErrorMessage={eventsErrorMessage}
+            isLoading={agentsQuery.isLoading}
+            error={agentsQuery.error}
+            searchQuery={searchQuery}
+            expandedAgents={expandedAgents}
+            deletingAgentId={deletingAgentId}
+            shouldShowSessionExpired={shouldShowSessionExpired}
+            shouldShowForbidden={shouldShowForbidden}
+            canDelete={session?.role === 'owner'}
+            isRefreshing={refreshingAction === 'agents'}
+            focusedAgentId={focus.agentId}
+            onToggleExpand={handleToggleAgent}
+            onRetry={retryAgents}
+            onDelete={handleDeleteAgent}
+          />
         </div>
       ) : null}
 
+      {/* Footer */}
       {!isLoading && !guardedError ? (
         <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
           <div className="flex items-start gap-3">
@@ -587,254 +489,10 @@ function IdentitiesContent() {
   );
 }
 
-function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
+export default function IdentitiesPage() {
   return (
-    <Card className="space-y-2 border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
-      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{label}</p>
-      <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
-      <p className="text-xs text-gray-400 dark:text-[#9CA3AF]">{hint}</p>
-    </Card>
+    <Layout>
+      <IdentitiesContent />
+    </Layout>
   );
-}
-
-function CoverageMetric({ label, value, hint }: { label: string; value: string; hint: string }) {
-  return (
-    <div className="rounded-2xl border border-amber-200/80 bg-white/70 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-950/10">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-300">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-amber-900 dark:text-amber-100">{value}</p>
-      <p className="mt-1 text-xs text-amber-700/80 dark:text-amber-300/80">{hint}</p>
-    </div>
-  );
-}
-
-function EmptyState({ icon, message }: { icon: React.ReactNode; message: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#252540]/60 p-6 text-center">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 dark:bg-[#3D3D5C] text-pink-600 dark:text-[#E891C0]">
-        {icon}
-      </div>
-      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">{message}</p>
-    </div>
-  );
-}
-
-function SectionLoading({ message }: { message: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#252540]/60 p-6 text-sm text-gray-600 dark:text-[#9CA3AF]">
-      {message}
-    </div>
-  );
-}
-
-function SectionError({
-  message,
-  actionLabel,
-  onRetry,
-  isRefreshing,
-}: {
-  message: string;
-  actionLabel: string;
-  onRetry: () => Promise<void>;
-  isRefreshing: boolean;
-}) {
-  return (
-    <div
-      role="alert"
-      className="rounded-2xl border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-400"
-    >
-      <div className="flex flex-col gap-4">
-        <p>{message}</p>
-        <div>
-          <Button
-            variant="secondary"
-            size="sm"
-            loading={isRefreshing}
-            onClick={onRetry}
-            leftIcon={!isRefreshing ? <RefreshCw className="h-4 w-4" /> : undefined}
-          >
-            {actionLabel}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function IdentityDetailsGrid({ items }: { items: Array<[string, string]> }) {
-  return (
-    <dl className="mt-4 grid gap-3 rounded-2xl border border-dashed border-pink-100 dark:border-[#3D3D5C] bg-white/60 dark:bg-[#1E1E32]/60 p-4 sm:grid-cols-2">
-      {items.map(([label, value]) => (
-        <div key={label} className="min-w-0">
-          <dt className="text-xs uppercase tracking-wide text-gray-400 dark:text-[#9CA3AF]">{label}</dt>
-          <dd className="mt-1 break-all text-sm text-gray-700 dark:text-[#E8E8EC]">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-function AgentManagementCard({
-  agent,
-  canDelete,
-  events,
-  eventsErrorMessage,
-  isDeleting,
-  onDelete,
-}: {
-  agent: {
-    id: string;
-    name: string;
-    risk_tier: string;
-    auth_method: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-  };
-  canDelete: boolean;
-  events: Array<{
-    id: string;
-    summary: string;
-    event_type: string;
-    created_at: string;
-  }>;
-  eventsErrorMessage: string | null;
-  isDeleting: boolean;
-  onDelete: () => Promise<void>;
-}) {
-  const tokensQuery = useAgentTokens(agent.id);
-  const tokens = tokensQuery.data?.items ?? [];
-
-  return (
-    <div className="mt-4 space-y-4">
-      <IdentityDetailsGrid
-        items={[
-          ['Agent ID', agent.id],
-          ['Created', formatSnapshotTimestamp(agent.created_at)],
-          ['Updated', formatSnapshotTimestamp(agent.updated_at)],
-          ['Authentication', agent.auth_method],
-        ]}
-      />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#1E1E32]/60 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
-              Linked Tokens
-            </h3>
-            <Badge variant="info">{tokens.length}</Badge>
-          </div>
-
-          {tokensQuery.isLoading ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Loading linked tokens...</p>
-          ) : tokens.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No active tokens are linked to this agent.</p>
-          ) : (
-            <div className="space-y-2">
-              {tokens.map((token) => (
-                <div key={token.id} className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 p-3">
-                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                    {token.display_name ?? token.displayName}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    {(token.status ?? 'unknown').toUpperCase()} · trust {(token.trust_score ?? token.trustScore ?? 0).toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#1E1E32]/60 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
-              Recent Events
-            </h3>
-            <Badge variant="secondary">{events.length}</Badge>
-          </div>
-
-          {eventsErrorMessage ? (
-            <p className="text-sm text-red-600 dark:text-red-400">Event feed unavailable. {eventsErrorMessage}</p>
-          ) : events.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No recent agent feedback events yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {events.slice(0, 3).map((event) => (
-                <div key={event.id} className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 p-3">
-                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{event.summary}</p>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    {event.event_type.replaceAll('_', ' ')} · {formatSnapshotTimestamp(event.created_at)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {canDelete ? (
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            loading={isDeleting}
-            onClick={onDelete}
-            leftIcon={!isDeleting ? <Trash2 className="h-4 w-4" /> : undefined}
-            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
-          >
-            Delete {agent.name}
-          </Button>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function formatSnapshotTimestamp(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toISOString().replace('T', ' ').replace('.000Z', ' UTC');
-}
-
-function formatOptionalTimestamp(value: string | undefined, fallback: string) {
-  return value ? formatSnapshotTimestamp(value) : fallback;
-}
-
-function matchesAdminAccountQuery(
-  account: {
-    display_name: string;
-    email: string;
-    role: string;
-    status: string;
-    id: string;
-  },
-  query: string
-) {
-  if (!query) {
-    return true;
-  }
-
-  return [account.display_name, account.email, account.role, account.status, account.id]
-    .some((value) => value.toLowerCase().includes(query));
-}
-
-function matchesAgentQuery(
-  agent: {
-    name: string;
-    id: string;
-    risk_tier: string;
-    auth_method: string;
-    status: string;
-  },
-  query: string
-) {
-  if (!query) {
-    return true;
-  }
-
-  return [agent.name, agent.id, agent.risk_tier, agent.auth_method, agent.status]
-    .some((value) => value.toLowerCase().includes(query));
 }

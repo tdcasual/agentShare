@@ -2,6 +2,7 @@
  * Route Guard - 路由守卫
  * 
  * 强制执行路由访问策略
+ * 支持四级角色权限检查：viewer < operator < admin < owner
  * 统一的入口状态解析和重定向
  */
 
@@ -11,16 +12,23 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { isRouteAllowed } from '@/lib/route-policy';
 import { resolveAppEntryState, useManagementSessionGate } from '@/lib/session';
+import { getRequiredRoleForPath, hasRequiredRole, type ManagementRole, isValidRole } from '@/lib/role-system';
+import { ForbiddenState } from './forbidden-state';
 import { Loader2 } from 'lucide-react';
 
 interface RouteGuardProps {
   children: React.ReactNode;
 }
 
+/**
+ * 全局路由守卫
+ * 处理引导、认证、角色权限三层检查
+ */
 export function RouteGuard({ children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [entryState, setEntryState] = useState<Awaited<ReturnType<typeof resolveAppEntryState>> | null>(null);
+  const [roleCheckFailed, setRoleCheckFailed] = useState<{ requiredRole: ManagementRole } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,13 +69,13 @@ export function RouteGuard({ children }: RouteGuardProps) {
     
     // 服务不可用
     if (entryState.kind === 'unavailable') {
-      // 留在当前页面，显示不可用状态
+      setRoleCheckFailed(null);
       return;
     }
 
     const sessionState = entryState.kind === 'authenticated_ready' ? 'authenticated' : 'anonymous';
 
-    // 检查路由访问权限
+    // 检查路由访问权限（基础认证）
     const allowed = isRouteAllowed(pathname, sessionState);
     
     if (!allowed.allowed && allowed.redirect) {
@@ -80,6 +88,21 @@ export function RouteGuard({ children }: RouteGuardProps) {
       router.replace('/');
       return;
     }
+    
+    // 角色权限检查（仅认证后）
+    if (entryState.kind === 'authenticated_ready') {
+      const requiredRole = getRequiredRoleForPath(pathname);
+      const userRoleStr = entryState.session.role;
+      const userRole = isValidRole(userRoleStr) ? userRoleStr : null;
+      
+      if (requiredRole && !hasRequiredRole(userRole, requiredRole)) {
+        setRoleCheckFailed({ requiredRole });
+        return;
+      }
+    }
+    
+    // 通过所有检查
+    setRoleCheckFailed(null);
   }, [entryState, pathname, router]);
   
   // 加载状态
@@ -117,6 +140,18 @@ export function RouteGuard({ children }: RouteGuardProps) {
             Retry
           </button>
         </div>
+      </div>
+    );
+  }
+  
+  // 角色权限不足 - 显示403页面
+  if (roleCheckFailed) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
+        <ForbiddenState 
+          requiredRole={roleCheckFailed.requiredRole}
+          resourceName={pathname}
+        />
       </div>
     );
   }

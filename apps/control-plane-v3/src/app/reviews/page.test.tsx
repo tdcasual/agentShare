@@ -124,6 +124,17 @@ describe('reviews page', () => {
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
   });
 
+  it('shows a forbidden-specific state when review queries return forbidden', () => {
+    useReviewsMock.mockReturnValue({
+      ...useReviewsMock(),
+      error: new ApiError(403, 'Forbidden'),
+    });
+
+    render(<ReviewsPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+  });
+
   it('filters the review queue by submission provenance', async () => {
     const user = userEvent.setup();
 

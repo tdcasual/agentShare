@@ -20,7 +20,8 @@ export class StateContainerImpl implements StateContainer {
   }
 
   get<T>(name: string): Store<T> | undefined {
-    return this.stores.get(name) as Store<T> | undefined;
+    const store = this.stores.get(name);
+    return store as Store<T> | undefined;
   }
 
   delete(name: string): void {

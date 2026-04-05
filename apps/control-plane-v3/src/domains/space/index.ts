@@ -1,16 +1,7 @@
-export type {
-  Space,
-  SpaceMember,
-  SpaceTimelineEntry,
-  SpaceListResponse,
-} from './types';
+/**
+ * Space Domain - 空间领域导出
+ */
 
-export {
-  listSpaces,
-  spaceApi,
-} from './api';
-
-export {
-  useSpaces,
-  refreshSpaces,
-} from './hooks';
+export * from './types';
+export * from './api';
+export * from './hooks';

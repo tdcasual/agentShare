@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-media-query';
@@ -26,7 +26,13 @@ export function MobileFab({
   className,
 }: MobileFabProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
+
+  // 避免 hydration 不匹配
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleMainClick = useCallback(() => {
     if (actions && actions.length > 0) {
@@ -41,8 +47,8 @@ export function MobileFab({
     setIsOpen(false);
   }, []);
 
-  // 只在移动端显示
-  if (!isMobile) {
+  // 避免 hydration 不匹配：服务端渲染时返回 null
+  if (!mounted || !isMobile) {
     return null;
   }
 
@@ -113,9 +119,15 @@ export function SimpleFab({
   label,
   className,
 }: SimpleFabProps) {
+  const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
 
-  if (!isMobile) {
+  // 避免 hydration 不匹配
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isMobile) {
     return null;
   }
 

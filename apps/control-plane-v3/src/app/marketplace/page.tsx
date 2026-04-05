@@ -21,6 +21,7 @@ import {
   governanceStatusLabel,
 } from '@/domains/governance';
 import {
+  ManagementForbiddenAlert,
   ManagementSessionExpiredAlert,
   ManagementSessionRecoveryNotice,
   useManagementPageSessionRecovery,
@@ -47,6 +48,7 @@ function MarketplaceContent() {
   const reviewsQuery = useReviews();
   const catalogQuery = useCatalog();
   const {
+    shouldShowForbidden,
     shouldShowSessionExpired,
     error: gateError,
   } = useManagementPageSessionRecovery([
@@ -190,6 +192,10 @@ function MarketplaceContent() {
         </div>
       </Card>
 
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to inspect the marketplace governance surface. Use an operator-or-higher management session to continue." />
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         {showReviewPanel ? (
         <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
@@ -213,18 +219,18 @@ function MarketplaceContent() {
             <ManagementSessionRecoveryNotice message="Sign in again to reload marketplace review state." />
           ) : null}
 
-          {!shouldShowSessionExpired && reviewError ? (
+          {!shouldShowSessionExpired && !shouldShowForbidden && reviewError ? (
             <SectionNotice tone="error" message={`Review queue is temporarily unavailable. ${reviewError}`} />
           ) : null}
 
-          {!shouldShowSessionExpired && !reviewError && loading && visibleReviewItems.length === 0 ? (
+          {!shouldShowSessionExpired && !shouldShowForbidden && !reviewError && loading && visibleReviewItems.length === 0 ? (
             <SectionNotice
               tone="default"
               message={selectedFilter === 'rejected' ? 'Loading rejected submissions...' : 'Loading pending agent submissions...'}
             />
           ) : null}
 
-          {!shouldShowSessionExpired && !reviewError && !loading && visibleReviewItems.length === 0 ? (
+          {!shouldShowSessionExpired && !shouldShowForbidden && !reviewError && !loading && visibleReviewItems.length === 0 ? (
             <SectionNotice
               tone="default"
               message={selectedFilter === 'rejected'
@@ -233,7 +239,7 @@ function MarketplaceContent() {
             />
           ) : null}
 
-          {!shouldShowSessionExpired && !reviewError && visibleReviewItems.length > 0 ? (
+          {!shouldShowSessionExpired && !shouldShowForbidden && !reviewError && visibleReviewItems.length > 0 ? (
             <div className="space-y-3">
               {visibleReviewItems.map((item) => (
                 <div key={`${item.resource_kind}-${item.resource_id}`} className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
@@ -272,9 +278,9 @@ function MarketplaceContent() {
               <Badge variant="agent">{catalogItems?.length ?? 0}</Badge>
             </div>
 
-            {catalogError ? <SectionNotice tone="error" message={`Published catalog is temporarily unavailable. ${catalogError}`} /> : null}
+            {!shouldShowForbidden && catalogError ? <SectionNotice tone="error" message={`Published catalog is temporarily unavailable. ${catalogError}`} /> : null}
 
-            {!catalogError && publishedAgentSecrets.length > 0 ? (
+            {!shouldShowForbidden && !catalogError && publishedAgentSecrets.length > 0 ? (
               <CatalogSection
                 title="Assets"
                 items={publishedAgentSecrets.map((item) => ({
@@ -292,7 +298,7 @@ function MarketplaceContent() {
               />
             ) : null}
 
-            {!catalogError && publishedAgentCapabilities.length > 0 ? (
+            {!shouldShowForbidden && !catalogError && publishedAgentCapabilities.length > 0 ? (
               <CatalogSection
                 title="Skills"
                 items={publishedAgentCapabilities.map((item) => ({
@@ -310,7 +316,7 @@ function MarketplaceContent() {
               />
             ) : null}
 
-            {!catalogError && publishedAgentSecrets.length === 0 && publishedAgentCapabilities.length === 0 ? (
+            {!shouldShowForbidden && !catalogError && publishedAgentSecrets.length === 0 && publishedAgentCapabilities.length === 0 ? (
               <SectionNotice tone="default" message="No release-backed agent publications are visible yet." />
             ) : null}
           </Card>
@@ -349,7 +355,7 @@ function MarketplaceContent() {
         </div>
       </div>
 
-      {gateError ? (
+      {gateError && !shouldShowForbidden ? (
         <ManagementSessionExpiredAlert message={gateError} />
       ) : null}
     </div>

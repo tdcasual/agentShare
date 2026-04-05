@@ -15,13 +15,18 @@ const deleteAgentMock = vi.fn();
 const refreshSessionMock = vi.fn();
 const refreshAdminAccountsMock = vi.fn();
 const refreshAgentsMock = vi.fn();
+const refreshAgentsWithTokensMock = vi.fn();
+const refreshEventsMock = vi.fn();
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
 }));
 
+const mockPush = vi.fn();
+
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
+  useRouter: () => ({ push: mockPush }),
 }));
 
 vi.mock('@/components/route-guard', () => ({
@@ -44,10 +49,12 @@ vi.mock('@/domains/identity', () => ({
   refreshSession: () => refreshSessionMock(),
   refreshAdminAccounts: () => refreshAdminAccountsMock(),
   refreshAgents: () => refreshAgentsMock(),
+  refreshAgentsWithTokens: () => refreshAgentsWithTokensMock(),
 }));
 
 vi.mock('@/domains/event', () => ({
   useEvents: () => useEventsMock(),
+  refreshEvents: () => refreshEventsMock(),
 }));
 
 describe('identities page', () => {
@@ -187,7 +194,8 @@ describe('identities page', () => {
     const user = userEvent.setup();
     refreshSessionMock.mockResolvedValue(undefined);
     refreshAdminAccountsMock.mockResolvedValue(undefined);
-    refreshAgentsMock.mockResolvedValue(undefined);
+    refreshAgentsWithTokensMock.mockResolvedValue(undefined);
+    refreshEventsMock.mockResolvedValue(undefined);
 
     render(<IdentitiesPage />);
 
@@ -196,14 +204,15 @@ describe('identities page', () => {
     await waitFor(() => {
       expect(refreshSessionMock).toHaveBeenCalledTimes(1);
       expect(refreshAdminAccountsMock).toHaveBeenCalledTimes(1);
-      expect(refreshAgentsMock).toHaveBeenCalledTimes(1);
+      expect(refreshAgentsWithTokensMock).toHaveBeenCalledTimes(1);
+      expect(refreshEventsMock).toHaveBeenCalledTimes(1);
     });
   });
 
   it('offers a retry action when backend loading fails', async () => {
     const user = userEvent.setup();
     refreshSessionMock.mockResolvedValue(undefined);
-    refreshAgentsMock.mockResolvedValue(undefined);
+    refreshAgentsWithTokensMock.mockResolvedValue(undefined);
 
     useAgentsWithTokensMock.mockReturnValue({
       agents: [],
@@ -221,7 +230,7 @@ describe('identities page', () => {
     await waitFor(() => {
       expect(refreshSessionMock).not.toHaveBeenCalled();
       expect(refreshAdminAccountsMock).not.toHaveBeenCalled();
-      expect(refreshAgentsMock).toHaveBeenCalledTimes(1);
+      expect(refreshAgentsWithTokensMock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -327,6 +336,19 @@ describe('identities page', () => {
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
   });
 
+  it('shows a forbidden-specific state when backend queries return forbidden', () => {
+    useAgentsWithTokensMock.mockReturnValue({
+      agents: [],
+      tokensByAgent: {},
+      isLoading: false,
+      error: new ApiError(403, 'Forbidden'),
+    });
+
+    render(<IdentitiesPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+  });
+
   it('highlights and expands the focused agent from the query string', () => {
     mockSearchParams = new URLSearchParams('agentId=bootstrap');
 
@@ -335,5 +357,17 @@ describe('identities page', () => {
     expect(screen.getByText('Focused identity')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /hide details for bootstrap agent/i })).toBeInTheDocument();
     expect(screen.getByTestId('agent-card-bootstrap')).toHaveAttribute('data-focus-state', 'focused');
+  });
+
+  it('offers explicit account and token management handoff actions inside identity details', async () => {
+    const user = userEvent.setup();
+
+    render(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: /view details for founding owner/i }));
+    await user.click(screen.getByRole('button', { name: /view details for bootstrap agent/i }));
+
+    expect(screen.getByRole('link', { name: /manage in settings/i })).toHaveAttribute('href', '/settings');
+    expect(screen.getByRole('link', { name: /manage tokens/i })).toHaveAttribute('href', '/tokens');
   });
 });

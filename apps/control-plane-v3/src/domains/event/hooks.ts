@@ -2,17 +2,16 @@
 
 import { useCallback } from 'react';
 import useSWR, { mutate, SWRConfiguration } from 'swr';
-import { swrConfig } from '@/lib/swr-config';
+import { pollingConfig } from '@/lib/swr-config';
 import { EVENTS_FEED_KEY, listEvents, markEventRead } from './api';
 
 export function useEvents(options?: SWRConfiguration) {
   const { data, error, isLoading, mutate: refresh } = useSWR(
-    EVENTS_FEED_KEY,
+    options?.isPaused ? null : EVENTS_FEED_KEY,
     () => listEvents(),
     {
-      ...swrConfig,
+      ...pollingConfig,
       refreshInterval: 30000,
-      revalidateOnFocus: true,
       ...options,
     }
   );

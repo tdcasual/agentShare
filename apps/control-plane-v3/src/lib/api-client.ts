@@ -51,6 +51,8 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     throw new ApiError(response.status, detail);
   }
 
+  // Note: Runtime validation would be better, but for now we trust the API
+  // Consider using zod or similar for runtime type checking
   return payload as T;
 }
 

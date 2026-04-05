@@ -174,6 +174,7 @@ export function useRetry(maxRetries = 3) {
   const [lastError, setLastError] = useState<AppError | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isActiveRef = useRef(true);
+  const retryCountRef = useRef(0);
 
   // 清理函数
   useEffect(() => {
@@ -194,12 +195,22 @@ export function useRetry(maxRetries = 3) {
       shouldRetry?: (error: AppError) => boolean;
     } = {}
   ): Promise<T> => {
+    // 使用 ref 跟踪当前重试计数，避免闭包问题
+    const currentRetryCount = retryCountRef.current;
+    
     try {
       const result = await fn();
-      setRetryCount(0);
-      setLastError(null);
+      if (isActiveRef.current) {
+        setRetryCount(0);
+        retryCountRef.current = 0;
+        setLastError(null);
+      }
       return result;
     } catch (error) {
+      if (!isActiveRef.current) {
+        throw error;
+      }
+      
       const appError = toAppError(error);
       setLastError(appError);
 
@@ -208,17 +219,24 @@ export function useRetry(maxRetries = 3) {
         appError.type === ErrorType.TIMEOUT ||
         appError.type === ErrorType.SERVER);
 
-      if (shouldRetry && retryCount < maxRetries) {
-        const nextCount = retryCount + 1;
+      if (shouldRetry && currentRetryCount < maxRetries) {
+        const nextCount = currentRetryCount + 1;
         setRetryCount(nextCount);
+        retryCountRef.current = nextCount;
         options.onRetry?.(nextCount);
 
         // 指数退避
         const delay = Math.min(1000 * Math.pow(2, nextCount), 10000);
-        await new Promise((resolve) => {
+        
+        // 清理之前的 timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        
+        await new Promise<void>((resolve) => {
           timeoutRef.current = setTimeout(() => {
             timeoutRef.current = null;
-            resolve(undefined);
+            resolve();
           }, delay);
         });
 
@@ -234,10 +252,11 @@ export function useRetry(maxRetries = 3) {
 
       throw appError;
     }
-  }, [retryCount, maxRetries]);
+  }, [maxRetries]);
 
   const reset = useCallback(() => {
     setRetryCount(0);
+    retryCountRef.current = 0;
     setLastError(null);
   }, []);
 

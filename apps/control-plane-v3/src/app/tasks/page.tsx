@@ -8,7 +8,7 @@ import { useTaskDashboard, useCreateTask, useCreateTaskTargetFeedback } from '@/
 import { useAgentsWithTokens } from '@/domains/identity';
 import { ApiError } from '@/lib/api-client';
 import { readFocusedEntry } from '@/lib/focused-entry';
-import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
+import { ManagementForbiddenAlert, ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import { useI18n } from '@/components/i18n-provider';
 import { cn } from '@/lib/utils';
 import type { Task, AgentToken, Run, TokenFeedback } from '@/domains/task';
@@ -34,6 +34,26 @@ interface FeedbackTargetState {
   tokenLabel: string;
 }
 
+/**
+ * Tasks Page - 任务管理页面
+ * 
+ * ⚠️ 已知权限边界偏移（H1）:
+ * - 前端路由角色: admin
+ * - 页面依赖: admin-only APIs (agents, tokens, feedback)
+ * 
+ * 当前行为:
+ * - admin 可进入页面
+ * - 低权限会话仍可能在动作链路或数据查询上命中 401/403
+ * 
+ * 建议解决方案（需产品决策）:
+ * 1. 提升路由角色为 admin（当前页面实为 admin 运营面）
+ * 2. 拆分为 operator 任务面板 + admin 运营面板
+ * 3. 降级页面，operator 仅看基础任务列表
+ * 
+ * 当前缓解措施:
+ * - 使用 useManagementPageSessionRecovery 处理 401/403
+ * - 错误降级为通用提示
+ */
 export default function TasksPage() {
   return (
     <Layout>
@@ -59,8 +79,9 @@ function TasksContent() {
   const {
     loading: gateLoading,
     error: gateError,
+    shouldShowForbidden,
     shouldShowSessionExpired,
-    clearSessionExpired,
+    clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(dataError);
   
@@ -132,7 +153,7 @@ function TasksContent() {
   async function handleRefresh() {
     setIsRefreshing(true);
     setRefreshError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await mutate();
@@ -154,6 +175,7 @@ function TasksContent() {
     setSubmittingTask(true);
     setTaskFormError(null);
     setError(null);
+    clearAllAuthErrors();
 
     try {
       const parsedInput = parseJsonObject(taskForm.input_json);
@@ -180,6 +202,9 @@ function TasksContent() {
       });
       setShowCreateTaskModal(false);
     } catch (submitError) {
+      if (consumeUnauthorized(submitError)) {
+        return;
+      }
       if (submitError instanceof ApiError) {
         setTaskFormError(submitError.detail);
       } else {
@@ -199,6 +224,7 @@ function TasksContent() {
     setSubmittingFeedback(true);
     setFeedbackFormError(null);
     setError(null);
+    clearAllAuthErrors();
 
     try {
       await createFeedback(feedbackTarget.targetId, {
@@ -210,6 +236,9 @@ function TasksContent() {
       setFeedbackForm({ score: '5', verdict: 'accepted', summary: '' });
       setFeedbackTarget(null);
     } catch (submitError) {
+      if (consumeUnauthorized(submitError)) {
+        return;
+      }
       if (submitError instanceof ApiError) {
         setFeedbackFormError(submitError.detail);
       } else {
@@ -329,6 +358,10 @@ function TasksContent() {
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live task data." />
       ) : null}
 
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to access some task management data. Sign in with an admin session to view the full task surface." />
+      ) : null}
+
       {refreshError && (
         <Card 
           role="alert" 
@@ -340,7 +373,7 @@ function TasksContent() {
         </Card>
       )}
 
-      {(gateError || error || (!shouldShowSessionExpired && dataError)) && (
+      {(gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError)) && (
         <Card 
           role="alert" 
           aria-live="assertive" 

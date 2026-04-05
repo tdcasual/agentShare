@@ -14,7 +14,7 @@ import type {
 
 export function useSecrets(options?: SWRConfiguration) {
   return useSWR<{ items: GovernedSecret[] }>(
-    '/api/secrets',
+    options?.isPaused ? null : '/api/secrets',
     () => api.getSecrets(),
     {
       ...swrConfig,
@@ -25,7 +25,7 @@ export function useSecrets(options?: SWRConfiguration) {
 
 export function useCapabilities(options?: SWRConfiguration) {
   return useSWR<{ items: GovernedCapability[] }>(
-    '/api/capabilities',
+    options?.isPaused ? null : '/api/capabilities',
     () => api.getCapabilities(),
     {
       ...swrConfig,

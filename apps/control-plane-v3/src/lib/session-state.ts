@@ -33,7 +33,7 @@ function sessionSummaryToSessionData(session: ManagementSessionSummary): Session
     state: 'authenticated',
     email: session.email,
     role: session.role,
-    sessionId: session.session_id ?? session.id,
+    sessionId: session.session_id,
     lastLoadedAt: Date.now(),
   };
 }

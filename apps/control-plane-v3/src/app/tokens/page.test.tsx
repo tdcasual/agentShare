@@ -131,6 +131,63 @@ describe('tokens page', () => {
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
   });
 
+  it('shows a forbidden-specific state when token queries return forbidden', () => {
+    useAgentsWithTokensMock.mockReturnValue({
+      ...useAgentsWithTokensMock(),
+      error: new ApiError(403, 'Forbidden'),
+    });
+
+    render(<TokensPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+  });
+
+  it('shows a relogin recovery state when creating an agent hits an expired session', async () => {
+    const user = userEvent.setup();
+    const createAgentMock = vi.fn().mockRejectedValue(new ApiError(401, 'Missing management session'));
+    useCreateAgentMock.mockReturnValue(createAgentMock);
+
+    render(<TokensPage />);
+
+    await user.click(screen.getAllByRole('button', { name: /tokens.actions.createAgent/i })[0]);
+    await user.type(screen.getByPlaceholderText(/deploy-bot/i), 'Deploy Bot');
+    await user.click(screen.getAllByRole('button', { name: /tokens.actions.createAgent/i })[1]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    });
+  });
+
+  it('shows a forbidden-specific state when minting a token loses permission', async () => {
+    const user = userEvent.setup();
+    const createTokenMock = vi.fn().mockRejectedValue(new ApiError(403, 'Forbidden'));
+    useCreateAgentTokenMock.mockReturnValue(createTokenMock);
+
+    render(<TokensPage />);
+
+    await user.click(screen.getByRole('button', { name: /tokens.actions.mintToken/i }));
+    await user.type(screen.getByPlaceholderText(/staging worker token/i), 'Staging Worker');
+    await user.click(screen.getAllByRole('button', { name: /tokens.actions.mintToken/i })[1]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    });
+  });
+
+  it('shows a relogin recovery state when revoking a token hits an expired session', async () => {
+    const user = userEvent.setup();
+    const revokeAgentTokenMock = vi.fn().mockRejectedValue(new ApiError(401, 'Missing management session'));
+    useRevokeAgentTokenMock.mockReturnValue(revokeAgentTokenMock);
+
+    render(<TokensPage />);
+
+    await user.click(screen.getAllByRole('button', { name: /tokens.actions.revoke/i })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    });
+  });
+
   it('surfaces token supervision metrics and filters tokens needing feedback', async () => {
     const user = userEvent.setup();
 

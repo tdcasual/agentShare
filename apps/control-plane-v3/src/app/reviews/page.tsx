@@ -9,7 +9,11 @@ import { Layout } from '@/interfaces/human/layout';
 import { useReviews, useApproveReview, useRejectReview } from '@/domains/review';
 import { ApiError } from '@/lib/api-client';
 import { readFocusedEntry } from '@/lib/focused-entry';
-import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
+import {
+  ManagementForbiddenAlert,
+  ManagementSessionExpiredAlert,
+  useManagementPageSessionRecovery,
+} from '@/lib/management-session-recovery';
 import type { ReviewQueueItem } from '@/domains/review';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
@@ -36,8 +40,9 @@ function ReviewsContent() {
     session,
     loading: gateLoading,
     error: gateError,
+    shouldShowForbidden,
     shouldShowSessionExpired,
-    clearSessionExpired,
+    clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(dataError);
   
@@ -102,7 +107,7 @@ function ReviewsContent() {
   async function handleRefresh() {
     setIsRefreshing(true);
     setRefreshError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await mutate();
@@ -123,7 +128,7 @@ function ReviewsContent() {
     const nextActionKey = `${decision}:${item.resource_kind}:${item.resource_id}`;
     setActionKey(nextActionKey);
     setError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       if (decision === 'approve') {
@@ -321,6 +326,10 @@ function ReviewsContent() {
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep reviewing live queue items." />
       ) : null}
 
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to review this governance queue. Use an operator-or-higher management session to continue." />
+      ) : null}
+
       {refreshError ? (
         <Card
           role="alert"
@@ -333,7 +342,7 @@ function ReviewsContent() {
       ) : null}
 
       {/* Error */}
-      {gateError || error || (!shouldShowSessionExpired && dataError) ? (
+      {gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError) ? (
         <Card 
           role="alert" 
           aria-live="assertive" 

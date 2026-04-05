@@ -9,6 +9,7 @@ import { useI18n } from '@/components/i18n-provider';
 import { ApiError } from '@/lib/api-client';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import {
+  ManagementForbiddenAlert,
   isUnauthorizedError,
   ManagementSessionExpiredAlert,
   ManagementSessionRecoveryNotice,
@@ -71,8 +72,9 @@ function AssetsContent() {
     session,
     loading: gateLoading,
     error: gateError,
+    shouldShowForbidden,
     shouldShowSessionExpired,
-    clearSessionExpired,
+    clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery([
     tokensError,
@@ -217,7 +219,7 @@ function AssetsContent() {
     setError(null);
     setRefreshError(null);
     setIsRefreshing(true);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await Promise.all([
@@ -242,7 +244,7 @@ function AssetsContent() {
     event.preventDefault();
     setSubmittingSecret(true);
     setError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       const created = await createSecret({
@@ -309,7 +311,7 @@ function AssetsContent() {
 
     setSubmittingCapability(true);
     setError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await createCapability({
@@ -522,6 +524,10 @@ function AssetsContent() {
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to continue managing secrets, capabilities, and token access." />
       ) : null}
 
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to manage governed assets. Use an operator-or-higher management session to continue." />
+      ) : null}
+
       {refreshError ? (
         <Card 
           role="alert" 
@@ -533,7 +539,7 @@ function AssetsContent() {
         </Card>
       ) : null}
 
-      {combinedError ? (
+      {!shouldShowForbidden && combinedError ? (
         <Card 
           role="alert" 
           aria-live="assertive" 

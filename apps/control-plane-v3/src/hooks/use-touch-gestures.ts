@@ -63,6 +63,10 @@ export function useTouchGestures(
           clearTimeout(longPressTimer.current);
           longPressTimer.current = null;
         }
+        // 如果开始移动，重置 touchStart 以防止误触发点击
+        if (diffX > 10 || diffY > 10) {
+          isLongPress.current = false;
+        }
       }
     }
   }, []);
@@ -158,35 +162,64 @@ export function useSidebarSwipe(onOpen: () => void, onClose: () => void, isOpen:
 // 专用 Hook - 下拉刷新
 export function usePullToRefresh(onRefresh: () => Promise<void>) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
   const pullStartY = useRef(0);
-  const pullDistance = useRef(0);
+  const pullDistanceRef = useRef(0);
+  const isMounted = useRef(true);
+
+  // 清理
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
-    if (window.scrollY === 0) {
+    // 只在页面顶部且未在刷新时开始下拉
+    if (window.scrollY === 0 && !isRefreshing) {
       pullStartY.current = e.touches[0].clientY;
     }
-  }, []);
+  }, [isRefreshing]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (pullStartY.current > 0 && window.scrollY === 0) {
       const currentY = e.touches[0].clientY;
-      pullDistance.current = currentY - pullStartY.current;
+      const distance = currentY - pullStartY.current;
       
-      // 阻力效果 - 只在下拉超过阈值时阻止默认行为
-      if (pullDistance.current > 10) {
-        e.preventDefault();
+      // 阻力效果 - 只处理向下拉动
+      if (distance > 0) {
+        // 应用阻力系数
+        const resistedDistance = Math.min(distance * 0.5, 150);
+        pullDistanceRef.current = resistedDistance;
+        setPullDistance(resistedDistance);
+        
+        // 阻止默认行为（需要确保事件不是 passive 的）
+        if (distance > 10) {
+          e.preventDefault();
+        }
       }
     }
   }, []);
 
   const onTouchEnd = useCallback(async () => {
-    if (pullDistance.current > 80 && !isRefreshing) {
+    if (pullDistanceRef.current > 80 && !isRefreshing) {
       setIsRefreshing(true);
-      await onRefresh();
-      setIsRefreshing(false);
+      try {
+        await onRefresh();
+      } catch (error) {
+        // 错误处理：静默失败或可以添加错误回调
+        console.error('Pull to refresh failed:', error);
+      } finally {
+        // 检查组件是否仍然挂载
+        if (isMounted.current) {
+          setIsRefreshing(false);
+        }
+      }
     }
     pullStartY.current = 0;
-    pullDistance.current = 0;
+    pullDistanceRef.current = 0;
+    setPullDistance(0);
   }, [onRefresh, isRefreshing]);
 
   return {
@@ -194,7 +227,7 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
     onTouchMove,
     onTouchEnd,
     isRefreshing,
-    pullDistance: pullDistance.current,
+    pullDistance,
   };
 }
 

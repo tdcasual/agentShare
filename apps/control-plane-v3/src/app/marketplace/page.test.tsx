@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApiError } from '@/lib/api-client';
 import MarketplacePage from './page';
 
 let mockSearchParams = new URLSearchParams();
@@ -167,5 +168,17 @@ describe('marketplace page', () => {
     expect(screen.getByText(/Focused resource/i)).toBeInTheDocument();
     expect(screen.getByText(/marketplace is centered on/i)).toBeInTheDocument();
     expect(screen.getAllByText('agent.market.capability').length).toBeGreaterThan(1);
+  });
+
+  it('shows a forbidden-specific state when marketplace queries return forbidden', () => {
+    useReviewsMock.mockReturnValue({
+      data: { items: [] },
+      isLoading: false,
+      error: new ApiError(403, 'Forbidden'),
+    });
+
+    render(<MarketplacePage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('permission');
   });
 });

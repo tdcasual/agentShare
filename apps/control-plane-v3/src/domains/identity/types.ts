@@ -157,41 +157,46 @@ export interface BootstrapStatus {
   readonly has_valid_bootstrap_key?: boolean;
 }
 
+/**
+ * Management Session 响应类型
+ * 对应后端 /api/session/me 和 /api/session/login 返回
+ * 
+ * 注意：这是后端实际返回的 Transport DTO（snake_case）
+ */
 export interface ManagementSessionSummary {
-  readonly id: string;
-  readonly session_id?: string;
-  readonly identity_id?: string;
-  readonly account_id?: string;
-  readonly actor_id?: string;
-  readonly identity_type?: IdentityType;
-  readonly identity_name?: string;
-  readonly role: string;
   readonly status: string;
-  readonly email?: string;
-  readonly display_name?: string;
-  readonly expires_at: string;
-  readonly created_at: string;
+  readonly actor_type: string;
+  readonly actor_id: string;
+  readonly role: 'viewer' | 'operator' | 'admin' | 'owner';
+  readonly auth_method: string;
+  readonly session_id: string;
+  readonly email: string;
+  readonly expires_in: number;
+  readonly issued_at: number;
+  readonly expires_at: number;
 }
 
+/**
+ * Admin Account - 与后端 /api/admin-accounts 返回对齐
+ * 后端返回: id, email, display_name, role, status, last_login_at
+ */
 export interface AdminAccountSummary {
   readonly id: string;
   readonly email: string;
   readonly display_name: string;
   readonly role: 'viewer' | 'operator' | 'admin' | 'owner';
   readonly status: string;
-  readonly is_active?: boolean;
-  readonly created_at: string;
-  readonly updated_at: string;
   readonly last_login_at?: string;
 }
 
-// API 返回的 Agent 格式（DTO）
+/**
+ * Agent - 与后端 /api/agents 返回对齐
+ * 后端返回: id, name, status, risk_tier, auth_method
+ */
 export interface Agent {
   readonly id: string;
   readonly name: string;
   readonly risk_tier: string;
   readonly auth_method: string;
   readonly status: string;
-  readonly created_at: string;
-  readonly updated_at: string;
 }

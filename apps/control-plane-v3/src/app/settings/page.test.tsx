@@ -107,6 +107,17 @@ describe('settings page', () => {
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
   });
 
+  it('shows a forbidden-specific state when account queries return forbidden', () => {
+    useAdminAccountsMock.mockReturnValue({
+      ...useAdminAccountsMock(),
+      error: new ApiError(403, 'Forbidden'),
+    });
+
+    render(<SettingsPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+  });
+
   it('shows a relogin recovery state when inviting an operator hits an expired session', async () => {
     const user = userEvent.setup();
     useCreateAdminAccountMock.mockReturnValue(

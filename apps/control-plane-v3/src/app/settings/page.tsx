@@ -6,7 +6,11 @@ import { useRouter } from 'next/navigation';
 import { Layout } from '@/interfaces/human/layout';
 import { useAdminAccounts, useCreateAdminAccount, useDisableAdminAccount, useLogout } from '@/domains/identity';
 import { ApiError } from '@/lib/api-client';
-import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
+import {
+  ManagementForbiddenAlert,
+  ManagementSessionExpiredAlert,
+  useManagementPageSessionRecovery,
+} from '@/lib/management-session-recovery';
 import { useI18n } from '@/components/i18n-provider';
 import type { AdminAccountCreateInput } from '@/lib/api-client';
 import { Badge } from '@/shared/ui-primitives/badge';
@@ -31,8 +35,9 @@ function SettingsContent() {
     session,
     loading: gateLoading,
     error: gateError,
+    shouldShowForbidden,
     shouldShowSessionExpired,
-    clearSessionExpired,
+    clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(dataError);
   const createAdminAccount = useCreateAdminAccount();
@@ -76,7 +81,7 @@ function SettingsContent() {
     event.preventDefault();
     setSubmittingInvite(true);
     setError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       const payload: AdminAccountCreateInput = {
@@ -109,7 +114,7 @@ function SettingsContent() {
 
   async function handleDisable(accountId: string) {
     setError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
     try {
       await disableAdminAccount(accountId);
     } catch (disableError) {
@@ -128,7 +133,7 @@ function SettingsContent() {
   async function handleLogout() {
     setSigningOut(true);
     setError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
     try {
       await logout();
       router.push('/login');
@@ -354,7 +359,11 @@ function SettingsContent() {
         />
       ) : null}
 
-      {(gateError || error || (!shouldShowSessionExpired && dataError)) && (
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to manage operator accounts. Use an owner or admin session to continue." />
+      ) : null}
+
+      {(gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError)) && (
         <Card 
           role="alert" 
           aria-live="assertive" 

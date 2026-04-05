@@ -31,6 +31,9 @@ export type {
   AdminAccountSummary,
 } from './types';
 
+// Re-export AgentToken from task domain for convenience
+export type { AgentToken } from '@/domains/task/types';
+
 // API
 export {
   identityApi,
@@ -76,6 +79,7 @@ export {
   refreshSession,
   refreshAgents,
   refreshAdminAccounts,
+  refreshAgentsWithTokens,
   // Prefetch
   prefetchAgents,
   prefetchSession,

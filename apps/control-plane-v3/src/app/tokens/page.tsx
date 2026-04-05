@@ -11,7 +11,11 @@ import {
   useRevokeAgentToken 
 } from '@/domains/identity';
 import { ApiError, type AgentCreateInput, type AgentTokenCreateInput } from '@/lib/api-client';
-import { ManagementSessionExpiredAlert, useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
+import {
+  ManagementForbiddenAlert,
+  ManagementSessionExpiredAlert,
+  useManagementPageSessionRecovery,
+} from '@/lib/management-session-recovery';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -36,8 +40,9 @@ function TokensContent() {
     session,
     loading: gateLoading,
     error: gateError,
+    shouldShowForbidden,
     shouldShowSessionExpired,
-    clearSessionExpired,
+    clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(dataError);
   
@@ -86,7 +91,7 @@ function TokensContent() {
   async function handleRefresh() {
     setIsRefreshing(true);
     setRefreshError(null);
-    clearSessionExpired();
+    clearAllAuthErrors();
 
     try {
       await mutate();
@@ -107,6 +112,7 @@ function TokensContent() {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
+    clearAllAuthErrors();
 
     try {
       const payload: AgentCreateInput = {
@@ -123,6 +129,10 @@ function TokensContent() {
       });
       setShowCreateAgentModal(false);
     } catch (submitError) {
+      if (consumeUnauthorized(submitError)) {
+        return;
+      }
+
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
@@ -142,6 +152,7 @@ function TokensContent() {
 
     setSubmitting(true);
     setError(null);
+    clearAllAuthErrors();
 
     try {
       const payload: AgentTokenCreateInput = {
@@ -164,6 +175,10 @@ function TokensContent() {
       });
       setShowCreateTokenModal(false);
     } catch (submitError) {
+      if (consumeUnauthorized(submitError)) {
+        return;
+      }
+
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
@@ -176,9 +191,15 @@ function TokensContent() {
 
   async function handleRevokeToken(tokenId: string, agentId: string) {
     setError(null);
+    clearAllAuthErrors();
+
     try {
       await revokeAgentToken(tokenId, agentId);
     } catch (revokeError) {
+      if (consumeUnauthorized(revokeError)) {
+        return;
+      }
+
       if (revokeError instanceof ApiError) {
         setError(revokeError.detail);
       } else {
@@ -313,6 +334,10 @@ function TokensContent() {
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live token data." />
       ) : null}
 
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message="You do not have permission to manage agents and tokens. Use an admin management session to continue." />
+      ) : null}
+
       {refreshError ? (
         <Card 
           role="alert" 
@@ -325,7 +350,7 @@ function TokensContent() {
       ) : null}
 
       {/* Error */}
-      {gateError || error || (!shouldShowSessionExpired && dataError) ? (
+      {gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError) ? (
         <Card 
           role="alert" 
           aria-live="assertive" 

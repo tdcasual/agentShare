@@ -10,6 +10,8 @@ const useTaskDashboardMock = vi.fn();
 const useCreateTaskMock = vi.fn();
 const useCreateTaskTargetFeedbackMock = vi.fn();
 const useAgentsWithTokensMock = vi.fn();
+const createTaskActionMock = vi.fn();
+const createFeedbackActionMock = vi.fn();
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
@@ -112,8 +114,10 @@ describe('tasks page', () => {
       mutate: vi.fn().mockResolvedValue(undefined),
     });
 
-    useCreateTaskMock.mockReturnValue(vi.fn());
-    useCreateTaskTargetFeedbackMock.mockReturnValue(vi.fn());
+    createTaskActionMock.mockResolvedValue({ id: 'task-new' });
+    createFeedbackActionMock.mockResolvedValue({ id: 'feedback-new' });
+    useCreateTaskMock.mockReturnValue(createTaskActionMock);
+    useCreateTaskTargetFeedbackMock.mockReturnValue(createFeedbackActionMock);
     useAgentsWithTokensMock.mockReturnValue({
       agents: [],
       tokensByAgent: {},
@@ -155,6 +159,17 @@ describe('tasks page', () => {
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
   });
 
+  it('shows a forbidden-specific state when task queries return forbidden', () => {
+    useTaskDashboardMock.mockReturnValue({
+      ...useTaskDashboardMock(),
+      error: new ApiError(403, 'Forbidden'),
+    });
+
+    render(<TasksPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+  });
+
   it('surfaces feedback follow-up metrics and filters tasks that still need review', async () => {
     const user = userEvent.setup();
 
@@ -187,5 +202,42 @@ describe('tasks page', () => {
     expect(screen.getByText('Focused task')).toBeInTheDocument();
     expect(screen.getByTestId('task-card-task-2')).toHaveAttribute('data-focus-state', 'focused');
     expect(screen.getByTestId('task-card-task-1')).toHaveAttribute('data-focus-state', 'default');
+  });
+
+  it('shows a relogin recovery state when publish task hits an expired session', async () => {
+    const user = userEvent.setup();
+    createTaskActionMock.mockRejectedValueOnce(new ApiError(401, 'Missing management session'));
+
+    render(<TasksPage />);
+
+    await user.click(screen.getByRole('button', { name: /tasks\.publishTask/i }));
+    await user.type(screen.getByPlaceholderText(/tasks\.form\.titlePlaceholder/i), 'Ship config sync');
+    await user.type(screen.getByPlaceholderText(/tasks\.form\.taskTypePlaceholder/i), 'config_sync');
+    await user.click(screen.getAllByRole('checkbox')[0]);
+    await user.click(screen.getAllByRole('button', { name: /tasks\.publishTask/i })[1]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    });
+
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+  });
+
+  it('shows a relogin recovery state when saving feedback hits an expired session', async () => {
+    const user = userEvent.setup();
+    createFeedbackActionMock.mockRejectedValueOnce(new ApiError(401, 'Missing management session'));
+
+    render(<TasksPage />);
+
+    await user.click(screen.getByTestId('task-card-task-2'));
+    await user.click(screen.getByRole('button', { name: /tasks\.leaveFeedback/i }));
+    await user.type(screen.getByPlaceholderText(/tasks\.form\.summaryPlaceholder/i), 'Needs a clearer risk summary.');
+    await user.click(screen.getByRole('button', { name: /tasks\.saveFeedback/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    });
+
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
   });
 });

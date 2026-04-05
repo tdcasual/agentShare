@@ -184,6 +184,17 @@ describe('assets page', () => {
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
   });
 
+  it('shows a forbidden-specific state when governance queries return forbidden', () => {
+    useSecretsMock.mockReturnValue({
+      ...useSecretsMock(),
+      error: new ApiError(403, 'Forbidden'),
+    });
+
+    render(<AssetsPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+  });
+
   it('shows a relogin recovery state when refresh hits an expired session', async () => {
     const user = userEvent.setup();
     const mutateMock = vi.fn().mockRejectedValue(new ApiError(401, 'Missing management session'));

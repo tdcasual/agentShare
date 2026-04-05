@@ -1,12 +1,23 @@
+/**
+ * Error Boundary - 错误边界组件
+ * 
+ * Kawaii风格的错误页面
+ * 捕获子组件的错误，防止整个应用崩溃
+ */
+
 'use client';
 
-import * as React from 'react';
-import { useI18n } from './i18n-provider';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Component, type ReactNode, type ErrorInfo } from 'react';
+import { Card } from '@/shared/ui-primitives/card';
+import { Button } from '@/shared/ui-primitives/button';
+import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
 
 interface Props {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  /** 自定义错误回退UI */
+  fallback?: ReactNode;
+  /** 错误发生时回调 */
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -14,86 +25,111 @@ interface State {
   error?: Error;
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { hasError: false };
+  
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log to error tracking service in production
-    if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
-    }
+  
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught error:', error, errorInfo);
+    this.props.onError?.(error, errorInfo);
   }
-
+  
+  handleReset = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
+  
+  handleReload = () => {
+    window.location.reload();
+  };
+  
+  handleGoHome = () => {
+    window.location.href = '/';
+  };
+  
   render() {
     if (this.state.hasError) {
+      // 使用自定义fallback或默认错误UI
       if (this.props.fallback) {
         return this.props.fallback;
       }
-      return <ErrorFallback error={this.state.error} />;
+      
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center p-4">
+          <Card 
+            variant="kawaii" 
+            decoration
+            className="max-w-lg w-full text-center"
+            role="alert"
+            aria-live="assertive"
+          >
+            {/* 错误图标 */}
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+              <AlertTriangle className="w-10 h-10 text-red-500" />
+            </div>
+            
+            {/* 标题 */}
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+              页面出错了
+            </h2>
+            
+            {/* 错误信息 */}
+            <p className="text-gray-600 dark:text-gray-400 mb-2 text-sm">
+              {this.state.error?.message || '未知错误'}
+            </p>
+            
+            {/* 技术详情（开发环境显示） */}
+            {process.env.NODE_ENV === 'development' && this.state.error?.stack && (
+              <pre className="text-left text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-3 rounded-lg mb-4 overflow-auto max-h-40">
+                {this.state.error.stack}
+              </pre>
+            )}
+            
+            {/* 操作按钮 */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                variant="kawaii" 
+                onClick={this.handleReload}
+                leftIcon={<RefreshCw className="w-4 h-4" />}
+              >
+                刷新页面
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={this.handleGoHome}
+                leftIcon={<Home className="w-4 h-4" />}
+              >
+                返回首页
+              </Button>
+            </div>
+            
+            {/* 提示 */}
+            <p className="mt-4 text-xs text-gray-500 dark:text-gray-500">
+              如果问题持续存在，请联系技术支持
+            </p>
+          </Card>
+        </div>
+      );
     }
-
+    
     return this.props.children;
   }
 }
 
-function ErrorFallback({ error }: { error?: Error }) {
-  const { t } = useI18n();
-  
-  const handleReload = () => {
-    window.location.reload();
+/**
+ * 页面级错误边界包装器
+ */
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType<P>,
+  fallback?: ReactNode
+) {
+  return function WithErrorBoundaryWrapper(props: P) {
+    return (
+      <ErrorBoundary fallback={fallback}>
+        <Component {...props} />
+      </ErrorBoundary>
+    );
   };
-
-  const handleReset = () => {
-    window.location.href = '/';
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540] p-4">
-      <div className="max-w-md w-full bg-white dark:bg-[#252540] rounded-3xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] p-8 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-          <AlertCircle className="w-10 h-10 text-red-500 dark:text-red-400" />
-        </div>
-        
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC] mb-2">
-          {t('error.title') || 'Oops! Something went wrong'}
-        </h1>
-        
-        <p className="text-gray-600 dark:text-[#9CA3AF] mb-6">
-          {t('error.description') || 'We apologize for the inconvenience. Please try refreshing the page or go back to the home page.'}
-        </p>
-
-        {process.env.NODE_ENV === 'development' && error && (
-          <div className="mb-6 p-4 bg-gray-100 dark:bg-[#1A1A2E] rounded-xl text-left overflow-auto">
-            <p className="text-sm font-mono text-red-600 dark:text-red-400">{error.message}</p>
-          </div>
-        )}
-        
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={handleReload}
-            type="button"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white font-medium hover:shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
-          >
-            <RefreshCw className="w-4 h-4" />
-            {t('error.reload') || 'Reload Page'}
-          </button>
-          
-          <button
-            onClick={handleReset}
-            type="button"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gray-100 dark:bg-[#3D3D5C] text-gray-700 dark:text-[#E8E8EC] font-medium hover:bg-gray-200 dark:hover:bg-[#4D4D6C] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
-          >
-            {t('error.goHome') || 'Go Home'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }

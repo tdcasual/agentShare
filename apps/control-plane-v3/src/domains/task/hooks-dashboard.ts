@@ -85,6 +85,8 @@ export function useTaskDashboard(options?: SWRConfiguration) {
 
       const allFeedback = responses.flatMap((response) => response.items);
       return allFeedback.reduce<Record<string, TokenFeedback[]>>((acc, item) => {
+        // Support both snake_case (API response) and camelCase (transformed model)
+        // task_target_id is the raw API field, targetId is the domain model field
         const key = item.task_target_id ?? item.targetId;
         acc[key] = [...(acc[key] ?? []), item];
         return acc;
@@ -141,6 +143,17 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   };
 }
 
+/**
+ * 规范化 run status 为合法的 TaskTargetView status
+ */
+function normalizeRunStatus(status: string | undefined): TaskTargetView['status'] {
+  const validStatuses: TaskTargetView['status'][] = ['pending', 'running', 'completed', 'failed', 'cancelled'];
+  if (status && validStatuses.includes(status as TaskTargetView['status'])) {
+    return status as TaskTargetView['status'];
+  }
+  return 'pending';
+}
+
 function buildTaskTargets(
   task: Task,
   tokensById: Record<string, AgentToken>,
@@ -162,7 +175,7 @@ function buildTaskTargets(
       token,
       run,
       feedback,
-      status: (run?.status ?? 'pending') as TaskTargetView['status'],
+      status: normalizeRunStatus(run?.status),
     };
   });
 }

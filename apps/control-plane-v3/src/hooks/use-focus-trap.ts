@@ -30,6 +30,7 @@ export function useFocusTrap({
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 保存触发前的焦点
   useEffect(() => {
@@ -71,7 +72,7 @@ export function useFocusTrap({
     const focusableElements = getFocusableElements();
     if (focusableElements.length > 0) {
       // 延迟聚焦以确保元素已渲染
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         const firstElement = focusableElements[0];
         firstElement?.focus();
       }, 0);
@@ -123,6 +124,12 @@ export function useFocusTrap({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
+      
+      // 清理延迟聚焦定时器
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
 
       // 恢复焦点
       if (returnFocusOnDeactivate && previousFocusRef.current) {

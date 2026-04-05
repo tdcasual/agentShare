@@ -50,7 +50,6 @@ export type {
 
 export * from '@/domains/identity';
 export * from '@/domains/task';
-export * from '@/domains/asset';
 export * from '@/domains/governance';
 export * from '@/domains/review';
 
@@ -58,7 +57,7 @@ export * from '@/domains/review';
 // 统一 API 对象（向后兼容）
 // ============================================
 
-import { identityApi, taskApi, assetApi, governanceApi, reviewApi } from '@/domains';
+import { identityApi, taskApi, governanceApi, reviewApi } from '@/domains';
 
 /**
  * 统一的 API 对象，包含所有 domain 的 API 方法
@@ -85,7 +84,6 @@ import { identityApi, taskApi, assetApi, governanceApi, reviewApi } from '@/doma
 export const api = {
   ...identityApi,
   ...taskApi,
-  ...assetApi,
   ...governanceApi,
   ...reviewApi,
 };

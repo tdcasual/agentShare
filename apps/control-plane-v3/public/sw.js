@@ -1,9 +1,21 @@
+/**
+ * Control Plane V3 - Service Worker
+ * 
+ * 功能：
+ * - 离线缓存支持
+ * - 网络优先策略，回退到缓存
+ * - 后台同步
+ * - 推送通知
+ * - 自动更新
+ */
+
 const CACHE_NAME = 'control-plane-v3-v1';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
+  '/offline',
 ];
 
 // 安装时缓存静态资源
@@ -41,6 +53,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 跳过非同源请求（如外部 API）
+  if (!request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   // 网络优先，回退到缓存
   event.respondWith(
     fetch(request)
@@ -60,9 +77,9 @@ self.addEventListener('fetch', (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          // 如果没有缓存，返回离线页面
+          // 如果是页面导航，返回离线页面
           if (request.mode === 'navigate') {
-            return caches.match('/');
+            return caches.match('/offline');
           }
           return new Response('Network error', {
             status: 408,
@@ -97,6 +114,8 @@ self.addEventListener('push', (event) => {
         tag: data.tag,
         data: data.data,
         actions: data.actions || [],
+        requireInteraction: data.requireInteraction || false,
+        vibrate: data.vibrate || [200, 100, 200],
       })
     );
   }
@@ -115,9 +134,20 @@ self.addEventListener('notificationclick', (event) => {
           type: 'NOTIFICATION_CLICK',
           data: event.notification.data
         });
+        // 如果有动作数据，导航到指定 URL
+        if (event.notification.data?.url) {
+          client.navigate(event.notification.data.url);
+        }
       } else {
-        clients.openWindow('/');
+        clients.openWindow(event.notification.data?.url || '/');
       }
     })
   );
+});
+
+// 监听消息（用于跳过等待）
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
