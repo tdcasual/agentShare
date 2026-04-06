@@ -22,3 +22,11 @@ def test_smoke_script_supports_public_base_url_alias() -> None:
 
     assert "PUBLIC_BASE_URL" in script
     assert 'APP_BASE_URL="${APP_BASE_URL:-${PUBLIC_BASE_URL:-https://${PUBLIC_HOST}}}"' in script
+
+
+def test_production_deployment_guide_matches_private_metrics_smoke_contract() -> None:
+    deployment_guide = (ROOT / "docs/guides/production-deployment.md").read_text().lower()
+
+    assert "caddy" in deployment_guide
+    assert "/metrics" in deployment_guide
+    assert "host-local" in deployment_guide or "private-network" in deployment_guide

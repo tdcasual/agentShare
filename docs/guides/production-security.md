@@ -9,6 +9,7 @@ For the app-owned management permission boundary, see `docs/guides/operator-poli
 
 - `ops/caddy/Caddyfile` is the source of truth for public entrypoint behavior.
 - The production stack serves traffic through Caddy only; `api`, `web`, `postgres`, and `redis` are not published directly.
+- `/metrics` is intentionally limited to host-local or private-network callers so raw operational counters are not exposed on the public internet.
 - Caddy applies baseline security headers:
   - `Strict-Transport-Security`
   - `X-Content-Type-Options`
@@ -52,7 +53,7 @@ For the app-owned management permission boundary, see `docs/guides/operator-poli
 ## Incident Entry Points
 
 - Start with the deployment smoke check, `/healthz`, and `/metrics`.
-- Use `agent_control_plane_http_requests_total{method,path,status}` on `/metrics` to narrow down which routes are failing before you rotate credentials or restart services.
+- Use `agent_control_plane_http_requests_total{method,path,status}` on the host-local `/metrics` endpoint to narrow down which routes are failing before you rotate credentials or restart services.
 - A cluster of `503` responses on task claim or capability runtime routes usually means Redis coordination is down or partitioned; restore Redis before retrying agents.
 - Use the response `x-request-id` header to correlate operator reports with API request logs.
 - Review the latest deploy logs and the Trivy scan output before assuming the issue is application-only.

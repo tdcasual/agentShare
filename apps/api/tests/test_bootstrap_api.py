@@ -49,3 +49,17 @@ def test_setup_owner_only_works_once(tmp_path) -> None:
     assert status_after_first.status_code == 200
     assert status_after_first.json() == {"initialized": True}
     assert second.status_code == 409
+
+
+def test_setup_owner_rejects_short_password(tmp_path) -> None:
+    payload = {
+        "bootstrap_key": BOOTSTRAP_KEY,
+        "email": "owner@example.com",
+        "display_name": "Founding Owner",
+        "password": "shortpass",
+    }
+
+    with make_client(tmp_path) as client:
+        response = client.post("/api/bootstrap/setup-owner", json=payload)
+
+    assert response.status_code == 422

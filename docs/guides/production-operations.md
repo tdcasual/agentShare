@@ -5,8 +5,8 @@ This runbook covers the repository-owned operating baseline. For the platform ha
 ## Startup Verification
 
 - Confirm the deployment completed without compose diff or image-pull errors before opening the app to operators.
-- Run the smoke script and verify it succeeds against `/`, `/healthz`, and `/metrics`.
-- Confirm `/metrics` exposes request counts plus management-session and approval counters before declaring the stack trial-run ready.
+- Run the smoke script on the deployment host and verify it succeeds against `/`, `/healthz`, and `/metrics`.
+- Confirm the host-local `/metrics` endpoint exposes request counts plus management-session and approval counters before declaring the stack trial-run ready.
 - Capture at least one `x-request-id` from a healthy response so responders can verify request-log correlation before the first incident.
 
 ## Backup Cadence
@@ -25,8 +25,8 @@ This runbook covers the repository-owned operating baseline. For the platform ha
 
 ## Trial-Run Checklist
 
-1. Run `scripts/ops/smoke-test.sh` against the candidate environment and confirm root, health, and metrics endpoints all pass.
-2. Verify `agent_control_plane_management_session_logins_total`, `agent_control_plane_management_session_logouts_total`, and approval counters are present on `/metrics`.
+1. Run `scripts/ops/smoke-test.sh` on the deployment host against the candidate environment and confirm root, health, and metrics endpoints all pass.
+2. Verify `agent_control_plane_management_session_logins_total`, `agent_control_plane_management_session_logouts_total`, and approval counters are present on the host-local `/metrics` endpoint.
 3. Perform a governance workflow spot-check by approving or rejecting one agent-originated item and confirming the review outcome is visible on the related management surfaces.
 4. Confirm the latest backup completed and the restore drill notes are still current enough for the trial window.
 5. Record who is responsible for operator session revocation and secret rotation rehearsal during the trial run.
@@ -37,7 +37,7 @@ This checklist is the repository-owned `trial-run ready` threshold. It does not 
 
 - Check the deploy smoke logs first if a release just completed.
 - The smoke script should confirm both reachability and the presence of an `x-request-id` header on `/healthz`, so early failures still leave a trace handle for request-log correlation.
-- Check `/healthz` and `/metrics` before debugging application routes.
+- Check `/healthz` and host-local `/metrics` before debugging application routes.
 - On `/metrics`, inspect `agent_control_plane_http_requests_total{method,path,status}` to see which method/path/status combinations are failing or spiking first.
 - Capture the `x-request-id` from the failing response and use it to trace the matching structured request log entry.
 - The structured request log now records `request_id`, method, path, status, and duration, so responders can align a failing response with its API-side timing without reading source code.
