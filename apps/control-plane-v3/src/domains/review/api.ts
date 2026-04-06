@@ -1,6 +1,6 @@
 /**
  * Review Domain API
- * 
+ *
  * 负责：
  * - Review 队列管理
  * - Approve/Reject 审核决策
@@ -21,14 +21,22 @@ export function getReviews() {
 // Review Decisions
 // ============================================
 
-export function approveReview(resourceKind: string, resourceId: string, payload: ApproveReviewInput = {}) {
+export function approveReview(
+  resourceKind: string,
+  resourceId: string,
+  payload: ApproveReviewInput = {}
+) {
   return apiFetch<ReviewQueueItem>(`/reviews/${resourceKind}/${resourceId}/approve`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
-export function rejectReview(resourceKind: string, resourceId: string, payload: RejectReviewInput = { reason: '' }) {
+export function rejectReview(
+  resourceKind: string,
+  resourceId: string,
+  payload: RejectReviewInput = { reason: '' }
+) {
   return apiFetch<ReviewQueueItem>(`/reviews/${resourceKind}/${resourceId}/reject`, {
     method: 'POST',
     body: JSON.stringify(payload),

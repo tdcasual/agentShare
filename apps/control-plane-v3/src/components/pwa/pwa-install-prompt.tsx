@@ -18,10 +18,10 @@ interface PWAInstallPromptProps {
 const STORAGE_KEY = 'pwa-install-dismissed';
 const VISIT_KEY = 'pwa-visit-count';
 
-export function PWAInstallPrompt({ 
-  className, 
+export function PWAInstallPrompt({
+  className,
   delay = 5000,
-  minVisits = 2 
+  minVisits = 2,
 }: PWAInstallPromptProps) {
   const { isInstallable, isInstalled, install } = usePWA();
   const [isVisible, setIsVisible] = useState(false);
@@ -83,49 +83,42 @@ export function PWAInstallPrompt({
   }
 
   return (
-    <Card 
+    <Card
       className={cn(
-        'fixed bottom-24 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50',
+        'fixed bottom-24 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96',
         'animate-slide-up shadow-xl',
         className
       )}
     >
-      <div className="p-4 space-y-4">
+      <div className="space-y-4 p-4">
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center flex-shrink-0">
-            <Smartphone className="w-6 h-6 text-white" />
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-purple-500">
+            <Smartphone className="h-6 w-6 text-white" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">
-              安装 Control Plane
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF] mt-1">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">安装 Control Plane</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
               添加到主屏幕，像原生应用一样快速访问，支持离线使用
             </p>
           </div>
           <button
             onClick={handleDismiss}
-            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#3D3D5C] transition-colors"
+            className="rounded-lg p-1 transition-colors hover:bg-gray-100 dark:hover:bg-[#3D3D5C]"
             aria-label="忽略"
           >
-            <X className="w-5 h-5 text-gray-400" />
+            <X className="h-5 w-5 text-gray-400" />
           </button>
         </div>
 
         <div className="flex gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDismiss}
-            className="flex-1"
-          >
+          <Button variant="ghost" size="sm" onClick={handleDismiss} className="flex-1">
             稍后
           </Button>
           <Button
             size="sm"
             onClick={handleInstall}
             className="flex-1"
-            leftIcon={<Download className="w-4 h-4" />}
+            leftIcon={<Download className="h-4 w-4" />}
           >
             安装
           </Button>
@@ -147,7 +140,7 @@ export function PWAInstallButton({ className }: { className?: string }) {
     <Button
       variant="secondary"
       onClick={install}
-      leftIcon={<Download className="w-4 h-4" />}
+      leftIcon={<Download className="h-4 w-4" />}
       className={className}
     >
       安装应用

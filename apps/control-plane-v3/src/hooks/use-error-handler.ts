@@ -1,6 +1,6 @@
 /**
  * 错误处理 Hooks
- * 
+ *
  * 提供：
  * - 全局错误监听
  * - 错误自动处理
@@ -9,12 +9,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  AppError, 
-  ErrorType, 
-  globalErrorHandler, 
+import {
+  AppError,
+  ErrorType,
+  globalErrorHandler,
   toAppError,
-  ErrorHandlerConfig 
+  ErrorHandlerConfig,
 } from '@/lib/errors';
 
 interface UseErrorHandlerOptions {
@@ -58,31 +58,34 @@ export function useAsyncWithError<T>() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
 
-  const execute = useCallback(async (
-    asyncFn: () => Promise<T>,
-    options: {
-      onSuccess?: (data: T) => void;
-      onError?: (error: AppError) => void;
-    } = {}
-  ) => {
-    setIsLoading(true);
-    setError(null);
+  const execute = useCallback(
+    async (
+      asyncFn: () => Promise<T>,
+      options: {
+        onSuccess?: (data: T) => void;
+        onError?: (error: AppError) => void;
+      } = {}
+    ) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const result = await asyncFn();
-      setData(result);
-      options.onSuccess?.(result);
-      return result;
-    } catch (err) {
-      const appError = toAppError(err);
-      setError(appError);
-      globalErrorHandler.handle(appError);
-      options.onError?.(appError);
-      throw appError;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      try {
+        const result = await asyncFn();
+        setData(result);
+        options.onSuccess?.(result);
+        return result;
+      } catch (err) {
+        const appError = toAppError(err);
+        setError(appError);
+        globalErrorHandler.handle(appError);
+        options.onError?.(appError);
+        throw appError;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   const reset = useCallback(() => {
     setData(null);
@@ -128,10 +131,10 @@ export function useFormError() {
 
   const handleValidationError = useCallback((error: unknown) => {
     const appError = toAppError(error);
-    
+
     if (appError.type === ErrorType.VALIDATION && appError.details) {
       const errors: Record<string, string> = {};
-      
+
       Object.entries(appError.details).forEach(([field, messages]) => {
         if (Array.isArray(messages)) {
           errors[field] = messages[0];
@@ -139,7 +142,7 @@ export function useFormError() {
           errors[field] = String(messages);
         }
       });
-      
+
       setFieldErrors(errors);
     }
 
@@ -147,7 +150,7 @@ export function useFormError() {
   }, []);
 
   const clearFieldError = useCallback((field: string) => {
-    setFieldErrors(prev => {
+    setFieldErrors((prev) => {
       const next = { ...prev };
       delete next[field];
       return next;
@@ -188,71 +191,75 @@ export function useRetry(maxRetries = 3) {
     };
   }, []);
 
-  const retry = useCallback(async <T>(
-    fn: () => Promise<T>,
-    options: {
-      onRetry?: (count: number) => void;
-      shouldRetry?: (error: AppError) => boolean;
-    } = {}
-  ): Promise<T> => {
-    // 使用 ref 跟踪当前重试计数，避免闭包问题
-    const currentRetryCount = retryCountRef.current;
-    
-    try {
-      const result = await fn();
-      if (isActiveRef.current) {
-        setRetryCount(0);
-        retryCountRef.current = 0;
-        setLastError(null);
-      }
-      return result;
-    } catch (error) {
-      if (!isActiveRef.current) {
-        throw error;
-      }
-      
-      const appError = toAppError(error);
-      setLastError(appError);
+  const retry = useCallback(
+    async <T>(
+      fn: () => Promise<T>,
+      options: {
+        onRetry?: (count: number) => void;
+        shouldRetry?: (error: AppError) => boolean;
+      } = {}
+    ): Promise<T> => {
+      // 使用 ref 跟踪当前重试计数，避免闭包问题
+      const currentRetryCount = retryCountRef.current;
 
-      const shouldRetry = (options.shouldRetry?.(appError)) ?? 
-        (appError.type === ErrorType.NETWORK || 
-        appError.type === ErrorType.TIMEOUT ||
-        appError.type === ErrorType.SERVER);
-
-      if (shouldRetry && currentRetryCount < maxRetries) {
-        const nextCount = currentRetryCount + 1;
-        setRetryCount(nextCount);
-        retryCountRef.current = nextCount;
-        options.onRetry?.(nextCount);
-
-        // 指数退避
-        const delay = Math.min(1000 * Math.pow(2, nextCount), 10000);
-        
-        // 清理之前的 timeout
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
+      try {
+        const result = await fn();
+        if (isActiveRef.current) {
+          setRetryCount(0);
+          retryCountRef.current = 0;
+          setLastError(null);
         }
-        
-        await new Promise<void>((resolve) => {
-          timeoutRef.current = setTimeout(() => {
-            timeoutRef.current = null;
-            resolve();
-          }, delay);
-        });
-
-        // 如果组件已卸载，不再继续
+        return result;
+      } catch (error) {
         if (!isActiveRef.current) {
-          throw new Error('Component unmounted during retry', {
-            cause: error,
-          });
+          throw error;
         }
 
-        return retry(fn, options);
-      }
+        const appError = toAppError(error);
+        setLastError(appError);
 
-      throw appError;
-    }
-  }, [maxRetries]);
+        const shouldRetry =
+          options.shouldRetry?.(appError) ??
+          (appError.type === ErrorType.NETWORK ||
+            appError.type === ErrorType.TIMEOUT ||
+            appError.type === ErrorType.SERVER);
+
+        if (shouldRetry && currentRetryCount < maxRetries) {
+          const nextCount = currentRetryCount + 1;
+          setRetryCount(nextCount);
+          retryCountRef.current = nextCount;
+          options.onRetry?.(nextCount);
+
+          // 指数退避
+          const delay = Math.min(1000 * Math.pow(2, nextCount), 10000);
+
+          // 清理之前的 timeout
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+
+          await new Promise<void>((resolve) => {
+            timeoutRef.current = setTimeout(() => {
+              timeoutRef.current = null;
+              resolve();
+            }, delay);
+          });
+
+          // 如果组件已卸载，不再继续
+          if (!isActiveRef.current) {
+            throw new Error('Component unmounted during retry', {
+              cause: error,
+            });
+          }
+
+          return retry(fn, options);
+        }
+
+        throw appError;
+      }
+    },
+    [maxRetries]
+  );
 
   const reset = useCallback(() => {
     setRetryCount(0);

@@ -29,8 +29,8 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            'flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200',
-            'bg-white/80 dark:bg-[#252540]/80 border border-pink-200 dark:border-[#3D3D5C]',
+            'flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200',
+            'border border-pink-200 bg-white/80 dark:border-[#3D3D5C] dark:bg-[#252540]/80',
             'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
             'text-gray-700 dark:text-[#E8E8EC]'
           )}
@@ -49,8 +49,8 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
             />
             <div
               className={cn(
-                'absolute right-0 top-full mt-2 z-50',
-                'w-32 rounded-2xl overflow-hidden',
+                'absolute right-0 top-full z-50 mt-2',
+                'w-32 overflow-hidden rounded-2xl',
                 'bg-white dark:bg-[#252540]',
                 'border border-pink-200 dark:border-[#3D3D5C]',
                 'shadow-lg shadow-pink-500/10 dark:shadow-black/30',
@@ -62,17 +62,21 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
                   key={l}
                   onClick={() => handleLocaleChange(l)}
                   className={cn(
-                    'w-full flex items-center gap-2 px-3 py-2.5 text-left',
+                    'flex w-full items-center gap-2 px-3 py-2.5 text-left',
                     'transition-colors duration-200',
                     'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
-                    locale === l && 'bg-pink-50 dark:bg-[#2D2D50] text-pink-600 dark:text-pink-400'
+                    locale === l && 'bg-pink-50 text-pink-600 dark:bg-[#2D2D50] dark:text-pink-400'
                   )}
                 >
                   <span className="text-base">{localeFlags[l]}</span>
-                  <span className={cn(
-                    'text-sm font-medium',
-                    locale === l ? 'text-pink-600 dark:text-pink-400' : 'text-gray-700 dark:text-[#E8E8EC]'
-                  )}>
+                  <span
+                    className={cn(
+                      'text-sm font-medium',
+                      locale === l
+                        ? 'text-pink-600 dark:text-pink-400'
+                        : 'text-gray-700 dark:text-[#E8E8EC]'
+                    )}
+                  >
                     {localeLabels[l]}
                   </span>
                 </button>
@@ -93,18 +97,18 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         aria-label={t('common.switchLanguage') || 'Switch language'}
         type="button"
         className={cn(
-          'flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200',
-          'bg-white/80 dark:bg-[#252540]/80 border border-pink-200 dark:border-[#3D3D5C]',
+          'flex items-center gap-2 rounded-full px-3 py-2 transition-all duration-200',
+          'border border-pink-200 bg-white/80 dark:border-[#3D3D5C] dark:bg-[#252540]/80',
           'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
           'text-gray-700 dark:text-[#E8E8EC]',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]'
         )}
       >
-        <Globe className="w-4 h-4 text-pink-500" />
+        <Globe className="h-4 w-4 text-pink-500" />
         <span className="text-sm font-medium">
           {localeFlags[locale as Locale]} {localeLabels[locale as Locale]}
         </span>
-        <ChevronDown className={cn('w-4 h-4 transition-transform', isOpen && 'rotate-180')} />
+        <ChevronDown className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')} />
       </button>
 
       {isOpen && (
@@ -117,8 +121,8 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           />
           <div
             className={cn(
-              'absolute right-0 top-full mt-2 z-50',
-              'w-40 rounded-2xl overflow-hidden',
+              'absolute right-0 top-full z-50 mt-2',
+              'w-40 overflow-hidden rounded-2xl',
               'bg-white dark:bg-[#252540]',
               'border border-pink-200 dark:border-[#3D3D5C]',
               'shadow-lg shadow-pink-500/10 dark:shadow-black/30',
@@ -130,17 +134,21 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
                 key={l}
                 onClick={() => handleLocaleChange(l)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 text-left',
+                  'flex w-full items-center gap-3 px-4 py-3 text-left',
                   'transition-colors duration-200',
                   'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
-                  locale === l && 'bg-pink-50 dark:bg-[#2D2D50] text-pink-600 dark:text-pink-400'
+                  locale === l && 'bg-pink-50 text-pink-600 dark:bg-[#2D2D50] dark:text-pink-400'
                 )}
               >
                 <span className="text-lg">{localeFlags[l]}</span>
-                <span className={cn(
-                  'text-sm font-medium',
-                  locale === l ? 'text-pink-600 dark:text-pink-400' : 'text-gray-700 dark:text-[#E8E8EC]'
-                )}>
+                <span
+                  className={cn(
+                    'text-sm font-medium',
+                    locale === l
+                      ? 'text-pink-600 dark:text-pink-400'
+                      : 'text-gray-700 dark:text-[#E8E8EC]'
+                  )}
+                >
                   {localeLabels[l]}
                 </span>
               </button>

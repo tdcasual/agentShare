@@ -5,14 +5,6 @@ export type {
   CatalogResourceKind,
 } from './types';
 
-export {
-  catalogApi,
-  getCatalog,
-  getCatalogReleaseHistory,
-} from './api';
+export { catalogApi, getCatalog, getCatalogReleaseHistory } from './api';
 
-export {
-  useCatalog,
-  useCatalogReleaseHistory,
-  refreshCatalog,
-} from './hooks';
+export { useCatalog, useCatalogReleaseHistory, refreshCatalog } from './hooks';

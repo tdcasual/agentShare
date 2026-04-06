@@ -10,7 +10,7 @@ export function ServiceWorkerRegister() {
         .register('/sw.js')
         .then((registration) => {
           logger.runtime.info('Service Worker registered', registration.scope);
-          
+
           // 检查更新
           const handleUpdateFound = () => {
             const newWorker = registration.installing;
@@ -24,9 +24,9 @@ export function ServiceWorkerRegister() {
               newWorker.addEventListener('statechange', handleStateChange);
             }
           };
-          
+
           registration.addEventListener('updatefound', handleUpdateFound);
-          
+
           // 返回清理函数
           return () => {
             registration.removeEventListener('updatefound', handleUpdateFound);
@@ -43,9 +43,9 @@ export function ServiceWorkerRegister() {
           logger.runtime.info('Notification clicked', event.data.data);
         }
       };
-      
+
       navigator.serviceWorker.addEventListener('message', handleMessage);
-      
+
       // 清理函数
       return () => {
         navigator.serviceWorker.removeEventListener('message', handleMessage);

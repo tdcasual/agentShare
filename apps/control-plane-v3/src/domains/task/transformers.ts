@@ -1,6 +1,6 @@
 /**
  * Task Domain Transformers - Task领域DTO转换器
- * 
+ *
  * 提供Run, TokenFeedback, AgentToken的DTO转换
  */
 
@@ -9,7 +9,7 @@ import type {
   // Run types
   RunTransportDTO,
   Run,
-  // TokenFeedback types  
+  // TokenFeedback types
   TokenFeedbackTransportDTO,
   TokenFeedback,
   // AgentToken types
@@ -65,7 +65,10 @@ export const runTransformer = new RunTransformer();
 // TokenFeedback Transformer
 // ============================================
 
-export class TokenFeedbackTransformer extends BaseTransformer<TokenFeedbackTransportDTO, TokenFeedback> {
+export class TokenFeedbackTransformer extends BaseTransformer<
+  TokenFeedbackTransportDTO,
+  TokenFeedback
+> {
   toModel(dto: TokenFeedbackTransportDTO): TokenFeedback {
     return {
       tokenId: dto.token_id,

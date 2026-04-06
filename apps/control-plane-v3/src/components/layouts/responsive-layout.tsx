@@ -13,7 +13,7 @@ interface ResponsiveMainLayoutProps {
 
 /**
  * ResponsiveMainLayout - 响应式主布局
- * 
+ *
  * 自动适配所有设备类型:
  * - Mobile: 单列布局，底部导航
  * - Tablet Portrait: 可折叠侧边栏，内容区适配
@@ -39,7 +39,7 @@ export const ResponsiveMainLayout = memo(function ResponsiveMainLayout({
           // 移动端: 无侧边栏，底部导航空间
           device.isMobile && 'pb-20',
           // 平板竖屏: 可折叠侧边栏 (56px)
-          device.isTabletPortrait && 'pl-14 pb-0',
+          device.isTabletPortrait && 'pb-0 pl-14',
           // 平板横屏: 图标侧边栏 (80px)
           device.isTabletLandscape && 'pl-20',
           // 桌面: 完整侧边栏 (256px)
@@ -55,7 +55,7 @@ export const ResponsiveMainLayout = memo(function ResponsiveMainLayout({
 
 /**
  * ResponsiveContainer - 响应式内容容器
- * 
+ *
  * 根据设备类型调整内边距和最大宽度
  */
 interface ResponsiveContainerProps {
@@ -84,19 +84,20 @@ export const ResponsiveContainer = memo(function ResponsiveContainer({
   const paddingClasses = {
     none: '',
     sm: 'px-3 py-3',
-    md: cn(device.isMobile && 'px-4 py-4', device.isTablet && 'px-6 py-6', device.isDesktop && 'px-8 py-8'),
-    lg: cn(device.isMobile && 'px-4 py-6', device.isTablet && 'px-6 py-8', device.isDesktop && 'px-10 py-10'),
+    md: cn(
+      device.isMobile && 'px-4 py-4',
+      device.isTablet && 'px-6 py-6',
+      device.isDesktop && 'px-8 py-8'
+    ),
+    lg: cn(
+      device.isMobile && 'px-4 py-6',
+      device.isTablet && 'px-6 py-8',
+      device.isDesktop && 'px-10 py-10'
+    ),
   };
 
   return (
-    <div
-      className={cn(
-        'mx-auto w-full',
-        sizeClasses[size],
-        paddingClasses[padding],
-        className
-      )}
-    >
+    <div className={cn('mx-auto w-full', sizeClasses[size], paddingClasses[padding], className)}>
       {children}
     </div>
   );
@@ -104,7 +105,7 @@ export const ResponsiveContainer = memo(function ResponsiveContainer({
 
 /**
  * ResponsiveGrid - 响应式网格
- * 
+ *
  * 智能列数调整，平滑过渡无跳跃
  */
 interface ResponsiveGridProps {
@@ -141,19 +142,21 @@ export const ResponsiveGrid = memo(function ResponsiveGrid({
 
   // 动态确定列数
   const getCols = () => {
-    if (device.isMobile) {return cols.mobile ?? 1;}
-    if (device.isTabletPortrait) {return cols.tabletPortrait ?? 2;}
-    if (device.isTabletLandscape) {return cols.tabletLandscape ?? 3;}
+    if (device.isMobile) {
+      return cols.mobile ?? 1;
+    }
+    if (device.isTabletPortrait) {
+      return cols.tabletPortrait ?? 2;
+    }
+    if (device.isTabletLandscape) {
+      return cols.tabletLandscape ?? 3;
+    }
     return cols.desktop ?? 4;
   };
 
   return (
     <div
-      className={cn(
-        'grid',
-        gapClasses[gap],
-        className
-      )}
+      className={cn('grid', gapClasses[gap], className)}
       style={{
         gridTemplateColumns: `repeat(${getCols()}, minmax(0, 1fr))`,
       }}
@@ -165,7 +168,7 @@ export const ResponsiveGrid = memo(function ResponsiveGrid({
 
 /**
  * ResponsiveCard - 响应式卡片
- * 
+ *
  * 根据设备调整卡片大小和阴影
  */
 interface ResponsiveCardProps {
@@ -204,16 +207,12 @@ export const ResponsiveCard = memo(function ResponsiveCard({
     );
   }
 
-  return (
-    <div className={cardClassName}>
-      {children}
-    </div>
-  );
+  return <div className={cardClassName}>{children}</div>;
 });
 
 /**
  * ResponsiveText - 响应式文本
- * 
+ *
  * 根据设备自动调整字体大小
  */
 interface ResponsiveTextProps {
@@ -274,13 +273,7 @@ export const ResponsiveText = memo(function ResponsiveText({
   };
 
   return (
-    <Component
-      className={cn(
-        variantClasses[variant],
-        colorClasses[color],
-        className
-      )}
-    >
+    <Component className={cn(variantClasses[variant], colorClasses[color], className)}>
       {children}
     </Component>
   );
@@ -288,7 +281,7 @@ export const ResponsiveText = memo(function ResponsiveText({
 
 /**
  * DeviceOnly - 设备条件渲染
- * 
+ *
  * 只在指定设备上渲染内容
  */
 interface DeviceOnlyProps {
@@ -324,7 +317,7 @@ export function DeviceOnly({
 
 /**
  * ResponsiveSpacing - 响应式间距
- * 
+ *
  * 根据设备自动调整间距大小
  */
 interface ResponsiveSpacingProps {
@@ -332,10 +325,7 @@ interface ResponsiveSpacingProps {
   direction?: 'horizontal' | 'vertical';
 }
 
-export function ResponsiveSpacing({ 
-  size = 'md',
-  direction = 'vertical' 
-}: ResponsiveSpacingProps) {
+export function ResponsiveSpacing({ size = 'md', direction = 'vertical' }: ResponsiveSpacingProps) {
   const device = useDeviceType();
 
   const getSize = () => {
@@ -346,12 +336,16 @@ export function ResponsiveSpacing({
       lg: 24,
       xl: 32,
     };
-    
+
     const base = baseSizes[size];
-    
+
     // 平板使用稍大间距
-    if (device.isTablet) {return base * 1.25;}
-    if (device.isDesktop) {return base * 1.5;}
+    if (device.isTablet) {
+      return base * 1.25;
+    }
+    if (device.isDesktop) {
+      return base * 1.5;
+    }
     return base;
   };
 

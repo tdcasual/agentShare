@@ -1,6 +1,11 @@
 export type CapabilityAccessPolicyMode = 'all_tokens' | 'selectors';
 export type CapabilityAccessSelectorKind = 'token' | 'agent' | 'token_label';
-export type GovernancePublicationStatus = 'pending_review' | 'approved' | 'rejected' | 'active' | 'expired';
+export type GovernancePublicationStatus =
+  | 'pending_review'
+  | 'approved'
+  | 'rejected'
+  | 'active'
+  | 'expired';
 
 type GovernanceStatusSubject = {
   readonly publication_status?: string | null;
@@ -88,7 +93,9 @@ export interface CapabilityCreateInput {
   readonly adapter_config?: Record<string, unknown>;
 }
 
-export function normalizeGovernancePublicationStatus(status?: string | null): GovernancePublicationStatus {
+export function normalizeGovernancePublicationStatus(
+  status?: string | null
+): GovernancePublicationStatus {
   if (status === 'pending') {
     return 'pending_review';
   }
@@ -104,7 +111,9 @@ export function normalizeGovernancePublicationStatus(status?: string | null): Go
   return 'active';
 }
 
-export function deriveGovernanceStatus(subject: GovernanceStatusSubject): GovernancePublicationStatus {
+export function deriveGovernanceStatus(
+  subject: GovernanceStatusSubject
+): GovernancePublicationStatus {
   const normalized = normalizeGovernancePublicationStatus(subject.publication_status);
   if (normalized === 'active' && subject.created_by_actor_type === 'agent' && subject.reviewed_at) {
     return 'approved';

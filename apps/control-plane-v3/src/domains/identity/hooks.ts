@@ -1,6 +1,6 @@
 /**
  * Identity Domain Hooks
- * 
+ *
  * 基于 SWR 的数据获取和缓存
  */
 
@@ -9,9 +9,19 @@
 import useSWR, { SWRConfiguration, mutate } from 'swr';
 import { swrConfig, staticConfig } from '@/lib/swr-config';
 import * as api from './api';
-import type { Agent, BootstrapStatus, ManagementSessionSummary, AdminAccountSummary } from './types';
+import type {
+  Agent,
+  BootstrapStatus,
+  ManagementSessionSummary,
+  AdminAccountSummary,
+} from './types';
 import type { AgentToken } from '../task/types';
-import type { AgentCreateInput, AdminAccountCreateInput, LoginInput, AgentTokenCreateInput } from '@/lib/api-client';
+import type {
+  AgentCreateInput,
+  AdminAccountCreateInput,
+  LoginInput,
+  AgentTokenCreateInput,
+} from '@/lib/api-client';
 
 const AGENT_TOKENS_BULK_KEY = 'bulk:agent-tokens';
 
@@ -20,14 +30,10 @@ const AGENT_TOKENS_BULK_KEY = 'bulk:agent-tokens';
 // ============================================
 
 export function useBootstrapStatus(options?: SWRConfiguration) {
-  return useSWR<BootstrapStatus>(
-    '/api/bootstrap/status',
-    () => api.getBootstrapStatus(),
-    {
-      ...staticConfig,
-      ...options,
-    }
-  );
+  return useSWR<BootstrapStatus>('/api/bootstrap/status', () => api.getBootstrapStatus(), {
+    ...staticConfig,
+    ...options,
+  });
 }
 
 // ============================================
@@ -35,14 +41,10 @@ export function useBootstrapStatus(options?: SWRConfiguration) {
 // ============================================
 
 export function useSession(options?: SWRConfiguration) {
-  return useSWR<ManagementSessionSummary>(
-    '/api/session/me',
-    () => api.getSession(),
-    {
-      ...swrConfig,
-      ...options,
-    }
-  );
+  return useSWR<ManagementSessionSummary>('/api/session/me', () => api.getSession(), {
+    ...swrConfig,
+    ...options,
+  });
 }
 
 export function useLogin() {
@@ -168,7 +170,7 @@ export function prefetchSession() {
 export function useAgentTokens(agentId: string | null, options?: SWRConfiguration) {
   return useSWR<{ items: AgentToken[] }>(
     agentId ? `/api/agents/${agentId}/tokens` : null,
-    () => agentId ? api.getAgentTokens(agentId) : { items: [] },
+    () => (agentId ? api.getAgentTokens(agentId) : { items: [] }),
     {
       ...swrConfig,
       ...options,
@@ -200,13 +202,13 @@ export function useRevokeAgentToken() {
 
 /**
  * 获取所有 Agent 及其 Tokens
- * 
+ *
  * 用于 tokens 页面展示完整数据
  */
 export function useAgentsWithTokens(options?: SWRConfiguration) {
   const agentsQuery = useAgents(options);
-  
-  const agentIds = agentsQuery.data?.items.map(a => a.id) ?? [];
+
+  const agentIds = agentsQuery.data?.items.map((a) => a.id) ?? [];
   const tokensQuery = useSWR<Record<string, AgentToken[]>>(
     options?.isPaused || agentIds.length === 0 ? null : [AGENT_TOKENS_BULK_KEY, ...agentIds],
     async () => {
@@ -225,17 +227,14 @@ export function useAgentsWithTokens(options?: SWRConfiguration) {
       revalidateOnFocus: false,
     }
   );
-  
+
   return {
     agents: agentsQuery.data?.items ?? [],
     tokensByAgent: tokensQuery.data ?? {},
     isLoading: agentsQuery.isLoading || (agentIds.length > 0 && tokensQuery.isLoading),
     error: agentsQuery.error ?? tokensQuery.error ?? null,
     mutate: async () => {
-      await Promise.all([
-        agentsQuery.mutate(),
-        tokensQuery.mutate(),
-      ]);
+      await Promise.all([agentsQuery.mutate(), tokensQuery.mutate()]);
     },
   };
 }

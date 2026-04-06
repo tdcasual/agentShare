@@ -32,7 +32,7 @@ export function MobileBottomSheet({
     // 只有在拖动指示器或头部时才启动拖动
     const target = e.target as HTMLElement;
     const isHandle = target.closest('[data-sheet-handle]');
-    
+
     if (isHandle || !contentRef.current?.contains(target)) {
       startY.current = e.touches[0].clientY;
       isDragging.current = true;
@@ -40,11 +40,13 @@ export function MobileBottomSheet({
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging.current) {return;}
-    
+    if (!isDragging.current) {
+      return;
+    }
+
     currentY.current = e.touches[0].clientY;
     const diff = currentY.current - startY.current;
-    
+
     if (diff > 0 && sheetRef.current) {
       // 向下滑动时添加阻力
       const resistance = 0.5;
@@ -55,11 +57,13 @@ export function MobileBottomSheet({
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (!isDragging.current) {return;}
-    
+    if (!isDragging.current) {
+      return;
+    }
+
     isDragging.current = false;
     const diff = currentY.current - startY.current;
-    
+
     if (sheetRef.current) {
       if (diff > 100) {
         // 滑动超过阈值，关闭
@@ -101,7 +105,7 @@ export function MobileBottomSheet({
         onClick={onClose}
         aria-hidden="true"
       />
-      
+
       {/* 底部面板 */}
       <div
         ref={sheetRef}
@@ -119,40 +123,37 @@ export function MobileBottomSheet({
         onTouchEnd={handleTouchEnd}
       >
         {/* 拖动指示器 */}
-        <div 
-          className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+        <div
+          className="flex cursor-grab justify-center pb-2 pt-3 active:cursor-grabbing"
           data-sheet-handle
         >
-          <div className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-[#3D3D5C]" />
+          <div className="h-1.5 w-12 rounded-full bg-gray-300 dark:bg-[#3D3D5C]" />
         </div>
-        
+
         {/* 头部 */}
         {title && (
-          <div className="flex items-center justify-between px-4 pb-3 border-b border-pink-100 dark:border-[#3D3D5C]">
-            <h2 
-              id="bottom-sheet-title" 
+          <div className="flex items-center justify-between border-b border-pink-100 px-4 pb-3 dark:border-[#3D3D5C]">
+            <h2
+              id="bottom-sheet-title"
               className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]"
             >
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-pink-50 dark:hover:bg-[#3D3D5C] transition-colors"
+              className="rounded-full p-2 transition-colors hover:bg-pink-50 dark:hover:bg-[#3D3D5C]"
               aria-label="关闭"
             >
-              <X className="w-5 h-5 text-gray-500 dark:text-[#9CA3AF]" />
+              <X className="h-5 w-5 text-gray-500 dark:text-[#9CA3AF]" />
             </button>
           </div>
         )}
-        
+
         {/* 内容区域 */}
-        <div 
-          ref={contentRef}
-          className="p-4 max-h-[70vh] overflow-y-auto touch-pan-y"
-        >
+        <div ref={contentRef} className="max-h-[70vh] touch-pan-y overflow-y-auto p-4">
           {children}
         </div>
-        
+
         {/* 安全区域 */}
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
@@ -184,22 +185,25 @@ export function MobileActionSheet({ isOpen, onClose, actions }: MobileActionShee
               onClose();
             }}
             className={cn(
-              'w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors',
-              action.variant === 'danger' && 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20',
-              action.variant === 'primary' && 'text-pink-600 dark:text-[#E891C0] hover:bg-pink-50 dark:hover:bg-[#3D3D5C]',
-              (!action.variant || action.variant === 'default') && 'text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C]'
+              'flex w-full items-center gap-3 rounded-2xl px-4 py-3 transition-colors',
+              action.variant === 'danger' &&
+                'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20',
+              action.variant === 'primary' &&
+                'text-pink-600 hover:bg-pink-50 dark:text-[#E891C0] dark:hover:bg-[#3D3D5C]',
+              (!action.variant || action.variant === 'default') &&
+                'text-gray-700 hover:bg-pink-50 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]'
             )}
           >
             {action.icon}
             <span className="font-medium">{action.label}</span>
           </button>
         ))}
-        
+
         <hr className="my-3 border-pink-100 dark:border-[#3D3D5C]" />
-        
+
         <button
           onClick={onClose}
-          className="w-full py-3 rounded-2xl font-medium text-gray-500 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#3D3D5C] transition-colors"
+          className="w-full rounded-2xl py-3 font-medium text-gray-500 transition-colors hover:bg-gray-100 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]"
         >
           取消
         </button>

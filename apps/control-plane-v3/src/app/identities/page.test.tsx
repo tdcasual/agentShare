@@ -19,7 +19,9 @@ const refreshAgentsWithTokensMock = vi.fn();
 const refreshEventsMock = vi.fn();
 
 vi.mock('next/link', () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 const mockPush = vi.fn();
@@ -259,14 +261,22 @@ describe('identities page', () => {
     expect(screen.getByText('Account ID')).toBeInTheDocument();
     expect(screen.getByText('admin-owner')).toBeInTheDocument();
     expect(screen.getByText('Never signed in')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /hide details for founding owner/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /hide details for founding owner/i })
+    ).toBeInTheDocument();
   });
 
   it('frames humans as supervisors and agents as self-maintained identities', () => {
     render(<IdentitiesPage />);
 
-    expect(screen.getByText(/Human operators supervise policy, approvals, and account hygiene/i)).toBeInTheDocument();
-    expect(screen.getByText(/Agents maintain their own execution identity, while humans can still inspect and manage their status/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Human operators supervise policy, approvals, and account hygiene/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Agents maintain their own execution identity, while humans can still inspect and manage their status/i
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows token and feedback coverage for agents before details are expanded', () => {
@@ -319,7 +329,10 @@ describe('identities page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when backend queries return unauthorized', () => {
@@ -333,7 +346,10 @@ describe('identities page', () => {
     render(<IdentitiesPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a forbidden-specific state when backend queries return forbidden', () => {
@@ -355,8 +371,13 @@ describe('identities page', () => {
     render(<IdentitiesPage />);
 
     expect(screen.getByText('Focused identity')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /hide details for bootstrap agent/i })).toBeInTheDocument();
-    expect(screen.getByTestId('agent-card-bootstrap')).toHaveAttribute('data-focus-state', 'focused');
+    expect(
+      screen.getByRole('button', { name: /hide details for bootstrap agent/i })
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('agent-card-bootstrap')).toHaveAttribute(
+      'data-focus-state',
+      'focused'
+    );
   });
 
   it('offers explicit account and token management handoff actions inside identity details', async () => {
@@ -367,7 +388,10 @@ describe('identities page', () => {
     await user.click(screen.getByRole('button', { name: /view details for founding owner/i }));
     await user.click(screen.getByRole('button', { name: /view details for bootstrap agent/i }));
 
-    expect(screen.getByRole('link', { name: /manage in settings/i })).toHaveAttribute('href', '/settings');
+    expect(screen.getByRole('link', { name: /manage in settings/i })).toHaveAttribute(
+      'href',
+      '/settings'
+    );
     expect(screen.getByRole('link', { name: /manage tokens/i })).toHaveAttribute('href', '/tokens');
   });
 });

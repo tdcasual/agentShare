@@ -14,7 +14,11 @@ import { Users, Plus, User, Bot } from 'lucide-react';
 
 interface MemberManagerProps {
   members: SpaceMember[];
-  onAddMember: (input: { memberType: 'agent' | 'human'; memberId: string; role: string }) => Promise<void>;
+  onAddMember: (input: {
+    memberType: 'agent' | 'human';
+    memberId: string;
+    role: string;
+  }) => Promise<void>;
   isAdding: boolean;
   canManage?: boolean;
 }
@@ -25,7 +29,12 @@ const ROLE_OPTIONS = [
   { value: 'admin', label: '管理员' },
 ];
 
-export function MemberManager({ members, onAddMember, isAdding, canManage = true }: MemberManagerProps) {
+export function MemberManager({
+  members,
+  onAddMember,
+  isAdding,
+  canManage = true,
+}: MemberManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [memberType, setMemberType] = useState<'agent' | 'human'>('agent');
   const [memberId, setMemberId] = useState('');
@@ -49,9 +58,9 @@ export function MemberManager({ members, onAddMember, isAdding, canManage = true
   return (
     <Card variant="default" className="p-4">
       {/* 头部 */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-pink-500" />
+          <Users className="h-5 w-5 text-pink-500" />
           <h3 className="font-semibold text-gray-800 dark:text-gray-100">
             {canManage ? '成员管理' : '成员'}
           </h3>
@@ -62,7 +71,7 @@ export function MemberManager({ members, onAddMember, isAdding, canManage = true
             variant="outline"
             size="sm"
             onClick={() => setShowAddForm(!showAddForm)}
-            leftIcon={<Plus className="w-4 h-4" />}
+            leftIcon={<Plus className="h-4 w-4" />}
           >
             添加成员
           </Button>
@@ -71,47 +80,50 @@ export function MemberManager({ members, onAddMember, isAdding, canManage = true
 
       {/* 添加成员表单 */}
       {canManage && showAddForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-4 bg-pink-50/50 dark:bg-[#1A1A2E] rounded-xl space-y-3">
+        <form
+          onSubmit={handleSubmit}
+          className="mb-4 space-y-3 rounded-xl bg-pink-50/50 p-4 dark:bg-[#1A1A2E]"
+        >
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
                 成员类型
               </label>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setMemberType('human')}
-                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors ${
                     memberType === 'human'
                       ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
-                      : 'bg-white dark:bg-[#252540] text-gray-600'
+                      : 'bg-white text-gray-600 dark:bg-[#252540]'
                   }`}
                 >
-                  <User className="w-4 h-4" />
+                  <User className="h-4 w-4" />
                   人类
                 </button>
                 <button
                   type="button"
                   onClick={() => setMemberType('agent')}
-                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors ${
                     memberType === 'agent'
                       ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
-                      : 'bg-white dark:bg-[#252540] text-gray-600'
+                      : 'bg-white text-gray-600 dark:bg-[#252540]'
                   }`}
                 >
-                  <Bot className="w-4 h-4" />
+                  <Bot className="h-4 w-4" />
                   智能体
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
                 角色
               </label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-pink-200 dark:border-[#3D3D5C] bg-white dark:bg-[#252540] text-sm"
+                className="w-full rounded-lg border border-pink-200 bg-white px-3 py-2 text-sm dark:border-[#3D3D5C] dark:bg-[#252540]"
               >
                 {ROLE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -122,7 +134,7 @@ export function MemberManager({ members, onAddMember, isAdding, canManage = true
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
               成员ID
             </label>
             <Input
@@ -159,21 +171,19 @@ export function MemberManager({ members, onAddMember, isAdding, canManage = true
       {/* 成员列表 */}
       <div className="space-y-2">
         {members.length === 0 ? (
-          <p className="text-center text-sm text-gray-500 py-4">
-            暂无成员
-          </p>
+          <p className="py-4 text-center text-sm text-gray-500">暂无成员</p>
         ) : (
           members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#252540] rounded-xl"
+              className="flex items-center justify-between rounded-xl bg-gray-50 p-3 dark:bg-[#252540]"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/20 flex items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-900/20">
                   {member.member_type === 'human' ? (
-                    <User className="w-4 h-4 text-pink-500" />
+                    <User className="h-4 w-4 text-pink-500" />
                   ) : (
-                    <Bot className="w-4 h-4 text-pink-500" />
+                    <Bot className="h-4 w-4 text-pink-500" />
                   )}
                 </div>
                 <div>
@@ -181,7 +191,8 @@ export function MemberManager({ members, onAddMember, isAdding, canManage = true
                     {member.member_id.slice(-8)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {member.member_type === 'human' ? '人类' : '智能体'} · {formatDate(member.created_at)}
+                    {member.member_type === 'human' ? '人类' : '智能体'} ·{' '}
+                    {formatDate(member.created_at)}
                   </p>
                 </div>
               </div>

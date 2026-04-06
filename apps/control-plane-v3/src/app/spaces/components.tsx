@@ -79,20 +79,20 @@ export interface MetricData {
 export function SpacesHeroMetrics({ data }: { data: MetricData }) {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
-      <MetricCard 
-        label="Recent events" 
-        value={data.events.toString()} 
-        icon={<Sparkles className="h-4 w-4" />} 
+      <MetricCard
+        label="Recent events"
+        value={data.events.toString()}
+        icon={<Sparkles className="h-4 w-4" />}
       />
-      <MetricCard 
-        label="Pending reviews" 
-        value={data.pendingReviews.toString()} 
-        icon={<ShieldCheck className="h-4 w-4" />} 
+      <MetricCard
+        label="Pending reviews"
+        value={data.pendingReviews.toString()}
+        icon={<ShieldCheck className="h-4 w-4" />}
       />
-      <MetricCard 
-        label="Active agents" 
-        value={data.activeAgents.toString()} 
-        icon={<Bot className="h-4 w-4" />} 
+      <MetricCard
+        label="Active agents"
+        value={data.activeAgents.toString()}
+        icon={<Bot className="h-4 w-4" />}
       />
     </div>
   );

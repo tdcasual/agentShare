@@ -1,6 +1,6 @@
 /**
  * Task Dashboard Hooks
- * 
+ *
  * 复杂的复合查询 hook，用于任务页面
  * 整合 Tasks、Runs、Tokens、Feedback
  */
@@ -24,7 +24,7 @@ export interface TaskView {
 
 /**
  * 获取任务仪表盘完整数据
- * 
+ *
  * 包含：
  * - 所有 Tasks
  * - 所有 Runs
@@ -33,17 +33,15 @@ export interface TaskView {
  */
 export function useTaskDashboard(options?: SWRConfiguration) {
   // 并行获取基础数据
-  const tasksQuery = useSWR<{ items: Task[] }>(
-    '/api/tasks',
-    () => taskApi.getTasks(),
-    { ...pollingConfig, ...options }
-  );
+  const tasksQuery = useSWR<{ items: Task[] }>('/api/tasks', () => taskApi.getTasks(), {
+    ...pollingConfig,
+    ...options,
+  });
 
-  const runsQuery = useSWR<{ items: Run[] }>(
-    '/api/runs',
-    () => taskApi.getRuns(),
-    { ...pollingConfig, ...options }
-  );
+  const runsQuery = useSWR<{ items: Run[] }>('/api/runs', () => taskApi.getRuns(), {
+    ...pollingConfig,
+    ...options,
+  });
 
   const agentsQuery = useSWR<{ items: { id: string }[] }>(
     '/api/agents',
@@ -51,7 +49,7 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     { ...pollingConfig, ...options }
   );
 
-  const agentIds = agentsQuery.data?.items.map(a => a.id) ?? [];
+  const agentIds = agentsQuery.data?.items.map((a) => a.id) ?? [];
   const tokensQuery = useSWR<Record<string, AgentToken>>(
     agentIds.length > 0 ? [TASK_DASHBOARD_TOKENS_KEY, ...agentIds] : null,
     async () => {
@@ -70,8 +68,8 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const tasks = tasksQuery.data?.items;
   const targetTokenIds = useMemo(() => {
     const ids = new Set<string>();
-    (tasks ?? []).forEach(task => {
-      (task.target_token_ids ?? []).forEach(id => ids.add(id));
+    (tasks ?? []).forEach((task) => {
+      (task.target_token_ids ?? []).forEach((id) => ids.add(id));
     });
     return Array.from(ids);
   }, [tasks]);
@@ -100,23 +98,23 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   // 构建任务视图
   const runs = runsQuery.data?.items;
   const taskViews: TaskView[] = useMemo(() => {
-    return (tasks ?? []).map(task => ({
+    return (tasks ?? []).map((task) => ({
       task,
       targets: buildTaskTargets(task, tokensById ?? {}, runs ?? [], feedbackByTargetId ?? {}),
     }));
   }, [tasks, tokensById, runs, feedbackByTargetId]);
 
   // 计算加载状态
-  const isLoading = 
-    tasksQuery.isLoading || 
-    runsQuery.isLoading || 
+  const isLoading =
+    tasksQuery.isLoading ||
+    runsQuery.isLoading ||
     agentsQuery.isLoading ||
     (agentIds.length > 0 && tokensQuery.isLoading) ||
     (targetTokenIds.length > 0 && feedbackQuery.isLoading);
 
-  const error = 
-    tasksQuery.error || 
-    runsQuery.error || 
+  const error =
+    tasksQuery.error ||
+    runsQuery.error ||
     agentsQuery.error ||
     tokensQuery.error ||
     feedbackQuery.error;
@@ -147,7 +145,13 @@ export function useTaskDashboard(options?: SWRConfiguration) {
  * 规范化 run status 为合法的 TaskTargetView status
  */
 function normalizeRunStatus(status: string | undefined): TaskTargetView['status'] {
-  const validStatuses: TaskTargetView['status'][] = ['pending', 'running', 'completed', 'failed', 'cancelled'];
+  const validStatuses: TaskTargetView['status'][] = [
+    'pending',
+    'running',
+    'completed',
+    'failed',
+    'cancelled',
+  ];
   if (status && validStatuses.includes(status as TaskTargetView['status'])) {
     return status as TaskTargetView['status'];
   }
@@ -161,12 +165,10 @@ function buildTaskTargets(
   feedbackByTargetId: Record<string, TokenFeedback[]>
 ): TaskTargetView[] {
   const targetTokenIds = task.target_token_ids ?? [];
-  
+
   return targetTokenIds.map((targetId) => {
     const token = tokensById[targetId] ?? null;
-    const run = runs.find(
-      (r) => r.task_id === task.id && r.task_target_id === targetId
-    ) ?? null;
+    const run = runs.find((r) => r.task_id === task.id && r.task_target_id === targetId) ?? null;
     const feedback = feedbackByTargetId[targetId] ?? [];
 
     return {

@@ -16,7 +16,7 @@ interface IdentityCardProps {
 export function IdentityCard({ identity, onClick, className }: IdentityCardProps) {
   const isHuman = identity.type === 'human';
   const isAgent = identity.type === 'agent';
-  
+
   const presenceColors = {
     online: 'bg-green-400',
     away: 'bg-yellow-400',
@@ -25,13 +25,10 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
   };
 
   return (
-    <Card 
-      hover 
+    <Card
+      hover
       decoration
-      className={cn(
-        'cursor-pointer transition-all duration-300',
-        className
-      )}
+      className={cn('cursor-pointer transition-all duration-300', className)}
       onClick={onClick}
     >
       <CardContent className="p-5">
@@ -43,42 +40,40 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 src={identity.profile.avatar}
                 alt={identity.profile.name}
                 className={cn(
-                  'w-16 h-16 rounded-full object-cover border-3 shadow-md',
+                  'border-3 h-16 w-16 rounded-full object-cover shadow-md',
                   isHuman ? 'border-sky-300' : 'border-green-300',
                   identity.presence === 'online' && 'shadow-lg shadow-green-200'
                 )}
               />
               {/* Presence indicator with pulse */}
-              <span 
+              <span
                 className={cn(
-                  'absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full border-2 border-white',
+                  'absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full border-2 border-white',
                   presenceColors[identity.presence],
                   identity.presence === 'online' && 'animate-pulse'
                 )}
               />
               {/* Type badge */}
-              <span className={cn(
-                'absolute -top-1 -left-1 w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 border-white shadow-sm',
-                isHuman ? 'bg-sky-400 text-white' : 'bg-green-400 text-white'
-              )}>
+              <span
+                className={cn(
+                  'absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs shadow-sm',
+                  isHuman ? 'bg-sky-400 text-white' : 'bg-green-400 text-white'
+                )}
+              >
                 {isHuman ? '👤' : '🤖'}
               </span>
             </div>
           </SparkleEffect>
 
           {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-gray-900 truncate">
-                {identity.profile.name}
-              </h3>
-              <Badge variant={isHuman ? 'human' : 'agent'}>
-                {isHuman ? 'Human' : 'Agent'}
-              </Badge>
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <h3 className="truncate font-bold text-gray-900">{identity.profile.name}</h3>
+              <Badge variant={isHuman ? 'human' : 'agent'}>{isHuman ? 'Human' : 'Agent'}</Badge>
             </div>
-            
+
             {identity.profile.bio && (
-              <p className="text-sm text-gray-500 dark:text-[#9CA3AF] mb-2 line-clamp-2">
+              <p className="mb-2 line-clamp-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
                 {identity.profile.bio}
               </p>
             )}
@@ -86,15 +81,15 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
             {/* Tags */}
             <div className="flex flex-wrap gap-1.5">
               {identity.profile.tags.slice(0, 3).map((tag) => (
-                <span 
+                <span
                   key={tag}
-                  className="text-xs px-2.5 py-0.5 rounded-full bg-pink-50 text-pink-600 border border-pink-100"
+                  className="rounded-full border border-pink-100 bg-pink-50 px-2.5 py-0.5 text-xs text-pink-600"
                 >
                   {tag}
                 </span>
               ))}
               {identity.profile.tags.length > 3 && (
-                <span className="text-xs px-2 py-0.5 text-gray-400">
+                <span className="px-2 py-0.5 text-xs text-gray-400">
                   +{identity.profile.tags.length - 3}
                 </span>
               )}
@@ -104,7 +99,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
             {isAgent && (identity as AgentIdentity).runtime && (
               <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-[#9CA3AF]">
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-green-400" />
+                  <span className="h-2 w-2 rounded-full bg-green-400" />
                   {(identity as AgentIdentity).runtime!.adapterType}
                 </span>
                 <span className="text-pink-300">✦</span>
@@ -116,7 +111,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
             {isHuman && (
               <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-[#9CA3AF]">
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-sky-400" />
+                  <span className="h-2 w-2 rounded-full bg-sky-400" />
                   {(identity as HumanIdentity).session?.managementRole || 'member'}
                 </span>
                 <span className="text-pink-300">✦</span>
@@ -131,7 +126,13 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
 }
 
 // Compact version for lists
-export function IdentityCardCompact({ identity, onClick }: { identity: Identity; onClick?: () => void }) {
+export function IdentityCardCompact({
+  identity,
+  onClick,
+}: {
+  identity: Identity;
+  onClick?: () => void;
+}) {
   const isHuman = identity.type === 'human';
   const isOnline = identity.presence === 'online';
   const interactiveProps = onClick
@@ -147,10 +148,10 @@ export function IdentityCardCompact({ identity, onClick }: { identity: Identity;
         tabIndex: 0,
       }
     : {};
-  
+
   return (
     <div
-      className="flex items-center gap-3 p-3 rounded-2xl hover:bg-pink-50/50 cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+      className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-all duration-200 hover:scale-[1.02] hover:bg-pink-50/50"
       {...interactiveProps}
     >
       <div className="relative">
@@ -158,28 +159,23 @@ export function IdentityCardCompact({ identity, onClick }: { identity: Identity;
           src={identity.profile.avatar}
           alt={identity.profile.name}
           className={cn(
-            'w-10 h-10 rounded-full object-cover border-2',
+            'h-10 w-10 rounded-full border-2 object-cover',
             isHuman ? 'border-sky-300' : 'border-green-300',
             isOnline && 'shadow-md shadow-green-100'
           )}
         />
         {isOnline && (
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
+          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-400" />
         )}
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-gray-900 truncate">
+          <span className="truncate text-sm font-semibold text-gray-900">
             {identity.profile.name}
           </span>
-          <span className="text-xs opacity-60">
-            {isHuman ? '👤' : '🤖'}
-          </span>
+          <span className="text-xs opacity-60">{isHuman ? '👤' : '🤖'}</span>
         </div>
-        <span className={cn(
-          'text-xs',
-          isOnline ? 'text-green-600' : 'text-gray-400'
-        )}>
+        <span className={cn('text-xs', isOnline ? 'text-green-600' : 'text-gray-400')}>
           {isOnline ? '● online' : identity.presence}
         </span>
       </div>

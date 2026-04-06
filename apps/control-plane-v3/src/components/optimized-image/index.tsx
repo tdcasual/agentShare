@@ -54,17 +54,12 @@ export const OptimizedImage = memo(function OptimizedImage({
         className={cn(
           'flex items-center justify-center bg-gray-100 dark:bg-[#2D2D50]',
           'text-gray-400 dark:text-[#9CA3AF]',
-          fill ? 'w-full h-full' : '',
+          fill ? 'h-full w-full' : '',
           containerClassName
         )}
         style={!fill ? { width, height } : undefined}
       >
-        <svg
-          className="w-8 h-8"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -81,7 +76,7 @@ export const OptimizedImage = memo(function OptimizedImage({
       className={cn(
         'relative overflow-hidden',
         'bg-gray-100 dark:bg-[#2D2D50]',
-        fill ? 'w-full h-full' : '',
+        fill ? 'h-full w-full' : '',
         containerClassName
       )}
     >
@@ -174,7 +169,7 @@ export const OptimizedAvatar = memo(function OptimizedAvatar({
         width={size}
         height={size}
         priority={priority}
-        className="object-cover w-full h-full"
+        className="h-full w-full object-cover"
         onError={() => setHasError(true)}
       />
     </div>

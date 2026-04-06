@@ -37,7 +37,7 @@ export function getNotificationsSWRKey(source: NotificationsSource): string | nu
 
 export async function loadNotifications(
   source: NotificationsSource,
-  fetchImpl: FetchLike = fetch,
+  fetchImpl: FetchLike = fetch
 ): Promise<Notification[]> {
   if (source.kind === 'unavailable') {
     logger.notifications.info(source.reason);
@@ -67,7 +67,7 @@ export async function loadNotifications(
 
 export async function markAllNotificationsReadForSource(
   source: NotificationsSource,
-  fetchImpl: FetchLike = fetch,
+  fetchImpl: FetchLike = fetch
 ): Promise<void> {
   if (source.kind === 'unavailable') {
     logger.notifications.info('Notifications unavailable; skipping mark-all-read');

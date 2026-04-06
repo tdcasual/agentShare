@@ -10,7 +10,7 @@ interface ResponsiveLayoutProps {
 
 /**
  * 响应式布局容器
- * 
+ *
  * 根据设备类型自动调整布局:
  * - Mobile: 单列，无侧边栏，底部导航
  * - Tablet Portrait: 可折叠侧边栏，2列网格，底部导航
@@ -19,7 +19,7 @@ interface ResponsiveLayoutProps {
  */
 export function ResponsiveLayout({ children, className }: ResponsiveLayoutProps) {
   const device = useDeviceType();
-  
+
   return (
     <div
       className={cn(
@@ -44,7 +44,7 @@ export function ResponsiveLayout({ children, className }: ResponsiveLayoutProps)
 
 /**
  * 响应式网格
- * 
+ *
  * 自动根据设备类型调整列数
  */
 interface ResponsiveGridProps {
@@ -53,44 +53,35 @@ interface ResponsiveGridProps {
   gap?: 'sm' | 'md' | 'lg';
 }
 
-export function ResponsiveGrid({ 
-  children, 
-  className,
-  gap = 'md' 
-}: ResponsiveGridProps) {
+export function ResponsiveGrid({ children, className, gap = 'md' }: ResponsiveGridProps) {
   const device = useDeviceType();
-  
+
   const gapClasses = {
     sm: 'gap-2',
     md: 'gap-4',
     lg: 'gap-6',
   };
-  
+
   // 动态确定列数
   const getGridCols = () => {
-    if (device.isMobile) {return 'grid-cols-1';}
-    if (device.isTabletPortrait) {return 'grid-cols-2';}
-    if (device.isTabletLandscape) {return 'grid-cols-3';}
+    if (device.isMobile) {
+      return 'grid-cols-1';
+    }
+    if (device.isTabletPortrait) {
+      return 'grid-cols-2';
+    }
+    if (device.isTabletLandscape) {
+      return 'grid-cols-3';
+    }
     return 'grid-cols-4';
   };
 
-  return (
-    <div
-      className={cn(
-        'grid',
-        gapClasses[gap],
-        getGridCols(),
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
+  return <div className={cn('grid', gapClasses[gap], getGridCols(), className)}>{children}</div>;
 }
 
 /**
  * 响应式内容区
- * 
+ *
  * 根据设备调整内边距和最大宽度
  */
 interface ResponsiveContentProps {
@@ -99,19 +90,19 @@ interface ResponsiveContentProps {
   size?: 'default' | 'compact' | 'wide';
 }
 
-export function ResponsiveContent({ 
-  children, 
+export function ResponsiveContent({
+  children,
   className,
-  size = 'default'
+  size = 'default',
 }: ResponsiveContentProps) {
   const device = useDeviceType();
-  
+
   const sizeClasses = {
     compact: 'max-w-4xl',
     default: 'max-w-6xl',
     wide: 'max-w-7xl',
   };
-  
+
   return (
     <div
       className={cn(
@@ -133,7 +124,7 @@ export function ResponsiveContent({
 
 /**
  * 设备特定渲染
- * 
+ *
  * 只在特定设备类型上渲染内容
  */
 interface DeviceRenderProps {
@@ -154,24 +145,36 @@ export function DeviceRender({
   tabletLandscape,
 }: DeviceRenderProps) {
   const device = useDeviceType();
-  
+
   const shouldRender = () => {
-    if (mobile && device.isMobile) {return true;}
-    if (tablet && device.isTablet) {return true;}
-    if (desktop && device.isDesktop) {return true;}
-    if (tabletPortrait && device.isTabletPortrait) {return true;}
-    if (tabletLandscape && device.isTabletLandscape) {return true;}
+    if (mobile && device.isMobile) {
+      return true;
+    }
+    if (tablet && device.isTablet) {
+      return true;
+    }
+    if (desktop && device.isDesktop) {
+      return true;
+    }
+    if (tabletPortrait && device.isTabletPortrait) {
+      return true;
+    }
+    if (tabletLandscape && device.isTabletLandscape) {
+      return true;
+    }
     return false;
   };
-  
-  if (!shouldRender()) {return null;}
-  
+
+  if (!shouldRender()) {
+    return null;
+  }
+
   return <>{children}</>;
 }
 
 /**
  * 响应式文本
- * 
+ *
  * 根据设备调整字体大小
  */
 interface ResponsiveTextProps {
@@ -188,10 +191,10 @@ export function ResponsiveText({
   size = 'base',
 }: ResponsiveTextProps) {
   const device = useDeviceType();
-  
+
   // 平板使用稍大的字体
   const scale = device.isTablet ? 1.05 : 1;
-  
+
   const sizeClasses = {
     sm: 'text-sm',
     base: 'text-base',
@@ -200,14 +203,10 @@ export function ResponsiveText({
     '2xl': 'text-2xl',
     '3xl': 'text-3xl',
   };
-  
+
   return (
     <Component
-      className={cn(
-        sizeClasses[size],
-        device.isTablet && size === 'sm' && 'text-base',
-        className
-      )}
+      className={cn(sizeClasses[size], device.isTablet && size === 'sm' && 'text-base', className)}
       style={{
         fontSize: device.isTablet ? `${scale}em` : undefined,
       }}

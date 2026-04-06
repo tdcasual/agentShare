@@ -1,6 +1,6 @@
 /**
  * Review Domain Hooks
- * 
+ *
  * 基于 SWR 的数据获取和缓存
  */
 
@@ -20,8 +20,8 @@ export function useReviews(options?: SWRConfiguration) {
     options?.isPaused ? null : '/api/reviews',
     () => api.getReviews(),
     {
-      ...pollingConfig,  // Review 队列需要较新鲜的数据
-      refreshInterval: 10000,  // 10秒轮询
+      ...pollingConfig, // Review 队列需要较新鲜的数据
+      refreshInterval: 10000, // 10秒轮询
       ...options,
     }
   );
@@ -34,10 +34,7 @@ export function useReviews(options?: SWRConfiguration) {
 export function useApproveReview() {
   return async (resourceKind: string, resourceId: string, payload?: ApproveReviewInput) => {
     const result = await api.approveReview(resourceKind, resourceId, payload);
-    await Promise.all([
-      mutate('/api/reviews'),
-      mutate('/api/catalog'),
-    ]);
+    await Promise.all([mutate('/api/reviews'), mutate('/api/catalog')]);
     return result;
   };
 }

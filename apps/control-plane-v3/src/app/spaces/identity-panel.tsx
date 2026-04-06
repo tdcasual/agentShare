@@ -30,7 +30,9 @@ export function IdentityPanel({
     <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Identity Space</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
+            Identity Space
+          </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
             Active agent roster available to the management control plane.
           </p>
@@ -53,23 +55,30 @@ export function IdentityPanel({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">Identity: {agent.name}</p>
+                  <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">
+                    Identity: {agent.name}
+                  </p>
                   <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
                     {agent.id} · {agent.auth_method}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(tokensByAgent[agent.id] ?? []).map((token) => (
                       <Badge key={token.id} variant="secondary">
-                        {token.display_name ?? (token as unknown as { displayName?: string }).displayName ?? token.id}
+                        {token.display_name ??
+                          (token as unknown as { displayName?: string }).displayName ??
+                          token.id}
                       </Badge>
                     ))}
                     <Badge variant="secondary">
-                      {eventCounts[agent.id] ?? 0} recent event{(eventCounts[agent.id] ?? 0) === 1 ? '' : 's'}
+                      {eventCounts[agent.id] ?? 0} recent event
+                      {(eventCounts[agent.id] ?? 0) === 1 ? '' : 's'}
                     </Badge>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+                  <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
+                    {agent.status}
+                  </Badge>
                   <Button
                     variant={selectedAgentId === agent.id ? 'primary' : 'secondary'}
                     size="sm"

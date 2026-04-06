@@ -64,10 +64,14 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
   const debouncedQuery = useDebounce(query, 250);
   const { results, isLoading, error, hasQuery } = useGlobalSearch(debouncedQuery);
 
-  const groupedResults = useMemo(() => SEARCH_GROUPS.map((group) => ({
-    ...group,
-    items: results[group.key],
-  })).filter((group) => group.items.length > 0), [results]);
+  const groupedResults = useMemo(
+    () =>
+      SEARCH_GROUPS.map((group) => ({
+        ...group,
+        items: results[group.key],
+      })).filter((group) => group.items.length > 0),
+    [results]
+  );
 
   const flatResults = useMemo(
     () => groupedResults.flatMap((group) => group.items),
@@ -125,7 +129,10 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
   return (
     <div ref={containerRef} className={cn('relative', className)}>
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#9CA3AF]" aria-hidden="true" />
+        <Search
+          className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-[#9CA3AF]"
+          aria-hidden="true"
+        />
         <input
           ref={inputRef}
           type="search"
@@ -138,25 +145,25 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           onKeyDown={handleKeyDown}
           placeholder="Search assets, skills, identities, and events..."
           aria-label="Search assets, skills, identities, and events"
-          className="w-full pl-11 pr-12 py-2 rounded-full bg-gray-100/80 dark:bg-[#1A1A2E]/80 border-none text-sm text-gray-800 dark:text-[#E8E8EC] focus:ring-2 focus:ring-pink-300 dark:focus:ring-[#E891C0]/50 focus:bg-white dark:focus:bg-[#1A1A2E] transition-all"
+          className="w-full rounded-full border-none bg-gray-100/80 py-2 pl-11 pr-12 text-sm text-gray-800 transition-all focus:bg-white focus:ring-2 focus:ring-pink-300 dark:bg-[#1A1A2E]/80 dark:text-[#E8E8EC] dark:focus:bg-[#1A1A2E] dark:focus:ring-[#E891C0]/50"
         />
-        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-[#1A1A2E] rounded text-xs text-gray-400 dark:text-[#9CA3AF] border border-gray-200 dark:border-[#3D3D5C]">
-          <Command className="w-3 h-3" aria-hidden="true" />
+        <kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-400 md:flex dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#9CA3AF]">
+          <Command className="h-3 w-3" aria-hidden="true" />
           <span>K</span>
         </kbd>
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]">
           {isLoading && (
-            <div className="p-4 flex items-center justify-center gap-2 text-gray-500 dark:text-[#9CA3AF]">
-              <Loader2 className="w-4 h-4 animate-spin" />
+            <div className="flex items-center justify-center gap-2 p-4 text-gray-500 dark:text-[#9CA3AF]">
+              <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm">Searching...</span>
             </div>
           )}
 
           {error && (
-            <div className="p-4 text-red-600 dark:text-red-400 text-sm">
+            <div className="p-4 text-sm text-red-600 dark:text-red-400">
               {error instanceof Error ? error.message : 'Search failed'}
             </div>
           )}
@@ -169,7 +176,9 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
                     {group.label}
                   </p>
                   {group.items.map((result) => {
-                    const itemIndex = flatResults.findIndex((item) => item.id === result.id && item.kind === result.kind);
+                    const itemIndex = flatResults.findIndex(
+                      (item) => item.id === result.id && item.kind === result.kind
+                    );
                     return (
                       <SearchResultButton
                         key={`${group.key}-${result.id}`}
@@ -191,13 +200,15 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           {!isLoading && !error && hasQuery && groupedResults.length === 0 && (
             <div className="p-4 text-center text-gray-500 dark:text-[#9CA3AF]">
               <p className="text-sm">No results found</p>
-              <p className="text-xs mt-1">Try an agent name, asset provider, skill name, or event keyword.</p>
+              <p className="mt-1 text-xs">
+                Try an agent name, asset provider, skill name, or event keyword.
+              </p>
             </div>
           )}
 
           {!hasQuery && (
             <div className="p-4 text-sm text-gray-500 dark:text-[#9CA3AF]">
-              <p className="font-medium mb-1">Search tips:</p>
+              <p className="mb-1 font-medium">Search tips:</p>
               <ul className="space-y-1 text-xs">
                 <li>• Search across assets, skills, identities, tasks, and inbox events</li>
                 <li>• Press ↑↓ to navigate results</li>
@@ -225,21 +236,22 @@ function SearchResultButton({
       type="button"
       onClick={onSelect}
       className={cn(
-        'w-full px-3 py-3 flex items-start gap-3 rounded-xl text-left transition-colors',
+        'flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors',
         selected && 'bg-pink-50 dark:bg-[#3D3D5C]',
         'hover:bg-pink-50/50 dark:hover:bg-[#3D3D5C]/50'
       )}
     >
-      <div className={cn('w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0', getResultColors(result.kind))}>
+      <div
+        className={cn(
+          'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
+          getResultColors(result.kind)
+        )}
+      >
         {getResultIcon(result.kind)}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-          {result.title}
-        </p>
-        <p className="text-sm text-gray-500 dark:text-[#9CA3AF] truncate">
-          {result.subtitle}
-        </p>
+      <div className="min-w-0 flex-1">
+        <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{result.title}</p>
+        <p className="truncate text-sm text-gray-500 dark:text-[#9CA3AF]">{result.subtitle}</p>
       </div>
     </button>
   );

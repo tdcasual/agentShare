@@ -1,6 +1,6 @@
 /**
  * Route Guard Wrapper - 路由守卫包装器
- * 
+ *
  * 客户端组件，包装 RouteGuard
  * 用于在服务端 layout 中引入客户端权限检查
  */

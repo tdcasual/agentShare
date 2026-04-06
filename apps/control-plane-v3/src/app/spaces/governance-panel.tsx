@@ -32,7 +32,9 @@ export function GovernancePanel({
     <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Governance Space</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
+            Governance Space
+          </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
             Human review backlog for agent-originated market submissions.
           </p>
@@ -84,15 +86,16 @@ export function GovernancePanel({
       ) : (
         <div className="space-y-2">
           {reviews.slice(0, 4).map((item) => (
-            <div 
-              key={`${item.resource_kind}-${item.resource_id}`} 
+            <div
+              key={`${item.resource_kind}-${item.resource_id}`}
               className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{item.title}</p>
                   <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    {item.resource_kind} · submitted by {item.created_by_actor_id ?? 'unknown-agent'}
+                    {item.resource_kind} · submitted by{' '}
+                    {item.created_by_actor_id ?? 'unknown-agent'}
                   </p>
                 </div>
                 {item.publication_status === 'pending_review' ? (
@@ -103,9 +106,9 @@ export function GovernancePanel({
                       loading={actionKey === `reject:${item.resource_kind}:${item.resource_id}`}
                       onClick={() => onReject(item.resource_kind, item.resource_id)}
                       leftIcon={
-                        actionKey !== `reject:${item.resource_kind}:${item.resource_id}`
-                          ? <XCircle className="h-4 w-4" />
-                          : undefined
+                        actionKey !== `reject:${item.resource_kind}:${item.resource_id}` ? (
+                          <XCircle className="h-4 w-4" />
+                        ) : undefined
                       }
                     >
                       Reject {item.title}
@@ -116,9 +119,9 @@ export function GovernancePanel({
                       loading={actionKey === `approve:${item.resource_kind}:${item.resource_id}`}
                       onClick={() => onApprove(item.resource_kind, item.resource_id)}
                       leftIcon={
-                        actionKey !== `approve:${item.resource_kind}:${item.resource_id}`
-                          ? <CheckCircle2 className="h-4 w-4" />
-                          : undefined
+                        actionKey !== `approve:${item.resource_kind}:${item.resource_id}` ? (
+                          <CheckCircle2 className="h-4 w-4" />
+                        ) : undefined
                       }
                     >
                       Approve {item.title}

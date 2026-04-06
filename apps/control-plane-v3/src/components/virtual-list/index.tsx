@@ -27,18 +27,16 @@ interface VirtualListProps<T> {
 }
 
 // 行组件 - 使用 memo 优化重渲染
-const Row = memo(function Row<T>({ 
-  index, 
-  style, 
-  data 
-}: ListChildComponentProps<T>) {
+const Row = memo(function Row<T>({ index, style, data }: ListChildComponentProps<T>) {
   const { items, renderItem } = data;
   const item = items[index];
-  
-  if (!item) {return null;}
-  
+
+  if (!item) {
+    return null;
+  }
+
   return (
-    <div 
+    <div
       style={{
         ...style,
         boxSizing: 'border-box',
@@ -51,13 +49,13 @@ const Row = memo(function Row<T>({
 });
 
 // 主虚拟列表组件
-export function VirtualList<T>({ 
-  items, 
-  rowHeight, 
-  renderItem, 
+export function VirtualList<T>({
+  items,
+  rowHeight,
+  renderItem,
   className,
   overscanCount = 5,
-  emptyMessage = '暂无数据'
+  emptyMessage = '暂无数据',
 }: VirtualListProps<T>) {
   //  itemRenderer 包装器
   const itemData = {
@@ -68,11 +66,13 @@ export function VirtualList<T>({
   // 空状态
   if (items.length === 0) {
     return (
-      <div className={cn(
-        'flex items-center justify-center h-full min-h-[200px]',
-        'text-gray-500 dark:text-[#9CA3AF]',
-        className
-      )}>
+      <div
+        className={cn(
+          'flex h-full min-h-[200px] items-center justify-center',
+          'text-gray-500 dark:text-[#9CA3AF]',
+          className
+        )}
+      >
         {emptyMessage}
       </div>
     );
@@ -109,13 +109,13 @@ interface VariableSizeVirtualListProps<T> {
   emptyMessage?: string;
 }
 
-export function VariableSizeVirtualList<T>({ 
-  items, 
-  getItemHeight, 
-  renderItem, 
+export function VariableSizeVirtualList<T>({
+  items,
+  getItemHeight,
+  renderItem,
   className,
   overscanCount = 5,
-  emptyMessage = '暂无数据'
+  emptyMessage = '暂无数据',
 }: VariableSizeVirtualListProps<T>) {
   const itemData = {
     items,
@@ -124,11 +124,13 @@ export function VariableSizeVirtualList<T>({
 
   if (items.length === 0) {
     return (
-      <div className={cn(
-        'flex items-center justify-center h-full min-h-[200px]',
-        'text-gray-500 dark:text-[#9CA3AF]',
-        className
-      )}>
+      <div
+        className={cn(
+          'flex h-full min-h-[200px] items-center justify-center',
+          'text-gray-500 dark:text-[#9CA3AF]',
+          className
+        )}
+      >
         {emptyMessage}
       </div>
     );

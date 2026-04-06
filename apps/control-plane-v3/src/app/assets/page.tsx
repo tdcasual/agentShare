@@ -76,11 +76,7 @@ function AssetsContent() {
     shouldShowSessionExpired,
     clearAllAuthErrors,
     consumeUnauthorized,
-  } = useManagementPageSessionRecovery([
-    tokensError,
-    secretsQuery.error,
-    capabilitiesQuery.error,
-  ]);
+  } = useManagementPageSessionRecovery([tokensError, secretsQuery.error, capabilitiesQuery.error]);
   const createSecret = useCreateSecret();
   const createCapability = useCreateCapability();
 
@@ -89,8 +85,12 @@ function AssetsContent() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSecretModal, setShowSecretModal] = useState(false);
   const [showCapabilityModal, setShowCapabilityModal] = useState(false);
-  const [selectedPublicationFilter, setSelectedPublicationFilter] = useState<'all' | 'pending_review' | 'active'>('all');
-  const [selectedResourceFilter, setSelectedResourceFilter] = useState<'all' | 'secrets' | 'capabilities'>(() => {
+  const [selectedPublicationFilter, setSelectedPublicationFilter] = useState<
+    'all' | 'pending_review' | 'active'
+  >('all');
+  const [selectedResourceFilter, setSelectedResourceFilter] = useState<
+    'all' | 'secrets' | 'capabilities'
+  >(() => {
     if (focus.resourceKind === 'secret') {
       return 'secrets';
     }
@@ -137,17 +137,20 @@ function AssetsContent() {
           agentName: agent.name,
           status: token.status,
           labels: token.labels ?? {},
-        })),
+        }))
       ),
-    [agents, tokensByAgent],
+    [agents, tokensByAgent]
   );
   const tokenNameById = useMemo(
-    () => Object.fromEntries(allTokens.map((token) => [token.id, `${token.label} · ${token.agentName}`])),
-    [allTokens],
+    () =>
+      Object.fromEntries(
+        allTokens.map((token) => [token.id, `${token.label} · ${token.agentName}`])
+      ),
+    [allTokens]
   );
   const agentNameById = useMemo(
     () => Object.fromEntries(agents.map((agent) => [agent.id, agent.name])),
-    [agents],
+    [agents]
   );
   const tokenLabelOptions = useMemo(() => {
     const valuesByKey = new Map<string, Set<string>>();
@@ -162,28 +165,38 @@ function AssetsContent() {
       }
     }
     return Object.fromEntries(
-      Array.from(valuesByKey.entries()).map(([key, values]) => [key, Array.from(values).sort()]),
+      Array.from(valuesByKey.entries()).map(([key, values]) => [key, Array.from(values).sort()])
     ) as Record<string, string[]>;
   }, [allTokens]);
 
-  const loading = gateLoading || tokensLoading || secretsQuery.isLoading || capabilitiesQuery.isLoading;
+  const loading =
+    gateLoading || tokensLoading || secretsQuery.isLoading || capabilitiesQuery.isLoading;
   const combinedError =
     gateError ??
     error ??
-    (tokensError instanceof Error && !isUnauthorizedError(tokensError) ? tokensError.message : null) ??
-    (secretsQuery.error instanceof Error && !isUnauthorizedError(secretsQuery.error) ? secretsQuery.error.message : null) ??
-    (capabilitiesQuery.error instanceof Error && !isUnauthorizedError(capabilitiesQuery.error) ? capabilitiesQuery.error.message : null);
+    (tokensError instanceof Error && !isUnauthorizedError(tokensError)
+      ? tokensError.message
+      : null) ??
+    (secretsQuery.error instanceof Error && !isUnauthorizedError(secretsQuery.error)
+      ? secretsQuery.error.message
+      : null) ??
+    (capabilitiesQuery.error instanceof Error && !isUnauthorizedError(capabilitiesQuery.error)
+      ? capabilitiesQuery.error.message
+      : null);
 
   const restrictedCapabilities = capabilities.filter(
-    (capability) => capability.access_policy.mode === 'selectors',
+    (capability) => capability.access_policy.mode === 'selectors'
   ).length;
   const activeTokens = allTokens.filter((token) => token.status === 'active').length;
   const pendingReviewItems =
     secrets.filter((secret) => deriveGovernanceStatus(secret) === 'pending_review').length +
-    capabilities.filter((capability) => deriveGovernanceStatus(capability) === 'pending_review').length;
+    capabilities.filter((capability) => deriveGovernanceStatus(capability) === 'pending_review')
+      .length;
   const activeAssets =
     secrets.filter((secret) => isGovernanceInventoryActive(deriveGovernanceStatus(secret))).length +
-    capabilities.filter((capability) => isGovernanceInventoryActive(deriveGovernanceStatus(capability))).length;
+    capabilities.filter((capability) =>
+      isGovernanceInventoryActive(deriveGovernanceStatus(capability))
+    ).length;
   const visibleSecrets = secrets.filter((secret) => {
     const governanceStatus = deriveGovernanceStatus(secret);
     if (selectedResourceFilter === 'capabilities') {
@@ -210,9 +223,13 @@ function AssetsContent() {
     }
     return true;
   });
-  const focusedSecret = secrets.find((secret) => focus.resourceKind === 'secret' && secret.id === focus.resourceId) ?? null;
+  const focusedSecret =
+    secrets.find((secret) => focus.resourceKind === 'secret' && secret.id === focus.resourceId) ??
+    null;
   const focusedCapability =
-    capabilities.find((capability) => focus.resourceKind === 'capability' && capability.id === focus.resourceId) ?? null;
+    capabilities.find(
+      (capability) => focus.resourceKind === 'capability' && capability.id === focus.resourceId
+    ) ?? null;
   const focusedAsset = focusedSecret ?? focusedCapability;
 
   async function handleRefresh() {
@@ -222,18 +239,16 @@ function AssetsContent() {
     clearAllAuthErrors();
 
     try {
-      await Promise.all([
-        secretsQuery.mutate(),
-        capabilitiesQuery.mutate(),
-        mutateTokens(),
-      ]);
+      await Promise.all([secretsQuery.mutate(), capabilitiesQuery.mutate(), mutateTokens()]);
     } catch (refreshFailure) {
       if (consumeUnauthorized(refreshFailure)) {
         return;
       }
 
       setRefreshError(
-        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh governance assets'
+        refreshFailure instanceof Error
+          ? refreshFailure.message
+          : 'Failed to refresh governance assets'
       );
     } finally {
       setIsRefreshing(false);
@@ -401,10 +416,10 @@ function AssetsContent() {
             {t('assets.subtitle')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{t('assets.title')}</h1>
-            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">
-              {t('assets.description')}
-            </p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+              {t('assets.title')}
+            </h1>
+            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">{t('assets.description')}</p>
           </div>
         </div>
 
@@ -425,29 +440,52 @@ function AssetsContent() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label={t('assets.metrics.secrets')} value={secrets.length.toString()} hint={t('assets.metrics.secretsHint')} />
-        <MetricCard label={t('assets.metrics.capabilities')} value={capabilities.length.toString()} hint={t('assets.metrics.capabilitiesHint')} />
-        <MetricCard label={t('assets.metrics.restricted')} value={restrictedCapabilities.toString()} hint={t('assets.metrics.restrictedHint')} />
-        <MetricCard label={t('assets.metrics.activeTokens')} value={activeTokens.toString()} hint={`${allTokens.length} ${t('common.total')}`} />
+        <MetricCard
+          label={t('assets.metrics.secrets')}
+          value={secrets.length.toString()}
+          hint={t('assets.metrics.secretsHint')}
+        />
+        <MetricCard
+          label={t('assets.metrics.capabilities')}
+          value={capabilities.length.toString()}
+          hint={t('assets.metrics.capabilitiesHint')}
+        />
+        <MetricCard
+          label={t('assets.metrics.restricted')}
+          value={restrictedCapabilities.toString()}
+          hint={t('assets.metrics.restrictedHint')}
+        />
+        <MetricCard
+          label={t('assets.metrics.activeTokens')}
+          value={activeTokens.toString()}
+          hint={`${allTokens.length} ${t('common.total')}`}
+        />
       </div>
 
       <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">Governance inventory</h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              Governance inventory
+            </h2>
             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-              Review what agents are trying to publish, what has already gone live, and which resource lane needs human attention next.
+              Review what agents are trying to publish, what has already gone live, and which
+              resource lane needs human attention next.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
             <Badge variant="warning">{pendingReviewItems} pending review items</Badge>
-            <Badge variant="success">{activeAssets} active asset{activeAssets === 1 ? '' : 's'}</Badge>
+            <Badge variant="success">
+              {activeAssets} active asset{activeAssets === 1 ? '' : 's'}
+            </Badge>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Publication state</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+                Publication state
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant={selectedPublicationFilter === 'all' ? 'primary' : 'secondary'}
@@ -477,7 +515,9 @@ function AssetsContent() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Resource lane</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+                Resource lane
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant={selectedResourceFilter === 'all' ? 'primary' : 'secondary'}
@@ -529,9 +569,9 @@ function AssetsContent() {
       ) : null}
 
       {refreshError ? (
-        <Card 
-          role="alert" 
-          aria-live="polite" 
+        <Card
+          role="alert"
+          aria-live="polite"
           aria-atomic="true"
           className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
         >
@@ -540,9 +580,9 @@ function AssetsContent() {
       ) : null}
 
       {!shouldShowForbidden && combinedError ? (
-        <Card 
-          role="alert" 
-          aria-live="assertive" 
+        <Card
+          role="alert"
+          aria-live="assertive"
           aria-atomic="true"
           className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
         >
@@ -581,7 +621,9 @@ function AssetsContent() {
                 <KeyRound className="h-4 w-4" />
                 {t('assets.secrets.inventory')}
               </div>
-              <h2 className="mt-3 text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('assets.secrets.title')}</h2>
+              <h2 className="mt-3 text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                {t('assets.secrets.title')}
+              </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
                 {t('assets.secrets.description')}
               </p>
@@ -596,7 +638,11 @@ function AssetsContent() {
             {!shouldShowSessionExpired && visibleSecrets.length === 0 ? (
               <EmptyState
                 icon={<Sparkles className="h-8 w-8" />}
-                title={selectedResourceFilter === 'capabilities' ? 'Secrets hidden by current filter' : t('assets.secrets.emptyTitle')}
+                title={
+                  selectedResourceFilter === 'capabilities'
+                    ? 'Secrets hidden by current filter'
+                    : t('assets.secrets.emptyTitle')
+                }
                 description={
                   selectedResourceFilter === 'capabilities'
                     ? 'Switch resource lane back to Secrets or All resources to review secret inventory.'
@@ -612,17 +658,23 @@ function AssetsContent() {
                 <Card
                   key={secret.id}
                   data-testid={`secret-card-${secret.id}`}
-                  data-focus-state={focus.resourceKind === 'secret' && focus.resourceId === secret.id ? 'focused' : 'default'}
+                  data-focus-state={
+                    focus.resourceKind === 'secret' && focus.resourceId === secret.id
+                      ? 'focused'
+                      : 'default'
+                  }
                   className={cn(
                     'border bg-white/80 p-5 dark:bg-[#1A1A2E]/80',
                     focus.resourceKind === 'secret' && focus.resourceId === secret.id
                       ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-                      : 'border-pink-100/80 dark:border-[#3D3D5C]',
+                      : 'border-pink-100/80 dark:border-[#3D3D5C]'
                   )}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1">
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{secret.display_name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                        {secret.display_name}
+                      </h3>
                       <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                         {secret.provider} · {secret.kind}
                         {secret.environment ? ` · ${secret.environment}` : ''}
@@ -636,8 +688,14 @@ function AssetsContent() {
                     </Badge>
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    <InfoBlock label={t('assets.secrets.providerScopes')} value={secret.provider_scopes.join(', ') || t('common.notSpecified')} />
-                    <InfoBlock label={t('assets.secrets.resourceSelector')} value={secret.resource_selector || t('common.notSpecified')} />
+                    <InfoBlock
+                      label={t('assets.secrets.providerScopes')}
+                      value={secret.provider_scopes.join(', ') || t('common.notSpecified')}
+                    />
+                    <InfoBlock
+                      label={t('assets.secrets.resourceSelector')}
+                      value={secret.resource_selector || t('common.notSpecified')}
+                    />
                   </div>
                 </Card>
               ))
@@ -652,7 +710,9 @@ function AssetsContent() {
                 <Cpu className="h-4 w-4" />
                 {t('assets.capabilities.access')}
               </div>
-              <h2 className="mt-3 text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('assets.capabilities.title')}</h2>
+              <h2 className="mt-3 text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                {t('assets.capabilities.title')}
+              </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
                 {t('assets.capabilities.description')}
               </p>
@@ -667,7 +727,11 @@ function AssetsContent() {
             {!shouldShowSessionExpired && visibleCapabilities.length === 0 ? (
               <EmptyState
                 icon={<ShieldCheck className="h-8 w-8" />}
-                title={selectedResourceFilter === 'secrets' ? 'Capabilities hidden by current filter' : t('assets.capabilities.emptyTitle')}
+                title={
+                  selectedResourceFilter === 'secrets'
+                    ? 'Capabilities hidden by current filter'
+                    : t('assets.capabilities.emptyTitle')
+                }
                 description={
                   selectedResourceFilter === 'secrets'
                     ? 'Switch resource lane back to Capabilities or All resources to review capability inventory.'
@@ -683,30 +747,44 @@ function AssetsContent() {
                 <Card
                   key={capability.id}
                   data-testid={`capability-card-${capability.id}`}
-                  data-focus-state={focus.resourceKind === 'capability' && focus.resourceId === capability.id ? 'focused' : 'default'}
+                  data-focus-state={
+                    focus.resourceKind === 'capability' && focus.resourceId === capability.id
+                      ? 'focused'
+                      : 'default'
+                  }
                   className={cn(
                     'border bg-white/80 p-5 dark:bg-[#1A1A2E]/80',
                     focus.resourceKind === 'capability' && focus.resourceId === capability.id
                       ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-                      : 'border-pink-100/80 dark:border-[#3D3D5C]',
+                      : 'border-pink-100/80 dark:border-[#3D3D5C]'
                   )}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1">
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{capability.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                        {capability.name}
+                      </h3>
                       <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                        Secret {capability.secret_id} · {capability.allowed_mode} · risk {capability.risk_level}
+                        Secret {capability.secret_id} · {capability.allowed_mode} · risk{' '}
+                        {capability.risk_level}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-                        Governance state: {governanceStatusLabel(deriveGovernanceStatus(capability))}
+                        Governance state:{' '}
+                        {governanceStatusLabel(deriveGovernanceStatus(capability))}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge variant={statusVariant(deriveGovernanceStatus(capability))}>
                         {governanceStatusLabel(deriveGovernanceStatus(capability))}
                       </Badge>
-                      <Badge variant={capability.access_policy.mode === 'all_tokens' ? 'success' : 'warning'}>
-                        {capability.access_policy.mode === 'all_tokens' ? t('assets.capabilities.allTokens') : '定向访问'}
+                      <Badge
+                        variant={
+                          capability.access_policy.mode === 'all_tokens' ? 'success' : 'warning'
+                        }
+                      >
+                        {capability.access_policy.mode === 'all_tokens'
+                          ? t('assets.capabilities.allTokens')
+                          : '定向访问'}
                       </Badge>
                     </div>
                   </div>
@@ -717,7 +795,9 @@ function AssetsContent() {
                     />
                     <InfoBlock
                       label={t('assets.capabilities.requiredScopes')}
-                      value={capability.required_provider_scopes.join(', ') || t('common.notSpecified')}
+                      value={
+                        capability.required_provider_scopes.join(', ') || t('common.notSpecified')
+                      }
                     />
                     <InfoBlock
                       label={t('assets.capabilities.leaseTTL')}
@@ -747,25 +827,33 @@ function AssetsContent() {
             <Input
               label={t('assets.secrets.displayName')}
               value={secretForm.display_name}
-              onChange={(event) => setSecretForm((current) => ({ ...current, display_name: event.target.value }))}
+              onChange={(event) =>
+                setSecretForm((current) => ({ ...current, display_name: event.target.value }))
+              }
               placeholder="OpenAI production key"
             />
             <Input
               label={t('assets.secrets.kind')}
               value={secretForm.kind}
-              onChange={(event) => setSecretForm((current) => ({ ...current, kind: event.target.value }))}
+              onChange={(event) =>
+                setSecretForm((current) => ({ ...current, kind: event.target.value }))
+              }
               placeholder="api_token"
             />
             <Input
               label={t('assets.secrets.provider')}
               value={secretForm.provider}
-              onChange={(event) => setSecretForm((current) => ({ ...current, provider: event.target.value }))}
+              onChange={(event) =>
+                setSecretForm((current) => ({ ...current, provider: event.target.value }))
+              }
               placeholder="openai"
             />
             <Input
               label={t('assets.secrets.environment')}
               value={secretForm.environment}
-              onChange={(event) => setSecretForm((current) => ({ ...current, environment: event.target.value }))}
+              onChange={(event) =>
+                setSecretForm((current) => ({ ...current, environment: event.target.value }))
+              }
               placeholder="production"
             />
           </div>
@@ -773,20 +861,26 @@ function AssetsContent() {
             label={t('assets.secrets.value')}
             type="password"
             value={secretForm.value}
-            onChange={(event) => setSecretForm((current) => ({ ...current, value: event.target.value }))}
+            onChange={(event) =>
+              setSecretForm((current) => ({ ...current, value: event.target.value }))
+            }
             placeholder="sk-live-..."
           />
           <div className="grid gap-4 md:grid-cols-2">
             <Input
               label={t('assets.secrets.providerScopes')}
               value={secretForm.provider_scopes}
-              onChange={(event) => setSecretForm((current) => ({ ...current, provider_scopes: event.target.value }))}
+              onChange={(event) =>
+                setSecretForm((current) => ({ ...current, provider_scopes: event.target.value }))
+              }
               placeholder="responses.read, responses.write"
             />
             <Input
               label={t('assets.secrets.resourceSelector')}
               value={secretForm.resource_selector}
-              onChange={(event) => setSecretForm((current) => ({ ...current, resource_selector: event.target.value }))}
+              onChange={(event) =>
+                setSecretForm((current) => ({ ...current, resource_selector: event.target.value }))
+              }
               placeholder="project:agent-share"
             />
           </div>
@@ -813,11 +907,18 @@ function AssetsContent() {
             <Input
               label={t('assets.capabilities.name')}
               value={capabilityForm.name}
-              onChange={(event) => setCapabilityForm((current) => ({ ...current, name: event.target.value }))}
+              onChange={(event) =>
+                setCapabilityForm((current) => ({ ...current, name: event.target.value }))
+              }
               placeholder="openai.config.bootstrap"
             />
             <div className="space-y-1.5">
-              <label htmlFor="capability-secret" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.bindSecret')}</label>
+              <label
+                htmlFor="capability-secret"
+                className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+              >
+                {t('assets.capabilities.bindSecret')}
+              </label>
               <select
                 id="capability-secret"
                 className={selectClassName}
@@ -833,12 +934,19 @@ function AssetsContent() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="capability-risk" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.riskLevel')}</label>
+              <label
+                htmlFor="capability-risk"
+                className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+              >
+                {t('assets.capabilities.riskLevel')}
+              </label>
               <select
                 id="capability-risk"
                 className={selectClassName}
                 value={capabilityForm.risk_level}
-                onChange={(event) => setCapabilityForm((current) => ({ ...current, risk_level: event.target.value }))}
+                onChange={(event) =>
+                  setCapabilityForm((current) => ({ ...current, risk_level: event.target.value }))
+                }
               >
                 <option value="low">low</option>
                 <option value="medium">medium</option>
@@ -846,12 +954,19 @@ function AssetsContent() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="capability-mode" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">{t('assets.capabilities.allowedMode')}</label>
+              <label
+                htmlFor="capability-mode"
+                className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+              >
+                {t('assets.capabilities.allowedMode')}
+              </label>
               <select
                 id="capability-mode"
                 className={selectClassName}
                 value={capabilityForm.allowed_mode}
-                onChange={(event) => setCapabilityForm((current) => ({ ...current, allowed_mode: event.target.value }))}
+                onChange={(event) =>
+                  setCapabilityForm((current) => ({ ...current, allowed_mode: event.target.value }))
+                }
               >
                 <option value="proxy_only">proxy_only</option>
                 <option value="proxy_or_lease">proxy_or_lease</option>
@@ -861,18 +976,33 @@ function AssetsContent() {
               label={t('assets.capabilities.leaseTTL')}
               type="number"
               value={capabilityForm.lease_ttl_seconds}
-              onChange={(event) => setCapabilityForm((current) => ({ ...current, lease_ttl_seconds: event.target.value }))}
+              onChange={(event) =>
+                setCapabilityForm((current) => ({
+                  ...current,
+                  lease_ttl_seconds: event.target.value,
+                }))
+              }
             />
             <Input
               label={t('assets.capabilities.requiredProvider')}
               value={capabilityForm.required_provider}
-              onChange={(event) => setCapabilityForm((current) => ({ ...current, required_provider: event.target.value }))}
+              onChange={(event) =>
+                setCapabilityForm((current) => ({
+                  ...current,
+                  required_provider: event.target.value,
+                }))
+              }
               placeholder="openai"
             />
             <Input
               label={t('assets.capabilities.requiredScopes')}
               value={capabilityForm.required_provider_scopes}
-              onChange={(event) => setCapabilityForm((current) => ({ ...current, required_provider_scopes: event.target.value }))}
+              onChange={(event) =>
+                setCapabilityForm((current) => ({
+                  ...current,
+                  required_provider_scopes: event.target.value,
+                }))
+              }
               placeholder="responses.read, responses.write"
             />
           </div>
@@ -880,7 +1010,9 @@ function AssetsContent() {
           <Card className="border border-pink-100 bg-pink-50/70 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
             <div className="space-y-3">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('assets.capabilities.accessPolicy')}</h3>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                  {t('assets.capabilities.accessPolicy')}
+                </h3>
                 <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
                   {t('assets.capabilities.accessPolicyDesc')}
                 </p>
@@ -956,7 +1088,9 @@ function AssetsContent() {
               {capabilityForm.access_mode === 'specific_tokens' ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   {allTokens.length === 0 ? (
-                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">{t('assets.capabilities.noTokens')}</p>
+                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      {t('assets.capabilities.noTokens')}
+                    </p>
                   ) : (
                     allTokens.map((token) => (
                       <label
@@ -984,7 +1118,9 @@ function AssetsContent() {
               {capabilityForm.access_mode === 'specific_agents' ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   {agents.length === 0 ? (
-                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">还没有可选 agent，请先创建 agent。</p>
+                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      还没有可选 agent，请先创建 agent。
+                    </p>
                   ) : (
                     agents.map((agent) => (
                       <label
@@ -1012,7 +1148,12 @@ function AssetsContent() {
               {capabilityForm.access_mode === 'token_label' ? (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="token-label-key" className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">标签键</label>
+                    <label
+                      htmlFor="token-label-key"
+                      className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                    >
+                      标签键
+                    </label>
                     <select
                       id="token-label-key"
                       className={selectClassName}
@@ -1034,7 +1175,8 @@ function AssetsContent() {
                     </select>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
-                    {capabilityForm.label_key && (tokenLabelOptions[capabilityForm.label_key] ?? []).length > 0 ? (
+                    {capabilityForm.label_key &&
+                    (tokenLabelOptions[capabilityForm.label_key] ?? []).length > 0 ? (
                       tokenLabelOptions[capabilityForm.label_key].map((value) => (
                         <label
                           key={value}
@@ -1116,8 +1258,10 @@ function EmptyState({
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-gray-50/80 px-4 py-3 dark:bg-[#252540]/80">
-      <p className="text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">{label}</p>
-      <p className="mt-2 text-sm text-gray-700 dark:text-[#E8E8EC] break-words">{value}</p>
+      <p className="text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+        {label}
+      </p>
+      <p className="mt-2 break-words text-sm text-gray-700 dark:text-[#E8E8EC]">{value}</p>
     </div>
   );
 }
@@ -1145,7 +1289,7 @@ function statusVariant(status: string) {
 function formatAccessPolicy(
   capability: GovernedCapability,
   tokenNameById: Record<string, string>,
-  agentNameById: Record<string, string>,
+  agentNameById: Record<string, string>
 ) {
   if (capability.access_policy.mode === 'all_tokens') {
     return '所有 token';

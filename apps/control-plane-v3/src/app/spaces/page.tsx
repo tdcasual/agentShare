@@ -2,20 +2,20 @@
 
 /**
  * Spaces Page - 空间管理页面
- * 
+ *
  * ⚠️ 已知权限边界偏移（H2）:
  * - 后端 spaces API: viewer/operator 可读
  * - 但页面耦合了 admin-only 面板：events, reviews, agents, secrets, capabilities
- * 
+ *
  * 当前行为:
  * - 前端路由角色: viewer（基础空间视图）
  * - admin-only 面板根据角色降级隐藏
- * 
+ *
  * 建议解决方案（需产品决策）:
  * 1. 拆分页面：基础空间视图（viewer+）+ 管理面板（admin）
  * 2. 保留当前 admin-only 复合页面，viewer/operator 通过其他入口只读空间
  * 3. 条件渲染：根据角色显示/隐藏 admin-only 面板
- * 
+ *
  * 当前缓解措施:
  * - 路由设为 viewer，基础空间视图对低权限会话保持可读
  * - admin-only 面板按角色隐藏，并暂停对应查询
@@ -58,9 +58,13 @@ function SpacesContent() {
   const role = isValidRole(sessionRole ?? '') ? sessionRole : null;
   const canManageSpaces = hasRequiredRole(role, 'operator');
   const canViewAdminPanels = hasRequiredRole(role, 'admin');
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(() => focus.agentId ?? null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(
+    () => focus.agentId ?? null
+  );
   const [selectedEventType, setSelectedEventType] = useState<'all' | 'completed' | 'failed'>('all');
-  const [selectedReviewStatus, setSelectedReviewStatus] = useState<'all' | 'pending' | 'rejected'>('pending');
+  const [selectedReviewStatus, setSelectedReviewStatus] = useState<'all' | 'pending' | 'rejected'>(
+    'pending'
+  );
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
@@ -68,7 +72,9 @@ function SpacesContent() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null);
   const { create, isCreating } = useCreateSpace();
-  const { addMember, isAdding } = useAddSpaceMember(activeSpaceId || '', { agentId: focus.agentId ?? null });
+  const { addMember, isAdding } = useAddSpaceMember(activeSpaceId || '', {
+    agentId: focus.agentId ?? null,
+  });
   const eventsQuery = useEvents({ isPaused: () => !canViewAdminPanels });
   const reviewsQuery = useReviews({ isPaused: () => !canViewAdminPanels });
   const approveReview = useApproveReview();
@@ -99,12 +105,11 @@ function SpacesContent() {
   const secrets = secretsQuery.data?.items ?? [];
   const capabilities = capabilitiesQuery.data?.items ?? [];
   const reviewItemList = useMemo(() => reviewItems ?? [], [reviewItems]);
-  const persistedSpaces = useMemo(
-    () => spacesQuery.spaces ?? [],
-    [spacesQuery.spaces]
-  );
+  const persistedSpaces = useMemo(() => spacesQuery.spaces ?? [], [spacesQuery.spaces]);
 
-  const pendingReviews = reviewItemList.filter((item) => item.publication_status === 'pending_review');
+  const pendingReviews = reviewItemList.filter(
+    (item) => item.publication_status === 'pending_review'
+  );
   const rejectedReviews = reviewItemList.filter((item) => item.publication_status === 'rejected');
   const activeAgents = agents.filter((agent) => agent.status === 'active');
   const agentEventCounts = useMemo(
@@ -151,7 +156,9 @@ function SpacesContent() {
     () =>
       persistedSpaces.find((space) =>
         focus.agentId
-          ? space.members.some((member) => member.member_type === 'agent' && member.member_id === focus.agentId)
+          ? space.members.some(
+              (member) => member.member_type === 'agent' && member.member_id === focus.agentId
+            )
           : false
       ) ?? null,
     [focus.agentId, persistedSpaces]
@@ -203,7 +210,10 @@ function SpacesContent() {
     }
   }
 
-  async function handleAddMember(spaceId: string, input: { memberType: 'agent' | 'human'; memberId: string; role: string }) {
+  async function handleAddMember(
+    spaceId: string,
+    input: { memberType: 'agent' | 'human'; memberId: string; role: string }
+  ) {
     if (!canManageSpaces) {
       return;
     }
@@ -220,7 +230,9 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : 'Failed to add member to the workspace');
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to add member to the workspace'
+      );
     }
   }
 
@@ -239,15 +251,28 @@ function SpacesContent() {
                 Live collaboration workspace for humans and agents.
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600 dark:text-[#9CA3AF]">
-                This space aggregates the current operating picture across agent feedback, governance review, identities,
-                and published market inventory so human supervisors can coordinate from one backend-backed surface.
+                This space aggregates the current operating picture across agent feedback,
+                governance review, identities, and published market inventory so human supervisors
+                can coordinate from one backend-backed surface.
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <MetricCard label="Recent events" value={events.length.toString()} icon={<Sparkles className="h-4 w-4" />} />
-              <MetricCard label="Pending reviews" value={pendingReviews.length.toString()} icon={<ShieldCheck className="h-4 w-4" />} />
-              <MetricCard label="Active agents" value={activeAgents.length.toString()} icon={<Bot className="h-4 w-4" />} />
+              <MetricCard
+                label="Recent events"
+                value={events.length.toString()}
+                icon={<Sparkles className="h-4 w-4" />}
+              />
+              <MetricCard
+                label="Pending reviews"
+                value={pendingReviews.length.toString()}
+                icon={<ShieldCheck className="h-4 w-4" />}
+              />
+              <MetricCard
+                label="Active agents"
+                value={activeAgents.length.toString()}
+                icon={<Bot className="h-4 w-4" />}
+              />
             </div>
           </div>
         </section>
@@ -266,10 +291,14 @@ function SpacesContent() {
               </p>
             ) : null}
             {focusedAgent ? (
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E8E8EC]">{focusedAgent.name}</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E8E8EC]">
+                {focusedAgent.name}
+              </h2>
             ) : null}
             {focusedEvent ? (
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Event summary: {focusedEvent.summary}</p>
+              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                Event summary: {focusedEvent.summary}
+              </p>
             ) : null}
           </div>
         </Card>
@@ -320,64 +349,66 @@ function SpacesContent() {
 
       {/* Main Content Grid */}
       {canViewAdminPanels ? (
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        {/* Operations Feed */}
-        <OperationsFeed
-          events={recentAgentEvents}
-          agents={agents}
-          isLoading={eventsQuery.isLoading}
-          selectedAgentId={selectedAgentId}
-          selectedEventType={selectedEventType}
-          onSelectAgent={setSelectedAgentId}
-          onSelectEventType={setSelectedEventType}
-        />
-
-        {/* Right Panel */}
-        <div className="space-y-6">
-          {/* Governance Panel */}
-          <GovernancePanel
-            reviews={visibleReviews}
-            isLoading={reviewsQuery.isLoading}
-            selectedStatus={selectedReviewStatus}
-            actionKey={actionKey}
-            onSelectStatus={setSelectedReviewStatus}
-            onApprove={handleApproveReview}
-            onReject={handleRejectReview}
-          />
-
-          {/* Identity Panel */}
-          <IdentityPanel
+        <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+          {/* Operations Feed */}
+          <OperationsFeed
+            events={recentAgentEvents}
             agents={agents}
-            tokensByAgent={tokensByAgent}
-            eventCounts={agentEventCounts}
-            isLoading={agentsQuery.isLoading}
+            isLoading={eventsQuery.isLoading}
             selectedAgentId={selectedAgentId}
+            selectedEventType={selectedEventType}
             onSelectAgent={setSelectedAgentId}
+            onSelectEventType={setSelectedEventType}
           />
 
-          {/* Market Inventory */}
-          <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Market Inventory</h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  Published assets and skills currently visible to the agent ecosystem.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Badge variant="secondary">{publishedAssets.length} assets</Badge>
-                <Badge variant="secondary">{publishedSkills.length} skills</Badge>
-              </div>
-            </div>
-            <MarketInventoryPanel 
-              data={{
-                assets: publishedAssets.slice(0, 3).map((item) => item.display_name),
-                skills: publishedSkills.slice(0, 3).map((item) => item.name),
-              }} 
+          {/* Right Panel */}
+          <div className="space-y-6">
+            {/* Governance Panel */}
+            <GovernancePanel
+              reviews={visibleReviews}
+              isLoading={reviewsQuery.isLoading}
+              selectedStatus={selectedReviewStatus}
+              actionKey={actionKey}
+              onSelectStatus={setSelectedReviewStatus}
+              onApprove={handleApproveReview}
+              onReject={handleRejectReview}
             />
-          </Card>
+
+            {/* Identity Panel */}
+            <IdentityPanel
+              agents={agents}
+              tokensByAgent={tokensByAgent}
+              eventCounts={agentEventCounts}
+              isLoading={agentsQuery.isLoading}
+              selectedAgentId={selectedAgentId}
+              onSelectAgent={setSelectedAgentId}
+            />
+
+            {/* Market Inventory */}
+            <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
+                    Market Inventory
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                    Published assets and skills currently visible to the agent ecosystem.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Badge variant="secondary">{publishedAssets.length} assets</Badge>
+                  <Badge variant="secondary">{publishedSkills.length} skills</Badge>
+                </div>
+              </div>
+              <MarketInventoryPanel
+                data={{
+                  assets: publishedAssets.slice(0, 3).map((item) => item.display_name),
+                  skills: publishedSkills.slice(0, 3).map((item) => item.name),
+                }}
+              />
+            </Card>
+          </div>
         </div>
-      </div>
       ) : null}
 
       {/* Create Space Modal */}

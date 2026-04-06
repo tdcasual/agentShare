@@ -1,6 +1,6 @@
 /**
  * 统一错误处理系统
- * 
+ *
  * 提供：
  * - 错误类型分类
  * - 错误码映射
@@ -13,16 +13,16 @@
 // ============================================
 
 export enum ErrorType {
-  NETWORK = 'NETWORK',           // 网络错误
-  AUTH = 'AUTH',                 // 认证错误
-  FORBIDDEN = 'FORBIDDEN',       // 权限不足
-  VALIDATION = 'VALIDATION',     // 参数验证错误
-  NOT_FOUND = 'NOT_FOUND',       // 资源不存在
-  CONFLICT = 'CONFLICT',         // 资源冲突
-  RATE_LIMIT = 'RATE_LIMIT',     // 请求频率限制
-  SERVER = 'SERVER',             // 服务器错误
-  TIMEOUT = 'TIMEOUT',           // 请求超时
-  UNKNOWN = 'UNKNOWN',           // 未知错误
+  NETWORK = 'NETWORK', // 网络错误
+  AUTH = 'AUTH', // 认证错误
+  FORBIDDEN = 'FORBIDDEN', // 权限不足
+  VALIDATION = 'VALIDATION', // 参数验证错误
+  NOT_FOUND = 'NOT_FOUND', // 资源不存在
+  CONFLICT = 'CONFLICT', // 资源冲突
+  RATE_LIMIT = 'RATE_LIMIT', // 请求频率限制
+  SERVER = 'SERVER', // 服务器错误
+  TIMEOUT = 'TIMEOUT', // 请求超时
+  UNKNOWN = 'UNKNOWN', // 未知错误
 }
 
 // ============================================
@@ -64,43 +64,43 @@ export class AppError extends Error {
     const messages: Record<ErrorType, Record<string, string>> = {
       [ErrorType.NETWORK]: {
         'zh-CN': '网络连接失败，请检查网络后重试',
-        'en': 'Network connection failed, please check your network and retry',
+        en: 'Network connection failed, please check your network and retry',
       },
       [ErrorType.AUTH]: {
         'zh-CN': '登录已过期，请重新登录',
-        'en': 'Session expired, please login again',
+        en: 'Session expired, please login again',
       },
       [ErrorType.FORBIDDEN]: {
         'zh-CN': '您没有权限执行此操作',
-        'en': 'You do not have permission to perform this action',
+        en: 'You do not have permission to perform this action',
       },
       [ErrorType.VALIDATION]: {
         'zh-CN': '输入数据有误，请检查后再试',
-        'en': 'Invalid input data, please check and retry',
+        en: 'Invalid input data, please check and retry',
       },
       [ErrorType.NOT_FOUND]: {
         'zh-CN': '请求的资源不存在',
-        'en': 'The requested resource does not exist',
+        en: 'The requested resource does not exist',
       },
       [ErrorType.CONFLICT]: {
         'zh-CN': '资源冲突，可能已存在相同的记录',
-        'en': 'Resource conflict, a similar record may already exist',
+        en: 'Resource conflict, a similar record may already exist',
       },
       [ErrorType.RATE_LIMIT]: {
         'zh-CN': '请求过于频繁，请稍后再试',
-        'en': 'Too many requests, please try again later',
+        en: 'Too many requests, please try again later',
       },
       [ErrorType.SERVER]: {
         'zh-CN': '服务器内部错误，请稍后重试',
-        'en': 'Internal server error, please try again later',
+        en: 'Internal server error, please try again later',
       },
       [ErrorType.TIMEOUT]: {
         'zh-CN': '请求超时，请重试',
-        'en': 'Request timeout, please retry',
+        en: 'Request timeout, please retry',
       },
       [ErrorType.UNKNOWN]: {
         'zh-CN': '发生未知错误，请稍后重试',
-        'en': 'An unknown error occurred, please try again later',
+        en: 'An unknown error occurred, please try again later',
       },
     };
 
@@ -111,12 +111,9 @@ export class AppError extends Error {
    * 是否应该显示重试按钮
    */
   shouldShowRetry(): boolean {
-    return [
-      ErrorType.NETWORK,
-      ErrorType.TIMEOUT,
-      ErrorType.SERVER,
-      ErrorType.RATE_LIMIT,
-    ].includes(this.type);
+    return [ErrorType.NETWORK, ErrorType.TIMEOUT, ErrorType.SERVER, ErrorType.RATE_LIMIT].includes(
+      this.type
+    );
   }
 
   /**
@@ -195,9 +192,7 @@ export function createAuthError(message = 'Authentication failed'): AppError {
   });
 }
 
-export function createValidationError(
-  details: Record<string, unknown>
-): AppError {
+export function createValidationError(details: Record<string, unknown>): AppError {
   return new AppError({
     type: ErrorType.VALIDATION,
     code: 'VALIDATION_ERROR',
@@ -271,7 +266,7 @@ class GlobalErrorHandler {
     this.config.onError?.(error);
 
     // 调用注册的处理器
-    this.handlers.forEach(handler => {
+    this.handlers.forEach((handler) => {
       try {
         handler(error);
       } catch {

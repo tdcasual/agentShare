@@ -1,6 +1,6 @@
 /**
  * Demo Spaces - 演示模式协作空间
- * 
+ *
  * 使用本地运行时数据，不与后端管理状态混淆
  */
 
@@ -38,10 +38,12 @@ const DEMO_MESSAGES: Message[] = [
 export default function DemoSpacesPage() {
   const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
   const [input, setInput] = useState('');
-  
+
   const sendMessage = () => {
-    if (!input.trim()) {return;}
-    
+    if (!input.trim()) {
+      return;
+    }
+
     const newMessage: Message = {
       id: Date.now().toString(),
       author: 'You (Demo)',
@@ -49,11 +51,11 @@ export default function DemoSpacesPage() {
       timestamp: 'just now',
       isAgent: false,
     };
-    
+
     setMessages([...messages, newMessage]);
     setInput('');
   };
-  
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-800 dark:bg-amber-900/10">
@@ -61,7 +63,8 @@ export default function DemoSpacesPage() {
           Collaboration prototype
         </p>
         <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
-          This space is for chat and collaboration experiments with local state. It is not the inbox or events-backed operations workspace.
+          This space is for chat and collaboration experiments with local state. It is not the inbox
+          or events-backed operations workspace.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
@@ -81,47 +84,49 @@ export default function DemoSpacesPage() {
         </div>
       </div>
 
-      <div className="h-[calc(100vh-260px)] flex gap-4">
+      <div className="flex h-[calc(100vh-260px)] gap-4">
         {/* 侧边栏 - 空间列表 */}
-        <div className="w-64 flex-shrink-0 bg-white dark:bg-[#252540] rounded-2xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden">
-          <div className="p-4 border-b border-pink-100 dark:border-[#3D3D5C]">
+        <div className="w-64 flex-shrink-0 overflow-hidden rounded-2xl border border-pink-100 bg-white dark:border-[#3D3D5C] dark:bg-[#252540]">
+          <div className="border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
             <h2 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Spaces</h2>
           </div>
           <div className="p-2">
-            <button className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-50 dark:bg-[#3D3D5C] text-pink-700 dark:text-[#E891C0] text-left">
-              <Hash className="w-4 h-4" />
+            <button className="flex w-full items-center gap-2 rounded-xl bg-pink-50 px-3 py-2 text-left text-pink-700 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+              <Hash className="h-4 w-4" />
               <span className="font-medium">general</span>
             </button>
-            <button className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-50 dark:hover:bg-[#3D3D5C]/50 text-left">
-              <Hash className="w-4 h-4" />
+            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-gray-600 hover:bg-gray-50 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]/50">
+              <Hash className="h-4 w-4" />
               <span>random</span>
             </button>
           </div>
         </div>
-        
+
         {/* 主聊天区域 */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-[#252540] rounded-2xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-pink-100 bg-white dark:border-[#3D3D5C] dark:bg-[#252540]">
           {/* 头部 */}
-          <div className="p-4 border-b border-pink-100 dark:border-[#3D3D5C] flex items-center justify-between">
+          <div className="flex items-center justify-between border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
             <div className="flex items-center gap-2">
-              <Hash className="w-5 h-5 text-gray-400" />
+              <Hash className="h-5 w-5 text-gray-400" />
               <h2 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">general</h2>
             </div>
             <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-              <Users className="w-4 h-4" />
+              <Users className="h-4 w-4" />
               <span>2 members</span>
             </div>
           </div>
-          
+
           {/* 消息列表 */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 space-y-4 overflow-y-auto p-4">
             {messages.map((msg) => (
               <div key={msg.id} className="flex gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                  msg.isAgent 
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                    : 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400'
-                }`}>
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
+                    msg.isAgent
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+                  }`}
+                >
                   {msg.isAgent ? '🤖' : '👤'}
                 </div>
                 <div className="flex-1">
@@ -129,18 +134,16 @@ export default function DemoSpacesPage() {
                     <span className="font-medium text-gray-800 dark:text-[#E8E8EC]">
                       {msg.author}
                     </span>
-                    <span className="text-xs text-gray-400 dark:text-[#666]">
-                      {msg.timestamp}
-                    </span>
+                    <span className="text-xs text-gray-400 dark:text-[#666]">{msg.timestamp}</span>
                   </div>
                   <p className="text-gray-700 dark:text-[#9CA3AF]">{msg.content}</p>
                 </div>
               </div>
             ))}
           </div>
-          
+
           {/* 输入框 */}
-          <div className="p-4 border-t border-pink-100 dark:border-[#3D3D5C]">
+          <div className="border-t border-pink-100 p-4 dark:border-[#3D3D5C]">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -148,13 +151,13 @@ export default function DemoSpacesPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Type a message... (Demo mode)"
-                className="flex-1 px-4 py-2 rounded-xl border border-pink-200 dark:border-[#3D3D5C] bg-white dark:bg-[#1A1A2E] text-gray-800 dark:text-[#E8E8EC] focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className="flex-1 rounded-xl border border-pink-200 bg-white px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
               />
               <button
                 onClick={sendMessage}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:shadow-lg transition-all"
+                className="rounded-xl bg-gradient-to-r from-pink-400 to-pink-600 px-4 py-2 text-white transition-all hover:shadow-lg"
               >
-                <Send className="w-4 h-4" />
+                <Send className="h-4 w-4" />
               </button>
             </div>
             <p className="mt-2 text-xs text-gray-400 dark:text-[#666]">

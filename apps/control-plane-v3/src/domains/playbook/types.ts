@@ -1,6 +1,6 @@
 /**
  * Playbook Domain Types - 手册领域类型
- * 
+ *
  * 与后端 /api/playbooks 对齐
  * 后端返回: id, title, task_type, body, tags, publication_status
  */

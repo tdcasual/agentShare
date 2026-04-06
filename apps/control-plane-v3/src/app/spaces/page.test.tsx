@@ -276,7 +276,9 @@ describe('spaces page', () => {
     await user.click(screen.getByRole('button', { name: /failed/i }));
 
     expect(within(operationsFeed).getByText('Analyzer failed Risk Scan')).toBeInTheDocument();
-    expect(within(operationsFeed).queryByText('Bootstrap completed Sync Config')).not.toBeInTheDocument();
+    expect(
+      within(operationsFeed).queryByText('Bootstrap completed Sync Config')
+    ).not.toBeInTheDocument();
   });
 
   it('shows rejected governance items when the rejected review filter is selected', async () => {
@@ -339,7 +341,10 @@ describe('spaces page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows linked token and recent event summaries inside the identity space', () => {
@@ -394,7 +399,10 @@ describe('spaces page', () => {
 
     await user.click(screen.getByRole('button', { name: /创建空间/i }));
     await user.type(screen.getByPlaceholderText(/输入空间名称/i), 'Incident Response');
-    await user.type(screen.getByPlaceholderText(/简要描述这个空间的用途/i), 'Coordinate responders during live incidents.');
+    await user.type(
+      screen.getByPlaceholderText(/简要描述这个空间的用途/i),
+      'Coordinate responders during live incidents.'
+    );
     await user.click(screen.getAllByRole('button', { name: /创建空间/i })[1]);
 
     await waitFor(() => {

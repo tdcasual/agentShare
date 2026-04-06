@@ -19,7 +19,7 @@ export function useSecrets(options?: SWRConfiguration) {
     {
       ...swrConfig,
       ...options,
-    },
+    }
   );
 }
 
@@ -30,7 +30,7 @@ export function useCapabilities(options?: SWRConfiguration) {
     {
       ...swrConfig,
       ...options,
-    },
+    }
   );
 }
 
@@ -45,17 +45,11 @@ export function useCreateSecret() {
 export function useCreateCapability() {
   return async (payload: CapabilityCreateInput) => {
     const result = await api.createCapability(payload);
-    await Promise.all([
-      mutate('/api/capabilities'),
-      mutate('/api/secrets'),
-    ]);
+    await Promise.all([mutate('/api/capabilities'), mutate('/api/secrets')]);
     return result;
   };
 }
 
 export function refreshGovernance() {
-  return Promise.all([
-    mutate('/api/secrets'),
-    mutate('/api/capabilities'),
-  ]);
+  return Promise.all([mutate('/api/secrets'), mutate('/api/capabilities')]);
 }

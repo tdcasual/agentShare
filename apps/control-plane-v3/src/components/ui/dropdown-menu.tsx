@@ -1,6 +1,6 @@
 /**
  * Dropdown Menu - 统一下拉菜单组件
- * 
+ *
  * 封装焦点陷阱、点击外部关闭、ESC 关闭等通用逻辑
  */
 
@@ -34,22 +34,20 @@ export function DropdownMenu({
 
   useClickOutside(isOpen, containerRef, onClose, triggerRef ? [triggerRef] : undefined);
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <>
       {/* 遮罩 - 点击关闭 */}
-      <div
-        className="fixed inset-0 z-40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 z-40" onClick={onClose} aria-hidden="true" />
       {/* 下拉面板 */}
       <div
         ref={containerRef}
         role="menu"
         className={cn(
-          'absolute top-full mt-2 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up',
+          'absolute top-full z-50 mt-2 animate-slide-up overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]',
           align === 'right' ? 'right-0' : 'left-0',
           className
         )}
@@ -84,10 +82,10 @@ export function DropdownMenuItem({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
-        'text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C]',
-        destructive && 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20',
-        disabled && 'opacity-50 cursor-not-allowed',
+        'flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
+        'text-gray-700 hover:bg-pink-50 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]',
+        destructive && 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20',
+        disabled && 'cursor-not-allowed opacity-50',
         className
       )}
     >
@@ -106,7 +104,7 @@ export function DropdownMenuSection({ title, children }: DropdownMenuSectionProp
   return (
     <div className="py-1">
       {title && (
-        <p className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-[#9CA3AF] uppercase tracking-wider">
+        <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-[#9CA3AF]">
           {title}
         </p>
       )}

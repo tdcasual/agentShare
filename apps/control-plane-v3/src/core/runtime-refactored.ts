@@ -1,6 +1,6 @@
 /**
  * 重构后的 Runtime - 解决反向依赖问题
- * 
+ *
  * 关键改动:
  * 1. Core 层不再硬编码 Domain 插件
  * 2. 通过参数注入插件
@@ -17,18 +17,20 @@ import type { DomainEvents } from '../shared/types';
 // 基础设施实现（保持不变）
 class RouterManagerImpl {
   private routes: Map<string, RouteConfig> = new Map();
-  
+
   register(route: RouteConfig): Disposable {
     this.routes.set(route.path, route);
-    return () => { this.routes.delete(route.path); };
+    return () => {
+      this.routes.delete(route.path);
+    };
   }
-  
+
   navigate(path: string): void {
     if (typeof window !== 'undefined') {
       window.location.href = path;
     }
   }
-  
+
   getCurrentRoute(): RouteConfig | undefined {
     return undefined;
   }
@@ -44,7 +46,7 @@ class ConfigStoreImpl {
 
   set<T>(key: string, value: T): void {
     this.configs.set(key, value);
-    this.subscribers.get(key)?.forEach(cb => cb(value));
+    this.subscribers.get(key)?.forEach((cb) => cb(value));
   }
 
   delete(key: string): void {
@@ -60,7 +62,7 @@ class ConfigStoreImpl {
       this.subscribers.set(key, new Set());
     }
     this.subscribers.get(key)!.add(handler as (value: unknown) => void);
-    
+
     return () => {
       this.subscribers.get(key)?.delete(handler as (value: unknown) => void);
     };
@@ -81,19 +83,23 @@ class ThemeEngineImpl {
   }
 
   getCurrent(): ThemeDefinition {
-    return this.themes.get(this.currentThemeId) ?? {
-      id: 'default',
-      name: 'Default Theme',
-      version: '1.0.0',
-      variables: {},
-      components: {},
-      animations: {},
-    };
+    return (
+      this.themes.get(this.currentThemeId) ?? {
+        id: 'default',
+        name: 'Default Theme',
+        version: '1.0.0',
+        variables: {},
+        components: {},
+        animations: {},
+      }
+    );
   }
 
   onChange(handler: (theme: ThemeDefinition) => void): Disposable {
     this.listeners.add(handler);
-    return () => { this.listeners.delete(handler); };
+    return () => {
+      this.listeners.delete(handler);
+    };
   }
 
   setVariable(key: string, value: string): void {
@@ -118,13 +124,13 @@ class I18nEngineImpl {
   t(key: string, params?: Record<string, string>): string {
     const translations = this.translations.get(this.locale);
     let text = translations?.get(key) || key;
-    
+
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         text = text.replace(`{{${k}}}`, v);
       });
     }
-    
+
     return text;
   }
 
@@ -187,8 +193,8 @@ export async function initializeRuntime(
   runtime: CoreRuntime,
   pluginIds?: string[]
 ): Promise<CoreRuntime> {
-  const pluginsToActivate = pluginIds ?? runtime.plugin.getAll().map(p => p.id);
-  
+  const pluginsToActivate = pluginIds ?? runtime.plugin.getAll().map((p) => p.id);
+
   for (const pluginId of pluginsToActivate) {
     if (!runtime.plugin.isActive(pluginId)) {
       await runtime.plugin.activatePlugin(pluginId);

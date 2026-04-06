@@ -66,22 +66,11 @@ export function buildReviewHref(resourceKind: string, resourceId: string) {
   return withQuery('/reviews', { resourceKind, resourceId });
 }
 
-export function buildSpaceHref({
-  agentId,
-  eventId,
-}: {
-  agentId?: string;
-  eventId?: string;
-}) {
+export function buildSpaceHref({ agentId, eventId }: { agentId?: string; eventId?: string }) {
   return withQuery('/spaces', { agentId, eventId });
 }
 
-export function deriveEventHref({
-  actionUrl,
-  subjectType,
-  subjectId,
-  metadata,
-}: EventLinkInput) {
+export function deriveEventHref({ actionUrl, subjectType, subjectId, metadata }: EventLinkInput) {
   const explicitAction = actionUrl ?? undefined;
   const derivedTaskId = getMetadataString(metadata, 'task_id');
   const derivedResourceKind = getMetadataString(metadata, 'resource_kind');

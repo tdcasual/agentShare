@@ -1,6 +1,6 @@
 /**
  * Review Domain
- * 
+ *
  * 导出：
  * - 类型定义
  * - API 函数
@@ -21,12 +21,7 @@ export type {
 } from './types';
 
 // API
-export {
-  reviewApi,
-  getReviews,
-  approveReview,
-  rejectReview,
-} from './api';
+export { reviewApi, getReviews, approveReview, rejectReview } from './api';
 
 // Hooks
 export {

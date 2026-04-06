@@ -1,6 +1,6 @@
 /**
  * Task Domain Hooks
- * 
+ *
  * 基于 SWR 的数据获取和缓存
  */
 
@@ -18,14 +18,10 @@ import { TASK_DASHBOARD_FEEDBACK_KEY, TASK_DASHBOARD_TOKENS_KEY } from './hooks-
 // ============================================
 
 export function useTasks(options?: SWRConfiguration) {
-  return useSWR<{ items: Task[] }>(
-    '/api/tasks',
-    () => api.getTasks(),
-    {
-      ...pollingConfig,  // 默认轮询，任务状态变化快
-      ...options,
-    }
-  );
+  return useSWR<{ items: Task[] }>('/api/tasks', () => api.getTasks(), {
+    ...pollingConfig, // 默认轮询，任务状态变化快
+    ...options,
+  });
 }
 
 /**
@@ -65,7 +61,7 @@ export function useCreateTask() {
       (current: { items: Task[] } | undefined) => ({
         items: [optimisticTask, ...(current?.items || [])],
       }),
-      false  // 不重新验证
+      false // 不重新验证
     );
 
     // 发送请求
@@ -83,14 +79,10 @@ export function useCreateTask() {
 // ============================================
 
 export function useRuns(options?: SWRConfiguration) {
-  return useSWR<{ items: Run[] }>(
-    '/api/runs',
-    () => api.getRuns(),
-    {
-      ...pollingConfig,  // Run 状态实时变化
-      ...options,
-    }
-  );
+  return useSWR<{ items: Run[] }>('/api/runs', () => api.getRuns(), {
+    ...pollingConfig, // Run 状态实时变化
+    ...options,
+  });
 }
 
 // ============================================
@@ -100,7 +92,7 @@ export function useRuns(options?: SWRConfiguration) {
 export function useTokenFeedback(tokenId: string | null, options?: SWRConfiguration) {
   return useSWR<{ items: TokenFeedback[] }>(
     tokenId ? `/api/agent-tokens/${tokenId}/feedback` : null,
-    () => tokenId ? api.getTokenFeedback(tokenId) : { items: [] },
+    () => (tokenId ? api.getTokenFeedback(tokenId) : { items: [] }),
     {
       ...swrConfig,
       ...options,
@@ -114,7 +106,11 @@ export function useCreateTaskTargetFeedback() {
     // 刷新相关缓存
     await mutate('/api/tasks');
     await mutate('/api/runs');
-    await mutate((key) => Array.isArray(key) && (key[0] === TASK_DASHBOARD_FEEDBACK_KEY || key[0] === TASK_DASHBOARD_TOKENS_KEY));
+    await mutate(
+      (key) =>
+        Array.isArray(key) &&
+        (key[0] === TASK_DASHBOARD_FEEDBACK_KEY || key[0] === TASK_DASHBOARD_TOKENS_KEY)
+    );
     return result;
   };
 }

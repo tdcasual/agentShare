@@ -1,6 +1,6 @@
 /**
  * Task Domain
- * 
+ *
  * 导出：
  * - 类型定义
  * - API 函数
@@ -39,10 +39,7 @@ export {
 } from './api';
 
 // Dashboard hooks
-export {
-  useTaskDashboard,
-  type TaskView,
-} from './hooks-dashboard';
+export { useTaskDashboard, type TaskView } from './hooks-dashboard';
 
 // Hooks
 export {

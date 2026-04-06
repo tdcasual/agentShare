@@ -7,13 +7,7 @@ import { Layout } from '@/interfaces/human/layout';
 import { useEvents, useMarkEventRead } from '@/domains/event';
 import type { Event } from '@/domains/event';
 import { Badge } from '@/shared/ui-primitives/badge';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/shared/ui-primitives/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { cn } from '@/lib/utils';
 
@@ -33,10 +27,18 @@ function formatRelativeTime(timeString: string) {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) {return 'Just now';}
-  if (diffMins < 60) {return `${diffMins}m ago`;}
-  if (diffHours < 24) {return `${diffHours}h ago`;}
-  if (diffDays < 7) {return `${diffDays}d ago`;}
+  if (diffMins < 1) {
+    return 'Just now';
+  }
+  if (diffMins < 60) {
+    return `${diffMins}m ago`;
+  }
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+  if (diffDays < 7) {
+    return `${diffDays}d ago`;
+  }
   return date.toLocaleDateString();
 }
 
@@ -79,7 +81,7 @@ function InboxContent() {
   const unreadCount = useMemo(() => events.filter((event) => !event.read_at).length, [events]);
   const focusedEvent = useMemo(
     () => events.find((event) => event.id === selectedEventId) ?? null,
-    [events, selectedEventId],
+    [events, selectedEventId]
   );
 
   const handleMarkRead = useCallback(
@@ -95,7 +97,9 @@ function InboxContent() {
 
   const handleActionNavigate = useCallback(
     (actionUrl?: string) => {
-      if (!actionUrl) {return;}
+      if (!actionUrl) {
+        return;
+      }
       if (actionUrl.startsWith('/')) {
         router.push(actionUrl);
         return;
@@ -128,7 +132,7 @@ function InboxContent() {
 
       {isLoading && (
         <div className="flex items-center justify-center gap-2 rounded-3xl border border-dashed border-gray-200 bg-white/80 py-12 text-sm text-gray-500 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#9CA3AF]">
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <Loader2 className="h-5 w-5 animate-spin" />
           Loading inbox...
         </div>
       )}
@@ -180,7 +184,11 @@ function InboxContent() {
           <CardFooter>
             <div className="flex flex-wrap items-center gap-2">
               {focusedEvent.action_url && (
-                <Button variant="ghost" size="sm" onClick={() => handleActionNavigate(focusedEvent.action_url)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleActionNavigate(focusedEvent.action_url)}
+                >
                   {getActionLabel(focusedEvent)}
                 </Button>
               )}
@@ -195,55 +203,66 @@ function InboxContent() {
       )}
 
       <div className="grid gap-4">
-        {!isLoading && !error && events.map((event) => (
-          <Card
-            key={event.id}
-            data-testid={`inbox-event-${event.id}`}
-            data-focus-state={event.id === selectedEventId ? 'focused' : 'default'}
-            className={cn(
-              'border-2 border-transparent',
-              event.id === selectedEventId && 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400',
-              !event.read_at && 'border-pink-200 dark:border-pink-500/60'
-            )}
-          >
-            <CardHeader>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle>{event.summary}</CardTitle>
-                <span className="text-xs text-gray-400 dark:text-[#9CA3AF]">
-                  {formatRelativeTime(event.created_at)}
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
-                <Badge variant={severityVariantMap[event.severity ?? 'info'] ?? 'info'}>
-                  {event.event_type.replace(/[_-]/g, ' ')}
-                </Badge>
-                <span>Actor: {event.actor_type} {event.actor_id}</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-                {event.details ?? 'No additional context provided.'}
-              </p>
-              <div className="mt-4 grid gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
-                <span>Subject: {event.subject_type} {event.subject_id}</span>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <div className="flex flex-wrap items-center gap-2">
-                {event.action_url && (
-                  <Button variant="ghost" size="sm" onClick={() => handleActionNavigate(event.action_url)}>
-                    {getActionLabel(event)}
-                  </Button>
-                )}
-                {!event.read_at && (
-                  <Button variant="ghost" size="sm" onClick={() => handleMarkRead(event.id)}>
-                    Mark as read
-                  </Button>
-                )}
-              </div>
-            </CardFooter>
-          </Card>
-        ))}
+        {!isLoading &&
+          !error &&
+          events.map((event) => (
+            <Card
+              key={event.id}
+              data-testid={`inbox-event-${event.id}`}
+              data-focus-state={event.id === selectedEventId ? 'focused' : 'default'}
+              className={cn(
+                'border-2 border-transparent',
+                event.id === selectedEventId &&
+                  'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400',
+                !event.read_at && 'border-pink-200 dark:border-pink-500/60'
+              )}
+            >
+              <CardHeader>
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle>{event.summary}</CardTitle>
+                  <span className="text-xs text-gray-400 dark:text-[#9CA3AF]">
+                    {formatRelativeTime(event.created_at)}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                  <Badge variant={severityVariantMap[event.severity ?? 'info'] ?? 'info'}>
+                    {event.event_type.replace(/[_-]/g, ' ')}
+                  </Badge>
+                  <span>
+                    Actor: {event.actor_type} {event.actor_id}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                  {event.details ?? 'No additional context provided.'}
+                </p>
+                <div className="mt-4 grid gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                  <span>
+                    Subject: {event.subject_type} {event.subject_id}
+                  </span>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <div className="flex flex-wrap items-center gap-2">
+                  {event.action_url && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleActionNavigate(event.action_url)}
+                    >
+                      {getActionLabel(event)}
+                    </Button>
+                  )}
+                  {!event.read_at && (
+                    <Button variant="ghost" size="sm" onClick={() => handleMarkRead(event.id)}>
+                      Mark as read
+                    </Button>
+                  )}
+                </div>
+              </CardFooter>
+            </Card>
+          ))}
       </div>
     </div>
   );

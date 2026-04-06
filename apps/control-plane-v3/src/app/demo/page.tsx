@@ -31,11 +31,13 @@ export default function DemoHubPage() {
               Sandbox Directory
             </div>
             <div className="space-y-3">
-              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-50 md:text-5xl">
+              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-stone-900 md:text-5xl dark:text-stone-50">
                 Keep prototype routes separate from the backend-backed console.
               </h1>
-              <p className="max-w-2xl text-base leading-7 text-amber-950/80 dark:text-amber-100/80 md:text-lg">
-                This directory is the handoff point between experimental demos and governed management surfaces. Use it to preview fixture-only journeys, then compare them against the live console before promoting anything.
+              <p className="max-w-2xl text-base leading-7 text-amber-950/80 md:text-lg dark:text-amber-100/80">
+                This directory is the handoff point between experimental demos and governed
+                management surfaces. Use it to preview fixture-only journeys, then compare them
+                against the live console before promoting anything.
               </p>
             </div>
           </div>
@@ -43,11 +45,17 @@ export default function DemoHubPage() {
           <div className="grid gap-3 rounded-[1.5rem] border border-amber-200/80 bg-white/75 p-5 text-sm text-stone-700 shadow-sm dark:border-amber-800/80 dark:bg-stone-950/30 dark:text-stone-200">
             <div className="flex items-start gap-3">
               <Compass className="mt-0.5 h-4 w-4 text-amber-700 dark:text-amber-300" />
-              <p>Demo routes are readable without authentication so product walkthroughs stay decoupled from operational state.</p>
+              <p>
+                Demo routes are readable without authentication so product walkthroughs stay
+                decoupled from operational state.
+              </p>
             </div>
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-4 w-4 text-amber-700 dark:text-amber-300" />
-              <p>Human operators still govern the live pages. Prototype learnings should graduate into backend-backed routes, not become permanent parallel systems.</p>
+              <p>
+                Human operators still govern the live pages. Prototype learnings should graduate
+                into backend-backed routes, not become permanent parallel systems.
+              </p>
             </div>
           </div>
         </div>
@@ -98,7 +106,9 @@ export default function DemoHubPage() {
       <section className="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50/80 p-6 dark:border-stone-700 dark:bg-stone-950/40">
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Graduation rule</h2>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-stone-600 dark:text-stone-300">
-          Retire each sandbox route once the corresponding live management experience reaches parity for the same operator journey, keeps auditability, and no longer depends on fixture-only behavior.
+          Retire each sandbox route once the corresponding live management experience reaches parity
+          for the same operator journey, keeps auditability, and no longer depends on fixture-only
+          behavior.
         </p>
       </section>
     </div>

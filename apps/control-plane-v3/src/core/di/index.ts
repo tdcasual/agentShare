@@ -2,25 +2,21 @@
 // Dependency Injection Container
 // ============================================
 
-import type { 
-  DIContainer, 
-  DIScope, 
-  ServiceIdentifier, 
-  Constructor 
-} from '../plugin/types';
+import type { DIContainer, DIScope, ServiceIdentifier, Constructor } from '../plugin/types';
 
 export class DIContainerImpl implements DIContainer {
-  private registrations = new Map<symbol, { 
-    implementation: Constructor<unknown> | unknown;
-    singleton: boolean;
-    instance?: unknown;
-  }>();
+  private registrations = new Map<
+    symbol,
+    {
+      implementation: Constructor<unknown> | unknown;
+      singleton: boolean;
+      instance?: unknown;
+    }
+  >();
 
-  register<T>(
-    id: ServiceIdentifier<T>, 
-    implementation: Constructor<T> | T
-  ): void {
-    const isConstructor = typeof implementation === 'function' &&
+  register<T>(id: ServiceIdentifier<T>, implementation: Constructor<T> | T): void {
+    const isConstructor =
+      typeof implementation === 'function' &&
       implementation.prototype &&
       implementation.prototype.constructor === implementation;
 
@@ -55,13 +51,13 @@ export class DIContainerImpl implements DIContainer {
 
   async resolveAsync<T>(id: ServiceIdentifier<T>): Promise<T> {
     const result = this.resolve(id);
-    
+
     // Check if result has async initialization
     const initializable = result as unknown as { initialize?: () => Promise<void> };
     if (initializable && typeof initializable.initialize === 'function') {
       await initializable.initialize();
     }
-    
+
     return result;
   }
 
@@ -110,9 +106,15 @@ export function injectable<T>() {
 }
 
 export function inject<T>(id: ServiceIdentifier<T>) {
-  return function (target: object, propertyKey: string | symbol | undefined, parameterIndex: number) {
+  return function (
+    target: object,
+    propertyKey: string | symbol | undefined,
+    parameterIndex: number
+  ) {
     // Store injection metadata
-    const existingInjections = (target as { __injections?: Array<{ index: number; id: ServiceIdentifier<unknown> }> }).__injections || [];
+    const existingInjections =
+      (target as { __injections?: Array<{ index: number; id: ServiceIdentifier<unknown> }> })
+        .__injections || [];
     existingInjections.push({ index: parameterIndex, id: id as ServiceIdentifier<unknown> });
     (target as { __injections: typeof existingInjections }).__injections = existingInjections;
   };

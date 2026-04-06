@@ -15,30 +15,30 @@ export class IdentityDomainPlugin implements Plugin {
 
   install(runtime: CoreRuntime): void {
     this.runtime = runtime;
-    
+
     // Register identity registry service
     this.registry = new IdentityRegistryImpl(runtime);
     runtime.di.register(IdentityRegistryServiceId, this.registry);
-    
+
     // Create identity state store
     runtime.state.create('identity.current', (set) => ({
       currentIdentity: null as Identity | null,
       isAuthenticated: false,
-      
+
       setCurrentIdentity: (identity: Identity | null) => {
         set({ currentIdentity: identity, isAuthenticated: !!identity });
       },
-      
+
       logout: () => {
         set({ currentIdentity: null, isAuthenticated: false });
-      }
+      },
     }));
   }
 
   activate(): void {
     // Seed with demo identities
     this.seedDemoData();
-    
+
     logger.runtime.info('Identity domain activated');
   }
 
@@ -66,7 +66,7 @@ export class IdentityDomainPlugin implements Plugin {
           id: 'cred_001',
           type: 'api_key',
           createdAt: new Date(),
-        }
+        },
       },
       capabilities: {
         canCreate: ['api_key', 'secret', 'task', 'workflow', 'capability'],
@@ -99,7 +99,7 @@ export class IdentityDomainPlugin implements Plugin {
           id: 'cred_002',
           type: 'api_key',
           createdAt: new Date(),
-        }
+        },
       },
       capabilities: {
         canCreate: ['task', 'workflow'],
@@ -138,7 +138,7 @@ export class IdentityDomainPlugin implements Plugin {
           id: 'cred_003',
           type: 'api_key',
           createdAt: new Date(),
-        }
+        },
       },
       capabilities: {
         canCreate: ['task', 'workflow'],

@@ -3,7 +3,16 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
-import { ShieldCheck, UserRoundPlus, Sparkles, Star, Heart, LockKeyhole, Mail, User } from 'lucide-react';
+import {
+  ShieldCheck,
+  UserRoundPlus,
+  Sparkles,
+  Star,
+  Heart,
+  LockKeyhole,
+  Mail,
+  User,
+} from 'lucide-react';
 import { ApiError, api } from '@/lib/api';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
@@ -36,7 +45,9 @@ export default function SetupPage() {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : 'Failed to load bootstrap status');
+          setError(
+            loadError instanceof Error ? loadError.message : 'Failed to load bootstrap status'
+          );
         }
       } finally {
         if (!cancelled) {
@@ -77,64 +88,87 @@ export default function SetupPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
       {/* Floating decorations */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <span className="absolute top-16 left-[8%] text-4xl opacity-10 dark:opacity-5 animate-float">🌟</span>
-        <span className="absolute top-32 right-[12%] text-3xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '1s' }}>💫</span>
-        <span className="absolute bottom-40 left-[15%] text-5xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '2s' }}>🎀</span>
-        <span className="absolute top-48 right-[70%] text-3xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '0.5s' }}>🌸</span>
-        <span className="absolute bottom-24 right-[20%] text-4xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '1.5s' }}>💕</span>
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <span className="absolute left-[8%] top-16 animate-float text-4xl opacity-10 dark:opacity-5">
+          🌟
+        </span>
+        <span
+          className="absolute right-[12%] top-32 animate-float text-3xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '1s' }}
+        >
+          💫
+        </span>
+        <span
+          className="absolute bottom-40 left-[15%] animate-float text-5xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '2s' }}
+        >
+          🎀
+        </span>
+        <span
+          className="absolute right-[70%] top-48 animate-float text-3xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '0.5s' }}
+        >
+          🌸
+        </span>
+        <span
+          className="absolute bottom-24 right-[20%] animate-float text-4xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '1.5s' }}
+        >
+          💕
+        </span>
       </div>
 
       {/* Header controls */}
-      <div className="fixed top-4 right-4 flex items-center gap-3 z-50">
+      <div className="fixed right-4 top-4 z-50 flex items-center gap-3">
         <LanguageSwitcher />
         <SimpleThemeToggle />
       </div>
 
-      <Card 
-        variant="feature" 
-        className="w-full max-w-3xl relative z-10 dark:bg-gradient-to-br dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]"
+      <Card
+        variant="feature"
+        className="relative z-10 w-full max-w-3xl dark:border-[#3D3D5C] dark:bg-gradient-to-br dark:from-[#252540] dark:to-[#2D2D50]"
       >
         {/* Decorative elements */}
-        <div className="absolute -top-4 -right-4 text-3xl animate-bounce" style={{ animationDuration: '3s' }}>
+        <div
+          className="absolute -right-4 -top-4 animate-bounce text-3xl"
+          style={{ animationDuration: '3s' }}
+        >
           ✨
         </div>
-        <div className="absolute -bottom-3 -left-3 text-2xl opacity-60">
-          🌸
-        </div>
+        <div className="absolute -bottom-3 -left-3 text-2xl opacity-60">🌸</div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left side - Info */}
           <div className="space-y-6">
             {/* Header */}
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 dark:bg-[#3D3D5C] px-4 py-2 text-sm font-medium text-pink-700 dark:text-[#E891C0]">
-                <ShieldCheck className="w-4 h-4" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-4 py-2 text-sm font-medium text-pink-700 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+                <ShieldCheck className="h-4 w-4" />
                 <span className="uppercase tracking-wider">{t('auth.setup.subtitle')}</span>
               </div>
               <div className="space-y-3">
-                <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 dark:text-[#E8E8EC] leading-tight">
+                <h1 className="text-3xl font-bold leading-tight text-gray-800 lg:text-4xl dark:text-[#E8E8EC]">
                   {t('auth.setup.title')}
                 </h1>
-                <p className="text-gray-600 dark:text-[#9CA3AF] leading-relaxed">
+                <p className="leading-relaxed text-gray-600 dark:text-[#9CA3AF]">
                   {t('auth.setup.description')}
                 </p>
               </div>
             </div>
 
             {/* Steps */}
-            <div className="rounded-3xl border border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#1A1A2E]/80 p-5 space-y-4">
+            <div className="space-y-4 rounded-3xl border border-pink-100 bg-white/80 p-5 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
               <div className="flex items-center gap-3 text-gray-800 dark:text-[#E8E8EC]">
-                <UserRoundPlus className="w-5 h-5 text-pink-500" />
+                <UserRoundPlus className="h-5 w-5 text-pink-500" />
                 <span className="font-semibold">{t('auth.setup.whatNext')}</span>
               </div>
               <ul className="space-y-3">
                 {steps.map((step, index) => (
-                  <li 
-                    key={index} 
-                    className="flex items-start gap-3 text-sm text-gray-600 dark:text-[#9CA3AF] animate-slide-up"
+                  <li
+                    key={index}
+                    className="flex animate-slide-up items-start gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <span className="text-lg">{step.icon}</span>
@@ -146,9 +180,15 @@ export default function SetupPage() {
 
             {/* Decoration */}
             <div className="flex justify-center gap-3 text-3xl opacity-40 dark:opacity-20">
-              <span className="animate-bounce" style={{ animationDelay: '0s' }}>🌸</span>
-              <span className="animate-bounce" style={{ animationDelay: '0.3s' }}>✨</span>
-              <span className="animate-bounce" style={{ animationDelay: '0.6s' }}>💕</span>
+              <span className="animate-bounce" style={{ animationDelay: '0s' }}>
+                🌸
+              </span>
+              <span className="animate-bounce" style={{ animationDelay: '0.3s' }}>
+                ✨
+              </span>
+              <span className="animate-bounce" style={{ animationDelay: '0.6s' }}>
+                💕
+              </span>
             </div>
           </div>
 
@@ -156,45 +196,53 @@ export default function SetupPage() {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <Input
               label={t('auth.setup.bootstrapKey')}
-              icon={<LockKeyhole className="w-4 h-4" />}
+              icon={<LockKeyhole className="h-4 w-4" />}
               value={form.bootstrap_key}
-              onChange={(event) => setForm((current) => ({ ...current, bootstrap_key: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, bootstrap_key: event.target.value }))
+              }
               placeholder="changeme-bootstrap-key"
-              className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
+              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
             />
             <Input
               label={t('auth.setup.ownerEmail')}
               type="email"
-              icon={<Mail className="w-4 h-4" />}
+              icon={<Mail className="h-4 w-4" />}
               value={form.email}
-              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, email: event.target.value }))
+              }
               placeholder="owner@example.com"
-              className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
+              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
             />
             <Input
               label={t('auth.setup.displayName')}
-              icon={<User className="w-4 h-4" />}
+              icon={<User className="h-4 w-4" />}
               value={form.display_name}
-              onChange={(event) => setForm((current) => ({ ...current, display_name: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, display_name: event.target.value }))
+              }
               placeholder="Founding Owner"
-              className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
+              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
             />
             <Input
               label={t('auth.setup.password')}
               type="password"
-              icon={<LockKeyhole className="w-4 h-4" />}
+              icon={<LockKeyhole className="h-4 w-4" />}
               value={form.password}
-              onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, password: event.target.value }))
+              }
               placeholder="At least 12 characters"
-              className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
+              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
             />
 
             {/* Status */}
-            <div className="rounded-2xl bg-white/80 dark:bg-[#1A1A2E]/80 border border-pink-100 dark:border-[#3D3D5C] px-4 py-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <div className="rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80 dark:text-[#9CA3AF]">
               {error ? (
-                <span 
-                  role="alert" 
-                  aria-live="assertive" 
+                <span
+                  role="alert"
+                  aria-live="assertive"
                   aria-atomic="true"
                   className="text-red-500 dark:text-red-400"
                 >
@@ -202,22 +250,18 @@ export default function SetupPage() {
                 </span>
               ) : !isReady ? (
                 <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 animate-pulse" />
+                  <Sparkles className="h-4 w-4 animate-pulse" />
                   Checking status...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-pink-500" />
+                  <Heart className="h-4 w-4 text-pink-500" />
                   System not initialized yet. Complete bootstrap to unlock login.
                 </span>
               )}
             </div>
 
-            <Button 
-              className="w-full" 
-              loading={isSubmitting}
-              shimmer
-            >
+            <Button className="w-full" loading={isSubmitting} shimmer>
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <span className="animate-spin">🌸</span>
@@ -225,7 +269,7 @@ export default function SetupPage() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <Star className="w-4 h-4" />
+                  <Star className="h-4 w-4" />
                   {t('auth.setup.createAccount')}
                 </span>
               )}

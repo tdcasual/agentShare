@@ -3,11 +3,11 @@
  */
 
 import { apiFetch } from '@/lib/api-client';
-import type { 
-  PlaybookTransportDTO, 
-  PlaybookSearchQuery, 
+import type {
+  PlaybookTransportDTO,
+  PlaybookSearchQuery,
   PlaybookSearchResponse,
-  CreatePlaybookInput 
+  CreatePlaybookInput,
 } from './types';
 
 const BASE_URL = '/api/playbooks';
@@ -18,17 +18,29 @@ export type { PlaybookSearchResponse } from './types';
 /**
  * 搜索手册
  */
-export async function searchPlaybooks(query?: PlaybookSearchQuery): Promise<PlaybookSearchResponse> {
+export async function searchPlaybooks(
+  query?: PlaybookSearchQuery
+): Promise<PlaybookSearchResponse> {
   const params = new URLSearchParams();
-  if (query?.q) {params.set('q', query.q);}
-  if (query?.taskType) {params.set('task_type', query.taskType);}
-  if (query?.tag) {params.set('tag', query.tag);}
-  if (query?.limit) {params.set('limit', query.limit.toString());}
-  if (query?.offset) {params.set('offset', query.offset.toString());}
-  
+  if (query?.q) {
+    params.set('q', query.q);
+  }
+  if (query?.taskType) {
+    params.set('task_type', query.taskType);
+  }
+  if (query?.tag) {
+    params.set('tag', query.tag);
+  }
+  if (query?.limit) {
+    params.set('limit', query.limit.toString());
+  }
+  if (query?.offset) {
+    params.set('offset', query.offset.toString());
+  }
+
   const queryString = params.toString();
   const url = queryString ? `${BASE_URL}/search?${queryString}` : `${BASE_URL}/search`;
-  
+
   return apiFetch(url);
 }
 

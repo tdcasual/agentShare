@@ -3,7 +3,19 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
-import { CheckCircle2, Clock3, RefreshCw, ShieldAlert, ShieldCheck, XCircle, Heart, Sparkles, FileText, Play, Lock } from 'lucide-react';
+import {
+  CheckCircle2,
+  Clock3,
+  RefreshCw,
+  ShieldAlert,
+  ShieldCheck,
+  XCircle,
+  Heart,
+  Sparkles,
+  FileText,
+  Play,
+  Lock,
+} from 'lucide-react';
 import { deriveGovernanceStatus, governanceStatusLabel } from '@/domains/governance';
 import { Layout } from '@/interfaces/human/layout';
 import { useReviews, useApproveReview, useRejectReview } from '@/domains/review';
@@ -33,7 +45,12 @@ function ReviewsContent() {
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   // 使用 SWR hooks 替代手动 useEffect
-  const { data: reviewsData, isLoading, error: dataError, mutate } = useReviews({
+  const {
+    data: reviewsData,
+    isLoading,
+    error: dataError,
+    mutate,
+  } = useReviews({
     refreshInterval: 10000, // 10秒自动刷新
   });
   const {
@@ -45,24 +62,27 @@ function ReviewsContent() {
     clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(dataError);
-  
+
   const approveReview = useApproveReview();
   const rejectReview = useRejectReview();
-  
+
   // 本地 UI 状态
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedProvenance, setSelectedProvenance] = useState<'all' | 'agent' | 'human' | 'token'>('all');
-  const [selectedKind, setSelectedKind] = useState<'all' | 'task' | 'playbook' | 'secret' | 'capability'>(
-    () =>
-      focus.resourceKind === 'task' ||
-      focus.resourceKind === 'playbook' ||
-      focus.resourceKind === 'secret' ||
-      focus.resourceKind === 'capability'
-        ? focus.resourceKind
-        : 'all',
+  const [selectedProvenance, setSelectedProvenance] = useState<'all' | 'agent' | 'human' | 'token'>(
+    'all'
+  );
+  const [selectedKind, setSelectedKind] = useState<
+    'all' | 'task' | 'playbook' | 'secret' | 'capability'
+  >(() =>
+    focus.resourceKind === 'task' ||
+    focus.resourceKind === 'playbook' ||
+    focus.resourceKind === 'secret' ||
+    focus.resourceKind === 'capability'
+      ? focus.resourceKind
+      : 'all'
   );
 
   const items = reviewsData?.items;
@@ -74,9 +94,15 @@ function ReviewsContent() {
       return accumulator;
     }, {});
   }, [items]);
-  const agentSubmittedCount = reviewItems.filter((item) => item.created_by_actor_type === 'agent').length;
-  const humanSubmittedCount = reviewItems.filter((item) => item.created_by_actor_type === 'human').length;
-  const tokenOriginatedCount = reviewItems.filter((item) => Boolean(item.created_via_token_id)).length;
+  const agentSubmittedCount = reviewItems.filter(
+    (item) => item.created_by_actor_type === 'agent'
+  ).length;
+  const humanSubmittedCount = reviewItems.filter(
+    (item) => item.created_by_actor_type === 'human'
+  ).length;
+  const tokenOriginatedCount = reviewItems.filter((item) =>
+    Boolean(item.created_via_token_id)
+  ).length;
   const visibleItems = useMemo(
     () =>
       (items ?? []).filter((item) => {
@@ -94,14 +120,14 @@ function ReviewsContent() {
         }
         return true;
       }),
-    [items, selectedKind, selectedProvenance],
+    [items, selectedKind, selectedProvenance]
   );
   const focusedReviewItem = useMemo(
     () =>
       visibleItems.find(
-        (item) => item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId,
+        (item) => item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId
       ) ?? null,
-    [focus.resourceId, focus.resourceKind, visibleItems],
+    [focus.resourceId, focus.resourceKind, visibleItems]
   );
 
   async function handleRefresh() {
@@ -144,7 +170,9 @@ function ReviewsContent() {
       if (decisionError instanceof ApiError) {
         setError(decisionError.detail);
       } else {
-        setError(decisionError instanceof Error ? decisionError.message : 'Failed to update review item');
+        setError(
+          decisionError instanceof Error ? decisionError.message : 'Failed to update review item'
+        );
       }
     } finally {
       setActionKey(null);
@@ -154,13 +182,13 @@ function ReviewsContent() {
   const getResourceIcon = (kind: string) => {
     switch (kind) {
       case 'task':
-        return <FileText className="w-5 h-5" />;
+        return <FileText className="h-5 w-5" />;
       case 'playbook':
-        return <Play className="w-5 h-5" />;
+        return <Play className="h-5 w-5" />;
       case 'secret':
-        return <Lock className="w-5 h-5" />;
+        return <Lock className="h-5 w-5" />;
       default:
-        return <Sparkles className="w-5 h-5" />;
+        return <Sparkles className="h-5 w-5" />;
     }
   };
 
@@ -169,12 +197,14 @@ function ReviewsContent() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/80 dark:bg-[#252540]/80 px-4 py-2 text-sm text-pink-700 dark:text-[#E891C0] border border-pink-100 dark:border-[#3D3D5C]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-4 py-2 text-sm text-pink-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E891C0]">
             <ShieldAlert className="h-4 w-4" />
             {t('reviews.subtitle')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{t('reviews.title')}</h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+              {t('reviews.title')}
+            </h1>
             <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">{t('reviews.description')}</p>
           </div>
         </div>
@@ -187,34 +217,37 @@ function ReviewsContent() {
 
       {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard 
-          label={t('reviews.metrics.pendingItems')} 
-          value={reviewItems.length.toString()} 
-          icon={<ShieldAlert className="w-5 h-5 text-pink-500 dark:text-[#E891C0]" />}
+        <MetricCard
+          label={t('reviews.metrics.pendingItems')}
+          value={reviewItems.length.toString()}
+          icon={<ShieldAlert className="h-5 w-5 text-pink-500 dark:text-[#E891C0]" />}
         />
-        <MetricCard 
-          label={t('reviews.metrics.tasksQueued')} 
-          value={(countByKind.task ?? 0).toString()} 
-          icon={<FileText className="w-5 h-5 text-blue-500 dark:text-[#6B9AC4]" />}
+        <MetricCard
+          label={t('reviews.metrics.tasksQueued')}
+          value={(countByKind.task ?? 0).toString()}
+          icon={<FileText className="h-5 w-5 text-blue-500 dark:text-[#6B9AC4]" />}
         />
-        <MetricCard 
-          label={t('reviews.metrics.playbooksQueued')} 
-          value={(countByKind.playbook ?? 0).toString()} 
-          icon={<Play className="w-5 h-5 text-purple-500" />}
+        <MetricCard
+          label={t('reviews.metrics.playbooksQueued')}
+          value={(countByKind.playbook ?? 0).toString()}
+          icon={<Play className="h-5 w-5 text-purple-500" />}
         />
-        <MetricCard 
-          label={t('reviews.metrics.secretsCapabilities')} 
-          value={((countByKind.secret ?? 0) + (countByKind.capability ?? 0)).toString()} 
-          icon={<Lock className="w-5 h-5 text-amber-500" />}
+        <MetricCard
+          label={t('reviews.metrics.secretsCapabilities')}
+          value={((countByKind.secret ?? 0) + (countByKind.capability ?? 0)).toString()}
+          icon={<Lock className="h-5 w-5 text-amber-500" />}
         />
       </div>
 
-      <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">Governance coverage</h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              Governance coverage
+            </h2>
             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-              Human reviewers can inspect which submissions came from agents directly, which were token-originated, and which resource lane needs attention first.
+              Human reviewers can inspect which submissions came from agents directly, which were
+              token-originated, and which resource lane needs attention first.
             </p>
           </div>
 
@@ -226,7 +259,9 @@ function ReviewsContent() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Submission provenance</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+                Submission provenance
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant={selectedProvenance === 'all' ? 'primary' : 'secondary'}
@@ -264,7 +299,9 @@ function ReviewsContent() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">Resource lane</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+                Resource lane
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant={selectedKind === 'all' ? 'primary' : 'secondary'}
@@ -313,7 +350,7 @@ function ReviewsContent() {
       </Card>
 
       {/* Session Info */}
-      <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
           <Badge variant="primary">{session?.role ?? t('reviews.reviewer')}</Badge>
           <span className="dark:text-[#E8E8EC]">{session?.email ?? t('common.loading')}</span>
@@ -335,7 +372,7 @@ function ReviewsContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
         >
           {refreshError}
         </Card>
@@ -343,19 +380,21 @@ function ReviewsContent() {
 
       {/* Error */}
       {gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError) ? (
-        <Card 
-          role="alert" 
-          aria-live="assertive" 
+        <Card
+          role="alert"
+          aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
         >
-          {gateError ?? error ?? (dataError instanceof Error ? dataError.message : 'Failed to load reviews')}
+          {gateError ??
+            error ??
+            (dataError instanceof Error ? dataError.message : 'Failed to load reviews')}
         </Card>
       ) : null}
 
       {/* Loading */}
       {gateLoading || isLoading ? (
-        <Card className="text-gray-600 dark:text-[#9CA3AF] flex items-center gap-3">
+        <Card className="flex items-center gap-3 text-gray-600 dark:text-[#9CA3AF]">
           <span className="animate-spin">🌸</span>
           {t('reviews.loading')}
         </Card>
@@ -363,24 +402,41 @@ function ReviewsContent() {
 
       {/* Empty State */}
       {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length === 0 ? (
-        <Card variant="feature" className="space-y-6 text-center py-12 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-[#2D4A3D] text-green-600 dark:text-green-400">
+        <Card
+          variant="feature"
+          className="space-y-6 py-12 text-center dark:border-[#3D3D5C] dark:from-[#252540] dark:to-[#2D2D50]"
+        >
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-[#2D4A3D] dark:text-green-400">
             <ShieldCheck className="h-10 w-10" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{t('reviews.empty.title')}</h2>
-            <p className="text-gray-600 dark:text-[#9CA3AF] max-w-md mx-auto">{t('reviews.empty.description')}</p>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              {t('reviews.empty.title')}
+            </h2>
+            <p className="mx-auto max-w-md text-gray-600 dark:text-[#9CA3AF]">
+              {t('reviews.empty.description')}
+            </p>
           </div>
           <div className="flex justify-center gap-2 text-3xl opacity-30 dark:opacity-20">
-            <span className="animate-bounce" style={{ animationDelay: '0s' }}>🌸</span>
-            <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>✨</span>
-            <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>💕</span>
+            <span className="animate-bounce" style={{ animationDelay: '0s' }}>
+              🌸
+            </span>
+            <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>
+              ✨
+            </span>
+            <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>
+              💕
+            </span>
           </div>
         </Card>
       ) : null}
 
-      {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length > 0 && visibleItems.length === 0 ? (
-        <Card className="border border-dashed border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 text-sm text-gray-600 dark:text-[#9CA3AF]">
+      {!gateLoading &&
+      !isLoading &&
+      !shouldShowSessionExpired &&
+      reviewItems.length > 0 &&
+      visibleItems.length === 0 ? (
+        <Card className="border border-dashed border-pink-100 bg-white/80 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#9CA3AF]">
           No review items match the current provenance and resource filters.
         </Card>
       ) : null}
@@ -391,7 +447,9 @@ function ReviewsContent() {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
               Focused review item
             </p>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{focusedReviewItem.title}</h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              {focusedReviewItem.title}
+            </h2>
             <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
               Resource {focusedReviewItem.resource_kind}:{focusedReviewItem.resource_id}
             </p>
@@ -408,18 +466,20 @@ function ReviewsContent() {
           const rejectKey = `reject:${item.resource_kind}:${item.resource_id}`;
 
           return (
-            <Card 
-              key={`${item.resource_kind}:${item.resource_id}`} 
+            <Card
+              key={`${item.resource_kind}:${item.resource_id}`}
               data-testid={`review-card-${item.resource_kind}-${item.resource_id}`}
               data-focus-state={
-                item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId ? 'focused' : 'default'
+                item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId
+                  ? 'focused'
+                  : 'default'
               }
-              variant="kawaii" 
+              variant="kawaii"
               className={cn(
-                'space-y-4 dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C] animate-slide-up',
+                'animate-slide-up space-y-4 dark:border-[#3D3D5C] dark:from-[#252540] dark:to-[#2D2D50]',
                 item.resource_kind === focus.resourceKind &&
                   item.resource_id === focus.resourceId &&
-                  'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400',
+                  'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
               )}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
@@ -447,10 +507,15 @@ function ReviewsContent() {
                     ) : null}
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{item.title}</h2>
-                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">Resource ID: {item.resource_id}</p>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                      {item.title}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                      Resource ID: {item.resource_id}
+                    </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                      Submitted by {item.created_by_actor_type ?? 'unknown'}:{item.created_by_actor_id ?? 'unknown'}
+                      Submitted by {item.created_by_actor_type ?? 'unknown'}:
+                      {item.created_by_actor_id ?? 'unknown'}
                     </p>
                     <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">
                       Governance state: {governanceStatusLabel(governanceStatus)}
@@ -466,7 +531,7 @@ function ReviewsContent() {
                         loading={actionKey === rejectKey}
                         disabled={busy}
                         onClick={() => handleDecision(item, 'reject')}
-                        className="border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="border-red-200 hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-900/20"
                       >
                         <XCircle className="mr-2 h-4 w-4 text-red-500" />
                         {t('reviews.actions.reject')}
@@ -499,7 +564,11 @@ function ReviewsContent() {
                 <ReviewStat
                   icon={<Clock3 className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
                   label={t('reviews.item.lastReview')}
-                  value={item.reviewed_at ? new Date(item.reviewed_at).toLocaleString() : t('reviews.awaitingDecision')}
+                  value={
+                    item.reviewed_at
+                      ? new Date(item.reviewed_at).toLocaleString()
+                      : t('reviews.awaitingDecision')
+                  }
                 />
               </div>
             </Card>
@@ -509,36 +578,60 @@ function ReviewsContent() {
 
       {/* Footer decoration */}
       {reviewItems.length > 0 && (
-        <div className="flex justify-center gap-2 text-2xl opacity-30 dark:opacity-20 pt-4">
+        <div className="flex justify-center gap-2 pt-4 text-2xl opacity-30 dark:opacity-20">
           <span className="animate-float">🌸</span>
-          <span className="animate-float" style={{ animationDelay: '0.5s' }}>✨</span>
-          <span className="animate-float" style={{ animationDelay: '1s' }}>💕</span>
+          <span className="animate-float" style={{ animationDelay: '0.5s' }}>
+            ✨
+          </span>
+          <span className="animate-float" style={{ animationDelay: '1s' }}>
+            💕
+          </span>
         </div>
       )}
     </div>
   );
 }
 
-function MetricCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+function MetricCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+}) {
   return (
-    <Card className="space-y-2 border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+    <Card className="space-y-2 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
       <div className="flex items-center gap-2">
         {icon}
-        <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">{label}</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">
+          {label}
+        </p>
       </div>
       <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
     </Card>
   );
 }
 
-function ReviewStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function ReviewStat({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-pink-50/40 dark:bg-[#1A1A2E]/60 p-4">
+    <div className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/60">
       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
         {icon}
         {label}
       </div>
-      <p className="mt-2 text-sm font-medium text-gray-800 dark:text-[#E8E8EC] break-all">{value}</p>
+      <p className="mt-2 break-all text-sm font-medium text-gray-800 dark:text-[#E8E8EC]">
+        {value}
+      </p>
     </div>
   );
 }

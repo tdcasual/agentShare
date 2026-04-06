@@ -1,6 +1,6 @@
 /**
  * 离线页面
- * 
+ *
  * 当用户处于离线状态且请求的内容不在缓存中时显示
  */
 
@@ -33,35 +33,26 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540]">
-      <Card 
-        variant="feature" 
-        className="max-w-md w-full text-center p-8 space-y-6"
-      >
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4 dark:from-[#1A1A2E] dark:to-[#252540]">
+      <Card variant="feature" className="w-full max-w-md space-y-6 p-8 text-center">
         {/* 图标 */}
-        <div className="mx-auto w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-          <WifiOff className="w-10 h-10 text-amber-600 dark:text-amber-400" />
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+          <WifiOff className="h-10 w-10 text-amber-600 dark:text-amber-400" />
         </div>
 
         {/* 标题 */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">
-            您已离线
-          </h1>
-          <p className="text-gray-600 dark:text-[#9CA3AF]">
-            无法连接到网络，部分功能可能无法使用
-          </p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">您已离线</h1>
+          <p className="text-gray-600 dark:text-[#9CA3AF]">无法连接到网络，部分功能可能无法使用</p>
         </div>
 
         {/* 说明 */}
-        <div className="bg-white/50 dark:bg-[#252540]/50 rounded-2xl p-4 text-left space-y-3">
+        <div className="space-y-3 rounded-2xl bg-white/50 p-4 text-left dark:bg-[#252540]/50">
           <div className="flex items-start gap-3">
-            <CloudOff className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
             <div>
-              <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                离线时可用的功能
-              </p>
-              <ul className="text-sm text-gray-500 dark:text-[#9CA3AF] mt-1 space-y-1">
+              <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">离线时可用的功能</p>
+              <ul className="mt-1 space-y-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
                 <li>• 浏览已缓存的页面</li>
                 <li>• 查看本地数据</li>
                 <li>• 填写表单（稍后同步）</li>
@@ -72,11 +63,7 @@ export default function OfflinePage() {
 
         {/* 操作按钮 */}
         <div className="flex gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => window.history.back()}
-            className="flex-1"
-          >
+          <Button variant="secondary" onClick={() => window.history.back()} className="flex-1">
             返回
           </Button>
           <Button
@@ -84,7 +71,7 @@ export default function OfflinePage() {
             disabled={!isOnline}
             loading={isOnline}
             className="flex-1"
-            leftIcon={<RefreshCw className="w-4 h-4" />}
+            leftIcon={<RefreshCw className="h-4 w-4" />}
           >
             重试
           </Button>
@@ -92,15 +79,13 @@ export default function OfflinePage() {
 
         {/* 状态提示 */}
         {isOnline && (
-          <p className="text-sm text-green-600 dark:text-green-400 animate-fade-in">
+          <p className="animate-fade-in text-sm text-green-600 dark:text-green-400">
             网络已恢复，正在重新加载...
           </p>
         )}
 
         {/* 底部信息 */}
-        <p className="text-xs text-gray-400 dark:text-gray-600">
-          Control Plane V3 · 离线模式
-        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-600">Control Plane V3 · 离线模式</p>
       </Card>
     </div>
   );

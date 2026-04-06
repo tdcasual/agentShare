@@ -144,7 +144,10 @@ describe('tasks page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when task queries return unauthorized', () => {
@@ -156,7 +159,10 @@ describe('tasks page', () => {
     render(<TasksPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a forbidden-specific state when task queries return forbidden', () => {
@@ -211,8 +217,14 @@ describe('tasks page', () => {
     render(<TasksPage />);
 
     await user.click(screen.getByRole('button', { name: /tasks\.publishTask/i }));
-    await user.type(screen.getByPlaceholderText(/tasks\.form\.titlePlaceholder/i), 'Ship config sync');
-    await user.type(screen.getByPlaceholderText(/tasks\.form\.taskTypePlaceholder/i), 'config_sync');
+    await user.type(
+      screen.getByPlaceholderText(/tasks\.form\.titlePlaceholder/i),
+      'Ship config sync'
+    );
+    await user.type(
+      screen.getByPlaceholderText(/tasks\.form\.taskTypePlaceholder/i),
+      'config_sync'
+    );
     await user.click(screen.getAllByRole('checkbox')[0]);
     await user.click(screen.getAllByRole('button', { name: /tasks\.publishTask/i })[1]);
 
@@ -220,7 +232,10 @@ describe('tasks page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when saving feedback hits an expired session', async () => {
@@ -231,13 +246,19 @@ describe('tasks page', () => {
 
     await user.click(screen.getByTestId('task-card-task-2'));
     await user.click(screen.getByRole('button', { name: /tasks\.leaveFeedback/i }));
-    await user.type(screen.getByPlaceholderText(/tasks\.form\.summaryPlaceholder/i), 'Needs a clearer risk summary.');
+    await user.type(
+      screen.getByPlaceholderText(/tasks\.form\.summaryPlaceholder/i),
+      'Needs a clearer risk summary.'
+    );
     await user.click(screen.getByRole('button', { name: /tasks\.saveFeedback/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 });

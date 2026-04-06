@@ -41,7 +41,13 @@ describe('filter toggle accessibility', () => {
   });
 
   it('marks settings, spaces, and tokens filters as pressed state toggles', async () => {
-    const [settingsSource, _spacesSource, operationsFeedSource, governancePanelSource, tokensSource] = await Promise.all([
+    const [
+      settingsSource,
+      _spacesSource,
+      operationsFeedSource,
+      governancePanelSource,
+      tokensSource,
+    ] = await Promise.all([
       readRouteSource('settings/page.tsx'),
       readRouteSource('spaces/page.tsx'),
       readRouteSource('spaces/operations-feed.tsx'),

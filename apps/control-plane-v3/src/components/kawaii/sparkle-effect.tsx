@@ -60,14 +60,14 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
       onMouseLeave={handleMouseLeave}
     >
       {children}
-      
+
       {/* Sparkles */}
       {sparkles.map((sparkle) => (
         <span
           key={sparkle.id}
           className={cn(
-            'absolute pointer-events-none transition-all duration-500',
-            isHovering ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+            'pointer-events-none absolute transition-all duration-500',
+            isHovering ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
           )}
           style={{
             left: `${sparkle.x}%`,

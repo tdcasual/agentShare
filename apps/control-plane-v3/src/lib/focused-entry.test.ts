@@ -9,7 +9,9 @@ describe('focused-entry', () => {
   });
 
   it('reads shared resource focus fields', () => {
-    const focus = readFocusedEntry(new URLSearchParams('resourceKind=capability&resourceId=capability-2'));
+    const focus = readFocusedEntry(
+      new URLSearchParams('resourceKind=capability&resourceId=capability-2')
+    );
 
     expect(focus.resourceKind).toBe('capability');
     expect(focus.resourceId).toBe('capability-2');

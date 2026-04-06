@@ -17,7 +17,9 @@ describe('management placeholders', () => {
 
     expect(source).toMatch(/useAdminAccounts/);
     expect(source).toMatch(/useAgentsWithTokens/);
-    expect(source).toMatch(/persisted management accounts and registered agents from the backend/);
+    expect(source).toMatch(
+      /persisted management accounts and registered agents from the\s+backend/
+    );
     expect(source).not.toMatch(/managed through the runtime system/);
     expect(source).toMatch(/Management coverage/);
     expect(source).not.toMatch(/\/demo\/identities/);

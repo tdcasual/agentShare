@@ -1,6 +1,6 @@
 /**
  * useFocusTrap - 焦点陷阱 Hook
- * 
+ *
  * 用于模态框、下拉菜单等需要限制焦点在容器内的场景
  * 支持 ESC 键关闭和 Tab 循环导航
  */
@@ -42,10 +42,14 @@ export function useFocusTrap({
 
   // 管理焦点陷阱
   useEffect(() => {
-    if (!isActive) {return;}
+    if (!isActive) {
+      return;
+    }
 
     const container = containerRef.current;
-    if (!container) {return;}
+    if (!container) {
+      return;
+    }
 
     // 获取所有可聚焦元素
     const getFocusableElements = (): HTMLElement[] => {
@@ -59,13 +63,11 @@ export function useFocusTrap({
         '[contenteditable]',
       ].join(', ');
 
-      return Array.from(container.querySelectorAll(selector)).filter(
-        (el): el is HTMLElement => {
-          // 过滤不可见元素
-          const style = window.getComputedStyle(el);
-          return style.display !== 'none' && style.visibility !== 'hidden';
-        }
-      );
+      return Array.from(container.querySelectorAll(selector)).filter((el): el is HTMLElement => {
+        // 过滤不可见元素
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      });
     };
 
     // 聚焦第一个元素
@@ -86,10 +88,14 @@ export function useFocusTrap({
         return;
       }
 
-      if (e.key !== 'Tab') {return;}
+      if (e.key !== 'Tab') {
+        return;
+      }
 
       const elements = getFocusableElements();
-      if (elements.length === 0) {return;}
+      if (elements.length === 0) {
+        return;
+      }
 
       const firstElement = elements[0];
       const lastElement = elements[elements.length - 1];
@@ -124,7 +130,7 @@ export function useFocusTrap({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
-      
+
       // 清理延迟聚焦定时器
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -144,12 +150,11 @@ export function useFocusTrap({
 /**
  * 简化的焦点陷阱 Hook（仅 ESC 关闭）
  */
-export function useEscapeKey(
-  isActive: boolean,
-  onEscape: () => void
-): void {
+export function useEscapeKey(isActive: boolean, onEscape: () => void): void {
   useEffect(() => {
-    if (!isActive) {return;}
+    if (!isActive) {
+      return;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -172,21 +177,23 @@ export function useClickOutside(
   excludeRefs?: React.RefObject<HTMLElement | null>[]
 ): void {
   useEffect(() => {
-    if (!isActive) {return;}
+    if (!isActive) {
+      return;
+    }
 
     const handleClick = (e: MouseEvent) => {
       const target = e.target as Node;
-      
+
       // 检查是否在容器内
       if (containerRef.current?.contains(target)) {
         return;
       }
 
       // 检查是否在排除列表中
-      const isExcluded = excludeRefs?.some(
-        ref => ref.current?.contains(target)
-      );
-      if (isExcluded) {return;}
+      const isExcluded = excludeRefs?.some((ref) => ref.current?.contains(target));
+      if (isExcluded) {
+        return;
+      }
 
       onClickOutside();
     };

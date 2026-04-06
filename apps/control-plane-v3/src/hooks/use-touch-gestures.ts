@@ -16,35 +16,35 @@ interface SwipeHandlers {
   onLongPress?: () => void;
 }
 
-export function useTouchGestures(
-  handlers: SwipeHandlers,
-  config: SwipeConfig = {}
-) {
+export function useTouchGestures(handlers: SwipeHandlers, config: SwipeConfig = {}) {
   const { threshold = 50, velocityThreshold = 0.3 } = config;
-  
+
   const touchStart = useRef<{ x: number; y: number; time: number } | null>(null);
   const touchEnd = useRef<{ x: number; y: number; time: number } | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef(false);
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStart.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now(),
-    };
-    touchEnd.current = null;
-    isLongPress.current = false;
+  const onTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      const touch = e.touches[0];
+      touchStart.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now(),
+      };
+      touchEnd.current = null;
+      isLongPress.current = false;
 
-    // 长按检测
-    if (handlers.onLongPress) {
-      longPressTimer.current = setTimeout(() => {
-        isLongPress.current = true;
-        handlers.onLongPress?.();
-      }, 500);
-    }
-  }, [handlers]);
+      // 长按检测
+      if (handlers.onLongPress) {
+        longPressTimer.current = setTimeout(() => {
+          isLongPress.current = true;
+          handlers.onLongPress?.();
+        }, 500);
+      }
+    },
+    [handlers]
+  );
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -144,19 +144,26 @@ export function useTouchGestures(
     onTouchMove,
     onTouchEnd,
   };
-}// 专用 Hook - 侧边栏滑动手势
+} // 专用 Hook - 侧边栏滑动手势
 export function useSidebarSwipe(onOpen: () => void, onClose: () => void, isOpen: boolean) {
-  return useTouchGestures({
-    onSwipeRight: () => {
-      if (!isOpen) {onOpen();}
+  return useTouchGestures(
+    {
+      onSwipeRight: () => {
+        if (!isOpen) {
+          onOpen();
+        }
+      },
+      onSwipeLeft: () => {
+        if (isOpen) {
+          onClose();
+        }
+      },
     },
-    onSwipeLeft: () => {
-      if (isOpen) {onClose();}
-    },
-  }, {
-    threshold: 80,
-    velocityThreshold: 0.2,
-  });
+    {
+      threshold: 80,
+      velocityThreshold: 0.2,
+    }
+  );
 }
 
 // 专用 Hook - 下拉刷新
@@ -175,25 +182,28 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
     };
   }, []);
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    // 只在页面顶部且未在刷新时开始下拉
-    if (window.scrollY === 0 && !isRefreshing) {
-      pullStartY.current = e.touches[0].clientY;
-    }
-  }, [isRefreshing]);
+  const onTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      // 只在页面顶部且未在刷新时开始下拉
+      if (window.scrollY === 0 && !isRefreshing) {
+        pullStartY.current = e.touches[0].clientY;
+      }
+    },
+    [isRefreshing]
+  );
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (pullStartY.current > 0 && window.scrollY === 0) {
       const currentY = e.touches[0].clientY;
       const distance = currentY - pullStartY.current;
-      
+
       // 阻力效果 - 只处理向下拉动
       if (distance > 0) {
         // 应用阻力系数
         const resistedDistance = Math.min(distance * 0.5, 150);
         pullDistanceRef.current = resistedDistance;
         setPullDistance(resistedDistance);
-        
+
         // 阻止默认行为（需要确保事件不是 passive 的）
         if (distance > 10) {
           e.preventDefault();
@@ -230,5 +240,3 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
     pullDistance,
   };
 }
-
-

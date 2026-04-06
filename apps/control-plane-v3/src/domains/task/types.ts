@@ -1,6 +1,6 @@
 /**
  * Task 领域类型定义
- * 
+ *
  * 包含：
  * - Task 实体
  * - Run 实体
@@ -43,29 +43,29 @@ export interface Task {
   readonly id: string;
   readonly title: string;
   readonly taskType: string;
-  readonly task_type?: string;  // API 返回 snake_case
+  readonly task_type?: string; // API 返回 snake_case
   readonly description?: string;
   readonly priority: TaskPriority;
   readonly status: TaskStatus;
   readonly publicationStatus: PublicationStatus;
-  readonly publication_status?: string;  // API 返回 snake_case
+  readonly publication_status?: string; // API 返回 snake_case
   readonly targetMode: TaskTargetMode;
-  readonly target_mode?: string;  // API 返回 snake_case
+  readonly target_mode?: string; // API 返回 snake_case
   readonly input: TaskInput;
   readonly targetIds: string[];
   readonly targetTokenIds: string[];
-  readonly target_ids?: string[];  // API 返回 snake_case
-  readonly target_token_ids?: string[];  // API 返回 snake_case
+  readonly target_ids?: string[]; // API 返回 snake_case
+  readonly target_token_ids?: string[]; // API 返回 snake_case
   readonly createdBy: IdentityReference;
-  readonly created_by_actor_type?: string;  // API 返回 snake_case
-  readonly created_by_actor_id?: string;  // API 返回 snake_case
-  readonly created_via_token_id?: string;  // API 返回 snake_case
+  readonly created_by_actor_type?: string; // API 返回 snake_case
+  readonly created_by_actor_id?: string; // API 返回 snake_case
+  readonly created_via_token_id?: string; // API 返回 snake_case
   readonly claimedBy?: string;
-  readonly claimed_by?: string;  // API 返回 snake_case
+  readonly claimed_by?: string; // API 返回 snake_case
   readonly createdAt: string;
-  readonly created_at?: string;  // API 返回 snake_case
+  readonly created_at?: string; // API 返回 snake_case
   readonly updatedAt: string;
-  readonly updated_at?: string;  // API 返回 snake_case
+  readonly updated_at?: string; // API 返回 snake_case
   readonly publishedAt?: string;
   readonly completedAt?: string;
 }
@@ -96,7 +96,7 @@ export interface TokenFeedback {
   readonly id: string;
   readonly taskId: string;
   readonly targetId: string;
-  readonly task_target_id?: string;  // API 返回 snake_case
+  readonly task_target_id?: string; // API 返回 snake_case
   readonly tokenId: string;
   readonly score: number;
   readonly verdict: FeedbackVerdict;
@@ -112,13 +112,13 @@ export interface TokenFeedback {
 export interface AgentToken {
   readonly id: string;
   readonly agentId: string;
-  readonly agent_id?: string;  // API 返回 snake_case
+  readonly agent_id?: string; // API 返回 snake_case
   readonly displayName: string;
-  readonly display_name?: string;  // API 返回 snake_case
+  readonly display_name?: string; // API 返回 snake_case
   readonly tokenPrefix: string;
-  readonly token_prefix?: string;  // API 返回 snake_case
+  readonly token_prefix?: string; // API 返回 snake_case
   readonly trustScore: number;
-  readonly trust_score?: number;  // API 返回 snake_case
+  readonly trust_score?: number; // API 返回 snake_case
   readonly riskTier: string;
   readonly authMethod: string;
   readonly status: string;
@@ -126,12 +126,12 @@ export interface AgentToken {
   readonly labels?: Record<string, string>;
   readonly expiresAt?: string;
   readonly lastUsedAt?: string;
-  readonly last_used_at?: string;  // API 返回 snake_case
-  readonly last_feedback_at?: string;  // API 返回 snake_case
-  readonly success_rate?: number;  // API 返回 snake_case
-  readonly completed_runs?: number;  // API 返回 snake_case
-  readonly successful_runs?: number;  // API 返回 snake_case
-  readonly issued_by_actor_id?: string;  // API 返回 snake_case
+  readonly last_used_at?: string; // API 返回 snake_case
+  readonly last_feedback_at?: string; // API 返回 snake_case
+  readonly success_rate?: number; // API 返回 snake_case
+  readonly completed_runs?: number; // API 返回 snake_case
+  readonly successful_runs?: number; // API 返回 snake_case
+  readonly issued_by_actor_id?: string; // API 返回 snake_case
   readonly createdAt: string;
 }
 

@@ -8,19 +8,39 @@ describe('useDeviceType', () => {
 
   beforeEach(() => {
     // 重置 window 尺寸
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 768 });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 768,
+    });
   });
 
   afterEach(() => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalInnerWidth });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: originalInnerHeight });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: originalInnerHeight,
+    });
     vi.clearAllMocks();
   });
 
   it('should detect mobile device when width < 768px', () => {
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 812 });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 812,
+    });
 
     const { result } = renderHook(() => useDeviceType());
 
@@ -32,7 +52,11 @@ describe('useDeviceType', () => {
 
   it('should detect tablet portrait when width is 768px-1024px and portrait', () => {
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 820 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1180 });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 1180,
+    });
 
     const { result } = renderHook(() => useDeviceType());
 
@@ -46,8 +70,16 @@ describe('useDeviceType', () => {
   });
 
   it('should detect tablet landscape when width is 768px-1024px and landscape', () => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 768 });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 768,
+    });
 
     const { result } = renderHook(() => useDeviceType());
 
@@ -61,8 +93,16 @@ describe('useDeviceType', () => {
   });
 
   it('should detect desktop when width >= 1024px', () => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1440 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 900 });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1440,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 900,
+    });
 
     const { result } = renderHook(() => useDeviceType());
 
@@ -73,8 +113,16 @@ describe('useDeviceType', () => {
   });
 
   it('should report correct viewport dimensions', () => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1920 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1080 });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1920,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 1080,
+    });
 
     const { result } = renderHook(() => useDeviceType());
 
@@ -87,7 +135,11 @@ describe('useIsMobile', () => {
   const originalInnerWidth = window.innerWidth;
 
   afterEach(() => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalInnerWidth });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth,
+    });
   });
 
   it('should return true for mobile', () => {
@@ -111,12 +163,20 @@ describe('useIsTablet', () => {
   const originalInnerWidth = window.innerWidth;
 
   afterEach(() => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalInnerWidth });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth,
+    });
   });
 
   it('should return true for tablet portrait', () => {
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 820 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1180 });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 1180,
+    });
 
     const { result } = renderHook(() => useIsTablet());
 
@@ -124,8 +184,16 @@ describe('useIsTablet', () => {
   });
 
   it('should return true for tablet landscape', () => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 768 });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 768,
+    });
 
     const { result } = renderHook(() => useIsTablet());
 
@@ -141,7 +209,11 @@ describe('useIsTablet', () => {
   });
 
   it('should return false for desktop', () => {
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1440 });
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1440,
+    });
 
     const { result } = renderHook(() => useIsTablet());
 

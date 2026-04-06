@@ -1,8 +1,8 @@
 /**
  * Header - 全局顶部导航栏
- * 
+ *
  * 包含：搜索、在线用户、创建菜单、通知、消息、用户菜单
- * 
+ *
  * @CPRV3-MIGRATION: 已修复 - 使用真实功能的组件替代占位符
  * - Create 按钮: 使用 CreateMenu 组件提供真实创建选项
  * - 搜索: 使用 GlobalSearch 组件实现真实搜索功能
@@ -13,12 +13,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  MessageSquare,
-  User,
-  Settings,
-  LogOut,
-} from 'lucide-react';
+import { MessageSquare, User, Settings, LogOut } from 'lucide-react';
 import { Avatar, AvatarGroup } from '@/shared/ui-primitives/avatar';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -41,11 +36,7 @@ const USER_MENU_ACTIONS = {
 } as const;
 
 export function getUserMenuTargets() {
-  return [
-    USER_MENU_ACTIONS.profile,
-    USER_MENU_ACTIONS.settings,
-    USER_MENU_ACTIONS.logout,
-  ];
+  return [USER_MENU_ACTIONS.profile, USER_MENU_ACTIONS.settings, USER_MENU_ACTIONS.logout];
 }
 
 export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
@@ -58,9 +49,9 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   });
 
   return (
-    <header className="h-16 bg-white/80 dark:bg-[#252540]/80 backdrop-blur-md border-b border-pink-100 dark:border-[#3D3D5C] flex items-center justify-between px-6 sticky top-0 z-30">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-pink-100 bg-white/80 px-6 backdrop-blur-md dark:border-[#3D3D5C] dark:bg-[#252540]/80">
       {/* Left - Search */}
-      <div className="flex-1 max-w-xl">
+      <div className="max-w-xl flex-1">
         <GlobalSearch />
       </div>
 
@@ -68,11 +59,11 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
       <div className="flex items-center gap-3">
         {/* Language & Theme - Compact on mobile */}
         <div className="flex items-center gap-2">
-          <div className="md:hidden flex items-center gap-1">
+          <div className="flex items-center gap-1 md:hidden">
             <LanguageSwitcher compact />
             <ThemeToggle />
           </div>
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden items-center gap-2 md:flex">
             <LanguageSwitcher />
             <ThemeToggle />
           </div>
@@ -80,9 +71,11 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
 
         {/* Online Users */}
         {onlineIdentities.length > 0 && (
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 dark:bg-[#2D4A3D] border border-green-100 dark:border-green-800">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
-            <span className="text-sm text-green-700 dark:text-green-400">{onlineIdentities.length} online</span>
+          <div className="hidden items-center gap-2 rounded-full border border-green-100 bg-green-50 px-3 py-1.5 md:flex dark:border-green-800 dark:bg-[#2D4A3D]">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" aria-hidden="true" />
+            <span className="text-sm text-green-700 dark:text-green-400">
+              {onlineIdentities.length} online
+            </span>
             <AvatarGroup className="ml-1">
               {onlineIdentities.slice(0, 3).map((identity) => (
                 <Avatar
@@ -111,11 +104,11 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
             }}
             aria-label="Inbox"
             className={cn(
-              'p-2.5 rounded-full transition-colors relative focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
-              'text-gray-500 dark:text-[#9CA3AF] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] hover:text-pink-600 dark:hover:text-[#E891C0]'
+              'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
+              'text-gray-500 hover:bg-pink-50 hover:text-pink-600 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C] dark:hover:text-[#E891C0]'
             )}
           >
-            <MessageSquare className="w-5 h-5" aria-hidden="true" />
+            <MessageSquare className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -130,7 +123,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
               aria-expanded={showUserMenu}
               aria-haspopup="menu"
               aria-label={`User menu for ${currentIdentity.profile.name}`}
-              className="flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#3D3D5C] transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2"
+              className="flex items-center gap-2 rounded-full p-1.5 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 dark:hover:bg-[#3D3D5C]"
             >
               <Avatar
                 src={currentIdentity.profile.avatar}
@@ -138,7 +131,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                 size="sm"
                 status={currentIdentity.presence}
               />
-              <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">
+              <span className="hidden text-sm font-medium text-gray-700 md:block dark:text-[#E8E8EC]">
                 {currentIdentity.profile.name}
               </span>
             </button>
@@ -154,10 +147,12 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                   ref={userMenuRef}
                   role="menu"
                   aria-label="User menu"
-                  className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up"
+                  className="absolute right-0 top-full z-50 mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]"
                 >
-                  <div className="p-4 border-b border-pink-100 dark:border-[#3D3D5C]">
-                    <p className="font-semibold text-gray-800 dark:text-[#E8E8EC]">{currentIdentity.profile.name}</p>
+                  <div className="border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
+                    <p className="font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                      {currentIdentity.profile.name}
+                    </p>
                     <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                       {currentIdentity.type === 'human' ? 'Human User' : 'AI Agent'}
                     </p>
@@ -167,18 +162,18 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       type="button"
                       role="menuitem"
                       onClick={() => router.push(USER_MENU_ACTIONS.profile)}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 text-left"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-gray-700 transition-colors hover:bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]"
                     >
-                      <User className="w-4 h-4" aria-hidden="true" />
+                      <User className="h-4 w-4" aria-hidden="true" />
                       <span>Profile</span>
                     </button>
                     <button
                       type="button"
                       role="menuitem"
                       onClick={() => router.push(USER_MENU_ACTIONS.settings)}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-[#E8E8EC] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 text-left"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-gray-700 transition-colors hover:bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]"
                     >
-                      <Settings className="w-4 h-4" aria-hidden="true" />
+                      <Settings className="h-4 w-4" aria-hidden="true" />
                       <span>Settings</span>
                     </button>
                     <hr className="my-2 border-pink-100 dark:border-[#3D3D5C]" />
@@ -186,9 +181,9 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       type="button"
                       role="menuitem"
                       onClick={() => router.push(USER_MENU_ACTIONS.logout)}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 text-left"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:text-red-400 dark:hover:bg-red-900/20"
                     >
-                      <LogOut className="w-4 h-4" aria-hidden="true" />
+                      <LogOut className="h-4 w-4" aria-hidden="true" />
                       <span>Sign out</span>
                     </button>
                   </div>

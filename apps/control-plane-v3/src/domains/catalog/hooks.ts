@@ -28,24 +28,18 @@ function getCatalogKey(query?: CatalogQuery) {
 
 export function useCatalog(query?: CatalogQuery, options?: SWRConfiguration) {
   const key = getCatalogKey(query);
-  return useSWR<{ items: CatalogItem[] }>(
-    key,
-    () => api.getCatalog(query),
-    {
-      ...staticConfig,
-      ...options,
-    },
-  );
+  return useSWR<{ items: CatalogItem[] }>(key, () => api.getCatalog(query), {
+    ...staticConfig,
+    ...options,
+  });
 }
 
 export function useCatalogReleaseHistory(
   resourceKind?: string,
   resourceId?: string,
-  options?: SWRConfiguration,
+  options?: SWRConfiguration
 ) {
-  const key = resourceKind && resourceId
-    ? `/api/catalog/${resourceKind}/${resourceId}`
-    : null;
+  const key = resourceKind && resourceId ? `/api/catalog/${resourceKind}/${resourceId}` : null;
 
   return useSWR<CatalogReleaseHistory>(
     key,
@@ -53,7 +47,7 @@ export function useCatalogReleaseHistory(
     {
       ...staticConfig,
       ...options,
-    },
+    }
   );
 }
 

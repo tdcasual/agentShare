@@ -79,45 +79,68 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
       {/* Floating decorations */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <span className="absolute top-20 left-[10%] text-4xl opacity-10 dark:opacity-5 animate-float">🌸</span>
-        <span className="absolute top-40 right-[15%] text-3xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '1s' }}>✨</span>
-        <span className="absolute bottom-32 left-[20%] text-5xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '2s' }}>💕</span>
-        <span className="absolute top-60 left-[70%] text-3xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '0.5s' }}>🌟</span>
-        <span className="absolute bottom-20 right-[25%] text-4xl opacity-10 dark:opacity-5 animate-float" style={{ animationDelay: '1.5s' }}>🎀</span>
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <span className="absolute left-[10%] top-20 animate-float text-4xl opacity-10 dark:opacity-5">
+          🌸
+        </span>
+        <span
+          className="absolute right-[15%] top-40 animate-float text-3xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '1s' }}
+        >
+          ✨
+        </span>
+        <span
+          className="absolute bottom-32 left-[20%] animate-float text-5xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '2s' }}
+        >
+          💕
+        </span>
+        <span
+          className="absolute left-[70%] top-60 animate-float text-3xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '0.5s' }}
+        >
+          🌟
+        </span>
+        <span
+          className="absolute bottom-20 right-[25%] animate-float text-4xl opacity-10 dark:opacity-5"
+          style={{ animationDelay: '1.5s' }}
+        >
+          🎀
+        </span>
       </div>
 
       {/* Header controls */}
-      <div className="fixed top-4 right-4 flex items-center gap-3 z-50">
+      <div className="fixed right-4 top-4 z-50 flex items-center gap-3">
         <LanguageSwitcher />
         <SimpleThemeToggle />
       </div>
 
-      <Card 
-        variant="kawaii" 
-        className="w-full max-w-xl relative z-10 dark:bg-gradient-to-br dark:from-[#252540] dark:to-[#2D2D50] dark:border-[#3D3D5C]"
+      <Card
+        variant="kawaii"
+        className="relative z-10 w-full max-w-xl dark:border-[#3D3D5C] dark:bg-gradient-to-br dark:from-[#252540] dark:to-[#2D2D50]"
       >
         {/* Decorative elements */}
-        <div className="absolute -top-3 -right-3 text-2xl animate-bounce" style={{ animationDuration: '2s' }}>
+        <div
+          className="absolute -right-3 -top-3 animate-bounce text-2xl"
+          style={{ animationDuration: '2s' }}
+        >
           🌸
         </div>
-        <div className="absolute -bottom-2 -left-2 text-xl opacity-50">
-          ✨
-        </div>
+        <div className="absolute -bottom-2 -left-2 text-xl opacity-50">✨</div>
 
         <div className="space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-100 dark:bg-[#3D3D5C] text-pink-600 dark:text-[#E891C0] text-sm font-medium">
-              <Heart className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-4 py-2 text-sm font-medium text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+              <Heart className="h-4 w-4" />
               <span className="uppercase tracking-wider">{t('auth.login.subtitle')}</span>
             </div>
             <h1 className="text-4xl font-bold text-gray-800 dark:text-[#E8E8EC]">
               {t('auth.login.title')}
             </h1>
-            <p className="text-gray-600 dark:text-[#9CA3AF] max-w-sm mx-auto">
+            <p className="mx-auto max-w-sm text-gray-600 dark:text-[#9CA3AF]">
               {t('auth.login.description')}
             </p>
           </div>
@@ -127,28 +150,32 @@ export default function LoginPage() {
             <Input
               label={t('auth.login.email')}
               type="email"
-              icon={<Mail className="w-4 h-4" />}
+              icon={<Mail className="h-4 w-4" />}
               value={form.email}
-              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, email: event.target.value }))
+              }
               placeholder="owner@example.com"
-              className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
+              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
             />
             <Input
               label={t('auth.login.password')}
               type="password"
-              icon={<LockKeyhole className="w-4 h-4" />}
+              icon={<LockKeyhole className="h-4 w-4" />}
               value={form.password}
-              onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, password: event.target.value }))
+              }
               placeholder="••••••••••••"
-              className="dark:bg-[#1A1A2E] dark:border-[#3D3D5C] dark:text-[#E8E8EC]"
+              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
             />
 
             {/* Status message */}
-            <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-pink-50/50 dark:bg-[#1A1A2E]/50 px-4 py-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <div className="rounded-2xl border border-pink-100 bg-pink-50/50 px-4 py-3 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/50 dark:text-[#9CA3AF]">
               {error ? (
-                <span 
-                  role="alert" 
-                  aria-live="assertive" 
+                <span
+                  role="alert"
+                  aria-live="assertive"
                   aria-atomic="true"
                   className="text-red-500 dark:text-red-400"
                 >
@@ -156,7 +183,7 @@ export default function LoginPage() {
                 </span>
               ) : checking ? (
                 <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 animate-pulse" />
+                  <Sparkles className="h-4 w-4 animate-pulse" />
                   {t('auth.login.checking')}
                 </span>
               ) : (
@@ -164,12 +191,7 @@ export default function LoginPage() {
               )}
             </div>
 
-            <Button 
-              className="w-full" 
-              type="submit" 
-              loading={isSubmitting}
-              shimmer
-            >
+            <Button className="w-full" type="submit" loading={isSubmitting} shimmer>
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <span className="animate-spin">🌸</span>
@@ -177,7 +199,7 @@ export default function LoginPage() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="h-4 w-4" />
                   {t('auth.login.signIn')}
                 </span>
               )}
@@ -186,9 +208,15 @@ export default function LoginPage() {
 
           {/* Footer decoration */}
           <div className="flex justify-center gap-2 text-2xl opacity-30 dark:opacity-20">
-            <span className="animate-bounce" style={{ animationDelay: '0s' }}>🌸</span>
-            <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>✨</span>
-            <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>💕</span>
+            <span className="animate-bounce" style={{ animationDelay: '0s' }}>
+              🌸
+            </span>
+            <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>
+              ✨
+            </span>
+            <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>
+              💕
+            </span>
           </div>
         </div>
       </Card>

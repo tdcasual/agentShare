@@ -22,7 +22,7 @@ interface MobileFabProps {
 export function MobileFab({
   actions,
   onMainClick,
-  mainIcon = <Plus className="w-6 h-6" />,
+  mainIcon = <Plus className="h-6 w-6" />,
   className,
 }: MobileFabProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,13 +53,13 @@ export function MobileFab({
   }
 
   return (
-    <div className={cn('fixed right-4 bottom-20 z-40 lg:hidden', className)}>
+    <div className={cn('fixed bottom-20 right-4 z-40 lg:hidden', className)}>
       {/* 展开的菜单 */}
       {actions && actions.length > 0 && (
         <div
           className={cn(
             'absolute bottom-full right-0 mb-3 space-y-2 transition-all duration-300',
-            isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+            isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
           )}
         >
           {actions.map((action, index) => (
@@ -67,20 +67,19 @@ export function MobileFab({
               key={index}
               onClick={() => handleActionClick(action)}
               className={cn(
-                'flex items-center gap-3 pr-4 pl-3 py-2 rounded-full shadow-lg transition-all duration-200',
+                'flex items-center gap-3 rounded-full py-2 pl-3 pr-4 shadow-lg transition-all duration-200',
                 'active:scale-95',
                 action.variant === 'danger' && 'bg-red-500 text-white',
-                action.variant === 'secondary' && 'bg-white dark:bg-[#252540] text-gray-700 dark:text-[#E8E8EC]',
+                action.variant === 'secondary' &&
+                  'bg-white text-gray-700 dark:bg-[#252540] dark:text-[#E8E8EC]',
                 (!action.variant || action.variant === 'primary') && 'bg-pink-500 text-white'
               )}
               style={{
                 transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
               }}
             >
-              <span className="w-8 h-8 flex items-center justify-center">
-                {action.icon}
-              </span>
-              <span className="text-sm font-medium whitespace-nowrap">{action.label}</span>
+              <span className="flex h-8 w-8 items-center justify-center">{action.icon}</span>
+              <span className="whitespace-nowrap text-sm font-medium">{action.label}</span>
             </button>
           ))}
         </div>
@@ -90,7 +89,7 @@ export function MobileFab({
       <button
         onClick={handleMainClick}
         className={cn(
-          'w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300',
+          'flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300',
           'bg-gradient-to-r from-pink-400 to-pink-500 text-white',
           'active:scale-90 active:shadow-md',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
@@ -99,7 +98,7 @@ export function MobileFab({
         aria-label={isOpen ? '关闭菜单' : '打开菜单'}
         aria-expanded={isOpen}
       >
-        {isOpen ? <X className="w-6 h-6" /> : mainIcon}
+        {isOpen ? <X className="h-6 w-6" /> : mainIcon}
       </button>
     </div>
   );
@@ -115,7 +114,7 @@ interface SimpleFabProps {
 
 export function SimpleFab({
   onClick,
-  icon = <Plus className="w-6 h-6" />,
+  icon = <Plus className="h-6 w-6" />,
   label,
   className,
 }: SimpleFabProps) {
@@ -135,8 +134,8 @@ export function SimpleFab({
     <button
       onClick={onClick}
       className={cn(
-        'fixed right-4 bottom-20 z-40 lg:hidden',
-        'w-14 h-14 rounded-full flex items-center justify-center shadow-lg',
+        'fixed bottom-20 right-4 z-40 lg:hidden',
+        'flex h-14 w-14 items-center justify-center rounded-full shadow-lg',
         'bg-gradient-to-r from-pink-400 to-pink-500 text-white',
         'transition-all duration-200 active:scale-90 active:shadow-md',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',

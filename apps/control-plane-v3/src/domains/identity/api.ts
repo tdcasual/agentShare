@@ -1,6 +1,6 @@
 /**
  * Identity Domain API
- * 
+ *
  * 负责：
  * - 认证管理 (login/logout/session)
  * - 引导流程 (bootstrap)
@@ -17,7 +17,12 @@ import {
   AgentTokenCreateInput,
   AgentTokenCreateResponse,
 } from '@/lib/api-client';
-import type { Agent, BootstrapStatus, ManagementSessionSummary, AdminAccountSummary } from './types';
+import type {
+  Agent,
+  BootstrapStatus,
+  ManagementSessionSummary,
+  AdminAccountSummary,
+} from './types';
 import type { AgentToken } from '../task/types';
 
 // ============================================
@@ -29,13 +34,13 @@ export function getBootstrapStatus() {
 }
 
 export function setupOwner(payload: SetupOwnerInput) {
-  return apiFetch<{ initialized: boolean; account: { id: string; email: string; display_name: string; role: string; status: string } }>(
-    '/bootstrap/setup-owner',
-    {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }
-  );
+  return apiFetch<{
+    initialized: boolean;
+    account: { id: string; email: string; display_name: string; role: string; status: string };
+  }>('/bootstrap/setup-owner', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 // ============================================

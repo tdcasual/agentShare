@@ -1,6 +1,6 @@
 /**
  * Identity 领域类型定义
- * 
+ *
  * 包含：
  * - Identity 实体
  * - Identity 相关值对象
@@ -75,12 +75,12 @@ export interface Identity {
   readonly type: IdentityType;
   readonly profile: IdentityProfile & { timezone?: string };
   readonly status: IdentityStatus;
-  presence: PresenceStatus;  // 可变：在线状态可以实时变化
+  presence: PresenceStatus; // 可变：在线状态可以实时变化
   readonly credentials?: IdentityCredentials;
   readonly capabilities?: IdentityCapabilities;
   readonly relationships?: IdentityRelationships;
-  readonly runtime?: IdentityRuntime;  // Agent 特有
-  readonly session?: IdentitySession;   // Human 特有
+  readonly runtime?: IdentityRuntime; // Agent 特有
+  readonly session?: IdentitySession; // Human 特有
   readonly stats?: IdentityStats;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -160,7 +160,7 @@ export interface BootstrapStatus {
 /**
  * Management Session 响应类型
  * 对应后端 /api/session/me 和 /api/session/login 返回
- * 
+ *
  * 注意：这是后端实际返回的 Transport DTO（snake_case）
  */
 export interface ManagementSessionSummary {

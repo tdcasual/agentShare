@@ -2,13 +2,7 @@
 // Plugin System Implementation
 // ============================================
 
-import type { 
-  Plugin, 
-  PluginSystem, 
-  ExtensionPoint, 
-  CoreRuntime,
-  Disposable 
-} from './types';
+import type { Plugin, PluginSystem, ExtensionPoint, CoreRuntime, Disposable } from './types';
 
 export * from './types';
 
@@ -37,7 +31,7 @@ export class PluginRegistry implements PluginSystem {
     }
 
     this.plugins.set(plugin.id, plugin);
-    
+
     // Auto-install
     plugin.install(this.runtime);
   }
@@ -65,7 +59,9 @@ export class PluginRegistry implements PluginSystem {
 
   async deactivatePlugin(pluginId: string): Promise<void> {
     const plugin = this.plugins.get(pluginId);
-    if (!plugin) {return;}
+    if (!plugin) {
+      return;
+    }
 
     // Deactivate dependent plugins first
     for (const [id, p] of this.plugins) {
@@ -132,7 +128,9 @@ export class PluginRegistry implements PluginSystem {
       if (temp.has(pluginId)) {
         throw new Error(`Circular dependency detected involving ${pluginId}`);
       }
-      if (visited.has(pluginId)) {return;}
+      if (visited.has(pluginId)) {
+        return;
+      }
 
       temp.add(pluginId);
       const plugin = this.plugins.get(pluginId);
@@ -162,7 +160,7 @@ class ExtensionPointImpl<T> implements ExtensionPoint<T> {
 
   register(contribution: T): Disposable {
     this.contributions.push(contribution);
-    
+
     const dispose = () => {
       const index = this.contributions.indexOf(contribution);
       if (index > -1) {
@@ -170,7 +168,7 @@ class ExtensionPointImpl<T> implements ExtensionPoint<T> {
       }
       this.disposables.delete(contribution);
     };
-    
+
     this.disposables.set(contribution, dispose);
     return dispose;
   }

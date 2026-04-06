@@ -51,7 +51,7 @@ describe('demo sandbox positioning', () => {
     const source = await readSource('app/demo/spaces/page.tsx');
 
     expect(source).toMatch(/collaboration prototype/i);
-    expect(source).toMatch(/not the inbox or events-backed operations workspace/i);
+    expect(source).toMatch(/not the inbox\s+or events-backed operations workspace/i);
     expect(source).toMatch(/Back to Sandbox Directory/);
     expect(source).toMatch(/View live spaces/);
     expect(source).toMatch(/\/spaces/);

@@ -1,24 +1,15 @@
 import useSWR, { useSWRConfig } from 'swr';
 import { useCallback, useState } from 'react';
 import { listSpaces, createSpace, getSpace, addSpaceMember } from './api';
-import type { 
-  CreateSpaceInput, 
-  CreateSpaceMemberInput
-} from './types';
+import type { CreateSpaceInput, CreateSpaceMemberInput } from './types';
 import { staticConfig } from '@/lib/swr-config';
 
 /**
  * 获取空间列表
  */
 export function useSpaces(options?: { agentId?: string | null }) {
-  const key = options?.agentId 
-    ? `/api/spaces?agent_id=${options.agentId}` 
-    : '/spaces';
-  const { data, error, isLoading, mutate } = useSWR(
-    key,
-    () => listSpaces(options),
-    staticConfig
-  );
+  const key = options?.agentId ? `/api/spaces?agent_id=${options.agentId}` : '/spaces';
+  const { data, error, isLoading, mutate } = useSWR(key, () => listSpaces(options), staticConfig);
 
   return {
     spaces: data?.items || [],
@@ -54,22 +45,25 @@ export function useCreateSpace() {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const create = useCallback(async (input: CreateSpaceInput) => {
-    setIsCreating(true);
-    setError(null);
+  const create = useCallback(
+    async (input: CreateSpaceInput) => {
+      setIsCreating(true);
+      setError(null);
 
-    try {
-      const result = await createSpace(input);
-      // 刷新列表
-      await mutate('/spaces');
-      return result;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('创建失败'));
-      throw err;
-    } finally {
-      setIsCreating(false);
-    }
-  }, [mutate]);
+      try {
+        const result = await createSpace(input);
+        // 刷新列表
+        await mutate('/spaces');
+        return result;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('创建失败'));
+        throw err;
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [mutate]
+  );
 
   return {
     create,
@@ -86,26 +80,29 @@ export function useAddSpaceMember(spaceId: string, options?: { agentId?: string 
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const addMember = useCallback(async (input: CreateSpaceMemberInput) => {
-    setIsAdding(true);
-    setError(null);
+  const addMember = useCallback(
+    async (input: CreateSpaceMemberInput) => {
+      setIsAdding(true);
+      setError(null);
 
-    try {
-      const result = await addSpaceMember(spaceId, input);
-      // 刷新空间详情和列表
-      await mutate(`/spaces/${spaceId}`);
-      await mutate('/spaces');
-      if (options?.agentId) {
-        await mutate(`/api/spaces?agent_id=${options.agentId}`);
+      try {
+        const result = await addSpaceMember(spaceId, input);
+        // 刷新空间详情和列表
+        await mutate(`/spaces/${spaceId}`);
+        await mutate('/spaces');
+        if (options?.agentId) {
+          await mutate(`/api/spaces?agent_id=${options.agentId}`);
+        }
+        return result;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('添加成员失败'));
+        throw err;
+      } finally {
+        setIsAdding(false);
       }
-      return result;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('添加成员失败'));
-      throw err;
-    } finally {
-      setIsAdding(false);
-    }
-  }, [mutate, options?.agentId, spaceId]);
+    },
+    [mutate, options?.agentId, spaceId]
+  );
 
   return {
     addMember,

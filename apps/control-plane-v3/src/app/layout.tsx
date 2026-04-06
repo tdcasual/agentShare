@@ -26,17 +26,13 @@ export const metadata: Metadata = {
       { url: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
       { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
-    apple: [
-      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-    ],
+    apple: [{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' }],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Control Plane',
-    startupImage: [
-      { url: '/icons/icon-512x512.png', media: '(device-width: 768px)' },
-    ],
+    startupImage: [{ url: '/icons/icon-512x512.png', media: '(device-width: 768px)' }],
   },
   applicationName: 'Control Plane V3',
   authors: [{ name: 'Agent Control Plane Team' }],
@@ -55,11 +51,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body className="antialiased">
@@ -74,9 +66,9 @@ export default function RootLayout({
               <ErrorBoundary>
                 <RouteGuardWrapper>
                   <KawaiiBackground />
-                  <a 
-                    href="#main-content" 
-                    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-pink-500 focus:text-white focus:rounded-xl"
+                  <a
+                    href="#main-content"
+                    className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-pink-500 focus:px-4 focus:py-2 focus:text-white"
                   >
                     跳转到主要内容
                   </a>
