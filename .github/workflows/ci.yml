@@ -31,7 +31,7 @@ jobs:
 
       - name: Run API migrations
         working-directory: apps/api
-        run: alembic upgrade head
+        run: ../../.venv/bin/python -m alembic upgrade head
 
       - name: Run unified control plane verification
         run: ./scripts/ops/verify-control-plane.sh
