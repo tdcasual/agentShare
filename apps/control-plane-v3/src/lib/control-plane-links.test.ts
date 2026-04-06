@@ -18,13 +18,19 @@ describe('control-plane-links', () => {
   });
 
   it('builds focused asset hrefs', () => {
-    expect(buildAssetHref('secret', 'secret-2')).toBe('/assets?resourceKind=secret&resourceId=secret-2');
-    expect(buildAssetHref('capability', 'capability-3')).toBe('/assets?resourceKind=capability&resourceId=capability-3');
+    expect(buildAssetHref('secret', 'secret-2')).toBe(
+      '/assets?resourceKind=secret&resourceId=secret-2'
+    );
+    expect(buildAssetHref('capability', 'capability-3')).toBe(
+      '/assets?resourceKind=capability&resourceId=capability-3'
+    );
   });
 
   it('builds focused review and space hrefs', () => {
     expect(buildReviewHref('task', 'task-9')).toBe('/reviews?resourceKind=task&resourceId=task-9');
-    expect(buildSpaceHref({ agentId: 'agent-4', eventId: 'event-8' })).toBe('/spaces?agentId=agent-4&eventId=event-8');
+    expect(buildSpaceHref({ agentId: 'agent-4', eventId: 'event-8' })).toBe(
+      '/spaces?agentId=agent-4&eventId=event-8'
+    );
   });
 
   it('preserves explicit focused event hrefs', () => {
@@ -33,7 +39,7 @@ describe('control-plane-links', () => {
         actionUrl: '/tasks?taskId=task-12',
         subjectType: 'task',
         subjectId: 'task-12',
-      }),
+      })
     ).toBe('/tasks?taskId=task-12');
   });
 
@@ -44,7 +50,7 @@ describe('control-plane-links', () => {
         subjectType: 'task_target',
         subjectId: 'target-1',
         metadata: { task_id: 'task-18' },
-      }),
+      })
     ).toBe('/tasks?taskId=task-18');
   });
 });

@@ -1,6 +1,6 @@
 /**
  * Identity Domain
- * 
+ *
  * 导出：
  * - 类型定义
  * - API 函数

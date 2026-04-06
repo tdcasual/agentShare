@@ -108,7 +108,10 @@ describe('playbooks page', () => {
     await user.click(screen.getByRole('button', { name: /新建/i }));
     await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
     await user.type(screen.getByPlaceholderText(/urgent, frontend, react/i), 'incident,backend');
-    await user.type(screen.getByPlaceholderText(/输入手册详细内容/i), 'Inspect alerts, confirm scope, and notify responders.');
+    await user.type(
+      screen.getByPlaceholderText(/输入手册详细内容/i),
+      'Inspect alerts, confirm scope, and notify responders.'
+    );
     await user.click(screen.getByRole('button', { name: /^创建$/i }));
 
     await waitFor(() => {
@@ -129,7 +132,10 @@ describe('playbooks page', () => {
 
     await user.click(screen.getByRole('button', { name: /新建/i }));
     await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
-    await user.type(screen.getByPlaceholderText(/输入手册详细内容/i), 'Inspect alerts, confirm scope, and notify responders.');
+    await user.type(
+      screen.getByPlaceholderText(/输入手册详细内容/i),
+      'Inspect alerts, confirm scope, and notify responders.'
+    );
     await user.click(screen.getByRole('button', { name: /^创建$/i }));
 
     await waitFor(() => {
@@ -145,14 +151,20 @@ describe('playbooks page', () => {
 
     await user.click(screen.getByRole('button', { name: /新建/i }));
     await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
-    await user.type(screen.getByPlaceholderText(/输入手册详细内容/i), 'Inspect alerts, confirm scope, and notify responders.');
+    await user.type(
+      screen.getByPlaceholderText(/输入手册详细内容/i),
+      'Inspect alerts, confirm scope, and notify responders.'
+    );
     await user.click(screen.getByRole('button', { name: /^创建$/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when refreshing playbooks hits an expired session', async () => {

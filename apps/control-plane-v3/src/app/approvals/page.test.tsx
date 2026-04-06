@@ -111,11 +111,16 @@ describe('approvals page', () => {
     render(<ApprovalsPage />);
 
     await user.click(screen.getAllByRole('button', { name: /^拒绝$/i })[0]);
-    await user.type(screen.getByPlaceholderText(/请输入拒绝原因/i), 'Policy denied for this request');
+    await user.type(
+      screen.getByPlaceholderText(/请输入拒绝原因/i),
+      'Policy denied for this request'
+    );
     await user.click(screen.getByRole('button', { name: /确认拒绝/i }));
 
     await waitFor(() => {
-      expect(rejectMock).toHaveBeenCalledWith('approval-1', { reason: 'Policy denied for this request' });
+      expect(rejectMock).toHaveBeenCalledWith('approval-1', {
+        reason: 'Policy denied for this request',
+      });
     });
   });
 
@@ -144,7 +149,10 @@ describe('approvals page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when refreshing approvals hits an expired session', async () => {

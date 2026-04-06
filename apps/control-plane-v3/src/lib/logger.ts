@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /**
  * Logger - 统一日志管理
- * 
+ *
  * 自动在开发环境输出详细日志，生产环境静默
  * 支持命名空间，便于过滤
  */
@@ -25,7 +25,9 @@ class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    if (!IS_DEV) {return level === 'error';}
+    if (!IS_DEV) {
+      return level === 'error';
+    }
     const levels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
     return levels.indexOf(level) >= levels.indexOf(this.level);
   }

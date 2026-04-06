@@ -10,7 +10,9 @@ const useCatalogMock = vi.fn();
 const useManagementSessionGateMock = vi.fn();
 
 vi.mock('next/link', () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock('next/navigation', () => ({

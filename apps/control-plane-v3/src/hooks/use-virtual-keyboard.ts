@@ -19,11 +19,11 @@ export function useVirtualKeyboard(): VirtualKeyboardState {
   useEffect(() => {
     // 在 effect 中初始化，确保在客户端执行
     originalHeightRef.current = window.innerHeight;
-    
+
     const handleResize = () => {
       const currentHeight = window.innerHeight;
       const heightDiff = originalHeightRef.current - currentHeight;
-      
+
       // 如果高度差大于 200px，认为是虚拟键盘打开
       if (heightDiff > 200) {
         setState({ isOpen: true, height: heightDiff });
@@ -37,7 +37,7 @@ export function useVirtualKeyboard(): VirtualKeyboardState {
     };
 
     window.addEventListener('resize', handleResize);
-    
+
     // 监听焦点事件
     const handleFocus = () => {
       // 清理之前的定时器
@@ -46,10 +46,10 @@ export function useVirtualKeyboard(): VirtualKeyboardState {
       }
       focusTimeoutRef.current = setTimeout(handleResize, 100);
     };
-    
+
     document.addEventListener('focusin', handleFocus);
     document.addEventListener('focusout', handleFocus);
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('focusin', handleFocus);
@@ -82,12 +82,12 @@ export function useInputScroll() {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     // 延迟执行，等待虚拟键盘打开
     timeoutRef.current = setTimeout(() => {
       const rect = element.getBoundingClientRect();
       const visibleHeight = window.innerHeight;
-      
+
       // 如果输入框在可视区域下方，滚动到可视区域
       if (rect.bottom > visibleHeight - 100) {
         const scrollY = window.scrollY + (rect.bottom - visibleHeight) + 100;
@@ -107,11 +107,11 @@ export function useFixedBottomAdjust() {
   useEffect(() => {
     // 在 effect 中初始化
     originalHeightRef.current = window.innerHeight;
-    
+
     const handleResize = () => {
       const currentHeight = window.innerHeight;
       const heightDiff = originalHeightRef.current - currentHeight;
-      
+
       if (heightDiff > 200) {
         // 虚拟键盘打开，调整底部位置
         setBottomOffset(heightDiff);

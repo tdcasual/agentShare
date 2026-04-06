@@ -35,31 +35,33 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     window.location.reload();
   }, []);
 
-  const t = useCallback((key: string): string => {
-    const keys = key.split('.');
-    let value: unknown = messages[locale];
-    for (const k of keys) {
-      if (value && typeof value === 'object') {
-        value = (value as Record<string, unknown>)[k];
-      } else {
-        return key;
+  const t = useCallback(
+    (key: string): string => {
+      const keys = key.split('.');
+      let value: unknown = messages[locale];
+      for (const k of keys) {
+        if (value && typeof value === 'object') {
+          value = (value as Record<string, unknown>)[k];
+        } else {
+          return key;
+        }
       }
-    }
-    return typeof value === 'string' ? value : key;
-  }, [locale]);
+      return typeof value === 'string' ? value : key;
+    },
+    [locale]
+  );
 
   // Always provide the context value, even during SSR
-  const value = React.useMemo(() => ({
-    locale,
-    t,
-    setLocale,
-  }), [locale, t, setLocale]);
-
-  return (
-    <I18nContext.Provider value={value}>
-      {children}
-    </I18nContext.Provider>
+  const value = React.useMemo(
+    () => ({
+      locale,
+      t,
+      setLocale,
+    }),
+    [locale, t, setLocale]
   );
+
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
 export const useI18n = () => useContext(I18nContext);

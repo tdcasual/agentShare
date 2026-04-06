@@ -1,6 +1,6 @@
 /**
  * Domains 统一导出
- * 
+ *
  * 提供：
  * - 所有 Domain 类型
  * - 所有 Domain API
@@ -25,7 +25,17 @@ import { playbookApi } from './playbook';
 // Domain APIs 命名空间导出
 // ============================================
 
-export { identityApi, taskApi, governanceApi, reviewApi, eventApi, searchApi, catalogApi, approvalApi, playbookApi };
+export {
+  identityApi,
+  taskApi,
+  governanceApi,
+  reviewApi,
+  eventApi,
+  searchApi,
+  catalogApi,
+  approvalApi,
+  playbookApi,
+};
 
 // ============================================
 // Identity Domain 全部导出

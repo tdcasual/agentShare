@@ -34,7 +34,9 @@ export function OperationsFeed({
     <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Operations Space</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
+            Operations Space
+          </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
             Recent agent feedback and runtime activity flowing through the inbox event stream.
           </p>
@@ -99,8 +101,8 @@ export function OperationsFeed({
       ) : (
         <div role="region" aria-label="Operations feed" className="space-y-3">
           {events.map((event) => (
-            <div 
-              key={event.id} 
+            <div
+              key={event.id}
               className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60"
             >
               <div className="flex items-start justify-between gap-3">

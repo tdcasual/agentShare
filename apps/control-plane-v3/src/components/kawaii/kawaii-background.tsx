@@ -28,7 +28,7 @@ export function KawaiiBackground() {
   useEffect(() => {
     const isDark = resolvedTheme === 'dark';
     const decorations = isDark ? DARK_DECORATIONS : DECORATIONS;
-    
+
     const generated = [...Array(12)].map((_, i) => ({
       id: i,
       emoji: decorations[i % decorations.length],
@@ -43,7 +43,7 @@ export function KawaiiBackground() {
 
   if (!mounted) {
     return (
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-pink-50/80 via-purple-50/60 to-blue-50/80" />
       </div>
     );
@@ -52,16 +52,16 @@ export function KawaiiBackground() {
   const isDark = resolvedTheme === 'dark';
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       {/* Soft gradient overlay - changes based on theme */}
-      <div 
+      <div
         className={`absolute inset-0 transition-colors duration-500 ${
-          isDark 
-            ? 'bg-gradient-to-br from-[#1A1A2E]/90 via-[#252540]/80 to-[#1E1E36]/90' 
+          isDark
+            ? 'bg-gradient-to-br from-[#1A1A2E]/90 via-[#252540]/80 to-[#1E1E36]/90'
             : 'bg-gradient-to-br from-pink-50/80 via-purple-50/60 to-blue-50/80'
-        }`} 
+        }`}
       />
-      
+
       {/* Floating decorations */}
       {items.map((item) => (
         <div
@@ -80,15 +80,15 @@ export function KawaiiBackground() {
           {item.emoji}
         </div>
       ))}
-      
+
       {/* Soft orb decorations - softer in dark mode */}
-      <div 
-        className={`absolute top-1/4 left-1/4 w-64 h-64 rounded-full blur-3xl animate-pulse transition-colors duration-500 ${
+      <div
+        className={`absolute left-1/4 top-1/4 h-64 w-64 animate-pulse rounded-full blur-3xl transition-colors duration-500 ${
           isDark ? 'bg-[#E891C0]/5' : 'bg-pink-200/20'
-        }`} 
+        }`}
       />
-      <div 
-        className={`absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl animate-pulse transition-colors duration-500 ${
+      <div
+        className={`absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full blur-3xl transition-colors duration-500 ${
           isDark ? 'bg-[#6B9AC4]/5' : 'bg-purple-200/20'
         }`}
         style={{ animationDelay: '1s' }}

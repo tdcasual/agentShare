@@ -2,11 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { 
-  createCoreRuntime, 
-  initializeRuntime, 
-  RuntimeContext 
-} from '@/core/runtime';
+import { createCoreRuntime, initializeRuntime, RuntimeContext } from '@/core/runtime';
 import { IdentityDomainPlugin } from '@/domains/identity/plugin';
 import { Loader2 } from 'lucide-react';
 
@@ -16,7 +12,7 @@ interface RuntimeProviderProps {
 
 /**
  * Runtime Provider
- * 
+ *
  * 负责：
  * 1. 创建 CoreRuntime 实例
  * 2. 注册 Domain 插件（不再硬编码在 Core 中）
@@ -62,12 +58,10 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
   // 加载状态
   if (!isReady || !runtime) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540]">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 text-pink-500 animate-spin" />
-          <p className="text-gray-500 dark:text-[#9CA3AF]">
-            Initializing Dual Cosmos...
-          </p>
+          <Loader2 className="h-12 w-12 animate-spin text-pink-500" />
+          <p className="text-gray-500 dark:text-[#9CA3AF]">Initializing Dual Cosmos...</p>
         </div>
       </div>
     );
@@ -76,23 +70,17 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
   // 错误状态
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540] p-4">
-        <div className="max-w-md w-full bg-white dark:bg-[#252540] rounded-3xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] p-8 text-center">
-          <h1 className="text-xl font-bold text-gray-800 dark:text-[#E8E8EC] mb-2">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4 dark:from-[#1A1A2E] dark:to-[#252540]">
+        <div className="w-full max-w-md rounded-3xl border border-pink-100 bg-white p-8 text-center shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]">
+          <h1 className="mb-2 text-xl font-bold text-gray-800 dark:text-[#E8E8EC]">
             Initialization Failed
           </h1>
-          <p className="text-gray-600 dark:text-[#9CA3AF]">
-            {error.message}
-          </p>
+          <p className="text-gray-600 dark:text-[#9CA3AF]">{error.message}</p>
         </div>
       </div>
     );
   }
 
   // 提供 Runtime Context
-  return (
-    <RuntimeContext.Provider value={runtime}>
-      {children}
-    </RuntimeContext.Provider>
-  );
+  return <RuntimeContext.Provider value={runtime}>{children}</RuntimeContext.Provider>;
 }

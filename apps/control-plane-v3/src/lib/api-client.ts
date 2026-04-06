@@ -1,6 +1,6 @@
 /**
  * API Client 基础配置
- * 
+ *
  * 提供：
  * - 基础请求函数 apiFetch
  * - 错误处理 ApiError
@@ -45,7 +45,10 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 
   if (!response.ok) {
     const detail =
-      payload && typeof payload === 'object' && 'detail' in payload && typeof payload.detail === 'string'
+      payload &&
+      typeof payload === 'object' &&
+      'detail' in payload &&
+      typeof payload.detail === 'string'
         ? payload.detail
         : response.statusText;
     throw new ApiError(response.status, detail);

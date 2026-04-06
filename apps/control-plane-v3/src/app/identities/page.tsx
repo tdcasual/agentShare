@@ -2,7 +2,17 @@
 
 import { useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Bot, Building2, RefreshCw, Search, ShieldCheck, Users, UserPlus, KeyRound, Plus } from 'lucide-react';
+import {
+  Bot,
+  Building2,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Users,
+  UserPlus,
+  KeyRound,
+  Plus,
+} from 'lucide-react';
 import {
   refreshAdminAccounts,
   refreshAgentsWithTokens,
@@ -27,29 +37,33 @@ import { HumanOperatorsSection } from './human-operators-section';
 import { AIAgentsSection } from './ai-agents-section';
 import type { AdminAccountSummary, Agent } from '@/domains/identity';
 
-function matchesAdminAccountQuery(
-  account: AdminAccountSummary,
-  query: string
-) {
-  if (!query) {return true;}
-  return [account.display_name, account.email, account.role, account.status, account.id]
-    .some((value) => value.toLowerCase().includes(query));
+function matchesAdminAccountQuery(account: AdminAccountSummary, query: string) {
+  if (!query) {
+    return true;
+  }
+  return [account.display_name, account.email, account.role, account.status, account.id].some(
+    (value) => value.toLowerCase().includes(query)
+  );
 }
 
-function matchesAgentQuery(
-  agent: Agent,
-  query: string
-) {
-  if (!query) {return true;}
-  return [agent.name, agent.id, agent.risk_tier, agent.auth_method, agent.status]
-    .some((value) => value.toLowerCase().includes(query));
+function matchesAgentQuery(agent: Agent, query: string) {
+  if (!query) {
+    return true;
+  }
+  return [agent.name, agent.id, agent.risk_tier, agent.auth_method, agent.status].some((value) =>
+    value.toLowerCase().includes(query)
+  );
 }
 
 function IdentitiesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
-  const { data: adminAccountsData, isLoading: isAccountsLoading, error: accountsError } = useAdminAccounts();
+  const {
+    data: adminAccountsData,
+    isLoading: isAccountsLoading,
+    error: accountsError,
+  } = useAdminAccounts();
   const agentsQuery = useAgentsWithTokens();
   const eventsQuery = useEvents();
   const deleteAgent = useDeleteAgent();
@@ -63,9 +77,15 @@ function IdentitiesContent() {
     consumeUnauthorized,
   } = useManagementPageSessionRecovery([accountsError, agentsQuery.error, eventsQuery.error]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshingAction, setRefreshingAction] = useState<'all' | 'accounts' | 'agents' | null>(null);
-  const [expandedAccounts, setExpandedAccounts] = useState<string[]>(() => (focus.adminId ? [focus.adminId] : []));
-  const [expandedAgents, setExpandedAgents] = useState<string[]>(() => (focus.agentId ? [focus.agentId] : []));
+  const [refreshingAction, setRefreshingAction] = useState<'all' | 'accounts' | 'agents' | null>(
+    null
+  );
+  const [expandedAccounts, setExpandedAccounts] = useState<string[]>(() =>
+    focus.adminId ? [focus.adminId] : []
+  );
+  const [expandedAgents, setExpandedAgents] = useState<string[]>(() =>
+    focus.agentId ? [focus.agentId] : []
+  );
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -75,17 +95,23 @@ function IdentitiesContent() {
   const adminAccountList = adminAccounts ?? [];
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredAdminAccounts = useMemo(
-    () => (adminAccounts ?? []).filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
+    () =>
+      (adminAccounts ?? []).filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
     [adminAccounts, normalizedQuery]
   );
   const filteredAgents = useMemo(
     () => agents.filter((agent) => matchesAgentQuery(agent, normalizedQuery)),
     [agents, normalizedQuery]
   );
-  const focusedAdminAccount = adminAccountList.find((account) => account.id === focus.adminId) ?? null;
+  const focusedAdminAccount =
+    adminAccountList.find((account) => account.id === focus.adminId) ?? null;
   const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
   const focusedIdentity = focusedAgent ?? focusedAdminAccount;
-  const focusedIdentityLabel = focusedAgent ? 'Agent' : focusedAdminAccount ? 'Human operator' : null;
+  const focusedIdentityLabel = focusedAgent
+    ? 'Agent'
+    : focusedAdminAccount
+      ? 'Human operator'
+      : null;
 
   const operatorCount = adminAccountList.filter((account) => account.status === 'active').length;
   const ownerCount = adminAccountList.filter((account) => account.role === 'owner').length;
@@ -100,8 +126,12 @@ function IdentitiesContent() {
         }, {}),
     [eventsQuery.events]
   );
-  const agentsWithLinkedTokensCount = agents.filter((agent) => (tokensByAgent[agent.id] ?? []).length > 0).length;
-  const agentsWithFeedbackCount = agents.filter((agent) => (agentFeedbackCounts[agent.id] ?? 0) > 0).length;
+  const agentsWithLinkedTokensCount = agents.filter(
+    (agent) => (tokensByAgent[agent.id] ?? []).length > 0
+  ).length;
+  const agentsWithFeedbackCount = agents.filter(
+    (agent) => (agentFeedbackCounts[agent.id] ?? 0) > 0
+  ).length;
   const guardedError = gateError;
   const accountsErrorMessage = accountsError instanceof Error ? accountsError.message : null;
   const agentsErrorMessage = agentsQuery.error instanceof Error ? agentsQuery.error.message : null;
@@ -121,7 +151,9 @@ function IdentitiesContent() {
     try {
       await operation();
     } catch (error) {
-      if (consumeUnauthorized(error)) {return;}
+      if (consumeUnauthorized(error)) {
+        return;
+      }
       setActionError(error instanceof Error ? error.message : 'Failed to refresh identity data');
     } finally {
       setRefreshingAction(null);
@@ -156,7 +188,9 @@ function IdentitiesContent() {
       await deleteAgent(agentId);
       setExpandedAgents((current) => current.filter((id) => id !== agentId));
     } catch (error) {
-      if (consumeUnauthorized(error)) {return;}
+      if (consumeUnauthorized(error)) {
+        return;
+      }
       setActionError(error instanceof Error ? error.message : 'Failed to delete agent');
     } finally {
       setDeletingAgentId(null);
@@ -173,26 +207,25 @@ function IdentitiesContent() {
 
   const handleToggleAgent = (agentId: string) => {
     setExpandedAgents((current) =>
-      current.includes(agentId)
-        ? current.filter((id) => id !== agentId)
-        : [...current, agentId]
+      current.includes(agentId) ? current.filter((id) => id !== agentId) : [...current, agentId]
     );
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC] mb-2">
+          <h1 className="mb-2 text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
             Identity Management
           </h1>
           <p className="text-gray-600 dark:text-[#9CA3AF]">
-            Review the persisted human operators and registered agents available to the management control plane.
+            Review the persisted human operators and registered agents available to the management
+            control plane.
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+          <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
             <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
               <Badge variant="primary">Operator</Badge>
               <span className="dark:text-[#E8E8EC]">{session?.email ?? 'Loading...'}</span>
@@ -239,7 +272,7 @@ function IdentitiesContent() {
       </div>
 
       {/* Search */}
-      <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
             <span className="sr-only">Search identities</span>
@@ -287,7 +320,7 @@ function IdentitiesContent() {
 
       {/* Info Cards */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border border-sky-100 dark:border-[#3D3D5C] bg-sky-50/70 dark:bg-[#1E1E32]/80">
+        <Card className="border border-sky-100 bg-sky-50/70 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/80">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-[#2D4A5D] dark:text-sky-300">
               <Users className="h-5 w-5" />
@@ -295,21 +328,25 @@ function IdentitiesContent() {
             <div>
               <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">Human supervisors</h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
-                Human operators supervise policy, approvals, and account hygiene across the control plane.
+                Human operators supervise policy, approvals, and account hygiene across the control
+                plane.
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="border border-green-100 dark:border-[#3D3D5C] bg-green-50/70 dark:bg-[#1E1E32]/80">
+        <Card className="border border-green-100 bg-green-50/70 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/80">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-100 text-green-700 dark:bg-[#2D4A3D] dark:text-green-300">
               <Bot className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">Agent-managed identities</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">
+                Agent-managed identities
+              </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
-                Agents maintain their own execution identity, while humans can still inspect and manage their status.
+                Agents maintain their own execution identity, while humans can still inspect and
+                manage their status.
               </p>
             </div>
           </div>
@@ -320,16 +357,17 @@ function IdentitiesContent() {
       <Card className="border border-amber-200 bg-amber-50/90 dark:border-amber-800 dark:bg-amber-900/20">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-              <ShieldCheck className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/30">
+              <ShieldCheck className="h-6 w-6 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+              <h2 className="mb-2 text-lg font-semibold text-amber-800 dark:text-amber-200">
                 Management coverage
               </h2>
               <p className="text-amber-700 dark:text-amber-300">
-                This route now reads persisted management accounts and registered agents from the backend.
-                Humans supervise governance and account hygiene while agents surface their runtime identity through linked tokens and feedback events.
+                This route now reads persisted management accounts and registered agents from the
+                backend. Humans supervise governance and account hygiene while agents surface their
+                runtime identity through linked tokens and feedback events.
               </p>
             </div>
           </div>
@@ -359,7 +397,11 @@ function IdentitiesContent() {
         <MetricCard
           label="Active Operators"
           value={accountsErrorMessage ? 'N/A' : operatorCount.toString()}
-          hint={accountsErrorMessage ? 'accounts unavailable' : `${adminAccountList.length} total accounts`}
+          hint={
+            accountsErrorMessage
+              ? 'accounts unavailable'
+              : `${adminAccountList.length} total accounts`
+          }
         />
         <MetricCard
           label="Owners"
@@ -387,7 +429,7 @@ function IdentitiesContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
         >
           {actionError}
         </Card>
@@ -398,7 +440,7 @@ function IdentitiesContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 dark:border-red-900/50 bg-red-50/80 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <span>{guardedError}</span>
@@ -417,7 +459,7 @@ function IdentitiesContent() {
 
       {/* Loading State */}
       {isLoading ? (
-        <Card className="text-gray-600 dark:text-[#9CA3AF] flex items-center gap-3">
+        <Card className="flex items-center gap-3 text-gray-600 dark:text-[#9CA3AF]">
           <span className="animate-spin">🌸</span>
           Loading management identities...
         </Card>
@@ -467,13 +509,13 @@ function IdentitiesContent() {
 
       {/* Footer */}
       {!isLoading && !guardedError ? (
-        <Card className="border border-pink-100 dark:border-[#3D3D5C] bg-white/90 dark:bg-[#252540]/90">
+        <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-pink-100 dark:bg-[#3D3D5C] flex items-center justify-center text-pink-600 dark:text-[#E891C0]">
-              <Building2 className="w-5 h-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+              <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC] mb-1">
+              <h3 className="mb-1 font-semibold text-gray-800 dark:text-[#E8E8EC]">
                 {hasActiveSearch ? 'Filtered snapshot' : 'Live management snapshot'}
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">

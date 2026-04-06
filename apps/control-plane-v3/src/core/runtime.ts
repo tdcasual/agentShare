@@ -19,19 +19,21 @@ import * as React from 'react';
 
 class RouterManagerImpl {
   private routes: Map<string, RouteConfig> = new Map();
-  
+
   register(route: RouteConfig): Disposable {
     this.routes.set(route.path, route);
-    return () => { this.routes.delete(route.path); };
+    return () => {
+      this.routes.delete(route.path);
+    };
   }
-  
+
   navigate(path: string): void {
     logger.runtime.debug(`Navigating to: ${path}`);
     if (typeof window !== 'undefined') {
       window.location.href = path;
     }
   }
-  
+
   getCurrentRoute(): RouteConfig | undefined {
     return undefined;
   }
@@ -47,7 +49,7 @@ class ConfigStoreImpl {
 
   set<T>(key: string, value: T): void {
     this.configs.set(key, value);
-    this.subscribers.get(key)?.forEach(cb => cb(value));
+    this.subscribers.get(key)?.forEach((cb) => cb(value));
   }
 
   delete(key: string): void {
@@ -63,7 +65,7 @@ class ConfigStoreImpl {
       this.subscribers.set(key, new Set());
     }
     this.subscribers.get(key)!.add(handler as (value: unknown) => void);
-    
+
     return () => {
       this.subscribers.get(key)?.delete(handler as (value: unknown) => void);
     };
@@ -84,19 +86,23 @@ class ThemeEngineImpl {
   }
 
   getCurrent(): ThemeDefinition {
-    return this.themes.get(this.currentThemeId) ?? {
-      id: 'default',
-      name: 'Default Theme',
-      version: '1.0.0',
-      variables: {},
-      components: {},
-      animations: {},
-    };
+    return (
+      this.themes.get(this.currentThemeId) ?? {
+        id: 'default',
+        name: 'Default Theme',
+        version: '1.0.0',
+        variables: {},
+        components: {},
+        animations: {},
+      }
+    );
   }
 
   onChange(handler: (theme: ThemeDefinition) => void): Disposable {
     this.listeners.add(handler);
-    return () => { this.listeners.delete(handler); };
+    return () => {
+      this.listeners.delete(handler);
+    };
   }
 
   setVariable(key: string, value: string): void {
@@ -121,13 +127,13 @@ class I18nEngineImpl {
   t(key: string, params?: Record<string, string>): string {
     const translations = this.translations.get(this.locale);
     let text = translations?.get(key) || key;
-    
+
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         text = text.replace(`{{${k}}}`, v);
       });
     }
-    
+
     return text;
   }
 
@@ -190,8 +196,8 @@ export async function initializeRuntime(
   runtime: CoreRuntime,
   pluginIds?: string[]
 ): Promise<CoreRuntime> {
-  const pluginsToActivate = pluginIds ?? runtime.plugin.getAll().map(p => p.id);
-  
+  const pluginsToActivate = pluginIds ?? runtime.plugin.getAll().map((p) => p.id);
+
   for (const pluginId of pluginsToActivate) {
     if (!runtime.plugin.isActive(pluginId)) {
       await runtime.plugin.activatePlugin(pluginId);
@@ -250,10 +256,12 @@ export function setRuntime(runtime: CoreRuntime): void {
  * @deprecated 使用 initializeRuntime(runtime, plugins) 替代
  * 将在 v2.0 中移除
  */
-export async function initializeRuntimeLegacy(runtime: CoreRuntime = getRuntime()): Promise<CoreRuntime> {
+export async function initializeRuntimeLegacy(
+  runtime: CoreRuntime = getRuntime()
+): Promise<CoreRuntime> {
   // 动态导入以避免循环依赖
   const { IdentityDomainPlugin } = await import('../domains/identity/plugin');
-  
+
   const identityPluginId = 'domain.identity';
 
   if (!runtime.plugin.get(identityPluginId)) {

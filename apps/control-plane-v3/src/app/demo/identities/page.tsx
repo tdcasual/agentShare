@@ -70,36 +70,37 @@ function IdentitiesContent() {
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(i =>
-        i.profile.name.toLowerCase().includes(query) ||
-        i.profile.bio?.toLowerCase().includes(query) ||
-        i.profile.tags.some(tag => tag.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (i) =>
+          i.profile.name.toLowerCase().includes(query) ||
+          i.profile.bio?.toLowerCase().includes(query) ||
+          i.profile.tags.some((tag) => tag.toLowerCase().includes(query))
       );
     }
 
     // Apply type filter
     if (typeFilter !== 'all') {
-      filtered = filtered.filter(i => i.type === typeFilter);
+      filtered = filtered.filter((i) => i.type === typeFilter);
     }
 
     return filtered;
   }, [searchQuery, typeFilter, identities]);
 
-  const humans = useMemo(() => identities.filter(i => i.type === 'human'), [identities]);
-  const agents = useMemo(() => identities.filter(i => i.type === 'agent'), [identities]);
+  const humans = useMemo(() => identities.filter((i) => i.type === 'human'), [identities]);
+  const agents = useMemo(() => identities.filter((i) => i.type === 'agent'), [identities]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-12 h-12 rounded-full border-4 border-pink-200 border-t-pink-500 animate-spin" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card 
-        role="alert" 
+      <Card
+        role="alert"
         aria-live="assertive"
         className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
       >
@@ -111,15 +112,15 @@ function IdentitiesContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{t('identities.title')}</h1>
-          <p className="text-gray-600 dark:text-[#9CA3AF] mt-1">
-            {t('identities.description')}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+            {t('identities.title')}
+          </h1>
+          <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">{t('identities.description')}</p>
         </div>
         <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           {t('identities.createIdentity')}
         </Button>
       </div>
@@ -130,7 +131,8 @@ function IdentitiesContent() {
             Identity interaction sandbox
           </p>
           <p className="text-sm text-amber-800 dark:text-amber-200">
-            Use this page to demo identity cards, filtering, and create flows with fixture data. It is not the live management roster.
+            Use this page to demo identity cards, filtering, and create flows with fixture data. It
+            is not the live management roster.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
             <Link
@@ -152,48 +154,50 @@ function IdentitiesContent() {
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-            <Users className="w-6 h-6 text-sky-600" />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card className="flex items-center gap-4 p-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-100">
+            <Users className="h-6 w-6 text-sky-600" />
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">{humans.length}</p>
             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('identities.humans')}</p>
           </div>
         </Card>
-        <Card className="p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-            <Bot className="w-6 h-6 text-green-600" />
+        <Card className="flex items-center gap-4 p-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+            <Bot className="h-6 w-6 text-green-600" />
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">{agents.length}</p>
             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('identities.agents')}</p>
           </div>
         </Card>
-        <Card className="p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
+        <Card className="flex items-center gap-4 p-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-pink-100">
             <span className="text-2xl">🌐</span>
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">{identities.length}</p>
+            <p className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+              {identities.length}
+            </p>
             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('identities.total')}</p>
           </div>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         <div className="flex-1">
           <Input
             placeholder={t('identities.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            icon={<Search className="w-4 h-4" />}
+            icon={<Search className="h-4 w-4" />}
           />
         </div>
         <div className="flex gap-2">
-          <div className="flex bg-white rounded-full p-1 border border-pink-200">
+          <div className="flex rounded-full border border-pink-200 bg-white p-1">
             <FilterButton
               active={typeFilter === 'all'}
               onClick={() => setTypeFilter('all')}
@@ -213,28 +217,32 @@ function IdentitiesContent() {
               count={agents.length}
             />
           </div>
-          <div className="flex bg-white rounded-full p-1 border border-pink-200">
+          <div className="flex rounded-full border border-pink-200 bg-white p-1">
             <button
               onClick={() => setViewMode('grid')}
               aria-label={t('identities.gridView')}
               aria-pressed={viewMode === 'grid'}
               className={cn(
-                'p-2 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-pink-400',
-                viewMode === 'grid' ? 'bg-pink-100 text-pink-600' : 'text-gray-400 dark:text-[#9CA3AF] hover:text-gray-600'
+                'rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400',
+                viewMode === 'grid'
+                  ? 'bg-pink-100 text-pink-600'
+                  : 'text-gray-400 hover:text-gray-600 dark:text-[#9CA3AF]'
               )}
             >
-              <Grid className="w-4 h-4" aria-hidden="true" />
+              <Grid className="h-4 w-4" aria-hidden="true" />
             </button>
             <button
               onClick={() => setViewMode('list')}
               aria-label={t('identities.listView')}
               aria-pressed={viewMode === 'list'}
               className={cn(
-                'p-2 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-pink-400',
-                viewMode === 'list' ? 'bg-pink-100 text-pink-600' : 'text-gray-400 dark:text-[#9CA3AF] hover:text-gray-600'
+                'rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400',
+                viewMode === 'list'
+                  ? 'bg-pink-100 text-pink-600'
+                  : 'text-gray-400 hover:text-gray-600 dark:text-[#9CA3AF]'
               )}
             >
-              <List className="w-4 h-4" aria-hidden="true" />
+              <List className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -242,12 +250,13 @@ function IdentitiesContent() {
 
       {/* Results */}
       <div>
-        <p className="text-sm text-gray-500 dark:text-[#9CA3AF] mb-4">
-          {t('identities.showing')} {filteredIdentities.length} {t('identities.of')} {identities.length} {t('identities.identities')}
+        <p className="mb-4 text-sm text-gray-500 dark:text-[#9CA3AF]">
+          {t('identities.showing')} {filteredIdentities.length} {t('identities.of')}{' '}
+          {identities.length} {t('identities.identities')}
         </p>
 
         {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredIdentities.map((identity, index) => (
               <div
                 key={identity.id}
@@ -264,7 +273,7 @@ function IdentitiesContent() {
               {filteredIdentities.map((identity) => (
                 <div
                   key={identity.id}
-                  className="p-4 flex items-center gap-4 hover:bg-pink-50/30 transition-colors"
+                  className="flex items-center gap-4 p-4 transition-colors hover:bg-pink-50/30"
                 >
                   <Image
                     src={identity.profile.avatar}
@@ -273,28 +282,41 @@ function IdentitiesContent() {
                     height={48}
                     sizes="48px"
                     className={cn(
-                      'w-12 h-12 rounded-full object-cover border-2',
+                      'h-12 w-12 rounded-full border-2 object-cover',
                       identity.type === 'human' ? 'border-sky-300' : 'border-green-300'
                     )}
                   />
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">{identity.profile.name}</h3>
+                      <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                        {identity.profile.name}
+                      </h3>
                       <Badge variant={identity.type === 'human' ? 'human' : 'agent'}>
-                        {identity.type === 'human' ? t('identities.type.human') : t('identities.type.agent')}
+                        {identity.type === 'human'
+                          ? t('identities.type.human')
+                          : t('identities.type.agent')}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF] truncate">{identity.profile.bio}</p>
+                    <p className="truncate text-sm text-gray-500 dark:text-[#9CA3AF]">
+                      {identity.profile.bio}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={cn(
-                      'w-2 h-2 rounded-full',
-                      identity.presence === 'online' ? 'bg-green-400' :
-                      identity.presence === 'away' ? 'bg-yellow-400' :
-                      identity.presence === 'busy' ? 'bg-red-400' :
-                      'bg-gray-300'
-                    )} />
-                    <Button variant="ghost" size="sm">{t('common.view')}</Button>
+                    <span
+                      className={cn(
+                        'h-2 w-2 rounded-full',
+                        identity.presence === 'online'
+                          ? 'bg-green-400'
+                          : identity.presence === 'away'
+                            ? 'bg-yellow-400'
+                            : identity.presence === 'busy'
+                              ? 'bg-red-400'
+                              : 'bg-gray-300'
+                      )}
+                    />
+                    <Button variant="ghost" size="sm">
+                      {t('common.view')}
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -313,23 +335,31 @@ function IdentitiesContent() {
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setShowCreateModal(false)}
-            className="p-6 rounded-2xl border-2 border-sky-200 bg-sky-50/50 hover:bg-sky-100 transition-colors text-center"
+            className="rounded-2xl border-2 border-sky-200 bg-sky-50/50 p-6 text-center transition-colors hover:bg-sky-100"
           >
-            <div className="w-16 h-16 rounded-full bg-sky-100 flex items-center justify-center mx-auto mb-3">
-              <Users className="w-8 h-8 text-sky-600" />
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100">
+              <Users className="h-8 w-8 text-sky-600" />
             </div>
-            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC] mb-1">{t('identities.type.human')}</h3>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('identities.createHumanDesc')}</p>
+            <h3 className="mb-1 font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              {t('identities.type.human')}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              {t('identities.createHumanDesc')}
+            </p>
           </button>
           <button
             onClick={() => setShowCreateModal(false)}
-            className="p-6 rounded-2xl border-2 border-green-200 bg-green-50/50 hover:bg-green-100 transition-colors text-center"
+            className="rounded-2xl border-2 border-green-200 bg-green-50/50 p-6 text-center transition-colors hover:bg-green-100"
           >
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-              <Bot className="w-8 h-8 text-green-600" />
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <Bot className="h-8 w-8 text-green-600" />
             </div>
-            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC] mb-1">{t('identities.type.agent')}</h3>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('identities.createAgentDesc')}</p>
+            <h3 className="mb-1 font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              {t('identities.type.agent')}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              {t('identities.createAgentDesc')}
+            </p>
           </button>
         </div>
       </Modal>
@@ -337,15 +367,15 @@ function IdentitiesContent() {
   );
 }
 
-const FilterButton = memo(function FilterButton({ 
-  active, 
-  onClick, 
-  label, 
-  count 
-}: { 
-  active: boolean; 
-  onClick: () => void; 
-  label: string; 
+const FilterButton = memo(function FilterButton({
+  active,
+  onClick,
+  label,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
   count: number;
 }) {
   return (
@@ -354,10 +384,8 @@ const FilterButton = memo(function FilterButton({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
-        active
-          ? 'bg-pink-500 text-white'
-          : 'text-gray-600 dark:text-[#9CA3AF] hover:bg-pink-50'
+        'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+        active ? 'bg-pink-500 text-white' : 'text-gray-600 hover:bg-pink-50 dark:text-[#9CA3AF]'
       )}
     >
       {label} ({count})

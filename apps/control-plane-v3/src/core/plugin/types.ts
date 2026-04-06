@@ -9,7 +9,7 @@ export interface Plugin {
   readonly id: string;
   readonly version: string;
   readonly dependencies?: string[];
-  
+
   install(runtime: CoreRuntime): void | Promise<void>;
   activate(): void | Promise<void>;
   deactivate(): void | Promise<void>;
@@ -35,7 +35,7 @@ export interface PluginSystem {
   isActive(pluginId: string): boolean;
   activatePlugin(pluginId: string): Promise<void>;
   deactivatePlugin(pluginId: string): Promise<void>;
-  
+
   extend<T>(pointId: string, contribution: T): Disposable;
   getContributions<T>(pointId: string): T[];
 }

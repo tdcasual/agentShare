@@ -16,33 +16,30 @@ const sizeMap = {
 export function CuteSpinner({ size = 'md', className }: CuteSpinnerProps) {
   return (
     <div className={cn('flex items-center gap-1', className)}>
-      <span 
-        className={cn('animate-bounce', sizeMap[size])}
-        style={{ animationDelay: '0s' }}
-      >
+      <span className={cn('animate-bounce', sizeMap[size])} style={{ animationDelay: '0s' }}>
         🌸
       </span>
-      <span 
-        className={cn('animate-bounce', sizeMap[size])}
-        style={{ animationDelay: '0.15s' }}
-      >
+      <span className={cn('animate-bounce', sizeMap[size])} style={{ animationDelay: '0.15s' }}>
         🌸
       </span>
-      <span 
-        className={cn('animate-bounce', sizeMap[size])}
-        style={{ animationDelay: '0.3s' }}
-      >
+      <span className={cn('animate-bounce', sizeMap[size])} style={{ animationDelay: '0.3s' }}>
         🌸
       </span>
     </div>
   );
 }
 
-export function CuteLoading({ text = 'Loading...', className }: { text?: string; className?: string }) {
+export function CuteLoading({
+  text = 'Loading...',
+  className,
+}: {
+  text?: string;
+  className?: string;
+}) {
   return (
     <div className={cn('flex flex-col items-center gap-3', className)}>
       <CuteSpinner />
-      <span className="text-pink-500 text-sm font-medium">{text}</span>
+      <span className="text-sm font-medium text-pink-500">{text}</span>
     </div>
   );
 }

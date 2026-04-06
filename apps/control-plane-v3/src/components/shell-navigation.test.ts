@@ -5,13 +5,7 @@ import { getRoutePolicy } from '@/lib/route-policy';
 
 describe('shell navigation integrity', () => {
   it('retargets tablet navigation to existing management routes', () => {
-    expect(getTabletShellNavTargets()).toEqual([
-      '/',
-      '/tokens',
-      '/tasks',
-      '/reviews',
-      '/settings',
-    ]);
+    expect(getTabletShellNavTargets()).toEqual(['/', '/tokens', '/tasks', '/reviews', '/settings']);
   });
 
   it('keeps mobile navigation within declared route policy', () => {

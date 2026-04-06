@@ -116,7 +116,10 @@ describe('tokens page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when token queries return unauthorized', () => {
@@ -128,7 +131,10 @@ describe('tokens page', () => {
     render(<TokensPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a forbidden-specific state when token queries return forbidden', () => {
@@ -144,7 +150,9 @@ describe('tokens page', () => {
 
   it('shows a relogin recovery state when creating an agent hits an expired session', async () => {
     const user = userEvent.setup();
-    const createAgentMock = vi.fn().mockRejectedValue(new ApiError(401, 'Missing management session'));
+    const createAgentMock = vi
+      .fn()
+      .mockRejectedValue(new ApiError(401, 'Missing management session'));
     useCreateAgentMock.mockReturnValue(createAgentMock);
 
     render(<TokensPage />);
@@ -176,7 +184,9 @@ describe('tokens page', () => {
 
   it('shows a relogin recovery state when revoking a token hits an expired session', async () => {
     const user = userEvent.setup();
-    const revokeAgentTokenMock = vi.fn().mockRejectedValue(new ApiError(401, 'Missing management session'));
+    const revokeAgentTokenMock = vi
+      .fn()
+      .mockRejectedValue(new ApiError(401, 'Missing management session'));
     useRevokeAgentTokenMock.mockReturnValue(revokeAgentTokenMock);
 
     render(<TokensPage />);

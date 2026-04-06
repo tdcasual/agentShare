@@ -6,13 +6,13 @@
 
 import useSWR, { useSWRConfig, type SWRConfiguration } from 'swr';
 import { useCallback, useMemo, useState } from 'react';
-import { 
-  searchPlaybooks, 
-  getPlaybook, 
-  createPlaybook,
-  type PlaybookSearchResponse 
-} from './api';
-import type { PlaybookTransportDTO, Playbook, PlaybookSearchQuery, CreatePlaybookInput } from './types';
+import { searchPlaybooks, getPlaybook, createPlaybook, type PlaybookSearchResponse } from './api';
+import type {
+  PlaybookTransportDTO,
+  Playbook,
+  PlaybookSearchQuery,
+  CreatePlaybookInput,
+} from './types';
 import { staticConfig } from '@/lib/swr-config';
 
 // 转换函数 - 与后端 PlaybookResponse 对齐
@@ -29,7 +29,9 @@ function toPlaybookModel(dto: PlaybookTransportDTO): Playbook {
 
 // SWR key生成
 const getPlaybooksKey = (query?: PlaybookSearchQuery) => {
-  if (!query) {return '/api/playbooks/search';}
+  if (!query) {
+    return '/api/playbooks/search';
+  }
   return ['/api/playbooks/search', query];
 };
 
@@ -45,7 +47,10 @@ interface UsePlaybooksReturn {
 /**
  * 搜索手册
  */
-export function usePlaybooks(query?: PlaybookSearchQuery, config?: SWRConfiguration): UsePlaybooksReturn {
+export function usePlaybooks(
+  query?: PlaybookSearchQuery,
+  config?: SWRConfiguration
+): UsePlaybooksReturn {
   const { data, error, isLoading, mutate } = useSWR<PlaybookSearchResponse>(
     getPlaybooksKey(query),
     () => searchPlaybooks(query),
@@ -54,12 +59,12 @@ export function usePlaybooks(query?: PlaybookSearchQuery, config?: SWRConfigurat
       ...config,
     }
   );
-  
+
   // 转换DTO到Model
   const playbooks = useMemo(() => {
     return (data?.items || []).map(toPlaybookModel);
   }, [data?.items]);
-  
+
   return {
     playbooks,
     total: data?.meta?.total || 0,
@@ -82,11 +87,11 @@ export function usePlaybook(playbookId: string | null, config?: SWRConfiguration
       ...config,
     }
   );
-  
+
   const playbook = useMemo(() => {
     return data ? toPlaybookModel(data) : null;
   }, [data]);
-  
+
   return {
     playbook,
     isLoading,
@@ -101,24 +106,27 @@ export function useCreatePlaybook() {
   const { mutate } = useSWRConfig();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
-  const create = useCallback(async (input: CreatePlaybookInput) => {
-    setIsCreating(true);
-    setError(null);
-    
-    try {
-      const result = await createPlaybook(input);
-      // 刷新列表缓存
-      await mutate('/api/playbooks/search');
-      return toPlaybookModel(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('创建失败'));
-      throw err;
-    } finally {
-      setIsCreating(false);
-    }
-  }, [mutate]);
-  
+
+  const create = useCallback(
+    async (input: CreatePlaybookInput) => {
+      setIsCreating(true);
+      setError(null);
+
+      try {
+        const result = await createPlaybook(input);
+        // 刷新列表缓存
+        await mutate('/api/playbooks/search');
+        return toPlaybookModel(result);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('创建失败'));
+        throw err;
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [mutate]
+  );
+
   return {
     create,
     isCreating,

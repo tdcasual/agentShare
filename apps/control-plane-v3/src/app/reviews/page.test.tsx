@@ -109,7 +109,10 @@ describe('reviews page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when review queries return unauthorized', () => {
@@ -121,7 +124,10 @@ describe('reviews page', () => {
     render(<ReviewsPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a forbidden-specific state when review queries return forbidden', () => {
@@ -177,7 +183,10 @@ describe('reviews page', () => {
 
     expect(screen.getByText('Focused review item')).toBeInTheDocument();
     expect(screen.queryByText('Approve Sync Config')).not.toBeInTheDocument();
-    expect(screen.getByTestId('review-card-capability-capability-1')).toHaveAttribute('data-focus-state', 'focused');
+    expect(screen.getByTestId('review-card-capability-capability-1')).toHaveAttribute(
+      'data-focus-state',
+      'focused'
+    );
   });
 
   it('normalizes governance status wording for approved and rejected review items', () => {

@@ -17,7 +17,10 @@ export interface SpacesListProps {
   isAdding: boolean;
   canManageSpaces: boolean;
   onShowCreateModal: () => void;
-  onAddMember: (spaceId: string, input: { memberType: 'agent' | 'human'; memberId: string; role: string }) => void;
+  onAddMember: (
+    spaceId: string,
+    input: { memberType: 'agent' | 'human'; memberId: string; role: string }
+  ) => void;
   setActiveSpaceId: (id: string) => void;
 }
 
@@ -35,7 +38,9 @@ export function SpacesList({
     <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Persisted spaces</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
+            Persisted spaces
+          </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
             API-backed operational containers with explicit members and timeline history.
           </p>
@@ -46,7 +51,7 @@ export function SpacesList({
               variant="kawaii"
               size="sm"
               onClick={onShowCreateModal}
-              leftIcon={<Plus className="w-4 h-4" />}
+              leftIcon={<Plus className="h-4 w-4" />}
             >
               创建空间
             </Button>
@@ -92,11 +97,13 @@ export function SpacesList({
 
               <div className="mt-3 space-y-2">
                 {space.timeline.slice(0, 2).map((entry) => (
-                  <div 
-                    key={entry.id} 
+                  <div
+                    key={entry.id}
                     className="rounded-xl border border-white/70 bg-white/70 px-3 py-2 dark:border-[#3D3D5C] dark:bg-[#252540]/80"
                   >
-                    <p className="text-sm font-medium text-gray-900 dark:text-[#E8E8EC]">{entry.summary}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-[#E8E8EC]">
+                      {entry.summary}
+                    </p>
                     <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-[#9CA3AF]">
                       {entry.entry_type.replaceAll('_', ' ')}
                     </p>

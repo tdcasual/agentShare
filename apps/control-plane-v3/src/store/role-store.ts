@@ -1,6 +1,6 @@
 /**
  * Role Store - 角色状态管理
- * 
+ *
  * 使用 Zustand 管理全局角色状态
  * 持久化存储到 localStorage
  */
@@ -15,11 +15,11 @@ interface RoleState {
   role: ManagementRole | null;
   /** 角色最后更新时间 */
   lastUpdated: number | null;
-  
+
   // Actions
   setRole: (role: ManagementRole) => void;
   clearRole: () => void;
-  
+
   // Queries
   hasRole: (required: ManagementRole) => boolean;
   isViewer: () => boolean;
@@ -33,37 +33,39 @@ export const useRoleStore = create<RoleState>()(
     (set, get) => ({
       role: null,
       lastUpdated: null,
-      
-      setRole: (role) => set({ 
-        role, 
-        lastUpdated: Date.now() 
-      }),
-      
-      clearRole: () => set({ 
-        role: null, 
-        lastUpdated: null 
-      }),
-      
+
+      setRole: (role) =>
+        set({
+          role,
+          lastUpdated: Date.now(),
+        }),
+
+      clearRole: () =>
+        set({
+          role: null,
+          lastUpdated: null,
+        }),
+
       hasRole: (required) => {
         const { role } = get();
         return hasRequiredRole(role, required);
       },
-      
+
       isViewer: () => {
         const { role } = get();
         return role === 'viewer' || role === 'operator' || role === 'admin' || role === 'owner';
       },
-      
+
       isOperator: () => {
         const { role } = get();
         return ['operator', 'admin', 'owner'].includes(role ?? '');
       },
-      
+
       isAdmin: () => {
         const { role } = get();
         return ['admin', 'owner'].includes(role ?? '');
       },
-      
+
       isOwner: () => {
         const { role } = get();
         return role === 'owner';
@@ -72,7 +74,7 @@ export const useRoleStore = create<RoleState>()(
     {
       name: 'control-plane-role-storage',
       // 只持久化role字段
-      partialize: (state) => ({ 
+      partialize: (state) => ({
         role: state.role,
         lastUpdated: state.lastUpdated,
       }),

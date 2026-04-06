@@ -23,10 +23,10 @@ describe('Runtime', () => {
   it('runtime initialization is idempotent for repeated page mounts', async () => {
     const runtime = runtimeModule.createCoreRuntime();
     const plugin = new IdentityDomainPlugin();
-    
+
     // 先注册插件（initializeRuntime 需要 identity 服务）
     runtime.plugin.register(plugin);
-    
+
     const initializeRuntime = (
       runtimeModule as typeof runtimeModule & {
         initializeRuntime?: (runtime: CoreRuntime) => Promise<CoreRuntime>;
@@ -37,7 +37,7 @@ describe('Runtime', () => {
 
     // 第一次初始化
     await expect(initializeRuntime!(runtime)).resolves.not.toThrow();
-    
+
     // 第二次初始化应该是幂等的（不重复注册/激活）
     await expect(initializeRuntime!(runtime)).resolves.not.toThrow();
 

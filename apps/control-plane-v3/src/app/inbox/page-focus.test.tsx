@@ -77,10 +77,20 @@ describe('inbox focused entry state', () => {
     const focusedSummary = screen.getByText('Focused event').closest('[role="region"]');
 
     expect(focusedSummary).not.toBeNull();
-    expect(within(focusedSummary as HTMLElement).getByText('Bootstrap finished Sync Config')).toBeInTheDocument();
-    expect(within(focusedSummary as HTMLElement).getByRole('button', { name: /open task/i })).toBeInTheDocument();
-    expect(screen.getByTestId('inbox-event-event-1')).toHaveAttribute('data-focus-state', 'focused');
-    expect(screen.getByTestId('inbox-event-event-2')).toHaveAttribute('data-focus-state', 'default');
+    expect(
+      within(focusedSummary as HTMLElement).getByText('Bootstrap finished Sync Config')
+    ).toBeInTheDocument();
+    expect(
+      within(focusedSummary as HTMLElement).getByRole('button', { name: /open task/i })
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('inbox-event-event-1')).toHaveAttribute(
+      'data-focus-state',
+      'focused'
+    );
+    expect(screen.getByTestId('inbox-event-event-2')).toHaveAttribute(
+      'data-focus-state',
+      'default'
+    );
   });
 
   it('marks the focused event as read without breaking mutate refresh', async () => {
@@ -90,7 +100,9 @@ describe('inbox focused entry state', () => {
 
     const focusedSummary = screen.getByText('Focused event').closest('[role="region"]');
 
-    await user.click(within(focusedSummary as HTMLElement).getByRole('button', { name: /mark as read/i }));
+    await user.click(
+      within(focusedSummary as HTMLElement).getByRole('button', { name: /mark as read/i })
+    );
 
     await waitFor(() => {
       expect(markEventReadMock).toHaveBeenCalledWith('event-1');

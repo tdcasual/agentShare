@@ -1,6 +1,6 @@
 /**
  * Shared Types - 共享类型
- * 
+ *
  * 注意：类型已按领域拆分，此文件仅保留：
  * 1. 基础设施类型
  * 2. 跨领域共享类型
@@ -174,7 +174,13 @@ export function toManagementSession(dto: ManagementSessionSummary): ManagementSe
   };
 }
 
-export function toManagementSessionDTO(model: ManagementSession): Omit<ManagementSessionSummary, 'status' | 'auth_method' | 'expires_in'> & { issued_at: number; expires_at: number } {
+export function toManagementSessionDTO(model: ManagementSession): Omit<
+  ManagementSessionSummary,
+  'status' | 'auth_method' | 'expires_in'
+> & {
+  issued_at: number;
+  expires_at: number;
+} {
   return {
     actor_id: model.actorId,
     actor_type: model.actorType,
@@ -189,8 +195,6 @@ export function toManagementSessionDTO(model: ManagementSession): Omit<Managemen
 // ============================================
 // 弃用警告（开发时提示）
 // ============================================
-
-
 
 // ============================================
 // 公共枚举

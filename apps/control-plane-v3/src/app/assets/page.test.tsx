@@ -35,7 +35,8 @@ vi.mock('@/domains/identity', () => ({
 }));
 
 vi.mock('@/domains/governance', async () => {
-  const actual = await vi.importActual<typeof import('@/domains/governance')>('@/domains/governance');
+  const actual =
+    await vi.importActual<typeof import('@/domains/governance')>('@/domains/governance');
   return {
     ...actual,
     useSecrets: () => useSecretsMock(),
@@ -142,9 +143,7 @@ describe('assets page', () => {
             publication_status: 'pending_review',
             access_policy: {
               mode: 'selectors',
-              selectors: [
-                { kind: 'agent', ids: ['agent-1'] },
-              ],
+              selectors: [{ kind: 'agent', ids: ['agent-1'] }],
             },
           },
           {
@@ -181,7 +180,10 @@ describe('assets page', () => {
     render(<AssetsPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a forbidden-specific state when governance queries return forbidden', () => {
@@ -212,7 +214,10 @@ describe('assets page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows a relogin recovery state when creating a secret hits an expired session', async () => {
@@ -230,7 +235,10 @@ describe('assets page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('surfaces governance coverage and filters assets awaiting human review', async () => {
@@ -281,6 +289,9 @@ describe('assets page', () => {
 
     expect(screen.getByText('Focused asset')).toBeInTheDocument();
     expect(screen.queryByText('OpenAI production key')).not.toBeInTheDocument();
-    expect(screen.getByTestId('capability-card-capability-1')).toHaveAttribute('data-focus-state', 'focused');
+    expect(screen.getByTestId('capability-card-capability-1')).toHaveAttribute(
+      'data-focus-state',
+      'focused'
+    );
   });
 });

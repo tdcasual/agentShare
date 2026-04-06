@@ -1,11 +1,9 @@
 /**
  * Task Domain Types - New Version
- * 
+ *
  * 分离Transport DTO和Domain Model
  * 使用snake_case传输，camelCase前端使用
  */
-
-
 
 // ============================================
 // 基础枚举
@@ -187,7 +185,7 @@ export interface RunQuery {
 
 import { agentTokenTransformer, runTransformer } from './transformers';
 
-/** 
+/**
  * 统一构建TaskTargetView列表
  * 解决 useTaskDashboard 和 tasks/page.tsx 的数据模型不一致问题
  */
@@ -203,30 +201,30 @@ export function buildTaskTargetViews(
   runs: RunTransportDTO[],
   feedbackList: TokenFeedbackTransportDTO[]
 ): TaskTargetView[] {
-  const tokenMap = new Map(tokens.map(t => [t.token_id, agentTokenTransformer.toModel(t)]));
-  const runMap = new Map(runs.map(r => [r.task_target_id, runTransformer.toModel(r)]));
+  const tokenMap = new Map(tokens.map((t) => [t.token_id, agentTokenTransformer.toModel(t)]));
+  const runMap = new Map(runs.map((r) => [r.task_target_id, runTransformer.toModel(r)]));
   const feedbackMap = new Map<string, TokenFeedback[]>();
-  
+
   // 按task_target_id分组feedback
-  feedbackList.forEach(fb => {
+  feedbackList.forEach((fb) => {
     const list = feedbackMap.get(fb.task_target_id) || [];
     // 需要导入tokenFeedbackTransformer
     // list.push(tokenFeedbackTransformer.toModel(fb));
     feedbackMap.set(fb.task_target_id, list);
   });
-  
+
   return task.target_ids.map((targetId, index) => {
     const tokenId = task.target_token_ids?.[index];
     const token = tokenId ? tokenMap.get(tokenId) || null : null;
     const run = runMap.get(targetId) || null;
-    
+
     return {
       targetId,
       tokenId,
       token,
       status: task.target_statuses?.[index] || 'pending',
-      claimedAt: task.target_claimed_at?.[index] 
-        ? new Date(task.target_claimed_at[index] * 1000) 
+      claimedAt: task.target_claimed_at?.[index]
+        ? new Date(task.target_claimed_at[index] * 1000)
         : undefined,
       completedAt: task.target_completed_at?.[index]
         ? new Date(task.target_completed_at[index] * 1000)

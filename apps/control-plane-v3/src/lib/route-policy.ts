@@ -1,16 +1,16 @@
 /**
  * Route Policy - 路由访问策略
- * 
+ *
  * 定义每个路由的：
  * - 认证要求（是否需要登录）
  * - 数据源（backend/demo/local）
  * - 未授权行为（redirect/block/allow_readonly）
- * 
+ *
  * 注意：角色权限检查由 role-system.ts 负责
  * 两者关系：
  * - route-policy.ts: 控制"是否可访问"（认证层）
  * - role-system.ts: 控制"谁可访问"（权限层）
- * 
+ *
  * 完整访问控制流程：
  * 1. RouteGuard 检查 route-policy（是否需认证）
  * 2. 通过后，检查 role-system（角色是否足够）
@@ -20,20 +20,20 @@
 import type { SessionState } from './session-state';
 import { ROUTE_ROLES } from './role-system';
 
-export type RouteMode = 
-  | 'bootstrap'      // 引导路由
-  | 'auth'           // 认证路由
-  | 'transition'     // 认证过渡路由
-  | 'authenticated'  // 认证管理路由
-  | 'public'         // 公共信息路由
-  | 'demo'           // 显式演示路由
-  | 'unavailable';   // 未实现/不可用
+export type RouteMode =
+  | 'bootstrap' // 引导路由
+  | 'auth' // 认证路由
+  | 'transition' // 认证过渡路由
+  | 'authenticated' // 认证管理路由
+  | 'public' // 公共信息路由
+  | 'demo' // 显式演示路由
+  | 'unavailable'; // 未实现/不可用
 
-export type DataSource = 
-  | 'backend'        // 后端API
-  | 'local'          // 本地运行时
-  | 'demo'           // 演示夹具
-  | 'none';          // 无数据源
+export type DataSource =
+  | 'backend' // 后端API
+  | 'local' // 本地运行时
+  | 'demo' // 演示夹具
+  | 'none'; // 无数据源
 
 export interface RoutePolicy {
   path: string;
@@ -55,7 +55,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     unauthorizedBehavior: 'redirect',
     redirectTo: '/login',
   },
-  
+
   // Auth
   {
     path: '/login',
@@ -72,7 +72,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     dataSource: 'backend',
     unauthorizedBehavior: 'allow_readonly',
   },
-  
+
   // Authenticated Management Routes
   {
     path: '/tokens',
@@ -162,7 +162,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     unauthorizedBehavior: 'redirect',
     redirectTo: '/login',
   },
-  
+
   // Demo Routes (显式演示)
   {
     path: '/demo',
@@ -185,7 +185,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     dataSource: 'demo',
     unauthorizedBehavior: 'allow_readonly',
   },
-  
+
   // Unavailable
   {
     path: '/marketplace',
@@ -195,7 +195,7 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     unauthorizedBehavior: 'redirect',
     redirectTo: '/login',
   },
-  
+
   // Entry (特殊处理)
   {
     path: '/',
@@ -211,11 +211,13 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
  */
 export function getRoutePolicy(path: string): RoutePolicy | undefined {
   // 精确匹配优先
-  const exact = ROUTE_POLICIES.find(p => p.path === path);
-  if (exact) {return exact;}
-  
+  const exact = ROUTE_POLICIES.find((p) => p.path === path);
+  if (exact) {
+    return exact;
+  }
+
   // 前缀匹配
-  return ROUTE_POLICIES.find(p => path.startsWith(p.path + '/'));
+  return ROUTE_POLICIES.find((p) => path.startsWith(p.path + '/'));
 }
 
 /**
@@ -226,12 +228,12 @@ export function isRouteAllowed(
   sessionState: SessionState
 ): { allowed: boolean; redirect?: string; reason?: string } {
   const policy = getRoutePolicy(path);
-  
+
   if (!policy) {
     // 未知路由，默认允许（404 会处理）
     return { allowed: true };
   }
-  
+
   // 引导路由特殊处理
   if (policy.mode === 'bootstrap') {
     if (sessionState === 'authenticated') {
@@ -239,7 +241,7 @@ export function isRouteAllowed(
     }
     return { allowed: true };
   }
-  
+
   // 认证路由特殊处理
   if (policy.mode === 'auth') {
     if (sessionState === 'authenticated') {
@@ -251,7 +253,7 @@ export function isRouteAllowed(
   if (policy.mode === 'transition') {
     return { allowed: true };
   }
-  
+
   // 认证管理路由
   if (policy.mode === 'authenticated') {
     if (sessionState !== 'authenticated') {
@@ -263,17 +265,17 @@ export function isRouteAllowed(
     }
     return { allowed: true };
   }
-  
+
   // 演示路由
   if (policy.mode === 'demo') {
     return { allowed: true };
   }
-  
+
   // 不可用路由
   if (policy.mode === 'unavailable') {
     return { allowed: false, reason: 'Route not implemented' };
   }
-  
+
   return { allowed: true };
 }
 
@@ -295,10 +297,10 @@ export function isDemoRoute(path: string): boolean {
 
 /**
  * 验证路由配置一致性
- * 
+ *
  * 检查 route-policy.ts 和 role-system.ts 中定义的路由是否同步
  * 用于开发时检测配置漂移
- * 
+ *
  * @returns 配置不一致的路由列表
  */
 export function validateRouteConsistency(): Array<{
@@ -306,7 +308,7 @@ export function validateRouteConsistency(): Array<{
   issue: string;
 }> {
   const issues: Array<{ path: string; issue: string }> = [];
-  
+
   // 检查所有在 role-system 中定义的路由是否都在 route-policy 中
   for (const path of Object.keys(ROUTE_ROLES)) {
     const policy = getRoutePolicy(path);
@@ -322,7 +324,7 @@ export function validateRouteConsistency(): Array<{
       });
     }
   }
-  
+
   // 检查所有 route-policy 中的 authenticated 路由是否都在 role-system 中
   for (const policy of ROUTE_POLICIES) {
     if (policy.mode === 'authenticated') {
@@ -333,6 +335,6 @@ export function validateRouteConsistency(): Array<{
       }
     }
   }
-  
+
   return issues;
 }

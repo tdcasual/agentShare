@@ -24,7 +24,7 @@ interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
   ({ src, alt, fallback, size = 'md', type, status, className, ...props }, ref) => {
     const [error, setError] = React.useState(false);
-    
+
     const getFallback = () => {
       if (fallback) {
         return fallback;
@@ -42,7 +42,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       <div
         ref={ref}
         className={cn(
-          'relative inline-flex items-center justify-center rounded-full overflow-hidden',
+          'relative inline-flex items-center justify-center overflow-hidden rounded-full',
           avatarSizes[size],
           type === 'human' && 'ring-2 ring-sky-300',
           type === 'agent' && 'ring-2 ring-green-300',
@@ -53,25 +53,31 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         {src && !error ? (
           <img
             src={src}
-            alt={alt || (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')}
-            className="w-full h-full object-cover"
+            alt={
+              alt ||
+              (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')
+            }
+            className="h-full w-full object-cover"
             onError={() => setError(true)}
             loading="lazy"
           />
         ) : (
-          <span 
-            className="flex items-center justify-center w-full h-full bg-gradient-to-br from-pink-100 to-purple-100"
+          <span
+            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-100 to-purple-100"
             role="img"
-            aria-label={alt || (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')}
+            aria-label={
+              alt ||
+              (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')
+            }
           >
             {getFallback()}
           </span>
         )}
-        
+
         {status && (
           <span
             className={cn(
-              'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white',
+              'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white',
               status === 'online' && 'bg-green-400',
               status === 'away' && 'bg-yellow-400',
               status === 'busy' && 'bg-red-400',
@@ -101,7 +107,7 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
       <div ref={ref} className={cn('flex -space-x-2', className)} {...props}>
         {showChildren}
         {remaining > 0 && (
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-600 dark:text-[#9CA3AF] ring-2 ring-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600 ring-2 ring-white dark:text-[#9CA3AF]">
             +{remaining}
           </div>
         )}

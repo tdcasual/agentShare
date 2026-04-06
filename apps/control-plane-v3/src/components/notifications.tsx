@@ -59,10 +59,18 @@ function formatRelativeTime(timeString: string) {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) {return 'Just now';}
-  if (diffMins < 60) {return `${diffMins}m ago`;}
-  if (diffHours < 24) {return `${diffHours}h ago`;}
-  if (diffDays < 7) {return `${diffDays}d ago`;}
+  if (diffMins < 1) {
+    return 'Just now';
+  }
+  if (diffMins < 60) {
+    return `${diffMins}m ago`;
+  }
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+  if (diffDays < 7) {
+    return `${diffDays}d ago`;
+  }
   return date.toLocaleDateString();
 }
 
@@ -75,24 +83,24 @@ export function Notifications({ className }: NotificationsProps) {
   const { availability, notifications, isLoading, error, mutate } = useNotifications();
   const { markAllRead, markOneRead, isMarking } = useMarkNotificationsRead();
 
-  const unreadEvents = useMemo(() => notifications.filter((event) => !event.read_at), [notifications]);
+  const unreadEvents = useMemo(
+    () => notifications.filter((event) => !event.read_at),
+    [notifications]
+  );
   const unreadIds = useMemo(() => unreadEvents.map((event) => event.id), [unreadEvents]);
   const unreadCount = unreadEvents.length;
   const eventsToShow = useMemo(() => notifications.slice(0, MAX_DROPDOWN_EVENTS), [notifications]);
 
-  const handleClickOutside = useCallback(
-    (e: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    },
-    []
-  );
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(e.target as Node) &&
+      buttonRef.current &&
+      !buttonRef.current.contains(e.target as Node)
+    ) {
+      setIsOpen(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -102,7 +110,9 @@ export function Notifications({ className }: NotificationsProps) {
   }, [isOpen, handleClickOutside]);
 
   useEffect(() => {
-    if (!isOpen) {return undefined;}
+    if (!isOpen) {
+      return undefined;
+    }
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
@@ -113,7 +123,9 @@ export function Notifications({ className }: NotificationsProps) {
   }, [isOpen]);
 
   const handleMarkAllRead = useCallback(async () => {
-    if (unreadIds.length === 0) {return;}
+    if (unreadIds.length === 0) {
+      return;
+    }
     await markAllRead(unreadIds);
     mutate();
   }, [markAllRead, mutate, unreadIds]);
@@ -147,15 +159,15 @@ export function Notifications({ className }: NotificationsProps) {
         aria-haspopup="menu"
         aria-label={`${hubLabel}${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
         className={cn(
-          'p-2.5 rounded-full transition-colors relative focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
+          'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
           isOpen
-            ? 'bg-pink-50 dark:bg-[#3D3D5C] text-pink-600 dark:text-[#E891C0]'
-            : 'text-gray-500 dark:text-[#9CA3AF] hover:bg-pink-50 dark:hover:bg-[#3D3D5C] hover:text-pink-600 dark:hover:text-[#E891C0]'
+            ? 'bg-pink-50 text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]'
+            : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C] dark:hover:text-[#E891C0]'
         )}
       >
-        <Bell className="w-5 h-5" aria-hidden="true" />
+        <Bell className="h-5 w-5" aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#DB2777] dark:bg-[#E891C0] text-white text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#DB2777] px-1 text-[10px] font-bold text-white dark:bg-[#E891C0]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -169,13 +181,15 @@ export function Notifications({ className }: NotificationsProps) {
             ref={menuRef}
             role="menu"
             aria-label={hubLabel}
-            className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-[#252540] rounded-2xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] overflow-hidden z-50 animate-slide-up"
+            className="absolute right-0 top-full z-50 mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl sm:w-96 dark:border-[#3D3D5C] dark:bg-[#252540]"
           >
-            <div className="p-4 border-b border-pink-100 dark:border-[#3D3D5C] flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
               <div>
                 <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">{hubLabel}</h3>
                 {unreadCount > 0 && (
-                  <p className="text-xs text-gray-500 dark:text-[#9CA3AF] mt-0.5">{unreadCount} unread</p>
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                    {unreadCount} unread
+                  </p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -185,43 +199,43 @@ export function Notifications({ className }: NotificationsProps) {
                     size="sm"
                     onClick={handleMarkAllRead}
                     disabled={isMarking}
-                    className="text-sm text-pink-600 dark:text-[#E891C0] hover:text-pink-700 dark:hover:text-[#C77DAA] hover:bg-pink-50 dark:hover:bg-[#3D3D5C]"
+                    className="text-sm text-pink-600 hover:bg-pink-50 hover:text-pink-700 dark:text-[#E891C0] dark:hover:bg-[#3D3D5C] dark:hover:text-[#C77DAA]"
                   >
                     {isMarking ? (
-                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                     ) : (
-                      <Check className="w-3 h-3 mr-1" />
+                      <Check className="mr-1 h-3 w-3" />
                     )}
                     Mark all read
                   </Button>
                 )}
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#3D3D5C] text-gray-400 dark:text-[#9CA3AF] transition-colors"
+                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]"
                   aria-label="Close notifications"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
               {isLoading && (
-                <div className="p-8 flex flex-col items-center justify-center text-gray-500 dark:text-[#9CA3AF]">
-                  <Loader2 className="w-6 h-6 animate-spin mb-2" />
+                <div className="flex flex-col items-center justify-center p-8 text-gray-500 dark:text-[#9CA3AF]">
+                  <Loader2 className="mb-2 h-6 w-6 animate-spin" />
                   <p className="text-sm">Loading activity...</p>
                 </div>
               )}
 
               {!isLoading && availability === 'unavailable' && (
                 <div className="p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#3D3D5C] flex items-center justify-center mx-auto mb-3">
-                    <Bell className="w-6 h-6 text-gray-400 dark:text-[#9CA3AF]" />
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-[#3D3D5C]">
+                    <Bell className="h-6 w-6 text-gray-400 dark:text-[#9CA3AF]" />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
                     Notifications are unavailable
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-[#9CA3AF] mt-1">
+                  <p className="mt-1 text-xs text-gray-400 dark:text-[#9CA3AF]">
                     This environment does not yet publish an events feed.
                   </p>
                 </div>
@@ -229,10 +243,12 @@ export function Notifications({ className }: NotificationsProps) {
 
               {!isLoading && availability !== 'unavailable' && Boolean(error) && (
                 <div className="p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-3">
-                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                    <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
                   </div>
-                  <p className="text-sm text-red-600 dark:text-red-400 mb-1">Failed to load events</p>
+                  <p className="mb-1 text-sm text-red-600 dark:text-red-400">
+                    Failed to load events
+                  </p>
                   <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">
                     {error instanceof Error ? error.message : 'Please try again later'}
                   </p>
@@ -242,74 +258,99 @@ export function Notifications({ className }: NotificationsProps) {
                 </div>
               )}
 
-              {!isLoading && availability !== 'unavailable' && !error && eventsToShow.length === 0 && (
-                <div className="p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#3D3D5C] flex items-center justify-center mx-auto mb-3">
-                    <Bell className="w-6 h-6 text-gray-400 dark:text-[#9CA3AF]" />
+              {!isLoading &&
+                availability !== 'unavailable' &&
+                !error &&
+                eventsToShow.length === 0 && (
+                  <div className="p-8 text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-[#3D3D5C]">
+                      <Bell className="h-6 w-6 text-gray-400 dark:text-[#9CA3AF]" />
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No activity yet</p>
+                    <p className="mt-1 text-xs text-gray-400 dark:text-[#9CA3AF]">
+                      We will surface agent feedback and system alerts here.
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No activity yet</p>
-                  <p className="text-xs text-gray-400 dark:text-[#9CA3AF] mt-1">We will surface agent feedback and system alerts here.</p>
-                </div>
-              )}
+                )}
 
-              {!isLoading && availability !== 'unavailable' && !error && eventsToShow.length > 0 && (
-                <div className="divide-y divide-pink-50 dark:divide-[#3D3D5C]/50">
-                  {eventsToShow.map((notification) => {
-                    const style = getSeverityStyle(notification.severity);
-                    const unread = !notification.read_at;
-                    return (
-                      <button
-                        type="button"
-                        key={notification.id}
-                        role="menuitem"
-                        onClick={() => handleEventClick(notification)}
-                        className={cn(
-                          'w-full text-left px-4 py-3 transition-colors flex items-start gap-3 cursor-pointer',
-                          unread ? 'bg-pink-50/40 dark:bg-[#3D2D4A]/60' : 'hover:bg-pink-50/30 dark:hover:bg-[#2D2D50]'
-                        )}
-                      >
-                        <span
+              {!isLoading &&
+                availability !== 'unavailable' &&
+                !error &&
+                eventsToShow.length > 0 && (
+                  <div className="divide-y divide-pink-50 dark:divide-[#3D3D5C]/50">
+                    {eventsToShow.map((notification) => {
+                      const style = getSeverityStyle(notification.severity);
+                      const unread = !notification.read_at;
+                      return (
+                        <button
+                          type="button"
+                          key={notification.id}
+                          role="menuitem"
+                          onClick={() => handleEventClick(notification)}
                           className={cn(
-                            'w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-lg font-medium',
-                            style.bgClass,
-                            style.textClass
+                            'flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors',
+                            unread
+                              ? 'bg-pink-50/40 dark:bg-[#3D2D4A]/60'
+                              : 'hover:bg-pink-50/30 dark:hover:bg-[#2D2D50]'
                           )}
-                          aria-hidden="true"
                         >
-                          {style.icon}
-                        </span>
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className={cn('text-sm text-gray-800 dark:text-[#E8E8EC]', unread && 'font-semibold')}>
-                              {notification.summary}
-                            </p>
-                            <span className="text-[11px] text-gray-400 dark:text-[#9CA3AF]">
-                              {formatRelativeTime(notification.created_at)}
-                            </span>
+                          <span
+                            className={cn(
+                              'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-lg font-medium',
+                              style.bgClass,
+                              style.textClass
+                            )}
+                            aria-hidden="true"
+                          >
+                            {style.icon}
+                          </span>
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <p
+                                className={cn(
+                                  'text-sm text-gray-800 dark:text-[#E8E8EC]',
+                                  unread && 'font-semibold'
+                                )}
+                              >
+                                {notification.summary}
+                              </p>
+                              <span className="text-[11px] text-gray-400 dark:text-[#9CA3AF]">
+                                {formatRelativeTime(notification.created_at)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                              <span className="uppercase tracking-wide">
+                                {notification.event_type}
+                              </span>
+                              <span>·</span>
+                              <span>{notification.actor_type}</span>
+                            </div>
+                            {notification.details && (
+                              <p className="truncate text-xs text-gray-500 dark:text-[#9CA3AF]">
+                                {notification.details}
+                              </p>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
-                            <span className="uppercase tracking-wide">{notification.event_type}</span>
-                            <span>·</span>
-                            <span>{notification.actor_type}</span>
-                          </div>
-                          {notification.details && (
-                            <p className="text-xs text-gray-500 dark:text-[#9CA3AF] truncate">
-                              {notification.details}
-                            </p>
+                          {notification.action_url && (
+                            <ChevronRight
+                              className="h-4 w-4 text-gray-400 dark:text-[#9CA3AF]"
+                              aria-hidden="true"
+                            />
                           )}
-                        </div>
-                        {notification.action_url && (
-                          <ChevronRight className="w-4 h-4 text-gray-400 dark:text-[#9CA3AF]" aria-hidden="true" />
-                        )}
-                        {unread && <span className="w-2 h-2 rounded-full bg-pink-500 mt-1.5" aria-hidden="true" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                          {unread && (
+                            <span
+                              className="mt-1.5 h-2 w-2 rounded-full bg-pink-500"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
             </div>
 
-            <div className="p-3 bg-gray-50 dark:bg-[#1A1A2E] border-t border-pink-100 dark:border-[#3D3D5C]">
+            <div className="border-t border-pink-100 bg-gray-50 p-3 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]">
               <Button
                 variant="ghost"
                 size="sm"
@@ -317,7 +358,7 @@ export function Notifications({ className }: NotificationsProps) {
                   router.push('/inbox');
                   setIsOpen(false);
                 }}
-                className="w-full text-center text-sm text-pink-600 dark:text-[#E891C0] hover:text-pink-700 dark:hover:text-[#C77DAA] py-1 transition-colors"
+                className="w-full py-1 text-center text-sm text-pink-600 transition-colors hover:text-pink-700 dark:text-[#E891C0] dark:hover:text-[#C77DAA]"
               >
                 Open inbox
               </Button>

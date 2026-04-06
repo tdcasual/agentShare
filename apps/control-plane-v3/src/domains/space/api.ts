@@ -1,10 +1,10 @@
 import { apiFetch } from '@/lib/api-client';
-import type { 
-  SpaceListResponse, 
+import type {
+  SpaceListResponse,
   SpaceResponse,
   SpaceMemberResponse,
   CreateSpaceInput,
-  CreateSpaceMemberInput 
+  CreateSpaceMemberInput,
 } from './types';
 
 export function listSpaces(options?: { agentId?: string | null }) {
@@ -41,7 +41,7 @@ export function getSpace(spaceId: string): Promise<SpaceResponse> {
  * 添加成员到空间
  */
 export function addSpaceMember(
-  spaceId: string, 
+  spaceId: string,
   input: CreateSpaceMemberInput
 ): Promise<SpaceMemberResponse> {
   return apiFetch<SpaceMemberResponse>(`/spaces/${spaceId}/members`, {

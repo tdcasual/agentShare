@@ -1,6 +1,6 @@
 /**
  * Approval Domain Types - 审批领域类型
- * 
+ *
  * 与后端 /api/approvals 对齐
  * 后端返回字段: id, task_id, capability_id, agent_id, action_type, status, reason,
  *              policy_reason, policy_source, requested_by, decided_by, expires_at

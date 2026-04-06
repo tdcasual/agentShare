@@ -1,6 +1,6 @@
 /**
  * Session State - 集中式会话状态管理
- * 
+ *
  * 提供：
  * - 标准化的会话状态模型
  * - 会话解析和验证
@@ -11,12 +11,12 @@ import { useCallback, useEffect, useState } from 'react';
 import type { ManagementSessionSummary } from '@/shared/types';
 import { ApiError, apiFetch } from './api-client';
 
-export type SessionState = 
-  | 'unknown'      // 初始状态，正在解析
-  | 'anonymous'    // 未登录
+export type SessionState =
+  | 'unknown' // 初始状态，正在解析
+  | 'anonymous' // 未登录
   | 'authenticated' // 已认证
-  | 'expired'      // 会话过期
-  | 'forbidden'    // 无权限
+  | 'expired' // 会话过期
+  | 'forbidden' // 无权限
   | 'unavailable'; // 服务不可用
 
 export interface SessionData {
@@ -43,7 +43,7 @@ let globalSession: SessionData = { state: 'unknown' };
 let sessionListeners: ((session: SessionData) => void)[] = [];
 
 function notifyListeners() {
-  sessionListeners.forEach(listener => listener(globalSession));
+  sessionListeners.forEach((listener) => listener(globalSession));
 }
 
 export function getGlobalSession(): SessionData {
@@ -58,7 +58,7 @@ export function setGlobalSession(session: SessionData) {
 export function subscribeToSession(listener: (session: SessionData) => void) {
   sessionListeners.push(listener);
   return () => {
-    sessionListeners = sessionListeners.filter(l => l !== listener);
+    sessionListeners = sessionListeners.filter((l) => l !== listener);
   };
 }
 
@@ -150,32 +150,32 @@ export async function logout(): Promise<void> {
 export function useSession() {
   const [session, setSession] = useState<SessionData>(getGlobalSession());
   const [isLoading, setIsLoading] = useState(session.state === 'unknown');
-  
+
   useEffect(() => {
     const initialSession = getGlobalSession();
 
     // 订阅全局会话变化
     const unsubscribe = subscribeToSession(setSession);
-    
+
     // 初始解析（如果未知状态）
     if (initialSession.state === 'unknown') {
       setIsLoading(true);
-      resolveSession().then(newSession => {
+      resolveSession().then((newSession) => {
         setGlobalSession(newSession);
         setIsLoading(false);
       });
     }
-    
+
     return unsubscribe;
   }, []);
-  
+
   const refresh = useCallback(async () => {
     setIsLoading(true);
     const newSession = await resolveSession();
     setGlobalSession(newSession);
     setIsLoading(false);
   }, []);
-  
+
   const doLogin = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -185,7 +185,7 @@ export function useSession() {
       setIsLoading(false);
     }
   }, []);
-  
+
   const doLogout = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -194,7 +194,7 @@ export function useSession() {
       setIsLoading(false);
     }
   }, []);
-  
+
   return {
     session,
     isLoading,

@@ -1,6 +1,6 @@
 /**
  * Identity 领域 Hooks - 解耦 UI 与 Runtime
- * 
+ *
  * 提供 React 友好的 API，隐藏 Runtime 复杂性
  */
 
@@ -18,11 +18,11 @@ export interface UseIdentityReturn {
   identities: Identity[];
   currentIdentity: Identity | null;
   onlineIdentities: Identity[];
-  
+
   // 加载状态
   isLoading: boolean;
   error: Error | null;
-  
+
   // 操作
   setPresence: (identityId: string, status: PresenceStatus) => void;
   refresh: () => void;
@@ -35,7 +35,7 @@ export function useIdentities(options: UseIdentityOptions = {}): UseIdentityRetu
   const runtime = useRuntime();
   const registry = runtime.di.resolve(IdentityRegistryServiceId);
   void options;
-  
+
   const [identities, setIdentities] = useState<Identity[]>([]);
   const [currentIdentity, setCurrentIdentity] = useState<Identity | null>(null);
   const [onlineIdentities, setOnlineIdentities] = useState<Identity[]>([]);
@@ -45,16 +45,16 @@ export function useIdentities(options: UseIdentityOptions = {}): UseIdentityRetu
 
   useEffect(() => {
     let mounted = true;
-    
+
     async function load() {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const all = registry.getAll();
-        const online = all.filter(i => i.presence === 'online');
-        const firstHuman = all.find(i => i.type === 'human') || null;
-        
+        const online = all.filter((i) => i.presence === 'online');
+        const firstHuman = all.find((i) => i.type === 'human') || null;
+
         if (mounted) {
           setIdentities(all);
           setOnlineIdentities(online);
@@ -68,31 +68,32 @@ export function useIdentities(options: UseIdentityOptions = {}): UseIdentityRetu
         }
       }
     }
-    
+
     load();
-    
+
     // 订阅在线状态变化
     const unsubscribe = registry.onPresenceChanged((id, status) => {
       if (mounted) {
-        setIdentities(prev => prev.map(i => 
-          i.id === id ? { ...i, presence: status } : i
-        ));
-        setOnlineIdentities(registry.getAll().filter(i => i.presence === 'online'));
+        setIdentities((prev) => prev.map((i) => (i.id === id ? { ...i, presence: status } : i)));
+        setOnlineIdentities(registry.getAll().filter((i) => i.presence === 'online'));
       }
     });
-    
+
     return () => {
       mounted = false;
       unsubscribe();
     };
   }, [registry, refreshNonce]);
 
-  const setPresence = useCallback((identityId: string, status: PresenceStatus) => {
-    registry.setPresence(identityId, status);
-  }, [registry]);
+  const setPresence = useCallback(
+    (identityId: string, status: PresenceStatus) => {
+      registry.setPresence(identityId, status);
+    },
+    [registry]
+  );
 
   const refresh = useCallback(() => {
-    setRefreshNonce(n => n + 1);
+    setRefreshNonce((n) => n + 1);
   }, []);
 
   return {
@@ -112,7 +113,7 @@ export function useIdentities(options: UseIdentityOptions = {}): UseIdentityRetu
 export function useIdentity(identityId: string | null) {
   const runtime = useRuntime();
   const registry = runtime.di.resolve(IdentityRegistryServiceId);
-  
+
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [isLoading, setIsLoading] = useState(!!identityId);
 
@@ -124,7 +125,7 @@ export function useIdentity(identityId: string | null) {
     }
 
     let mounted = true;
-    
+
     async function load() {
       setIsLoading(true);
       if (!identityId) {
@@ -136,16 +137,16 @@ export function useIdentity(identityId: string | null) {
         setIsLoading(false);
       }
     }
-    
+
     load();
-    
+
     // 订阅该身份的变化
     const unsubscribe = registry.onPresenceChanged((id, status) => {
       if (mounted && id === identityId) {
-        setIdentity(prev => prev ? { ...prev, presence: status } : null);
+        setIdentity((prev) => (prev ? { ...prev, presence: status } : null));
       }
     });
-    
+
     return () => {
       mounted = false;
       unsubscribe();
@@ -160,9 +161,9 @@ export function useIdentity(identityId: string | null) {
  */
 export function useIdentitiesByType(type: IdentityType) {
   const { identities, isLoading, error } = useIdentities();
-  
-  const filtered = identities.filter(i => i.type === type);
-  
+
+  const filtered = identities.filter((i) => i.type === type);
+
   return {
     identities: filtered,
     isLoading,

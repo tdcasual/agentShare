@@ -12,11 +12,11 @@ export class EventBusImpl implements EventBus {
     // Execute regular handlers
     const handlers = this.handlers.get(event);
     if (handlers) {
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         try {
           const result = handler(payload);
           if (result instanceof Promise) {
-            result.catch(err => {
+            result.catch((err) => {
               if (process.env.NODE_ENV === 'development') {
                 console.error(`Error in event handler for ${event}:`, err);
               }
@@ -33,7 +33,7 @@ export class EventBusImpl implements EventBus {
     // Execute once handlers
     const onceHandlers = this.onceHandlers.get(event);
     if (onceHandlers) {
-      onceHandlers.forEach(handler => {
+      onceHandlers.forEach((handler) => {
         try {
           handler(payload);
         } catch (err) {
@@ -46,10 +46,7 @@ export class EventBusImpl implements EventBus {
     }
   }
 
-  on<K extends string>(
-    event: K, 
-    handler: (payload: unknown) => void | Promise<void>
-  ): Disposable {
+  on<K extends string>(event: K, handler: (payload: unknown) => void | Promise<void>): Disposable {
     if (!this.handlers.has(event)) {
       this.handlers.set(event, new Set());
     }
@@ -60,10 +57,7 @@ export class EventBusImpl implements EventBus {
     };
   }
 
-  once<K extends string>(
-    event: K, 
-    handler: (payload: unknown) => void
-  ): Disposable {
+  once<K extends string>(event: K, handler: (payload: unknown) => void): Disposable {
     if (!this.onceHandlers.has(event)) {
       this.onceHandlers.set(event, new Set());
     }
@@ -74,10 +68,7 @@ export class EventBusImpl implements EventBus {
     };
   }
 
-  off<K extends string>(
-    event: K, 
-    handler: (payload: unknown) => void
-  ): void {
+  off<K extends string>(event: K, handler: (payload: unknown) => void): void {
     this.handlers.get(event)?.delete(handler);
     this.onceHandlers.get(event)?.delete(handler);
   }
@@ -88,8 +79,7 @@ export class EventBusImpl implements EventBus {
   }
 
   getHandlerCount(event: string): number {
-    return (this.handlers.get(event)?.size || 0) + 
-           (this.onceHandlers.get(event)?.size || 0);
+    return (this.handlers.get(event)?.size || 0) + (this.onceHandlers.get(event)?.size || 0);
   }
 }
 
@@ -98,10 +88,7 @@ export class EventBusImpl implements EventBus {
 export class TypedEventBus<Events = any> {
   constructor(private bus: EventBus) {}
 
-  emit<K extends keyof Events & string>(
-    event: K, 
-    payload: Events[K]
-  ): void {
+  emit<K extends keyof Events & string>(event: K, payload: Events[K]): void {
     this.bus.emit(event, payload);
   }
 
@@ -119,10 +106,7 @@ export class TypedEventBus<Events = any> {
     return this.bus.once(event, handler as (payload: unknown) => void);
   }
 
-  off<K extends keyof Events & string>(
-    event: K,
-    handler: (payload: Events[K]) => void
-  ): void {
+  off<K extends keyof Events & string>(event: K, handler: (payload: Events[K]) => void): void {
     this.bus.off(event, handler as (payload: unknown) => void);
   }
 }

@@ -66,14 +66,15 @@ export function usePWA(): PWAState {
 
     // 检查是否已安装
     const checkInstalled = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-        || ((window.navigator as unknown as { standalone?: boolean }).standalone ?? false) === true;
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        ((window.navigator as unknown as { standalone?: boolean }).standalone ?? false) === true;
       setIsInstalled(isStandalone);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-    
+
     checkInstalled();
 
     // 监听 display-mode 变化
@@ -125,7 +126,7 @@ export function usePWA(): PWAState {
 
       const checkForUpdates = async () => {
         const registration = await navigator.serviceWorker.ready;
-        
+
         // 检查更新
         registration.update().catch((error) => {
           logger.pwa.warn('Failed to check for updates', error);
@@ -148,7 +149,7 @@ export function usePWA(): PWAState {
       };
 
       navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-      
+
       // 定期检查更新（每 60 分钟）
       checkForUpdates();
       const interval = setInterval(checkForUpdates, 60 * 60 * 1000);
@@ -171,7 +172,7 @@ export function usePWA(): PWAState {
     try {
       await installPrompt.prompt();
       const result = await installPrompt.userChoice;
-      
+
       if (result.outcome === 'accepted') {
         logger.pwa.info('User accepted install');
       } else {
@@ -216,7 +217,11 @@ export function usePWA(): PWAState {
 }
 
 // 分享功能
-export async function shareContent(data: { title: string; text: string; url?: string }): Promise<void> {
+export async function shareContent(data: {
+  title: string;
+  text: string;
+  url?: string;
+}): Promise<void> {
   if ('share' in navigator) {
     try {
       await navigator.share(data);

@@ -6,51 +6,52 @@
 
 :root {
   /* Fonts */
-  --font-sans: 'Nunito', 'Quicksand', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans:
+    'Nunito', 'Quicksand', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: 'Quicksand', 'Nunito', 'PingFang SC', sans-serif;
-  
+
   /* Light Mode - Kawaii Theme Variables */
-  --kw-primary-50: #FFF0F5;
-  --kw-primary-100: #FFE4E1;
-  --kw-primary-200: #FFC0CB;
-  --kw-primary-300: #FFB6C1;
-  --kw-primary-400: #FF69B4;
-  --kw-primary-500: #FF1493;
-  --kw-primary-600: #DB7093;
-  
-  --kw-mint: #98FB98;
-  --kw-sky: #87CEEB;
-  --kw-lavender: #E6E6FA;
-  --kw-peach: #FFDAB9;
-  --kw-lemon: #FFFACD;
-  
-  --kw-success: #90EE90;
-  --kw-warning: #FFD700;
-  --kw-error: #FF6B6B;
-  --kw-info: #87CEFA;
-  
-  --kw-bg: #FFF5F7;
-  --kw-surface: #FFFFFF;
-  --kw-surface-alt: #F8F8FF;
-  --kw-border: #E6E6FA;
-  --kw-text: #4A4A4A;
-  --kw-text-muted: #8B8B8B;
-  
-  --kw-human-accent: #87CEEB;
-  --kw-agent-accent: #98FB98;
-  
+  --kw-primary-50: #fff0f5;
+  --kw-primary-100: #ffe4e1;
+  --kw-primary-200: #ffc0cb;
+  --kw-primary-300: #ffb6c1;
+  --kw-primary-400: #ff69b4;
+  --kw-primary-500: #ff1493;
+  --kw-primary-600: #db7093;
+
+  --kw-mint: #98fb98;
+  --kw-sky: #87ceeb;
+  --kw-lavender: #e6e6fa;
+  --kw-peach: #ffdab9;
+  --kw-lemon: #fffacd;
+
+  --kw-success: #90ee90;
+  --kw-warning: #ffd700;
+  --kw-error: #ff6b6b;
+  --kw-info: #87cefa;
+
+  --kw-bg: #fff5f7;
+  --kw-surface: #ffffff;
+  --kw-surface-alt: #f8f8ff;
+  --kw-border: #e6e6fa;
+  --kw-text: #4a4a4a;
+  --kw-text-muted: #8b8b8b;
+
+  --kw-human-accent: #87ceeb;
+  --kw-agent-accent: #98fb98;
+
   /* Dark Mode - Soft Anime Theme (No Neon) */
-  --kw-dark-bg: #1A1A2E;
+  --kw-dark-bg: #1a1a2e;
   --kw-dark-surface: #252540;
-  --kw-dark-surface-alt: #2D2D50;
-  --kw-dark-border: #3D3D5C;
-  --kw-dark-text: #E8E8EC;
-  --kw-dark-text-muted: #9CA3AF;
-  
+  --kw-dark-surface-alt: #2d2d50;
+  --kw-dark-border: #3d3d5c;
+  --kw-dark-text: #e8e8ec;
+  --kw-dark-text-muted: #9ca3af;
+
   /* Muted accent colors for dark mode */
-  --kw-dark-primary: #E891C0;
-  --kw-dark-mint: #90EE90;
-  --kw-dark-sky: #6B9AC4;
+  --kw-dark-primary: #e891c0;
+  --kw-dark-mint: #90ee90;
+  --kw-dark-sky: #6b9ac4;
 }
 
 .dark {
@@ -143,34 +144,65 @@ body {
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(255, 105, 180, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(255, 105, 180, 0.5); }
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 105, 180, 0.5);
+  }
 }
 
 .dark @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(232, 145, 192, 0.1); }
-  50% { box-shadow: 0 0 30px rgba(232, 145, 192, 0.2); }
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(232, 145, 192, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(232, 145, 192, 0.2);
+  }
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .animate-float {
@@ -230,7 +262,7 @@ body {
 /* Kawaii card hover - adapts to mode */
 .card-kawaii {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,245,247,0.8) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 245, 247, 0.8) 100%);
 }
 
 .dark .card-kawaii {
@@ -239,13 +271,13 @@ body {
 
 .card-kawaii:hover {
   transform: translateY(-4px) scale(1.01);
-  box-shadow: 
+  box-shadow:
     0 20px 40px rgba(255, 105, 180, 0.12),
     0 0 0 1px rgba(255, 105, 180, 0.08);
 }
 
 .dark .card-kawaii:hover {
-  box-shadow: 
+  box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(232, 145, 192, 0.1);
 }
@@ -283,7 +315,7 @@ body {
   .h-screen {
     height: 100dvh;
   }
-  
+
   .min-h-screen {
     min-height: 100dvh;
   }
@@ -332,7 +364,7 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   .animate-float,
   .animate-pulse-glow,
   .animate-slide-up,
@@ -345,16 +377,16 @@ html {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
-    --kw-primary-500: #C71585;
+    --kw-primary-500: #c71585;
     --kw-text: #000000;
     --kw-text-muted: #333333;
     --kw-border: #000000;
   }
-  
+
   .card {
     border: 2px solid var(--kw-border);
   }
-  
+
   button {
     border: 2px solid currentColor;
   }

@@ -6,7 +6,11 @@ import { ChevronDown, ChevronUp, Bot } from 'lucide-react';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
-import { ManagementSessionRecoveryNotice, isForbiddenError, isUnauthorizedError } from '@/lib/management-session-recovery';
+import {
+  ManagementSessionRecoveryNotice,
+  isForbiddenError,
+  isUnauthorizedError,
+} from '@/lib/management-session-recovery';
 import { AgentManagementCard } from './agent-management-card';
 import { EmptyState, SectionLoading, SectionError } from './components';
 import type { Agent, AgentToken } from '@/domains/identity';
@@ -83,10 +87,10 @@ export function AIAgentsSection({
           isRefreshing={isRefreshing}
         />
       ) : agents.length === 0 ? (
-        <EmptyState icon={<Bot className="w-6 h-6" />} message="No agents are registered yet." />
+        <EmptyState icon={<Bot className="h-6 w-6" />} message="No agents are registered yet." />
       ) : filteredAgents.length === 0 ? (
         <EmptyState
-          icon={<Bot className="w-6 h-6" />}
+          icon={<Bot className="h-6 w-6" />}
           message={`No AI agents match "${searchQuery.trim()}".`}
         />
       ) : (
@@ -135,12 +139,20 @@ interface AgentCardProps {
   isFocused?: boolean;
 }
 
-function AgentCard({ agent, linkedTokens, feedbackCount, isExpanded, onToggleExpand, children, isFocused }: AgentCardProps) {
+function AgentCard({
+  agent,
+  linkedTokens,
+  feedbackCount,
+  isExpanded,
+  onToggleExpand,
+  children,
+  isFocused,
+}: AgentCardProps) {
   return (
     <div
       data-testid={`agent-card-${agent.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`rounded-2xl border bg-white/90 dark:bg-[#252540]/90 p-4 ${
+      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
         isFocused
           ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
           : 'border-pink-100 dark:border-[#3D3D5C]'
@@ -148,12 +160,8 @@ function AgentCard({ agent, linkedTokens, feedbackCount, isExpanded, onToggleExp
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-            {agent.name}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-[#9CA3AF] break-all">
-            {agent.id}
-          </p>
+          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{agent.name}</p>
+          <p className="break-all text-sm text-gray-500 dark:text-[#9CA3AF]">{agent.id}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="secondary">
               {linkedTokens.length} linked token{linkedTokens.length === 1 ? '' : 's'}
@@ -166,7 +174,12 @@ function AgentCard({ agent, linkedTokens, feedbackCount, isExpanded, onToggleExp
             <p className="mt-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
               {linkedTokens
                 .slice(0, 2)
-                .map((token) => token.display_name ?? (token as unknown as { displayName?: string }).displayName ?? token.id)
+                .map(
+                  (token) =>
+                    token.display_name ??
+                    (token as unknown as { displayName?: string }).displayName ??
+                    token.id
+                )
                 .join(' · ')}
             </p>
           ) : null}
@@ -183,7 +196,9 @@ function AgentCard({ agent, linkedTokens, feedbackCount, isExpanded, onToggleExp
           size="sm"
           aria-expanded={isExpanded}
           onClick={onToggleExpand}
-          rightIcon={isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          rightIcon={
+            isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+          }
         >
           {isExpanded ? `Hide details for ${agent.name}` : `View details for ${agent.name}`}
         </Button>

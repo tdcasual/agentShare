@@ -20,15 +20,19 @@ describe('notifications contract', () => {
   });
 
   it('loads events from the backend feed when available', async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ items: [{ id: 'event-1', summary: 'feedback' }] }), {
-        status: 200,
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ items: [{ id: 'event-1', summary: 'feedback' }] }), {
+          status: 200,
+        })
     );
 
     const notifications = await loadNotifications(getNotificationsSource(), fetchMock);
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/events', expect.objectContaining({ credentials: 'include' }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/events',
+      expect.objectContaining({ credentials: 'include' })
+    );
     expect(notifications).toEqual([{ id: 'event-1', summary: 'feedback' }]);
   });
 

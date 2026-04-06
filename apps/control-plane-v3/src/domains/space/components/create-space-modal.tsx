@@ -26,18 +26,16 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <Card variant="kawaii" className="w-full max-w-md">
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {/* 头部 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center text-white">
-                <Globe className="w-5 h-5" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-400 to-purple-400 text-white">
+                <Globe className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                创建空间
-              </h2>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">创建空间</h2>
             </div>
             <Button
               type="button"
@@ -46,14 +44,14 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
               onClick={onClose}
               className="rounded-full"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
 
           {/* 表单 */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 空间名称 <span className="text-red-500">*</span>
               </label>
               <Input
@@ -63,11 +61,11 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
                 required
                 maxLength={50}
               />
-              <p className="text-xs text-gray-400 mt-1">{name.length}/50</p>
+              <p className="mt-1 text-xs text-gray-400">{name.length}/50</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 描述
               </label>
               <textarea
@@ -76,9 +74,9 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
                 placeholder="简要描述这个空间的用途..."
                 rows={3}
                 maxLength={200}
-                className="w-full px-3 py-2 rounded-xl border border-pink-200 dark:border-[#3D3D5C] bg-white dark:bg-[#1A1A2E] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none"
+                className="w-full resize-none rounded-xl border border-pink-200 bg-white px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-gray-100"
               />
-              <p className="text-xs text-gray-400 mt-1">{summary.length}/200</p>
+              <p className="mt-1 text-xs text-gray-400">{summary.length}/200</p>
             </div>
           </div>
 

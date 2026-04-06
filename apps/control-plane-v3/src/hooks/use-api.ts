@@ -1,17 +1,17 @@
 /**
  * API Hooks
- * 
+ *
  * 统一导出所有 SWR hooks：
  * - 自动缓存
  * - 错误重试
  * - 乐观更新
  * - 请求去重
- * 
+ *
  * 推荐使用方式：
  * ```typescript
  * // 方式1: 从这里统一导入
  * import { useTasks, useAgents } from '@/hooks/use-api';
- * 
+ *
  * // 方式2: 直接从 domain 导入（推荐）
  * import { useTasks, useCreateTask } from '@/domains/task';
  * import { useAgents, useSession } from '@/domains/identity';

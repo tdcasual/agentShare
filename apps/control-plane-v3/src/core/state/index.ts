@@ -47,10 +47,9 @@ class StoreImpl<T> implements Store<T> {
   ) {
     const setState: (partial: Partial<T> | ((state: T) => Partial<T>)) => void = (partial) => {
       const prevState = this.state;
-      const changes = typeof partial === 'function' 
-        ? (partial as (state: T) => Partial<T>)(this.state)
-        : partial;
-      
+      const changes =
+        typeof partial === 'function' ? (partial as (state: T) => Partial<T>)(this.state) : partial;
+
       this.state = { ...this.state, ...changes };
       this.notify(prevState);
     };
@@ -66,9 +65,8 @@ class StoreImpl<T> implements Store<T> {
 
   setState = (partial: Partial<T> | ((state: T) => Partial<T>)): void => {
     const prevState = this.state;
-    const changes = typeof partial === 'function'
-      ? (partial as (state: T) => Partial<T>)(this.state)
-      : partial;
+    const changes =
+      typeof partial === 'function' ? (partial as (state: T) => Partial<T>)(this.state) : partial;
 
     this.state = { ...this.state, ...changes };
     this.notify(prevState);
@@ -82,7 +80,7 @@ class StoreImpl<T> implements Store<T> {
   }
 
   private notify(prevState: T): void {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(this.state, prevState);
       } catch (err) {
@@ -102,7 +100,7 @@ class StoreImpl<T> implements Store<T> {
 export function createReactHook<T>(store: Store<T>) {
   return function useStore(): [T, Store<T>['setState']] {
     const [state, setState] = useState(store.getState());
-    
+
     useEffect(() => {
       return store.subscribe((newState) => {
         setState(newState);
@@ -114,14 +112,10 @@ export function createReactHook<T>(store: Store<T>) {
 }
 
 // Selector helper for derived state
-export function createSelector<T, R>(
-  store: Store<T>,
-  selectorFn: (state: T) => R
-): Store<R> {
+export function createSelector<T, R>(store: Store<T>, selectorFn: (state: T) => R): Store<R> {
   const storeName = (store as StoreImpl<T>).name;
-  const selectorStore = new StoreImpl<R>(
-    `${storeName}.selector`,
-    () => selectorFn((store as StoreImpl<T>).getState())
+  const selectorStore = new StoreImpl<R>(`${storeName}.selector`, () =>
+    selectorFn((store as StoreImpl<T>).getState())
   );
 
   store.subscribe((state) => {

@@ -37,11 +37,13 @@ export function Modal({
 
   // Handle focus trap and initial focus
   React.useEffect(() => {
-    if (!isOpen) {return;}
-    
+    if (!isOpen) {
+      return;
+    }
+
     // Store previous focus
     previousFocusRef.current = document.activeElement as HTMLElement;
-    
+
     // Set initial focus
     if (initialFocusRef?.current) {
       initialFocusRef.current.focus();
@@ -120,20 +122,30 @@ export function Modal({
         aria-labelledby={title ? 'modal-title' : undefined}
         aria-describedby={description ? 'modal-description' : undefined}
         className={cn(
-          'relative w-full bg-white rounded-3xl shadow-2xl overflow-hidden',
+          'relative w-full overflow-hidden rounded-3xl bg-white shadow-2xl',
           'animate-scale-in',
           modalSizes[size]
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-pink-100">
+          <div className="flex items-center justify-between border-b border-pink-100 px-6 py-4">
             <div>
               {title && (
-                <h2 id="modal-title" className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{title}</h2>
+                <h2
+                  id="modal-title"
+                  className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]"
+                >
+                  {title}
+                </h2>
               )}
               {description && (
-                <p id="modal-description" className="text-sm text-gray-500 dark:text-[#9CA3AF] mt-1">{description}</p>
+                <p
+                  id="modal-description"
+                  className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]"
+                >
+                  {description}
+                </p>
               )}
             </div>
             {showCloseButton && (
@@ -141,18 +153,16 @@ export function Modal({
                 onClick={onClose}
                 type="button"
                 aria-label="Close modal"
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
+                className="rounded-full p-2 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
               >
-                <X className="w-5 h-5 text-gray-500 dark:text-[#9CA3AF]" />
+                <X className="h-5 w-5 text-gray-500 dark:text-[#9CA3AF]" />
               </button>
             )}
           </div>
         )}
 
         {/* Content */}
-        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-          {children}
-        </div>
+        <div className="max-h-[70vh] overflow-y-auto px-6 py-4">{children}</div>
       </div>
     </div>
   );
@@ -182,11 +192,11 @@ export function ConfirmModal({
         <p className="text-gray-600 dark:text-[#9CA3AF]">
           {message || 'Are you sure you want to proceed with this action?'}
         </p>
-        <div className="flex gap-3 justify-end">
+        <div className="flex justify-end gap-3">
           <button
             onClick={props.onClose}
             type="button"
-            className="px-4 py-2 rounded-full text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
+            className="rounded-full px-4 py-2 text-gray-600 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:text-[#9CA3AF]"
           >
             {cancelText}
           </button>
@@ -195,9 +205,9 @@ export function ConfirmModal({
             disabled={isLoading}
             type="button"
             className={cn(
-              'px-6 py-2 rounded-full text-white font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-              variant === 'danger' 
-                ? 'bg-red-500 hover:bg-red-600 focus-visible:ring-red-400' 
+              'rounded-full px-6 py-2 font-medium text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+              variant === 'danger'
+                ? 'bg-red-500 hover:bg-red-600 focus-visible:ring-red-400'
                 : 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] hover:from-[var(--kw-primary-500)] hover:to-[var(--kw-primary-600)] focus-visible:ring-[var(--kw-primary-400)]'
             )}
           >

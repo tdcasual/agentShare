@@ -93,7 +93,9 @@ export function useManagementSessionGate(options: ManagementSessionGateOptions =
         setSession(nextState.session);
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : 'Failed to load management session');
+          setError(
+            loadError instanceof Error ? loadError.message : 'Failed to load management session'
+          );
         }
       } finally {
         if (!cancelled) {

@@ -1,6 +1,6 @@
 /**
  * 重构后的 Layout 组件
- * 
+ *
  * 改进点:
  * 1. 通过 hooks 获取数据，不直接依赖 Runtime
  * 2. 更好的错误处理
@@ -29,12 +29,12 @@ interface LayoutProps {
 
 /**
  * 重构后的 Layout 组件
- * 
+ *
  * 之前的问题:
  * - 直接调用 getRuntime() 和 initializeRuntime()
  * - 直接操作 registry
  * - 难以测试
- * 
+ *
  * 现在的改进:
  * - 使用 useIdentities hook
  * - 清晰的加载/错误状态
@@ -43,13 +43,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const device = useDeviceType();
-  const { 
-    currentIdentity, 
-    onlineIdentities, 
-    isLoading, 
-    error,
-    refresh 
-  } = useShellIdentity();
+  const { currentIdentity, onlineIdentities, isLoading, error, refresh } = useShellIdentity();
 
   // 加载状态
   if (isLoading) {
@@ -65,9 +59,9 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
       {/* Desktop Sidebar - lg 及以上显示 */}
       <div className="hidden lg:block">
-        <Sidebar 
-          collapsed={sidebarCollapsed} 
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
       </div>
 
@@ -75,7 +69,7 @@ export function Layout({ children }: LayoutProps) {
       <TabletSidebar />
 
       {/* Main Content Area */}
-      <div 
+      <div
         className={cn(
           'transition-all duration-300',
           // 移动端无侧边栏
@@ -88,23 +82,20 @@ export function Layout({ children }: LayoutProps) {
           device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
         )}
       >
-        <Header 
-          currentIdentity={currentIdentity} 
-          onlineIdentities={onlineIdentities} 
-        />
-        
-        <main className={cn(
-          'touch-pan-y',
-          // 移动端更多底部空间给底部导航
-          device.isMobile && 'p-4 pb-24',
-          // 平板适中内边距
-          device.isTablet && 'p-6',
-          // 桌面端宽松内边距
-          device.isDesktop && 'p-6'
-        )}>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
+        <Header currentIdentity={currentIdentity} onlineIdentities={onlineIdentities} />
+
+        <main
+          className={cn(
+            'touch-pan-y',
+            // 移动端更多底部空间给底部导航
+            device.isMobile && 'p-4 pb-24',
+            // 平板适中内边距
+            device.isTablet && 'p-6',
+            // 桌面端宽松内边距
+            device.isDesktop && 'p-6'
+          )}
+        >
+          <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
 
@@ -116,17 +107,15 @@ export function Layout({ children }: LayoutProps) {
 
 /**
  * 统一的加载界面
- * 
+ *
  * 之前散落在各处的加载 UI 现在统一在这里
  */
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540]">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540]">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="w-12 h-12 text-pink-500 animate-spin" />
-        <p className="text-gray-500 dark:text-[#9CA3AF]">
-          Initializing Dual Cosmos...
-        </p>
+        <Loader2 className="h-12 w-12 animate-spin text-pink-500" />
+        <p className="text-gray-500 dark:text-[#9CA3AF]">Initializing Dual Cosmos...</p>
       </div>
     </div>
   );
@@ -134,28 +123,26 @@ function LoadingScreen() {
 
 /**
  * 错误界面
- * 
+ *
  * 提供重试机制，提升用户体验
  */
 function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540] p-4">
-      <div className="max-w-md w-full bg-white dark:bg-[#252540] rounded-3xl shadow-xl border border-pink-100 dark:border-[#3D3D5C] p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-          <AlertCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4 dark:from-[#1A1A2E] dark:to-[#252540]">
+      <div className="w-full max-w-md rounded-3xl border border-pink-100 bg-white p-8 text-center shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+          <AlertCircle className="h-8 w-8 text-red-500 dark:text-red-400" />
         </div>
-        
-        <h1 className="text-xl font-bold text-gray-800 dark:text-[#E8E8EC] mb-2">
+
+        <h1 className="mb-2 text-xl font-bold text-gray-800 dark:text-[#E8E8EC]">
           Failed to initialize
         </h1>
-        
-        <p className="text-gray-600 dark:text-[#9CA3AF] mb-6">
+
+        <p className="mb-6 text-gray-600 dark:text-[#9CA3AF]">
           {error.message || 'Something went wrong while loading the application.'}
         </p>
 
-        <Button onClick={onRetry}>
-          Try Again
-        </Button>
+        <Button onClick={onRetry}>Try Again</Button>
       </div>
     </div>
   );
@@ -163,7 +150,7 @@ function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) 
 
 /**
  * 简化版的 Layout，用于测试/Storybook
- * 
+ *
  * 不依赖 Runtime，接受 props 注入数据
  */
 export interface SimpleLayoutProps {
@@ -173,11 +160,11 @@ export interface SimpleLayoutProps {
   isLoading?: boolean;
 }
 
-export function SimpleLayout({ 
-  children, 
-  currentIdentity = null, 
+export function SimpleLayout({
+  children,
+  currentIdentity = null,
   onlineIdentities = [],
-  isLoading = false 
+  isLoading = false,
 }: SimpleLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const device = useDeviceType();
@@ -190,16 +177,16 @@ export function SimpleLayout({
     <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <Sidebar 
-          collapsed={sidebarCollapsed} 
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
       </div>
 
       {/* Tablet Sidebar */}
       <TabletSidebar />
-      
-      <div 
+
+      <div
         className={cn(
           'transition-all duration-300',
           device.isMobile && 'ml-0 pb-20',
@@ -208,20 +195,19 @@ export function SimpleLayout({
           device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
         )}
       >
-        <Header 
-          currentIdentity={currentIdentity} 
-          onlineIdentities={onlineIdentities} 
-        />
-        
-        <main className={cn(
-          device.isMobile && 'p-4 pb-24',
-          device.isTablet && 'p-6',
-          device.isDesktop && 'p-6'
-        )}>
+        <Header currentIdentity={currentIdentity} onlineIdentities={onlineIdentities} />
+
+        <main
+          className={cn(
+            device.isMobile && 'p-4 pb-24',
+            device.isTablet && 'p-6',
+            device.isDesktop && 'p-6'
+          )}
+        >
           {children}
         </main>
       </div>
-      
+
       {device.isMobile && <MobileNav />}
     </div>
   );

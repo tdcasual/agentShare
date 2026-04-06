@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useRuntime } from '@/core/runtime';
 import type { Identity } from '@/domains/identity/types';
-import { IdentityRegistryServiceId, type IdentityRegistry } from '@/domains/identity/services/identity-registry';
+import {
+  IdentityRegistryServiceId,
+  type IdentityRegistry,
+} from '@/domains/identity/services/identity-registry';
 import { isDemoRoute, isManagementRoute } from '@/lib/route-policy';
 import { useSession, type SessionData } from '@/lib/session-state';
 
@@ -60,7 +63,8 @@ function readRuntimeShellIdentity(registry: IdentityRegistry): ShellIdentitySnap
   const identities = registry.getAll();
 
   return {
-    currentIdentity: identities.find((identity) => identity.type === 'human') ?? identities[0] ?? null,
+    currentIdentity:
+      identities.find((identity) => identity.type === 'human') ?? identities[0] ?? null,
     onlineIdentities: identities.filter((identity) => identity.presence === 'online'),
   };
 }
@@ -77,7 +81,11 @@ function resolveSessionShellError(session: SessionData): Error | null {
   return null;
 }
 
-export function buildShellIdentityState({ pathname, session, runtime }: ShellIdentityInput): ShellIdentitySnapshot {
+export function buildShellIdentityState({
+  pathname,
+  session,
+  runtime,
+}: ShellIdentityInput): ShellIdentitySnapshot {
   if (isDemoRoute(pathname)) {
     return runtime;
   }
@@ -168,7 +176,7 @@ export function useShellIdentity() {
         session,
         runtime: runtimeState,
       }),
-    [pathname, runtimeState, session],
+    [pathname, runtimeState, session]
   );
 
   const refresh = useCallback(() => {

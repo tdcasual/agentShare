@@ -26,12 +26,12 @@ const BREAKPOINTS = {
 
 /**
  * 检测设备类型和方向
- * 
+ *
  * 提供详细的设备类型检测，填补 768px-1024px 平板断点空白
- * 
+ *
  * @example
  * const device = useDeviceType();
- * 
+ *
  * if (device.isTabletPortrait) {
  *   // 平板竖屏特定逻辑
  * }
@@ -72,7 +72,7 @@ export function useDeviceType(): DeviceTypeInfo {
       const width = window.innerWidth;
       const height = window.innerHeight;
       const orientation: Orientation = width > height ? 'landscape' : 'portrait';
-      
+
       let type: DeviceType;
       let isMobile = false;
       let isTablet = false;

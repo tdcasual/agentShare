@@ -10,7 +10,9 @@ function createBootstrapStatus(overrides: Partial<BootstrapStatus> = {}): Bootst
   };
 }
 
-function createSession(overrides: Partial<ManagementSessionSummary> = {}): ManagementSessionSummary {
+function createSession(
+  overrides: Partial<ManagementSessionSummary> = {}
+): ManagementSessionSummary {
   return {
     status: 'authenticated',
     actor_type: 'human',

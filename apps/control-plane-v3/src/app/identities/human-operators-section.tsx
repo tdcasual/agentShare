@@ -7,8 +7,18 @@ import { ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
-import { ManagementSessionRecoveryNotice, isForbiddenError, isUnauthorizedError } from '@/lib/management-session-recovery';
-import { EmptyState, SectionLoading, SectionError, IdentityDetailsGrid, formatOptionalTimestamp } from './components';
+import {
+  ManagementSessionRecoveryNotice,
+  isForbiddenError,
+  isUnauthorizedError,
+} from '@/lib/management-session-recovery';
+import {
+  EmptyState,
+  SectionLoading,
+  SectionError,
+  IdentityDetailsGrid,
+  formatOptionalTimestamp,
+} from './components';
 import type { AdminAccountSummary } from '@/domains/identity';
 
 export interface HumanOperatorsSectionProps {
@@ -46,7 +56,9 @@ export function HumanOperatorsSection({
     <Card variant="kawaii" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">Human Operators</h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            Human Operators
+          </h2>
           <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
             Persisted admin accounts from `/api/admin-accounts`
           </p>
@@ -68,10 +80,13 @@ export function HumanOperatorsSection({
           isRefreshing={isRefreshing}
         />
       ) : accounts.length === 0 ? (
-        <EmptyState icon={<Users className="w-6 h-6" />} message="No admin accounts have been invited yet." />
+        <EmptyState
+          icon={<Users className="h-6 w-6" />}
+          message="No admin accounts have been invited yet."
+        />
       ) : filteredAccounts.length === 0 ? (
         <EmptyState
-          icon={<Users className="w-6 h-6" />}
+          icon={<Users className="h-6 w-6" />}
           message={`No human operators match "${searchQuery.trim()}".`}
         />
       ) : (
@@ -103,7 +118,7 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
     <div
       data-testid={`admin-card-${account.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`rounded-2xl border bg-white/90 dark:bg-[#252540]/90 p-4 ${
+      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
         isFocused
           ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
           : 'border-pink-100 dark:border-[#3D3D5C]'
@@ -111,16 +126,14 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-            {account.display_name}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-[#9CA3AF] break-all">
-            {account.email}
-          </p>
+          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{account.display_name}</p>
+          <p className="break-all text-sm text-gray-500 dark:text-[#9CA3AF]">{account.email}</p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
           <Badge variant="human">{account.role}</Badge>
-          <Badge variant={account.status === 'active' ? 'success' : 'warning'}>{account.status}</Badge>
+          <Badge variant={account.status === 'active' ? 'success' : 'warning'}>
+            {account.status}
+          </Badge>
         </div>
       </div>
       <div className="mt-4 flex justify-end">
@@ -129,9 +142,13 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
           size="sm"
           aria-expanded={isExpanded}
           onClick={onToggleExpand}
-          rightIcon={isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          rightIcon={
+            isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+          }
         >
-          {isExpanded ? `Hide details for ${account.display_name}` : `View details for ${account.display_name}`}
+          {isExpanded
+            ? `Hide details for ${account.display_name}`
+            : `View details for ${account.display_name}`}
         </Button>
       </div>
       {isExpanded ? (
@@ -145,7 +162,10 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
             ]}
           />
           <div className="flex justify-end">
-            <Link href="/settings" className="text-sm font-medium text-pink-600 hover:text-pink-700">
+            <Link
+              href="/settings"
+              className="text-sm font-medium text-pink-600 hover:text-pink-700"
+            >
               Manage in Settings
             </Link>
           </div>

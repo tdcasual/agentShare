@@ -1,6 +1,6 @@
 /**
  * Approvals Page - 审批管理页面
- * 
+ *
  * operator+ 角色可访问
  * 显示待审批列表，支持批准/拒绝操作
  */
@@ -21,19 +21,10 @@ import {
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 
-import { 
-  useApprovals, 
-  useApprovalActions 
-} from '@/domains/approval/hooks';
+import { useApprovals, useApprovalActions } from '@/domains/approval/hooks';
 import { ApprovalCard } from '@/domains/approval/components/approval-card';
 import type { ApprovalStatus } from '@/domains/approval/types';
-import { 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
-  Filter,
-  RefreshCw
-} from 'lucide-react';
+import { CheckCircle, Clock, XCircle, Filter, RefreshCw } from 'lucide-react';
 
 // 状态过滤器配置
 const statusFilters: { value: ApprovalStatus | 'all'; label: string; color: string }[] = [
@@ -48,23 +39,13 @@ function ApprovalsContent() {
   const [statusFilter, setStatusFilter] = useState<ApprovalStatus | 'all'>('pending');
   const [actionError, setActionError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
-  
-  const { 
-    approvals, 
-    total, 
-    isLoading, 
-    error, 
-    refresh 
-  } = useApprovals(
+
+  const { approvals, total, isLoading, error, refresh } = useApprovals(
     statusFilter === 'all' ? undefined : { status: statusFilter },
     { revalidateOnFocus: true }
   );
-  
-  const { 
-    approve, 
-    reject, 
-    isProcessing: isActionProcessing 
-  } = useApprovalActions();
+
+  const { approve, reject, isProcessing: isActionProcessing } = useApprovalActions();
   const {
     error: gateError,
     shouldShowForbidden,
@@ -72,16 +53,16 @@ function ApprovalsContent() {
     clearAllAuthErrors,
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(error);
-  
+
   // 统计
   const stats = useMemo(() => {
     return {
-      pending: approvals.filter(a => a.status === 'pending').length,
-      approved: approvals.filter(a => a.status === 'approved').length,
-      rejected: approvals.filter(a => a.status === 'rejected').length,
+      pending: approvals.filter((a) => a.status === 'pending').length,
+      approved: approvals.filter((a) => a.status === 'approved').length,
+      rejected: approvals.filter((a) => a.status === 'rejected').length,
     };
   }, [approvals]);
-  
+
   // 处理批准
   const handleApprove = async (id: string) => {
     clearAllAuthErrors();
@@ -94,10 +75,12 @@ function ApprovalsContent() {
       if (consumeUnauthorized(actionError)) {
         return;
       }
-      setActionError(actionError instanceof Error ? actionError.message : 'Failed to approve request');
+      setActionError(
+        actionError instanceof Error ? actionError.message : 'Failed to approve request'
+      );
     }
   };
-  
+
   // 处理拒绝
   const handleReject = async (id: string, reason: string) => {
     clearAllAuthErrors();
@@ -110,7 +93,9 @@ function ApprovalsContent() {
       if (consumeUnauthorized(actionError)) {
         return;
       }
-      setActionError(actionError instanceof Error ? actionError.message : 'Failed to reject request');
+      setActionError(
+        actionError instanceof Error ? actionError.message : 'Failed to reject request'
+      );
     }
   };
 
@@ -125,10 +110,12 @@ function ApprovalsContent() {
       if (consumeUnauthorized(refreshFailure)) {
         return;
       }
-      setRefreshError(refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh approvals');
+      setRefreshError(
+        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh approvals'
+      );
     }
   };
-  
+
   // 加载中
   if (isLoading) {
     return (
@@ -137,20 +124,18 @@ function ApprovalsContent() {
       </Layout>
     );
   }
-  
+
   // 错误状态
   if (error && !shouldShowSessionExpired && !shouldShowForbidden) {
     return (
       <Layout>
-        <div className="min-h-[60vh] flex items-center justify-center p-4">
-          <Card variant="kawaii" className="max-w-md w-full text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-              <XCircle className="w-8 h-8 text-red-500" />
+        <div className="flex min-h-[60vh] items-center justify-center p-4">
+          <Card variant="kawaii" className="w-full max-w-md text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <XCircle className="h-8 w-8 text-red-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">
-              加载失败
-            </h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="mb-2 text-xl font-bold text-gray-800">加载失败</h2>
+            <p className="mb-4 text-gray-600">
               {error instanceof Error ? error.message : '未知错误'}
             </p>
             <Button variant="kawaii" onClick={() => refresh()}>
@@ -161,11 +146,11 @@ function ApprovalsContent() {
       </Layout>
     );
   }
-  
+
   return (
     <ErrorBoundary>
       <Layout>
-          <div className="space-y-6">
+        <div className="space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to review approvals." />
           ) : null}
@@ -188,12 +173,8 @@ function ApprovalsContent() {
           {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                审批管理
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
-                审核来自智能体和用户的请求
-              </p>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">审批管理</h1>
+              <p className="mt-1 text-gray-500 dark:text-gray-400">审核来自智能体和用户的请求</p>
             </div>
             <Button
               variant="outline"
@@ -201,7 +182,7 @@ function ApprovalsContent() {
               onClick={() => {
                 void handleRefresh();
               }}
-              leftIcon={<RefreshCw className="w-4 h-4" />}
+              leftIcon={<RefreshCw className="h-4 w-4" />}
             >
               刷新
             </Button>
@@ -228,13 +209,13 @@ function ApprovalsContent() {
               {actionError}
             </Card>
           ) : null}
-          
+
           {/* 统计卡片 */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card variant="gradient" className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-yellow-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+                  <Clock className="h-5 w-5 text-yellow-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.pending}</p>
@@ -244,8 +225,8 @@ function ApprovalsContent() {
             </Card>
             <Card variant="gradient" className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.approved}</p>
@@ -255,8 +236,8 @@ function ApprovalsContent() {
             </Card>
             <Card variant="gradient" className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                  <XCircle className="w-5 h-5 text-red-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                  <XCircle className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.rejected}</p>
@@ -265,15 +246,15 @@ function ApprovalsContent() {
               </div>
             </Card>
           </div>
-          
+
           {/* 过滤器 */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter className="w-4 h-4 text-gray-400" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-400" />
             {statusFilters.map((filter) => (
               <button
                 key={filter.value}
                 onClick={() => setStatusFilter(filter.value)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   statusFilter === filter.value
                     ? filter.color
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
@@ -290,19 +271,23 @@ function ApprovalsContent() {
               </button>
             ))}
           </div>
-          
+
           {/* 审批列表 */}
           <div className="space-y-4">
             {approvals.length === 0 ? (
               <Card variant="kawaii" className="p-12 text-center">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-pink-100 flex items-center justify-center">
-                  <CheckCircle className="w-10 h-10 text-pink-500" />
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-pink-100">
+                  <CheckCircle className="h-10 w-10 text-pink-500" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">
+                <h3 className="mb-2 text-lg font-medium text-gray-800 dark:text-gray-100">
                   暂无审批请求
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  当前没有{statusFilter === 'all' ? '' : statusFilters.find(f => f.value === statusFilter)?.label}的审批请求
+                  当前没有
+                  {statusFilter === 'all'
+                    ? ''
+                    : statusFilters.find((f) => f.value === statusFilter)?.label}
+                  的审批请求
                 </p>
               </Card>
             ) : (
@@ -317,7 +302,7 @@ function ApprovalsContent() {
               ))
             )}
           </div>
-          
+
           {/* 总数提示 */}
           {total > 0 && (
             <p className="text-center text-sm text-gray-500 dark:text-gray-400">

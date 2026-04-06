@@ -9,7 +9,6 @@ import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { IdentityDetailsGrid, formatSnapshotTimestamp } from './components';
 
-
 export interface AgentManagementCardProps {
   agent: {
     id: string;
@@ -53,7 +52,7 @@ export function AgentManagementCard({
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#1E1E32]/60 p-4 space-y-3">
+        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
               Linked Tokens
@@ -64,16 +63,27 @@ export function AgentManagementCard({
           {tokensQuery.isLoading ? (
             <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Loading linked tokens...</p>
           ) : tokens.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No active tokens are linked to this agent.</p>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              No active tokens are linked to this agent.
+            </p>
           ) : (
             <div className="space-y-2">
               {tokens.map((token) => (
-                <div key={token.id} className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 p-3">
+                <div
+                  key={token.id}
+                  className="rounded-2xl border border-pink-100 bg-white/80 p-3 dark:border-[#3D3D5C] dark:bg-[#252540]/80"
+                >
                   <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                    {token.display_name ?? (token as unknown as { displayName?: string }).displayName}
+                    {token.display_name ??
+                      (token as unknown as { displayName?: string }).displayName}
                   </p>
                   <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    {(token.status ?? 'unknown').toUpperCase()} · trust {((token.trust_score ?? (token as unknown as { trustScore?: number }).trustScore ?? 0)).toFixed(2)}
+                    {(token.status ?? 'unknown').toUpperCase()} · trust{' '}
+                    {(
+                      token.trust_score ??
+                      (token as unknown as { trustScore?: number }).trustScore ??
+                      0
+                    ).toFixed(2)}
                   </p>
                 </div>
               ))}
@@ -81,7 +91,7 @@ export function AgentManagementCard({
           )}
         </div>
 
-        <div className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/70 dark:bg-[#1E1E32]/60 p-4 space-y-3">
+        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
               Recent Events
@@ -90,16 +100,24 @@ export function AgentManagementCard({
           </div>
 
           {eventsErrorMessage ? (
-            <p className="text-sm text-red-600 dark:text-red-400">Event feed unavailable. {eventsErrorMessage}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Event feed unavailable. {eventsErrorMessage}
+            </p>
           ) : events.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No recent agent feedback events yet.</p>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              No recent agent feedback events yet.
+            </p>
           ) : (
             <div className="space-y-2">
               {events.slice(0, 3).map((event) => (
-                <div key={event.id} className="rounded-2xl border border-pink-100 dark:border-[#3D3D5C] bg-white/80 dark:bg-[#252540]/80 p-3">
+                <div
+                  key={event.id}
+                  className="rounded-2xl border border-pink-100 bg-white/80 p-3 dark:border-[#3D3D5C] dark:bg-[#252540]/80"
+                >
                   <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{event.summary}</p>
                   <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    {event.event_type.replaceAll('_', ' ')} · {formatSnapshotTimestamp(event.created_at)}
+                    {event.event_type.replaceAll('_', ' ')} ·{' '}
+                    {formatSnapshotTimestamp(event.created_at)}
                   </p>
                 </div>
               ))}
@@ -110,7 +128,10 @@ export function AgentManagementCard({
 
       {canDelete ? (
         <div className="flex justify-between gap-3">
-          <Link href="/tokens" className="inline-flex items-center text-sm font-medium text-pink-600 hover:text-pink-700">
+          <Link
+            href="/tokens"
+            className="inline-flex items-center text-sm font-medium text-pink-600 hover:text-pink-700"
+          >
             Manage Tokens
           </Link>
           <Button
@@ -119,7 +140,7 @@ export function AgentManagementCard({
             loading={isDeleting}
             onClick={onDelete}
             leftIcon={!isDeleting ? <Trash2 className="h-4 w-4" /> : undefined}
-            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+            className="border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50"
           >
             Delete {agent.name}
           </Button>
