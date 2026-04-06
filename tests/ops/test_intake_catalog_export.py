@@ -48,7 +48,10 @@ def test_generated_web_snapshot_matches_backend_export() -> None:
 def test_web_package_exposes_snapshot_refresh_script() -> None:
     package_json = (ROOT / "apps" / "control-plane-v3" / "package.json").read_text()
 
-    assert '"sync:contracts": "python3 ../../scripts/export-intake-catalog.py --write"' in package_json
+    assert (
+        '"sync:contracts": "../../.venv/bin/python ../../scripts/export-intake-catalog.py --write"'
+        in package_json
+    )
 
 
 def test_readme_documents_snapshot_refresh_and_drift_check() -> None:

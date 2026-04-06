@@ -14,6 +14,9 @@ from app.services.intake_catalog import get_intake_catalog  # noqa: E402
 
 FRONTEND_PACKAGE_JSON = ROOT / "apps" / "control-plane-v3" / "package.json"
 FRONTEND_SNAPSHOT_PATH = ROOT / "apps" / "control-plane-v3" / "src" / "lib" / "forms" / "generated" / "intake-catalog.json"
+EXPECTED_TEST_CONTRACTS_SCRIPT = (
+    '"test:contracts": "../../.venv/bin/python ../../scripts/check-intake-drift.py"'
+)
 
 
 def backend_contract_snapshot() -> dict:
@@ -42,7 +45,7 @@ def ensure_ci_runs_drift_check() -> list[str]:
         )
 
     package_json = FRONTEND_PACKAGE_JSON.read_text()
-    if '"test:contracts": "python3 ../../scripts/check-intake-drift.py"' not in package_json:
+    if EXPECTED_TEST_CONTRACTS_SCRIPT not in package_json:
         failures.append("apps/control-plane-v3/package.json must expose `test:contracts`.")
 
     return failures
