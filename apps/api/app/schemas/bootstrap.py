@@ -18,7 +18,7 @@ class BootstrapOwnerSetupRequest(BaseModel):
     bootstrap_key: str = Field(description="Bootstrap credential required for one-time owner setup.")
     email: str = Field(description="Owner email address.")
     display_name: str = Field(description="Human-readable owner display name.")
-    password: str = Field(description="Initial owner password.")
+    password: str = Field(min_length=12, description="Initial owner password.")
 
 
 class BootstrapAccountResponse(BaseModel):

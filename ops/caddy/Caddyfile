@@ -29,6 +29,19 @@
 		reverse_proxy api:8000
 	}
 
+	@metrics_private {
+		path /metrics
+		remote_ip private_ranges
+	}
+
+	handle @metrics_private {
+		reverse_proxy api:8000
+	}
+
+	handle /metrics {
+		respond "Not Found" 404
+	}
+
 	handle /mcp {
 		reverse_proxy api:8000
 	}

@@ -30,11 +30,14 @@ This guide covers the app team's single-host production baseline only. Managed d
 
 - Point `PUBLIC_HOST` at the production server before the first deploy.
 - Caddy terminates TLS automatically using `ACME_EMAIL`.
-- Keep `/metrics` on the API service for internal scraping; do not publish Postgres or Redis directly.
+- Caddy is the public ingress for the production stack, but `/metrics` stays limited to host-local or private-network callers so raw Prometheus data is not exposed on the public internet.
+- The deploy smoke checks still verify `/metrics` through Caddy from the deployment host itself.
+- Do not publish Postgres or Redis directly.
 - Keep the Caddy security headers in `ops/caddy/Caddyfile` enabled unless you have a replacement control upstream.
 - Review `.github/workflows/security.yml` before each release window if recent image security scan failures occurred.
+- If you customize `MANAGEMENT_SESSION_COOKIE_NAME`, set the same value for both the `api` and `web` services in `.env.production` so login, OpenAPI docs, and Next.js middleware stay aligned.
 
 ## Rollback
 
 - Re-run the deploy workflow with a known-good `image_tag`.
-- Confirm smoke checks and `/metrics` recover before closing the incident.
+- Confirm smoke checks and host-local `/metrics` recover before closing the incident.
