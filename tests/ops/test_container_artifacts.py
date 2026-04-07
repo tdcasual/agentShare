@@ -107,7 +107,7 @@ def test_prod_compose_uses_published_images() -> None:
 def test_production_env_template_includes_runtime_placeholders() -> None:
     env_example = (ROOT / "ops/compose/prod.env.example").read_text()
     assert "DATABASE_URL=" in env_example
-    assert "BOOTSTRAP_AGENT_KEY=" in env_example
+    assert "BOOTSTRAP_OWNER_KEY=" in env_example
     assert "MANAGEMENT_SESSION_SECRET=" in env_example
     assert "NEXT_PUBLIC_API_BASE_URL=" in env_example
     assert "API_IMAGE=" in env_example

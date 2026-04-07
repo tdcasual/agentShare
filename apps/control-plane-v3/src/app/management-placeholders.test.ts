@@ -16,12 +16,11 @@ describe('management placeholders', () => {
     const source = await readRouteSource('identities/page.tsx');
 
     expect(source).toMatch(/useAdminAccounts/);
-    expect(source).toMatch(/useAgentsWithTokens/);
-    expect(source).toMatch(
-      /persisted management accounts and registered agents from the\s+backend/
-    );
+    expect(source).toMatch(/useOpenClawAgents/);
+    expect(source).toMatch(/useOpenClawSessions/);
+    expect(source).toMatch(/OpenClaw-native agents/);
     expect(source).not.toMatch(/managed through the runtime system/);
-    expect(source).toMatch(/Management coverage/);
+    expect(source).toMatch(/OpenClaw coverage/);
     expect(source).not.toMatch(/\/demo\/identities/);
   });
 

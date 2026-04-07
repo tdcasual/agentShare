@@ -2,20 +2,20 @@
 
 This guide is for local development and day-to-day agent workflow discovery. For production deployment and operations, use `docs/guides/production-deployment.md` and `docs/guides/production-operations.md`.
 
-This guide is the shortest path from "I have an agent key" to "I can complete a task safely".
+This guide is the shortest path from "I have a management session" to "I can provision an OpenClaw agent runtime and complete a task safely".
 
 ## Preconditions
 
 - API base URL available at `http://127.0.0.1:8000`
-- A valid runtime agent key for task claim, invoke, and complete flows
-- A bootstrap management credential used only for session login (`BOOTSTRAP_AGENT_KEY`)
+- A persisted management operator account for session login
+- An OpenClaw runtime session key for task claim, invoke, and complete flows
 
 ## Route Policy At A Glance
 
 - Public:
   - `GET /healthz`
   - `/docs` and `/openapi.json`
-- Agent-authenticated runtime:
+- OpenClaw session-authenticated runtime:
   - `GET /api/agents/me`
   - `GET /api/tasks`
   - `POST /api/tasks/{task_id}/claim`
@@ -23,7 +23,7 @@ This guide is the shortest path from "I have an agent key" to "I can complete a 
   - `POST /api/capabilities/{capability_id}/invoke`
   - `POST /api/capabilities/{capability_id}/lease`
   - `POST /mcp`
-- Bootstrap login:
+- Management login:
   - `POST /api/session/login`
 - Management-session protected:
   - Any management role:
@@ -31,21 +31,22 @@ This guide is the shortest path from "I have an agent key" to "I can complete a 
   - `operator+`:
     `GET /api/approvals`, `POST /api/approvals/{approval_id}/approve`, `POST /api/approvals/{approval_id}/reject`
   - `admin+`:
-    `POST/GET /api/secrets`, `POST /api/capabilities`, `GET/POST /api/agents`
+    `POST/GET /api/secrets`, `POST /api/capabilities`, `GET/POST /api/agents`, `GET/POST /api/openclaw/agents`, `GET /api/openclaw/sessions`
   - `owner`:
-    `DELETE /api/agents/{agent_id}`
+    `DELETE /api/agents/{agent_id}`, `DELETE /api/openclaw/agents/{agent_id}`
 
 ## 1. Start A Management Session
 
 ```bash
 export ACP_BASE_URL=http://127.0.0.1:8000
-export BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key
 export ACP_COOKIE_JAR="$(mktemp -t acp-management-cookie.XXXXXX)"
+export ACP_ADMIN_EMAIL=owner@example.com
+export ACP_ADMIN_PASSWORD=changeme-owner-password
 
 curl -sS \
   -c "$ACP_COOKIE_JAR" \
   -H "Content-Type: application/json" \
-  -d "{\"bootstrap_key\":\"$BOOTSTRAP_AGENT_KEY\"}" \
+  -d "{\"email\":\"$ACP_ADMIN_EMAIL\",\"password\":\"$ACP_ADMIN_PASSWORD\"}" \
   "$ACP_BASE_URL/api/session/login"
 ```
 
@@ -53,31 +54,57 @@ Expected: `200 OK`, `status=authenticated`, a non-empty `session_id`, and a `man
 
 That cookie is not the only source of truth. The API now persists each management session server-side, so logout or incident-driven revocation can invalidate the cookie before its TTL expires.
 
-## 2. Create A Runtime Agent Key (Admin Management Path)
+## 2. Create An OpenClaw Agent Workspace (Admin Management Path)
 
 ```bash
 curl -sS \
   -b "$ACP_COOKIE_JAR" \
   -H "Content-Type: application/json" \
-  -d '{"name":"cli-agent","risk_tier":"medium","allowed_capability_ids":[],"allowed_task_types":["prompt_run","account_read"]}' \
-  "$ACP_BASE_URL/api/agents"
+  -d '{
+    "name":"cli-agent",
+    "workspace_root":"/srv/openclaw/cli-agent",
+    "agent_dir":".openclaw/agents/cli-agent",
+    "model":"gpt-5",
+    "thinking_level":"balanced",
+    "sandbox_mode":"workspace-write",
+    "risk_tier":"medium",
+    "allowed_capability_ids":[],
+    "allowed_task_types":["prompt_run","account_read"]
+  }' \
+  "$ACP_BASE_URL/api/openclaw/agents"
 ```
 
-Save the returned `api_key` as `ACP_AGENT_KEY`.
+Save the returned agent id as `OPENCLAW_AGENT_ID`.
 
-## 3. Verify Agent Identity (Runtime Path)
+## 3. Create A Runtime Session Key (Admin Management Path)
 
 ```bash
-export ACP_AGENT_KEY=replace-me
+export OPENCLAW_AGENT_ID=replace-me
+export ACP_SESSION_KEY=sess_cli_agent_primary
 
 curl -sS \
-  -H "Authorization: Bearer $ACP_AGENT_KEY" \
+  -b "$ACP_COOKIE_JAR" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"session_key\":\"$ACP_SESSION_KEY\",
+    \"display_name\":\"CLI Primary Session\",
+    \"channel\":\"chat\",
+    \"subject\":\"local quickstart\"
+  }" \
+  "$ACP_BASE_URL/api/openclaw/agents/$OPENCLAW_AGENT_ID/sessions"
+```
+
+## 4. Verify Agent Identity (Runtime Path)
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
   "$ACP_BASE_URL/api/agents/me"
 ```
 
-Expected: `200 OK`, with agent identity and allowlists.
+Expected: `200 OK`, with agent identity, session metadata, workspace hints, and allowlists.
 
-## 4. Create One Secret And One Capability (Admin Management Path)
+## 5. Create One Secret And One Capability (Admin Management Path)
 
 ```bash
 curl -sS \
@@ -122,7 +149,7 @@ If you are binding a GitHub token instead, set:
 - `adapter_type` to `github`
 - `adapter_config` to a narrow REST path such as `{"method":"GET","path":"/repos/{owner}/{repo}/issues"}`
 
-## 5. Publish One Task That Uses The Capability (Management Path)
+## 6. Publish One Task That Uses The Capability (Management Path)
 
 ```bash
 curl -sS \
@@ -143,24 +170,24 @@ Replace `capability-1` with your real capability id, then save the returned task
 
 This example keeps the task on `approval_mode="auto"` and makes the capability manual, which is enough to force a human approval at runtime. Setting the task to `manual` would create the same approval boundary.
 
-## 6. Claim The Task (Runtime)
+## 7. Claim The Task (Runtime)
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_AGENT_KEY" \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
   -X POST \
   "$ACP_BASE_URL/api/tasks/$TASK_ID/claim"
 ```
 
 Expected: `200 OK`, task moves to `claimed`, `claimed_by` is your agent.
 
-## 7. Invoke Capability Or Request Lease (Runtime)
+## 8. Invoke Capability Or Request Lease (Runtime)
 
 Proxy invoke:
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_AGENT_KEY" \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
   -H "Content-Type: application/json" \
   -d '{"task_id":"task-1","parameters":{"prompt":"hello"}}' \
   "$ACP_BASE_URL/api/capabilities/$CAPABILITY_ID/invoke"
@@ -187,7 +214,7 @@ Lease request (only when policy allows):
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_AGENT_KEY" \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
   -H "Content-Type: application/json" \
   -d '{"task_id":"task-1","purpose":"git cli access"}' \
   "$ACP_BASE_URL/api/capabilities/$CAPABILITY_ID/lease"
@@ -195,7 +222,7 @@ curl -sS \
 
 Current lease behavior: the response is an explicit metadata placeholder. It confirms the lease decision and expiry window, but does not return raw secret material or a derived session artifact.
 
-## 8. Review And Approve The Pending Request (Operator+ Management Path)
+## 9. Review And Approve The Pending Request (Operator+ Management Path)
 
 List the current queue:
 
@@ -221,7 +248,7 @@ Replace `approval-123` with the request id returned by the pending-approvals lis
 
 The same queue is available in the web console at `/approvals` after logging in through `/login`.
 
-## 9. Retry The Same Runtime Action
+## 10. Retry The Same Runtime Action
 
 After approval, retry the exact invoke or lease call. A successful approval converts the manual boundary into a temporary allow decision for that task, capability, and action type.
 
@@ -237,11 +264,11 @@ Management routes may also enforce role boundaries. `operator` can review approv
 
 That keeps adapter behavior explicit without leaking the secret or raw credential material.
 
-## 10. Complete Task (Runtime)
+## 11. Complete Task (Runtime)
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_AGENT_KEY" \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
   -H "Content-Type: application/json" \
   -d '{"result_summary":"Completed","output_payload":{"ok":true}}' \
   -X POST \
@@ -250,7 +277,7 @@ curl -sS \
 
 ## Common Failure Codes
 
-- `401`: Missing/invalid bearer token or missing/invalid management session cookie.
+- `401`: Missing/invalid OpenClaw session key or missing/invalid management session cookie.
 - `403`: Authenticated but outside policy scope (task type, capability allowlist, ownership, management route boundary, or lease restrictions).
 - `404`: Referenced task/capability/secret not found.
 - `409`: State conflict, usually task claim/completion races or `approval_required` for manual approval boundaries.

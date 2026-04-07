@@ -76,11 +76,11 @@ def test_create_app_lifespan_uses_runtime_from_app_state(tmp_path):
 
     app = create_app(Settings(
         database_url=f"sqlite:///{primary_db}",
-        bootstrap_agent_key=bootstrap_key,
+        bootstrap_owner_key=bootstrap_key,
     ))
     runtime_settings = Settings(
         database_url=f"sqlite:///{runtime_db}",
-        bootstrap_agent_key=bootstrap_key,
+        bootstrap_owner_key=bootstrap_key,
     )
     app.state.settings = runtime_settings
     app.state.runtime = build_runtime(runtime_settings)
@@ -93,7 +93,7 @@ def test_create_app_lifespan_uses_runtime_from_app_state(tmp_path):
 
     primary_runtime = build_runtime(Settings(
         database_url=f"sqlite:///{primary_db}",
-        bootstrap_agent_key=bootstrap_key,
+        bootstrap_owner_key=bootstrap_key,
     ))
     primary_tables = set(inspect(primary_runtime.engine).get_table_names())
 
@@ -104,7 +104,7 @@ def test_runtime_database_supports_bootstrap_token_target_feedback_flow(tmp_path
     db_path = tmp_path / "runtime-flow.db"
     settings = Settings(
         database_url=f"sqlite:///{db_path}",
-        bootstrap_agent_key="bootstrap-key-xyz",
+        bootstrap_owner_key="bootstrap-key-xyz",
         management_session_secret="session-secret",
     )
     app = create_app(settings)

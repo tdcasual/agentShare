@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
     response_model=ReviewQueueResponse,
     tags=["Management"],
     summary="List pending review items",
-    description="Return governed assets that were created by runtime tokens and are awaiting human review. Requires an operator-or-higher management role.",
+    description="Return governed assets that were created by authenticated runtime agents and are awaiting human review. Requires an operator-or-higher management role.",
 )
 def list_reviews_route(
     manager: ManagementIdentity = Depends(require_management_action("reviews:list")),

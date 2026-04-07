@@ -12,11 +12,14 @@ from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
 from app.repositories.agent_repo import AgentRepository
 from app.repositories.agent_token_repo import AgentTokenRepository
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
+from app.repositories.openclaw_session_repo import OpenClawSessionRepository
 from app.services.agent_token_service import (
     hash_token,
     is_token_active,
     touch_agent_token,
 )
+from app.services.openclaw_runtime_service import build_runtime_principal
 from app.services.policy_service import ensure_management_action_allowed
 from app.services.session_service import authenticate_management_session_token
 
@@ -56,6 +59,12 @@ class AuthenticatedActor(BaseModel):
 
 
 def resolve_agent_from_api_key(api_key: str, session: Session) -> AgentIdentity | None:
+    openclaw_session = OpenClawSessionRepository(session).find_by_session_key(api_key)
+    if openclaw_session is not None:
+        openclaw_agent = OpenClawAgentRepository(session).get(openclaw_session.agent_id)
+        if openclaw_agent is not None and openclaw_agent.status == "active":
+            return build_runtime_principal(agent=openclaw_agent, session=openclaw_session)
+
     key_hash = hash_token(api_key)
     token_repo = AgentTokenRepository(session)
     token_model = token_repo.find_by_token_hash(key_hash)

@@ -69,7 +69,7 @@ describe('hub page', () => {
           event_type: 'task_completed',
           subject_type: 'task',
           subject_id: 'task-1',
-          summary: 'Bootstrap completed Sync Config',
+          summary: 'Bootstrap Credential completed Sync Config',
           details: 'Published follow-up feedback',
           created_at: '2026-03-31T00:00:00.000Z',
           updated_at: '2026-03-31T00:00:00.000Z',
@@ -109,7 +109,7 @@ describe('hub page', () => {
       agents: [
         {
           id: 'bootstrap',
-          name: 'Bootstrap Agent',
+          name: 'Bootstrap Credential',
           risk_tier: 'high',
           auth_method: 'api_key',
           status: 'active',
@@ -166,9 +166,14 @@ describe('hub page', () => {
     });
 
     expect(screen.getByText('Alice Operator')).toBeInTheDocument();
-    expect(screen.getByText('Bootstrap Agent')).toBeInTheDocument();
+    expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
     expect(screen.getByText('Bootstrap Primary')).toBeInTheDocument();
     expect(screen.getByText('agent.market.capability')).toBeInTheDocument();
-    expect(screen.getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
+    expect(screen.getByText('Bootstrap Credential completed Sync Config')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Counts and activity below come from backend-backed identity, review, remote agent access, and event queries/i
+      )
+    ).toBeInTheDocument();
   });
 });

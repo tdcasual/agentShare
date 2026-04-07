@@ -196,7 +196,7 @@ function TasksContent() {
       if (taskForm.target_mode === 'explicit_tokens' && taskForm.target_token_ids.length === 0) {
         throw new Error(
           t('tasks.errors.noTargetTokens') ||
-            'Choose at least one target token or switch to broadcast mode.'
+            'Choose at least one remote access token or switch to broadcast mode.'
         );
       }
 
@@ -298,7 +298,7 @@ function TasksContent() {
             </h1>
             <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">
               {t('tasks.description') ||
-                'Publish work to specific runtime tokens, watch completion per token, and close the loop with feedback.'}
+                'Publish work to specific remote access tokens, watch completion per token, and close the loop with feedback for off-project agents.'}
             </p>
           </div>
         </div>
@@ -345,8 +345,8 @@ function TasksContent() {
               Human follow-up queue
             </h2>
             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-              Track which token-targeted runs are still in flight and which completed targets still
-              need explicit feedback from a human supervisor.
+              Track which remote-token-targeted runs are still in flight and which completed targets
+              still need explicit feedback from a human supervisor for remote agent supervision.
             </p>
           </div>
 
@@ -399,8 +399,8 @@ function TasksContent() {
               {selectedTask.task.title}
             </h2>
             <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-              {selectedTask.targets.length} targeted token
-              {selectedTask.targets.length === 1 ? '' : 's'} linked to this task.
+              {selectedTask.targets.length} targeted access token
+              {selectedTask.targets.length === 1 ? '' : 's'} linked to this remote-access task.
             </p>
           </div>
         </Card>
@@ -440,7 +440,7 @@ function TasksContent() {
 
       {gateLoading || isLoading ? (
         <Card className="text-gray-600 dark:text-[#9CA3AF]">
-          {t('tasks.loading') || 'Loading targeted tasks, token runs, and feedback...'}
+          {t('tasks.loading') || 'Loading targeted tasks, remote token runs, and feedback...'}
         </Card>
       ) : null}
 
@@ -455,7 +455,7 @@ function TasksContent() {
             </h2>
             <p className="text-gray-600 dark:text-[#9CA3AF]">
               {t('tasks.empty.description') ||
-                'Create a task and target it to one or more runtime tokens from this page.'}
+                'Create a task and target it to one or more remote access tokens from this page.'}
             </p>
           </div>
         </Card>
@@ -570,7 +570,7 @@ function TasksContent() {
         title={t('tasks.publishTask') || 'Publish task'}
         description={
           t('tasks.publishTaskDescription') ||
-          'Choose the concrete runtime tokens that should receive this work.'
+          'Choose the concrete remote access tokens that should receive this work.'
         }
         size="lg"
       >
@@ -633,7 +633,7 @@ function TasksContent() {
               </p>
               <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                 {t('tasks.form.targetModeDescription') ||
-                  'Explicit targets let you see completion by token directly.'}
+                  'Explicit targets let you see completion by remote token directly.'}
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
@@ -653,7 +653,8 @@ function TasksContent() {
                   {t('tasks.form.explicitTokens') || 'Explicit tokens'}
                 </p>
                 <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  {t('tasks.form.explicitTokensDesc') || 'Send only to chosen tokens.'}
+                  {t('tasks.form.explicitTokensDesc') ||
+                    'Send only to chosen remote access tokens.'}
                 </p>
               </button>
               <button
@@ -676,7 +677,8 @@ function TasksContent() {
                   {t('tasks.form.broadcast') || 'Broadcast'}
                 </p>
                 <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  {t('tasks.form.broadcastDesc') || 'Snapshot all active tokens at publish time.'}
+                  {t('tasks.form.broadcastDesc') ||
+                    'Snapshot all active remote access tokens at publish time.'}
                 </p>
               </button>
             </div>
@@ -689,14 +691,15 @@ function TasksContent() {
                   {t('tasks.form.targetTokens') || 'Target tokens'}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  {t('tasks.form.targetTokensDescription') || 'Choose one or more managed tokens.'}
+                  {t('tasks.form.targetTokensDescription') ||
+                    'Choose one or more managed remote access tokens.'}
                 </p>
               </div>
               <div className="grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-pink-100 bg-pink-50/30 p-4">
                 {allTokens.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                     {t('tasks.form.noTokensAvailable') ||
-                      'No managed tokens available yet. Create one from the Tokens page first.'}
+                      'No managed remote access tokens available yet. Create one from the Remote Access page first.'}
                   </p>
                 ) : (
                   allTokens.map((token) => (

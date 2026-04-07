@@ -13,7 +13,7 @@ from app.repositories.agent_repo import AgentRepository
 from app.services.agent_token_service import hash_token
 
 
-BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
+BOOTSTRAP_OWNER_KEY = "bootstrap-test-token"
 OWNER_EMAIL = "owner@example.com"
 OWNER_PASSWORD = "correct horse battery staple"
 ROLE_TEST_AGENT_KEY = "role-test-agent-key"
@@ -25,7 +25,7 @@ def management_client_for_role(tmp_path: Path, role: str, *, database_name: str 
         _env_file=None,
         app_env="development",
         database_url=f"sqlite:///{tmp_path / (database_name or f'{role}.db')}",
-        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
         management_session_secret="session-secret",
     )
     app = create_app(settings)
@@ -66,7 +66,7 @@ def management_client_for_role(tmp_path: Path, role: str, *, database_name: str 
             bootstrap = client.post(
                 "/api/bootstrap/setup-owner",
                 json={
-                    "bootstrap_key": BOOTSTRAP_AGENT_KEY,
+                    "bootstrap_key": BOOTSTRAP_OWNER_KEY,
                     "email": OWNER_EMAIL,
                     "display_name": "Founding Owner",
                     "password": OWNER_PASSWORD,

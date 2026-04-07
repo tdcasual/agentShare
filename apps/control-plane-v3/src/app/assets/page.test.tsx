@@ -64,7 +64,7 @@ describe('assets page', () => {
       agents: [
         {
           id: 'agent-1',
-          name: 'Bootstrap Agent',
+          name: 'Bootstrap Credential',
         },
       ],
       tokensByAgent: {

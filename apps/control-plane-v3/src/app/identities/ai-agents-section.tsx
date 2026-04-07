@@ -1,8 +1,4 @@
-/**
- * AI Agents Section Component
- */
-
-import { ChevronDown, ChevronUp, Bot } from 'lucide-react';
+import { Bot, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -11,15 +7,16 @@ import {
   isForbiddenError,
   isUnauthorizedError,
 } from '@/lib/management-session-recovery';
+import { EmptyState, SectionError, SectionLoading } from './components';
 import { AgentManagementCard } from './agent-management-card';
-import { EmptyState, SectionLoading, SectionError } from './components';
-import type { Agent, AgentToken } from '@/domains/identity';
+import type { OpenClawAgent, OpenClawSession } from '@/domains/identity';
 import type { Event } from '@/domains/event';
 
 export interface AIAgentsSectionProps {
-  agents: Agent[];
-  filteredAgents: Agent[];
-  tokensByAgent: Record<string, AgentToken[]>;
+  agents: OpenClawAgent[];
+  filteredAgents: OpenClawAgent[];
+  sessionsByAgent: Record<string, OpenClawSession[]>;
+  sessionsErrorMessage: string | null;
   eventCounts: Record<string, number>;
   events: Event[];
   eventsErrorMessage: string | null;
@@ -41,7 +38,8 @@ export interface AIAgentsSectionProps {
 export function AIAgentsSection({
   agents,
   filteredAgents,
-  tokensByAgent,
+  sessionsByAgent,
+  sessionsErrorMessage,
   eventCounts,
   events,
   eventsErrorMessage,
@@ -65,38 +63,55 @@ export function AIAgentsSection({
     <Card variant="feature" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">AI Agents</h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            Agent Workspaces
+          </h2>
           <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-            Registered agent identities from `/api/agents`
+            Workspace and runtime records from `/api/openclaw/agents` and `/api/openclaw/sessions`
           </p>
         </div>
         <Badge variant="agent">{agents.length}</Badge>
       </div>
 
       {isLoading ? (
-        <SectionLoading message="Loading agents..." />
+        <SectionLoading message="Loading OpenClaw agents..." />
       ) : shouldShowSessionExpired && isUnauthorizedError(error) ? (
-        <ManagementSessionRecoveryNotice message="Sign in again to reload agents." />
+        <ManagementSessionRecoveryNotice message="Sign in again to reload OpenClaw agents." />
       ) : shouldShowForbidden && isForbiddenError(error) ? (
-        <ManagementSessionRecoveryNotice message="An admin session is required to manage agent identities." />
+        <ManagementSessionRecoveryNotice message="An admin session is required to manage OpenClaw identities." />
       ) : errorMessage ? (
         <SectionError
-          message={`Agent data is temporarily unavailable. ${errorMessage}`}
-          actionLabel="Retry agents"
+          message={`OpenClaw agent data is temporarily unavailable. ${errorMessage}`}
+          actionLabel="Retry OpenClaw data"
           onRetry={onRetry}
           isRefreshing={isRefreshing}
         />
       ) : agents.length === 0 ? (
-        <EmptyState icon={<Bot className="h-6 w-6" />} message="No agents are registered yet." />
+        <EmptyState
+          icon={<Bot className="h-6 w-6" />}
+          message="No OpenClaw agents are registered yet."
+        />
       ) : filteredAgents.length === 0 ? (
         <EmptyState
           icon={<Bot className="h-6 w-6" />}
-          message={`No AI agents match "${searchQuery.trim()}".`}
+          message={`No OpenClaw agents match "${searchQuery.trim()}".`}
         />
       ) : (
         <div className="space-y-3">
+          {sessionsErrorMessage ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+              Session history is temporarily unavailable. {sessionsErrorMessage}
+            </div>
+          ) : null}
+
+          {eventsErrorMessage ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+              Recent event feed is temporarily unavailable. {eventsErrorMessage}
+            </div>
+          ) : null}
+
           {filteredAgents.map((agent) => {
-            const linkedTokens = tokensByAgent[agent.id] ?? [];
+            const sessions = sessionsByAgent[agent.id] ?? [];
             const feedbackCount = eventCounts[agent.id] ?? 0;
             const isExpanded = expandedAgents.includes(agent.id);
 
@@ -104,22 +119,25 @@ export function AIAgentsSection({
               <AgentCard
                 key={agent.id}
                 agent={agent}
-                linkedTokens={linkedTokens}
+                sessions={sessions}
                 feedbackCount={feedbackCount}
                 isExpanded={isExpanded}
                 isFocused={agent.id === focusedAgentId}
                 onToggleExpand={() => onToggleExpand(agent.id)}
               >
-                {isExpanded && (
+                {isExpanded ? (
                   <AgentManagementCard
                     agent={agent}
+                    recentSession={sessions[0] ?? null}
+                    sessionCount={sessions.length}
+                    sessionErrorMessage={sessionsErrorMessage}
                     canDelete={canDelete}
                     events={events.filter((event) => event.actor_id === agent.id)}
                     eventsErrorMessage={eventsErrorMessage}
                     isDeleting={deletingAgentId === agent.id}
                     onDelete={() => onDelete(agent.id)}
                   />
-                )}
+                ) : null}
               </AgentCard>
             );
           })}
@@ -130,8 +148,8 @@ export function AIAgentsSection({
 }
 
 interface AgentCardProps {
-  agent: Agent;
-  linkedTokens: AgentToken[];
+  agent: OpenClawAgent;
+  sessions: OpenClawSession[];
   feedbackCount: number;
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -141,7 +159,7 @@ interface AgentCardProps {
 
 function AgentCard({
   agent,
-  linkedTokens,
+  sessions,
   feedbackCount,
   isExpanded,
   onToggleExpand,
@@ -164,28 +182,18 @@ function AgentCard({
           <p className="break-all text-sm text-gray-500 dark:text-[#9CA3AF]">{agent.id}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="secondary">
-              {linkedTokens.length} linked token{linkedTokens.length === 1 ? '' : 's'}
+              {sessions.length} live session{sessions.length === 1 ? '' : 's'}
             </Badge>
             <Badge variant="secondary">
-              {feedbackCount} recent feedback event{feedbackCount === 1 ? '' : 's'}
+              {feedbackCount} recent event{feedbackCount === 1 ? '' : 's'}
             </Badge>
           </div>
-          {linkedTokens.length > 0 ? (
-            <p className="mt-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
-              {linkedTokens
-                .slice(0, 2)
-                .map(
-                  (token) =>
-                    token.display_name ??
-                    (token as unknown as { displayName?: string }).displayName ??
-                    token.id
-                )
-                .join(' · ')}
-            </p>
-          ) : null}
+          <p className="mt-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
+            {agent.model ?? 'default model'} · {agent.thinking_level}
+          </p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
-          <Badge variant="agent">{agent.risk_tier}</Badge>
+          <Badge variant="agent">{agent.sandbox_mode}</Badge>
           <Badge variant="info">{agent.auth_method}</Badge>
           <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
         </div>

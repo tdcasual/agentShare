@@ -5,17 +5,18 @@ import { ApiError } from '@/lib/api-client';
 import IdentitiesPage from './page';
 
 let mockSearchParams = new URLSearchParams();
-const useManagementSessionGateMock = vi.fn();
+const useManagementPageSessionRecoveryMock = vi.fn();
 const useAdminAccountsMock = vi.fn();
-const useAgentsWithTokensMock = vi.fn();
-const useAgentTokensMock = vi.fn();
+const useOpenClawAgentsMock = vi.fn();
+const useOpenClawSessionsMock = vi.fn();
+const useOpenClawFilesMock = vi.fn();
 const useEventsMock = vi.fn();
-const useDeleteAgentMock = vi.fn();
-const deleteAgentMock = vi.fn();
+const useDeleteOpenClawAgentMock = vi.fn();
+const deleteOpenClawAgentMock = vi.fn();
 const refreshSessionMock = vi.fn();
 const refreshAdminAccountsMock = vi.fn();
-const refreshAgentsMock = vi.fn();
-const refreshAgentsWithTokensMock = vi.fn();
+const refreshOpenClawAgentsMock = vi.fn();
+const refreshOpenClawSessionsMock = vi.fn();
 const refreshEventsMock = vi.fn();
 
 vi.mock('next/link', () => ({
@@ -31,27 +32,38 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-vi.mock('@/components/route-guard', () => ({
-  ManagementRouteGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
 vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('@/lib/session', () => ({
-  useManagementSessionGate: () => useManagementSessionGateMock(),
-}));
+vi.mock('@/lib/management-session-recovery', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/management-session-recovery')>(
+    '@/lib/management-session-recovery'
+  );
+
+  return {
+    ...actual,
+    useManagementPageSessionRecovery: (...args: unknown[]) =>
+      useManagementPageSessionRecoveryMock(...args),
+    ManagementSessionExpiredAlert: ({ message }: { message: string }) => (
+      <div role="alert">{message}</div>
+    ),
+    ManagementForbiddenAlert: ({ message }: { message: string }) => (
+      <div role="alert">{message}</div>
+    ),
+  };
+});
 
 vi.mock('@/domains/identity', () => ({
   useAdminAccounts: () => useAdminAccountsMock(),
-  useAgentsWithTokens: () => useAgentsWithTokensMock(),
-  useAgentTokens: (agentId: string | null) => useAgentTokensMock(agentId),
-  useDeleteAgent: () => useDeleteAgentMock(),
+  useOpenClawAgents: () => useOpenClawAgentsMock(),
+  useOpenClawSessions: () => useOpenClawSessionsMock(),
+  useOpenClawFiles: (agentId: string | null) => useOpenClawFilesMock(agentId),
+  useDeleteOpenClawAgent: () => useDeleteOpenClawAgentMock(),
   refreshSession: () => refreshSessionMock(),
   refreshAdminAccounts: () => refreshAdminAccountsMock(),
-  refreshAgents: () => refreshAgentsMock(),
-  refreshAgentsWithTokens: () => refreshAgentsWithTokensMock(),
+  refreshOpenClawAgents: () => refreshOpenClawAgentsMock(),
+  refreshOpenClawSessions: () => refreshOpenClawSessionsMock(),
 }));
 
 vi.mock('@/domains/event', () => ({
@@ -64,13 +76,17 @@ describe('identities page', () => {
     vi.clearAllMocks();
     mockSearchParams = new URLSearchParams();
 
-    useManagementSessionGateMock.mockReturnValue({
+    useManagementPageSessionRecoveryMock.mockReturnValue({
       session: {
         email: 'owner@example.com',
         role: 'owner',
       },
       loading: false,
       error: null,
+      shouldShowForbidden: false,
+      shouldShowSessionExpired: false,
+      clearAllAuthErrors: vi.fn(),
+      consumeUnauthorized: vi.fn().mockReturnValue(false),
     });
 
     useAdminAccountsMock.mockReturnValue({
@@ -100,58 +116,90 @@ describe('identities page', () => {
       error: null,
     });
 
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [
-        {
-          id: 'bootstrap',
-          name: 'Bootstrap Agent',
-          risk_tier: 'high',
-          auth_method: 'api_key',
-          status: 'active',
-          created_at: '2026-03-31T00:00:00.000Z',
-          updated_at: '2026-03-31T00:00:00.000Z',
-        },
-        {
-          id: 'analyzer',
-          name: 'Analyzer Agent',
-          risk_tier: 'medium',
-          auth_method: 'oauth',
-          status: 'inactive',
-          created_at: '2026-03-31T00:00:00.000Z',
-          updated_at: '2026-03-31T00:00:00.000Z',
-        },
-      ],
-      tokensByAgent: {
-        bootstrap: [
+    useOpenClawAgentsMock.mockReturnValue({
+      data: {
+        items: [
           {
-            id: 'token-bootstrap',
-            display_name: 'Bootstrap Primary',
+            id: 'bootstrap',
+            name: 'Bootstrap Credential',
             status: 'active',
-            trust_score: 0.92,
-            created_at: '2026-03-31T00:00:00.000Z',
+            auth_method: 'openclaw_session',
+            risk_tier: 'high',
+            workspace_root: '/srv/openclaw/bootstrap',
+            agent_dir: '.openclaw/agents/bootstrap',
+            model: 'gpt-5',
+            thinking_level: 'high',
+            sandbox_mode: 'workspace-write',
+            tools_policy: { mode: 'allowlist', tools: ['shell', 'git'] },
+            skills_policy: { mode: 'allowlist', skills: ['deploy', 'docs'] },
+            allowed_task_types: ['config_sync', 'prompt_run'],
+            allowed_capability_ids: ['cap-deploy'],
+          },
+          {
+            id: 'analyzer',
+            name: 'Analyzer Agent',
+            status: 'inactive',
+            auth_method: 'openclaw_session',
+            risk_tier: 'medium',
+            workspace_root: '/srv/openclaw/analyzer',
+            agent_dir: '.openclaw/agents/analyzer',
+            model: 'gpt-5-mini',
+            thinking_level: 'balanced',
+            sandbox_mode: 'read-only',
+            tools_policy: { mode: 'monitor', tools: ['search'] },
+            skills_policy: {},
+            allowed_task_types: ['account_read'],
+            allowed_capability_ids: [],
           },
         ],
-        analyzer: [],
       },
       isLoading: false,
       error: null,
     });
 
-    useAgentTokensMock.mockReturnValue({
+    useOpenClawSessionsMock.mockReturnValue({
       data: {
         items: [
           {
-            id: 'token-bootstrap',
-            display_name: 'Bootstrap Primary',
-            status: 'active',
-            trust_score: 0.92,
-            created_at: '2026-03-31T00:00:00.000Z',
+            id: 'session-bootstrap',
+            agent_id: 'bootstrap',
+            session_key: 'sess_bootstrap_primary',
+            display_name: 'Primary Bootstrap Session',
+            channel: 'chat',
+            subject: 'deployment triage',
+            transcript_metadata: {},
+            input_tokens: 1200,
+            output_tokens: 340,
+            context_tokens: 4096,
+            updated_at: '2026-03-31T12:00:00.000Z',
           },
         ],
       },
       isLoading: false,
       error: null,
     });
+
+    useOpenClawFilesMock.mockImplementation((agentId: string | null) => ({
+      data: {
+        items:
+          agentId === 'bootstrap'
+            ? [
+                {
+                  agent_id: 'bootstrap',
+                  file_name: 'AGENTS.md',
+                  content: '# Bootstrap Credential\n\nOpenClaw workspace instructions.',
+                },
+                {
+                  agent_id: 'bootstrap',
+                  file_name: 'workspace.json',
+                  content: '{"workspace":"bootstrap"}',
+                },
+              ]
+            : [],
+      },
+      isLoading: false,
+      error: null,
+    }));
 
     useEventsMock.mockReturnValue({
       events: [
@@ -162,10 +210,10 @@ describe('identities page', () => {
           event_type: 'task_completed',
           subject_type: 'task',
           subject_id: 'task-1',
-          summary: 'Bootstrap completed Sync Config',
+          summary: 'Bootstrap Credential completed Sync Config',
           details: 'Published follow-up feedback',
-          created_at: '2026-03-31T00:00:00.000Z',
-          updated_at: '2026-03-31T00:00:00.000Z',
+          created_at: '2026-03-31T12:30:00.000Z',
+          updated_at: '2026-03-31T12:30:00.000Z',
         },
       ],
       isLoading: false,
@@ -173,11 +221,11 @@ describe('identities page', () => {
       mutate: vi.fn(),
     });
 
-    deleteAgentMock.mockResolvedValue({ status: 'deleted', id: 'bootstrap' });
-    useDeleteAgentMock.mockReturnValue(deleteAgentMock);
+    deleteOpenClawAgentMock.mockResolvedValue({ status: 'deleted', id: 'bootstrap' });
+    useDeleteOpenClawAgentMock.mockReturnValue(deleteOpenClawAgentMock);
   });
 
-  it('filters human and agent lists locally from the search query', async () => {
+  it('filters human and openclaw agent lists locally from the search query', async () => {
     const user = userEvent.setup();
 
     render(<IdentitiesPage />);
@@ -185,10 +233,11 @@ describe('identities page', () => {
     expect(screen.getByText('Alice Operator')).toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
 
-    await user.type(screen.getByRole('searchbox', { name: /search identities/i }), 'analyzer');
+    await user.type(screen.getByRole('searchbox', { name: /search identities/i }), 'read-only');
 
     expect(screen.queryByText('Alice Operator')).not.toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
+    expect(screen.queryByText('Bootstrap Credential')).not.toBeInTheDocument();
     expect(screen.getByText(/No human operators match/i)).toBeInTheDocument();
   });
 
@@ -196,7 +245,8 @@ describe('identities page', () => {
     const user = userEvent.setup();
     refreshSessionMock.mockResolvedValue(undefined);
     refreshAdminAccountsMock.mockResolvedValue(undefined);
-    refreshAgentsWithTokensMock.mockResolvedValue(undefined);
+    refreshOpenClawAgentsMock.mockResolvedValue(undefined);
+    refreshOpenClawSessionsMock.mockResolvedValue(undefined);
     refreshEventsMock.mockResolvedValue(undefined);
 
     render(<IdentitiesPage />);
@@ -206,119 +256,96 @@ describe('identities page', () => {
     await waitFor(() => {
       expect(refreshSessionMock).toHaveBeenCalledTimes(1);
       expect(refreshAdminAccountsMock).toHaveBeenCalledTimes(1);
-      expect(refreshAgentsWithTokensMock).toHaveBeenCalledTimes(1);
+      expect(refreshOpenClawAgentsMock).toHaveBeenCalledTimes(1);
+      expect(refreshOpenClawSessionsMock).toHaveBeenCalledTimes(1);
       expect(refreshEventsMock).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('offers a retry action when backend loading fails', async () => {
-    const user = userEvent.setup();
-    refreshSessionMock.mockResolvedValue(undefined);
-    refreshAgentsWithTokensMock.mockResolvedValue(undefined);
-
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [],
-      tokensByAgent: {},
+  it('keeps agent cards visible when session data is temporarily unavailable', () => {
+    useOpenClawSessionsMock.mockReturnValue({
+      data: { items: [] },
       isLoading: false,
-      error: new Error('Agents backend unavailable'),
+      error: new Error('Sessions backend unavailable'),
     });
 
     render(<IdentitiesPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Agents backend unavailable');
-
-    await user.click(screen.getByRole('button', { name: /retry agents/i }));
-
-    await waitFor(() => {
-      expect(refreshSessionMock).not.toHaveBeenCalled();
-      expect(refreshAdminAccountsMock).not.toHaveBeenCalled();
-      expect(refreshAgentsWithTokensMock).toHaveBeenCalledTimes(1);
-    });
+    expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
+    expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
+    expect(screen.getByText(/Session history is temporarily unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sessions backend unavailable/i)).toBeInTheDocument();
   });
 
-  it('keeps the healthy section visible when only agent data fails', async () => {
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [],
-      tokensByAgent: {},
-      isLoading: false,
-      error: new Error('Agents backend unavailable'),
-    });
-
-    render(<IdentitiesPage />);
-
-    expect(screen.getByText('Founding Owner')).toBeInTheDocument();
-    expect(screen.getByText(/Agent data is temporarily unavailable/i)).toBeInTheDocument();
-    expect(screen.queryByText('Bootstrap Agent')).not.toBeInTheDocument();
-  });
-
-  it('reveals operator details when the details toggle is expanded', async () => {
+  it('reveals openclaw runtime details, files, sessions, and recent events when expanded', async () => {
     const user = userEvent.setup();
 
     render(<IdentitiesPage />);
 
-    await user.click(screen.getByRole('button', { name: /view details for founding owner/i }));
+    await user.click(
+      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+    );
 
-    expect(screen.getByText('Account ID')).toBeInTheDocument();
-    expect(screen.getByText('admin-owner')).toBeInTheDocument();
-    expect(screen.getByText('Never signed in')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /hide details for founding owner/i })
-    ).toBeInTheDocument();
+    expect(screen.getByText('Workspace Root')).toBeInTheDocument();
+    expect(screen.getAllByText('/srv/openclaw/bootstrap').length).toBeGreaterThan(0);
+    expect(screen.getByText('Agent Directory')).toBeInTheDocument();
+    expect(screen.getAllByText('.openclaw/agents/bootstrap').length).toBeGreaterThan(0);
+    expect(screen.getByText('Tool Policy')).toBeInTheDocument();
+    expect(screen.getByText(/allowlist/i)).toBeInTheDocument();
+    expect(screen.getByText('Allowed Task Types')).toBeInTheDocument();
+    expect(screen.getByText('config_sync, prompt_run')).toBeInTheDocument();
+    expect(screen.getByText('Allowed Capability IDs')).toBeInTheDocument();
+    expect(screen.getByText('cap-deploy')).toBeInTheDocument();
+    expect(screen.getByText('Primary Bootstrap Session')).toBeInTheDocument();
+    expect(screen.getByText('AGENTS.md')).toBeInTheDocument();
+    expect(screen.getByText('Bootstrap Credential completed Sync Config')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /manage tokens/i })).not.toBeInTheDocument();
   });
 
-  it('frames humans as supervisors and agents as self-maintained identities', () => {
-    render(<IdentitiesPage />);
-
-    expect(
-      screen.getByText(/Human operators supervise policy, approvals, and account hygiene/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /Agents maintain their own execution identity, while humans can still inspect and manage their status/i
-      )
-    ).toBeInTheDocument();
-  });
-
-  it('shows token and feedback coverage for agents before details are expanded', () => {
-    render(<IdentitiesPage />);
-
-    expect(screen.getByText('1 linked token')).toBeInTheDocument();
-    expect(screen.getByText('1 recent feedback event')).toBeInTheDocument();
-    expect(screen.getByText('0 linked tokens')).toBeInTheDocument();
-  });
-
-  it('replaces the demo placeholder with a live supervision coverage summary', () => {
-    render(<IdentitiesPage />);
-
-    expect(screen.getByText(/Management coverage/i)).toBeInTheDocument();
-    expect(screen.getByText(/Agents with linked tokens/i)).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /try demo version/i })).not.toBeInTheDocument();
-  });
-
-  it('shows related tokens and recent events for an expanded agent', async () => {
+  it('lets owners delete an openclaw agent from the management view', async () => {
     const user = userEvent.setup();
 
     render(<IdentitiesPage />);
 
-    await user.click(screen.getByRole('button', { name: /view details for bootstrap agent/i }));
+    await user.click(
+      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+    );
+    await user.click(screen.getByRole('button', { name: /delete bootstrap credential/i }));
 
-    expect(screen.getAllByText('Bootstrap Primary').length).toBeGreaterThan(0);
-    expect(screen.getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
-  });
-
-  it('lets owners delete an agent from the management view', async () => {
-    const user = userEvent.setup();
-
-    render(<IdentitiesPage />);
-
-    await user.click(screen.getByRole('button', { name: /view details for bootstrap agent/i }));
-    await user.click(screen.getByRole('button', { name: /delete bootstrap agent/i }));
-
-    expect(deleteAgentMock).toHaveBeenCalledWith('bootstrap');
+    expect(deleteOpenClawAgentMock).toHaveBeenCalledWith('bootstrap');
   });
 
   it('shows a relogin recovery state when refresh hits an expired session', async () => {
     const user = userEvent.setup();
+    const consumeUnauthorizedMock = vi.fn().mockImplementation((error: unknown) => {
+      if (error instanceof ApiError && error.status === 401) {
+        useManagementPageSessionRecoveryMock.mockReturnValue({
+          session: null,
+          loading: false,
+          error:
+            'Your management session has expired. Sign in again to keep working with live identity data.',
+          shouldShowForbidden: false,
+          shouldShowSessionExpired: true,
+          clearAllAuthErrors: vi.fn(),
+          consumeUnauthorized: consumeUnauthorizedMock,
+        });
+        return true;
+      }
+      return false;
+    });
+
+    useManagementPageSessionRecoveryMock.mockReturnValue({
+      session: {
+        email: 'owner@example.com',
+        role: 'owner',
+      },
+      loading: false,
+      error: null,
+      shouldShowForbidden: false,
+      shouldShowSessionExpired: false,
+      clearAllAuthErrors: vi.fn(),
+      consumeUnauthorized: consumeUnauthorizedMock,
+    });
     refreshSessionMock.mockRejectedValue(new ApiError(401, 'Missing management session'));
 
     render(<IdentitiesPage />);
@@ -326,72 +353,25 @@ describe('identities page', () => {
     await user.click(screen.getByRole('button', { name: /refresh snapshot/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getAllByRole('alert')[0]).toHaveTextContent(
+        'Your management session has expired'
+      );
     });
-
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
-      'href',
-      '/login'
-    );
   });
 
-  it('shows a relogin recovery state when backend queries return unauthorized', () => {
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [],
-      tokensByAgent: {},
-      isLoading: false,
-      error: new ApiError(401, 'Missing management session'),
-    });
-
-    render(<IdentitiesPage />);
-
-    expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
-      'href',
-      '/login'
-    );
-  });
-
-  it('shows a forbidden-specific state when backend queries return forbidden', () => {
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [],
-      tokensByAgent: {},
-      isLoading: false,
-      error: new ApiError(403, 'Forbidden'),
-    });
-
-    render(<IdentitiesPage />);
-
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
-  });
-
-  it('highlights and expands the focused agent from the query string', () => {
+  it('highlights and expands the focused openclaw agent from the query string', () => {
     mockSearchParams = new URLSearchParams('agentId=bootstrap');
 
     render(<IdentitiesPage />);
 
     expect(screen.getByText('Focused identity')).toBeInTheDocument();
+    expect(screen.getByText(/OpenClaw agent · bootstrap/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /hide details for bootstrap agent/i })
+      screen.getByRole('button', { name: /hide details for bootstrap credential/i })
     ).toBeInTheDocument();
     expect(screen.getByTestId('agent-card-bootstrap')).toHaveAttribute(
       'data-focus-state',
       'focused'
     );
-  });
-
-  it('offers explicit account and token management handoff actions inside identity details', async () => {
-    const user = userEvent.setup();
-
-    render(<IdentitiesPage />);
-
-    await user.click(screen.getByRole('button', { name: /view details for founding owner/i }));
-    await user.click(screen.getByRole('button', { name: /view details for bootstrap agent/i }));
-
-    expect(screen.getByRole('link', { name: /manage in settings/i })).toHaveAttribute(
-      'href',
-      '/settings'
-    );
-    expect(screen.getByRole('link', { name: /manage tokens/i })).toHaveAttribute('href', '/tokens');
   });
 });

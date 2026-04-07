@@ -1,24 +1,29 @@
-# Admin Bootstrap And Token Operations
+# Admin Bootstrap, OpenClaw Sessions, And Token Operations
 
 This guide describes the management access model introduced for the control plane:
 
 - the bootstrap credential is single-use and only for first-run owner creation;
 - public registration closes immediately after bootstrap;
 - daily human management uses persisted email/password accounts and short-lived session cookies;
-- runtime agents authenticate with managed tokens that can be minted, revoked, targeted, reviewed, and scored.
+- in-project OpenClaw runtimes authenticate with management-created session keys;
+- external or off-project agents authenticate with managed tokens that can be minted, revoked, targeted, reviewed, and scored.
 
 ## Access Model
 
-There are now two distinct operator entrypoints:
+There are now three distinct access paths:
 
 - Human management accounts:
   - first owner is created once with `POST /api/bootstrap/setup-owner`
   - later admins are invited with `POST /api/admin-accounts`
   - humans log in through `POST /api/session/login`
-- Agent runtime tokens:
-  - agents are created with `POST /api/agents`
-  - each agent can have one or more managed tokens under `POST /api/agents/{agent_id}/tokens`
-  - runtime task execution continues to use `Authorization: Bearer <token>`
+- In-project OpenClaw runtimes:
+  - OpenClaw agents are created with `POST /api/openclaw/agents`
+  - each OpenClaw agent can have one or more sessions under `POST /api/openclaw/agents/{agent_id}/sessions`
+  - internal runtime execution uses `Authorization: Bearer <session_key>`
+- External remote-agent access:
+  - remote agent profiles are created with `POST /api/agents`
+  - each remote agent can have one or more managed tokens under `POST /api/agents/{agent_id}/tokens`
+  - remote task execution continues to use `Authorization: Bearer <token>`
 
 After bootstrap finishes, no public self-registration path remains.
 
@@ -68,6 +73,8 @@ The response sets a `management_session` cookie. Reuse that cookie for managemen
 - `POST /api/session/logout`
 - `GET /api/admin-accounts`
 - `POST /api/admin-accounts`
+- `GET /api/openclaw/agents`
+- `POST /api/openclaw/agents`
 - `GET /api/agents`
 - `POST /api/agents`
 - `GET /api/reviews`
@@ -101,9 +108,55 @@ Behavior in this mode:
 The fixture data is stored in the real local database, so management routes still read backend truth instead of frontend-only placeholders.
 Event search results now open `/inbox?eventId=...`, letting operators inspect the event first and then follow its action target from the inbox card.
 
-## Managed Agent Tokens
+## OpenClaw Runtime Sessions
 
-Creating an agent also creates its primary runtime token:
+Create an in-project OpenClaw agent workspace:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/openclaw/agents \
+  -H 'Content-Type: application/json' \
+  -H 'Cookie: management_session=...' \
+  -d '{
+    "name": "deploy-bot",
+    "workspace_root": "/srv/openclaw/deploy-bot",
+    "agent_dir": ".openclaw/agents/deploy-bot",
+    "model": "gpt-5",
+    "thinking_level": "balanced",
+    "sandbox_mode": "workspace-write",
+    "risk_tier": "medium",
+    "allowed_task_types": ["config_sync", "account_read"]
+  }'
+```
+
+Create a session key for that OpenClaw runtime:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/openclaw/agents/openclaw-agent-123/sessions \
+  -H 'Content-Type: application/json' \
+  -H 'Cookie: management_session=...' \
+  -d '{
+    "session_key": "sess_deploy_bot_primary",
+    "display_name": "Deploy Bot Primary Session",
+    "channel": "chat",
+    "subject": "production rollout"
+  }'
+```
+
+Useful management routes:
+
+- `GET /api/openclaw/agents`
+- `GET /api/openclaw/agents/{agent_id}`
+- `PATCH /api/openclaw/agents/{agent_id}`
+- `GET /api/openclaw/agents/{agent_id}/sessions`
+- `POST /api/openclaw/agents/{agent_id}/sessions`
+- `GET /api/openclaw/sessions`
+- `GET /api/openclaw/sessions/{session_id}`
+- `GET /api/openclaw/agents/{agent_id}/files`
+- `PUT /api/openclaw/agents/{agent_id}/files/{file_name}`
+
+## External Remote-Agent Tokens
+
+Creating a remote agent profile also creates its primary remote-access token:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/agents \
@@ -124,13 +177,13 @@ The response includes:
 - `token_id`
 - `token_prefix`
 
-Mint additional managed tokens per agent:
+Mint additional managed tokens per remote agent:
 
 - `GET /api/agents/{agent_id}/tokens`
 - `POST /api/agents/{agent_id}/tokens`
 - `POST /api/agent-tokens/{token_id}/revoke`
 
-Token records now keep operational aggregates:
+Token records now keep remote-access aggregates:
 
 - `completed_runs`
 - `successful_runs`
@@ -163,9 +216,9 @@ Each review item keeps provenance fields such as:
 - `reviewed_by_actor_id`
 - `reviewed_at`
 
-## Token-Targeted Tasks And Feedback
+## Remote-Agent Task Targeting And Feedback
 
-Tasks can now target runtime tokens explicitly:
+Tasks can target remote-access tokens explicitly:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/tasks \
@@ -187,7 +240,7 @@ Relevant routes:
 - `POST /api/task-targets/{target_id}/complete`
 - `GET /api/runs`
 
-Recorded run data now links executions back to both the runtime token and the concrete task target:
+Recorded run data now links executions back to both the remote access token and the concrete task target:
 
 - `token_id`
 - `task_target_id`
@@ -199,9 +252,11 @@ Human operators can leave feedback on completed task targets:
 
 Feedback records then roll up into token-level trust metrics.
 
+These token-targeted task routes are for external remote agents. OpenClaw in-project runtimes continue to authenticate with `session_key` and are tracked through the OpenClaw session inventory.
+
 ## Recommended Local Verification
 
-After changing the bootstrap/token workflow, run:
+After changing bootstrap, OpenClaw runtime, or remote-token workflows, run:
 
 ```bash
 PYTHONPATH=apps/api .venv/bin/pytest apps/api/tests -q

@@ -42,10 +42,11 @@ describe('Control Plane Pages', () => {
     const source = await readRouteSource('identities/page.tsx');
 
     expect(source).toMatch(/useAdminAccounts/);
-    expect(source).toMatch(/useAgentsWithTokens/);
+    expect(source).toMatch(/useOpenClawAgents/);
+    expect(source).toMatch(/useOpenClawSessions/);
     expect(source).toMatch(/useManagementPageSessionRecovery|useManagementSessionGate/);
     expect(source).not.toMatch(/managed through the runtime system/);
-    expect(source).toMatch(/Management coverage/);
+    expect(source).toMatch(/OpenClaw coverage/);
   });
 
   it('global search is wired to backend grouped search instead of mock suggestions', async () => {

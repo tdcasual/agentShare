@@ -4,6 +4,7 @@ from app.repositories.catalog_release_repo import CatalogReleaseRepository
 from app.repositories.agent_repo import AgentRepository
 from app.repositories.capability_repo import CapabilityRepository
 from app.repositories.event_repo import EventRepository
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
 from app.services.control_plane_links import (
@@ -30,7 +31,7 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
         for release in CatalogReleaseRepository(session).list_filtered(release_status="published")
     }
 
-    agent_matches = [
+    legacy_agent_matches = [
         {
             "id": agent.id,
             "kind": "agent",
@@ -40,7 +41,42 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
         }
         for agent in AgentRepository(session).list_all()
         if _matches(normalized_query, agent.id, agent.name, agent.status, agent.risk_tier)
-    ][:limit_per_group]
+    ]
+
+    openclaw_agent_matches = [
+        {
+            "id": agent.id,
+            "kind": "agent",
+            "title": agent.name,
+            "subtitle": (
+                f"{agent.id} · {agent.status} · sandbox {agent.sandbox_mode} · "
+                f"model {agent.model or 'default'}"
+            ),
+            "href": build_identity_href(agent_id=agent.id),
+        }
+        for agent in OpenClawAgentRepository(session).list_all()
+        if _matches(
+            normalized_query,
+            agent.id,
+            agent.name,
+            agent.status,
+            agent.workspace_root,
+            agent.agent_dir,
+            agent.sandbox_mode,
+            agent.model,
+            agent.thinking_level,
+        )
+    ]
+
+    seen_identity_ids: set[str] = set()
+    agent_matches = []
+    for item in [*openclaw_agent_matches, *legacy_agent_matches]:
+        if item["id"] in seen_identity_ids:
+            continue
+        seen_identity_ids.add(item["id"])
+        agent_matches.append(item)
+        if len(agent_matches) >= limit_per_group:
+            break
 
     task_matches = [
         {

@@ -26,8 +26,8 @@ router = APIRouter()
     "/api/agents/{agent_id}/tokens",
     response_model=AgentTokenListResponse,
     tags=["Management"],
-    summary="List agent tokens",
-    description="Return all managed tokens attached to an agent identity.",
+    summary="List remote-access tokens",
+    description="Return all managed remote-access tokens attached to an external agent identity.",
 )
 def list_agent_tokens_route(
     agent_id: str,
@@ -49,8 +49,8 @@ def list_agent_tokens_route(
     response_model=AgentTokenResponse,
     status_code=status.HTTP_201_CREATED,
     tags=["Management"],
-    summary="Mint an agent token",
-    description="Create a new managed runtime token for the given agent.",
+    summary="Mint a remote-access token",
+    description="Create a new managed remote-access token for the given external agent profile.",
 )
 def create_agent_token_route(
     agent_id: str,
@@ -81,8 +81,8 @@ def create_agent_token_route(
     "/api/agent-tokens/{token_id}/revoke",
     response_model=AgentTokenRevokeResponse,
     tags=["Management"],
-    summary="Revoke an agent token",
-    description="Revoke a managed runtime token without deleting its parent agent.",
+    summary="Revoke a remote-access token",
+    description="Revoke a managed remote-access token without deleting its parent external agent profile.",
 )
 def revoke_agent_token_route(
     token_id: str,

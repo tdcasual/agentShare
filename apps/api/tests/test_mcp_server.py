@@ -39,14 +39,14 @@ def test_mcp_initialize_and_list_tools(client):
 
     assert tools_response.status_code == 200
     tool_names = {tool["name"] for tool in tools_response.json()["result"]["tools"]}
-    assert tool_names == {
-        "list_tasks",
-        "claim_task",
-        "complete_task",
-        "search_playbooks",
-        "invoke_capability",
-        "request_capability_lease",
-    }
+    assert {
+        "tasks.list",
+        "tasks.claim",
+        "tasks.complete",
+        "playbooks.search",
+        "capabilities.invoke",
+        "capabilities.request_lease",
+    }.issubset(tool_names)
 
 
 def test_mcp_claim_complete_and_search_playbooks_tools(client, management_client):

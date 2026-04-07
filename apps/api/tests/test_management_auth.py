@@ -2,7 +2,7 @@ from app.orm.agent import AgentIdentityModel
 from app.repositories.agent_repo import AgentRepository
 from app.services.session_service import revoke_management_session
 
-from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY
+from conftest import BOOTSTRAP_OWNER_KEY, TEST_AGENT_KEY
 
 
 def _auth_header(key: str) -> dict[str, str]:
@@ -31,7 +31,7 @@ def test_secret_routes_require_management_session_cookie_or_runtime_agent(client
 def test_management_bootstrap_bearer_no_longer_authorizes(client):
     response = client.post(
         "/api/secrets",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
+        headers=_auth_header(BOOTSTRAP_OWNER_KEY),
         json={
             "display_name": "OpenAI prod key",
             "kind": "api_token",
@@ -45,11 +45,11 @@ def test_management_bootstrap_bearer_no_longer_authorizes(client):
 def test_bootstrap_bearer_cannot_access_runtime_routes(client):
     agent_me = client.get(
         "/api/agents/me",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
+        headers=_auth_header(BOOTSTRAP_OWNER_KEY),
     )
     assigned = client.get(
         "/api/tasks/assigned",
-        headers=_auth_header(BOOTSTRAP_AGENT_KEY),
+        headers=_auth_header(BOOTSTRAP_OWNER_KEY),
     )
 
     assert agent_me.status_code == 401

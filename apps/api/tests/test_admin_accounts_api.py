@@ -17,7 +17,7 @@ def make_client(tmp_path) -> TestClient:
         _env_file=None,
         app_env="development",
         database_url=f"sqlite:///{db_path}",
-        bootstrap_agent_key=BOOTSTRAP_KEY,
+        bootstrap_owner_key=BOOTSTRAP_KEY,
         management_session_secret="session-secret",
     )
     app = create_app(settings)

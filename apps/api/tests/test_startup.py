@@ -7,7 +7,7 @@ from sqlalchemy import inspect, text
 from app.repositories.agent_repo import AgentRepository
 
 
-CURRENT_ALEMBIC_HEAD = "20260405_01"
+CURRENT_ALEMBIC_HEAD = "20260407_01"
 
 
 def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
@@ -25,6 +25,10 @@ def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
         "agent_tokens",
         "human_accounts",
         "management_sessions",
+        "openclaw_agents",
+        "openclaw_agent_files",
+        "openclaw_sessions",
+        "openclaw_tool_bindings",
         "system_settings",
         "secrets",
         "pending_secret_materials",
@@ -48,7 +52,7 @@ def test_app_startup_runs_current_baseline_only(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-baseline.db"
     bootstrap_key = "bootstrap-key-xyz"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", bootstrap_key)
+    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", bootstrap_key)
 
     from app import db as db_module
     from app import main as main_module
@@ -71,7 +75,7 @@ def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-seed.db"
     bootstrap_key = "bootstrap-key-xyz"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", bootstrap_key)
+    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", bootstrap_key)
 
     from app import db as db_module
     from app import main as main_module
@@ -94,7 +98,7 @@ def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
 def test_app_startup_refreshes_bootstrap_agent_hash_when_config_changes(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-bootstrap-refresh.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", "old-bootstrap-key")
+    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", "old-bootstrap-key")
 
     from app import db as db_module
     from app import main as main_module
@@ -105,7 +109,7 @@ def test_app_startup_refreshes_bootstrap_agent_hash_when_config_changes(monkeypa
     with TestClient(main_module.app) as client:
         assert client.get("/healthz").status_code == 200
 
-    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", "new-bootstrap-key")
+    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", "new-bootstrap-key")
     main_module = importlib.reload(main_module)
 
     with TestClient(main_module.app) as client:
@@ -124,7 +128,7 @@ def test_app_startup_bootstrap_route_initializes_once(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-bootstrap-route.db"
     bootstrap_key = "bootstrap-key-xyz"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", bootstrap_key)
+    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", bootstrap_key)
     monkeypatch.setenv("MANAGEMENT_SESSION_SECRET", "session-secret")
 
     from app import db as db_module
@@ -166,7 +170,7 @@ def test_app_startup_bootstrap_route_initializes_once(monkeypatch, tmp_path):
 def test_app_startup_can_seed_demo_fixture_data(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-demo-seed.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("BOOTSTRAP_AGENT_KEY", "bootstrap-key-xyz")
+    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", "bootstrap-key-xyz")
     monkeypatch.setenv("MANAGEMENT_SESSION_SECRET", "session-secret")
     monkeypatch.setenv("DEMO_SEED_ENABLED", "true")
 

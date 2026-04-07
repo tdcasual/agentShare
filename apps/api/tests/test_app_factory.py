@@ -35,7 +35,7 @@ def test_create_app_runs_bootstrap_initializer_once(monkeypatch, tmp_path):
     def fake_initializer(settings: Settings, session_factory) -> None:
         calls.append(settings)
 
-    monkeypatch.setattr("app.factory.ensure_bootstrap_agent", fake_initializer)
+    monkeypatch.setattr("app.factory.ensure_bootstrap_credential", fake_initializer)
 
     app = create_app(Settings(database_url=f"sqlite:///{db_path}"))
     with TestClient(app):
@@ -68,7 +68,7 @@ def test_create_app_accepts_prebuilt_runtime_without_rebuilding(tmp_path, monkey
     db_path = tmp_path / "prebuilt-runtime.db"
     settings = Settings(
         database_url=f"sqlite:///{db_path}",
-        bootstrap_agent_key="runtime-bootstrap-key",
+        bootstrap_owner_key="runtime-bootstrap-key",
     )
     runtime = build_runtime(settings)
 
@@ -86,11 +86,11 @@ def test_create_app_accepts_prebuilt_runtime_without_rebuilding(tmp_path, monkey
 def test_create_app_rejects_conflicting_settings_and_runtime(tmp_path):
     settings = Settings(
         database_url=f"sqlite:///{tmp_path / 'settings.db'}",
-        bootstrap_agent_key="settings-bootstrap-key",
+        bootstrap_owner_key="settings-bootstrap-key",
     )
     runtime = build_runtime(Settings(
         database_url=f"sqlite:///{tmp_path / 'runtime.db'}",
-        bootstrap_agent_key="runtime-bootstrap-key",
+        bootstrap_owner_key="runtime-bootstrap-key",
     ))
 
     try:

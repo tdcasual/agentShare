@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DEFAULT_BOOTSTRAP_AGENT_KEY = "changeme-bootstrap-key"
+DEFAULT_BOOTSTRAP_OWNER_KEY = "changeme-bootstrap-key"
 DEFAULT_MANAGEMENT_SESSION_SECRET = "changeme-management-session-secret"
 ManagementRole = Literal["viewer", "operator", "admin", "owner"]
 
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     )
     openbao_mount: str = "secret"
     openbao_prefix: str = "agent-share"
-    bootstrap_agent_key: str = DEFAULT_BOOTSTRAP_AGENT_KEY
+    bootstrap_owner_key: str = DEFAULT_BOOTSTRAP_OWNER_KEY
     management_session_secret: str = DEFAULT_MANAGEMENT_SESSION_SECRET
     management_session_cookie_name: str = "management_session"
     management_session_ttl_seconds: int = 60 * 60 * 12
@@ -55,8 +55,8 @@ class Settings(BaseSettings):
                 "OpenBao credentials are required in staging/production when SECRET_BACKEND=openbao."
             )
 
-        if self.is_production_like() and self.bootstrap_agent_key == DEFAULT_BOOTSTRAP_AGENT_KEY:
-            raise ValueError("Production settings must not use the default bootstrap agent key.")
+        if self.is_production_like() and self.bootstrap_owner_key == DEFAULT_BOOTSTRAP_OWNER_KEY:
+            raise ValueError("Production settings must not use the default bootstrap owner key.")
 
         if self.is_production_like() and self.management_session_secret == DEFAULT_MANAGEMENT_SESSION_SECRET:
             raise ValueError("Production settings must not use the default management session secret.")

@@ -13,7 +13,7 @@ from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CURRENT_ALEMBIC_HEAD = "20260405_01"
+CURRENT_ALEMBIC_HEAD = "20260407_01"
 
 
 def _run_alembic_upgrade(database_url: str, revision: str) -> None:
@@ -32,14 +32,17 @@ def _run_alembic_upgrade(database_url: str, revision: str) -> None:
     )
 
 
-def test_alembic_versions_directory_contains_single_baseline_revision() -> None:
+def test_alembic_versions_directory_contains_current_baseline_and_openclaw_followup_revision() -> None:
     version_files = sorted(
         path.name
         for path in (ROOT / "apps/api/alembic/versions").glob("*.py")
         if path.name != "__init__.py"
     )
 
-    assert version_files == ["20260405_01_clean_baseline.py"]
+    assert version_files == [
+        "20260405_01_clean_baseline.py",
+        "20260407_01_openclaw_native_agents.py",
+    ]
 
 
 def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
@@ -56,6 +59,10 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
             "agent_tokens",
             "human_accounts",
             "management_sessions",
+            "openclaw_agents",
+            "openclaw_agent_files",
+            "openclaw_sessions",
+            "openclaw_tool_bindings",
             "system_settings",
             "secrets",
             "pending_secret_materials",
@@ -92,6 +99,16 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
         assert any(
             constraint["column_names"] == ["resource_kind", "resource_id", "version"]
             for constraint in catalog_release_constraints
+        )
+        openclaw_session_constraints = inspector.get_unique_constraints("openclaw_sessions")
+        assert any(
+            constraint["column_names"] == ["session_key"]
+            for constraint in openclaw_session_constraints
+        )
+        openclaw_tool_binding_constraints = inspector.get_unique_constraints("openclaw_tool_bindings")
+        assert any(
+            constraint["column_names"] == ["agent_id", "name"]
+            for constraint in openclaw_tool_binding_constraints
         )
 
         with engine.connect() as connection:
@@ -155,6 +172,22 @@ def test_migrate_db_does_not_reset_custom_sqlite_paths_when_revision_history_is_
 
     assert custom_db_path.read_text() == "keep me"
     assert not list(tmp_path.glob("*.pre-baseline*.db"))
+
+
+def test_openclaw_followup_migration_creates_workspace_session_and_tool_tables(tmp_path) -> None:
+    db_path = tmp_path / "openclaw-followup.db"
+    database_url = f"sqlite:///{db_path}"
+
+    _run_alembic_upgrade(database_url, "head")
+
+    engine = create_engine(database_url)
+    try:
+        inspector = inspect(engine)
+        assert {"openclaw_agents", "openclaw_agent_files", "openclaw_sessions", "openclaw_tool_bindings"}.issubset(
+            set(inspector.get_table_names())
+        )
+    finally:
+        engine.dispose()
 
 
 def test_pytest_database_fixture_uses_migrated_schema(db_session) -> None:

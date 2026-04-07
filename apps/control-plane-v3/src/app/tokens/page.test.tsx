@@ -49,7 +49,7 @@ describe('tokens page', () => {
       agents: [
         {
           id: 'bootstrap',
-          name: 'Bootstrap Agent',
+          name: 'Bootstrap Credential',
           risk_tier: 'high',
           auth_method: 'api_key',
           status: 'active',
@@ -203,6 +203,9 @@ describe('tokens page', () => {
 
     render(<TokensPage />);
 
+    expect(screen.getByText(/Remote access supervision/i)).toBeInTheDocument();
+    expect(screen.getByText(/external machines and off-project agents/i)).toBeInTheDocument();
+
     expect(screen.getByText('1 token needs feedback')).toBeInTheDocument();
     expect(screen.getByText('1 low-trust token')).toBeInTheDocument();
 
@@ -221,5 +224,15 @@ describe('tokens page', () => {
 
     expect(screen.queryByText('Primary Token')).not.toBeInTheDocument();
     expect(screen.getByText('Risk Scan Token')).toBeInTheDocument();
+  });
+
+  it('frames tokens as remote external access instead of internal runtime identity', () => {
+    render(<TokensPage />);
+
+    expect(screen.getByText(/Remote access supervision/i)).toBeInTheDocument();
+    expect(screen.getByText(/external machines and off-project agents/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Creating an agent automatically mints its primary token/i)
+    ).not.toBeInTheDocument();
   });
 });

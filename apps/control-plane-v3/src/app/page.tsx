@@ -170,8 +170,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           <span>Live management snapshot for human supervisors and registered agents.</span>
           <span className="text-gray-300">•</span>
           <span>
-            Counts and activity below come from backend-backed identity, review, token, and event
-            queries.
+            Counts and activity below come from backend-backed identity, review, remote agent
+            access, and event queries.
           </span>
         </div>
       </Card>
@@ -298,7 +298,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                         ))}
                         {(tokensByAgent[agent.id] ?? []).length === 0 ? (
                           <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">
-                            No linked tokens
+                            No remote access tokens
                           </span>
                         ) : null}
                       </div>

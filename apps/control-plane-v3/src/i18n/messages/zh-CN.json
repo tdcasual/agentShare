@@ -8,7 +8,7 @@
     "identities": "身份",
     "assets": "资产",
     "spaces": "空间",
-    "tokens": "令牌",
+    "tokens": "远程接入",
     "tasks": "任务",
     "reviews": "审核",
     "marketplace": "市场",
@@ -76,27 +76,27 @@
     }
   },
   "tokens": {
-    "title": "令牌管理",
-    "subtitle": "邀请制管理已激活",
-    "description": "引导现在进入人类登录，然后进入每个智能体的托管运行时令牌生命周期。",
+    "title": "远程智能体接入",
+    "subtitle": "供外部智能体使用的远程接入",
+    "description": "为远程智能体注册接入档案并签发访问令牌，让外部机器和项目外 agent 能够获取项目信息、发布交付物并参与协作流程。",
     "metrics": {
-      "activeAgents": "活跃智能体",
-      "activeTokens": "活跃令牌",
+      "activeAgents": "远程智能体",
+      "activeTokens": "活跃访问令牌",
       "averageTrust": "平均信任分",
       "tokensWithFeedback": "有反馈的令牌"
     },
     "actions": {
-      "createAgent": "创建智能体",
-      "mintToken": "铸造令牌",
+      "createAgent": "注册远程智能体",
+      "mintToken": "签发访问令牌",
       "refresh": "刷新",
       "revoke": "撤销"
     },
     "agent": {
-      "noAgents": "还没有智能体",
-      "createFirst": "从此控制台创建第一个托管智能体及其主运行时令牌。",
+      "noAgents": "还没有远程智能体",
+      "createFirst": "从此控制台注册第一个远程智能体档案及其主访问令牌。",
       "riskTier": "风险等级",
       "authMethod": "认证方式",
-      "noTokens": "此智能体还没有活跃的托管令牌。"
+      "noTokens": "此远程智能体还没有活跃的访问令牌。"
     },
     "token": {
       "lastUsed": "最后使用",
@@ -107,7 +107,7 @@
       "successfulRuns": "成功运行",
       "issuer": "发行者",
       "oneTimeReveal": "一次性展示",
-      "copyToken": "复制令牌"
+      "copyToken": "复制访问令牌"
     }
   },
   "reviews": {
@@ -149,16 +149,16 @@
     "checkingStatus": "正在检查引导状态和当前管理会话...",
     "signedInAs": "登录为",
     "withRole": "角色为",
-    "access": "访问权限。引导、令牌、审核和任务现已全部上线。",
-    "openTokenOps": "打开令牌操作",
+    "access": "访问权限。引导、远程接入、审核和任务现已全部上线。",
+    "openTokenOps": "打开远程接入",
     "inviteOnly": "仅限邀请管理",
     "publicRegistrationClosed": "首次运行所有者引导后，公开注册已关闭。",
-    "runtimeTokens": "运行时令牌与人类会话分开管理。",
+    "runtimeTokens": "远程接入令牌与人类会话和项目内 OpenClaw 会话分开管理。",
     "stats": {
       "humansTrend": "本周邀请了 +1",
-      "agentsTrend": "由令牌管理",
+      "agentsTrend": "集群内托管",
       "tokensTrend": "发行、撤销、审核",
-      "tasksTrend": "令牌目标流程"
+      "tasksTrend": "远程令牌目标流程"
     },
     "activity": {
       "completedTask": "完成了任务",
@@ -169,7 +169,7 @@
     "recentActivity": "最近活动",
     "quickActions": "快速操作",
     "publishTask": "发布任务",
-    "manageTokens": "管理令牌",
+    "manageTokens": "管理远程接入",
     "reviewQueue": "审核队列",
     "inviteAdmin": "邀请管理员",
     "onlineNow": "在线中",
@@ -271,7 +271,7 @@
       "riskLevel": "风险等级",
       "allowedMode": "调用模式",
       "accessPolicy": "可见范围",
-      "accessPolicyDesc": "选择 capability 对哪些运行时 token 可见。默认对所有 token 开放，也可以收敛到指定 token、指定 agent 或标签选择器。",
+      "accessPolicyDesc": "选择哪些外部远程接入 token 可以看到此 capability。默认对所有 token 开放，也可以收敛到指定 token、指定 agent 或标签选择器。",
       "noTokens": "当前没有可选 token。",
       "tokenRequiredError": "选择指定 token 时，至少需要勾选一个 token。",
       "create": "创建 capability"
@@ -438,25 +438,25 @@
   },
   "tasks": {
     "title": "任务编排",
-    "tokenTargetedDelivery": "令牌定向交付",
-    "description": "将工作发布到特定的运行时令牌，观察每个令牌的完成情况，并通过反馈闭环。",
+    "tokenTargetedDelivery": "远程接入定向分发",
+    "description": "将工作发布到特定远程接入令牌，观察每个令牌的完成情况，并为项目外 agent 通过反馈闭环。",
     "loadError": "加载任务仪表板失败",
-    "loading": "正在加载定向任务、令牌运行和反馈...",
+    "loading": "正在加载定向任务、远程令牌运行和反馈...",
     "errors": {
-      "noTargetTokens": "至少选择一个目标令牌或切换到广播模式。",
+      "noTargetTokens": "至少选择一个远程接入令牌或切换到广播模式。",
       "createFailed": "创建任务失败",
       "feedbackFailed": "保存反馈失败"
     },
     "metrics": {
       "publishedTasks": "已发布任务",
-      "targetedTokens": "目标令牌",
+      "targetedTokens": "目标接入令牌",
       "completedTargets": "已完成目标",
       "feedbackRecords": "反馈记录"
     },
     "hints": {
       "publishedTasks": "当前可见的活跃任务",
-      "targetedTokens": "显式令牌分配",
-      "completedTargets": "令牌关联的运行记录",
+      "targetedTokens": "显式远程接入分配",
+      "completedTargets": "远程令牌关联的运行记录",
       "feedbackRecords": "已完成工作的人工审核记录"
     },
     "feedbackSummary": "反馈摘要",
@@ -464,13 +464,13 @@
     "avg": "平均",
     "noFeedback": "暂无反馈",
     "targetsCompleted": "目标已完成",
-    "targetTokens": "目标令牌",
-    "noTokenTargets": "无令牌目标",
+    "targetTokens": "目标接入令牌",
+    "noTokenTargets": "没有目标接入令牌",
     "publishTask": "发布任务",
-    "publishTaskDescription": "选择应接收此工作的具体运行时令牌。",
+    "publishTaskDescription": "选择应接收此工作的具体远程接入令牌。",
     "empty": {
       "title": "尚未发布任务",
-      "description": "从此页面创建任务并将其定向到一个或多个运行时令牌。"
+      "description": "从此页面创建任务并将其定向到一个或多个远程接入令牌。"
     },
     "priorities": {
       "low": "低",
@@ -486,20 +486,20 @@
       "priority": "优先级",
       "inputPayload": "输入负载 (JSON)",
       "targetMode": "目标模式",
-      "targetModeDescription": "显式目标让您可以直接按令牌查看完成情况。",
-      "explicitTokens": "显式令牌",
-      "explicitTokensDesc": "仅发送到选定的令牌。",
+      "targetModeDescription": "显式目标让您可以直接按远程令牌查看完成情况。",
+      "explicitTokens": "显式远程令牌",
+      "explicitTokensDesc": "仅发送到选定的远程接入令牌。",
       "broadcast": "广播",
-      "broadcastDesc": "发布时快照所有活跃令牌。",
-      "targetTokens": "目标令牌",
-      "targetTokensDescription": "选择一个或多个托管令牌。",
-      "noTokensAvailable": "暂无托管令牌可用。请先从令牌页面创建一个。",
+      "broadcastDesc": "发布时快照所有活跃远程接入令牌。",
+      "targetTokens": "目标接入令牌",
+      "targetTokensDescription": "选择一个或多个托管远程接入令牌。",
+      "noTokensAvailable": "暂无托管远程接入令牌可用。请先从远程接入页面创建一个。",
       "trust": "信任",
       "score": "分数",
       "verdict": "裁决",
       "verdictPlaceholder": "已接受",
       "summary": "摘要",
-      "summaryPlaceholder": "指出哪些做得好、哪些需要改变，以及该令牌是否应该被信任以执行类似的工作。"
+      "summaryPlaceholder": "指出哪些做得好、哪些需要改变，以及该远程接入令牌是否应该被信任以执行类似的工作。"
     },
     "inputPayload": "输入负载",
     "publishingContext": "发布上下文",

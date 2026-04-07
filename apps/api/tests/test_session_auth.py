@@ -6,7 +6,7 @@ from app.repositories.audit_repo import AuditEventRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.services.session_service import revoke_management_session
 from conftest import (
-    BOOTSTRAP_AGENT_KEY,
+    BOOTSTRAP_OWNER_KEY,
     OWNER_EMAIL,
     bootstrap_owner_account,
     login_management_account,
@@ -106,7 +106,7 @@ def test_revoked_management_cookie_is_rejected(anonymous_client, db_session):
 def test_management_login_uses_runtime_cookie_name(tmp_path):
     settings = Settings(
         database_url=f"sqlite:///{tmp_path / 'cookie.db'}",
-        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
         management_session_secret="session-secret",
         management_session_cookie_name="ops_session",
     )
@@ -124,7 +124,7 @@ def test_management_login_uses_runtime_cookie_name(tmp_path):
 def test_management_login_sets_secure_cookie_when_enabled(tmp_path):
     settings = Settings(
         database_url=f"sqlite:///{tmp_path / 'secure-cookie.db'}",
-        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
         management_session_secret="session-secret",
         management_session_secure=True,
     )
@@ -141,7 +141,7 @@ def test_management_login_sets_secure_cookie_when_enabled(tmp_path):
 def test_management_login_returns_bootstrapped_owner_identity(tmp_path):
     settings = Settings(
         database_url=f"sqlite:///{tmp_path / 'operator.db'}",
-        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
         management_session_secret="session-secret",
     )
     app = create_app(settings)

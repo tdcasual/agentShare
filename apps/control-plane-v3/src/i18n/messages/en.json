@@ -8,7 +8,7 @@
     "identities": "Identities",
     "assets": "Assets",
     "spaces": "Spaces",
-    "tokens": "Tokens",
+    "tokens": "Remote Access",
     "tasks": "Tasks",
     "reviews": "Reviews",
     "marketplace": "Marketplace",
@@ -76,27 +76,27 @@
     }
   },
   "tokens": {
-    "title": "Token Operations",
-    "subtitle": "Invite-only management active",
-    "description": "Bootstrap now leads into human login, then into managed runtime token lifecycle for every agent.",
+    "title": "Remote Agent Access",
+    "subtitle": "Remote access for external agents",
+    "description": "Register remote agents and mint access tokens so external machines and off-project agents can retrieve project information, publish deliverables, and participate in collaboration flows.",
     "metrics": {
-      "activeAgents": "Active agents",
-      "activeTokens": "Active tokens",
+      "activeAgents": "Remote agents",
+      "activeTokens": "Active access tokens",
       "averageTrust": "Average trust",
       "tokensWithFeedback": "Tokens with feedback"
     },
     "actions": {
-      "createAgent": "Create Agent",
-      "mintToken": "Mint Token",
+      "createAgent": "Register Remote Agent",
+      "mintToken": "Mint Access Token",
       "refresh": "Refresh",
       "revoke": "Revoke"
     },
     "agent": {
-      "noAgents": "No agents yet",
-      "createFirst": "Create the first managed agent and its primary runtime token from this console.",
+      "noAgents": "No remote agents yet",
+      "createFirst": "Register the first remote agent profile and its primary access token from this console.",
       "riskTier": "Risk tier",
       "authMethod": "Auth method",
-      "noTokens": "No active managed tokens for this agent yet."
+      "noTokens": "No active access tokens for this remote agent yet."
     },
     "token": {
       "lastUsed": "Last used",
@@ -107,7 +107,7 @@
       "successfulRuns": "Successful runs",
       "issuer": "Issuer",
       "oneTimeReveal": "One-time reveal",
-      "copyToken": "Copy Token"
+      "copyToken": "Copy Access Token"
     }
   },
   "reviews": {
@@ -149,16 +149,16 @@
     "checkingStatus": "Checking bootstrap status and current management session...",
     "signedInAs": "Signed in as",
     "withRole": "with",
-    "access": "access. Bootstrap, tokens, reviews, and tasks are now all live.",
-    "openTokenOps": "Open Token Ops",
+    "access": "access. Bootstrap, remote access, reviews, and tasks are now all live.",
+    "openTokenOps": "Open Remote Access",
     "inviteOnly": "Invite-only management",
     "publicRegistrationClosed": "Public registration is closed after first-run owner bootstrap.",
-    "runtimeTokens": "Runtime tokens are managed separately from human sessions.",
+    "runtimeTokens": "Remote access tokens are managed separately from human sessions and in-project OpenClaw sessions.",
     "stats": {
       "humansTrend": "+1 invited this week",
-      "agentsTrend": "managed by tokens",
+      "agentsTrend": "managed in-cluster",
       "tokensTrend": "issue, revoke, review",
-      "tasksTrend": "token-targeted flow"
+      "tasksTrend": "remote token targeting"
     },
     "activity": {
       "completedTask": "completed task",
@@ -169,7 +169,7 @@
     "recentActivity": "Recent Activity",
     "quickActions": "Quick Actions",
     "publishTask": "Publish Task",
-    "manageTokens": "Manage Tokens",
+    "manageTokens": "Manage Remote Access",
     "reviewQueue": "Review Queue",
     "inviteAdmin": "Invite Admin",
     "onlineNow": "Online Now",
@@ -271,7 +271,7 @@
       "riskLevel": "Risk level",
       "allowedMode": "Invocation mode",
       "accessPolicy": "Visibility",
-      "accessPolicyDesc": "Choose which runtime tokens can see this capability. Default is all tokens, or narrow it to specific tokens, agents, or token labels.",
+      "accessPolicyDesc": "Choose which external remote-access tokens can see this capability. Default is all tokens, or narrow it to specific tokens, agents, or token labels.",
       "noTokens": "No tokens available yet.",
       "tokenRequiredError": "Pick at least one token when using specific token visibility.",
       "create": "Create Capability"
@@ -438,25 +438,25 @@
   },
   "tasks": {
     "title": "Task orchestration",
-    "tokenTargetedDelivery": "Token-targeted delivery",
-    "description": "Publish work to specific runtime tokens, watch completion per token, and close the loop with feedback.",
+    "tokenTargetedDelivery": "Remote access targeting",
+    "description": "Publish work to specific remote access tokens, watch completion per token, and close the loop with feedback for off-project agents.",
     "loadError": "Failed to load task dashboard",
-    "loading": "Loading targeted tasks, token runs, and feedback...",
+    "loading": "Loading targeted tasks, remote token runs, and feedback...",
     "errors": {
-      "noTargetTokens": "Choose at least one target token or switch to broadcast mode.",
+      "noTargetTokens": "Choose at least one remote access token or switch to broadcast mode.",
       "createFailed": "Failed to create task",
       "feedbackFailed": "Failed to save feedback"
     },
     "metrics": {
       "publishedTasks": "Published tasks",
-      "targetedTokens": "Targeted tokens",
+      "targetedTokens": "Targeted access tokens",
       "completedTargets": "Completed targets",
       "feedbackRecords": "Feedback records"
     },
     "hints": {
       "publishedTasks": "currently visible active tasks",
-      "targetedTokens": "explicit token assignments",
-      "completedTargets": "token-linked run records",
+      "targetedTokens": "explicit remote access assignments",
+      "completedTargets": "remote token-linked run records",
       "feedbackRecords": "human review notes on finished work"
     },
     "feedbackSummary": "Feedback summary",
@@ -464,13 +464,13 @@
     "avg": "avg",
     "noFeedback": "No feedback yet",
     "targetsCompleted": "targets completed",
-    "targetTokens": "Target tokens",
-    "noTokenTargets": "No token targets",
+    "targetTokens": "Target access tokens",
+    "noTokenTargets": "No access tokens targeted",
     "publishTask": "Publish Task",
-    "publishTaskDescription": "Choose the concrete runtime tokens that should receive this work.",
+    "publishTaskDescription": "Choose the concrete remote access tokens that should receive this work.",
     "empty": {
       "title": "No tasks published yet",
-      "description": "Create a task and target it to one or more runtime tokens from this page."
+      "description": "Create a task and target it to one or more remote access tokens from this page."
     },
     "priorities": {
       "low": "low",
@@ -486,20 +486,20 @@
       "priority": "Priority",
       "inputPayload": "Input payload (JSON)",
       "targetMode": "Target mode",
-      "targetModeDescription": "Explicit targets let you see completion by token directly.",
-      "explicitTokens": "Explicit tokens",
-      "explicitTokensDesc": "Send only to chosen tokens.",
+      "targetModeDescription": "Explicit targets let you see completion by remote token directly.",
+      "explicitTokens": "Explicit remote tokens",
+      "explicitTokensDesc": "Send only to chosen remote access tokens.",
       "broadcast": "Broadcast",
-      "broadcastDesc": "Snapshot all active tokens at publish time.",
-      "targetTokens": "Target tokens",
-      "targetTokensDescription": "Choose one or more managed tokens.",
-      "noTokensAvailable": "No managed tokens available yet. Create one from the Tokens page first.",
+      "broadcastDesc": "Snapshot all active remote access tokens at publish time.",
+      "targetTokens": "Target access tokens",
+      "targetTokensDescription": "Choose one or more managed remote access tokens.",
+      "noTokensAvailable": "No managed remote access tokens available yet. Create one from the Remote Access page first.",
       "trust": "trust",
       "score": "Score",
       "verdict": "Verdict",
       "verdictPlaceholder": "accepted",
       "summary": "Summary",
-      "summaryPlaceholder": "Call out what went well, what should change, and whether this token should be trusted with similar work."
+      "summaryPlaceholder": "Call out what went well, what should change, and whether this remote access token should be trusted with similar work."
     },
     "inputPayload": "Input payload",
     "publishingContext": "Publishing context",

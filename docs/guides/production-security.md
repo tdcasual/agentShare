@@ -22,7 +22,7 @@ For the app-owned management permission boundary, see `docs/guides/operator-poli
 - Rotate `DEPLOY_ENV_FILE` whenever production app secrets, domains, or database credentials change.
 - The deploy workflow rewrites `.env.production` on every run, so rotation changes are not silently ignored.
 - Rotate `SECRET_BACKEND_TOKEN` in the external secret backend according to the provider's least-privilege policy.
-- Rotate `BOOTSTRAP_AGENT_KEY` and `MANAGEMENT_SESSION_SECRET` whenever operator trust changes or after an incident.
+- Rotate `BOOTSTRAP_OWNER_KEY` and `MANAGEMENT_SESSION_SECRET` whenever operator trust changes or after an incident.
 - Rehearse secret rotation and operator session revocation before each supervised trial run so responders know which secrets, cookies, and deploy inputs must change first.
 - When an operator session should stop immediately, revoke the session server-side or force a fresh login. Browser cookie deletion alone is not the source of truth anymore.
 

@@ -7,6 +7,9 @@ from app.repositories.catalog_release_repo import CatalogReleaseRepository
 from app.repositories.event_repo import EventRepository
 from app.repositories.human_account_repo import HumanAccountRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
+from app.repositories.openclaw_agent_file_repo import OpenClawAgentFileRepository
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
+from app.repositories.openclaw_session_repo import OpenClawSessionRepository
 from app.repositories.pending_secret_material_repo import PendingSecretMaterialRepository
 from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.run_repo import RunRepository
@@ -27,6 +30,9 @@ __all__ = [
     "EventRepository",
     "HumanAccountRepository",
     "ManagementSessionRepository",
+    "OpenClawAgentFileRepository",
+    "OpenClawAgentRepository",
+    "OpenClawSessionRepository",
     "PendingSecretMaterialRepository",
     "PlaybookRepository",
     "RunRepository",

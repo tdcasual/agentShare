@@ -14,6 +14,9 @@ import type {
   BootstrapStatus,
   ManagementSessionSummary,
   AdminAccountSummary,
+  OpenClawAgent,
+  OpenClawAgentFile,
+  OpenClawSession,
 } from './types';
 import type { AgentToken } from '../task/types';
 import type {
@@ -96,6 +99,66 @@ export function useDeleteAgent() {
   };
 }
 
+export function useOpenClawAgents(options?: SWRConfiguration) {
+  return useSWR<{ items: OpenClawAgent[] }>(
+    options?.isPaused ? null : '/api/openclaw/agents',
+    () => api.getOpenClawAgents(),
+    {
+      ...swrConfig,
+      ...options,
+    }
+  );
+}
+
+export function useCreateOpenClawAgent() {
+  return async (payload: api.OpenClawAgentCreateInput) => {
+    const result = await api.createOpenClawAgent(payload);
+    await mutate('/api/openclaw/agents');
+    return result;
+  };
+}
+
+export function useUpdateOpenClawAgent() {
+  return async (agentId: string, payload: api.OpenClawAgentUpdateInput) => {
+    const result = await api.updateOpenClawAgent(agentId, payload);
+    await mutate('/api/openclaw/agents');
+    await mutate(`/api/openclaw/agents/${agentId}`);
+    return result;
+  };
+}
+
+export function useDeleteOpenClawAgent() {
+  return async (agentId: string) => {
+    const result = await api.deleteOpenClawAgent(agentId);
+    await mutate('/api/openclaw/agents');
+    await mutate('/api/openclaw/sessions');
+    await mutate(`/api/openclaw/agents/${agentId}/files`, { items: [] }, false);
+    return result;
+  };
+}
+
+export function useOpenClawSessions(options?: SWRConfiguration) {
+  return useSWR<{ items: OpenClawSession[] }>(
+    options?.isPaused ? null : '/api/openclaw/sessions',
+    () => api.getOpenClawSessions(),
+    {
+      ...swrConfig,
+      ...options,
+    }
+  );
+}
+
+export function useOpenClawFiles(agentId: string | null, options?: SWRConfiguration) {
+  return useSWR<{ items: OpenClawAgentFile[] }>(
+    agentId ? `/api/openclaw/agents/${agentId}/files` : null,
+    () => (agentId ? api.getOpenClawFiles(agentId) : { items: [] }),
+    {
+      ...swrConfig,
+      ...options,
+    }
+  );
+}
+
 // ============================================
 // Admin Accounts
 // ============================================
@@ -139,8 +202,16 @@ export function refreshAgents() {
   return mutate('/api/agents');
 }
 
+export function refreshOpenClawAgents() {
+  return mutate('/api/openclaw/agents');
+}
+
 export function refreshAdminAccounts() {
   return mutate('/api/admin-accounts');
+}
+
+export function refreshOpenClawSessions() {
+  return mutate('/api/openclaw/sessions');
 }
 
 export function refreshAgentsWithTokens() {
@@ -161,6 +232,14 @@ export function prefetchAgents() {
 
 export function prefetchSession() {
   return mutate('/api/session/me', api.getSession(), false);
+}
+
+export function prefetchOpenClawAgents() {
+  return mutate('/api/openclaw/agents', api.getOpenClawAgents(), false);
+}
+
+export function prefetchOpenClawSessions() {
+  return mutate('/api/openclaw/sessions', api.getOpenClawSessions(), false);
 }
 
 // ============================================

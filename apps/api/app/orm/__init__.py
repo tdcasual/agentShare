@@ -18,6 +18,10 @@ from app.orm.space_timeline_entry import SpaceTimelineEntryModel
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.management_session import ManagementSessionModel
 from app.orm.human_account import HumanAccountModel
+from app.orm.openclaw_agent import OpenClawAgentModel
+from app.orm.openclaw_agent_file import OpenClawAgentFileModel
+from app.orm.openclaw_session import OpenClawSessionModel
+from app.orm.openclaw_tool_binding import OpenClawToolBindingModel
 from app.orm.system_setting import SystemSettingModel
 
 __all__ = [
@@ -41,5 +45,9 @@ __all__ = [
     "ApprovalRequestModel",
     "ManagementSessionModel",
     "HumanAccountModel",
+    "OpenClawAgentModel",
+    "OpenClawAgentFileModel",
+    "OpenClawSessionModel",
+    "OpenClawToolBindingModel",
     "SystemSettingModel",
 ]

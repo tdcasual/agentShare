@@ -55,7 +55,7 @@ def test_acquire_lock_fails_closed_in_production_when_redis_unavailable(monkeypa
         secret_backend="openbao",
         openbao_addr="https://vault.example.com",
         openbao_token="token",
-        bootstrap_agent_key="custom-bootstrap-key",
+        bootstrap_owner_key="custom-bootstrap-key",
         management_session_secret="custom-management-session-secret",
         management_session_secure=True,
     )

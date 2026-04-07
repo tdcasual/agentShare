@@ -179,7 +179,7 @@ def claim_task_target(
         raise ConflictError("Task claim is being processed by another agent")
     try:
         if not agent.token_id:
-            raise AuthorizationError("Agent token is required")
+            raise AuthorizationError("Remote access token is required")
         target_repo = TaskTargetRepository(session)
         target = target_repo.get(target_id)
         if target is None:
@@ -222,7 +222,7 @@ def complete_task_target(
     output_payload: dict,
 ) -> dict:
     if not agent.token_id:
-        raise AuthorizationError("Agent token is required")
+        raise AuthorizationError("Remote access token is required")
 
     target_repo = TaskTargetRepository(session)
     task_repo = TaskRepository(session)

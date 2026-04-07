@@ -66,7 +66,7 @@ Important variables are exposed through `.env.example`:
 - `SECRET_BACKEND`
 - `OPENBAO_ADDR`
 - `OPENBAO_TOKEN`
-- `BOOTSTRAP_AGENT_KEY`
+- `BOOTSTRAP_OWNER_KEY`
 - `MANAGEMENT_SESSION_SECRET`
 - `AGENT_CONTROL_PLANE_API_URL`
 - `NEXT_PUBLIC_API_BASE_URL`
@@ -240,6 +240,17 @@ Playwright will look for `.venv/bin/uvicorn` by default. If you need to use a di
 export AGENT_SHARE_API_UVICORN_BIN=/absolute/path/to/uvicorn
 ```
 
+## OpenClaw Native Agent Runtime
+
+The primary runtime path is now OpenClaw-native:
+
+- management operators provision agent workspaces through `/api/openclaw/agents`
+- runtime execution binds to `/api/openclaw/agents/{agent_id}/sessions`
+- agent requests authenticate with `Authorization: Bearer <session_key>`
+- the management console inspects workspace files, session history, sandbox mode, and tool policy instead of linked managed tokens
+
+For the end-to-end local workflow, use [docs/guides/agent-quickstart.md](docs/guides/agent-quickstart.md).
+
 ### One-Command Demo Stack
 
 To run the current backend plus `control-plane-v3` with persisted demo data in one command:
@@ -302,7 +313,7 @@ Start with the operational guide:
 - `docs/guides/admin-bootstrap-and-token-ops.md`
 - `docs/guides/mcp-quickstart.md`
 
-The quickstarts cover first-run management bootstrap, managed token operations, direct HTTP runtime calls, and the MCP tool surface on top of the same control-plane services.
+The quickstarts cover first-run management bootstrap, external remote-access token operations, OpenClaw runtime session flows, direct HTTP runtime calls, and the MCP tool surface on top of the same control-plane services.
 
 ## Phase 2 Surface
 
@@ -349,14 +360,16 @@ The quickstarts cover first-run management bootstrap, managed token operations, 
   - If the system is uninitialized, create the founding owner once at `POST /api/bootstrap/setup-owner` using the bootstrap key.
   - After bootstrap, humans log in with persisted email/password accounts at `POST /api/session/login`.
   - The API responds with a short-lived `management_session` cookie, and the console forwards that cookie on management reads and writes.
-  - Runtime agent operations continue to use `Authorization: Bearer $ACP_AGENT_TOKEN`.
+  - In-project OpenClaw runtimes authenticate with `Authorization: Bearer $ACP_SESSION_KEY`.
+  - External or off-project agents continue to authenticate with managed remote-access tokens such as `Authorization: Bearer $ACP_AGENT_TOKEN`.
 - Production caution:
-  - Do not deploy with `BOOTSTRAP_AGENT_KEY=changeme-bootstrap-key`.
+  - Do not deploy with `BOOTSTRAP_OWNER_KEY=changeme-bootstrap-key`.
   - Replace `MANAGEMENT_SESSION_SECRET=changeme-management-session-secret` before exposing the console to real users.
 - Operator note:
   - Bootstrap is a one-time setup path, not a reusable daily login.
   - New human accounts are invite-only through `POST /api/admin-accounts`.
-  - Runtime agents and their managed tokens are operated separately under `/api/agents` and `/api/agents/{agent_id}/tokens`.
+  - In-project OpenClaw runtimes are managed under `/api/openclaw/agents`, `/api/openclaw/agents/{agent_id}/sessions`, and `/api/openclaw/sessions`.
+  - External remote agents and their managed access tokens are operated separately under `/api/agents` and `/api/agents/{agent_id}/tokens`.
 
 ## Route Policy Split
 
@@ -367,6 +380,7 @@ The quickstarts cover first-run management bootstrap, managed token operations, 
   - `POST /api/bootstrap/setup-owner`
   - `POST /api/session/login`
 - Agent-authenticated runtime routes:
+  - These routes accept `Authorization: Bearer <session_key>` for in-project OpenClaw runtimes and `Authorization: Bearer <token>` for external remote agents.
   - `GET /api/agents/me`
   - `GET /api/tasks`
   - `GET /api/tasks/assigned`
@@ -383,17 +397,18 @@ The quickstarts cover first-run management bootstrap, managed token operations, 
   - `operator+`:
     `GET /api/approvals`, `POST /api/approvals/{approval_id}/approve`, `POST /api/approvals/{approval_id}/reject`
   - `admin+`:
-    `POST /api/secrets`, `GET /api/secrets`, `POST /api/capabilities`, `GET /api/agents`, `POST /api/agents`, `GET /api/admin-accounts`, `POST /api/admin-accounts`, `GET /api/agents/{agent_id}/tokens`, `POST /api/agents/{agent_id}/tokens`, `POST /api/agent-tokens/{token_id}/revoke`, `GET /api/reviews`, `POST /api/reviews/{resource_kind}/{resource_id}/approve`, `POST /api/reviews/{resource_kind}/{resource_id}/reject`, `POST /api/task-targets/{task_target_id}/feedback`
+    `POST /api/secrets`, `GET /api/secrets`, `POST /api/capabilities`, `GET /api/agents`, `POST /api/agents`, `GET /api/agents/{agent_id}/tokens`, `POST /api/agents/{agent_id}/tokens`, `POST /api/agent-tokens/{token_id}/revoke`, `GET /api/openclaw/agents`, `POST /api/openclaw/agents`, `GET /api/openclaw/agents/{agent_id}`, `PATCH /api/openclaw/agents/{agent_id}`, `GET /api/openclaw/agents/{agent_id}/sessions`, `POST /api/openclaw/agents/{agent_id}/sessions`, `GET /api/openclaw/agents/{agent_id}/files`, `PUT /api/openclaw/agents/{agent_id}/files/{file_name}`, `GET /api/openclaw/sessions`, `GET /api/openclaw/sessions/{session_id}`, `GET /api/admin-accounts`, `POST /api/admin-accounts`, `GET /api/reviews`, `POST /api/reviews/{resource_kind}/{resource_id}/approve`, `POST /api/reviews/{resource_kind}/{resource_id}/reject`, `POST /api/task-targets/{task_target_id}/feedback`
   - `owner`:
-    `DELETE /api/agents/{agent_id}`
+    `DELETE /api/agents/{agent_id}`, `DELETE /api/openclaw/agents/{agent_id}`
 
 ## Bootstrap, Tokens, And Reviews
 
 - Owner bootstrap is now one-time only and returns `409` after initialization.
 - Human management login uses persisted admin accounts, not the bootstrap credential.
-- Managed agent tokens are separate runtime credentials and can be listed, minted, revoked, targeted by tasks, and scored with feedback.
+- OpenClaw runtime sessions are separate in-project credentials and authenticate with `session_key`.
+- Managed agent tokens are separate external remote-access credentials and can be listed, minted, revoked, targeted by tasks, and scored with feedback.
 - Agent-created secrets, capabilities, playbooks, and tasks stay in `pending_review` until a human reviews them in `/api/reviews`.
-- Task runs now record both `token_id` and `task_target_id`, and token feedback rolls up into token trust metrics.
+- Remote-access task runs record both `token_id` and `task_target_id`, and token feedback rolls up into token trust metrics.
 
 ## Playbook Search And Detail
 

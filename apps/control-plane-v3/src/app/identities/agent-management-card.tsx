@@ -1,22 +1,15 @@
-/**
- * Agent Management Card Component
- */
-
-import Link from 'next/link';
 import { Trash2 } from 'lucide-react';
-import { useAgentTokens } from '@/domains/identity';
+import { useOpenClawFiles } from '@/domains/identity';
+import type { OpenClawAgent, OpenClawSession } from '@/domains/identity';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { IdentityDetailsGrid, formatSnapshotTimestamp } from './components';
 
 export interface AgentManagementCardProps {
-  agent: {
-    id: string;
-    name: string;
-    risk_tier: string;
-    auth_method: string;
-    status: string;
-  };
+  agent: OpenClawAgent;
+  recentSession: OpenClawSession | null;
+  sessionCount: number;
+  sessionErrorMessage: string | null;
   canDelete: boolean;
   events: Array<{
     id: string;
@@ -29,61 +22,122 @@ export interface AgentManagementCardProps {
   onDelete: () => Promise<void>;
 }
 
+function formatList(values: string[], fallback: string) {
+  return values.length > 0 ? values.join(', ') : fallback;
+}
+
+function formatPolicy(policy: Record<string, unknown>) {
+  const entries = Object.entries(policy);
+  if (entries.length === 0) {
+    return 'No explicit policy';
+  }
+
+  return entries
+    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`)
+    .join(' · ');
+}
+
+function summarizeFileContent(content: string) {
+  return content.split('\n').find((line) => line.trim().length > 0) ?? 'Empty file';
+}
+
 export function AgentManagementCard({
   agent,
+  recentSession,
+  sessionCount,
+  sessionErrorMessage,
   canDelete,
   events,
   eventsErrorMessage,
   isDeleting,
   onDelete,
 }: AgentManagementCardProps) {
-  const tokensQuery = useAgentTokens(agent.id);
-  const tokens = tokensQuery.data?.items ?? [];
+  const filesQuery = useOpenClawFiles(agent.id);
+  const files = filesQuery.data?.items ?? [];
 
   return (
     <div className="mt-4 space-y-4">
       <IdentityDetailsGrid
         items={[
           ['Agent ID', agent.id],
-          ['Name', agent.name],
-          ['Risk Tier', agent.risk_tier],
-          ['Authentication', agent.auth_method],
+          ['Workspace Root', agent.workspace_root],
+          ['Agent Directory', agent.agent_dir],
+          ['Model', agent.model ?? 'Default runtime model'],
+          ['Thinking Level', agent.thinking_level],
+          ['Sandbox Mode', agent.sandbox_mode],
+          ['Allowed Task Types', formatList(agent.allowed_task_types, 'No task restrictions')],
+          [
+            'Allowed Capability IDs',
+            formatList(agent.allowed_capability_ids, 'No capability restrictions'),
+          ],
+          ['Tool Policy', formatPolicy(agent.tools_policy)],
         ]}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-3">
         <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
-              Linked Tokens
+              Recent Session
             </h3>
-            <Badge variant="info">{tokens.length}</Badge>
+            <Badge variant="info">{sessionCount}</Badge>
           </div>
 
-          {tokensQuery.isLoading ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Loading linked tokens...</p>
-          ) : tokens.length === 0 ? (
+          {sessionErrorMessage ? (
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Session history unavailable. {sessionErrorMessage}
+            </p>
+          ) : recentSession === null ? (
             <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-              No active tokens are linked to this agent.
+              No management-visible sessions recorded for this agent yet.
+            </p>
+          ) : (
+            <div className="rounded-2xl border border-pink-100 bg-white/80 p-3 dark:border-[#3D3D5C] dark:bg-[#252540]/80">
+              <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                {recentSession.display_name}
+              </p>
+              <p className="mt-1 break-all text-sm text-gray-500 dark:text-[#9CA3AF]">
+                {recentSession.session_key}
+              </p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                {recentSession.channel}
+                {recentSession.subject ? ` · ${recentSession.subject}` : ''}
+              </p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                Updated {formatSnapshotTimestamp(recentSession.updated_at)}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+              Workspace Files
+            </h3>
+            <Badge variant="secondary">{files.length}</Badge>
+          </div>
+
+          {filesQuery.isLoading ? (
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Loading workspace files...</p>
+          ) : filesQuery.error instanceof Error ? (
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Workspace files unavailable. {filesQuery.error.message}
+            </p>
+          ) : files.length === 0 ? (
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              No workspace bootstrap files stored for this agent.
             </p>
           ) : (
             <div className="space-y-2">
-              {tokens.map((token) => (
+              {files.slice(0, 3).map((file) => (
                 <div
-                  key={token.id}
+                  key={file.file_name}
                   className="rounded-2xl border border-pink-100 bg-white/80 p-3 dark:border-[#3D3D5C] dark:bg-[#252540]/80"
                 >
-                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                    {token.display_name ??
-                      (token as unknown as { displayName?: string }).displayName}
-                  </p>
+                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{file.file_name}</p>
                   <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    {(token.status ?? 'unknown').toUpperCase()} · trust{' '}
-                    {(
-                      token.trust_score ??
-                      (token as unknown as { trustScore?: number }).trustScore ??
-                      0
-                    ).toFixed(2)}
+                    {summarizeFileContent(file.content)}
                   </p>
                 </div>
               ))}
@@ -104,9 +158,7 @@ export function AgentManagementCard({
               Event feed unavailable. {eventsErrorMessage}
             </p>
           ) : events.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-              No recent agent feedback events yet.
-            </p>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No recent agent events yet.</p>
           ) : (
             <div className="space-y-2">
               {events.slice(0, 3).map((event) => (
@@ -127,13 +179,7 @@ export function AgentManagementCard({
       </div>
 
       {canDelete ? (
-        <div className="flex justify-between gap-3">
-          <Link
-            href="/tokens"
-            className="inline-flex items-center text-sm font-medium text-pink-600 hover:text-pink-700"
-          >
-            Manage Tokens
-          </Link>
+        <div className="flex justify-end">
           <Button
             variant="outline"
             size="sm"

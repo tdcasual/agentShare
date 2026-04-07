@@ -2,24 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import {
-  Bot,
-  Building2,
-  RefreshCw,
-  Search,
-  ShieldCheck,
-  Users,
-  UserPlus,
-  KeyRound,
-  Plus,
-} from 'lucide-react';
+import { Bot, Building2, RefreshCw, Search, ShieldCheck, Users, UserPlus } from 'lucide-react';
 import {
   refreshAdminAccounts,
-  refreshAgentsWithTokens,
+  refreshOpenClawAgents,
+  refreshOpenClawSessions,
   refreshSession,
   useAdminAccounts,
-  useAgentsWithTokens,
-  useDeleteAgent,
+  useDeleteOpenClawAgent,
+  useOpenClawAgents,
+  useOpenClawSessions,
 } from '@/domains/identity';
 import { useEvents, refreshEvents } from '@/domains/event';
 import { Layout } from '@/interfaces/human/layout';
@@ -35,7 +27,11 @@ import { Card } from '@/shared/ui-primitives/card';
 import { MetricCard, CoverageMetric } from './components';
 import { HumanOperatorsSection } from './human-operators-section';
 import { AIAgentsSection } from './ai-agents-section';
-import type { AdminAccountSummary, Agent } from '@/domains/identity';
+import type { AdminAccountSummary, OpenClawAgent, OpenClawSession } from '@/domains/identity';
+
+const EMPTY_ADMIN_ACCOUNTS: AdminAccountSummary[] = [];
+const EMPTY_OPENCLAW_AGENTS: OpenClawAgent[] = [];
+const EMPTY_OPENCLAW_SESSIONS: OpenClawSession[] = [];
 
 function matchesAdminAccountQuery(account: AdminAccountSummary, query: string) {
   if (!query) {
@@ -46,13 +42,35 @@ function matchesAdminAccountQuery(account: AdminAccountSummary, query: string) {
   );
 }
 
-function matchesAgentQuery(agent: Agent, query: string) {
+function matchesAgentQuery(agent: OpenClawAgent, query: string) {
   if (!query) {
     return true;
   }
-  return [agent.name, agent.id, agent.risk_tier, agent.auth_method, agent.status].some((value) =>
-    value.toLowerCase().includes(query)
+  return [
+    agent.name,
+    agent.id,
+    agent.risk_tier,
+    agent.auth_method,
+    agent.status,
+    agent.workspace_root,
+    agent.agent_dir,
+    agent.model,
+    agent.thinking_level,
+    agent.sandbox_mode,
+    ...agent.allowed_task_types,
+    ...agent.allowed_capability_ids,
+  ].some((value) =>
+    String(value ?? '')
+      .toLowerCase()
+      .includes(query)
   );
+}
+
+function groupSessionsByAgent(sessions: OpenClawSession[]) {
+  return sessions.reduce<Record<string, OpenClawSession[]>>((groups, session) => {
+    groups[session.agent_id] = [...(groups[session.agent_id] ?? []), session];
+    return groups;
+  }, {});
 }
 
 function IdentitiesContent() {
@@ -64,9 +82,10 @@ function IdentitiesContent() {
     isLoading: isAccountsLoading,
     error: accountsError,
   } = useAdminAccounts();
-  const agentsQuery = useAgentsWithTokens();
+  const agentsQuery = useOpenClawAgents();
+  const sessionsQuery = useOpenClawSessions();
   const eventsQuery = useEvents();
-  const deleteAgent = useDeleteAgent();
+  const deleteAgent = useDeleteOpenClawAgent();
   const {
     session,
     loading: gateLoading,
@@ -75,7 +94,12 @@ function IdentitiesContent() {
     shouldShowSessionExpired,
     clearAllAuthErrors,
     consumeUnauthorized,
-  } = useManagementPageSessionRecovery([accountsError, agentsQuery.error, eventsQuery.error]);
+  } = useManagementPageSessionRecovery([
+    accountsError,
+    agentsQuery.error,
+    sessionsQuery.error,
+    eventsQuery.error,
+  ]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshingAction, setRefreshingAction] = useState<'all' | 'accounts' | 'agents' | null>(
     null
@@ -89,32 +113,30 @@ function IdentitiesContent() {
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const adminAccounts = adminAccountsData?.items;
-  const agents = agentsQuery.agents;
-  const tokensByAgent = agentsQuery.tokensByAgent;
-  const adminAccountList = adminAccounts ?? [];
+  const adminAccounts = adminAccountsData?.items ?? EMPTY_ADMIN_ACCOUNTS;
+  const agents = agentsQuery.data?.items ?? EMPTY_OPENCLAW_AGENTS;
+  const sessions = sessionsQuery.data?.items ?? EMPTY_OPENCLAW_SESSIONS;
+  const sessionsByAgent = useMemo(() => groupSessionsByAgent(sessions), [sessions]);
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredAdminAccounts = useMemo(
-    () =>
-      (adminAccounts ?? []).filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
+    () => adminAccounts.filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
     [adminAccounts, normalizedQuery]
   );
   const filteredAgents = useMemo(
     () => agents.filter((agent) => matchesAgentQuery(agent, normalizedQuery)),
     [agents, normalizedQuery]
   );
-  const focusedAdminAccount =
-    adminAccountList.find((account) => account.id === focus.adminId) ?? null;
+  const focusedAdminAccount = adminAccounts.find((account) => account.id === focus.adminId) ?? null;
   const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
   const focusedIdentity = focusedAgent ?? focusedAdminAccount;
   const focusedIdentityLabel = focusedAgent
-    ? 'Agent'
+    ? 'OpenClaw agent'
     : focusedAdminAccount
       ? 'Human operator'
       : null;
 
-  const operatorCount = adminAccountList.filter((account) => account.status === 'active').length;
-  const ownerCount = adminAccountList.filter((account) => account.role === 'owner').length;
+  const operatorCount = adminAccounts.filter((account) => account.status === 'active').length;
+  const ownerCount = adminAccounts.filter((account) => account.role === 'owner').length;
   const activeAgentCount = agents.filter((agent) => agent.status === 'active').length;
   const agentFeedbackCounts = useMemo(
     () =>
@@ -126,8 +148,11 @@ function IdentitiesContent() {
         }, {}),
     [eventsQuery.events]
   );
-  const agentsWithLinkedTokensCount = agents.filter(
-    (agent) => (tokensByAgent[agent.id] ?? []).length > 0
+  const agentsWithSessionsCount = agents.filter(
+    (agent) => (sessionsByAgent[agent.id] ?? []).length > 0
+  ).length;
+  const workspaceReadyCount = agents.filter(
+    (agent) => agent.workspace_root.trim() !== '' && agent.agent_dir.trim() !== ''
   ).length;
   const agentsWithFeedbackCount = agents.filter(
     (agent) => (agentFeedbackCounts[agent.id] ?? 0) > 0
@@ -135,9 +160,15 @@ function IdentitiesContent() {
   const guardedError = gateError;
   const accountsErrorMessage = accountsError instanceof Error ? accountsError.message : null;
   const agentsErrorMessage = agentsQuery.error instanceof Error ? agentsQuery.error.message : null;
+  const sessionsErrorMessage =
+    sessionsQuery.error instanceof Error ? sessionsQuery.error.message : null;
   const eventsErrorMessage = eventsQuery.error instanceof Error ? eventsQuery.error.message : null;
 
-  const isLoading = gateLoading;
+  const isLoading =
+    gateLoading ||
+    ((isAccountsLoading || agentsQuery.isLoading) &&
+      adminAccounts.length === 0 &&
+      agents.length === 0);
   const hasActiveSearch = normalizedQuery.length > 0;
 
   async function runRefreshAction(
@@ -165,7 +196,8 @@ function IdentitiesContent() {
       await Promise.all([
         refreshSession(),
         refreshAdminAccounts(),
-        refreshAgentsWithTokens(),
+        refreshOpenClawAgents(),
+        refreshOpenClawSessions(),
         refreshEvents(),
       ]);
     });
@@ -176,7 +208,9 @@ function IdentitiesContent() {
   }
 
   async function retryAgents() {
-    await runRefreshAction('agents', refreshAgentsWithTokens);
+    await runRefreshAction('agents', async () => {
+      await Promise.all([refreshOpenClawAgents(), refreshOpenClawSessions(), refreshEvents()]);
+    });
   }
 
   async function handleDeleteAgent(agentId: string) {
@@ -213,15 +247,14 @@ function IdentitiesContent() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
             Identity Management
           </h1>
           <p className="text-gray-600 dark:text-[#9CA3AF]">
-            Review the persisted human operators and registered agents available to the management
-            control plane.
+            Review the persisted human operators and OpenClaw-native agents available to the
+            management control plane.
           </p>
         </div>
         <div className="flex flex-col gap-3">
@@ -233,7 +266,6 @@ function IdentitiesContent() {
               <span>{session?.role ?? '...'}</span>
             </div>
           </Card>
-          {/* Management Actions */}
           <div className="flex flex-wrap gap-2">
             <Button
               variant="secondary"
@@ -246,32 +278,15 @@ function IdentitiesContent() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => router.push('/tokens')}
-              leftIcon={<Plus className="h-4 w-4" />}
-            >
-              Create Agent
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => router.push('/tokens')}
-              leftIcon={<KeyRound className="h-4 w-4" />}
-            >
-              Issue Token
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => router.push('/settings')}
+              onClick={() => router.push('/spaces')}
               leftIcon={<Building2 className="h-4 w-4" />}
             >
-              Disable Account
+              Review Spaces
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Search */}
       <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
@@ -282,7 +297,7 @@ function IdentitiesContent() {
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search identities by name, email, role, or id"
+                placeholder="Search identities by name, sandbox mode, workspace path, or id"
                 aria-label="Search identities"
                 className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-[#6B7280]"
               />
@@ -301,7 +316,6 @@ function IdentitiesContent() {
         </div>
       </Card>
 
-      {/* Focused Identity */}
       {focusedIdentity ? (
         <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
           <div className="space-y-2">
@@ -318,7 +332,6 @@ function IdentitiesContent() {
         </Card>
       ) : null}
 
-      {/* Info Cards */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="border border-sky-100 bg-sky-50/70 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/80">
           <div className="flex items-start gap-3">
@@ -342,18 +355,17 @@ function IdentitiesContent() {
             </div>
             <div>
               <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">
-                Agent-managed identities
+                OpenClaw runtime identities
               </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
-                Agents maintain their own execution identity, while humans can still inspect and
-                manage their status.
+                Agents now surface workspace roots, session history, sandbox posture, and tool
+                policy instead of linked token state.
               </p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Coverage Card */}
       <Card className="border border-amber-200 bg-amber-50/90 dark:border-amber-800 dark:bg-amber-900/20">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
@@ -362,12 +374,12 @@ function IdentitiesContent() {
             </div>
             <div>
               <h2 className="mb-2 text-lg font-semibold text-amber-800 dark:text-amber-200">
-                Management coverage
+                OpenClaw coverage
               </h2>
               <p className="text-amber-700 dark:text-amber-300">
-                This route now reads persisted management accounts and registered agents from the
-                backend. Humans supervise governance and account hygiene while agents surface their
-                runtime identity through linked tokens and feedback events.
+                This route now reads persisted management accounts plus OpenClaw workspaces and
+                session telemetry from the backend. Humans supervise governance while agents expose
+                runtime posture through sessions, workspace files, and recent events.
               </p>
             </div>
           </div>
@@ -379,28 +391,25 @@ function IdentitiesContent() {
               hint={`${operatorCount} active operator${operatorCount === 1 ? '' : 's'} on duty`}
             />
             <CoverageMetric
-              label="Agents with linked tokens"
-              value={agentsWithLinkedTokensCount.toString()}
-              hint={`${Math.max(agents.length - agentsWithLinkedTokensCount, 0)} awaiting token coverage`}
+              label="Agents with live sessions"
+              value={agentsWithSessionsCount.toString()}
+              hint={`${Math.max(agents.length - agentsWithSessionsCount, 0)} awaiting first runtime session`}
             />
             <CoverageMetric
-              label="Agents with feedback"
-              value={agentsWithFeedbackCount.toString()}
-              hint={`${Math.max(agents.length - agentsWithFeedbackCount, 0)} without recent feedback`}
+              label="Workspace-ready agents"
+              value={workspaceReadyCount.toString()}
+              hint={`${Math.max(agents.length - workspaceReadyCount, 0)} missing workspace metadata`}
             />
           </div>
         </div>
       </Card>
 
-      {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           label="Active Operators"
           value={accountsErrorMessage ? 'N/A' : operatorCount.toString()}
           hint={
-            accountsErrorMessage
-              ? 'accounts unavailable'
-              : `${adminAccountList.length} total accounts`
+            accountsErrorMessage ? 'accounts unavailable' : `${adminAccounts.length} total accounts`
           }
         />
         <MetricCard
@@ -415,13 +424,12 @@ function IdentitiesContent() {
         />
       </div>
 
-      {/* Alerts */}
       {shouldShowSessionExpired ? (
         <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live identity data." />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to access some identity data. Use an admin session to manage the full identity surface." />
+        <ManagementForbiddenAlert message="You do not have permission to access some identity data. Use an admin session to manage the full OpenClaw identity surface." />
       ) : null}
 
       {actionError ? (
@@ -435,7 +443,7 @@ function IdentitiesContent() {
         </Card>
       ) : null}
 
-      {guardedError ? (
+      {guardedError && !shouldShowSessionExpired && !shouldShowForbidden ? (
         <Card
           role="alert"
           aria-live="assertive"
@@ -457,7 +465,6 @@ function IdentitiesContent() {
         </Card>
       ) : null}
 
-      {/* Loading State */}
       {isLoading ? (
         <Card className="flex items-center gap-3 text-gray-600 dark:text-[#9CA3AF]">
           <span className="animate-spin">🌸</span>
@@ -465,11 +472,10 @@ function IdentitiesContent() {
         </Card>
       ) : null}
 
-      {/* Main Content */}
       {!isLoading && !guardedError ? (
         <div className="grid gap-6 xl:grid-cols-2">
           <HumanOperatorsSection
-            accounts={adminAccountList}
+            accounts={adminAccounts}
             filteredAccounts={filteredAdminAccounts}
             isLoading={isAccountsLoading}
             error={accountsError}
@@ -486,7 +492,8 @@ function IdentitiesContent() {
           <AIAgentsSection
             agents={agents}
             filteredAgents={filteredAgents}
-            tokensByAgent={tokensByAgent}
+            sessionsByAgent={sessionsByAgent}
+            sessionsErrorMessage={sessionsErrorMessage}
             eventCounts={agentFeedbackCounts}
             events={eventsQuery.events}
             eventsErrorMessage={eventsErrorMessage}
@@ -507,7 +514,6 @@ function IdentitiesContent() {
         </div>
       ) : null}
 
-      {/* Footer */}
       {!isLoading && !guardedError ? (
         <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
           <div className="flex items-start gap-3">
@@ -520,8 +526,8 @@ function IdentitiesContent() {
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
                 {hasActiveSearch
-                  ? `Showing ${filteredAdminAccounts.length} human operators and ${filteredAgents.length} agents that match the current query. Metrics above still reflect the full backend snapshot.`
-                  : 'Humans and agents are now rendered from persisted backend data, including token coverage and recent feedback visibility for each registered agent.'}
+                  ? `Showing ${filteredAdminAccounts.length} human operators and ${filteredAgents.length} workspace runtimes that match the current query. Metrics above still reflect the full backend snapshot.`
+                  : `Humans and workspace runtimes are now rendered from persisted backend data, including ${agentsWithFeedbackCount} agent${agentsWithFeedbackCount === 1 ? '' : 's'} with recent feedback visibility.`}
               </p>
             </div>
           </div>

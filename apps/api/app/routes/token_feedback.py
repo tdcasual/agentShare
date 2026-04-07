@@ -19,7 +19,7 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     tags=["Management"],
     summary="Attach human feedback to a completed task target",
-    description="Record review feedback for a completed token-targeted execution result and roll up token trust aggregates.",
+    description="Record review feedback for a completed remote-token-targeted execution result and roll up token trust aggregates.",
 )
 def create_token_feedback_route(
     task_target_id: str,
@@ -68,7 +68,7 @@ def create_token_feedback_route(
     response_model=TokenFeedbackListResponse,
     tags=["Management"],
     summary="List feedback attached to a token",
-    description="Return feedback records associated with an agent token.",
+    description="Return feedback records associated with a managed remote-access token.",
 )
 def list_token_feedback_route(
     token_id: str,

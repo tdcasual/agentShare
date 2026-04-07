@@ -32,16 +32,16 @@ def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-def ensure_bootstrap_agent(settings: Settings, session_factory: Callable[[], Session]) -> None:
+def ensure_bootstrap_credential(settings: Settings, session_factory: Callable[[], Session]) -> None:
     session = session_factory()
     try:
         repo = AgentRepository(session)
         existing = repo.get("bootstrap")
-        desired_api_key_hash = _hash_key(settings.bootstrap_agent_key)
+        desired_api_key_hash = _hash_key(settings.bootstrap_owner_key)
         if existing is None:
             repo.create(AgentIdentityModel(
                 id="bootstrap",
-                name="Bootstrap Agent",
+                name="Bootstrap Credential",
                 api_key_hash=desired_api_key_hash,
                 status="active",
                 allowed_capability_ids=[],
@@ -185,7 +185,7 @@ def create_app(
 
         validate_secret_backend_settings(settings)
         db_module.migrate_db(settings.database_url)
-        ensure_bootstrap_agent(settings, app_instance.state.runtime.session_factory)
+        ensure_bootstrap_credential(settings, app_instance.state.runtime.session_factory)
         seed_demo_fixture_data(settings, app_instance.state.runtime.session_factory)
         yield
 

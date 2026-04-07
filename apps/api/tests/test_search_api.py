@@ -89,6 +89,28 @@ def test_grouped_search_returns_matching_identities_tasks_assets_and_events(mana
     assert payload["events"][0]["href"] == f"/inbox?eventId={payload['events'][0]['id']}"
 
 
+def test_grouped_search_returns_openclaw_agents_as_identities(management_client):
+    created_agent = management_client.post(
+        "/api/openclaw/agents",
+        json={
+            "name": "Workspace Signal Agent",
+            "workspace_root": "/srv/openclaw/workspace-signal-agent",
+            "agent_dir": ".openclaw/agents/workspace-signal-agent",
+            "model": "gpt-5",
+            "sandbox_mode": "workspace-write",
+        },
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    response = management_client.get("/api/search", params={"q": "workspace signal"})
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    match = next(item for item in payload["identities"] if item["id"] == created_agent.json()["id"])
+    assert match["title"] == "Workspace Signal Agent"
+    assert match["href"] == f"/identities?agentId={created_agent.json()['id']}"
+
+
 def test_grouped_search_links_agent_published_assets_into_marketplace_context(client, management_client):
     secret = client.post(
         "/api/secrets",

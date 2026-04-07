@@ -124,7 +124,9 @@ function TokensContent() {
       }
 
       setRefreshError(
-        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh tokens'
+        refreshFailure instanceof Error
+          ? refreshFailure.message
+          : 'Failed to refresh remote access tokens'
       );
     } finally {
       setIsRefreshing(false);
@@ -159,7 +161,9 @@ function TokensContent() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : 'Failed to create agent');
+        setError(
+          submitError instanceof Error ? submitError.message : 'Failed to register remote agent'
+        );
       }
     } finally {
       setSubmitting(false);
@@ -169,7 +173,7 @@ function TokensContent() {
   async function handleCreateToken(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!issuingAgentId) {
-      setError('Choose an agent before minting a token');
+      setError('Choose a remote agent profile before minting a token');
       return;
     }
 
@@ -207,7 +211,9 @@ function TokensContent() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : 'Failed to mint token');
+        setError(
+          submitError instanceof Error ? submitError.message : 'Failed to mint access token'
+        );
       }
     } finally {
       setSubmitting(false);
@@ -228,7 +234,9 @@ function TokensContent() {
       if (revokeError instanceof ApiError) {
         setError(revokeError.detail);
       } else {
-        setError(revokeError instanceof Error ? revokeError.message : 'Failed to revoke token');
+        setError(
+          revokeError instanceof Error ? revokeError.message : 'Failed to revoke access token'
+        );
       }
     }
   }
@@ -237,7 +245,9 @@ function TokensContent() {
     try {
       await navigator.clipboard.writeText(secret);
     } catch {
-      setError('Clipboard access was blocked. Copy the token manually from the reveal card.');
+      setError(
+        'Clipboard access was blocked. Copy the access token manually from the reveal card.'
+      );
     }
   }
 
@@ -327,11 +337,11 @@ function TokensContent() {
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
-              Token supervision
+              Remote access supervision
             </h2>
             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-              Human operators can quickly isolate tokens that still need feedback or have fallen
-              below the trust threshold.
+              Human operators can quickly isolate access tokens used by external machines and
+              off-project agents when they still need feedback or fall below the trust threshold.
             </p>
           </div>
 
@@ -385,11 +395,11 @@ function TokensContent() {
       </Card>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live token data." />
+        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live remote access data." />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to manage agents and tokens. Use an admin management session to continue." />
+        <ManagementForbiddenAlert message="You do not have permission to manage remote agents and access tokens. Use an admin management session to continue." />
       ) : null}
 
       {refreshError ? (
@@ -421,7 +431,7 @@ function TokensContent() {
       {gateLoading || isLoading ? (
         <Card className="flex items-center gap-3 text-gray-600 dark:text-[#9CA3AF]">
           <span className="animate-spin">🌸</span>
-          Loading agents and tokens...
+          Loading remote agents and access tokens...
         </Card>
       ) : null}
 
@@ -615,11 +625,11 @@ function TokensContent() {
         isOpen={showCreateAgentModal}
         onClose={() => setShowCreateAgentModal(false)}
         title={t('tokens.actions.createAgent')}
-        description="Creating an agent automatically mints its primary token."
+        description="Register a remote agent profile and mint its first access token."
       >
         <form className="space-y-4" onSubmit={handleCreateAgent}>
           <Input
-            label="Agent name"
+            label="Remote agent name"
             value={createAgentForm.name}
             onChange={(event) =>
               setCreateAgentForm((current) => ({ ...current, name: event.target.value }))
@@ -684,7 +694,7 @@ function TokensContent() {
         isOpen={showCreateTokenModal}
         onClose={() => setShowCreateTokenModal(false)}
         title={t('tokens.actions.mintToken')}
-        description="Issue another runtime credential for an existing agent."
+        description="Issue another access token for an existing remote agent profile."
       >
         <form className="space-y-4" onSubmit={handleCreateToken}>
           <div>
@@ -692,7 +702,7 @@ function TokensContent() {
               htmlFor="token-agent-select"
               className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
             >
-              Agent
+              Remote agent
             </label>
             <select
               id="token-agent-select"
@@ -702,7 +712,7 @@ function TokensContent() {
               required
             >
               <option value="" disabled>
-                Select an agent
+                Select a remote agent
               </option>
               {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>

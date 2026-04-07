@@ -29,6 +29,12 @@ export type {
   BootstrapStatus,
   ManagementSessionSummary,
   AdminAccountSummary,
+  OpenClawAgentSummary,
+  OpenClawSessionSummary,
+  OpenClawAgentFileSummary,
+  OpenClawAgent,
+  OpenClawSession,
+  OpenClawAgentFile,
 } from './types';
 
 // Re-export AgentToken from task domain for convenience
@@ -45,6 +51,13 @@ export {
   getAgents,
   createAgent,
   deleteAgent,
+  getOpenClawAgents,
+  getOpenClawAgent,
+  createOpenClawAgent,
+  updateOpenClawAgent,
+  deleteOpenClawAgent,
+  getOpenClawSessions,
+  getOpenClawFiles,
   getAdminAccounts,
   createAdminAccount,
   disableAdminAccount,
@@ -65,6 +78,12 @@ export {
   useAgents,
   useCreateAgent,
   useDeleteAgent,
+  useOpenClawAgents,
+  useCreateOpenClawAgent,
+  useUpdateOpenClawAgent,
+  useDeleteOpenClawAgent,
+  useOpenClawSessions,
+  useOpenClawFiles,
   // Admin Accounts
   useAdminAccounts,
   useCreateAdminAccount,
@@ -78,9 +97,13 @@ export {
   // Manual mutations
   refreshSession,
   refreshAgents,
+  refreshOpenClawAgents,
   refreshAdminAccounts,
   refreshAgentsWithTokens,
+  refreshOpenClawSessions,
   // Prefetch
   prefetchAgents,
   prefetchSession,
+  prefetchOpenClawAgents,
+  prefetchOpenClawSessions,
 } from './hooks';

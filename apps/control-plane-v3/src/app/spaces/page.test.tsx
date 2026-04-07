@@ -85,7 +85,7 @@ describe('spaces page', () => {
           event_type: 'task_completed',
           subject_type: 'task',
           subject_id: 'task-1',
-          summary: 'Bootstrap completed Sync Config',
+          summary: 'Bootstrap Credential completed Sync Config',
           created_at: '2026-03-31T00:00:00.000Z',
           updated_at: '2026-03-31T00:00:00.000Z',
         },
@@ -135,7 +135,7 @@ describe('spaces page', () => {
       agents: [
         {
           id: 'bootstrap',
-          name: 'Bootstrap Agent',
+          name: 'Bootstrap Credential',
           risk_tier: 'high',
           auth_method: 'api_key',
           status: 'active',
@@ -214,7 +214,7 @@ describe('spaces page', () => {
               entry_type: 'task_completed',
               subject_type: 'task',
               subject_id: 'task-1',
-              summary: 'Bootstrap completed Sync Config',
+              summary: 'Bootstrap Credential completed Sync Config',
               created_at: '2026-03-31T00:00:00.000Z',
             },
           ],
@@ -251,7 +251,9 @@ describe('spaces page', () => {
 
     await user.click(screen.getByRole('button', { name: /show activity for bootstrap/i }));
 
-    expect(within(operationsFeed).getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
+    expect(
+      within(operationsFeed).getByText('Bootstrap Credential completed Sync Config')
+    ).toBeInTheDocument();
     expect(within(operationsFeed).queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
   });
 
@@ -277,7 +279,7 @@ describe('spaces page', () => {
 
     expect(within(operationsFeed).getByText('Analyzer failed Risk Scan')).toBeInTheDocument();
     expect(
-      within(operationsFeed).queryByText('Bootstrap completed Sync Config')
+      within(operationsFeed).queryByText('Bootstrap Credential completed Sync Config')
     ).not.toBeInTheDocument();
   });
 
@@ -350,7 +352,9 @@ describe('spaces page', () => {
   it('shows linked token and recent event summaries inside the identity space', () => {
     render(<SpacesPage />);
 
-    const bootstrapIdentity = screen.getByRole('group', { name: /bootstrap agent identity/i });
+    const bootstrapIdentity = screen.getByRole('group', {
+      name: /bootstrap credential identity/i,
+    });
     const analyzerIdentity = screen.getByRole('group', { name: /analyzer agent identity/i });
 
     expect(within(bootstrapIdentity).getByText('Bootstrap Primary')).toBeInTheDocument();
@@ -364,9 +368,11 @@ describe('spaces page', () => {
     render(<SpacesPage />);
     const operationsFeed = screen.getByRole('region', { name: /operations feed/i });
 
-    await user.click(screen.getByRole('button', { name: /focus bootstrap agent/i }));
+    await user.click(screen.getByRole('button', { name: /focus bootstrap credential/i }));
 
-    expect(within(operationsFeed).getByText('Bootstrap completed Sync Config')).toBeInTheDocument();
+    expect(
+      within(operationsFeed).getByText('Bootstrap Credential completed Sync Config')
+    ).toBeInTheDocument();
     expect(within(operationsFeed).queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
   });
 
@@ -376,8 +382,10 @@ describe('spaces page', () => {
     render(<SpacesPage />);
 
     expect(screen.getByText('Focused workspace context')).toBeInTheDocument();
-    expect(screen.getByText('Bootstrap Agent')).toBeInTheDocument();
-    expect(screen.getAllByText('Bootstrap completed Sync Config').length).toBeGreaterThan(0);
+    expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
+    expect(
+      screen.getAllByText('Bootstrap Credential completed Sync Config').length
+    ).toBeGreaterThan(0);
     expect(screen.queryByText('Analyzer failed Risk Scan')).not.toBeInTheDocument();
   });
 
@@ -389,7 +397,9 @@ describe('spaces page', () => {
     expect(screen.getByText('Coordinate review and runtime follow-up')).toBeInTheDocument();
     // MemberManager displays member_id.slice(-8) - 'bootstrap' → 'ootstrap'
     expect(screen.getByText('ootstrap')).toBeInTheDocument();
-    expect(screen.getAllByText('Bootstrap completed Sync Config').length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText('Bootstrap Credential completed Sync Config').length
+    ).toBeGreaterThan(0);
   });
 
   it('creates a new persisted space from the workspace modal', async () => {

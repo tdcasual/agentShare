@@ -19,6 +19,13 @@ class RuntimePrincipal(BaseModel):
     allowed_capability_ids: list[str] = Field(default_factory=list)
     allowed_task_types: list[str] = Field(default_factory=list)
     risk_tier: str = "medium"
+    session_id: str | None = None
+    session_key: str | None = None
+    workspace_root: str | None = None
+    agent_dir: str | None = None
+    sandbox_mode: str | None = None
+    tools_policy: dict = Field(default_factory=dict)
+    skills_policy: dict = Field(default_factory=dict)
 
     @property
     def agent_id(self) -> str:

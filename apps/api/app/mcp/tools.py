@@ -8,6 +8,10 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.models.agent import AgentIdentity
 from app.services.gateway import issue_lease, proxy_invoke
+from app.services.openclaw_tool_catalog_service import (
+    OPENCLAW_TOOL_CATALOG,
+    canonical_tool_name,
+)
 from app.services.playbook_service import search_playbooks
 from app.services.task_service import claim_task, complete_task, list_tasks
 
@@ -53,21 +57,21 @@ class RequestCapabilityLeaseArgs(BaseModel):
 
 
 TOOL_MODELS: dict[str, type[BaseModel]] = {
-    "list_tasks": ListTasksArgs,
-    "claim_task": ClaimTaskArgs,
-    "complete_task": CompleteTaskArgs,
-    "search_playbooks": SearchPlaybooksArgs,
-    "invoke_capability": InvokeCapabilityArgs,
-    "request_capability_lease": RequestCapabilityLeaseArgs,
+    "tasks.list": ListTasksArgs,
+    "tasks.claim": ClaimTaskArgs,
+    "tasks.complete": CompleteTaskArgs,
+    "playbooks.search": SearchPlaybooksArgs,
+    "capabilities.invoke": InvokeCapabilityArgs,
+    "capabilities.request_lease": RequestCapabilityLeaseArgs,
 }
 
 TOOL_DESCRIPTIONS = {
-    "list_tasks": "List available tasks so an agent can discover work before claiming it.",
-    "claim_task": "Claim one pending task that the current agent is allowed to execute.",
-    "complete_task": "Complete a task already claimed by the current agent and store the run result.",
-    "search_playbooks": "Search reusable playbooks by task type, free-text query, and tag.",
-    "invoke_capability": "Invoke a capability through proxy mode while preserving policy and approval semantics.",
-    "request_capability_lease": "Request a short-lived capability lease when the task and capability both allow it.",
+    "tasks.list": "List available tasks so an agent can discover work before claiming it.",
+    "tasks.claim": "Claim one pending task that the current agent is allowed to execute.",
+    "tasks.complete": "Complete a task already claimed by the current agent and store the run result.",
+    "playbooks.search": "Search reusable playbooks by task type, free-text query, and tag.",
+    "capabilities.invoke": "Invoke a capability through proxy mode while preserving policy and approval semantics.",
+    "capabilities.request_lease": "Request a short-lived capability lease when the task and capability both allow it.",
 }
 
 
@@ -77,6 +81,7 @@ def list_tool_definitions() -> list[dict[str, Any]]:
             "name": name,
             "description": TOOL_DESCRIPTIONS[name],
             "inputSchema": model.model_json_schema(),
+            "legacyName": OPENCLAW_TOOL_CATALOG[name]["legacy_name"],
         }
         for name, model in TOOL_MODELS.items()
     ]
@@ -90,7 +95,11 @@ def execute_tool(
     agent: AgentIdentity,
     settings: Settings,
 ) -> Any:
-    model = TOOL_MODELS.get(name)
+    canonical_name = canonical_tool_name(name)
+    if canonical_name is None:
+        raise ToolExecutionError(status_code=404, detail=f"Unknown MCP tool: {name}")
+
+    model = TOOL_MODELS.get(canonical_name)
     if model is None:
         raise ToolExecutionError(status_code=404, detail=f"Unknown MCP tool: {name}")
 
@@ -99,16 +108,16 @@ def execute_tool(
     except ValidationError as exc:
         raise ToolExecutionError(status_code=422, detail=exc.errors()) from exc
 
-    if name == "list_tasks":
+    if canonical_name == "tasks.list":
         result = list_tasks(session, actor=agent)
         if parsed.status:
             result = [item for item in result if item["status"] == parsed.status]
         if parsed.task_type:
             result = [item for item in result if item["task_type"] == parsed.task_type]
         return {"items": result}
-    if name == "claim_task":
+    if canonical_name == "tasks.claim":
         return claim_task(session, parsed.task_id, agent, settings=settings)
-    if name == "complete_task":
+    if canonical_name == "tasks.complete":
         return complete_task(
             session,
             parsed.task_id,
@@ -116,7 +125,7 @@ def execute_tool(
             parsed.result_summary,
             parsed.output_payload,
         )
-    if name == "search_playbooks":
+    if canonical_name == "playbooks.search":
         result = search_playbooks(
             session,
             task_type=parsed.task_type,
@@ -131,7 +140,7 @@ def execute_tool(
                 "applied_filters": result.applied_filters,
             },
         }
-    if name == "invoke_capability":
+    if canonical_name == "capabilities.invoke":
         return proxy_invoke(
             session,
             parsed.capability_id,
@@ -140,7 +149,7 @@ def execute_tool(
             agent,
             settings=settings,
         )
-    if name == "request_capability_lease":
+    if canonical_name == "capabilities.request_lease":
         return issue_lease(
             session,
             parsed.capability_id,

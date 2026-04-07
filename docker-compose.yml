@@ -63,7 +63,7 @@ services:
       OPENBAO_TOKEN: ${OPENBAO_TOKEN:-root}
       OPENBAO_MOUNT: ${OPENBAO_MOUNT:-secret}
       OPENBAO_PREFIX: ${OPENBAO_PREFIX:-agent-share}
-      BOOTSTRAP_AGENT_KEY: ${BOOTSTRAP_AGENT_KEY:-changeme-bootstrap-key}
+      BOOTSTRAP_OWNER_KEY: ${BOOTSTRAP_OWNER_KEY:-changeme-bootstrap-key}
       MANAGEMENT_SESSION_SECRET: ${MANAGEMENT_SESSION_SECRET:-changeme-management-session-secret}
       MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-false}
     depends_on:

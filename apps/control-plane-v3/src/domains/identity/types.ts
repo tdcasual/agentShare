@@ -200,3 +200,46 @@ export interface Agent {
   readonly auth_method: string;
   readonly status: string;
 }
+
+export interface OpenClawAgentSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly status: string;
+  readonly auth_method: string;
+  readonly risk_tier: string;
+  readonly workspace_root: string;
+  readonly agent_dir: string;
+  readonly model?: string | null;
+  readonly thinking_level: string;
+  readonly sandbox_mode: string;
+  readonly tools_policy: Record<string, unknown>;
+  readonly skills_policy: Record<string, unknown>;
+  readonly allowed_capability_ids: string[];
+  readonly allowed_task_types: string[];
+}
+
+export interface OpenClawSessionSummary {
+  readonly id: string;
+  readonly agent_id: string;
+  readonly session_key: string;
+  readonly display_name: string;
+  readonly channel: string;
+  readonly subject?: string | null;
+  readonly transcript_metadata: Record<string, unknown>;
+  readonly input_tokens: number;
+  readonly output_tokens: number;
+  readonly context_tokens: number;
+  readonly updated_at: string;
+}
+
+export interface OpenClawAgentFileSummary {
+  readonly agent_id: string;
+  readonly file_name: string;
+  readonly content: string;
+}
+
+export type OpenClawAgent = OpenClawAgentSummary;
+
+export type OpenClawSession = OpenClawSessionSummary;
+
+export type OpenClawAgentFile = OpenClawAgentFileSummary;

@@ -74,8 +74,8 @@ def list_tasks_route(
     "/assigned",
     response_model=TaskTargetListResponse,
     tags=["Agent Runtime"],
-    summary="List tasks assigned to the current token",
-    description="Return only task targets addressed to the authenticated runtime token.",
+    summary="List tasks assigned to the current remote-access token",
+    description="Return only task targets addressed to the authenticated remote-access token. OpenClaw session-backed runtimes without a token binding will not receive explicit-token assignments here.",
 )
 def list_assigned_tasks_route(
     agent: AgentIdentity = Depends(require_agent),
@@ -88,8 +88,8 @@ def list_assigned_tasks_route(
     "/{target_id}/claim",
     response_model=TaskTargetResponse,
     tags=["Agent Runtime"],
-    summary="Claim a token-targeted task",
-    description="Authenticate as an agent token and atomically claim the addressed task target.",
+    summary="Claim a remote-token-targeted task",
+    description="Authenticate as a remote-access token and atomically claim the addressed task target.",
 )
 def claim_task_target_route(
     target_id: str,
@@ -111,8 +111,8 @@ def claim_task_target_route(
     "/{target_id}/complete",
     response_model=TaskTargetResponse,
     tags=["Agent Runtime"],
-    summary="Complete a token-targeted task",
-    description="Mark a claimed task target complete and persist the resulting token-linked run record.",
+    summary="Complete a remote-token-targeted task",
+    description="Mark a claimed remote-token task target complete and persist the resulting token-linked run record.",
 )
 def complete_task_target_route(
     target_id: str,

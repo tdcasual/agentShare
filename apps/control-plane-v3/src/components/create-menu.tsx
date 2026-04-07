@@ -31,7 +31,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
   {
     id: 'create-agent',
     label: 'Create Agent',
-    description: 'Register a new AI agent identity',
+    description: 'Register a remote agent profile',
     icon: <User className="h-4 w-4" />,
     href: '/tokens',
     section: 'identity',
@@ -48,7 +48,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
   {
     id: 'create-token',
     label: 'Create Token',
-    description: 'Generate API access token',
+    description: 'Generate remote access token',
     icon: <Key className="h-4 w-4" />,
     href: '/tokens',
     section: 'resource',

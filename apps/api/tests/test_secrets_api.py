@@ -6,7 +6,7 @@ from app.orm.pending_secret_material import PendingSecretMaterialModel
 from app.orm.secret import SecretModel
 from app.repositories.audit_repo import AuditEventRepository
 from app.services.secret_backend import InMemorySecretBackend
-from conftest import BOOTSTRAP_AGENT_KEY, TEST_AGENT_KEY, _run_alembic_upgrade, bootstrap_owner_account, login_management_account
+from conftest import BOOTSTRAP_OWNER_KEY, TEST_AGENT_KEY, _run_alembic_upgrade, bootstrap_owner_account, login_management_account
 
 
 def test_create_secret_returns_reference_only(management_client):
@@ -106,7 +106,7 @@ def test_create_secret_uses_runtime_settings_for_secret_backend(monkeypatch, tmp
     _run_alembic_upgrade(f"sqlite:///{tmp_path / 'secret-runtime.db'}")
     app = create_app(Settings(
         database_url=f"sqlite:///{tmp_path / 'secret-runtime.db'}",
-        bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+        bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
         management_session_secret="session-secret",
         secret_backend="memory",
     ))

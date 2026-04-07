@@ -22,8 +22,30 @@ import type {
   BootstrapStatus,
   ManagementSessionSummary,
   AdminAccountSummary,
+  OpenClawAgent,
+  OpenClawAgentFile,
+  OpenClawSession,
 } from './types';
 import type { AgentToken } from '../task/types';
+
+export interface OpenClawAgentCreateInput {
+  name: string;
+  workspace_root: string;
+  agent_dir: string;
+  model?: string | null;
+  thinking_level?: string;
+  sandbox_mode?: string;
+  risk_tier?: string;
+  auth_method?: string;
+  tools_policy?: Record<string, unknown>;
+  skills_policy?: Record<string, unknown>;
+  allowed_capability_ids?: string[];
+  allowed_task_types?: string[];
+}
+
+export interface OpenClawAgentUpdateInput extends Partial<OpenClawAgentCreateInput> {
+  status?: string;
+}
 
 // ============================================
 // 引导流程 (Bootstrap)
@@ -81,6 +103,46 @@ export function deleteAgent(agentId: string) {
   return apiFetch<{ id: string; status: string }>(`/agents/${agentId}`, {
     method: 'DELETE',
   });
+}
+
+// ============================================
+// OpenClaw Agents
+// ============================================
+
+export function getOpenClawAgents() {
+  return apiFetch<{ items: OpenClawAgent[] }>('/openclaw/agents');
+}
+
+export function getOpenClawAgent(agentId: string) {
+  return apiFetch<OpenClawAgent>(`/openclaw/agents/${agentId}`);
+}
+
+export function createOpenClawAgent(payload: OpenClawAgentCreateInput) {
+  return apiFetch<OpenClawAgent>('/openclaw/agents', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateOpenClawAgent(agentId: string, payload: OpenClawAgentUpdateInput) {
+  return apiFetch<OpenClawAgent>(`/openclaw/agents/${agentId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteOpenClawAgent(agentId: string) {
+  return apiFetch<{ id: string; status: string }>(`/openclaw/agents/${agentId}`, {
+    method: 'DELETE',
+  });
+}
+
+export function getOpenClawSessions() {
+  return apiFetch<{ items: OpenClawSession[] }>('/openclaw/sessions');
+}
+
+export function getOpenClawFiles(agentId: string) {
+  return apiFetch<{ items: OpenClawAgentFile[] }>(`/openclaw/agents/${agentId}/files`);
 }
 
 // ============================================
@@ -143,6 +205,14 @@ export const identityApi = {
   getAgents,
   createAgent,
   deleteAgent,
+  // OpenClaw agents
+  getOpenClawAgents,
+  getOpenClawAgent,
+  createOpenClawAgent,
+  updateOpenClawAgent,
+  deleteOpenClawAgent,
+  getOpenClawSessions,
+  getOpenClawFiles,
   // Admin Accounts
   getAdminAccounts,
   createAdminAccount,

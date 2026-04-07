@@ -42,7 +42,7 @@ def test_create_app_fails_fast_on_idempotency_initialization_in_production(monke
             secret_backend="openbao",
             openbao_addr="https://vault.example.com",
             openbao_token="token",
-            bootstrap_agent_key="custom-bootstrap-key",
+            bootstrap_owner_key="custom-bootstrap-key",
             management_session_secret="custom-management-secret",
             management_session_secure=True,
         ))

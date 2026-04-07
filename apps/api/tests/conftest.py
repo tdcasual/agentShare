@@ -26,14 +26,14 @@ ROOT = Path(__file__).resolve().parents[3]
 API_ROOT = ROOT / "apps/api"
 
 TEST_AGENT_KEY = "agent-test-token"
-BOOTSTRAP_AGENT_KEY = "bootstrap-test-token"
+BOOTSTRAP_OWNER_KEY = "bootstrap-test-token"
 OWNER_EMAIL = "owner@example.com"
 OWNER_PASSWORD = "correct horse battery staple"
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "admin-password-123"
 TEST_SETTINGS = Settings(
     database_url="sqlite:///./pytest-placeholder.db",
-    bootstrap_agent_key=BOOTSTRAP_AGENT_KEY,
+    bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
 )
 
 
@@ -167,7 +167,7 @@ def bootstrap_owner_account(client: TestClient) -> dict:
     response = client.post(
         "/api/bootstrap/setup-owner",
         json={
-            "bootstrap_key": BOOTSTRAP_AGENT_KEY,
+            "bootstrap_key": BOOTSTRAP_OWNER_KEY,
             "email": OWNER_EMAIL,
             "display_name": "Founding Owner",
             "password": OWNER_PASSWORD,
