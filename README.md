@@ -213,6 +213,7 @@ That script:
 - installs the editable API dev dependencies into `.venv`;
 - runs `npm ci` in `apps/control-plane-v3`;
 - runs `alembic upgrade head` against the default local SQLite database;
+- backs up the default local SQLite dev database and rebuilds it if the file still points at a removed pre-baseline Alembic revision chain;
 - installs the Chromium browser used by Playwright when the local binary is available.
 
 If you keep Python somewhere else, you can override the interpreter:

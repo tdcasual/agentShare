@@ -5,7 +5,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+from alembic.util.exc import CommandError
 from sqlalchemy import create_engine, inspect, text
+
+from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -98,6 +102,59 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
         assert migrated_revision == CURRENT_ALEMBIC_HEAD
     finally:
         engine.dispose()
+
+
+def test_migrate_db_recovers_default_local_sqlite_when_revision_history_is_missing(
+    monkeypatch, tmp_path
+) -> None:
+    database_path = tmp_path / "agent_share.db"
+    database_path.write_text("legacy dev database")
+    monkeypatch.chdir(tmp_path)
+
+    upgrade_calls: list[str] = []
+
+    def fake_upgrade(config, revision):
+        upgrade_calls.append(config.get_main_option("sqlalchemy.url"))
+        if len(upgrade_calls) == 1:
+            raise CommandError("Can't locate revision identified by '20260330_02'")
+        database_path.write_text("fresh baseline database")
+
+    monkeypatch.setattr(db_module.command, "upgrade", fake_upgrade)
+
+    backup_path = db_module.migrate_db(
+        "sqlite:///./agent_share.db",
+        recover_default_dev_sqlite=True,
+    )
+
+    assert upgrade_calls == ["sqlite:///./agent_share.db", "sqlite:///./agent_share.db"]
+    assert backup_path is not None
+    assert backup_path.exists()
+    assert backup_path.read_text() == "legacy dev database"
+    assert backup_path != database_path
+    assert database_path.read_text() == "fresh baseline database"
+
+
+def test_migrate_db_does_not_reset_custom_sqlite_paths_when_revision_history_is_missing(
+    monkeypatch, tmp_path
+) -> None:
+    custom_db_path = tmp_path / ".tmp" / "dev-agent-share.db"
+    custom_db_path.parent.mkdir()
+    custom_db_path.write_text("keep me")
+    monkeypatch.chdir(tmp_path)
+
+    def fake_upgrade(config, revision):
+        raise CommandError("Can't locate revision identified by '20260330_02'")
+
+    monkeypatch.setattr(db_module.command, "upgrade", fake_upgrade)
+
+    with pytest.raises(CommandError, match="20260330_02"):
+        db_module.migrate_db(
+            "sqlite:///./.tmp/dev-agent-share.db",
+            recover_default_dev_sqlite=True,
+        )
+
+    assert custom_db_path.read_text() == "keep me"
+    assert not list(tmp_path.glob("*.pre-baseline*.db"))
 
 
 def test_pytest_database_fixture_uses_migrated_schema(db_session) -> None:

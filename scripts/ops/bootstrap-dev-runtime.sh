@@ -22,7 +22,7 @@ fi
 (
   cd "${ROOT_DIR}/apps/api"
   DATABASE_URL="${DEV_DATABASE_URL}" "${VENV_DIR}/bin/python" -c \
-    "from alembic.config import main; main(argv=['-c', 'alembic.ini', 'upgrade', 'head'])"
+    "import os; from app.db import migrate_db; backup = migrate_db(os.environ['DATABASE_URL'], recover_default_dev_sqlite=True); print(f'Backed up stale dev database to {backup}') if backup else None"
 )
 
 if [ -x "${PLAYWRIGHT_BIN}" ]; then
