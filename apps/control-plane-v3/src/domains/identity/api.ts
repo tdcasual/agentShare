@@ -24,6 +24,7 @@ import type {
   AdminAccountSummary,
   OpenClawAgent,
   OpenClawAgentFile,
+  OpenClawDreamRunDetail,
   OpenClawDreamRun,
   OpenClawSession,
 } from './types';
@@ -147,6 +148,24 @@ export function getOpenClawDreamRuns() {
   return apiFetch<{ items: OpenClawDreamRun[] }>('/openclaw/dream-runs');
 }
 
+export function getOpenClawDreamRun(runId: string) {
+  return apiFetch<OpenClawDreamRunDetail>(`/openclaw/dream-runs/${runId}`);
+}
+
+export function pauseOpenClawDreamRun(runId: string, reason: string) {
+  return apiFetch<OpenClawDreamRun>(`/openclaw/dream-runs/${runId}/pause`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function resumeOpenClawDreamRun(runId: string) {
+  return apiFetch<OpenClawDreamRun>(`/openclaw/dream-runs/${runId}/resume`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
 export function getOpenClawFiles(agentId: string) {
   return apiFetch<{ items: OpenClawAgentFile[] }>(`/openclaw/agents/${agentId}/files`);
 }
@@ -219,6 +238,9 @@ export const identityApi = {
   deleteOpenClawAgent,
   getOpenClawSessions,
   getOpenClawDreamRuns,
+  getOpenClawDreamRun,
+  pauseOpenClawDreamRun,
+  resumeOpenClawDreamRun,
   getOpenClawFiles,
   // Admin Accounts
   getAdminAccounts,

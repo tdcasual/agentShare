@@ -12,6 +12,8 @@ const useOpenClawDreamRunsMock = vi.fn();
 const useOpenClawFilesMock = vi.fn();
 const useEventsMock = vi.fn();
 const useDeleteOpenClawAgentMock = vi.fn();
+const usePauseOpenClawDreamRunMock = vi.fn();
+const useResumeOpenClawDreamRunMock = vi.fn();
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
@@ -47,6 +49,8 @@ vi.mock('@/domains/identity', () => ({
   useOpenClawDreamRuns: () => useOpenClawDreamRunsMock(),
   useOpenClawFiles: (agentId: string | null) => useOpenClawFilesMock(agentId),
   useDeleteOpenClawAgent: () => useDeleteOpenClawAgentMock(),
+  usePauseOpenClawDreamRun: () => usePauseOpenClawDreamRunMock(),
+  useResumeOpenClawDreamRun: () => useResumeOpenClawDreamRunMock(),
   refreshSession: () => Promise.resolve(),
   refreshAdminAccounts: () => Promise.resolve(),
   refreshOpenClawAgents: () => Promise.resolve(),
@@ -224,6 +228,8 @@ describe('openclaw migration characterization on identities page', () => {
     });
 
     useDeleteOpenClawAgentMock.mockReturnValue(vi.fn());
+    usePauseOpenClawDreamRunMock.mockReturnValue(vi.fn());
+    useResumeOpenClawDreamRunMock.mockReturnValue(vi.fn());
   });
 
   it('keeps operator visibility while reframing agent coverage around openclaw sessions and workspaces', async () => {

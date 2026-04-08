@@ -13,6 +13,8 @@ import {
   useDeleteOpenClawAgent,
   useOpenClawAgents,
   useOpenClawDreamRuns,
+  usePauseOpenClawDreamRun,
+  useResumeOpenClawDreamRun,
   useOpenClawSessions,
 } from '@/domains/identity';
 import { useEvents, refreshEvents } from '@/domains/event';
@@ -29,6 +31,7 @@ import { Card } from '@/shared/ui-primitives/card';
 import { MetricCard, CoverageMetric } from './components';
 import { HumanOperatorsSection } from './human-operators-section';
 import { AIAgentsSection } from './ai-agents-section';
+import { DreamRunDetailCard } from './dream-run-detail-card';
 import type {
   AdminAccountSummary,
   OpenClawAgent,
@@ -103,6 +106,8 @@ function IdentitiesContent() {
   const dreamRunsQuery = useOpenClawDreamRuns();
   const eventsQuery = useEvents();
   const deleteAgent = useDeleteOpenClawAgent();
+  const pauseDreamRun = usePauseOpenClawDreamRun();
+  const resumeDreamRun = useResumeOpenClawDreamRun();
   const {
     session,
     loading: gateLoading,
@@ -129,6 +134,8 @@ function IdentitiesContent() {
     focus.agentId ? [focus.agentId] : []
   );
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
+  const [pausingDreamRunId, setPausingDreamRunId] = useState<string | null>(null);
+  const [resumingDreamRunId, setResumingDreamRunId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const adminAccounts = adminAccountsData?.items ?? EMPTY_ADMIN_ACCOUNTS;
@@ -148,6 +155,7 @@ function IdentitiesContent() {
   );
   const focusedAdminAccount = adminAccounts.find((account) => account.id === focus.adminId) ?? null;
   const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
+  const focusedDreamRun = dreamRuns.find((run) => run.id === focus.dreamRunId) ?? null;
   const focusedIdentity = focusedAgent ?? focusedAdminAccount;
   const focusedIdentityLabel = focusedAgent
     ? 'OpenClaw agent'
@@ -253,6 +261,40 @@ function IdentitiesContent() {
     }
   }
 
+  async function handlePauseDreamRun(runId: string) {
+    setPausingDreamRunId(runId);
+    setActionError(null);
+    clearAllAuthErrors();
+
+    try {
+      await pauseDreamRun(runId, 'operator_paused');
+    } catch (error) {
+      if (consumeUnauthorized(error)) {
+        return;
+      }
+      setActionError(error instanceof Error ? error.message : 'Failed to pause dream run');
+    } finally {
+      setPausingDreamRunId(null);
+    }
+  }
+
+  async function handleResumeDreamRun(runId: string) {
+    setResumingDreamRunId(runId);
+    setActionError(null);
+    clearAllAuthErrors();
+
+    try {
+      await resumeDreamRun(runId);
+    } catch (error) {
+      if (consumeUnauthorized(error)) {
+        return;
+      }
+      setActionError(error instanceof Error ? error.message : 'Failed to resume dream run');
+    } finally {
+      setResumingDreamRunId(null);
+    }
+  }
+
   const handleToggleAccount = (accountId: string) => {
     setExpandedAccounts((current) =>
       current.includes(accountId)
@@ -265,6 +307,13 @@ function IdentitiesContent() {
     setExpandedAgents((current) =>
       current.includes(agentId) ? current.filter((id) => id !== agentId) : [...current, agentId]
     );
+  };
+
+  const handleSelectDreamRun = (agentId: string, runId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('agentId', agentId);
+    params.set('dreamRunId', runId);
+    router.push(`/identities?${params.toString()}`);
   };
 
   return (
@@ -352,6 +401,17 @@ function IdentitiesContent() {
             </p>
           </div>
         </Card>
+      ) : null}
+
+      {focusedDreamRun ? (
+        <DreamRunDetailCard
+          run={focusedDreamRun}
+          canControl={session?.role === 'owner' || session?.role === 'admin'}
+          isPausing={pausingDreamRunId === focusedDreamRun.id}
+          isResuming={resumingDreamRunId === focusedDreamRun.id}
+          onPause={() => handlePauseDreamRun(focusedDreamRun.id)}
+          onResume={() => handleResumeDreamRun(focusedDreamRun.id)}
+        />
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -531,6 +591,7 @@ function IdentitiesContent() {
             isRefreshing={refreshingAction === 'agents'}
             focusedAgentId={focus.agentId}
             onToggleExpand={handleToggleAgent}
+            onSelectDreamRun={handleSelectDreamRun}
             onRetry={retryAgents}
             onDelete={handleDeleteAgent}
           />

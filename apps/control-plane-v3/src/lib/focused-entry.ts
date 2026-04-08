@@ -7,6 +7,7 @@ export type FocusedEntry = {
   resourceKind?: string;
   resourceId?: string;
   agentId?: string;
+  dreamRunId?: string;
   adminId?: string;
   eventId?: string;
 };
@@ -22,6 +23,7 @@ export function readFocusedEntry(reader: SearchParamReader): FocusedEntry {
     resourceKind: readParam(reader, 'resourceKind'),
     resourceId: readParam(reader, 'resourceId'),
     agentId: readParam(reader, 'agentId'),
+    dreamRunId: readParam(reader, 'dreamRunId'),
     adminId: readParam(reader, 'adminId'),
     eventId: readParam(reader, 'eventId'),
   };

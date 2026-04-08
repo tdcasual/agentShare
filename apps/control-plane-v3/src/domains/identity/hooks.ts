@@ -16,6 +16,7 @@ import type {
   AdminAccountSummary,
   OpenClawAgent,
   OpenClawAgentFile,
+  OpenClawDreamRunDetail,
   OpenClawDreamRun,
   OpenClawSession,
 } from './types';
@@ -160,6 +161,19 @@ export function useOpenClawDreamRuns(options?: SWRConfiguration) {
   );
 }
 
+export function useOpenClawDreamRun(runId: string | null, options?: SWRConfiguration) {
+  const key = !runId || options?.isPaused ? null : `/api/openclaw/dream-runs/${runId}`;
+
+  return useSWR<OpenClawDreamRunDetail>(
+    key,
+    () => api.getOpenClawDreamRun(runId!),
+    {
+      ...swrConfig,
+      ...options,
+    }
+  );
+}
+
 export function useOpenClawFiles(agentId: string | null, options?: SWRConfiguration) {
   return useSWR<{ items: OpenClawAgentFile[] }>(
     agentId ? `/api/openclaw/agents/${agentId}/files` : null,
@@ -169,6 +183,24 @@ export function useOpenClawFiles(agentId: string | null, options?: SWRConfigurat
       ...options,
     }
   );
+}
+
+export function usePauseOpenClawDreamRun() {
+  return async (runId: string, reason: string) => {
+    const result = await api.pauseOpenClawDreamRun(runId, reason);
+    await mutate('/api/openclaw/dream-runs');
+    await mutate(`/api/openclaw/dream-runs/${runId}`);
+    return result;
+  };
+}
+
+export function useResumeOpenClawDreamRun() {
+  return async (runId: string) => {
+    const result = await api.resumeOpenClawDreamRun(runId);
+    await mutate('/api/openclaw/dream-runs');
+    await mutate(`/api/openclaw/dream-runs/${runId}`);
+    return result;
+  };
 }
 
 // ============================================

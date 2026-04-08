@@ -34,10 +34,13 @@ export type {
   OpenClawAgentFileSummary,
   OpenClawDreamPolicy,
   OpenClawDreamRunSummary,
+  OpenClawDreamRunDetail,
+  OpenClawDreamStepSummary,
   OpenClawAgent,
   OpenClawSession,
   OpenClawAgentFile,
   OpenClawDreamRun,
+  OpenClawDreamStep,
 } from './types';
 
 // Re-export AgentToken from task domain for convenience
@@ -61,6 +64,9 @@ export {
   deleteOpenClawAgent,
   getOpenClawSessions,
   getOpenClawDreamRuns,
+  getOpenClawDreamRun,
+  pauseOpenClawDreamRun,
+  resumeOpenClawDreamRun,
   getOpenClawFiles,
   getAdminAccounts,
   createAdminAccount,
@@ -88,7 +94,10 @@ export {
   useDeleteOpenClawAgent,
   useOpenClawSessions,
   useOpenClawDreamRuns,
+  useOpenClawDreamRun,
   useOpenClawFiles,
+  usePauseOpenClawDreamRun,
+  useResumeOpenClawDreamRun,
   // Admin Accounts
   useAdminAccounts,
   useCreateAdminAccount,

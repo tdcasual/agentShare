@@ -12,6 +12,7 @@ export interface AgentManagementCardProps {
   recentSession: OpenClawSession | null;
   sessionCount: number;
   recentDreamRuns: OpenClawDreamRun[];
+  onSelectDreamRun?: (runId: string) => void;
   sessionErrorMessage: string | null;
   canDelete: boolean;
   events: Array<{
@@ -49,6 +50,7 @@ export function AgentManagementCard({
   recentSession,
   sessionCount,
   recentDreamRuns,
+  onSelectDreamRun,
   sessionErrorMessage,
   canDelete,
   events,
@@ -80,7 +82,7 @@ export function AgentManagementCard({
 
       <div className="grid gap-4 xl:grid-cols-2">
         <DreamPolicyCard dreamPolicy={agent.dream_policy} />
-        <DreamRunList runs={recentDreamRuns} />
+        <DreamRunList runs={recentDreamRuns} onSelectRun={onSelectDreamRun} />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">

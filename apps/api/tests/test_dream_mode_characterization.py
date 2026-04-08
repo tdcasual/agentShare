@@ -158,3 +158,49 @@ def test_dream_mode_followup_task_proposal_is_budgeted(client, management_client
     assert second_task.json()["result"]["isError"] is True
     assert second_task.json()["result"]["structuredContent"]["status_code"] == 409
     assert second_task.json()["result"]["structuredContent"]["detail"] == "Dream run follow-up task budget exhausted"
+
+
+def test_management_can_pause_and_resume_a_dream_run(client, management_client):
+    agent = _create_openclaw_agent(management_client)
+    _create_openclaw_session(management_client, agent["id"], "sess_dream_pause")
+
+    created = client.post(
+        "/api/openclaw/dream-runs",
+        headers={"Authorization": "Bearer sess_dream_pause"},
+        json={"objective": "Pause and resume safely"},
+    )
+    assert created.status_code == 201, created.text
+
+    paused = management_client.post(
+        f"/api/openclaw/dream-runs/{created.json()['id']}/pause",
+        json={"reason": "operator_paused"},
+    )
+    assert paused.status_code == 200, paused.text
+    assert paused.json()["status"] == "paused"
+    assert paused.json()["stop_reason"] == "operator_paused"
+
+    blocked_step = client.post(
+        f"/api/openclaw/dream-runs/{created.json()['id']}/steps",
+        headers={"Authorization": "Bearer sess_dream_pause"},
+        json={
+            "step_type": "plan",
+            "status": "completed",
+            "input_payload": {"prompt": "plan next move"},
+            "output_payload": {"summary": "should be blocked"},
+            "token_usage": {"input": 10, "output": 5},
+        },
+    )
+    assert blocked_step.status_code == 409, blocked_step.text
+    assert blocked_step.json()["detail"] == "Dream run is not active"
+
+    resumed = management_client.post(
+        f"/api/openclaw/dream-runs/{created.json()['id']}/resume",
+    )
+    assert resumed.status_code == 200, resumed.text
+    assert resumed.json()["status"] == "active"
+    assert resumed.json()["stop_reason"] is None
+
+    detail = management_client.get(f"/api/openclaw/dream-runs/{created.json()['id']}")
+    assert detail.status_code == 200, detail.text
+    assert detail.json()["id"] == created.json()["id"]
+    assert detail.json()["steps"] == []

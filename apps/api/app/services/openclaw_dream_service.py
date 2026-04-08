@@ -94,6 +94,20 @@ def list_dream_runs(
     return [serialize_dream_run(item) for item in items]
 
 
+def get_dream_run_detail(
+    session: Session,
+    run_id: str,
+    *,
+    agent: AgentIdentity | None = None,
+) -> dict:
+    run = get_dream_run(session, run_id, agent=agent)
+    steps = OpenClawDreamStepRepository(session).list_for_run(run.id)
+    return {
+        **serialize_dream_run(run),
+        "steps": [serialize_dream_step(step) for step in steps],
+    }
+
+
 def get_dream_run(
     session: Session,
     run_id: str,
@@ -161,6 +175,39 @@ def stop_dream_run(
     run = get_dream_run(session, run_id, agent=agent)
     run.status = "stopped"
     run.stop_reason = stop_reason
+    repo.update(run)
+    return serialize_dream_run(run)
+
+
+def pause_dream_run(
+    session: Session,
+    *,
+    run_id: str,
+    reason: str,
+) -> dict:
+    repo = OpenClawDreamRunRepository(session)
+    run = get_dream_run(session, run_id)
+    if run.status != "active":
+        raise ConflictError("Dream run is not active")
+    run.status = "paused"
+    run.stop_reason = reason
+    repo.update(run)
+    return serialize_dream_run(run)
+
+
+def resume_dream_run(
+    session: Session,
+    *,
+    run_id: str,
+) -> dict:
+    repo = OpenClawDreamRunRepository(session)
+    run = get_dream_run(session, run_id)
+    if run.status != "paused":
+        raise ConflictError("Dream run is not paused")
+    if run.consumed_steps >= run.step_budget:
+        raise ConflictError("Dream run step budget exhausted")
+    run.status = "active"
+    run.stop_reason = None
     repo.update(run)
     return serialize_dream_run(run)
 

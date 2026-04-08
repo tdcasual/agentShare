@@ -265,6 +265,23 @@ export interface OpenClawDreamRunSummary {
   readonly updated_at: string;
 }
 
+export interface OpenClawDreamStepSummary {
+  readonly id: string;
+  readonly run_id: string;
+  readonly step_index: number;
+  readonly step_type: string;
+  readonly status: string;
+  readonly input_payload: Record<string, unknown>;
+  readonly output_payload: Record<string, unknown>;
+  readonly token_usage: Record<string, unknown>;
+  readonly created_task_id?: string | null;
+  readonly updated_at: string;
+}
+
+export interface OpenClawDreamRunDetail extends OpenClawDreamRunSummary {
+  readonly steps: OpenClawDreamStepSummary[];
+}
+
 export type OpenClawAgent = OpenClawAgentSummary;
 
 export type OpenClawSession = OpenClawSessionSummary;
@@ -272,3 +289,4 @@ export type OpenClawSession = OpenClawSessionSummary;
 export type OpenClawAgentFile = OpenClawAgentFileSummary;
 
 export type OpenClawDreamRun = OpenClawDreamRunSummary;
+export type OpenClawDreamStep = OpenClawDreamStepSummary;

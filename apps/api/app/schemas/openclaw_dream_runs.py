@@ -76,5 +76,13 @@ class OpenClawDreamStepCreateResponse(BaseModel):
     run: OpenClawDreamRunSummary
 
 
+class OpenClawDreamRunDetail(OpenClawDreamRunSummary):
+    steps: list[OpenClawDreamStepSummary] = Field(default_factory=list)
+
+
 class OpenClawDreamRunStop(BaseModel):
     stop_reason: str = Field(description="Explicit reason for stopping the run.")
+
+
+class OpenClawDreamRunPause(BaseModel):
+    reason: str = Field(description="Explicit reason for pausing the run.")

@@ -13,7 +13,11 @@ const useOpenClawDreamRunsMock = vi.fn();
 const useOpenClawFilesMock = vi.fn();
 const useEventsMock = vi.fn();
 const useDeleteOpenClawAgentMock = vi.fn();
+const usePauseOpenClawDreamRunMock = vi.fn();
+const useResumeOpenClawDreamRunMock = vi.fn();
 const deleteOpenClawAgentMock = vi.fn();
+const pauseOpenClawDreamRunMock = vi.fn();
+const resumeOpenClawDreamRunMock = vi.fn();
 const refreshSessionMock = vi.fn();
 const refreshAdminAccountsMock = vi.fn();
 const refreshOpenClawAgentsMock = vi.fn();
@@ -63,6 +67,8 @@ vi.mock('@/domains/identity', () => ({
   useOpenClawDreamRuns: () => useOpenClawDreamRunsMock(),
   useOpenClawFiles: (agentId: string | null) => useOpenClawFilesMock(agentId),
   useDeleteOpenClawAgent: () => useDeleteOpenClawAgentMock(),
+  usePauseOpenClawDreamRun: () => usePauseOpenClawDreamRunMock(),
+  useResumeOpenClawDreamRun: () => useResumeOpenClawDreamRunMock(),
   refreshSession: () => refreshSessionMock(),
   refreshAdminAccounts: () => refreshAdminAccountsMock(),
   refreshOpenClawAgents: () => refreshOpenClawAgentsMock(),
@@ -268,6 +274,18 @@ describe('identities page', () => {
 
     deleteOpenClawAgentMock.mockResolvedValue({ status: 'deleted', id: 'bootstrap' });
     useDeleteOpenClawAgentMock.mockReturnValue(deleteOpenClawAgentMock);
+    pauseOpenClawDreamRunMock.mockResolvedValue({
+      id: 'dream-run-1',
+      status: 'paused',
+      stop_reason: 'operator_paused',
+    });
+    resumeOpenClawDreamRunMock.mockResolvedValue({
+      id: 'dream-run-1',
+      status: 'active',
+      stop_reason: null,
+    });
+    usePauseOpenClawDreamRunMock.mockReturnValue(pauseOpenClawDreamRunMock);
+    useResumeOpenClawDreamRunMock.mockReturnValue(resumeOpenClawDreamRunMock);
   });
 
   it('filters human and openclaw agent lists locally from the search query', async () => {
@@ -318,8 +336,75 @@ describe('identities page', () => {
 
     expect(screen.getByText('Dream Mode')).toBeInTheDocument();
     expect(screen.getByText('Enabled')).toBeInTheDocument();
-    expect(screen.getByText('Inspect deployment drift')).toBeInTheDocument();
+    expect(screen.getAllByText('Inspect deployment drift').length).toBeGreaterThan(0);
     expect(screen.getByText(/budget exhausted/i)).toBeInTheDocument();
+  });
+
+  it('opens a focused dream run detail panel and can pause or resume it', async () => {
+    const user = userEvent.setup();
+    mockSearchParams = new URLSearchParams('agentId=bootstrap&dreamRunId=dream-run-1');
+    useOpenClawDreamRunsMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'dream-run-1',
+            agent_id: 'bootstrap',
+            session_id: 'session-bootstrap',
+            task_id: null,
+            objective: 'Inspect deployment drift',
+            status: 'active',
+            stop_reason: null,
+            step_budget: 4,
+            consumed_steps: 2,
+            created_followup_tasks: 1,
+            started_by_actor_type: 'agent',
+            started_by_actor_id: 'bootstrap',
+            runtime_metadata: { channel: 'chat' },
+            updated_at: '2026-03-31T13:00:00.000Z',
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    const { rerender } = render(<IdentitiesPage />);
+
+    expect(screen.getByText('Dream run detail')).toBeInTheDocument();
+    expect(screen.getAllByText('Inspect deployment drift').length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole('button', { name: /pause dream run/i }));
+    expect(pauseOpenClawDreamRunMock).toHaveBeenCalledWith('dream-run-1', 'operator_paused');
+
+    useOpenClawDreamRunsMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'dream-run-1',
+            agent_id: 'bootstrap',
+            session_id: 'session-bootstrap',
+            task_id: null,
+            objective: 'Inspect deployment drift',
+            status: 'paused',
+            stop_reason: 'operator_paused',
+            step_budget: 4,
+            consumed_steps: 2,
+            created_followup_tasks: 1,
+            started_by_actor_type: 'agent',
+            started_by_actor_id: 'bootstrap',
+            runtime_metadata: { channel: 'chat' },
+            updated_at: '2026-03-31T13:00:00.000Z',
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    rerender(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: /resume dream run/i }));
+    expect(resumeOpenClawDreamRunMock).toHaveBeenCalledWith('dream-run-1');
   });
 
   it('keeps agent cards visible when session data is temporarily unavailable', () => {

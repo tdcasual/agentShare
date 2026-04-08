@@ -32,6 +32,7 @@ export interface AIAgentsSectionProps {
   isRefreshing: boolean;
   focusedAgentId?: string | null;
   onToggleExpand: (agentId: string) => void;
+  onSelectDreamRun?: (agentId: string, runId: string) => void;
   onRetry: () => Promise<void>;
   onDelete: (agentId: string) => Promise<void>;
 }
@@ -56,6 +57,7 @@ export function AIAgentsSection({
   isRefreshing,
   focusedAgentId,
   onToggleExpand,
+  onSelectDreamRun,
   onRetry,
   onDelete,
 }: AIAgentsSectionProps) {
@@ -139,6 +141,9 @@ export function AIAgentsSection({
                     events={events.filter((event) => event.actor_id === agent.id)}
                     eventsErrorMessage={eventsErrorMessage}
                     isDeleting={deletingAgentId === agent.id}
+                    onSelectDreamRun={
+                      onSelectDreamRun ? (runId) => onSelectDreamRun(agent.id, runId) : undefined
+                    }
                     onDelete={() => onDelete(agent.id)}
                   />
                 ) : null}

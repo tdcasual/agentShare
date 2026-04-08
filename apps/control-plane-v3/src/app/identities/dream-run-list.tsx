@@ -4,9 +4,10 @@ import type { OpenClawDreamRun } from '@/domains/identity';
 
 export interface DreamRunListProps {
   runs: OpenClawDreamRun[];
+  onSelectRun?: (runId: string) => void;
 }
 
-export function DreamRunList({ runs }: DreamRunListProps) {
+export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
   return (
     <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
       <div className="flex items-center justify-between gap-3">
@@ -36,6 +37,15 @@ export function DreamRunList({ runs }: DreamRunListProps) {
               <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
                 Updated {formatSnapshotTimestamp(run.updated_at)}
               </p>
+              {onSelectRun ? (
+                <button
+                  type="button"
+                  onClick={() => onSelectRun(run.id)}
+                  className="mt-2 text-sm font-medium text-pink-600 hover:text-pink-700 dark:text-pink-300 dark:hover:text-pink-200"
+                >
+                  View run detail
+                </button>
+              ) : null}
             </div>
           ))}
         </div>
