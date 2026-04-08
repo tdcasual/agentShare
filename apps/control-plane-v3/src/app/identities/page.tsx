@@ -324,8 +324,8 @@ function IdentitiesContent() {
             Identity Management
           </h1>
           <p className="text-gray-600 dark:text-[#9CA3AF]">
-            Review the persisted human operators and OpenClaw-native agents available to the
-            management control plane.
+            Review persisted human operators and in-project OpenClaw-native agents. Remote-access
+            tokens for external machines remain on the dedicated Tokens page.
           </p>
         </div>
         <div className="flex flex-col gap-3">

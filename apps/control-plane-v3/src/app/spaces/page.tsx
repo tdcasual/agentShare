@@ -3,23 +3,10 @@
 /**
  * Spaces Page - 空间管理页面
  *
- * ⚠️ 已知权限边界偏移（H2）:
- * - 后端 spaces API: viewer/operator 可读
- * - 但页面耦合了 admin-only 面板：events, reviews, agents, secrets, capabilities
- *
- * 当前行为:
- * - 前端路由角色: viewer（基础空间视图）
- * - admin-only 面板根据角色降级隐藏
- *
- * 建议解决方案（需产品决策）:
- * 1. 拆分页面：基础空间视图（viewer+）+ 管理面板（admin）
- * 2. 保留当前 admin-only 复合页面，viewer/operator 通过其他入口只读空间
- * 3. 条件渲染：根据角色显示/隐藏 admin-only 面板
- *
- * 当前缓解措施:
- * - 路由设为 viewer，基础空间视图对低权限会话保持可读
- * - admin-only 面板按角色隐藏，并暂停对应查询
- * - 使用 useManagementPageSessionRecovery 处理 401/403
+ * 当前定位：
+ * - viewer/operator 至少可以稳定读取基础空间列表、成员与时间线。
+ * - admin 额外看到 events、reviews、identity、inventory 等运营面板。
+ * - admin-only 查询会按角色暂停并隐藏，不再把整个页面拖成结构性 403。
  */
 
 import { useMemo, useState } from 'react';
