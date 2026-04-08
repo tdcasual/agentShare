@@ -248,8 +248,10 @@ The primary runtime path is now OpenClaw-native:
 - runtime execution binds to `/api/openclaw/agents/{agent_id}/sessions`
 - agent requests authenticate with `Authorization: Bearer <session_key>`
 - the management console inspects workspace files, session history, sandbox mode, and tool policy instead of linked managed tokens
+- bounded autonomous continuation is available through Dream Mode runs and explicit memory notes
 
 For the end-to-end local workflow, use [docs/guides/agent-quickstart.md](docs/guides/agent-quickstart.md).
+For bounded autonomy setup and operator guidance, use [docs/guides/dream-mode-quickstart.md](docs/guides/dream-mode-quickstart.md).
 
 ### One-Command Demo Stack
 
@@ -311,9 +313,10 @@ Start with the operational guide:
 
 - `docs/guides/agent-quickstart.md`
 - `docs/guides/admin-bootstrap-and-token-ops.md`
+- `docs/guides/dream-mode-quickstart.md`
 - `docs/guides/mcp-quickstart.md`
 
-The quickstarts cover first-run management bootstrap, external remote-access token operations, OpenClaw runtime session flows, direct HTTP runtime calls, and the MCP tool surface on top of the same control-plane services.
+The quickstarts cover first-run management bootstrap, external remote-access token operations, OpenClaw runtime session flows, direct HTTP runtime calls, bounded Dream Mode runs, and the MCP tool surface on top of the same control-plane services.
 
 ## Phase 2 Surface
 
@@ -324,7 +327,7 @@ The quickstarts cover first-run management bootstrap, external remote-access tok
   - `openai` for chat completions
   - `github` for repository-scoped REST calls
   - `generic_http` for other JSON APIs
-- Use the MCP endpoint at `POST /mcp` to expose `list_tasks`, `claim_task`, `complete_task`, `search_playbooks`, `invoke_capability`, and `request_capability_lease`.
+- Use the MCP endpoint at `POST /mcp` to expose `list_tasks`, `claim_task`, `complete_task`, `search_playbooks`, `invoke_capability`, `request_capability_lease`, and Dream Mode tools such as `dream.runs.start` and `dream.tasks.propose_followup`.
 
 ## Runtime Safety Notes
 

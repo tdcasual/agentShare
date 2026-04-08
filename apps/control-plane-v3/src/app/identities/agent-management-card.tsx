@@ -1,14 +1,17 @@
 import { Trash2 } from 'lucide-react';
 import { useOpenClawFiles } from '@/domains/identity';
-import type { OpenClawAgent, OpenClawSession } from '@/domains/identity';
+import type { OpenClawAgent, OpenClawDreamRun, OpenClawSession } from '@/domains/identity';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { IdentityDetailsGrid, formatSnapshotTimestamp } from './components';
+import { DreamPolicyCard } from './dream-policy-card';
+import { DreamRunList } from './dream-run-list';
 
 export interface AgentManagementCardProps {
   agent: OpenClawAgent;
   recentSession: OpenClawSession | null;
   sessionCount: number;
+  recentDreamRuns: OpenClawDreamRun[];
   sessionErrorMessage: string | null;
   canDelete: boolean;
   events: Array<{
@@ -45,6 +48,7 @@ export function AgentManagementCard({
   agent,
   recentSession,
   sessionCount,
+  recentDreamRuns,
   sessionErrorMessage,
   canDelete,
   events,
@@ -73,6 +77,11 @@ export function AgentManagementCard({
           ['Tool Policy', formatPolicy(agent.tools_policy)],
         ]}
       />
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <DreamPolicyCard dreamPolicy={agent.dream_policy} />
+        <DreamRunList runs={recentDreamRuns} />
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">

@@ -9,6 +9,7 @@ const useManagementPageSessionRecoveryMock = vi.fn();
 const useAdminAccountsMock = vi.fn();
 const useOpenClawAgentsMock = vi.fn();
 const useOpenClawSessionsMock = vi.fn();
+const useOpenClawDreamRunsMock = vi.fn();
 const useOpenClawFilesMock = vi.fn();
 const useEventsMock = vi.fn();
 const useDeleteOpenClawAgentMock = vi.fn();
@@ -17,6 +18,7 @@ const refreshSessionMock = vi.fn();
 const refreshAdminAccountsMock = vi.fn();
 const refreshOpenClawAgentsMock = vi.fn();
 const refreshOpenClawSessionsMock = vi.fn();
+const refreshOpenClawDreamRunsMock = vi.fn();
 const refreshEventsMock = vi.fn();
 
 vi.mock('next/link', () => ({
@@ -58,12 +60,14 @@ vi.mock('@/domains/identity', () => ({
   useAdminAccounts: () => useAdminAccountsMock(),
   useOpenClawAgents: () => useOpenClawAgentsMock(),
   useOpenClawSessions: () => useOpenClawSessionsMock(),
+  useOpenClawDreamRuns: () => useOpenClawDreamRunsMock(),
   useOpenClawFiles: (agentId: string | null) => useOpenClawFilesMock(agentId),
   useDeleteOpenClawAgent: () => useDeleteOpenClawAgentMock(),
   refreshSession: () => refreshSessionMock(),
   refreshAdminAccounts: () => refreshAdminAccountsMock(),
   refreshOpenClawAgents: () => refreshOpenClawAgentsMock(),
   refreshOpenClawSessions: () => refreshOpenClawSessionsMock(),
+  refreshOpenClawDreamRuns: () => refreshOpenClawDreamRunsMock(),
 }));
 
 vi.mock('@/domains/event', () => ({
@@ -130,6 +134,14 @@ describe('identities page', () => {
             model: 'gpt-5',
             thinking_level: 'high',
             sandbox_mode: 'workspace-write',
+            dream_policy: {
+              enabled: true,
+              max_steps_per_run: 4,
+              max_followup_tasks: 1,
+              allow_task_proposal: true,
+              allow_memory_write: true,
+              max_context_tokens: 4096,
+            },
             tools_policy: { mode: 'allowlist', tools: ['shell', 'git'] },
             skills_policy: { mode: 'allowlist', skills: ['deploy', 'docs'] },
             allowed_task_types: ['config_sync', 'prompt_run'],
@@ -146,6 +158,14 @@ describe('identities page', () => {
             model: 'gpt-5-mini',
             thinking_level: 'balanced',
             sandbox_mode: 'read-only',
+            dream_policy: {
+              enabled: false,
+              max_steps_per_run: 3,
+              max_followup_tasks: 0,
+              allow_task_proposal: false,
+              allow_memory_write: false,
+              max_context_tokens: 2048,
+            },
             tools_policy: { mode: 'monitor', tools: ['search'] },
             skills_policy: {},
             allowed_task_types: ['account_read'],
@@ -172,6 +192,31 @@ describe('identities page', () => {
             output_tokens: 340,
             context_tokens: 4096,
             updated_at: '2026-03-31T12:00:00.000Z',
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    useOpenClawDreamRunsMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'dream-run-1',
+            agent_id: 'bootstrap',
+            session_id: 'session-bootstrap',
+            task_id: null,
+            objective: 'Inspect deployment drift',
+            status: 'stopped',
+            stop_reason: 'budget_exhausted',
+            step_budget: 4,
+            consumed_steps: 4,
+            created_followup_tasks: 1,
+            started_by_actor_type: 'agent',
+            started_by_actor_id: 'bootstrap',
+            runtime_metadata: { channel: 'chat' },
+            updated_at: '2026-03-31T13:00:00.000Z',
           },
         ],
       },
@@ -247,6 +292,7 @@ describe('identities page', () => {
     refreshAdminAccountsMock.mockResolvedValue(undefined);
     refreshOpenClawAgentsMock.mockResolvedValue(undefined);
     refreshOpenClawSessionsMock.mockResolvedValue(undefined);
+    refreshOpenClawDreamRunsMock.mockResolvedValue(undefined);
     refreshEventsMock.mockResolvedValue(undefined);
 
     render(<IdentitiesPage />);
@@ -258,8 +304,22 @@ describe('identities page', () => {
       expect(refreshAdminAccountsMock).toHaveBeenCalledTimes(1);
       expect(refreshOpenClawAgentsMock).toHaveBeenCalledTimes(1);
       expect(refreshOpenClawSessionsMock).toHaveBeenCalledTimes(1);
+      expect(refreshOpenClawDreamRunsMock).toHaveBeenCalledTimes(1);
       expect(refreshEventsMock).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('shows dream mode policy and recent dream runs for openclaw agents', async () => {
+    const user = userEvent.setup();
+
+    render(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: /view details for bootstrap credential/i }));
+
+    expect(screen.getByText('Dream Mode')).toBeInTheDocument();
+    expect(screen.getByText('Enabled')).toBeInTheDocument();
+    expect(screen.getByText('Inspect deployment drift')).toBeInTheDocument();
+    expect(screen.getByText(/budget exhausted/i)).toBeInTheDocument();
   });
 
   it('keeps agent cards visible when session data is temporarily unavailable', () => {

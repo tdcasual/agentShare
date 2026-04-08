@@ -9,6 +9,9 @@ from app.orm.agent import AgentIdentityModel
 from app.orm.audit_event import AuditEventModel
 from app.orm.event import EventModel
 from app.orm.openclaw_agent import OpenClawAgentModel
+from app.orm.openclaw_dream_run import OpenClawDreamRunModel
+from app.orm.openclaw_dream_step import OpenClawDreamStepModel
+from app.orm.openclaw_memory_note import OpenClawMemoryNoteModel
 from app.orm.openclaw_agent_file import OpenClawAgentFileModel
 from app.orm.openclaw_session import OpenClawSessionModel
 from app.orm.openclaw_tool_binding import OpenClawToolBindingModel
@@ -19,6 +22,9 @@ from app.repositories.audit_repo import AuditEventRepository
 from app.repositories.event_repo import EventRepository
 from app.repositories.openclaw_agent_file_repo import OpenClawAgentFileRepository
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
+from app.repositories.openclaw_dream_run_repo import OpenClawDreamRunRepository
+from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepository
+from app.repositories.openclaw_memory_repo import OpenClawMemoryRepository
 from app.repositories.openclaw_session_repo import OpenClawSessionRepository
 from app.repositories.task_repo import TaskRepository
 
@@ -140,6 +146,130 @@ def test_openclaw_session_repo_lists_sessions_for_agent(db_session: Session):
     assert listed[0].session_key == "session-key-1"
 
 
+def test_openclaw_dream_run_repo_filters_by_agent_and_status(db_session: Session):
+    agent_repo = OpenClawAgentRepository(db_session)
+    agent_repo.create(
+        OpenClawAgentModel(
+            id="openclaw-agent-5",
+            name="Dream Agent",
+            workspace_root="/workspace/openclaw-agent-5",
+            agent_dir=".openclaw/agents/openclaw-agent-5",
+            dream_policy={"enabled": True, "max_steps_per_run": 3},
+        )
+    )
+    session_repo = OpenClawSessionRepository(db_session)
+    session_repo.create(
+        OpenClawSessionModel(
+            id="dream-session-1",
+            agent_id="openclaw-agent-5",
+            session_key="dream-session-key-1",
+            display_name="Dream Session",
+            channel="chat",
+        )
+    )
+    repo = OpenClawDreamRunRepository(db_session)
+    repo.create(
+            OpenClawDreamRunModel(
+                id="dream-run-1",
+                agent_id="openclaw-agent-5",
+                session_id="dream-session-1",
+                objective="Check drift",
+                status="active",
+                step_budget=3,
+                started_by_actor_id="openclaw-agent-5",
+            )
+        )
+
+    listed = repo.list_filtered(agent_id="openclaw-agent-5", status="active")
+
+    assert [item.id for item in listed] == ["dream-run-1"]
+
+
+def test_openclaw_dream_step_repo_records_step_types_and_indexes(db_session: Session):
+    agent_repo = OpenClawAgentRepository(db_session)
+    agent_repo.create(
+        OpenClawAgentModel(
+            id="openclaw-agent-6",
+            name="Dream Step Agent",
+            workspace_root="/workspace/openclaw-agent-6",
+            agent_dir=".openclaw/agents/openclaw-agent-6",
+            dream_policy={"enabled": True, "max_steps_per_run": 3},
+        )
+    )
+    session_repo = OpenClawSessionRepository(db_session)
+    session_repo.create(
+        OpenClawSessionModel(
+            id="dream-session-2",
+            agent_id="openclaw-agent-6",
+            session_key="dream-session-key-2",
+            display_name="Dream Step Session",
+            channel="chat",
+        )
+    )
+    run_repo = OpenClawDreamRunRepository(db_session)
+    run_repo.create(
+            OpenClawDreamRunModel(
+                id="dream-run-2",
+                agent_id="openclaw-agent-6",
+                session_id="dream-session-2",
+                objective="Plan and reflect",
+                status="active",
+                step_budget=3,
+                started_by_actor_id="openclaw-agent-6",
+            )
+        )
+    repo = OpenClawDreamStepRepository(db_session)
+    repo.create(
+        OpenClawDreamStepModel(
+            id="dream-step-1",
+            run_id="dream-run-2",
+            step_index=1,
+            step_type="plan",
+            status="completed",
+            input_payload={"prompt": "plan"},
+            output_payload={"summary": "inspect repo"},
+            token_usage={"input": 12, "output": 8},
+        )
+    )
+
+    listed = repo.list_for_run("dream-run-2")
+
+    assert len(listed) == 1
+    assert listed[0].step_type == "plan"
+    assert listed[0].step_index == 1
+
+
+def test_openclaw_memory_repo_searches_by_scope_tag_and_query(db_session: Session):
+    agent_repo = OpenClawAgentRepository(db_session)
+    agent_repo.create(
+        OpenClawAgentModel(
+            id="openclaw-agent-7",
+            name="Memory Agent",
+            workspace_root="/workspace/openclaw-agent-7",
+            agent_dir=".openclaw/agents/openclaw-agent-7",
+            dream_policy={"enabled": True, "allow_memory_write": True},
+        )
+    )
+    repo = OpenClawMemoryRepository(db_session)
+    repo.create(
+        OpenClawMemoryNoteModel(
+            id="memory-1",
+            agent_id="openclaw-agent-7",
+            session_id=None,
+            run_id=None,
+            scope="agent",
+            kind="working_note",
+            importance="medium",
+            tags=["config", "drift"],
+            content="Drift usually begins in the staging overlay.",
+        )
+    )
+
+    listed = repo.search(agent_id="openclaw-agent-7", scope="agent", tag="config", query="overlay")
+
+    assert [item.id for item in listed] == ["memory-1"]
+
+
 def test_openclaw_tool_binding_model_persists_unique_name_per_agent(db_session: Session):
     agent_repo = OpenClawAgentRepository(db_session)
     agent_repo.create(
@@ -203,6 +333,9 @@ def test_repositories_package_exports_current_repository_facade():
     assert hasattr(repositories, "ManagementSessionRepository")
     assert hasattr(repositories, "OpenClawAgentRepository")
     assert hasattr(repositories, "OpenClawAgentFileRepository")
+    assert hasattr(repositories, "OpenClawDreamRunRepository")
+    assert hasattr(repositories, "OpenClawDreamStepRepository")
+    assert hasattr(repositories, "OpenClawMemoryRepository")
     assert hasattr(repositories, "OpenClawSessionRepository")
     assert hasattr(repositories, "PendingSecretMaterialRepository")
     assert hasattr(repositories, "TokenFeedbackRepository")

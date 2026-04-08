@@ -26,6 +26,7 @@ class RuntimePrincipal(BaseModel):
     sandbox_mode: str | None = None
     tools_policy: dict = Field(default_factory=dict)
     skills_policy: dict = Field(default_factory=dict)
+    dream_policy: dict = Field(default_factory=dict)
 
     @property
     def agent_id(self) -> str:

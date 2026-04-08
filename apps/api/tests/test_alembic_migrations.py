@@ -13,7 +13,7 @@ from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CURRENT_ALEMBIC_HEAD = "20260407_01"
+CURRENT_ALEMBIC_HEAD = "20260408_01"
 
 
 def _run_alembic_upgrade(database_url: str, revision: str) -> None:
@@ -42,6 +42,7 @@ def test_alembic_versions_directory_contains_current_baseline_and_openclaw_follo
     assert version_files == [
         "20260405_01_clean_baseline.py",
         "20260407_01_openclaw_native_agents.py",
+        "20260408_01_controlled_dream_mode.py",
     ]
 
 
@@ -63,6 +64,9 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
             "openclaw_agent_files",
             "openclaw_sessions",
             "openclaw_tool_bindings",
+            "openclaw_dream_runs",
+            "openclaw_dream_steps",
+            "openclaw_memory_notes",
             "system_settings",
             "secrets",
             "pending_secret_materials",
@@ -109,6 +113,13 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
         assert any(
             constraint["column_names"] == ["agent_id", "name"]
             for constraint in openclaw_tool_binding_constraints
+        )
+        openclaw_agent_columns = {column["name"] for column in inspector.get_columns("openclaw_agents")}
+        assert "dream_policy" in openclaw_agent_columns
+        openclaw_dream_step_constraints = inspector.get_unique_constraints("openclaw_dream_steps")
+        assert any(
+            constraint["column_names"] == ["run_id", "step_index"]
+            for constraint in openclaw_dream_step_constraints
         )
 
         with engine.connect() as connection:
@@ -183,7 +194,15 @@ def test_openclaw_followup_migration_creates_workspace_session_and_tool_tables(t
     engine = create_engine(database_url)
     try:
         inspector = inspect(engine)
-        assert {"openclaw_agents", "openclaw_agent_files", "openclaw_sessions", "openclaw_tool_bindings"}.issubset(
+        assert {
+            "openclaw_agents",
+            "openclaw_agent_files",
+            "openclaw_sessions",
+            "openclaw_tool_bindings",
+            "openclaw_dream_runs",
+            "openclaw_dream_steps",
+            "openclaw_memory_notes",
+        }.issubset(
             set(inspector.get_table_names())
         )
     finally:

@@ -14,6 +14,8 @@ from app.routes.invoke import router as invoke_router
 from app.routes.leases import router as leases_router
 from app.routes.metrics import router as metrics_router
 from app.routes.openclaw_agents import router as openclaw_agents_router
+from app.routes.openclaw_dream_runs import router as openclaw_dream_runs_router
+from app.routes.openclaw_memory import router as openclaw_memory_router
 from app.routes.openclaw_sessions import router as openclaw_sessions_router
 from app.routes.playbooks import router as playbooks_router
 from app.routes.runs import router as runs_router
@@ -33,6 +35,8 @@ def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
         agents_router,
         agent_tokens_router,
         openclaw_agents_router,
+        openclaw_dream_runs_router,
+        openclaw_memory_router,
         openclaw_sessions_router,
         bootstrap_router,
         session_router,

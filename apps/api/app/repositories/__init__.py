@@ -9,6 +9,9 @@ from app.repositories.human_account_repo import HumanAccountRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.repositories.openclaw_agent_file_repo import OpenClawAgentFileRepository
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
+from app.repositories.openclaw_dream_run_repo import OpenClawDreamRunRepository
+from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepository
+from app.repositories.openclaw_memory_repo import OpenClawMemoryRepository
 from app.repositories.openclaw_session_repo import OpenClawSessionRepository
 from app.repositories.pending_secret_material_repo import PendingSecretMaterialRepository
 from app.repositories.playbook_repo import PlaybookRepository
@@ -32,6 +35,9 @@ __all__ = [
     "ManagementSessionRepository",
     "OpenClawAgentFileRepository",
     "OpenClawAgentRepository",
+    "OpenClawDreamRunRepository",
+    "OpenClawDreamStepRepository",
+    "OpenClawMemoryRepository",
     "OpenClawSessionRepository",
     "PendingSecretMaterialRepository",
     "PlaybookRepository",

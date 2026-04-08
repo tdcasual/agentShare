@@ -3,6 +3,7 @@ from __future__ import annotations
 from app.models.agent import AgentIdentity
 from app.orm.openclaw_agent import OpenClawAgentModel
 from app.orm.openclaw_session import OpenClawSessionModel
+from app.services.openclaw_dream_policy_service import normalize_dream_policy
 
 
 def build_runtime_principal(
@@ -31,4 +32,5 @@ def build_runtime_principal(
         sandbox_mode=agent.sandbox_mode,
         tools_policy=agent.tools_policy or {},
         skills_policy=agent.skills_policy or {},
+        dream_policy=normalize_dream_policy(agent.dream_policy or {}),
     )

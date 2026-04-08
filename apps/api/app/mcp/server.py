@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from fastapi import APIRouter, Depends
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -56,23 +57,24 @@ def _jsonrpc_error(
 
 
 def _tool_success(payload: Any) -> dict[str, Any]:
+    encoded_payload = jsonable_encoder(payload)
     return {
         "isError": False,
-        "structuredContent": payload,
+        "structuredContent": encoded_payload,
         "content": [
             {
                 "type": "text",
-                "text": json.dumps(payload, ensure_ascii=True, sort_keys=True),
+                "text": json.dumps(encoded_payload, ensure_ascii=True, sort_keys=True),
             }
         ],
     }
 
 
 def _tool_error(status_code: int, detail: Any) -> dict[str, Any]:
-    payload = {
+    payload = jsonable_encoder({
         "status_code": status_code,
         "detail": detail,
-    }
+    })
     return {
         "isError": True,
         "structuredContent": payload,

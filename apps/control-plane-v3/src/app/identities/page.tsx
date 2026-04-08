@@ -6,11 +6,13 @@ import { Bot, Building2, RefreshCw, Search, ShieldCheck, Users, UserPlus } from 
 import {
   refreshAdminAccounts,
   refreshOpenClawAgents,
+  refreshOpenClawDreamRuns,
   refreshOpenClawSessions,
   refreshSession,
   useAdminAccounts,
   useDeleteOpenClawAgent,
   useOpenClawAgents,
+  useOpenClawDreamRuns,
   useOpenClawSessions,
 } from '@/domains/identity';
 import { useEvents, refreshEvents } from '@/domains/event';
@@ -27,11 +29,17 @@ import { Card } from '@/shared/ui-primitives/card';
 import { MetricCard, CoverageMetric } from './components';
 import { HumanOperatorsSection } from './human-operators-section';
 import { AIAgentsSection } from './ai-agents-section';
-import type { AdminAccountSummary, OpenClawAgent, OpenClawSession } from '@/domains/identity';
+import type {
+  AdminAccountSummary,
+  OpenClawAgent,
+  OpenClawDreamRun,
+  OpenClawSession,
+} from '@/domains/identity';
 
 const EMPTY_ADMIN_ACCOUNTS: AdminAccountSummary[] = [];
 const EMPTY_OPENCLAW_AGENTS: OpenClawAgent[] = [];
 const EMPTY_OPENCLAW_SESSIONS: OpenClawSession[] = [];
+const EMPTY_OPENCLAW_DREAM_RUNS: OpenClawDreamRun[] = [];
 
 function matchesAdminAccountQuery(account: AdminAccountSummary, query: string) {
   if (!query) {
@@ -57,6 +65,7 @@ function matchesAgentQuery(agent: OpenClawAgent, query: string) {
     agent.model,
     agent.thinking_level,
     agent.sandbox_mode,
+    agent.dream_policy.enabled ? 'dream-enabled' : 'dream-disabled',
     ...agent.allowed_task_types,
     ...agent.allowed_capability_ids,
   ].some((value) =>
@@ -73,6 +82,13 @@ function groupSessionsByAgent(sessions: OpenClawSession[]) {
   }, {});
 }
 
+function groupDreamRunsByAgent(runs: OpenClawDreamRun[]) {
+  return runs.reduce<Record<string, OpenClawDreamRun[]>>((groups, run) => {
+    groups[run.agent_id] = [...(groups[run.agent_id] ?? []), run];
+    return groups;
+  }, {});
+}
+
 function IdentitiesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,6 +100,7 @@ function IdentitiesContent() {
   } = useAdminAccounts();
   const agentsQuery = useOpenClawAgents();
   const sessionsQuery = useOpenClawSessions();
+  const dreamRunsQuery = useOpenClawDreamRuns();
   const eventsQuery = useEvents();
   const deleteAgent = useDeleteOpenClawAgent();
   const {
@@ -98,6 +115,7 @@ function IdentitiesContent() {
     accountsError,
     agentsQuery.error,
     sessionsQuery.error,
+    dreamRunsQuery.error,
     eventsQuery.error,
   ]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,7 +134,9 @@ function IdentitiesContent() {
   const adminAccounts = adminAccountsData?.items ?? EMPTY_ADMIN_ACCOUNTS;
   const agents = agentsQuery.data?.items ?? EMPTY_OPENCLAW_AGENTS;
   const sessions = sessionsQuery.data?.items ?? EMPTY_OPENCLAW_SESSIONS;
+  const dreamRuns = dreamRunsQuery.data?.items ?? EMPTY_OPENCLAW_DREAM_RUNS;
   const sessionsByAgent = useMemo(() => groupSessionsByAgent(sessions), [sessions]);
+  const dreamRunsByAgent = useMemo(() => groupDreamRunsByAgent(dreamRuns), [dreamRuns]);
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredAdminAccounts = useMemo(
     () => adminAccounts.filter((account) => matchesAdminAccountQuery(account, normalizedQuery)),
@@ -198,6 +218,7 @@ function IdentitiesContent() {
         refreshAdminAccounts(),
         refreshOpenClawAgents(),
         refreshOpenClawSessions(),
+        refreshOpenClawDreamRuns(),
         refreshEvents(),
       ]);
     });
@@ -210,6 +231,7 @@ function IdentitiesContent() {
   async function retryAgents() {
     await runRefreshAction('agents', async () => {
       await Promise.all([refreshOpenClawAgents(), refreshOpenClawSessions(), refreshEvents()]);
+      await refreshOpenClawDreamRuns();
     });
   }
 
@@ -493,6 +515,7 @@ function IdentitiesContent() {
             agents={agents}
             filteredAgents={filteredAgents}
             sessionsByAgent={sessionsByAgent}
+            dreamRunsByAgent={dreamRunsByAgent}
             sessionsErrorMessage={sessionsErrorMessage}
             eventCounts={agentFeedbackCounts}
             events={eventsQuery.events}

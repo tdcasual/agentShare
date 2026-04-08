@@ -24,6 +24,7 @@ import type {
   AdminAccountSummary,
   OpenClawAgent,
   OpenClawAgentFile,
+  OpenClawDreamRun,
   OpenClawSession,
 } from './types';
 import type { AgentToken } from '../task/types';
@@ -37,6 +38,7 @@ export interface OpenClawAgentCreateInput {
   sandbox_mode?: string;
   risk_tier?: string;
   auth_method?: string;
+  dream_policy?: Record<string, unknown>;
   tools_policy?: Record<string, unknown>;
   skills_policy?: Record<string, unknown>;
   allowed_capability_ids?: string[];
@@ -141,6 +143,10 @@ export function getOpenClawSessions() {
   return apiFetch<{ items: OpenClawSession[] }>('/openclaw/sessions');
 }
 
+export function getOpenClawDreamRuns() {
+  return apiFetch<{ items: OpenClawDreamRun[] }>('/openclaw/dream-runs');
+}
+
 export function getOpenClawFiles(agentId: string) {
   return apiFetch<{ items: OpenClawAgentFile[] }>(`/openclaw/agents/${agentId}/files`);
 }
@@ -212,6 +218,7 @@ export const identityApi = {
   updateOpenClawAgent,
   deleteOpenClawAgent,
   getOpenClawSessions,
+  getOpenClawDreamRuns,
   getOpenClawFiles,
   // Admin Accounts
   getAdminAccounts,

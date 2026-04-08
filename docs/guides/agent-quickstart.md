@@ -20,6 +20,11 @@ This guide is the shortest path from "I have a management session" to "I can pro
   - `GET /api/tasks`
   - `POST /api/tasks/{task_id}/claim`
   - `POST /api/tasks/{task_id}/complete`
+  - `POST /api/openclaw/dream-runs`
+  - `POST /api/openclaw/dream-runs/{run_id}/steps`
+  - `POST /api/openclaw/dream-runs/{run_id}/stop`
+  - `GET /api/openclaw/memory`
+  - `POST /api/openclaw/memory`
   - `POST /api/capabilities/{capability_id}/invoke`
   - `POST /api/capabilities/{capability_id}/lease`
   - `POST /mcp`
@@ -274,6 +279,63 @@ curl -sS \
   -X POST \
   "$ACP_BASE_URL/api/tasks/$TASK_ID/complete"
 ```
+
+## 12. Optional: Start A Bounded Dream Run
+
+Dream Mode is a bounded autonomy loop for OpenClaw runtimes. It is controlled by each agent's `dream_policy` and does not create a hidden background daemon.
+
+Start a run:
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"objective":"Inspect config drift and suggest a follow-up task"}' \
+  "$ACP_BASE_URL/api/openclaw/dream-runs"
+```
+
+Record one step:
+
+```bash
+export DREAM_RUN_ID=replace-me
+
+curl -sS \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "step_type":"plan",
+    "status":"completed",
+    "input_payload":{"prompt":"What should I do next?"},
+    "output_payload":{"summary":"Search playbooks first"},
+    "token_usage":{"input":12,"output":6}
+  }' \
+  "$ACP_BASE_URL/api/openclaw/dream-runs/$DREAM_RUN_ID/steps"
+```
+
+Write one explicit memory note:
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer $ACP_SESSION_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scope":"agent",
+    "kind":"working_note",
+    "importance":"medium",
+    "tags":["config","drift"],
+    "content":"Config drift usually starts in the staging overlay."
+  }' \
+  "$ACP_BASE_URL/api/openclaw/memory"
+```
+
+Dream Mode also appears in MCP as:
+
+- `dream.runs.start`
+- `dream.runs.record_step`
+- `dream.runs.stop`
+- `dream.memory.search`
+- `dream.memory.write`
+- `dream.tasks.propose_followup`
 
 ## Common Failure Codes
 

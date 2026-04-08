@@ -20,6 +20,9 @@ from app.orm.management_session import ManagementSessionModel
 from app.orm.human_account import HumanAccountModel
 from app.orm.openclaw_agent import OpenClawAgentModel
 from app.orm.openclaw_agent_file import OpenClawAgentFileModel
+from app.orm.openclaw_dream_run import OpenClawDreamRunModel
+from app.orm.openclaw_dream_step import OpenClawDreamStepModel
+from app.orm.openclaw_memory_note import OpenClawMemoryNoteModel
 from app.orm.openclaw_session import OpenClawSessionModel
 from app.orm.openclaw_tool_binding import OpenClawToolBindingModel
 from app.orm.system_setting import SystemSettingModel
@@ -47,6 +50,9 @@ __all__ = [
     "HumanAccountModel",
     "OpenClawAgentModel",
     "OpenClawAgentFileModel",
+    "OpenClawDreamRunModel",
+    "OpenClawDreamStepModel",
+    "OpenClawMemoryNoteModel",
     "OpenClawSessionModel",
     "OpenClawToolBindingModel",
     "SystemSettingModel",

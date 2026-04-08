@@ -9,13 +9,14 @@ import {
 } from '@/lib/management-session-recovery';
 import { EmptyState, SectionError, SectionLoading } from './components';
 import { AgentManagementCard } from './agent-management-card';
-import type { OpenClawAgent, OpenClawSession } from '@/domains/identity';
+import type { OpenClawAgent, OpenClawDreamRun, OpenClawSession } from '@/domains/identity';
 import type { Event } from '@/domains/event';
 
 export interface AIAgentsSectionProps {
   agents: OpenClawAgent[];
   filteredAgents: OpenClawAgent[];
   sessionsByAgent: Record<string, OpenClawSession[]>;
+  dreamRunsByAgent: Record<string, OpenClawDreamRun[]>;
   sessionsErrorMessage: string | null;
   eventCounts: Record<string, number>;
   events: Event[];
@@ -39,6 +40,7 @@ export function AIAgentsSection({
   agents,
   filteredAgents,
   sessionsByAgent,
+  dreamRunsByAgent,
   sessionsErrorMessage,
   eventCounts,
   events,
@@ -112,6 +114,7 @@ export function AIAgentsSection({
 
           {filteredAgents.map((agent) => {
             const sessions = sessionsByAgent[agent.id] ?? [];
+            const dreamRuns = dreamRunsByAgent[agent.id] ?? [];
             const feedbackCount = eventCounts[agent.id] ?? 0;
             const isExpanded = expandedAgents.includes(agent.id);
 
@@ -130,6 +133,7 @@ export function AIAgentsSection({
                     agent={agent}
                     recentSession={sessions[0] ?? null}
                     sessionCount={sessions.length}
+                    recentDreamRuns={dreamRuns}
                     sessionErrorMessage={sessionsErrorMessage}
                     canDelete={canDelete}
                     events={events.filter((event) => event.actor_id === agent.id)}

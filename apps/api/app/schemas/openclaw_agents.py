@@ -11,6 +11,14 @@ class OpenClawAgentCreate(BaseModel):
             "thinking_level": "balanced",
             "sandbox_mode": "workspace-write",
             "risk_tier": "medium",
+            "dream_policy": {
+                "enabled": False,
+                "max_steps_per_run": 3,
+                "max_followup_tasks": 0,
+                "allow_task_proposal": False,
+                "allow_memory_write": False,
+                "max_context_tokens": 4096,
+            },
         },
     })
 
@@ -24,6 +32,7 @@ class OpenClawAgentCreate(BaseModel):
     auth_method: str = Field(default="openclaw_session", description="Primary runtime auth method for this agent.")
     tools_policy: dict = Field(default_factory=dict, description="Declarative tool allow/deny policy.")
     skills_policy: dict = Field(default_factory=dict, description="Declarative skill allow/deny policy.")
+    dream_policy: dict = Field(default_factory=dict, description="Bounded autonomy policy for Dream Mode.")
     allowed_capability_ids: list[str] = Field(default_factory=list, description="Capability allowlist for existing business policy checks.")
     allowed_task_types: list[str] = Field(default_factory=list, description="Task type allowlist for existing business policy checks.")
 
@@ -40,6 +49,7 @@ class OpenClawAgentUpdate(BaseModel):
     sandbox_mode: str | None = None
     tools_policy: dict | None = None
     skills_policy: dict | None = None
+    dream_policy: dict | None = None
     allowed_capability_ids: list[str] | None = None
     allowed_task_types: list[str] | None = None
 
@@ -55,6 +65,7 @@ class OpenClawAgentSummary(BaseModel):
     model: str | None = None
     thinking_level: str
     sandbox_mode: str
+    dream_policy: dict = Field(default_factory=dict)
     tools_policy: dict = Field(default_factory=dict)
     skills_policy: dict = Field(default_factory=dict)
     allowed_capability_ids: list[str] = Field(default_factory=list)

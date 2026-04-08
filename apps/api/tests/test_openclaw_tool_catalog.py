@@ -21,6 +21,12 @@ def test_openclaw_tool_catalog_lists_namespaced_business_tools(client):
         "playbooks.search",
         "capabilities.invoke",
         "capabilities.request_lease",
+        "dream.runs.start",
+        "dream.runs.record_step",
+        "dream.runs.stop",
+        "dream.memory.search",
+        "dream.memory.write",
+        "dream.tasks.propose_followup",
     }.issubset(tool_names)
 
 

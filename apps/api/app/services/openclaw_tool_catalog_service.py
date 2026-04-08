@@ -28,6 +28,30 @@ OPENCLAW_TOOL_CATALOG: dict[str, dict[str, Any]] = {
         "legacy_name": "request_capability_lease",
         "description": "Request a short-lived capability lease for a claimed task.",
     },
+    "dream.runs.start": {
+        "legacy_name": "start_dream_run",
+        "description": "Start one bounded autonomous dream run for the current runtime session.",
+    },
+    "dream.runs.record_step": {
+        "legacy_name": "record_dream_step",
+        "description": "Record one explicit plan, reflect, or follow-up step in a dream run.",
+    },
+    "dream.runs.stop": {
+        "legacy_name": "stop_dream_run",
+        "description": "Stop one active dream run with an explicit stop reason.",
+    },
+    "dream.memory.search": {
+        "legacy_name": "search_memory_notes",
+        "description": "Search explicit dream memory notes for the current runtime agent.",
+    },
+    "dream.memory.write": {
+        "legacy_name": "write_memory_note",
+        "description": "Persist one explicit dream memory note for the current runtime agent.",
+    },
+    "dream.tasks.propose_followup": {
+        "legacy_name": "propose_followup_task",
+        "description": "Create one follow-up task proposal from the current dream run when policy allows.",
+    },
 }
 
 LEGACY_TOOL_ALIASES = {

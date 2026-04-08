@@ -16,6 +16,7 @@ import type {
   AdminAccountSummary,
   OpenClawAgent,
   OpenClawAgentFile,
+  OpenClawDreamRun,
   OpenClawSession,
 } from './types';
 import type { AgentToken } from '../task/types';
@@ -148,6 +149,17 @@ export function useOpenClawSessions(options?: SWRConfiguration) {
   );
 }
 
+export function useOpenClawDreamRuns(options?: SWRConfiguration) {
+  return useSWR<{ items: OpenClawDreamRun[] }>(
+    options?.isPaused ? null : '/api/openclaw/dream-runs',
+    () => api.getOpenClawDreamRuns(),
+    {
+      ...swrConfig,
+      ...options,
+    }
+  );
+}
+
 export function useOpenClawFiles(agentId: string | null, options?: SWRConfiguration) {
   return useSWR<{ items: OpenClawAgentFile[] }>(
     agentId ? `/api/openclaw/agents/${agentId}/files` : null,
@@ -214,6 +226,10 @@ export function refreshOpenClawSessions() {
   return mutate('/api/openclaw/sessions');
 }
 
+export function refreshOpenClawDreamRuns() {
+  return mutate('/api/openclaw/dream-runs');
+}
+
 export function refreshAgentsWithTokens() {
   // 刷新 agents 列表
   return mutate('/api/agents').then(() => {
@@ -240,6 +256,10 @@ export function prefetchOpenClawAgents() {
 
 export function prefetchOpenClawSessions() {
   return mutate('/api/openclaw/sessions', api.getOpenClawSessions(), false);
+}
+
+export function prefetchOpenClawDreamRuns() {
+  return mutate('/api/openclaw/dream-runs', api.getOpenClawDreamRuns(), false);
 }
 
 // ============================================

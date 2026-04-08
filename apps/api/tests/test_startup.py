@@ -7,7 +7,7 @@ from sqlalchemy import inspect, text
 from app.repositories.agent_repo import AgentRepository
 
 
-CURRENT_ALEMBIC_HEAD = "20260407_01"
+CURRENT_ALEMBIC_HEAD = "20260408_01"
 
 
 def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
@@ -29,6 +29,9 @@ def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
         "openclaw_agent_files",
         "openclaw_sessions",
         "openclaw_tool_bindings",
+        "openclaw_dream_runs",
+        "openclaw_dream_steps",
+        "openclaw_memory_notes",
         "system_settings",
         "secrets",
         "pending_secret_materials",

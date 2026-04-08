@@ -19,5 +19,6 @@ class OpenClawAgentModel(Base, TimestampMixin):
     sandbox_mode: Mapped[str] = mapped_column(String, default="workspace-write")
     tools_policy: Mapped[dict] = mapped_column(JSON, default=dict)
     skills_policy: Mapped[dict] = mapped_column(JSON, default=dict)
+    dream_policy: Mapped[dict] = mapped_column(JSON, default=dict)
     allowed_capability_ids: Mapped[list] = mapped_column(JSON, default=list)
     allowed_task_types: Mapped[list] = mapped_column(JSON, default=list)

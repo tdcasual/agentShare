@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import IdentitiesPage from './page';
 
@@ -7,6 +8,7 @@ const useManagementPageSessionRecoveryMock = vi.fn();
 const useAdminAccountsMock = vi.fn();
 const useOpenClawAgentsMock = vi.fn();
 const useOpenClawSessionsMock = vi.fn();
+const useOpenClawDreamRunsMock = vi.fn();
 const useOpenClawFilesMock = vi.fn();
 const useEventsMock = vi.fn();
 const useDeleteOpenClawAgentMock = vi.fn();
@@ -42,12 +44,14 @@ vi.mock('@/domains/identity', () => ({
   useAdminAccounts: () => useAdminAccountsMock(),
   useOpenClawAgents: () => useOpenClawAgentsMock(),
   useOpenClawSessions: () => useOpenClawSessionsMock(),
+  useOpenClawDreamRuns: () => useOpenClawDreamRunsMock(),
   useOpenClawFiles: (agentId: string | null) => useOpenClawFilesMock(agentId),
   useDeleteOpenClawAgent: () => useDeleteOpenClawAgentMock(),
   refreshSession: () => Promise.resolve(),
   refreshAdminAccounts: () => Promise.resolve(),
   refreshOpenClawAgents: () => Promise.resolve(),
   refreshOpenClawSessions: () => Promise.resolve(),
+  refreshOpenClawDreamRuns: () => Promise.resolve(),
 }));
 
 vi.mock('@/domains/event', () => ({
@@ -103,6 +107,14 @@ describe('openclaw migration characterization on identities page', () => {
             model: 'gpt-5',
             thinking_level: 'high',
             sandbox_mode: 'workspace-write',
+            dream_policy: {
+              enabled: true,
+              max_steps_per_run: 4,
+              max_followup_tasks: 1,
+              allow_task_proposal: true,
+              allow_memory_write: true,
+              max_context_tokens: 4096,
+            },
             tools_policy: { mode: 'allowlist' },
             skills_policy: { mode: 'allowlist' },
             allowed_capability_ids: ['cap-deploy'],
@@ -119,6 +131,14 @@ describe('openclaw migration characterization on identities page', () => {
             model: 'gpt-5-mini',
             thinking_level: 'balanced',
             sandbox_mode: 'read-only',
+            dream_policy: {
+              enabled: false,
+              max_steps_per_run: 3,
+              max_followup_tasks: 0,
+              allow_task_proposal: false,
+              allow_memory_write: false,
+              max_context_tokens: 2048,
+            },
             tools_policy: {},
             skills_policy: {},
             allowed_capability_ids: [],
@@ -145,6 +165,31 @@ describe('openclaw migration characterization on identities page', () => {
             output_tokens: 340,
             context_tokens: 4096,
             updated_at: '2026-03-31T12:00:00.000Z',
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    useOpenClawDreamRunsMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'dream-run-1',
+            agent_id: 'bootstrap',
+            session_id: 'session-bootstrap',
+            task_id: null,
+            objective: 'Inspect deployment drift',
+            status: 'stopped',
+            stop_reason: 'budget_exhausted',
+            step_budget: 4,
+            consumed_steps: 4,
+            created_followup_tasks: 1,
+            started_by_actor_type: 'agent',
+            started_by_actor_id: 'bootstrap',
+            runtime_metadata: { channel: 'chat' },
+            updated_at: '2026-03-31T13:00:00.000Z',
           },
         ],
       },
@@ -181,8 +226,11 @@ describe('openclaw migration characterization on identities page', () => {
     useDeleteOpenClawAgentMock.mockReturnValue(vi.fn());
   });
 
-  it('keeps operator visibility while reframing agent coverage around openclaw sessions and workspaces', () => {
+  it('keeps operator visibility while reframing agent coverage around openclaw sessions and workspaces', async () => {
+    const user = userEvent.setup();
     render(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: /view details for bootstrap credential/i }));
 
     expect(screen.getByText('Identity Management')).toBeInTheDocument();
     expect(screen.getByText('Founding Owner')).toBeInTheDocument();
@@ -191,6 +239,7 @@ describe('openclaw migration characterization on identities page', () => {
     expect(screen.getByText(/OpenClaw coverage/i)).toBeInTheDocument();
     expect(screen.getByText(/Agents with live sessions/i)).toBeInTheDocument();
     expect(screen.getByText(/Workspace-ready agents/i)).toBeInTheDocument();
+    expect(screen.getByText(/Dream Mode/i)).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /manage tokens/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /create agent/i })).not.toBeInTheDocument();
   });
