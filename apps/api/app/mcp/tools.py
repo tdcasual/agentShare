@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
 
+from app.auth import ensure_task_type_allowed
 from app.config import Settings
 from app.errors import DomainError
 from app.models.agent import AgentIdentity
@@ -16,6 +17,7 @@ from app.services.openclaw_dream_service import (
     register_followup_task,
     start_dream_run,
     stop_dream_run,
+    stop_dream_run_with_event,
 )
 from app.services.openclaw_memory_service import create_memory_note, search_memory_notes
 from app.services.openclaw_tool_catalog_service import (
@@ -277,37 +279,62 @@ def execute_tool(
                 run_id=parsed.run_id,
             )
         if canonical_name == "dream.tasks.propose_followup":
-            ensure_followup_task_allowed(session, run_id=parsed.run_id, agent=agent)
-            task = create_task(
-                session,
-                TaskCreate(
-                    title=parsed.title,
-                    task_type=parsed.task_type,
-                    input=parsed.input,
-                    required_capability_ids=parsed.required_capability_ids,
-                    playbook_ids=parsed.playbook_ids,
-                    lease_allowed=parsed.lease_allowed,
-                    approval_mode=parsed.approval_mode,
-                ),
-                actor=type(
-                    "DreamActor",
-                    (),
-                    {
-                        "actor_type": "agent",
-                        "id": agent.id,
-                        "token_id": agent.token_id,
-                    },
-                )(),
-            )
-            return {
-                "task": task,
-                "dream": register_followup_task(
+            try:
+                ensure_followup_task_allowed(session, run_id=parsed.run_id, agent=agent)
+                ensure_task_type_allowed(agent, parsed.task_type)
+                task = create_task(
+                    session,
+                    TaskCreate(
+                        title=parsed.title,
+                        task_type=parsed.task_type,
+                        input=parsed.input,
+                        required_capability_ids=parsed.required_capability_ids,
+                        playbook_ids=parsed.playbook_ids,
+                        lease_allowed=parsed.lease_allowed,
+                        approval_mode=parsed.approval_mode,
+                    ),
+                    actor=type(
+                        "DreamActor",
+                        (),
+                        {
+                            "actor_type": "agent",
+                            "id": agent.id,
+                            "token_id": agent.token_id,
+                        },
+                    )(),
+                )
+                return {
+                    "task": task,
+                    "dream": register_followup_task(
+                        session,
+                        run_id=parsed.run_id,
+                        agent=agent,
+                        created_task_id=task["id"],
+                    ),
+                }
+            except DomainError as exc:
+                stop_reason = (
+                    "budget_exhausted"
+                    if exc.detail == "Dream run follow-up task budget exhausted"
+                    else "task_proposal_disallowed"
+                )
+                stop_dream_run_with_event(
                     session,
                     run_id=parsed.run_id,
                     agent=agent,
-                    created_task_id=task["id"],
-                ),
-            }
+                    stop_reason=stop_reason,
+                    detail=exc.detail,
+                )
+                _raise_tool_error_from_domain_error(exc)
+            except PermissionError as exc:
+                stop_dream_run_with_event(
+                    session,
+                    run_id=parsed.run_id,
+                    agent=agent,
+                    stop_reason="task_proposal_disallowed",
+                    detail=str(exc),
+                )
+                raise ToolExecutionError(status_code=403, detail=str(exc)) from exc
     except DomainError as exc:
         _raise_tool_error_from_domain_error(exc)
 

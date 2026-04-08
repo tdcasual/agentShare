@@ -337,6 +337,8 @@ Dream Mode also appears in MCP as:
 - `dream.memory.write`
 - `dream.tasks.propose_followup`
 
+When `dream.tasks.propose_followup` is blocked by follow-up budget or by policy, the control plane returns a structured MCP error, stops the run with an explicit `stop_reason`, and writes an operator-visible event that can be reviewed from `/inbox` or `/api/events`.
+
 ## Common Failure Codes
 
 - `401`: Missing/invalid OpenClaw session key or missing/invalid management session cookie.

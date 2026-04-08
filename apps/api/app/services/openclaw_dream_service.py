@@ -9,9 +9,11 @@ from app.orm.openclaw_dream_step import OpenClawDreamStepModel
 from app.repositories.openclaw_dream_run_repo import OpenClawDreamRunRepository
 from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepository
 from app.services.identifiers import new_resource_id
+from app.services.event_service import record_event
 from app.services.openclaw_dream_policy_service import (
     ensure_dream_mode_enabled,
     ensure_followup_budget_remaining,
+    ensure_followup_tasks_allowed,
     ensure_step_budget_remaining,
 )
 
@@ -179,6 +181,42 @@ def stop_dream_run(
     return serialize_dream_run(run)
 
 
+def stop_dream_run_with_event(
+    session: Session,
+    *,
+    run_id: str,
+    agent: AgentIdentity,
+    stop_reason: str,
+    detail: str,
+) -> dict:
+    repo = OpenClawDreamRunRepository(session)
+    run = get_dream_run(session, run_id, agent=agent)
+    if run.status == "active":
+        run.status = "stopped"
+        run.stop_reason = stop_reason
+        repo.update(run)
+
+    record_event(
+        session,
+        event_type="dream_run_stopped",
+        actor_type="agent",
+        actor_id=agent.id,
+        subject_type="dream_run",
+        subject_id=run.id,
+        summary=f"{agent.name} stopped dream run {run.id}",
+        details=detail,
+        severity="warning",
+        action_url=f"/identities?agentId={agent.id}&dreamRunId={run.id}",
+        metadata={
+            "agent_id": agent.id,
+            "run_id": run.id,
+            "objective": run.objective,
+            "stop_reason": run.stop_reason,
+        },
+    )
+    return serialize_dream_run(run)
+
+
 def pause_dream_run(
     session: Session,
     *,
@@ -255,7 +293,7 @@ def ensure_followup_task_allowed(
     run = get_dream_run(session, run_id, agent=agent)
     if run.status != "active":
         raise ConflictError("Dream run is not active")
-    policy = ensure_dream_mode_enabled(agent)
+    policy = ensure_followup_tasks_allowed(agent)
     ensure_followup_budget_remaining(
         created_followup_tasks=run.created_followup_tasks,
         max_followup_tasks=policy["max_followup_tasks"],

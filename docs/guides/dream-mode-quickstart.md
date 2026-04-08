@@ -117,7 +117,9 @@ curl -sS \
   "$ACP_BASE_URL/mcp"
 ```
 
-If the run already used its follow-up budget, MCP returns a structured `409` error.
+If the run already used its follow-up budget, MCP returns a structured `409` error, marks the run as `stopped`, and records an operator-visible inbox event with `stop_reason="budget_exhausted"`.
+
+If follow-up task proposal is disabled for the agent, MCP returns a structured `403` error, marks the run as `stopped`, and records an operator-visible inbox event with `stop_reason="task_proposal_disallowed"`.
 
 ## Stop Reasons To Expect
 
@@ -130,5 +132,6 @@ If the run already used its follow-up budget, MCP returns a structured `409` err
 
 - Keep Dream Mode disabled by default and enable it per agent.
 - Start with low step budgets and zero follow-up tasks.
+- Watch `/api/events` or the `/inbox` view when a dream run stops because of follow-up proposal limits or policy blocks.
 - Treat explicit memory notes as operator-visible artifacts.
 - Use the management console `/identities` page to inspect dream policy and recent dream runs.
