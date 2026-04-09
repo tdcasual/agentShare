@@ -39,8 +39,6 @@ export interface PlaybookSearchQuery {
   readonly q?: string;
   readonly taskType?: string;
   readonly tag?: string;
-  readonly limit?: number;
-  readonly offset?: number;
 }
 
 // ============================================

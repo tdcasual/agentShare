@@ -31,12 +31,6 @@ export async function searchPlaybooks(
   if (query?.tag) {
     params.set('tag', query.tag);
   }
-  if (query?.limit) {
-    params.set('limit', query.limit.toString());
-  }
-  if (query?.offset) {
-    params.set('offset', query.offset.toString());
-  }
 
   const queryString = params.toString();
   const url = queryString ? `${BASE_URL}/search?${queryString}` : `${BASE_URL}/search`;

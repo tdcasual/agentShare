@@ -45,6 +45,7 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     create_secret_op = schema["paths"]["/api/secrets"]["post"]
     create_capability_op = schema["paths"]["/api/capabilities"]["post"]
     create_playbook_op = schema["paths"]["/api/playbooks"]["post"]
+    search_playbooks_op = schema["paths"]["/api/playbooks/search"]["get"]
 
     assert bootstrap_status_op["summary"]
     assert bootstrap_status_op["description"]
@@ -90,6 +91,12 @@ def test_openapi_declares_agent_runtime_security_and_examples():
     assert approve_review_op["security"] == [{"ManagementSession": []}]
     assert reject_review_op["security"] == [{"ManagementSession": []}]
     assert list_approvals_op["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == "#/components/schemas/ApprovalListResponse"
+    assert [parameter["name"] for parameter in list_approvals_op["parameters"]] == ["status"]
+    assert [parameter["name"] for parameter in search_playbooks_op["parameters"]] == [
+        "task_type",
+        "q",
+        "tag",
+    ]
     assert "security" not in login_op
 
     schemas = schema["components"]["schemas"]
