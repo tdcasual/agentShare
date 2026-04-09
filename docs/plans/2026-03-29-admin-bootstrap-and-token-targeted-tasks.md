@@ -1,5 +1,15 @@
 # Admin Bootstrap And Token-Targeted Tasks Implementation Plan
 
+## Historical Status
+
+This file is retained as historical planning context from an earlier token-centered stage of the product. It is **not** the current architecture source of truth.
+
+Read these guides first for the current framing:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/admin-bootstrap-and-token-ops.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a durable human-admin model with one-time bootstrap registration, move agent authentication onto first-class managed tokens, let admins and agents create governed assets, and make task execution explicitly target and report on agent tokens rather than only agent identities.

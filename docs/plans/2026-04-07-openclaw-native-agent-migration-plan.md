@@ -1,5 +1,15 @@
 # OpenClaw Native Agent Migration Implementation Plan
 
+## Historical Status
+
+This file is retained as historical migration context. It is **not** the current source of truth for how the product should be explained to operators, contributors, or external agent-runtime integrators.
+
+Read these guides first for the current framing:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/admin-bootstrap-and-token-ops.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Replace the current database-and-token-centric agent model with an OpenClaw-native agent model built around agent workspace, session, tools/skills, and gateway-driven runtime behavior, without preserving legacy agent compatibility.

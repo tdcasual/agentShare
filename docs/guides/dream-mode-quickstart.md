@@ -2,6 +2,14 @@
 
 Dream Mode is the control plane's bounded autonomy surface for in-project OpenClaw runtimes.
 
+It belongs to the primary **agent server first** runtime path:
+
+- the server provisions and governs the agent
+- the OpenClaw-style runtime authenticates with `session_key`
+- Dream Mode records explicit, reviewable server-side artifacts instead of introducing a hidden sidecar process
+
+For the broader architecture framing, see `docs/guides/agent-server-first.md`.
+
 It lets one authenticated OpenClaw session:
 
 - start an explicit dream run with a visible objective

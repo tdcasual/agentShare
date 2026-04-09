@@ -1,5 +1,13 @@
 # Production Deployment
 
+This deployed product should be understood as an **agent server first** system.
+
+- The production stack exists to expose a governed agent server surface: agent provisioning, sessions, tasks, approvals, MCP, playbooks, and dream runs.
+- OpenClaw-style in-project agents plus `session_key` are the primary runtime path.
+- Remote tokens remain supported as credentials for off-project or external runtimes, but they are not the conceptual center of the deployed product.
+
+For the architecture framing, read `docs/guides/agent-server-first.md` before changing deployment assumptions.
+
 ## Purpose
 
 This guide covers the production deployment path only. Use the agent quickstart for local development, tests, and manual exploration.

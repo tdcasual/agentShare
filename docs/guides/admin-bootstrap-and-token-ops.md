@@ -1,4 +1,4 @@
-# Admin Bootstrap, OpenClaw Sessions, And Token Operations
+# Admin Bootstrap, Agent Server Access, And Remote Credential Operations
 
 This guide describes the management access model introduced for the control plane:
 
@@ -6,11 +6,13 @@ This guide describes the management access model introduced for the control plan
 - public registration closes immediately after bootstrap;
 - daily human management uses persisted email/password accounts and short-lived session cookies;
 - in-project OpenClaw runtimes authenticate with management-created session keys;
-- external or off-project agents authenticate with managed tokens that can be minted, revoked, targeted, reviewed, and scored.
+- external or off-project runtimes can authenticate with managed remote credentials that can be minted, revoked, targeted, reviewed, and scored.
+
+Read this guide with `docs/guides/agent-server-first.md`.
 
 ## Access Model
 
-There are now three distinct access paths:
+There are now three distinct access paths into the agent server:
 
 - Human management accounts:
   - first owner is created once with `POST /api/bootstrap/setup-owner`
@@ -20,9 +22,9 @@ There are now three distinct access paths:
   - OpenClaw agents are created with `POST /api/openclaw/agents`
   - each OpenClaw agent can have one or more sessions under `POST /api/openclaw/agents/{agent_id}/sessions`
   - internal runtime execution uses `Authorization: Bearer <session_key>`
-- External remote-agent access:
+- External remote-runtime access:
   - remote agent profiles are created with `POST /api/agents`
-  - each remote agent can have one or more managed tokens under `POST /api/agents/{agent_id}/tokens`
+  - each remote agent can have one or more managed remote-access tokens under `POST /api/agents/{agent_id}/tokens`
   - remote task execution continues to use `Authorization: Bearer <token>`
 
 After bootstrap finishes, no public self-registration path remains.
@@ -154,9 +156,9 @@ Useful management routes:
 - `GET /api/openclaw/agents/{agent_id}/files`
 - `PUT /api/openclaw/agents/{agent_id}/files/{file_name}`
 
-## External Remote-Agent Tokens
+## External Remote Runtime Credentials
 
-Creating a remote agent profile also creates its primary remote-access token:
+Creating a remote agent profile also creates its primary remote-access credential:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/agents \
@@ -177,13 +179,13 @@ The response includes:
 - `token_id`
 - `token_prefix`
 
-Mint additional managed tokens per remote agent:
+Mint additional managed credentials per remote agent:
 
 - `GET /api/agents/{agent_id}/tokens`
 - `POST /api/agents/{agent_id}/tokens`
 - `POST /api/agent-tokens/{token_id}/revoke`
 
-Token records now keep remote-access aggregates:
+These remote credentials keep server-side remote-access aggregates:
 
 - `completed_runs`
 - `successful_runs`
@@ -216,9 +218,9 @@ Each review item keeps provenance fields such as:
 - `reviewed_by_actor_id`
 - `reviewed_at`
 
-## Remote-Agent Task Targeting And Feedback
+## Remote Runtime Task Targeting And Feedback
 
-Tasks can target remote-access tokens explicitly:
+Tasks can target remote runtime credentials explicitly:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/tasks \
@@ -252,7 +254,7 @@ Human operators can leave feedback on completed task targets:
 
 Feedback records then roll up into token-level trust metrics.
 
-These token-targeted task routes are for external remote agents. OpenClaw in-project runtimes continue to authenticate with `session_key` and are tracked through the OpenClaw session inventory.
+These token-targeted task routes are for external remote runtimes. The primary in-project runtime path remains the OpenClaw-style `session_key`, which is tracked through the OpenClaw session inventory.
 
 ## Recommended Local Verification
 

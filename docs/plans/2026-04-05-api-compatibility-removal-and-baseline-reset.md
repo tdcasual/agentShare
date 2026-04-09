@@ -1,5 +1,15 @@
 # API Compatibility Removal And Baseline Reset Implementation Plan
 
+## Historical Status
+
+This file is retained as historical implementation context for a cleanup phase. It is **not** the current architecture source of truth, and readers should not infer from it that token compatibility or compatibility-removal work defines the product's core positioning.
+
+Read these guides first for the current framing:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/admin-bootstrap-and-token-ops.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Remove backend compatibility code and historical migration baggage from `apps/api`, assuming there is no existing production data to preserve.

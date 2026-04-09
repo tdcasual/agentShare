@@ -2,13 +2,15 @@
 
 This guide is for local development and day-to-day agent workflow discovery. For production deployment and operations, use `docs/guides/production-deployment.md` and `docs/guides/production-operations.md`.
 
-This guide is the shortest path from "I have a management session" to "I can provision an OpenClaw agent runtime and complete a task safely".
+This guide is the shortest path from "I have a management session" to "I can provision an OpenClaw-backed agent server runtime and complete a task safely".
+
+The runtime model described here is the project's primary `agent server first` path. For the architectural framing, read `docs/guides/agent-server-first.md`.
 
 ## Preconditions
 
 - API base URL available at `http://127.0.0.1:8000`
 - A persisted management operator account for session login
-- An OpenClaw runtime session key for task claim, invoke, and complete flows
+- An OpenClaw runtime session key for task claim, invoke, MCP, dream mode, and complete flows
 
 ## Route Policy At A Glance
 

@@ -1,5 +1,7 @@
 # P3 Platformization Design
 
+This design builds on the current **agent server first** application baseline. P3 extends the operating model around the app, but it does not redefine the product into a token service or move the conceptual center away from the governed agent server.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Move the project from the current single-host `trial-run ready` baseline to a platformized `P3` operating model that is safer, easier to govern, and structurally ready for long-lived public production use.

@@ -1,6 +1,16 @@
 # Agent Control Plane
 
-Human-and-agent control plane for secret-backed capabilities, lightweight tasks, and reusable playbooks.
+Agent server for governed task execution, capability access, playbook search, review workflow, MCP, and OpenClaw-style runtime sessions.
+
+## Architecture Position
+
+This project should be read as **agent server first**.
+
+- The primary runtime path is an in-project OpenClaw-style agent with one or more `session_key` credentials.
+- Remote tokens still exist, but they are remote-access credentials for external runtimes, not the conceptual center of the product.
+- Management, review, approvals, runs, dream mode, and MCP all belong to the server surface.
+
+For the architecture framing, see `docs/guides/agent-server-first.md`.
 
 ## Docker And Deployment
 

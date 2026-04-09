@@ -1,5 +1,7 @@
 # P3 Platformization Implementation Plan
 
+This plan assumes the existing **agent server first** application baseline remains intact. The work here changes platform ownership and production operations, not the product's core runtime framing.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Turn the P3 platformization design into an executable milestone plan that moves the project from a repository-owned single-host baseline to a platform-owned long-lived production model.
