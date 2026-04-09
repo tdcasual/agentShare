@@ -156,3 +156,42 @@ def test_bulk_token_listing_transport_uses_snake_case_fields(management_client):
     assert "displayName" not in item
     assert "tokenPrefix" not in item
     assert "trustScore" not in item
+
+
+def test_create_agent_token_response_matches_runtime_transport_contract(management_client):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Create Contract Agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    minted = management_client.post(
+        f"/api/agents/{created_agent.json()['id']}/tokens",
+        json={
+            "display_name": "Contract token",
+            "scopes": ["runtime"],
+            "labels": {"environment": "test"},
+        },
+    )
+
+    assert minted.status_code == 201, minted.text
+    payload = minted.json()
+    assert payload["agent_id"] == created_agent.json()["id"]
+    assert payload["display_name"] == "Contract token"
+    assert payload["token_prefix"]
+    assert payload["api_key"]
+    assert payload["trust_score"] == 0.0
+    assert payload["status"] == "active"
+    assert payload["scopes"] == ["runtime"]
+    assert payload["labels"] == {"environment": "test"}
+    assert payload["expires_at"] is None
+    assert payload["last_used_at"] is None
+    assert payload["issued_by_actor_type"] == "human"
+    assert payload["issued_by_actor_id"]
+    assert payload["completed_runs"] == 0
+    assert payload["successful_runs"] == 0
+    assert payload["success_rate"] == 0.0
+    assert payload["last_feedback_at"] is None
+    assert "risk_tier" not in payload
+    assert "auth_method" not in payload
+    assert "created_at" not in payload

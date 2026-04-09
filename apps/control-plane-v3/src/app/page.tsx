@@ -123,7 +123,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   const pendingReviews = useMemo(
     () =>
       (reviewsQuery.data?.items ?? []).filter(
-        (item) => item.publication_status === 'pending_review' || item.status === 'pending'
+        (item) => item.publication_status === 'pending_review'
       ),
     [reviewsQuery.data]
   );

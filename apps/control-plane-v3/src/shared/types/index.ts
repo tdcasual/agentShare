@@ -129,9 +129,6 @@ export interface AdminAccountSummary {
 
 export interface BootstrapStatus {
   readonly initialized: boolean;
-  readonly bootstrapped?: boolean;
-  readonly has_valid_bootstrap_key?: boolean;
-  readonly setup_required?: boolean;
 }
 
 // ============================================

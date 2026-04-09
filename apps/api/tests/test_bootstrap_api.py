@@ -28,6 +28,9 @@ def test_bootstrap_status_reports_uninitialized_before_first_owner_setup(tmp_pat
 
     assert response.status_code == 200
     assert response.json() == {"initialized": False}
+    assert "bootstrapped" not in response.json()
+    assert "has_valid_bootstrap_key" not in response.json()
+    assert "setup_required" not in response.json()
 
 
 def test_setup_owner_only_works_once(tmp_path) -> None:
@@ -48,6 +51,9 @@ def test_setup_owner_only_works_once(tmp_path) -> None:
     assert first.json()["account"]["role"] == "owner"
     assert status_after_first.status_code == 200
     assert status_after_first.json() == {"initialized": True}
+    assert "bootstrapped" not in status_after_first.json()
+    assert "has_valid_bootstrap_key" not in status_after_first.json()
+    assert "setup_required" not in status_after_first.json()
     assert second.status_code == 409
 
 

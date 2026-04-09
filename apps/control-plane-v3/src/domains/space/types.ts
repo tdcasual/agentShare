@@ -64,7 +64,6 @@ export interface CreateSpaceMemberInput {
 
 export interface SpaceMemberResponse {
   id: string;
-  space_id: string;
   member_type: string;
   member_id: string;
   role: string;

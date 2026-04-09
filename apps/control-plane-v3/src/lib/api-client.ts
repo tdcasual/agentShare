@@ -112,14 +112,11 @@ export interface AgentTokenCreateResponse {
   token_prefix: string;
   api_key: string;
   trust_score: number;
-  risk_tier: string;
-  auth_method: string;
   status: string;
   scopes?: string[];
   labels?: Record<string, string>;
   expires_at?: string;
   last_used_at?: string;
-  created_at: string;
 }
 
 export interface TaskCreateInput {

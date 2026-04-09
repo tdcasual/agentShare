@@ -86,3 +86,31 @@ def test_list_spaces_can_filter_by_agent_id(management_client):
     filtered = management_client.get("/api/spaces", params={"agent_id": "test-agent"})
     assert filtered.status_code == 200, filtered.text
     assert [item["id"] for item in filtered.json()["items"]] == [alpha_id]
+
+
+def test_create_space_member_response_matches_transport_contract(management_client):
+    created = management_client.post(
+        "/api/spaces",
+        json={
+            "name": "Contract Space",
+            "summary": "Verify member response shape",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    member = management_client.post(
+        f"/api/spaces/{created.json()['id']}/members",
+        json={
+            "member_type": "agent",
+            "member_id": "contract-agent",
+            "role": "participant",
+        },
+    )
+
+    assert member.status_code == 201, member.text
+    payload = member.json()
+    assert payload["member_type"] == "agent"
+    assert payload["member_id"] == "contract-agent"
+    assert payload["role"] == "participant"
+    assert payload["created_at"]
+    assert "space_id" not in payload
