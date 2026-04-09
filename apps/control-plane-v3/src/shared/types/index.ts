@@ -105,30 +105,11 @@ export type TaskCreateInput = import('@/domains/task/types').CreateTaskInput;
 export type TokenFeedbackCreateInput = import('@/domains/task/types').CreateFeedbackInput;
 
 // 其他共享类型
-export interface AgentSummary {
-  readonly id: string;
-  readonly name: string;
-  readonly risk_tier: string;
-  readonly auth_method: string;
-  readonly status: string;
-  readonly created_at: string;
-  readonly updated_at: string;
-}
+export type AgentSummary = import('@/domains/identity/types').Agent;
 
-export interface AdminAccountSummary {
-  readonly id: string;
-  readonly email: string;
-  readonly display_name: string;
-  readonly role: 'viewer' | 'operator' | 'admin' | 'owner';
-  readonly status?: string;
-  readonly is_active?: boolean;
-  readonly created_at: string;
-  readonly last_login_at?: string;
-}
+export type AdminAccountSummary = import('@/domains/identity/types').AdminAccountSummary;
 
-export interface BootstrapStatus {
-  readonly initialized: boolean;
-}
+export type BootstrapStatus = import('@/domains/identity/types').BootstrapStatus;
 
 // ============================================
 // Management Session Types
