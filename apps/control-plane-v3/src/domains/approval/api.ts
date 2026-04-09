@@ -19,18 +19,6 @@ export async function getApprovals(query?: ApprovalQuery): Promise<ApprovalListR
   if (query?.status) {
     params.set('status', query.status);
   }
-  if (query?.actionType) {
-    params.set('action_type', query.actionType);
-  }
-  if (query?.agentId) {
-    params.set('agent_id', query.agentId);
-  }
-  if (query?.limit) {
-    params.set('limit', query.limit.toString());
-  }
-  if (query?.offset) {
-    params.set('offset', query.offset.toString());
-  }
 
   const queryString = params.toString();
   const url = queryString ? `${BASE_URL}?${queryString}` : BASE_URL;

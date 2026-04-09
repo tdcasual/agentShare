@@ -57,10 +57,6 @@ export interface Approval {
 
 export interface ApprovalQuery {
   readonly status?: ApprovalStatus;
-  readonly actionType?: ApprovalActionType;
-  readonly agentId?: string;
-  readonly limit?: number;
-  readonly offset?: number;
 }
 
 // ============================================
