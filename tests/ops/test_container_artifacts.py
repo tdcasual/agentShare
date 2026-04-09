@@ -20,6 +20,7 @@ def test_container_artifacts_exist() -> None:
     assert (ROOT / "ops/compose/coolify.env.example").exists()
     assert (ROOT / "ops/compose/prod.env.example").exists()
     assert (ROOT / "docs/guides/coolify-deployment.md").exists()
+    assert (ROOT / "docs/guides/coolify-project-deployment-for-agents.md").exists()
     assert (ROOT / "docs/guides/production-deployment.md").exists()
     assert (ROOT / "docs/guides/production-operations.md").exists()
 
@@ -173,6 +174,7 @@ def test_readme_documents_compose_and_image_pipeline() -> None:
     readme = (ROOT / "README.md").read_text()
     assert "docker compose up -d" in readme
     assert "docker-compose.coolify.yml" in readme
+    assert "coolify-project-deployment-for-agents.md" in readme
     assert "Coolify" in readme
     assert "GitHub Actions" in readme
     assert "ghcr.io" in readme

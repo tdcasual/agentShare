@@ -12,6 +12,12 @@ This project should be read as **agent server first**.
 
 For the architecture framing, see `docs/guides/agent-server-first.md`.
 
+## Quick Links
+
+- Agent-focused Coolify project runbook: `docs/guides/coolify-project-deployment-for-agents.md`
+- Human operator deployment manual: `docs/guides/deployment-manual.md`
+- Coolify deployment summary: `docs/guides/coolify-deployment.md`
+
 ## Docker And Deployment
 
 This repository now ships two first-class container images:
