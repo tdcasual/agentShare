@@ -96,3 +96,25 @@ def test_feedback_cannot_be_created_twice_for_the_same_target(client, management
 
     assert first.status_code == 201, first.text
     assert second.status_code == 409, second.text
+
+
+def test_bulk_feedback_listing_groups_records_by_token(client, management_client):
+    first_target_id, _ = _create_completed_target(client, management_client)
+    created = management_client.post(
+        f"/api/task-targets/{first_target_id}/feedback",
+        json={"score": 5, "verdict": "accepted", "summary": "Looks good"},
+    )
+    assert created.status_code == 201, created.text
+
+    response = management_client.get(
+        "/api/token-feedback/bulk",
+        params=[
+            ("token_id", "token-test-agent"),
+            ("token_id", "token-missing"),
+        ],
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()["items_by_token"]
+    assert [item["id"] for item in payload["token-test-agent"]] == [created.json()["id"]]
+    assert payload["token-missing"] == []

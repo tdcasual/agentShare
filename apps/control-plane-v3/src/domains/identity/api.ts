@@ -200,6 +200,12 @@ export function getAgentTokens(agentId: string) {
   return apiFetch<{ items: AgentToken[] }>(`/agents/${agentId}/tokens`);
 }
 
+export function getAgentTokensBulk(agentIds: string[]) {
+  const params = new URLSearchParams();
+  agentIds.forEach((agentId) => params.append('agent_id', agentId));
+  return apiFetch<{ items_by_agent: Record<string, AgentToken[]> }>(`/agent-tokens/bulk?${params.toString()}`);
+}
+
 export function createAgentToken(agentId: string, payload: AgentTokenCreateInput) {
   return apiFetch<AgentTokenCreateResponse>(`/agents/${agentId}/tokens`, {
     method: 'POST',
@@ -248,6 +254,7 @@ export const identityApi = {
   disableAdminAccount,
   // Agent Tokens
   getAgentTokens,
+  getAgentTokensBulk,
   createAgentToken,
   revokeAgentToken,
 };

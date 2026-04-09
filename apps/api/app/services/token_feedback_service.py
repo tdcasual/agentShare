@@ -57,6 +57,13 @@ def list_token_feedback(session: Session, token_id: str) -> list[dict]:
     return [serialize_token_feedback(model) for model in TokenFeedbackRepository(session).list_by_token(token_id)]
 
 
+def list_token_feedback_bulk(session: Session, token_ids: list[str]) -> dict[str, list[dict]]:
+    grouped: dict[str, list[dict]] = {token_id: [] for token_id in token_ids}
+    for model in TokenFeedbackRepository(session).list_by_tokens(token_ids):
+        grouped.setdefault(model.token_id, []).append(serialize_token_feedback(model))
+    return grouped
+
+
 def serialize_token_feedback(model: TokenFeedbackModel) -> dict:
     return {
         "id": model.id,

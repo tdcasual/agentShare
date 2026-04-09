@@ -44,6 +44,10 @@ class AgentTokenListResponse(BaseModel):
     items: list[AgentTokenResponse]
 
 
+class AgentTokenBulkListResponse(BaseModel):
+    items_by_agent: dict[str, list[AgentTokenResponse]]
+
+
 class AgentTokenRevokeResponse(BaseModel):
     id: str
     status: str

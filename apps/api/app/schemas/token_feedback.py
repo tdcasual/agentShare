@@ -35,3 +35,7 @@ class TokenFeedbackResponse(BaseModel):
 
 class TokenFeedbackListResponse(BaseModel):
     items: list[TokenFeedbackResponse] = Field(default_factory=list)
+
+
+class TokenFeedbackBulkListResponse(BaseModel):
+    items_by_token: dict[str, list[TokenFeedbackResponse]] = Field(default_factory=dict)

@@ -26,6 +26,15 @@ class AgentTokenRepository:
             .all()
         )
 
+    def list_by_agents(self, agent_ids: list[str]) -> list[AgentTokenModel]:
+        if not agent_ids:
+            return []
+        return list(
+            self.session.query(AgentTokenModel)
+            .filter(AgentTokenModel.agent_id.in_(agent_ids))
+            .all()
+        )
+
     def list_active(self) -> list[AgentTokenModel]:
         return list(
             self.session.query(AgentTokenModel)

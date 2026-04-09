@@ -53,11 +53,8 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const tokensQuery = useSWR<Record<string, AgentToken>>(
     agentIds.length > 0 ? [TASK_DASHBOARD_TOKENS_KEY, ...agentIds] : null,
     async () => {
-      const responses = await Promise.all(
-        agentIds.map((agentId) => identityApi.getAgentTokens(agentId))
-      );
-
-      const allTokens = responses.flatMap((response) => response.items);
+      const grouped = (await identityApi.getAgentTokensBulk(agentIds)).items_by_agent;
+      const allTokens = Object.values(grouped).flat();
       return Object.fromEntries(allTokens.map((token) => [token.id, token]));
     },
     { ...pollingConfig, ...options, revalidateOnFocus: false }
@@ -77,11 +74,8 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const feedbackQuery = useSWR<Record<string, TokenFeedback[]>>(
     targetTokenIds.length > 0 ? [TASK_DASHBOARD_FEEDBACK_KEY, ...targetTokenIds] : null,
     async () => {
-      const responses = await Promise.all(
-        targetTokenIds.map((tokenId) => taskApi.getTokenFeedback(tokenId))
-      );
-
-      const allFeedback = responses.flatMap((response) => response.items);
+      const grouped = (await taskApi.getTokenFeedbackBulk(targetTokenIds)).items_by_token;
+      const allFeedback = Object.values(grouped).flat();
       return allFeedback.reduce<Record<string, TokenFeedback[]>>((acc, item) => {
         // Support both snake_case (API response) and camelCase (transformed model)
         // task_target_id is the raw API field, targetId is the domain model field
@@ -97,12 +91,23 @@ export function useTaskDashboard(options?: SWRConfiguration) {
 
   // 构建任务视图
   const runs = runsQuery.data?.items;
+  const runsByTaskTarget = useMemo(() => {
+    const index = new Map<string, Run>();
+    (runs ?? []).forEach((run) => {
+      if (!run.task_target_id) {
+        return;
+      }
+      index.set(buildTaskTargetRunKey(run.task_id, run.task_target_id), run);
+    });
+    return index;
+  }, [runs]);
+
   const taskViews: TaskView[] = useMemo(() => {
     return (tasks ?? []).map((task) => ({
       task,
-      targets: buildTaskTargets(task, tokensById ?? {}, runs ?? [], feedbackByTargetId ?? {}),
+      targets: buildTaskTargets(task, tokensById ?? {}, runsByTaskTarget, feedbackByTargetId ?? {}),
     }));
-  }, [tasks, tokensById, runs, feedbackByTargetId]);
+  }, [tasks, tokensById, runsByTaskTarget, feedbackByTargetId]);
 
   // 计算加载状态
   const isLoading =
@@ -161,14 +166,14 @@ function normalizeRunStatus(status: string | undefined): TaskTargetView['status'
 function buildTaskTargets(
   task: Task,
   tokensById: Record<string, AgentToken>,
-  runs: Run[],
+  runsByTaskTarget: Map<string, Run>,
   feedbackByTargetId: Record<string, TokenFeedback[]>
 ): TaskTargetView[] {
   const targetTokenIds = task.target_token_ids ?? [];
 
   return targetTokenIds.map((targetId) => {
     const token = tokensById[targetId] ?? null;
-    const run = runs.find((r) => r.task_id === task.id && r.task_target_id === targetId) ?? null;
+    const run = runsByTaskTarget.get(buildTaskTargetRunKey(task.id, targetId)) ?? null;
     const feedback = feedbackByTargetId[targetId] ?? [];
 
     return {
@@ -180,4 +185,8 @@ function buildTaskTargets(
       status: normalizeRunStatus(run?.status),
     };
   });
+}
+
+function buildTaskTargetRunKey(taskId: string, targetId: string) {
+  return `${taskId}:${targetId}`;
 }

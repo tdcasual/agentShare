@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_management_action
 from app.db import get_db
 from app.schemas.agent_tokens import (
+    AgentTokenBulkListResponse,
     AgentTokenCreate,
     AgentTokenListResponse,
     AgentTokenResponse,
@@ -13,6 +14,7 @@ from app.schemas.agent_tokens import (
 )
 from app.services.agent_token_service import (
     list_agent_tokens,
+    list_agent_tokens_bulk,
     mint_agent_token,
     revoke_agent_token,
     serialize_agent_token,
@@ -20,6 +22,32 @@ from app.services.agent_token_service import (
 from app.services.audit_service import write_audit_event
 
 router = APIRouter()
+
+
+@router.get(
+    "/api/agent-tokens/bulk",
+    response_model=AgentTokenBulkListResponse,
+    tags=["Management"],
+    summary="List remote-access tokens in bulk",
+    description="Return managed remote-access tokens grouped by agent id for bulk management views.",
+)
+def list_agent_tokens_bulk_route(
+    agent_id: list[str] = Query(default_factory=list),
+    manager: ManagementIdentity = Depends(require_management_action("tokens:list")),
+    session: Session = Depends(get_db),
+) -> dict:
+    grouped = list_agent_tokens_bulk(session, agent_id)
+    write_audit_event(session, "agent_tokens_bulk_listed", {
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
+        "agent_count": len(agent_id),
+    })
+    return {
+        "items_by_agent": {
+            current_agent_id: [serialize_agent_token(item) for item in items]
+            for current_agent_id, items in grouped.items()
+        }
+    }
 
 
 @router.get(

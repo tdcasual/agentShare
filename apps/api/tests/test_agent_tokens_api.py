@@ -93,3 +93,43 @@ def test_token_without_runtime_scope_cannot_access_runtime_routes(client, manage
 
     assert response.status_code == 403
     assert response.json() == {"detail": "Agent token lacks runtime scope"}
+
+
+def test_bulk_token_listing_groups_tokens_by_agent(management_client):
+    first_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Bulk One", "risk_tier": "medium"},
+    )
+    assert first_agent.status_code == 201, first_agent.text
+
+    second_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Bulk Two", "risk_tier": "medium"},
+    )
+    assert second_agent.status_code == 201, second_agent.text
+
+    extra_token = management_client.post(
+        f"/api/agents/{first_agent.json()['id']}/tokens",
+        json={"display_name": "Extra token"},
+    )
+    assert extra_token.status_code == 201, extra_token.text
+
+    response = management_client.get(
+        "/api/agent-tokens/bulk",
+        params=[
+            ("agent_id", first_agent.json()["id"]),
+            ("agent_id", second_agent.json()["id"]),
+            ("agent_id", "agent-missing"),
+        ],
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()["items_by_agent"]
+    assert {item["id"] for item in payload[first_agent.json()["id"]]} == {
+        first_agent.json()["token_id"],
+        extra_token.json()["id"],
+    }
+    assert {item["id"] for item in payload[second_agent.json()["id"]]} == {
+        second_agent.json()["token_id"]
+    }
+    assert payload["agent-missing"] == []

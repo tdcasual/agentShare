@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_admin_management_session
 from app.db import get_db
-from app.schemas.token_feedback import TokenFeedbackCreate, TokenFeedbackListResponse, TokenFeedbackResponse
+from app.schemas.token_feedback import (
+    TokenFeedbackBulkListResponse,
+    TokenFeedbackCreate,
+    TokenFeedbackListResponse,
+    TokenFeedbackResponse,
+)
 from app.services.audit_service import write_audit_event
 from app.services.event_service import record_event
-from app.services.token_feedback_service import create_token_feedback, list_token_feedback
+from app.services.token_feedback_service import create_token_feedback, list_token_feedback, list_token_feedback_bulk
 
 router = APIRouter()
 
@@ -61,6 +66,22 @@ def create_token_feedback_route(
         "actor_id": manager.id,
     })
     return feedback
+
+
+@router.get(
+    "/api/token-feedback/bulk",
+    response_model=TokenFeedbackBulkListResponse,
+    tags=["Management"],
+    summary="List feedback in bulk",
+    description="Return feedback records grouped by token id for bulk dashboard views.",
+)
+def list_token_feedback_bulk_route(
+    token_id: list[str] = Query(default_factory=list),
+    manager: ManagementIdentity = Depends(require_admin_management_session),
+    session: Session = Depends(get_db),
+) -> dict:
+    del manager
+    return {"items_by_token": list_token_feedback_bulk(session, token_id)}
 
 
 @router.get(

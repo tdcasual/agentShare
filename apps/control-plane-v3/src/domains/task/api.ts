@@ -48,6 +48,14 @@ export function getTokenFeedback(tokenId: string) {
   return apiFetch<{ items: TokenFeedback[] }>(`/agent-tokens/${tokenId}/feedback`);
 }
 
+export function getTokenFeedbackBulk(tokenIds: string[]) {
+  const params = new URLSearchParams();
+  tokenIds.forEach((tokenId) => params.append('token_id', tokenId));
+  return apiFetch<{ items_by_token: Record<string, TokenFeedback[]> }>(
+    `/token-feedback/bulk?${params.toString()}`
+  );
+}
+
 // ============================================
 // 向后兼容的 API 对象
 // ============================================
@@ -61,4 +69,5 @@ export const taskApi = {
   // Feedback
   createTaskTargetFeedback,
   getTokenFeedback,
+  getTokenFeedbackBulk,
 };

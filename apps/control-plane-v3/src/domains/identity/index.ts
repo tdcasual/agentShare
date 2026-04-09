@@ -72,6 +72,7 @@ export {
   createAdminAccount,
   disableAdminAccount,
   getAgentTokens,
+  getAgentTokensBulk,
   createAgentToken,
   revokeAgentToken,
 } from './api';

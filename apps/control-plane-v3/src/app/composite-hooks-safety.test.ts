@@ -15,6 +15,7 @@ describe('Composite Hooks Safety', () => {
     const source = await readSource('domains/identity/hooks.ts');
 
     expect(source).not.toMatch(/map\(agentId\s*=>\s*[\s\S]*useAgentTokens\(/);
+    expect(source).not.toMatch(/map\(async\s*\(agentId\)\s*=>\s*[\s\S]*getAgentTokens\(/);
   });
 
   it('task dashboard hooks do not call hooks inside array loops', async () => {
@@ -22,5 +23,8 @@ describe('Composite Hooks Safety', () => {
 
     expect(source).not.toMatch(/map\(agentId\s*=>\s*[\s\S]*useSWR(?:<[\s\S]*?>)?\(/);
     expect(source).not.toMatch(/map\(tokenId\s*=>\s*[\s\S]*useSWR(?:<[\s\S]*?>)?\(/);
+    expect(source).not.toMatch(/map\(\(agentId\)\s*=>\s*identityApi\.getAgentTokens\(/);
+    expect(source).not.toMatch(/map\(\(tokenId\)\s*=>\s*taskApi\.getTokenFeedback\(/);
+    expect(source).not.toMatch(/runs\.find\(/);
   });
 });

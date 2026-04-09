@@ -21,6 +21,15 @@ class TokenFeedbackRepository:
             .all()
         )
 
+    def list_by_tokens(self, token_ids: list[str]) -> list[TokenFeedbackModel]:
+        if not token_ids:
+            return []
+        return list(
+            self.session.query(TokenFeedbackModel)
+            .filter(TokenFeedbackModel.token_id.in_(token_ids))
+            .all()
+        )
+
     def get_by_task_target(self, task_target_id: str) -> TokenFeedbackModel | None:
         return (
             self.session.query(TokenFeedbackModel)

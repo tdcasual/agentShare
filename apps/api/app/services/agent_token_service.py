@@ -58,6 +58,13 @@ def list_agent_tokens(session: Session, agent_id: str) -> list[AgentTokenModel]:
     return AgentTokenRepository(session).list_by_agent(agent_id)
 
 
+def list_agent_tokens_bulk(session: Session, agent_ids: list[str]) -> dict[str, list[AgentTokenModel]]:
+    grouped: dict[str, list[AgentTokenModel]] = {agent_id: [] for agent_id in agent_ids}
+    for token in AgentTokenRepository(session).list_by_agents(agent_ids):
+        grouped.setdefault(token.agent_id, []).append(token)
+    return grouped
+
+
 def revoke_agent_token(session: Session, token_id: str) -> AgentTokenModel:
     token = AgentTokenRepository(session).revoke(token_id)
     if token is None:
