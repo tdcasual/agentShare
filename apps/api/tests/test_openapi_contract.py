@@ -97,6 +97,7 @@ def test_openapi_declares_agent_runtime_security_and_examples():
         "q",
         "tag",
     ]
+    assert "parameters" not in list_reviews_op
     assert "security" not in login_op
 
     schemas = schema["components"]["schemas"]

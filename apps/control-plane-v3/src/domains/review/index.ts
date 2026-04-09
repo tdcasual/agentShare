@@ -15,7 +15,6 @@ export type {
   ReviewEvents,
   ApproveReviewInput,
   RejectReviewInput,
-  ReviewQuery,
   // Alias for backward compatibility
   ReviewQueueItem as ReviewItem,
 } from './types';

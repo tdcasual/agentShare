@@ -54,7 +54,6 @@ export type {
   ReviewEvents,
   ApproveReviewInput,
   RejectReviewInput,
-  ReviewQuery,
 } from '@/domains/review/types';
 
 // ============================================

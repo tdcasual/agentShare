@@ -63,11 +63,3 @@ export interface RejectReviewInput {
   readonly reason: string;
   readonly comment?: string;
 }
-
-export interface ReviewQuery {
-  readonly status?: ReviewDecision;
-  readonly resourceKind?: ReviewResourceKind;
-  readonly submittedBy?: string;
-  readonly limit?: number;
-  readonly offset?: number;
-}
