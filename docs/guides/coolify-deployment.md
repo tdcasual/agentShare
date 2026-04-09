@@ -4,6 +4,8 @@
 
 This guide is the public production path for teams that still want a simple single-stack deployment on Coolify. It keeps `openbao`, `postgres`, `redis`, `api`, and `web` in one compose stack, but defaults the app to production-safe runtime settings and only leaves a small set of sensitive values for operators to fill in.
 
+If you want the full operator runbook, see [Deployment Manual](/Users/lvxiaoer/Documents/codeWork/agentShare/docs/guides/deployment-manual.md).
+
 ## What You Trade For Simplicity
 
 - Coolify handles public ingress and TLS instead of the in-repo Caddy service.

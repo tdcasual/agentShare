@@ -110,6 +110,8 @@ Use this route when deployment simplicity matters more than the stricter reposit
 
 `ops/compose/coolify.env.example` includes the minimum production values you should replace plus optional LLM passthrough variables such as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `DEEPSEEK_API_KEY`. Those env vars are useful for agent runtimes that expect provider keys in the container environment, but the repository's managed secret inventory still exists separately for governed capability access.
 
+For the full step-by-step operator runbook, see `docs/guides/deployment-manual.md`.
+
 ### Server deployment with GitHub Actions
 
 This repository now includes `.github/workflows/deploy.yml` for single-host deployments over SSH.
