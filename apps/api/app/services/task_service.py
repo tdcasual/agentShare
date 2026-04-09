@@ -54,7 +54,7 @@ def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
     return _task_to_dict(model, targets=targets)
 
 
-def list_tasks(session: Session, *, actor=None) -> list[dict]:
+def list_tasks(session: Session, *, actor=None, limit: int = 100, offset: int = 0) -> list[dict]:
     target_repo = TaskTargetRepository(session)
     if getattr(actor, "token_id", None):
         items: list[dict] = []
@@ -65,11 +65,11 @@ def list_tasks(session: Session, *, actor=None) -> list[dict]:
             if task is None or task.publication_status != "active":
                 continue
             items.append(_task_to_dict(task, targets=[target]))
-        return items
+        return items[offset: offset + limit]
 
     return [
         _task_to_dict(model, targets=target_repo.list_by_task(model.id))
-        for model in TaskRepository(session).list_active()
+        for model in TaskRepository(session).list_active(limit=limit, offset=offset)
     ]
 
 

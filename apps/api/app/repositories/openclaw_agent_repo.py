@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy import asc, or_
 from sqlalchemy.orm import Session
 
 from app.orm.openclaw_agent import OpenClawAgentModel
@@ -19,6 +20,27 @@ class OpenClawAgentRepository:
 
     def list_all(self) -> list[OpenClawAgentModel]:
         return list(self.session.query(OpenClawAgentModel).order_by(OpenClawAgentModel.name.asc()).all())
+
+    def search(self, query_text: str, *, limit: int) -> list[OpenClawAgentModel]:
+        pattern = f"%{query_text}%"
+        return list(
+            self.session.query(OpenClawAgentModel)
+            .filter(
+                or_(
+                    OpenClawAgentModel.id.ilike(pattern),
+                    OpenClawAgentModel.name.ilike(pattern),
+                    OpenClawAgentModel.status.ilike(pattern),
+                    OpenClawAgentModel.workspace_root.ilike(pattern),
+                    OpenClawAgentModel.agent_dir.ilike(pattern),
+                    OpenClawAgentModel.sandbox_mode.ilike(pattern),
+                    OpenClawAgentModel.model.ilike(pattern),
+                    OpenClawAgentModel.thinking_level.ilike(pattern),
+                )
+            )
+            .order_by(asc(OpenClawAgentModel.name), asc(OpenClawAgentModel.id))
+            .limit(limit)
+            .all()
+        )
 
     def update(self, model: OpenClawAgentModel) -> OpenClawAgentModel:
         merged = self.session.merge(model)

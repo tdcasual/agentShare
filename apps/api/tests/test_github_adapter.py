@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from app.services.adapters.github_adapter import GitHubAdapter
 from app.services.adapters.registry import get_adapter
@@ -9,15 +9,15 @@ def test_github_adapter_registered():
     assert isinstance(adapter, GitHubAdapter)
 
 
-@patch("app.services.adapters.github_adapter.httpx.get")
-def test_github_adapter_formats_repo_path_and_query_params(mock_get):
+def test_github_adapter_formats_repo_path_and_query_params():
+    client = MagicMock()
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = [{"number": 1, "title": "Hello"}]
     mock_response.raise_for_status = MagicMock()
-    mock_get.return_value = mock_response
+    client.request.return_value = mock_response
 
-    adapter = GitHubAdapter()
+    adapter = GitHubAdapter(client=client)
     result = adapter.invoke(
         secret_value="ghp_test",
         adapter_config={
@@ -31,8 +31,23 @@ def test_github_adapter_formats_repo_path_and_query_params(mock_get):
             "per_page": 10,
         },
     )
+    adapter.invoke(
+        secret_value="ghp_test",
+        adapter_config={
+            "method": "GET",
+            "path": "/repos/{owner}/{repo}/issues",
+        },
+        parameters={
+            "owner": "openai",
+            "repo": "agent-share",
+            "state": "open",
+            "per_page": 10,
+        },
+    )
 
-    call_kwargs = mock_get.call_args.kwargs
+    assert client.request.call_count == 2
+    call_kwargs = client.request.call_args.kwargs
+    assert client.request.call_args.args[0] == "GET"
     assert call_kwargs["url"] == "https://api.github.com/repos/openai/agent-share/issues"
     assert call_kwargs["params"] == {"state": "open", "per_page": 10}
     assert call_kwargs["headers"]["Authorization"] == "Bearer ghp_test"

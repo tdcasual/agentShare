@@ -160,6 +160,30 @@ def test_agent_can_complete_claimed_task(client, management_client):
     assert response.json()["status"] == "completed"
 
 
+def test_management_task_listing_supports_limit_and_offset(management_client):
+    for idx in range(3):
+        created = management_client.post(
+            "/api/tasks",
+            json={
+                "title": f"Paged Task {idx}",
+                "task_type": "account_read",
+            },
+        )
+        assert created.status_code == 201, created.text
+
+    full_response = management_client.get("/api/tasks")
+    assert full_response.status_code == 200, full_response.text
+    expected_ids = [item["id"] for item in full_response.json()["items"][1:3]]
+
+    response = management_client.get(
+        "/api/tasks",
+        params={"limit": 2, "offset": 1},
+    )
+
+    assert response.status_code == 200, response.text
+    assert [item["id"] for item in response.json()["items"]] == expected_ids
+
+
 def test_agent_cannot_claim_task_type_outside_allowlist(client, management_client):
     created_agent = management_client.post(
         "/api/agents",

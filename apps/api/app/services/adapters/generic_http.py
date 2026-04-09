@@ -10,6 +10,9 @@ class GenericHttpAdapter:
     """Adapter that proxies requests to an arbitrary HTTP endpoint,
     injecting the secret as a bearer token."""
 
+    def __init__(self, client: httpx.Client | None = None) -> None:
+        self._client = client or httpx.Client(timeout=30)
+
     def invoke(
         self,
         secret_value: str,
@@ -30,13 +33,12 @@ class GenericHttpAdapter:
             "Content-Type": "application/json",
         }
 
-        if method == "POST":
-            resp = httpx.post(url=url, json=parameters, headers=headers, timeout=30)
-        elif method == "GET":
-            resp = httpx.get(url=url, params=parameters, headers=headers, timeout=30)
+        request_kwargs = {"url": url, "headers": headers}
+        if method == "GET":
+            request_kwargs["params"] = parameters
         else:
-            resp = httpx.request(
-                method, url=url, json=parameters, headers=headers, timeout=30
-            )
+            request_kwargs["json"] = parameters
+
+        resp = self._client.request(method, **request_kwargs)
 
         return normalize_json_response("generic_http", resp)

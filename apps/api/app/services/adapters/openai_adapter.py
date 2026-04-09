@@ -12,6 +12,9 @@ OPENAI_DEFAULT_BASE = "https://api.openai.com/v1"
 class OpenAIAdapter:
     """Adapter for OpenAI Chat Completions API."""
 
+    def __init__(self, client: httpx.Client | None = None) -> None:
+        self._client = client or httpx.Client(timeout=60)
+
     def invoke(
         self,
         secret_value: str,
@@ -31,13 +34,13 @@ class OpenAIAdapter:
             if key in parameters:
                 body[key] = parameters[key]
 
-        resp = httpx.post(
+        resp = self._client.request(
+            "POST",
             url=url,
             json=body,
             headers={
                 "Authorization": f"Bearer {secret_value}",
                 "Content-Type": "application/json",
             },
-            timeout=60,
         )
         return normalize_json_response("openai", resp)

@@ -87,3 +87,46 @@ def test_openbao_backend_without_explicit_settings_fails_with_configuration_erro
 
     with pytest.raises(RuntimeError, match="not configured"):
         backend.write_secret("remote-secret")
+
+
+def test_openbao_backend_reuses_client_within_backend_instance(monkeypatch):
+    client_instances: list[object] = []
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.requests: list[tuple[str, str, dict | None]] = []
+            client_instances.append(self)
+
+        def request(self, method: str, path: str, json: dict | None = None):
+            self.requests.append((method, path, json))
+            request = httpx.Request(method, f"http://127.0.0.1:8200{path}")
+            if method == "POST":
+                return httpx.Response(200, request=request, json={"data": {"version": 1}})
+            return httpx.Response(
+                200,
+                request=request,
+                json={"data": {"data": {"value": "remote-secret"}, "metadata": {"version": 1}}},
+            )
+
+    monkeypatch.setattr("app.services.secret_backend.httpx.Client", FakeClient)
+
+    backend = OpenBaoSecretBackend(
+        Settings(
+            secret_backend="openbao",
+            openbao_addr="http://127.0.0.1:8200",
+            openbao_token="root-token",
+            openbao_mount="secret",
+            openbao_prefix="agent-share",
+        )
+    )
+
+    secret_id, backend_ref = backend.write_secret("remote-secret")
+    secret_value = backend.read_secret(secret_id, backend_ref)
+
+    assert secret_value == "remote-secret"
+    assert len(client_instances) == 1
+    assert client_instances[0].requests == [
+        ("POST", f"/v1/secret/data/agent-share/{secret_id}", {"data": {"value": "remote-secret"}}),
+        ("GET", f"/v1/secret/data/agent-share/{secret_id}", None),
+    ]

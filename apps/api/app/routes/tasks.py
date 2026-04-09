@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.auth import (
@@ -64,10 +64,12 @@ def create_task_route(
     description="Authenticated task queue listing for runtime agents and management sessions.",
 )
 def list_tasks_route(
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     actor: AuthenticatedActor = Depends(require_management_or_agent),
     session: Session = Depends(get_db),
 ) -> dict:
-    return {"items": list_tasks(session, actor=actor)}
+    return {"items": list_tasks(session, actor=actor, limit=limit, offset=offset)}
 
 
 @router.get(

@@ -14,6 +14,9 @@ GITHUB_DEFAULT_BASE = "https://api.github.com"
 class GitHubAdapter:
     """Opinionated adapter for GitHub REST API calls with bearer-token auth."""
 
+    def __init__(self, client: httpx.Client | None = None) -> None:
+        self._client = client or httpx.Client(timeout=30)
+
     def invoke(
         self,
         secret_value: str,
@@ -50,17 +53,15 @@ class GitHubAdapter:
             "X-GitHub-Api-Version": adapter_config.get("api_version", "2022-11-28"),
         }
 
+        request_kwargs = {
+            "url": url,
+            "headers": headers,
+        }
         if method == "GET":
-            response = httpx.get(url=url, params=payload, headers=headers, timeout=30)
-        elif method == "POST":
-            response = httpx.post(url=url, json=payload, headers=headers, timeout=30)
+            request_kwargs["params"] = payload
         else:
-            response = httpx.request(
-                method=method,
-                url=url,
-                json=payload,
-                headers=headers,
-                timeout=30,
-            )
+            request_kwargs["json"] = payload
+
+        response = self._client.request(method, **request_kwargs)
 
         return normalize_json_response("github", response)

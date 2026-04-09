@@ -1,4 +1,5 @@
 import importlib
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI
@@ -243,3 +244,49 @@ def test_runtime_database_supports_bootstrap_token_target_feedback_flow(tmp_path
         assert target_token["success_rate"] == 1.0
         assert target_token["trust_score"] == 1.0
         assert target_token["last_feedback_at"] is not None
+
+
+def test_build_runtime_enables_pool_tuning_for_non_sqlite(monkeypatch):
+    captured: dict[str, object] = {}
+    fake_engine = MagicMock()
+
+    def fake_create_engine(url: str, **kwargs):
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return fake_engine
+
+    monkeypatch.setattr("app.runtime.create_engine", fake_create_engine)
+
+    runtime = build_runtime(Settings(database_url="postgresql://user:pass@db.example.com:5432/app"))
+
+    assert runtime.engine is fake_engine
+    assert captured["url"] == "postgresql://user:pass@db.example.com:5432/app"
+    assert captured["kwargs"] == {
+        "echo": False,
+        "connect_args": {},
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_recycle": 1800,
+    }
+
+
+def test_build_runtime_keeps_sqlite_runtime_simple(monkeypatch):
+    captured: dict[str, object] = {}
+    fake_engine = MagicMock()
+
+    def fake_create_engine(url: str, **kwargs):
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return fake_engine
+
+    monkeypatch.setattr("app.runtime.create_engine", fake_create_engine)
+
+    runtime = build_runtime(Settings(database_url="sqlite:///:memory:"))
+
+    assert runtime.engine is fake_engine
+    assert captured["url"] == "sqlite:///:memory:"
+    assert captured["kwargs"] == {
+        "echo": False,
+        "connect_args": {"check_same_thread": False},
+    }

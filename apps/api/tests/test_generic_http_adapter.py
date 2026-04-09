@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -23,24 +23,25 @@ def test_registry_raises_for_unknown():
         get_adapter("nonexistent_adapter")
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
-def test_generic_http_invoke(mock_post):
+def test_generic_http_invoke():
+    client = MagicMock()
     mock_resp = MagicMock()
     mock_resp.status_code = 200
     mock_resp.json.return_value = {"result": "ok"}
     mock_resp.raise_for_status = MagicMock()
-    mock_post.return_value = mock_resp
+    client.request.return_value = mock_resp
 
-    adapter = GenericHttpAdapter()
+    adapter = GenericHttpAdapter(client=client)
     result = adapter.invoke(
         secret_value="sk-test-123",
         adapter_config={"url": "https://api.example.com/v1/run", "method": "POST"},
         parameters={"prompt": "hello"},
     )
 
-    mock_post.assert_called_once()
-    call_kwargs = mock_post.call_args
-    assert "Authorization" in call_kwargs.kwargs.get("headers", call_kwargs[1].get("headers", {}))
+    client.request.assert_called_once()
+    call_kwargs = client.request.call_args
+    assert call_kwargs.args[0] == "POST"
+    assert "Authorization" in call_kwargs.kwargs["headers"]
     assert result == {
         "adapter_type": "generic_http",
         "upstream_status": 200,
@@ -48,15 +49,24 @@ def test_generic_http_invoke(mock_post):
     }
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
-def test_generic_http_custom_header_key(mock_post):
+def test_generic_http_custom_header_key_and_client_reuse():
+    client = MagicMock()
     mock_resp = MagicMock()
     mock_resp.status_code = 200
     mock_resp.json.return_value = {}
     mock_resp.raise_for_status = MagicMock()
-    mock_post.return_value = mock_resp
+    client.request.return_value = mock_resp
 
-    adapter = GenericHttpAdapter()
+    adapter = GenericHttpAdapter(client=client)
+    adapter.invoke(
+        secret_value="my-token",
+        adapter_config={
+            "url": "https://api.example.com/run",
+            "method": "POST",
+            "auth_header": "X-Api-Key",
+        },
+        parameters={},
+    )
     adapter.invoke(
         secret_value="my-token",
         adapter_config={
@@ -67,5 +77,6 @@ def test_generic_http_custom_header_key(mock_post):
         parameters={},
     )
 
-    headers = mock_post.call_args.kwargs.get("headers", mock_post.call_args[1].get("headers", {}))
+    assert client.request.call_count == 2
+    headers = client.request.call_args.kwargs["headers"]
     assert headers.get("X-Api-Key") == "my-token"

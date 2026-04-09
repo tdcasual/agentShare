@@ -149,3 +149,92 @@ def test_grouped_search_links_agent_published_assets_into_marketplace_context(cl
     capability_match = next(item for item in payload["skills"] if item["id"] == capability.json()["id"])
     assert secret_match["href"] == f"/marketplace?resourceKind=secret&resourceId={secret.json()['id']}"
     assert capability_match["href"] == f"/marketplace?resourceKind=capability&resourceId={capability.json()['id']}"
+
+
+def test_grouped_search_supports_limit_per_group(management_client):
+    for idx in range(2):
+        created = management_client.post(
+            "/api/agents",
+            json={"name": f"Signal limit agent {idx}", "risk_tier": "medium"},
+        )
+        assert created.status_code == 201, created.text
+
+    response = management_client.get("/api/search", params={"q": "signal limit", "limit_per_group": 1})
+
+    assert response.status_code == 200, response.text
+    assert len(response.json()["identities"]) == 1
+
+
+def test_grouped_search_uses_targeted_repository_queries_instead_of_list_all(
+    management_client,
+    db_session,
+    monkeypatch,
+):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Targeted Signal Agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    created_task = management_client.post(
+        "/api/tasks",
+        json={"title": "Targeted Signal Task", "task_type": "account_read"},
+    )
+    assert created_task.status_code == 201, created_task.text
+
+    created_secret = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "Targeted Signal Secret",
+            "kind": "api_token",
+            "value": "signal-secret-value",
+            "provider": "openai",
+            "environment": "production",
+            "provider_scopes": ["responses.read"],
+            "resource_selector": "project:signal",
+        },
+    )
+    assert created_secret.status_code == 201, created_secret.text
+
+    created_capability = management_client.post(
+        "/api/capabilities",
+        json={
+            "name": "Targeted Signal Skill",
+            "secret_id": created_secret.json()["id"],
+            "risk_level": "low",
+            "required_provider": "openai",
+        },
+    )
+    assert created_capability.status_code == 201, created_capability.text
+
+    record_event(
+        db_session,
+        event_type="task_completed",
+        actor_type="agent",
+        actor_id="test-agent",
+        subject_type="task",
+        subject_id=created_task.json()["id"],
+        summary="Targeted signal event",
+    )
+    db_session.commit()
+
+    def fail_list_all(*args, **kwargs):
+        del args, kwargs
+        raise AssertionError("search should not call list_all/list_recent fallbacks")
+
+    monkeypatch.setattr("app.repositories.agent_repo.AgentRepository.list_all", fail_list_all)
+    monkeypatch.setattr("app.repositories.openclaw_agent_repo.OpenClawAgentRepository.list_all", fail_list_all)
+    monkeypatch.setattr("app.repositories.task_repo.TaskRepository.list_all", fail_list_all)
+    monkeypatch.setattr("app.repositories.secret_repo.SecretRepository.list_all", fail_list_all)
+    monkeypatch.setattr("app.repositories.capability_repo.CapabilityRepository.list_all", fail_list_all)
+    monkeypatch.setattr("app.repositories.event_repo.EventRepository.list_recent", fail_list_all)
+
+    response = management_client.get("/api/search", params={"q": "targeted signal"})
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["identities"]
+    assert payload["tasks"]
+    assert payload["assets"]
+    assert payload["skills"]
+    assert payload["events"]

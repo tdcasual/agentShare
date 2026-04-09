@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from sqlalchemy.orm import Session
 
 from app.orm.event import EventModel
@@ -24,6 +24,24 @@ class EventRepository:
         return list(
             self.session.query(EventModel)
             .order_by(desc(EventModel.created_at))
+            .limit(limit)
+            .all()
+        )
+
+    def search(self, query_text: str, *, limit: int) -> list[EventModel]:
+        pattern = f"%{query_text}%"
+        return list(
+            self.session.query(EventModel)
+            .filter(
+                or_(
+                    EventModel.id.ilike(pattern),
+                    EventModel.summary.ilike(pattern),
+                    EventModel.event_type.ilike(pattern),
+                    EventModel.subject_id.ilike(pattern),
+                    EventModel.actor_id.ilike(pattern),
+                )
+            )
+            .order_by(desc(EventModel.created_at), desc(EventModel.id))
             .limit(limit)
             .all()
         )

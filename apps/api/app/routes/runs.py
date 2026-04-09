@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.auth import require_management_session
@@ -15,6 +15,8 @@ router = APIRouter(prefix="/api/runs")
     description="Return persisted task run history for the management console.",
 )
 def list_runs(
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     manager=Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
@@ -33,6 +35,6 @@ def list_runs(
             "capability_invocations": model.capability_invocations,
             "lease_events": model.lease_events,
         }
-        for model in repo.list_all()
+        for model in repo.list_all(limit=limit, offset=offset)
     ]
     return {"items": items}

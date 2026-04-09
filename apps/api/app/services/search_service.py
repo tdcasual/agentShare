@@ -16,7 +16,7 @@ from app.services.control_plane_links import (
 
 
 def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> dict:
-    normalized_query = query.strip().lower()
+    normalized_query = query.strip()
     if not normalized_query:
         return {
             "identities": [],
@@ -39,8 +39,7 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
             "subtitle": f"{agent.id} · {agent.status} · risk {agent.risk_tier}",
             "href": build_identity_href(agent_id=agent.id),
         }
-        for agent in AgentRepository(session).list_all()
-        if _matches(normalized_query, agent.id, agent.name, agent.status, agent.risk_tier)
+        for agent in AgentRepository(session).search(normalized_query, limit=limit_per_group)
     ]
 
     openclaw_agent_matches = [
@@ -54,18 +53,7 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
             ),
             "href": build_identity_href(agent_id=agent.id),
         }
-        for agent in OpenClawAgentRepository(session).list_all()
-        if _matches(
-            normalized_query,
-            agent.id,
-            agent.name,
-            agent.status,
-            agent.workspace_root,
-            agent.agent_dir,
-            agent.sandbox_mode,
-            agent.model,
-            agent.thinking_level,
-        )
+        for agent in OpenClawAgentRepository(session).search(normalized_query, limit=limit_per_group)
     ]
 
     seen_identity_ids: set[str] = set()
@@ -86,9 +74,8 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
             "subtitle": f"{task.task_type} · {task.status}",
             "href": build_task_href(task.id),
         }
-        for task in TaskRepository(session).list_all()
-        if _matches(normalized_query, task.id, task.title, task.task_type, task.status)
-    ][:limit_per_group]
+        for task in TaskRepository(session).search_active(normalized_query, limit=limit_per_group)
+    ]
 
     asset_matches = [
         {
@@ -104,9 +91,8 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
                 release_backed_resources=release_backed_resources,
             ),
         }
-        for secret in SecretRepository(session).list_all()
-        if _matches(normalized_query, secret.id, secret.display_name, secret.provider, secret.kind)
-    ][:limit_per_group]
+        for secret in SecretRepository(session).search(normalized_query, limit=limit_per_group)
+    ]
 
     skill_matches = [
         {
@@ -122,16 +108,8 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
                 release_backed_resources=release_backed_resources,
             ),
         }
-        for capability in CapabilityRepository(session).list_all()
-        if _matches(
-            normalized_query,
-            capability.id,
-            capability.name,
-            capability.required_provider,
-            capability.allowed_mode,
-            capability.risk_level,
-        )
-    ][:limit_per_group]
+        for capability in CapabilityRepository(session).search(normalized_query, limit=limit_per_group)
+    ]
 
     event_matches = [
         {
@@ -141,9 +119,8 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
             "subtitle": f"{event.event_type} · {event.subject_type}:{event.subject_id}",
             "href": f"/inbox?eventId={event.id}",
         }
-        for event in EventRepository(session).list_recent(limit=100)
-        if _matches(normalized_query, event.id, event.summary, event.event_type, event.subject_id, event.actor_id)
-    ][:limit_per_group]
+        for event in EventRepository(session).search(normalized_query, limit=limit_per_group)
+    ]
 
     return {
         "identities": agent_matches,
@@ -152,10 +129,6 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
         "skills": skill_matches,
         "events": event_matches,
     }
-
-
-def _matches(query: str, *values: object) -> bool:
-    return any(query in str(value).lower() for value in values if value is not None)
 
 
 def _build_resource_href(

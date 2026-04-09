@@ -5,6 +5,8 @@ import httpx
 from app.config import Settings
 from app.services.identifiers import new_resource_id
 
+_OPENBAO_SHARED_CLIENTS: dict[tuple[str, str], httpx.Client] = {}
+
 
 def _next_secret_id() -> str:
     return new_resource_id("secret")
@@ -82,9 +84,11 @@ class OpenBaoSecretBackend(SecretBackend):
         self,
         settings: Settings | None = None,
         transport: httpx.BaseTransport | None = None,
+        client: httpx.Client | None = None,
     ) -> None:
         super().__init__(_resolve_settings(settings))
         self.transport = transport
+        self._client = client
 
     def write_secret(self, value: str, *, secret_id: str | None = None) -> tuple[str, str]:
         secret_id = secret_id or _next_secret_id()
@@ -122,17 +126,33 @@ class OpenBaoSecretBackend(SecretBackend):
         if not self.settings.openbao_addr or not self.settings.openbao_token:
             raise RuntimeError("OpenBao backend is not configured")
 
-        with httpx.Client(
-            base_url=self.settings.openbao_addr,
-            headers={"X-Vault-Token": self.settings.openbao_token},
-            timeout=10.0,
-            transport=self.transport,
-        ) as client:
-            response = client.request(method, path, json=json)
-            response.raise_for_status()
-            if not response.content:
-                return {}
-            return response.json()
+        response = self._get_client().request(method, path, json=json)
+        response.raise_for_status()
+        if not response.content:
+            return {}
+        return response.json()
+
+    def _get_client(self) -> httpx.Client:
+        if self._client is not None:
+            return self._client
+
+        client_kwargs = {
+            "base_url": self.settings.openbao_addr,
+            "headers": {"X-Vault-Token": self.settings.openbao_token},
+            "timeout": 10.0,
+            "transport": self.transport,
+        }
+        if self.transport is not None:
+            self._client = httpx.Client(**client_kwargs)
+            return self._client
+
+        key = (self.settings.openbao_addr, self.settings.openbao_token)
+        client = _OPENBAO_SHARED_CLIENTS.get(key)
+        if client is None:
+            client = httpx.Client(**client_kwargs)
+            _OPENBAO_SHARED_CLIENTS[key] = client
+        self._client = client
+        return client
 
 
 def get_secret_backend(settings: Settings | None = None) -> SecretBackend:

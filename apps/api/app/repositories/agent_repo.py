@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy import asc, or_
 from sqlalchemy.orm import Session
 
 from app.orm.agent import AgentIdentityModel
@@ -19,6 +20,23 @@ class AgentRepository:
 
     def list_all(self) -> list[AgentIdentityModel]:
         return list(self.session.query(AgentIdentityModel).all())
+
+    def search(self, query_text: str, *, limit: int) -> list[AgentIdentityModel]:
+        pattern = f"%{query_text}%"
+        return list(
+            self.session.query(AgentIdentityModel)
+            .filter(
+                or_(
+                    AgentIdentityModel.id.ilike(pattern),
+                    AgentIdentityModel.name.ilike(pattern),
+                    AgentIdentityModel.status.ilike(pattern),
+                    AgentIdentityModel.risk_tier.ilike(pattern),
+                )
+            )
+            .order_by(asc(AgentIdentityModel.name), asc(AgentIdentityModel.id))
+            .limit(limit)
+            .all()
+        )
 
     def find_bootstrap_by_api_key_hash(self, api_key_hash: str) -> AgentIdentityModel | None:
         return (
