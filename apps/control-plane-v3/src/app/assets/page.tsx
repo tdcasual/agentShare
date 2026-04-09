@@ -132,7 +132,7 @@ function AssetsContent() {
       agents.flatMap((agent) =>
         (tokensByAgent[agent.id] ?? []).map((token) => ({
           id: token.id,
-          label: token.display_name ?? token.displayName ?? token.id,
+          label: token.displayName ?? token.id,
           agentId: agent.id,
           agentName: agent.name,
           status: token.status,

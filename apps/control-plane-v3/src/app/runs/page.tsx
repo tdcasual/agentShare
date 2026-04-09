@@ -4,10 +4,9 @@
  * viewer+ 角色可访问（后端只要求任意 management session）
  * 显示任务运行历史、状态、结果
  *
- * DTO 对齐说明：
- * - 后端 /api/runs 返回: id, task_id, agent_id, token_id, task_target_id, status,
- *   result_summary, output_payload, error_summary, capability_invocations, lease_events
- * - 注意：后端不返回 createdAt/startedAt/completedAt 时间戳
+ * 数据对齐说明：
+ * - hooks 层会把后端 snake_case DTO 归一化为 camelCase model
+ * - 页面只消费归一化后的 Run 模型
  */
 
 'use client';
@@ -305,9 +304,9 @@ function RunsContent() {
                           <Badge className={config.color}>{config.label}</Badge>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                          <span>任务: {run.task_id.slice(-8)}</span>
-                          {run.token_id && <span>Token: {run.token_id.slice(-8)}</span>}
-                          {run.agent_id && <span>Agent: {run.agent_id.slice(-8)}</span>}
+                          <span>任务: {run.taskId.slice(-8)}</span>
+                          {run.tokenId && <span>Token: {run.tokenId.slice(-8)}</span>}
+                          {run.agentId && <span>Agent: {run.agentId.slice(-8)}</span>}
                         </div>
                       </div>
 
@@ -393,38 +392,38 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           {/* 基本信息 */}
           <div className="grid grid-cols-2 gap-4">
             <InfoItem label="状态" value={config.label} />
-            <InfoItem label="任务ID" value={run.task_id} />
-            <InfoItem label="Agent ID" value={run.agent_id} />
-            <InfoItem label="Token ID" value={run.token_id} />
-            <InfoItem label="目标ID" value={run.task_target_id} />
+            <InfoItem label="任务ID" value={run.taskId} />
+            <InfoItem label="Agent ID" value={run.agentId ?? '-'} />
+            <InfoItem label="Token ID" value={run.tokenId ?? '-'} />
+            <InfoItem label="目标ID" value={run.taskTargetId ?? '-'} />
           </div>
 
           {/* 结果摘要 */}
-          {run.result_summary !== null && run.result_summary !== undefined && (
+          {run.resultSummary !== null && run.resultSummary !== undefined && (
             <div className="space-y-2">
               <h3 className="font-medium text-gray-800 dark:text-gray-100">结果摘要</h3>
               <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                {String(run.result_summary)}
+                {String(run.resultSummary)}
               </div>
             </div>
           )}
 
           {/* 错误摘要 */}
-          {run.error_summary !== null && run.error_summary !== undefined && (
+          {run.errorSummary !== null && run.errorSummary !== undefined && (
             <div className="space-y-2">
               <h3 className="font-medium text-red-600">错误</h3>
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
-                {String(run.error_summary)}
+                {String(run.errorSummary)}
               </div>
             </div>
           )}
 
           {/* 输出载荷 */}
-          {run.output_payload !== null && run.output_payload !== undefined && (
+          {run.outputPayload !== null && run.outputPayload !== undefined && (
             <div className="space-y-2">
               <h3 className="font-medium text-gray-800 dark:text-gray-100">输出</h3>
               <pre className="max-h-48 overflow-auto rounded-lg bg-gray-900 p-3 text-xs text-gray-100">
-                {JSON.stringify(run.output_payload, null, 2)}
+                {JSON.stringify(run.outputPayload, null, 2)}
               </pre>
             </div>
           )}

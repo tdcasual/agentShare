@@ -16,6 +16,9 @@ describe('Composite Hooks Safety', () => {
 
     expect(source).not.toMatch(/map\(agentId\s*=>\s*[\s\S]*useAgentTokens\(/);
     expect(source).not.toMatch(/map\(async\s*\(agentId\)\s*=>\s*[\s\S]*getAgentTokens\(/);
+    expect(source).not.toMatch(
+      /=>\s*\(await api\.getAgentTokensBulk\(agentIds\)\)\.items_by_agent/
+    );
   });
 
   it('task dashboard hooks do not call hooks inside array loops', async () => {
@@ -26,5 +29,7 @@ describe('Composite Hooks Safety', () => {
     expect(source).not.toMatch(/map\(\(agentId\)\s*=>\s*identityApi\.getAgentTokens\(/);
     expect(source).not.toMatch(/map\(\(tokenId\)\s*=>\s*taskApi\.getTokenFeedback\(/);
     expect(source).not.toMatch(/runs\.find\(/);
+    expect(source).not.toMatch(/item\.task_target_id\s*\?\?\s*item\.targetId/);
+    expect(source).not.toMatch(/task\.target_token_ids\s*\?\?\s*\[\]/);
   });
 });

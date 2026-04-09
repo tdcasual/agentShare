@@ -102,14 +102,11 @@ function TokensContent() {
   const activeTokens = allTokens.filter((token) => token.status === 'active').length;
   const averageTrust =
     allTokens.length > 0
-      ? allTokens.reduce((total, token) => total + (token.trust_score ?? token.trustScore), 0) /
-        allTokens.length
+      ? allTokens.reduce((total, token) => total + (token.trustScore ?? 0), 0) / allTokens.length
       : 0;
-  const tokensWithFeedback = allTokens.filter((token) => token.last_feedback_at).length;
-  const tokensNeedingFeedback = allTokens.filter((token) => !token.last_feedback_at).length;
-  const lowTrustTokens = allTokens.filter(
-    (token) => (token.trust_score ?? token.trustScore) < 0.6
-  ).length;
+  const tokensWithFeedback = allTokens.filter((token) => token.lastFeedbackAt).length;
+  const tokensNeedingFeedback = allTokens.filter((token) => !token.lastFeedbackAt).length;
+  const lowTrustTokens = allTokens.filter((token) => (token.trustScore ?? 0) < 0.6).length;
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -466,10 +463,10 @@ function TokensContent() {
         {agents.map((agent) => {
           const tokens = (tokensByAgent[agent.id] ?? []).filter((token) => {
             if (selectedHealthFilter === 'needs_feedback') {
-              return !token.last_feedback_at;
+              return !token.lastFeedbackAt;
             }
             if (selectedHealthFilter === 'low_trust') {
-              return (token.trust_score ?? token.trustScore) < 0.6;
+              return (token.trustScore ?? 0) < 0.6;
             }
             return true;
           });
@@ -535,11 +532,11 @@ function TokensContent() {
                             <Badge variant={token.status === 'active' ? 'success' : 'error'}>
                               {token.status}
                             </Badge>
-                            <Badge variant="primary">{token.display_name}</Badge>
+                            <Badge variant="primary">{token.displayName}</Badge>
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
-                              {token.token_prefix}
+                              {token.tokenPrefix}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
                               ID: {token.id}
@@ -561,24 +558,24 @@ function TokensContent() {
                         <DataPoint
                           icon={<Clock3 className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
                           label={t('tokens.token.lastUsed')}
-                          value={formatDateTime(token.last_used_at ?? null)}
+                          value={formatDateTime(token.lastUsedAt ?? null)}
                         />
                         <DataPoint
                           icon={<Sparkles className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
                           label={t('tokens.token.lastFeedback')}
-                          value={formatDateTime(token.last_feedback_at ?? null)}
+                          value={formatDateTime(token.lastFeedbackAt ?? null)}
                         />
                         <DataPoint
                           icon={
                             <ShieldCheck className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />
                           }
                           label={t('tokens.token.successRate')}
-                          value={`${Math.round((token.success_rate ?? 0) * 100)}%`}
+                          value={`${Math.round((token.successRate ?? 0) * 100)}%`}
                         />
                         <DataPoint
                           icon={<Star className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
                           label={t('tokens.token.trustScore')}
-                          value={formatDecimal(token.trust_score ?? token.trustScore)}
+                          value={formatDecimal(token.trustScore ?? 0)}
                         />
                       </div>
 
@@ -600,15 +597,15 @@ function TokensContent() {
                       <div className="grid gap-3 sm:grid-cols-3">
                         <MiniStat
                           label={t('tokens.token.completedRuns')}
-                          value={(token.completed_runs ?? 0).toString()}
+                          value={(token.completedRuns ?? 0).toString()}
                         />
                         <MiniStat
                           label={t('tokens.token.successfulRuns')}
-                          value={(token.successful_runs ?? 0).toString()}
+                          value={(token.successfulRuns ?? 0).toString()}
                         />
                         <MiniStat
                           label={t('tokens.token.issuer')}
-                          value={token.issued_by_actor_id ?? '-'}
+                          value={token.issuedByActorId ?? '-'}
                         />
                       </div>
                     </Card>

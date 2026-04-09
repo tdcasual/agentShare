@@ -293,7 +293,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                       <div className="mt-3 flex flex-wrap gap-2">
                         {(tokensByAgent[agent.id] ?? []).map((token) => (
                           <Badge key={token.id} variant="info">
-                            {token.display_name ?? token.displayName}
+                            {token.displayName}
                           </Badge>
                         ))}
                         {(tokensByAgent[agent.id] ?? []).length === 0 ? (

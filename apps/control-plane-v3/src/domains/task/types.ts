@@ -36,6 +36,80 @@ export interface TaskTarget {
 }
 
 // ============================================
+// 传输 DTO
+// ============================================
+
+export interface TaskTransport {
+  readonly id: string;
+  readonly title: string;
+  readonly task_type: string;
+  readonly description?: string;
+  readonly priority?: TaskPriority;
+  readonly status?: TaskStatus;
+  readonly publication_status?: PublicationStatus;
+  readonly target_mode?: TaskTargetMode;
+  readonly input?: TaskInput;
+  readonly target_ids?: string[];
+  readonly target_token_ids?: string[];
+  readonly required_capability_ids?: string[];
+  readonly playbook_ids?: string[];
+  readonly lease_allowed?: boolean;
+  readonly approval_mode?: string | null;
+  readonly approval_rules?: Array<Record<string, unknown>> | null;
+  readonly created_by_actor_type?: string | null;
+  readonly created_by_actor_id?: string | null;
+  readonly created_via_token_id?: string | null;
+  readonly claimed_by?: string | null;
+}
+
+export interface RunTransport {
+  readonly id: string;
+  readonly task_id: string;
+  readonly agent_id?: string | null;
+  readonly token_id?: string | null;
+  readonly task_target_id?: string | null;
+  readonly status: RunStatus;
+  readonly result_summary?: string | null;
+  readonly output_payload?: unknown;
+  readonly error_summary?: string | null;
+  readonly capability_invocations?: unknown;
+  readonly lease_events?: unknown;
+}
+
+export interface TokenFeedbackTransport {
+  readonly id: string;
+  readonly token_id: string;
+  readonly task_target_id: string;
+  readonly run_id?: string | null;
+  readonly source?: string | null;
+  readonly score: number;
+  readonly verdict: FeedbackVerdict;
+  readonly summary: string;
+  readonly created_by_actor_type?: string | null;
+  readonly created_by_actor_id?: string | null;
+  readonly created_at?: string | null;
+}
+
+export interface AgentTokenTransport {
+  readonly id: string;
+  readonly agent_id: string;
+  readonly display_name: string;
+  readonly token_prefix: string;
+  readonly status: string;
+  readonly scopes?: string[];
+  readonly labels?: Record<string, string>;
+  readonly expires_at?: string | null;
+  readonly issued_by_actor_type?: string | null;
+  readonly issued_by_actor_id?: string | null;
+  readonly last_used_at?: string | null;
+  readonly completed_runs?: number | null;
+  readonly successful_runs?: number | null;
+  readonly success_rate?: number | null;
+  readonly last_feedback_at?: string | null;
+  readonly trust_score?: number | null;
+}
+
+// ============================================
 // 实体: Task
 // ============================================
 
@@ -43,31 +117,22 @@ export interface Task {
   readonly id: string;
   readonly title: string;
   readonly taskType: string;
-  readonly task_type?: string; // API 返回 snake_case
   readonly description?: string;
   readonly priority: TaskPriority;
   readonly status: TaskStatus;
   readonly publicationStatus: PublicationStatus;
-  readonly publication_status?: string; // API 返回 snake_case
   readonly targetMode: TaskTargetMode;
-  readonly target_mode?: string; // API 返回 snake_case
   readonly input: TaskInput;
   readonly targetIds: string[];
   readonly targetTokenIds: string[];
-  readonly target_ids?: string[]; // API 返回 snake_case
-  readonly target_token_ids?: string[]; // API 返回 snake_case
+  readonly requiredCapabilityIds: string[];
+  readonly playbookIds: string[];
+  readonly leaseAllowed: boolean;
+  readonly approvalMode?: string | null;
+  readonly approvalRules: Array<Record<string, unknown>>;
   readonly createdBy: IdentityReference;
-  readonly created_by_actor_type?: string; // API 返回 snake_case
-  readonly created_by_actor_id?: string; // API 返回 snake_case
-  readonly created_via_token_id?: string; // API 返回 snake_case
+  readonly createdViaTokenId?: string | null;
   readonly claimedBy?: string;
-  readonly claimed_by?: string; // API 返回 snake_case
-  readonly createdAt: string;
-  readonly created_at?: string; // API 返回 snake_case
-  readonly updatedAt: string;
-  readonly updated_at?: string; // API 返回 snake_case
-  readonly publishedAt?: string;
-  readonly completedAt?: string;
 }
 
 // ============================================
@@ -76,16 +141,16 @@ export interface Task {
 
 export interface Run {
   readonly id: string;
-  readonly task_id: string;
-  readonly agent_id: string;
-  readonly token_id: string;
-  readonly task_target_id: string;
+  readonly taskId: string;
+  readonly agentId?: string;
+  readonly tokenId?: string;
+  readonly taskTargetId?: string;
   readonly status: RunStatus;
-  readonly result_summary?: string;
-  readonly output_payload?: unknown;
-  readonly error_summary?: string;
-  readonly capability_invocations?: unknown;
-  readonly lease_events?: unknown;
+  readonly resultSummary?: string;
+  readonly outputPayload?: unknown;
+  readonly errorSummary?: string;
+  readonly capabilityInvocations?: unknown;
+  readonly leaseEvents?: unknown;
 }
 
 // ============================================
@@ -94,15 +159,15 @@ export interface Run {
 
 export interface TokenFeedback {
   readonly id: string;
-  readonly taskId: string;
-  readonly targetId: string;
-  readonly task_target_id?: string; // API 返回 snake_case
   readonly tokenId: string;
+  readonly taskTargetId: string;
+  readonly runId?: string;
+  readonly source?: string;
   readonly score: number;
   readonly verdict: FeedbackVerdict;
   readonly summary: string;
   readonly createdBy: IdentityReference;
-  readonly createdAt: string;
+  readonly createdAt?: string;
 }
 
 // ============================================
@@ -112,27 +177,20 @@ export interface TokenFeedback {
 export interface AgentToken {
   readonly id: string;
   readonly agentId: string;
-  readonly agent_id?: string; // API 返回 snake_case
   readonly displayName: string;
-  readonly display_name?: string; // API 返回 snake_case
   readonly tokenPrefix: string;
-  readonly token_prefix?: string; // API 返回 snake_case
-  readonly trustScore: number;
-  readonly trust_score?: number; // API 返回 snake_case
-  readonly riskTier: string;
-  readonly authMethod: string;
+  readonly trustScore?: number;
   readonly status: string;
-  readonly scopes?: string[];
-  readonly labels?: Record<string, string>;
+  readonly scopes: string[];
+  readonly labels: Record<string, string>;
   readonly expiresAt?: string;
+  readonly issuedByActorType?: string;
+  readonly issuedByActorId?: string;
   readonly lastUsedAt?: string;
-  readonly last_used_at?: string; // API 返回 snake_case
-  readonly last_feedback_at?: string; // API 返回 snake_case
-  readonly success_rate?: number; // API 返回 snake_case
-  readonly completed_runs?: number; // API 返回 snake_case
-  readonly successful_runs?: number; // API 返回 snake_case
-  readonly issued_by_actor_id?: string; // API 返回 snake_case
-  readonly createdAt: string;
+  readonly lastFeedbackAt?: string;
+  readonly successRate?: number;
+  readonly completedRuns?: number;
+  readonly successfulRuns?: number;
 }
 
 // ============================================
@@ -220,4 +278,93 @@ export interface TaskQuery {
   readonly search?: string;
   readonly limit?: number;
   readonly offset?: number;
+}
+
+function normalizeIdentityReference(
+  actorType: string | null | undefined,
+  actorId: string | null | undefined
+): IdentityReference {
+  const normalizedType = actorType === 'agent' ? 'agent' : 'human';
+  const normalizedId = actorId ?? 'unknown';
+  return {
+    id: normalizedId,
+    type: normalizedType,
+    name: normalizedId,
+  };
+}
+
+export function normalizeTask(dto: TaskTransport): Task {
+  return {
+    id: dto.id,
+    title: dto.title,
+    taskType: dto.task_type,
+    description: dto.description,
+    priority: dto.priority ?? 'normal',
+    status: dto.status ?? 'pending',
+    publicationStatus: dto.publication_status ?? 'draft',
+    targetMode: dto.target_mode ?? 'explicit_tokens',
+    input: dto.input ?? {},
+    targetIds: dto.target_ids ?? [],
+    targetTokenIds: dto.target_token_ids ?? [],
+    requiredCapabilityIds: dto.required_capability_ids ?? [],
+    playbookIds: dto.playbook_ids ?? [],
+    leaseAllowed: dto.lease_allowed ?? false,
+    approvalMode: dto.approval_mode,
+    approvalRules: dto.approval_rules ?? [],
+    createdBy: normalizeIdentityReference(dto.created_by_actor_type, dto.created_by_actor_id),
+    createdViaTokenId: dto.created_via_token_id,
+    claimedBy: dto.claimed_by ?? undefined,
+  };
+}
+
+export function normalizeRun(dto: RunTransport): Run {
+  return {
+    id: dto.id,
+    taskId: dto.task_id,
+    agentId: dto.agent_id ?? undefined,
+    tokenId: dto.token_id ?? undefined,
+    taskTargetId: dto.task_target_id ?? undefined,
+    status: dto.status,
+    resultSummary: dto.result_summary ?? undefined,
+    outputPayload: dto.output_payload,
+    errorSummary: dto.error_summary ?? undefined,
+    capabilityInvocations: dto.capability_invocations,
+    leaseEvents: dto.lease_events,
+  };
+}
+
+export function normalizeTokenFeedback(dto: TokenFeedbackTransport): TokenFeedback {
+  return {
+    id: dto.id,
+    tokenId: dto.token_id,
+    taskTargetId: dto.task_target_id,
+    runId: dto.run_id ?? undefined,
+    source: dto.source ?? undefined,
+    score: dto.score,
+    verdict: dto.verdict,
+    summary: dto.summary,
+    createdBy: normalizeIdentityReference(dto.created_by_actor_type, dto.created_by_actor_id),
+    createdAt: dto.created_at ?? undefined,
+  };
+}
+
+export function normalizeAgentToken(dto: AgentTokenTransport): AgentToken {
+  return {
+    id: dto.id,
+    agentId: dto.agent_id,
+    displayName: dto.display_name,
+    tokenPrefix: dto.token_prefix,
+    trustScore: dto.trust_score ?? undefined,
+    status: dto.status,
+    scopes: dto.scopes ?? [],
+    labels: dto.labels ?? {},
+    expiresAt: dto.expires_at ?? undefined,
+    issuedByActorType: dto.issued_by_actor_type ?? undefined,
+    issuedByActorId: dto.issued_by_actor_id ?? undefined,
+    lastUsedAt: dto.last_used_at ?? undefined,
+    lastFeedbackAt: dto.last_feedback_at ?? undefined,
+    successRate: dto.success_rate ?? undefined,
+    completedRuns: dto.completed_runs ?? undefined,
+    successfulRuns: dto.successful_runs ?? undefined,
+  };
 }

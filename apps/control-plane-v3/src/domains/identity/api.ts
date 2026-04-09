@@ -28,7 +28,7 @@ import type {
   OpenClawDreamRun,
   OpenClawSession,
 } from './types';
-import type { AgentToken } from '../task/types';
+import { normalizeAgentToken, type AgentTokenTransport } from '../task/types';
 
 export interface OpenClawAgentCreateInput {
   name: string;
@@ -197,15 +197,26 @@ export function disableAdminAccount(accountId: string) {
 // ============================================
 
 export function getAgentTokens(agentId: string) {
-  return apiFetch<{ items: AgentToken[] }>(`/agents/${agentId}/tokens`);
+  return apiFetch<{ items: AgentTokenTransport[] }>(`/agents/${agentId}/tokens`).then(
+    ({ items }) => ({
+      items: items.map(normalizeAgentToken),
+    })
+  );
 }
 
 export function getAgentTokensBulk(agentIds: string[]) {
   const params = new URLSearchParams();
   agentIds.forEach((agentId) => params.append('agent_id', agentId));
-  return apiFetch<{ items_by_agent: Record<string, AgentToken[]> }>(
+  return apiFetch<{ items_by_agent: Record<string, AgentTokenTransport[]> }>(
     `/agent-tokens/bulk?${params.toString()}`
-  );
+  ).then(({ items_by_agent }) => ({
+    items_by_agent: Object.fromEntries(
+      Object.entries(items_by_agent).map(([agentId, items]) => [
+        agentId,
+        items.map(normalizeAgentToken),
+      ])
+    ),
+  }));
 }
 
 export function createAgentToken(agentId: string, payload: AgentTokenCreateInput) {

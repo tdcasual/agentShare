@@ -66,7 +66,7 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const targetTokenIds = useMemo(() => {
     const ids = new Set<string>();
     (tasks ?? []).forEach((task) => {
-      (task.target_token_ids ?? []).forEach((id) => ids.add(id));
+      task.targetTokenIds.forEach((id) => ids.add(id));
     });
     return Array.from(ids);
   }, [tasks]);
@@ -77,9 +77,7 @@ export function useTaskDashboard(options?: SWRConfiguration) {
       const grouped = (await taskApi.getTokenFeedbackBulk(targetTokenIds)).items_by_token;
       const allFeedback = Object.values(grouped).flat();
       return allFeedback.reduce<Record<string, TokenFeedback[]>>((acc, item) => {
-        // Support both snake_case (API response) and camelCase (transformed model)
-        // task_target_id is the raw API field, targetId is the domain model field
-        const key = item.task_target_id ?? item.targetId;
+        const key = item.taskTargetId;
         acc[key] = [...(acc[key] ?? []), item];
         return acc;
       }, {});
@@ -94,10 +92,10 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const runsByTaskTarget = useMemo(() => {
     const index = new Map<string, Run>();
     (runs ?? []).forEach((run) => {
-      if (!run.task_target_id) {
+      if (!run.taskTargetId) {
         return;
       }
-      index.set(buildTaskTargetRunKey(run.task_id, run.task_target_id), run);
+      index.set(buildTaskTargetRunKey(run.taskId, run.taskTargetId), run);
     });
     return index;
   }, [runs]);
@@ -169,16 +167,17 @@ function buildTaskTargets(
   runsByTaskTarget: Map<string, Run>,
   feedbackByTargetId: Record<string, TokenFeedback[]>
 ): TaskTargetView[] {
-  const targetTokenIds = task.target_token_ids ?? [];
+  const targetTokenIds = task.targetTokenIds;
 
-  return targetTokenIds.map((targetId) => {
-    const token = tokensById[targetId] ?? null;
+  return targetTokenIds.map((tokenId, index) => {
+    const targetId = task.targetIds[index] ?? tokenId;
+    const token = tokensById[tokenId] ?? null;
     const run = runsByTaskTarget.get(buildTaskTargetRunKey(task.id, targetId)) ?? null;
     const feedback = feedbackByTargetId[targetId] ?? [];
 
     return {
       targetId,
-      tokenId: targetId,
+      tokenId,
       token,
       run,
       feedback,

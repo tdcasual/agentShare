@@ -336,9 +336,13 @@ export function useAgentsWithTokens(options?: SWRConfiguration) {
   const agentsQuery = useAgents(options);
 
   const agentIds = agentsQuery.data?.items.map((a) => a.id) ?? [];
+  const loadAgentTokensBulk = async () => {
+    const response = await api.getAgentTokensBulk(agentIds);
+    return response.items_by_agent;
+  };
   const tokensQuery = useSWR<Record<string, AgentToken[]>>(
     options?.isPaused || agentIds.length === 0 ? null : [AGENT_TOKENS_BULK_KEY, ...agentIds],
-    async () => (await api.getAgentTokensBulk(agentIds)).items_by_agent,
+    loadAgentTokensBulk,
     {
       ...swrConfig,
       ...options,

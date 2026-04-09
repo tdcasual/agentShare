@@ -156,19 +156,21 @@ describe('spaces page', () => {
         bootstrap: [
           {
             id: 'token-bootstrap',
-            display_name: 'Bootstrap Primary',
+            displayName: 'Bootstrap Primary',
             status: 'active',
-            trust_score: 0.92,
-            created_at: '2026-03-31T00:00:00.000Z',
+            trustScore: 0.92,
+            scopes: [],
+            labels: {},
           },
         ],
         analyzer: [
           {
             id: 'token-analyzer',
-            display_name: 'Analyzer Worker',
+            displayName: 'Analyzer Worker',
             status: 'active',
-            trust_score: 0.81,
-            created_at: '2026-03-31T00:00:00.000Z',
+            trustScore: 0.81,
+            scopes: [],
+            labels: {},
           },
         ],
       },

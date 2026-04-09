@@ -493,8 +493,8 @@ function TasksContent() {
                     >
                       {task.status}
                     </Badge>
-                    <Badge variant={task.publication_status === 'active' ? 'primary' : 'warning'}>
-                      {task.publication_status}
+                    <Badge variant={task.publicationStatus === 'active' ? 'primary' : 'warning'}>
+                      {task.publicationStatus}
                     </Badge>
                   </div>
                   <div>
@@ -502,8 +502,7 @@ function TasksContent() {
                       {task.title}
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                      {task.task_type} • created by {task.created_by_actor_type}:
-                      {task.created_by_actor_id}
+                      {task.taskType} • created by {task.createdBy.type}:{task.createdBy.id}
                     </p>
                   </div>
                 </div>
@@ -540,7 +539,7 @@ function TasksContent() {
                         variant={targetStatusVariant(target.status)}
                         className="text-xs"
                       >
-                        {target.token?.display_name ?? target.tokenId}
+                        {target.token?.displayName ?? target.tokenId}
                       </Badge>
                     ))
                   )}
@@ -703,12 +702,11 @@ function TasksContent() {
                       />
                       <div>
                         <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                          {token.display_name}
+                          {token.displayName}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                          {token.id} • {token.agent_id ?? token.agentId} •{' '}
-                          {t('tasks.form.trust') || 'trust'}{' '}
-                          {(token.trust_score ?? token.trustScore).toFixed(2)}
+                          {token.id} • {token.agentId} • {t('tasks.form.trust') || 'trust'}{' '}
+                          {(token.trustScore ?? 0).toFixed(2)}
                         </p>
                       </div>
                     </label>
@@ -746,7 +744,7 @@ function TasksContent() {
         onClose={() => setSelectedTaskId(null)}
         title={selectedTask?.task.title}
         description={
-          selectedTask ? `${selectedTask.task.task_type} • ${selectedTask.task.id}` : undefined
+          selectedTask ? `${selectedTask.task.taskType} • ${selectedTask.task.id}` : undefined
         }
         size="xl"
       >
@@ -768,9 +766,9 @@ function TasksContent() {
                 {selectedTask.task.status}
               </Badge>
               <Badge
-                variant={selectedTask.task.publication_status === 'active' ? 'primary' : 'warning'}
+                variant={selectedTask.task.publicationStatus === 'active' ? 'primary' : 'warning'}
               >
-                {selectedTask.task.publication_status}
+                {selectedTask.task.publicationStatus}
               </Badge>
             </div>
 
@@ -790,17 +788,17 @@ function TasksContent() {
                 </p>
                 <div className="space-y-2 text-sm text-gray-700 dark:text-[#E8E8EC]">
                   <p>
-                    {t('tasks.actor') || 'Actor'}: {selectedTask.task.created_by_actor_type}:
-                    {selectedTask.task.created_by_actor_id}
+                    {t('tasks.actor') || 'Actor'}: {selectedTask.task.createdBy.type}:
+                    {selectedTask.task.createdBy.id}
                   </p>
                   <p>
                     {t('tasks.viaToken') || 'Via token'}:{' '}
-                    {selectedTask.task.created_via_token_id ??
+                    {selectedTask.task.createdViaTokenId ??
                       (t('tasks.directHumanPublish') || 'Direct human publish')}
                   </p>
                   <p>
                     {t('tasks.claimedBy') || 'Claimed by agent'}:{' '}
-                    {selectedTask.task.claimed_by ??
+                    {selectedTask.task.claimedBy ??
                       (t('tasks.notClaimed') || 'Not currently claimed')}
                   </p>
                 </div>
@@ -831,15 +829,15 @@ function TasksContent() {
                             {target.status}
                           </Badge>
                           <Badge variant="secondary">
-                            {target.token?.display_name ?? target.tokenId}
+                            {target.token?.displayName ?? target.tokenId}
                           </Badge>
                         </div>
                         <div>
                           <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                            {target.token?.token_prefix ?? target.tokenId}
+                            {target.token?.tokenPrefix ?? target.tokenId}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                            Agent {target.token?.agent_id ?? 'unknown'} • target {target.targetId}
+                            Agent {target.token?.agentId ?? 'unknown'} • target {target.targetId}
                           </p>
                         </div>
                       </div>
@@ -854,7 +852,7 @@ function TasksContent() {
                             taskId: selectedTask.task.id,
                             taskTitle: selectedTask.task.title,
                             targetId: target.targetId,
-                            tokenLabel: target.token?.display_name ?? target.tokenId,
+                            tokenLabel: target.token?.displayName ?? target.tokenId,
                           });
                         }}
                         disabled={target.run === null}
@@ -868,7 +866,7 @@ function TasksContent() {
                       <DetailStat
                         label={t('tasks.runResult') || 'Run result'}
                         value={
-                          target.run?.result_summary ??
+                          target.run?.resultSummary ??
                           (target.status === 'pending'
                             ? t('tasks.waitingToRun') || 'Waiting to run'
                             : t('tasks.claimedNotCompleted') || 'Claimed, not completed')
@@ -878,7 +876,7 @@ function TasksContent() {
                         label={t('tasks.tokenTrust') || 'Token trust'}
                         value={
                           target.token
-                            ? (target.token.trust_score ?? target.token.trustScore).toFixed(2)
+                            ? (target.token.trustScore ?? 0).toFixed(2)
                             : t('tasks.unknown') || 'Unknown'
                         }
                       />
@@ -1028,20 +1026,20 @@ function buildTaskTargets(
   runs: Run[],
   feedbackByTargetId: Record<string, TokenFeedback[]>
 ): TaskTargetView[] {
-  const targetTokenIds = task.target_token_ids ?? task.targetTokenIds ?? [];
+  const targetTokenIds = task.targetTokenIds;
 
   return targetTokenIds.map((tokenId: string, index: number) => {
-    const targetId = (task.target_ids ?? task.targetIds ?? [])[index] ?? `${task.id}:${tokenId}`;
+    const targetId = task.targetIds[index] ?? tokenId;
     const token = tokensById[tokenId] ?? null;
     const run =
-      runs.find((item) => item.task_id === task.id && item.task_target_id === targetId) ??
-      runs.find((item) => item.task_id === task.id && item.token_id === tokenId) ??
+      runs.find((item) => item.taskId === task.id && item.taskTargetId === targetId) ??
+      runs.find((item) => item.taskId === task.id && item.tokenId === tokenId) ??
       null;
 
     let status: TaskTargetView['status'] = 'pending';
     if (run?.status === 'completed') {
       status = 'completed';
-    } else if (run?.status === 'running' || (task.status === 'claimed' && task.claimed_by)) {
+    } else if (run?.status === 'running' || (task.status === 'claimed' && task.claimedBy)) {
       status = 'claimed';
     }
 

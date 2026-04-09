@@ -64,9 +64,7 @@ export function IdentityPanel({
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(tokensByAgent[agent.id] ?? []).map((token) => (
                       <Badge key={token.id} variant="secondary">
-                        {token.display_name ??
-                          (token as unknown as { displayName?: string }).displayName ??
-                          token.id}
+                        {token.displayName ?? token.id}
                       </Badge>
                     ))}
                     <Badge variant="secondary">
