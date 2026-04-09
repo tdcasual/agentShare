@@ -43,7 +43,7 @@ def _create_runnable_capability(management_client, client, *, allowed_mode: str 
     return capability, task
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_invoke_fails_closed_when_adapter_request_errors(mock_post, client, management_client):
     capability, task = _create_runnable_capability(management_client, client)
     mock_post.side_effect = httpx.ConnectError("boom")
@@ -119,7 +119,7 @@ def test_invoke_returns_internal_error_for_unknown_adapter_type(client, manageme
     assert "unknown capability adapter" in response.json()["detail"].lower()
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_invoke_treats_invalid_upstream_json_as_bad_gateway(mock_post, client, management_client):
     capability, task = _create_runnable_capability(management_client, client)
     mock_response = MagicMock()

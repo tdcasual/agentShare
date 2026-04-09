@@ -72,7 +72,7 @@ def test_openclaw_migration_keeps_runtime_identity_task_flow_and_playbook_search
     assert payload["items"][0]["title"] == "Runtime Config Sync"
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_openclaw_migration_keeps_capability_policy_and_approval_gates(
     mock_post, client, management_client
 ):

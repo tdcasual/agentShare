@@ -176,7 +176,7 @@ def test_mcp_list_tasks_only_returns_tasks_visible_to_current_token(client, mana
     assert [item["id"] for item in items] == [visible.json()["id"]]
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_mcp_invoke_capability_returns_policy_block_with_runtime_semantics(
     mock_post,
     client,

@@ -13,6 +13,9 @@ class GenericHttpAdapter:
     def __init__(self, client: httpx.Client | None = None) -> None:
         self._client = client or httpx.Client(timeout=30)
 
+    def _request(self, method: str, **request_kwargs: Any):
+        return self._client.request(method, **request_kwargs)
+
     def invoke(
         self,
         secret_value: str,
@@ -39,6 +42,6 @@ class GenericHttpAdapter:
         else:
             request_kwargs["json"] = parameters
 
-        resp = self._client.request(method, **request_kwargs)
+        resp = self._request(method, **request_kwargs)
 
         return normalize_json_response("generic_http", resp)

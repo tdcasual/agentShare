@@ -7,7 +7,7 @@ from app.errors import ServiceUnavailableError
 from app.repositories.approval_repo import ApprovalRequestRepository
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_returns_sanitized_result(mock_post, client, management_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -64,7 +64,7 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client, management
     assert body["result"] == {"result": "ok"}
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_rejects_token_outside_token_selector_access_policy(mock_post, client, management_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -125,7 +125,7 @@ def test_proxy_invocation_rejects_token_outside_token_selector_access_policy(moc
     assert response.json()["detail"] == "Capability is not accessible to this token"
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_allows_agent_selector_matches(mock_post, client, management_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -190,7 +190,7 @@ def test_proxy_invocation_allows_agent_selector_matches(mock_post, client, manag
     assert response.json()["capability_id"] == capability["id"]
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_allows_token_label_selector_matches(mock_post, client, management_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -262,7 +262,7 @@ def test_proxy_invocation_allows_token_label_selector_matches(mock_post, client,
     assert response.json()["capability_id"] == capability["id"]
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_uses_runtime_settings_for_secret_backend(mock_post, client, management_client, monkeypatch):
     captured: list[str] = []
     mock_response = MagicMock()
@@ -324,7 +324,7 @@ def test_proxy_invocation_uses_runtime_settings_for_secret_backend(mock_post, cl
     assert captured == [TEST_SETTINGS.secret_backend]
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_uses_runtime_settings_for_coordination_lock(
     mock_post,
     client,
@@ -396,7 +396,7 @@ def test_proxy_invocation_uses_runtime_settings_for_coordination_lock(
     ]
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_returns_503_when_coordination_is_unavailable(
     mock_post,
     client,
@@ -460,7 +460,7 @@ def test_proxy_invocation_returns_503_when_coordination_is_unavailable(
 
 
 @patch("app.services.gateway.write_audit_event")
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_still_returns_success_when_audit_write_fails(mock_post, mock_audit, client, management_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -513,7 +513,7 @@ def test_proxy_invocation_still_returns_success_when_audit_write_fails(mock_post
     assert response.json()["result"] == {"result": "ok"}
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_proxy_invocation_requires_manual_approval_returns_409(
     mock_post,
     client,
@@ -572,7 +572,7 @@ def test_proxy_invocation_requires_manual_approval_returns_409(
     mock_post.assert_not_called()
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_policy_rule_requires_manual_approval_even_when_approval_modes_are_auto(
     mock_post,
     client,
@@ -646,7 +646,7 @@ def test_policy_rule_requires_manual_approval_even_when_approval_modes_are_auto(
     mock_post.assert_not_called()
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_policy_rule_can_deny_invoke_without_creating_approval(
     mock_post,
     client,
@@ -711,7 +711,7 @@ def test_policy_rule_can_deny_invoke_without_creating_approval(
     assert detail["policy_reason"] == "Production invoke is denied for this capability"
     assert ApprovalRequestRepository(db_session).list_all() == []
     mock_post.assert_not_called()
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_approved_request_past_expiry_is_blocked_again(mock_post, client, management_client, db_session):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -795,7 +795,7 @@ def test_approved_request_past_expiry_is_blocked_again(mock_post, client, manage
     assert mock_post.call_count == 1
 
 
-@patch("app.services.adapters.generic_http.httpx.post")
+@patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
 def test_completed_task_cannot_request_new_approval_or_invoke(
     mock_post,
     client,
