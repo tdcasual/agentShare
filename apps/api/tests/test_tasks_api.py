@@ -184,6 +184,32 @@ def test_management_task_listing_supports_limit_and_offset(management_client):
     assert [item["id"] for item in response.json()["items"]] == expected_ids
 
 
+def test_task_listing_transport_uses_snake_case_fields(management_client):
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Transport task",
+            "task_type": "account_read",
+            "target_mode": "explicit_tokens",
+            "target_token_ids": ["token-test-agent"],
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    response = management_client.get("/api/tasks")
+
+    assert response.status_code == 200, response.text
+    item = next(entry for entry in response.json()["items"] if entry["id"] == created.json()["id"])
+    assert item["task_type"] == "account_read"
+    assert item["publication_status"] == "active"
+    assert item["target_mode"] == "explicit_tokens"
+    assert item["target_token_ids"] == ["token-test-agent"]
+    assert "taskType" not in item
+    assert "publicationStatus" not in item
+    assert "targetMode" not in item
+    assert "targetTokenIds" not in item
+
+
 def test_agent_cannot_claim_task_type_outside_allowlist(client, management_client):
     created_agent = management_client.post(
         "/api/agents",

@@ -118,3 +118,26 @@ def test_bulk_feedback_listing_groups_records_by_token(client, management_client
     payload = response.json()["items_by_token"]
     assert [item["id"] for item in payload["token-test-agent"]] == [created.json()["id"]]
     assert payload["token-missing"] == []
+
+
+def test_bulk_feedback_listing_transport_uses_snake_case_fields(client, management_client):
+    target_id, _ = _create_completed_target(client, management_client)
+    created = management_client.post(
+        f"/api/task-targets/{target_id}/feedback",
+        json={"score": 5, "verdict": "accepted", "summary": "Looks good"},
+    )
+    assert created.status_code == 201, created.text
+
+    response = management_client.get(
+        "/api/token-feedback/bulk",
+        params=[("token_id", "token-test-agent")],
+    )
+
+    assert response.status_code == 200, response.text
+    item = response.json()["items_by_token"]["token-test-agent"][0]
+    assert "token_id" in item
+    assert "task_target_id" in item
+    assert "created_at" in item
+    assert "tokenId" not in item
+    assert "taskTargetId" not in item
+    assert "createdAt" not in item

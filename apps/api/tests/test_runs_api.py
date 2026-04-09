@@ -70,3 +70,48 @@ def test_runs_listing_supports_limit_and_offset(client, management_client):
 
     assert response.status_code == 200, response.text
     assert [item["id"] for item in response.json()["items"]] == expected_ids
+
+
+def test_runs_listing_transport_uses_snake_case_fields(client, management_client):
+    task = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Transport run task",
+            "task_type": "config_sync",
+            "required_capability_ids": [],
+            "lease_allowed": False,
+        },
+    ).json()
+
+    claim = client.post(
+        f"/api/tasks/{task['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    assert claim.status_code == 200, claim.text
+
+    complete = client.post(
+        f"/api/tasks/{task['id']}/complete",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"result_summary": "transport", "output_payload": {"ok": True}},
+    )
+    assert complete.status_code == 200, complete.text
+
+    response = management_client.get("/api/runs")
+
+    assert response.status_code == 200, response.text
+    item = next(entry for entry in response.json()["items"] if entry["task_id"] == task["id"])
+    assert set(item) == {
+        "id",
+        "task_id",
+        "agent_id",
+        "token_id",
+        "task_target_id",
+        "status",
+        "result_summary",
+        "output_payload",
+        "error_summary",
+        "capability_invocations",
+        "lease_events",
+    }
+    assert "taskId" not in item
+    assert "taskTargetId" not in item

@@ -133,3 +133,26 @@ def test_bulk_token_listing_groups_tokens_by_agent(management_client):
         second_agent.json()["token_id"]
     }
     assert payload["agent-missing"] == []
+
+
+def test_bulk_token_listing_transport_uses_snake_case_fields(management_client):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Transport Token Agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    response = management_client.get(
+        "/api/agent-tokens/bulk",
+        params=[("agent_id", created_agent.json()["id"])],
+    )
+
+    assert response.status_code == 200, response.text
+    item = response.json()["items_by_agent"][created_agent.json()["id"]][0]
+    assert "agent_id" in item
+    assert "display_name" in item
+    assert "token_prefix" in item
+    assert "trust_score" in item
+    assert "displayName" not in item
+    assert "tokenPrefix" not in item
+    assert "trustScore" not in item
