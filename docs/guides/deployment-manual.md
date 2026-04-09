@@ -167,7 +167,7 @@ docker compose --env-file .env.coolify -f docker-compose.coolify.yml logs web --
 Visit:
 
 - `APP_BASE_URL`
-- `${NEXT_PUBLIC_API_BASE_URL}/docs` if the API is publicly reachable
+- the `api` service's own public domain plus `/docs` if you attached a separate public domain directly to the API service
 
 ## Post-Deploy Smoke Checks
 
@@ -177,13 +177,19 @@ Run these checks after every first deploy and every upgrade.
 
 ```bash
 curl -I "$APP_BASE_URL"
-curl "$APP_BASE_URL/api/healthz" || true
-curl "${NEXT_PUBLIC_API_BASE_URL}/healthz"
 ```
 
 Notes:
 
-- if the API is not public, run the API health check from inside the host or container network instead
+- `NEXT_PUBLIC_API_BASE_URL` may still point at the web domain so browser traffic can use the `/api/*` proxy path; do not assume it is always the same thing as a direct public API domain
+- if the API has its own direct public domain, run `curl "https://your-api-domain.example.com/healthz"`
+- if the API is not public, run the API health check from inside the host or container network instead, for example:
+
+```bash
+docker compose --env-file .env.coolify -f docker-compose.coolify.yml exec api \
+  python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"
+```
+
 - on Coolify, prefer the web domain as the primary user-facing health check
 
 ### Container health

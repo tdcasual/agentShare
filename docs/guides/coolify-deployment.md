@@ -55,7 +55,9 @@ docker compose --env-file .env.coolify -f docker-compose.coolify.yml up -d --bui
 Then visit:
 
 - `APP_BASE_URL` for the control plane
-- `NEXT_PUBLIC_API_BASE_URL/docs` for the FastAPI docs if you exposed the API publicly
+- the `api` service's own public domain plus `/docs` if you exposed the API directly
+
+`NEXT_PUBLIC_API_BASE_URL` may still be set to the web domain so browser calls flow through the web app's `/api/*` proxy path. It is not always the same thing as a separate public API origin.
 
 ## Notes
 

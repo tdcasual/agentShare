@@ -80,19 +80,19 @@ Important variables are exposed through `.env.example`:
 - `MANAGEMENT_SESSION_SECRET`
 - `AGENT_CONTROL_PLANE_API_URL`
 - `NEXT_PUBLIC_API_BASE_URL`
-- `API_IMAGE`
-- `WEB_IMAGE`
 
 For local compose defaults, `web` talks to `api` over the internal Compose network using `http://api:8000`.
 
-### Using prebuilt GHCR images with Compose
+The root `docker-compose.yml` is a local-development stack and always builds the `api` and `web` images from the checked-out repository.
 
-If you want Compose to run published images instead of local builds, set:
+### Using prebuilt GHCR images with production Compose
+
+If you want Compose to run published GHCR images instead of building locally, use `docker-compose.prod.yml` and set `API_IMAGE` plus `WEB_IMAGE` in `.env.production` or `ops/compose/prod.env.example`:
 
 ```bash
-export API_IMAGE=ghcr.io/<owner>/agentshare-api:latest
-export WEB_IMAGE=ghcr.io/<owner>/agentshare-web:latest
-docker compose up -d --no-build
+cp ops/compose/prod.env.example .env.production
+# edit .env.production
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ```
 
 Use a SHA or release tag instead of `latest` for repeatable production deployments.
