@@ -1,5 +1,15 @@
 # Control Plane Gap Closure Implementation Plan
 
+## Historical Status
+
+This file is retained as historical implementation context for the gap-closure phase that moved the repository toward a truthful trial-run baseline. It should not replace the current `agent server first` framing used in the guides.
+
+Read these guides first for the current architecture position:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/production-deployment.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Close the remaining product, release, governance, and platform gaps so the current control plane can move from an impressive beta into a truthful trial-run baseline with a clear path to enterprise hardening.

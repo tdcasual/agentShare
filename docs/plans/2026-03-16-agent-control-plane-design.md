@@ -2,6 +2,16 @@
 
 **Date:** 2026-03-16
 
+## Historical Status
+
+This file is retained as the earliest product-design snapshot for the repository. It should be read as historical design context, not as the current architecture source of truth.
+
+Read these guides first for the current product framing:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/production-deployment.md`
+
 ## Overview
 
 This project is a human-and-agent control plane for safely sharing secrets, publishing lightweight tasks, and preserving reusable execution knowledge. The platform is designed to let people enter sensitive credentials through a web console while allowing agents to consume those credentials under strict policy controls.

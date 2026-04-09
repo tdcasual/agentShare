@@ -1,5 +1,7 @@
 # Controlled Dream Mode V1 Implementation Plan
 
+This plan assumes the current **agent server first** baseline remains intact. Dream Mode extends the primary OpenClaw-style session path inside the server; it does not redefine the product around tokens or a hidden autonomous sidecar.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a bounded "dream mode" to the OpenClaw-native runtime so an in-project agent can plan, reflect, accumulate reusable memory, and propose follow-up work without turning the system into an unbounded autonomous background agent.

@@ -1,5 +1,15 @@
 # Agent Control Plane Implementation Plan
 
+## Historical Status
+
+This file is retained as the initial MVP implementation plan. It contains early repository assumptions and should not be treated as the current architecture or repository-layout source of truth.
+
+Read these guides first for the current product framing:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/production-deployment.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build an MVP control plane where humans can store secrets through a web console, publish lightweight tasks, and let authenticated agents complete those tasks through proxy-first capabilities with optional short-lived secret leases.

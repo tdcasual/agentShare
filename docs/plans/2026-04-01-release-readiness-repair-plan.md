@@ -1,5 +1,15 @@
 # Release Readiness Repair Implementation Plan
 
+## Historical Status
+
+This file is retained as historical implementation context for the repository's release-readiness repair phase. It should not be treated as the current architecture framing document.
+
+Read these guides first for the current product framing:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/production-deployment.md`
+- `docs/guides/agent-quickstart.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Restore the repository to a truthful, releasable state where backend migrations target the intended database, the frontend builds cleanly, and CI/deployment assets align with the real app location.

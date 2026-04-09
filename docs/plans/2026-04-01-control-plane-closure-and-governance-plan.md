@@ -1,5 +1,15 @@
 # Control Plane Closure And Governance Implementation Plan
 
+## Historical Status
+
+This file is retained as historical implementation context for a specific UI and governance closure phase. It is not the primary source of truth for the current product framing.
+
+Read these guides first for the current architecture position:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/admin-bootstrap-and-token-ops.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Turn the current control plane into a coherent operator workflow by connecting inbox events, global search, governance review, assets, identities, tasks, and spaces with precise contextual deep links instead of generic list-page navigation.

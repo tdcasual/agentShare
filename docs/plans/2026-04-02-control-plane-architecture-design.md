@@ -2,6 +2,8 @@
 
 **Date:** 2026-04-02
 
+This design remains useful as repository architecture context, but the current external-facing source of truth for how to explain the product is `docs/guides/agent-server-first.md`.
+
 **Goal:** Define a stable engineering architecture for the control plane so the repository can ship a truthful trial-run baseline now while preserving clean upgrade paths to enterprise identity, managed infrastructure, and higher operational maturity later.
 
 **Design status:** Proposed architecture baseline for all follow-on domain designs.

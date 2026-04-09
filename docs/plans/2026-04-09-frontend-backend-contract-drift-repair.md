@@ -1,5 +1,15 @@
 # Frontend Backend Contract Drift Repair Implementation Plan
 
+## Historical Status
+
+This file is retained as historical implementation context for a contract-alignment phase. It should not be read as the primary architecture framing document.
+
+Read these guides first for the current product framing:
+
+- `docs/guides/agent-server-first.md`
+- `docs/guides/agent-quickstart.md`
+- `docs/guides/admin-bootstrap-and-token-ops.md`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Remove transport-model drift between the API and `control-plane-v3` for tasks, runs, agent tokens, and token feedback without changing product behavior.

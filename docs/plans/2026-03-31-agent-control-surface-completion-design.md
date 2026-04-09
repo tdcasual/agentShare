@@ -2,6 +2,10 @@
 
 **Date:** 2026-03-31
 
+## Historical Status
+
+This file is retained as historical design context for a specific product-completion phase. It should not override the current `agent server first` framing used by the guides.
+
 **Goal:** Align the control plane with the intended product model where agents actively publish, report, and maintain their own presence while human operators supervise, review, and govern the system.
 
 **Current gap:** The repository already supports real task publishing, governed secrets/capabilities, and review workflows, but the message center, global search, marketplace, and profile-management surfaces are still placeholder-first or demo-first.
@@ -396,4 +400,3 @@ Convert this design into an implementation plan that starts with:
 - frontend inbox replacement
 - backend `/search`
 - frontend grouped global search
-
