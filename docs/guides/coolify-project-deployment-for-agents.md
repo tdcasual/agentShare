@@ -39,8 +39,6 @@ Before creating the Coolify project, the agent should collect or confirm:
 
 - repository URL
 - branch, tag, or commit to deploy
-- public app domain for `web`
-- optional separate public API domain for `api`
 - strong values for:
   - `POSTGRES_PASSWORD`
   - `BOOTSTRAP_OWNER_KEY`
@@ -79,19 +77,6 @@ In Coolify, create one Docker Compose project for this repository and use these 
    - `AGENT_CONTROL_PLANE_API_URL=http://api:8000`
    - `RUN_DB_MIGRATIONS_ON_STARTUP=true`
 
-## Domain Binding Rules
-
-The agent should bind domains this way:
-
-- always attach the public user-facing domain to the `web` service
-- only attach a separate public domain to the `api` service when direct external access to `/docs`, `/openapi.json`, or `/mcp` is intentionally required
-
-Important interpretation:
-
-- `APP_BASE_URL` should be the public web origin
-- `NEXT_PUBLIC_API_BASE_URL` may still be the same public web origin so browser requests can flow through `/api/*`
-- do not assume `NEXT_PUBLIC_API_BASE_URL` must always be a separate direct API origin
-
 ## Deploy Sequence
 
 After the project is configured, the agent should deploy and verify in this order:
@@ -120,7 +105,7 @@ curl -I "$APP_BASE_URL"
 ```
 
 2. The API health endpoint responds:
-   - if the API has its own public domain, check `https://your-api-domain.example.com/healthz`
+   - if a direct public API origin already exists in the environment, check its `/healthz`
    - otherwise check from inside the Coolify host or container network
 
 Example internal verification:
@@ -144,7 +129,7 @@ If deployment fails, the agent should inspect in this order:
 1. `api` logs
 2. `openbao` logs
 3. service health status
-4. public domain wiring
+4. runtime URL assumptions
 5. environment values
 
 Most common causes:
@@ -155,7 +140,7 @@ Most common causes:
 - invalid `MANAGEMENT_SESSION_SECRET`
 - `MANAGEMENT_SESSION_SECURE` not aligned with HTTPS expectations
 - OpenBao not healthy yet
-- wrong assumption that `NEXT_PUBLIC_API_BASE_URL` must be a separate public API domain
+- wrong assumption that `NEXT_PUBLIC_API_BASE_URL` must always be a separate direct API origin
 
 ## Handoff Output
 
@@ -163,8 +148,8 @@ After a successful deploy, the agent should return these facts to the human oper
 
 - deployed repository revision
 - Coolify project name
-- public web URL
-- public API URL if one was exposed separately
+- application entry URL
+- direct API URL only if one already exists in the environment
 - whether owner bootstrap is still pending or already completed
 - any environment values that still require human completion outside the repository
 
