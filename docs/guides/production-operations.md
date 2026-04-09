@@ -1,6 +1,17 @@
 # Production Operations
 
-This runbook covers the repository-owned operating baseline. For the platform handoff boundary, see `docs/guides/platform-handoff-checklist.md` and `docs/guides/platform-ownership-matrix.md`.
+This runbook covers the repository-owned operating baseline. For the platform handoff boundary, see `docs/guides/platform-handoff-checklist.md`, `docs/guides/platform-ownership-matrix.md`, and `docs/guides/platform-incident-escalation.md`.
+
+For P3 platformization runbooks, also see:
+
+- `docs/guides/postgres-cutover-runbook.md`
+- `docs/guides/postgres-restore-drill.md`
+- `docs/guides/redis-cutover-runbook.md`
+- `docs/guides/redis-recovery-notes.md`
+- `docs/guides/observability-baseline.md`
+- `docs/guides/incident-response-playbook.md`
+- `docs/guides/ha-cutover-runbook.md`
+- `docs/guides/failover-rehearsal.md`
 
 ## Startup Verification
 
