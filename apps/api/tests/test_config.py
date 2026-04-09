@@ -58,3 +58,17 @@ def test_production_settings_require_secure_management_cookie():
             management_session_secret="custom-management-secret",
             management_session_secure=False,
         )
+
+
+def test_settings_can_read_openbao_token_from_file(tmp_path):
+    token_file = tmp_path / "openbao-token"
+    token_file.write_text("file-token-xyz\n")
+
+    settings = Settings(
+        secret_backend="openbao",
+        openbao_addr="http://openbao:8200",
+        openbao_token=None,
+        openbao_token_file=str(token_file),
+    )
+
+    assert settings.openbao_token == "file-token-xyz"

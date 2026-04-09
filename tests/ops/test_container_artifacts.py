@@ -10,10 +10,16 @@ def test_container_artifacts_exist() -> None:
     assert (ROOT / ".github/workflows/docker-images.yml").exists()
     assert (ROOT / ".github/workflows/deploy.yml").exists()
     assert (ROOT / "apps/api/Dockerfile").exists()
+    assert (ROOT / "apps/api/docker-entrypoint.sh").exists()
     assert (ROOT / "apps/control-plane-v3/Dockerfile").exists()
+    assert (ROOT / "docker-compose.coolify.yml").exists()
     assert (ROOT / "docker-compose.prod.yml").exists()
     assert (ROOT / "ops/caddy/Caddyfile").exists()
+    assert (ROOT / "ops/openbao/openbao.hcl").exists()
+    assert (ROOT / "ops/openbao/start-openbao.sh").exists()
+    assert (ROOT / "ops/compose/coolify.env.example").exists()
     assert (ROOT / "ops/compose/prod.env.example").exists()
+    assert (ROOT / "docs/guides/coolify-deployment.md").exists()
     assert (ROOT / "docs/guides/production-deployment.md").exists()
     assert (ROOT / "docs/guides/production-operations.md").exists()
 
@@ -26,10 +32,15 @@ def test_compose_includes_web_and_api_services() -> None:
 
 def test_api_dockerfile_exposes_runtime_contract() -> None:
     dockerfile = (ROOT / "apps/api/Dockerfile").read_text()
+    entrypoint = (ROOT / "apps/api/docker-entrypoint.sh").read_text()
     assert "FROM python:3.12-slim" in dockerfile
     assert "pip install --no-cache-dir ./apps/api" in dockerfile
+    assert "COPY apps/api/docker-entrypoint.sh" in dockerfile
+    assert "ENTRYPOINT" in dockerfile
     assert 'EXPOSE 8000' in dockerfile
     assert 'uvicorn' in dockerfile
+    assert "alembic upgrade head" in entrypoint
+    assert 'exec "$@"' in entrypoint
 
 
 def test_web_dockerfile_builds_next_app() -> None:
@@ -104,6 +115,47 @@ def test_prod_compose_uses_published_images() -> None:
     assert "MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}" in compose
 
 
+def test_coolify_compose_uses_local_builds_and_same_stack_openbao() -> None:
+    compose = (ROOT / "docker-compose.coolify.yml").read_text()
+    assert "\n  openbao:\n" in compose
+    assert "\n  postgres:\n" in compose
+    assert "\n  redis:\n" in compose
+    assert "\n  api:\n" in compose
+    assert "\n  web:\n" in compose
+    assert "ops/openbao/openbao.hcl" in compose
+    assert "ops/openbao/start-openbao.sh" in compose
+    assert "openbao-data:" in compose
+    assert "dockerfile: apps/api/Dockerfile" in compose
+    assert "dockerfile: apps/control-plane-v3/Dockerfile" in compose
+    assert "APP_ENV: ${APP_ENV:-production}" in compose
+    assert "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}" in compose
+    assert "DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}" in compose
+    assert "OPENBAO_ADDR: ${OPENBAO_ADDR:-http://openbao:8200}" in compose
+    assert "OPENBAO_TOKEN_FILE: ${OPENBAO_TOKEN_FILE:-/openbao/bootstrap/root-token}" in compose
+    assert "BOOTSTRAP_OWNER_KEY: ${BOOTSTRAP_OWNER_KEY:?BOOTSTRAP_OWNER_KEY is required}" in compose
+    assert "MANAGEMENT_SESSION_SECRET: ${MANAGEMENT_SESSION_SECRET:?MANAGEMENT_SESSION_SECRET is required}" in compose
+    assert "MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}" in compose
+    assert "NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://${PUBLIC_HOST:-localhost}}" in compose
+    assert "OPENAI_API_KEY: ${OPENAI_API_KEY:-}" in compose
+    assert "ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}" in compose
+    assert "DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}" in compose
+    assert "depends_on:\n      openbao:" in compose
+    assert "caddy:" not in compose
+
+
+def test_coolify_env_template_documents_single_stack_defaults() -> None:
+    env_example = (ROOT / "ops/compose/coolify.env.example").read_text()
+    assert "APP_ENV=production" in env_example
+    assert "PUBLIC_HOST=agentshare.example.com" in env_example
+    assert "DATABASE_URL=postgresql://postgres:replace-with-strong-password@postgres:5432/agent_share" in env_example
+    assert "REDIS_URL=redis://redis:6379/0" in env_example
+    assert "OPENBAO_ADDR=http://openbao:8200" in env_example
+    assert "OPENBAO_TOKEN_FILE=/openbao/bootstrap/root-token" in env_example
+    assert "NEXT_PUBLIC_API_BASE_URL=https://agentshare.example.com" in env_example
+    assert "AGENT_CONTROL_PLANE_API_URL=http://api:8000" in env_example
+    assert "OPENAI_API_KEY=" in env_example
+
+
 def test_production_env_template_includes_runtime_placeholders() -> None:
     env_example = (ROOT / "ops/compose/prod.env.example").read_text()
     assert "DATABASE_URL=" in env_example
@@ -120,6 +172,8 @@ def test_production_env_template_includes_runtime_placeholders() -> None:
 def test_readme_documents_compose_and_image_pipeline() -> None:
     readme = (ROOT / "README.md").read_text()
     assert "docker compose up -d" in readme
+    assert "docker-compose.coolify.yml" in readme
+    assert "Coolify" in readme
     assert "GitHub Actions" in readme
     assert "ghcr.io" in readme
     assert "API_IMAGE" in readme

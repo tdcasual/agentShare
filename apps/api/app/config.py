@@ -23,6 +23,10 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("openbao_token", "OPENBAO_TOKEN", "secret_backend_token", "SECRET_BACKEND_TOKEN"),
     )
+    openbao_token_file: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("openbao_token_file", "OPENBAO_TOKEN_FILE"),
+    )
     openbao_mount: str = "secret"
     openbao_prefix: str = "agent-share"
     bootstrap_owner_key: str = DEFAULT_BOOTSTRAP_OWNER_KEY
@@ -43,6 +47,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_secret_backend_for_environment(self) -> "Settings":
+        if (not self.openbao_token) and self.openbao_token_file:
+            with open(self.openbao_token_file, "r", encoding="utf-8") as token_file:
+                self.openbao_token = token_file.read().strip() or None
+
         if self.secret_backend == "memory" and self.is_production_like():
             raise ValueError("APP_ENV staging/production does not allow SECRET_BACKEND=memory.")
 

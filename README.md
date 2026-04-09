@@ -87,6 +87,29 @@ docker compose up -d --no-build
 
 Use a SHA or release tag instead of `latest` for repeatable production deployments.
 
+### Coolify/self-host deployment
+
+If this repository is being deployed as a public production stack on Coolify, use `docker-compose.coolify.yml` instead of the stricter production baseline.
+
+That path is intentionally simpler:
+
+- Coolify handles ingress and TLS
+- `openbao`, `postgres`, `redis`, `api`, and `web` stay in one stack
+- `openbao` now uses a persistent bootstrap flow instead of disposable dev mode
+- the API container runs `alembic upgrade head` automatically on startup
+- only the truly sensitive production values need to be supplied explicitly
+
+For a public production deployment:
+
+```bash
+cp ops/compose/coolify.env.example .env.coolify
+docker compose --env-file .env.coolify -f docker-compose.coolify.yml up -d --build
+```
+
+Use this route when deployment simplicity matters more than the stricter repository-owned production boundary. Keep `docker-compose.prod.yml` for the hardened single-host baseline with Caddy and an external secret backend.
+
+`ops/compose/coolify.env.example` includes the minimum production values you should replace plus optional LLM passthrough variables such as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `DEEPSEEK_API_KEY`. Those env vars are useful for agent runtimes that expect provider keys in the container environment, but the repository's managed secret inventory still exists separately for governed capability access.
+
 ### Server deployment with GitHub Actions
 
 This repository now includes `.github/workflows/deploy.yml` for single-host deployments over SSH.
