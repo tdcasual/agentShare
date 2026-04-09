@@ -6,6 +6,7 @@ Use it together with:
 
 - `docs/guides/platform-handoff-checklist.md`
 - `docs/guides/platform-ownership-matrix.md`
+- `docs/plans/2026-04-09-p3-platformization-design.md`
 
 ## Target P3 End State
 
