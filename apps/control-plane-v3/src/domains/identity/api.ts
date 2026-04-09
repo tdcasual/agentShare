@@ -203,7 +203,9 @@ export function getAgentTokens(agentId: string) {
 export function getAgentTokensBulk(agentIds: string[]) {
   const params = new URLSearchParams();
   agentIds.forEach((agentId) => params.append('agent_id', agentId));
-  return apiFetch<{ items_by_agent: Record<string, AgentToken[]> }>(`/agent-tokens/bulk?${params.toString()}`);
+  return apiFetch<{ items_by_agent: Record<string, AgentToken[]> }>(
+    `/agent-tokens/bulk?${params.toString()}`
+  );
 }
 
 export function createAgentToken(agentId: string, payload: AgentTokenCreateInput) {

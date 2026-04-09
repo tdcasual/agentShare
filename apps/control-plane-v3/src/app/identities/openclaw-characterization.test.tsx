@@ -236,7 +236,9 @@ describe('openclaw migration characterization on identities page', () => {
     const user = userEvent.setup();
     render(<IdentitiesPage />);
 
-    await user.click(screen.getByRole('button', { name: /view details for bootstrap credential/i }));
+    await user.click(
+      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+    );
 
     expect(screen.getByText('Identity Management')).toBeInTheDocument();
     expect(screen.getByText('Founding Owner')).toBeInTheDocument();

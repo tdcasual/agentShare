@@ -164,14 +164,10 @@ export function useOpenClawDreamRuns(options?: SWRConfiguration) {
 export function useOpenClawDreamRun(runId: string | null, options?: SWRConfiguration) {
   const key = !runId || options?.isPaused ? null : `/api/openclaw/dream-runs/${runId}`;
 
-  return useSWR<OpenClawDreamRunDetail>(
-    key,
-    () => api.getOpenClawDreamRun(runId!),
-    {
-      ...swrConfig,
-      ...options,
-    }
-  );
+  return useSWR<OpenClawDreamRunDetail>(key, () => api.getOpenClawDreamRun(runId!), {
+    ...swrConfig,
+    ...options,
+  });
 }
 
 export function useOpenClawFiles(agentId: string | null, options?: SWRConfiguration) {

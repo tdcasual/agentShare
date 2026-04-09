@@ -332,7 +332,9 @@ describe('identities page', () => {
 
     render(<IdentitiesPage />);
 
-    await user.click(screen.getByRole('button', { name: /view details for bootstrap credential/i }));
+    await user.click(
+      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+    );
 
     expect(screen.getByText('Dream Mode')).toBeInTheDocument();
     expect(screen.getByText('Enabled')).toBeInTheDocument();
