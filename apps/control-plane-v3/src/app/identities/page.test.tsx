@@ -337,7 +337,7 @@ describe('identities page', () => {
     );
 
     expect(screen.getByText('Dream Mode')).toBeInTheDocument();
-    expect(screen.getByText('Enabled')).toBeInTheDocument();
+    expect(screen.getByText('identities.values.enabled')).toBeInTheDocument();
     expect(screen.getAllByText('Inspect deployment drift').length).toBeGreaterThan(0);
     expect(screen.getByText(/budget exhausted/i)).toBeInTheDocument();
   });
@@ -403,7 +403,7 @@ describe('identities page', () => {
       error: null,
     });
 
-    rerender(<IdentitiesPage />);
+    rerender(<IdentitiesPage key="after-pause" />);
 
     await user.click(screen.getByRole('button', { name: /resume dream run/i }));
     expect(resumeOpenClawDreamRunMock).toHaveBeenCalledWith('dream-run-1');
@@ -433,15 +433,15 @@ describe('identities page', () => {
       screen.getByRole('button', { name: /view details for bootstrap credential/i })
     );
 
-    expect(screen.getByText('Workspace Root')).toBeInTheDocument();
+    expect(screen.getByText('identities.labels.workspaceRoot')).toBeInTheDocument();
     expect(screen.getAllByText('/srv/openclaw/bootstrap').length).toBeGreaterThan(0);
-    expect(screen.getByText('Agent Directory')).toBeInTheDocument();
+    expect(screen.getByText('identities.labels.agentDirectory')).toBeInTheDocument();
     expect(screen.getAllByText('.openclaw/agents/bootstrap').length).toBeGreaterThan(0);
-    expect(screen.getByText('Tool Policy')).toBeInTheDocument();
+    expect(screen.getByText('identities.labels.toolPolicy')).toBeInTheDocument();
     expect(screen.getByText(/allowlist/i)).toBeInTheDocument();
-    expect(screen.getByText('Allowed Task Types')).toBeInTheDocument();
+    expect(screen.getByText('identities.labels.allowedTaskTypes')).toBeInTheDocument();
     expect(screen.getByText('config_sync, prompt_run')).toBeInTheDocument();
-    expect(screen.getByText('Allowed Capability IDs')).toBeInTheDocument();
+    expect(screen.getByText('identities.labels.allowedCapabilityIds')).toBeInTheDocument();
     expect(screen.getByText('cap-deploy')).toBeInTheDocument();
     expect(screen.getByText('Primary Bootstrap Session')).toBeInTheDocument();
     expect(screen.getByText('AGENTS.md')).toBeInTheDocument();
@@ -470,7 +470,7 @@ describe('identities page', () => {
           session: null,
           loading: false,
           error:
-            'Your management session has expired. Sign in again to keep working with live identity data.',
+            'identities.sessionExpired',
           shouldShowForbidden: false,
           shouldShowSessionExpired: true,
           clearAllAuthErrors: vi.fn(),
@@ -501,7 +501,7 @@ describe('identities page', () => {
 
     await waitFor(() => {
       expect(screen.getAllByRole('alert')[0]).toHaveTextContent(
-        'Your management session has expired'
+        'identities.sessionExpired'
       );
     });
   });
@@ -511,8 +511,8 @@ describe('identities page', () => {
 
     render(<IdentitiesPage />);
 
-    expect(screen.getByText('Focused identity')).toBeInTheDocument();
-    expect(screen.getByText(/OpenClaw agent · bootstrap/i)).toBeInTheDocument();
+    expect(screen.getByText('identities.focusedIdentity')).toBeInTheDocument();
+    expect(screen.getByText(/identities.agentType.openclaw · bootstrap/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /hide details for bootstrap credential/i })
     ).toBeInTheDocument();

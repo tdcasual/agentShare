@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, memo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Bot, Building2, RefreshCw, Search, ShieldCheck, Users, UserPlus } from 'lucide-react';
 import {
@@ -38,6 +38,7 @@ import type {
   OpenClawDreamRun,
   OpenClawSession,
 } from '@/domains/identity';
+import { useI18n } from '@/components/i18n-provider';
 
 const EMPTY_ADMIN_ACCOUNTS: AdminAccountSummary[] = [];
 const EMPTY_OPENCLAW_AGENTS: OpenClawAgent[] = [];
@@ -92,7 +93,8 @@ function groupDreamRunsByAgent(runs: OpenClawDreamRun[]) {
   }, {});
 }
 
-function IdentitiesContent() {
+const IdentitiesContent = memo(function IdentitiesContent() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
@@ -158,9 +160,9 @@ function IdentitiesContent() {
   const focusedDreamRun = dreamRuns.find((run) => run.id === focus.dreamRunId) ?? null;
   const focusedIdentity = focusedAgent ?? focusedAdminAccount;
   const focusedIdentityLabel = focusedAgent
-    ? 'OpenClaw agent'
+    ? t('identities.agentType.openclaw')
     : focusedAdminAccount
-      ? 'Human operator'
+      ? t('identities.agentType.human')
       : null;
 
   const operatorCount = adminAccounts.filter((account) => account.status === 'active').length;
@@ -213,7 +215,7 @@ function IdentitiesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : 'Failed to refresh identity data');
+      setActionError(error instanceof Error ? error.message : t('identities.refreshFailed'));
     } finally {
       setRefreshingAction(null);
     }
@@ -255,7 +257,7 @@ function IdentitiesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : 'Failed to delete agent');
+      setActionError(error instanceof Error ? error.message : t('identities.deleteFailed'));
     } finally {
       setDeletingAgentId(null);
     }
@@ -272,7 +274,7 @@ function IdentitiesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : 'Failed to pause dream run');
+      setActionError(error instanceof Error ? error.message : t('identities.pauseFailed'));
     } finally {
       setPausingDreamRunId(null);
     }
@@ -289,7 +291,7 @@ function IdentitiesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : 'Failed to resume dream run');
+      setActionError(error instanceof Error ? error.message : t('identities.resumeFailed'));
     } finally {
       setResumingDreamRunId(null);
     }
@@ -320,20 +322,20 @@ function IdentitiesContent() {
     <div className="mx-auto max-w-6xl space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+          <h1 className="mb-2 text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
             Identity Management
           </h1>
-          <p className="text-gray-600 dark:text-[#9CA3AF]">
+          <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             Review persisted human operators and in-project OpenClaw-native agents. Remote-access
             tokens for external machines remain on the dedicated Tokens page.
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               <Badge variant="primary">Operator</Badge>
-              <span className="dark:text-[#E8E8EC]">{session?.email ?? 'Loading...'}</span>
-              <span className="text-gray-300 dark:text-[#3D3D5C]">•</span>
+              <span className="dark:text-[var(--kw-dark-text)]">{session?.email ?? t('common.loading')}</span>
+              <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
               <span>{session?.role ?? '...'}</span>
             </div>
           </Card>
@@ -358,19 +360,19 @@ function IdentitiesContent() {
         </div>
       </div>
 
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
             <span className="sr-only">Search identities</span>
-            <div className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-white px-4 py-3 text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1E1E32] dark:text-[#9CA3AF]">
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--kw-border)] bg-white px-4 py-3 text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
               <Search className="h-4 w-4 flex-shrink-0" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search identities by name, sandbox mode, workspace path, or id"
+                placeholder={t("identities.searchPlaceholder")}
                 aria-label="Search identities"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400 dark:placeholder:text-[#6B7280]"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--kw-text-muted)] dark:placeholder:text-[var(--kw-dark-text-muted)]"
               />
             </div>
           </label>
@@ -388,15 +390,15 @@ function IdentitiesContent() {
       </Card>
 
       {focusedIdentity ? (
-        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
-              Focused identity
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+              {t("identities.focusedIdentity")}
             </p>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {'name' in focusedIdentity ? focusedIdentity.name : focusedIdentity.display_name}
             </h2>
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {focusedIdentityLabel} · {focusedIdentity.id}
             </p>
           </div>
@@ -415,14 +417,14 @@ function IdentitiesContent() {
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border border-sky-100 bg-sky-50/70 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/80">
+        <Card className="border border-[var(--kw-sky-surface)] bg-[var(--kw-sky-surface)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-[#2D4A5D] dark:text-sky-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:bg-[var(--kw-dark-sky-accent-surface)] dark:text-[var(--kw-dark-sky)]">
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">Human supervisors</h2>
-              <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <h2 className="font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">Human supervisors</h2>
+              <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 Human operators supervise policy, approvals, and account hygiene across the control
                 plane.
               </p>
@@ -430,16 +432,16 @@ function IdentitiesContent() {
           </div>
         </Card>
 
-        <Card className="border border-green-100 bg-green-50/70 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/80">
+        <Card className="border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-100 text-green-700 dark:bg-[#2D4A3D] dark:text-green-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-green-accent-surface)] dark:text-[var(--kw-dark-mint)]">
               <Bot className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-semibold text-gray-900 dark:text-[#E8E8EC]">
+              <h2 className="font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 OpenClaw runtime identities
               </h2>
-              <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 Agents now surface workspace roots, session history, sandbox posture, and tool
                 policy instead of linked token state.
               </p>
@@ -448,17 +450,17 @@ function IdentitiesContent() {
         </Card>
       </div>
 
-      <Card className="border border-amber-200 bg-amber-50/90 dark:border-amber-800 dark:bg-amber-900/20">
+      <Card className="border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/90 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/30">
-              <ShieldCheck className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/30">
+              <ShieldCheck className="h-6 w-6 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
             </div>
             <div>
-              <h2 className="mb-2 text-lg font-semibold text-amber-800 dark:text-amber-200">
+              <h2 className="mb-2 text-lg font-semibold text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
                 OpenClaw coverage
               </h2>
-              <p className="text-amber-700 dark:text-amber-300">
+              <p className="text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
                 This route now reads persisted management accounts plus OpenClaw workspaces and
                 session telemetry from the backend. Humans supervise governance while agents expose
                 runtime posture through sessions, workspace files, and recent events.
@@ -468,17 +470,17 @@ function IdentitiesContent() {
 
           <div className="grid gap-3 sm:grid-cols-3">
             <CoverageMetric
-              label="Human coverage"
+              label={t("identities.metrics.humanCoverage")}
               value={`${ownerCount} owner${ownerCount === 1 ? '' : 's'}`}
               hint={`${operatorCount} active operator${operatorCount === 1 ? '' : 's'} on duty`}
             />
             <CoverageMetric
-              label="Agents with live sessions"
+              label={t("identities.metrics.agentsWithSessions")}
               value={agentsWithSessionsCount.toString()}
               hint={`${Math.max(agents.length - agentsWithSessionsCount, 0)} awaiting first runtime session`}
             />
             <CoverageMetric
-              label="Workspace-ready agents"
+              label={t("identities.metrics.workspaceReadyAgents")}
               value={workspaceReadyCount.toString()}
               hint={`${Math.max(agents.length - workspaceReadyCount, 0)} missing workspace metadata`}
             />
@@ -488,30 +490,30 @@ function IdentitiesContent() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
-          label="Active Operators"
+          label={t("identities.metrics.activeOperators")}
           value={accountsErrorMessage ? 'N/A' : operatorCount.toString()}
           hint={
-            accountsErrorMessage ? 'accounts unavailable' : `${adminAccounts.length} total accounts`
+            accountsErrorMessage ? t('identities.accountsUnavailable') : `${adminAccounts.length} total accounts`
           }
         />
         <MetricCard
-          label="Owners"
+          label={t("identities.metrics.owners")}
           value={accountsErrorMessage ? 'N/A' : ownerCount.toString()}
-          hint={accountsErrorMessage ? 'accounts unavailable' : 'governance and account custody'}
+          hint={accountsErrorMessage ? t('identities.accountsUnavailable') : 'governance and account custody'}
         />
         <MetricCard
-          label="Active Agents"
+          label={t("identities.metrics.activeAgents")}
           value={agentsErrorMessage ? 'N/A' : activeAgentCount.toString()}
-          hint={agentsErrorMessage ? 'agents unavailable' : `${agents.length} registered`}
+          hint={agentsErrorMessage ? t('identities.agentsUnavailable') : `${agents.length} registered`}
         />
       </div>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live identity data." />
+        <ManagementSessionExpiredAlert message={t("identities.sessionExpired")} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to access some identity data. Use an admin session to manage the full OpenClaw identity surface." />
+        <ManagementForbiddenAlert message={t("identities.sessionForbidden")} />
       ) : null}
 
       {actionError ? (
@@ -519,7 +521,7 @@ function IdentitiesContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
         >
           {actionError}
         </Card>
@@ -530,7 +532,7 @@ function IdentitiesContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <span>{guardedError}</span>
@@ -548,9 +550,9 @@ function IdentitiesContent() {
       ) : null}
 
       {isLoading ? (
-        <Card className="flex items-center gap-3 text-gray-600 dark:text-[#9CA3AF]">
+        <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <span className="animate-spin">🌸</span>
-          Loading management identities...
+          {t('identities.loadingManagementIdentities')}
         </Card>
       ) : null}
 
@@ -599,16 +601,16 @@ function IdentitiesContent() {
       ) : null}
 
       {!isLoading && !guardedError ? (
-        <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+        <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="mb-1 font-semibold text-gray-800 dark:text-[#E8E8EC]">
-                {hasActiveSearch ? 'Filtered snapshot' : 'Live management snapshot'}
+              <h3 className="mb-1 font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                {hasActiveSearch ? t('identities.snapshot.filtered') : t('identities.snapshot.live')}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {hasActiveSearch
                   ? `Showing ${filteredAdminAccounts.length} human operators and ${filteredAgents.length} workspace runtimes that match the current query. Metrics above still reflect the full backend snapshot.`
                   : `Humans and workspace runtimes are now rendered from persisted backend data, including ${agentsWithFeedbackCount} agent${agentsWithFeedbackCount === 1 ? '' : 's'} with recent feedback visibility.`}
@@ -619,7 +621,7 @@ function IdentitiesContent() {
       ) : null}
     </div>
   );
-}
+});
 
 export default function IdentitiesPage() {
   return (

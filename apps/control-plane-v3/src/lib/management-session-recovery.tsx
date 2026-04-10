@@ -77,7 +77,7 @@ export function ManagementSessionExpiredAlert({
       aria-live="assertive"
       aria-atomic="true"
       className={cn(
-        'border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400',
+        'border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]',
         className
       )}
     >
@@ -85,7 +85,7 @@ export function ManagementSessionExpiredAlert({
         <span>{message}</span>
         <Link
           href="/login"
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 dark:border-red-800 dark:bg-[#1E1E32] dark:text-red-300 dark:hover:bg-red-900/20"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--kw-error)] bg-white px-4 py-2 text-sm font-semibold text-[var(--kw-rose-text)] transition-colors hover:bg-[var(--kw-rose-surface)] dark:border-[var(--kw-dark-error-surface)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20"
         >
           Return to Login
         </Link>
@@ -107,7 +107,7 @@ export function ManagementForbiddenAlert({
       aria-live="assertive"
       aria-atomic="true"
       className={cn(
-        'border border-amber-100 bg-amber-50/80 text-amber-700 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-400',
+        'border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/80 text-[var(--kw-amber-text)] dark:dark:border-[var(--kw-dark-amber-surface)]/50 dark:bg-[var(--kw-dark-amber-surface)]/20 dark:text-[var(--kw-warning)]',
         className
       )}
     >
@@ -128,7 +128,7 @@ export function ManagementSessionRecoveryNotice({
   return (
     <Card
       className={cn(
-        'border border-dashed border-pink-200 bg-pink-50/40 text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/40 dark:text-[#9CA3AF]',
+        'border border-dashed border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/40 text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/40 dark:text-[var(--kw-dark-text-muted)]',
         className
       )}
     >

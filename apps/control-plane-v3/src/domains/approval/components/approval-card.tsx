@@ -28,22 +28,22 @@ const statusConfig: Record<
   pending: {
     label: '待审批',
     icon: <Clock className="h-4 w-4" />,
-    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    color: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)] dark:bg-[var(--kw-dark-amber-surface)]/30 dark:text-[var(--kw-warning)]',
   },
   approved: {
     label: '已批准',
     icon: <CheckCircle className="h-4 w-4" />,
-    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-success-surface)]/30 dark:text-[var(--kw-dark-mint)]',
   },
   rejected: {
     label: '已拒绝',
     icon: <XCircle className="h-4 w-4" />,
-    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    color: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:bg-[var(--kw-dark-error-surface)]/30 dark:text-[var(--kw-error)]',
   },
   expired: {
     label: '已过期',
     icon: <Clock className="h-4 w-4" />,
-    color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+    color: 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)] dark:bg-[var(--kw-dark-bg)]/30 dark:text-[var(--kw-text-muted)]',
   },
 };
 
@@ -95,12 +95,12 @@ export function ApprovalCard({
       <div
         className={`absolute bottom-0 left-0 top-0 w-1 ${
           approval.status === 'pending'
-            ? 'bg-yellow-400'
+            ? 'bg-[var(--kw-warning)]'
             : approval.status === 'approved'
-              ? 'bg-green-400'
+              ? 'bg-[var(--kw-agent-accent)]'
               : approval.status === 'expired'
                 ? 'bg-gray-400'
-                : 'bg-red-400'
+                : 'bg-[var(--kw-error)]'
         }`}
       />
 
@@ -108,8 +108,8 @@ export function ApprovalCard({
         {/* 头部：操作类型和状态 */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-pink-500" />
-            <span className="font-medium text-gray-800 dark:text-gray-100">
+            <FileText className="h-5 w-5 text-[var(--kw-primary-500)]" />
+            <span className="font-medium text-[var(--kw-text)]">
               {actionTypeLabels[approval.actionType] || approval.actionType}
             </span>
           </div>
@@ -123,14 +123,14 @@ export function ApprovalCard({
 
         {/* Capability 信息 */}
         <div className="mb-3">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-[var(--kw-text-muted)]">
             Capability: <span className="font-medium">{approval.capabilityId}</span>
           </p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">Task: {approval.taskId}</p>
+          <p className="mt-1 text-xs text-[var(--kw-text-muted)]">Task: {approval.taskId}</p>
         </div>
 
         {/* Agent 信息 */}
-        <div className="mb-4 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="mb-4 flex items-center gap-4 text-sm text-[var(--kw-text-muted)]">
           <div className="flex items-center gap-1">
             <Bot className="h-4 w-4" />
             <span>{approval.agentId}</span>
@@ -145,20 +145,20 @@ export function ApprovalCard({
 
         {/* Policy 原因 */}
         {approval.policyReason && (
-          <div className="mb-3 rounded-xl bg-blue-50/50 p-3 dark:bg-blue-900/10">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="mb-3 rounded-xl bg-[var(--kw-sky-surface)]/50 p-3 dark:bg-[var(--kw-dark-info-surface)]/10">
+            <p className="text-sm text-[var(--kw-text-muted)]">
               <span className="font-medium">策略原因:</span> {approval.policyReason}
             </p>
             {approval.policySource && (
-              <p className="mt-1 text-xs text-gray-500">来源: {approval.policySource}</p>
+              <p className="mt-1 text-xs text-[var(--kw-text-muted)]">来源: {approval.policySource}</p>
             )}
           </div>
         )}
 
         {/* 申请理由 */}
         {approval.reason && (
-          <div className="mb-4 rounded-xl bg-pink-50/50 p-3 dark:bg-pink-900/10">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="mb-4 rounded-xl bg-[var(--kw-primary-50)]/50 p-3 dark:bg-[var(--kw-dark-pink-surface)]/10">
+            <p className="text-sm text-[var(--kw-text-muted)]">
               <span className="font-medium">申请理由:</span> {approval.reason}
             </p>
           </div>
@@ -196,7 +196,7 @@ export function ApprovalCard({
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder="请输入拒绝原因..."
-                  className="w-full resize-none rounded-xl border border-pink-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-gray-100"
+                  className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-sm text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-surface-alt)]"
                   rows={2}
                 />
                 <div className="flex gap-2">
@@ -226,7 +226,7 @@ export function ApprovalCard({
 
         {/* 已处理信息 */}
         {!isPending && approval.decidedBy && (
-          <div className="border-t border-pink-100/50 pt-3 text-xs text-gray-500 dark:text-gray-500">
+          <div className="border-t border-[var(--kw-border)]/50 pt-3 text-xs text-[var(--kw-text-muted)]">
             {approval.status === 'approved'
               ? '批准'
               : approval.status === 'rejected'

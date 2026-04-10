@@ -14,6 +14,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { useState, useCallback, memo } from 'react';
+import { useI18n } from '@/components/i18n-provider';
 
 interface NavItem {
   icon: React.ReactNode;
@@ -22,16 +23,19 @@ interface NavItem {
   badge?: number;
 }
 
-const navItems: NavItem[] = [
-  { icon: <LayoutDashboard className="h-5 w-5" />, label: '控制台', href: '/' },
-  { icon: <KeyRound className="h-5 w-5" />, label: '令牌', href: '/tokens' },
-  { icon: <CheckSquare className="h-5 w-5" />, label: '任务', href: '/tasks', badge: 3 },
-  { icon: <ShieldCheck className="h-5 w-5" />, label: '审核', href: '/reviews' },
-  { icon: <Settings className="h-5 w-5" />, label: '设置', href: '/settings' },
-];
+function useNavItems(): NavItem[] {
+  const { t } = useI18n();
+  return [
+    { icon: <LayoutDashboard className="h-5 w-5" />, label: t('navigation.hub'), href: '/' },
+    { icon: <KeyRound className="h-5 w-5" />, label: t('navigation.tokens'), href: '/tokens' },
+    { icon: <CheckSquare className="h-5 w-5" />, label: t('navigation.tasks'), href: '/tasks' },
+    { icon: <ShieldCheck className="h-5 w-5" />, label: t('navigation.reviews'), href: '/reviews' },
+    { icon: <Settings className="h-5 w-5" />, label: t('navigation.settings'), href: '/settings' },
+  ];
+}
 
 export function getTabletShellNavTargets() {
-  return navItems.map((item) => item.href);
+  return ['/', '/tokens', '/tasks', '/reviews', '/settings'];
 }
 
 /**
@@ -47,6 +51,7 @@ export function TabletSidebar() {
   const device = useDeviceType();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const navItems = useNavItems();
   const toggleSidebar = useCallback(() => {
     setIsCollapsed((prev) => !prev);
   }, []);
@@ -61,9 +66,9 @@ export function TabletSidebar() {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-full bg-white dark:bg-[#1a1a2e]',
-        'border-r border-[#e0e0e0] dark:border-[#252540]',
-        'z-40 transition-all duration-300 ease-in-out',
+        'fixed left-0 top-0 h-full bg-white dark:bg-[var(--kw-dark-bg)]',
+        'border-r border-[var(--kw-border)] dark:border-[var(--kw-dark-surface)]',
+        'z-40 transition-[width] duration-300 ease-in-out',
         'flex flex-col',
         width,
         device.isTabletPortrait && 'shadow-lg'
@@ -79,7 +84,7 @@ export function TabletSidebar() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-sm font-bold text-white">
               CP
             </div>
-            {!device.isTabletLandscape && <span>Control</span>}
+            {!device.isTabletLandscape && <span>{t("tabletSidebar.title")}</span>}
           </Link>
         )}
 
@@ -143,7 +148,7 @@ const NavLink = memo(function NavLink({ item, isActive, isCollapsed }: NavLinkPr
     <Link
       href={item.href}
       className={cn(
-        'flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200',
+        'flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200',
         'group relative focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
         isActive
           ? 'bg-[var(--kw-primary-500)]/10 dark:bg-[var(--kw-dark-primary)]/20 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]'
@@ -172,7 +177,7 @@ const NavLink = memo(function NavLink({ item, isActive, isCollapsed }: NavLinkPr
 
       {/* 折叠状态下的 Tooltip */}
       {isCollapsed && (
-        <div className="invisible absolute left-full z-50 ml-2 whitespace-nowrap rounded-md bg-[var(--kw-text)] px-2 py-1 text-xs text-white opacity-0 transition-all group-hover:visible group-hover:opacity-100 dark:bg-[var(--kw-dark-surface-alt)]">
+        <div className="invisible absolute left-full z-50 ml-2 whitespace-nowrap rounded-md bg-[var(--kw-text)] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 dark:bg-[var(--kw-dark-surface-alt)]">
           {item.label}
           {item.badge && <span className="ml-2 text-[var(--kw-primary-400)]">({item.badge})</span>}
         </div>
@@ -189,6 +194,7 @@ const NavLink = memo(function NavLink({ item, isActive, isCollapsed }: NavLinkPr
 export function TabletBottomNav() {
   const device = useDeviceType();
   const pathname = usePathname();
+  const navItems = useNavItems();
 
   // 只在平板竖屏且需要时显示
   if (!device.isTabletPortrait) {

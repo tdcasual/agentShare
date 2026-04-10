@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, memo } from 'react';
 import { ArrowRight, Boxes, Bot, ShieldCheck, Sparkles, Store, Wrench } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useCatalog } from '@/domains/catalog';
@@ -19,6 +19,7 @@ import { Badge } from '@/shared/ui-primitives/badge';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 type MarketplaceFilter = 'all' | 'pending' | 'active' | 'rejected';
 
@@ -30,7 +31,8 @@ export default function MarketplacePage() {
   );
 }
 
-function MarketplaceContent() {
+const MarketplaceContent = memo(function MarketplaceContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   const [selectedFilter, setSelectedFilter] = useState<MarketplaceFilter>('all');
@@ -92,7 +94,7 @@ function MarketplaceContent() {
   const reviewFilterItems = [
     {
       key: 'all' as const,
-      label: 'All',
+      label: t('marketplace.filterAll'),
       count:
         pendingAgentSubmissions.length +
         rejectedAgentSubmissions.length +
@@ -101,17 +103,17 @@ function MarketplaceContent() {
     },
     {
       key: 'pending' as const,
-      label: 'Pending',
+      label: t('marketplace.filterPending'),
       count: pendingAgentSubmissions.length,
     },
     {
       key: 'active' as const,
-      label: 'Active',
+      label: t('marketplace.filterActive'),
       count: publishedAgentSecrets.length + publishedAgentCapabilities.length,
     },
     {
       key: 'rejected' as const,
-      label: 'Rejected',
+      label: t('marketplace.filterRejected'),
       count: rejectedAgentSubmissions.length,
     },
   ];
@@ -122,36 +124,34 @@ function MarketplaceContent() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-pink-100 bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(252,231,243,0.92))] p-8 dark:border-[#3D3D5C] dark:bg-[radial-gradient(circle_at_top_left,_rgba(236,72,153,0.14),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
+      <section className="relative overflow-hidden rounded-[2rem] border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(252,231,243,0.92))] p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(236,72,153,0.14),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:border-[#4A4568] dark:bg-[#1E1E32]/70 dark:text-pink-300">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-primary-200)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/70 dark:text-[var(--kw-dark-primary)]">
               <Store className="h-3.5 w-3.5" />
-              Agent Marketplace
+              {t('marketplace.tagline')}
             </div>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight text-gray-900 dark:text-[#E8E8EC]">
-              Only agents publish here.
+            <h1 className="mt-4 text-4xl font-bold tracking-tight text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {t('marketplace.headline')}
             </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600 dark:text-[#9CA3AF]">
-              The market is an agent-operated surface for useful skills, credentials, and execution
-              artifacts. Human operators supervise approvals, policy, and lifecycle decisions
-              instead of publishing into the catalog themselves.
+            <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('marketplace.subtitle')}
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
             <MetricCard
-              label="Awaiting human review"
+              label={t('marketplace.metricAwaitingReview')}
               value={pendingAgentSubmissions.length.toString()}
               icon={<ShieldCheck className="h-4 w-4" />}
             />
             <MetricCard
-              label="Published assets"
+              label={t('marketplace.metricPublishedAssets')}
               value={publishedAgentSecrets.length.toString()}
               icon={<Boxes className="h-4 w-4" />}
             />
             <MetricCard
-              label="Published skills"
+              label={t('marketplace.metricPublishedSkills')}
               value={publishedAgentCapabilities.length.toString()}
               icon={<Wrench className="h-4 w-4" />}
             />
@@ -159,27 +159,27 @@ function MarketplaceContent() {
         </div>
 
         {focusedMarketplaceItem ? (
-          <div className="mt-6 rounded-3xl border border-pink-200/70 bg-white/75 p-4 dark:border-[#4A4568] dark:bg-[#1E1E32]/70">
+          <div className="mt-6 rounded-3xl border border-[var(--kw-primary-200)]/70 bg-white/75 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/70">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-pink-600 dark:text-pink-300">
-                  Focused resource
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+                  {t('marketplace.focusedResource')}
                 </p>
-                <p className="mt-2 text-sm text-gray-700 dark:text-[#D5D5DB]">
-                  This marketplace is centered on{' '}
-                  <span className="font-semibold">{focusedMarketplaceItem.title}</span> so operators
-                  can review its current governance state in context.
+                <p className="mt-2 text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('marketplace.focusedDescPrefix')}{' '}
+                  <span className="font-semibold">{focusedMarketplaceItem.title}</span>{' '}
+                  {t('marketplace.focusedDescSuffix')}
                 </p>
               </div>
               <Badge variant={focusedPublishedItem ? 'success' : 'warning'}>
-                {focusedPublishedItem ? 'published context' : 'review context'}
+                {focusedPublishedItem ? t('marketplace.contextPublished') : t('marketplace.contextReview')}
               </Badge>
             </div>
           </div>
         ) : null}
       </section>
 
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex flex-wrap gap-3">
           {reviewFilterItems.map((item) => (
             <Button
@@ -196,23 +196,23 @@ function MarketplaceContent() {
       </Card>
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to inspect the marketplace governance surface. Use an operator-or-higher management session to continue." />
+        <ManagementForbiddenAlert message={t('marketplace.forbiddenMessage')} />
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         {showReviewPanel ? (
-          <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+          <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
+                <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                   {selectedFilter === 'rejected'
-                    ? 'Rejected by human review'
-                    : 'Awaiting human review'}
+                    ? t('marketplace.rejectedTitle')
+                    : t('marketplace.pendingTitle')}
                 </h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {selectedFilter === 'rejected'
-                    ? 'Agent-originated submissions that were rejected and remain visible for human oversight.'
-                    : 'Agent-originated submissions that still need human supervision before broad rollout.'}
+                    ? t('marketplace.rejectedDesc')
+                    : t('marketplace.pendingDesc')}
                 </p>
               </div>
               <Badge variant={selectedFilter === 'rejected' ? 'secondary' : 'warning'}>
@@ -221,7 +221,7 @@ function MarketplaceContent() {
             </div>
 
             {shouldShowSessionExpired ? (
-              <ManagementSessionRecoveryNotice message="Sign in again to reload marketplace review state." />
+              <ManagementSessionRecoveryNotice message={t('marketplace.sessionExpiredMessage')} />
             ) : null}
 
             {!shouldShowSessionExpired && !shouldShowForbidden && reviewError ? (
@@ -240,8 +240,8 @@ function MarketplaceContent() {
                 tone="default"
                 message={
                   selectedFilter === 'rejected'
-                    ? 'Loading rejected submissions...'
-                    : 'Loading pending agent submissions...'
+                    ? t('marketplace.loadingRejectedSubmissions')
+                    : t('marketplace.loadingPendingSubmissions')
                 }
               />
             ) : null}
@@ -255,8 +255,8 @@ function MarketplaceContent() {
                 tone="default"
                 message={
                   selectedFilter === 'rejected'
-                    ? 'No rejected agent submissions are visible right now.'
-                    : 'No agent submissions are currently waiting for review.'
+                    ? t('marketplace.noRejectedSubmissions')
+                    : t('marketplace.noPendingSubmissions')
                 }
               />
             ) : null}
@@ -269,18 +269,18 @@ function MarketplaceContent() {
                 {visibleReviewItems.map((item) => (
                   <div
                     key={`${item.resource_kind}-${item.resource_id}`}
-                    className="rounded-2xl border border-pink-100 bg-pink-50/40 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60"
+                    className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/40 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">
+                        <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                           {item.title}
                         </p>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                          Submitted by agent {item.created_by_actor_id ?? 'unknown-agent'}
+                        <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                          {t('marketplace.submittedByAgent')} {item.created_by_actor_id ?? 'unknown-agent'}
                         </p>
-                        <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">
-                          Governance state: {governanceStatusLabel(deriveGovernanceStatus(item))}
+                        <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                          {t('marketplace.governanceState')}: {governanceStatusLabel(deriveGovernanceStatus(item))}
                         </p>
                       </div>
                       <div className="flex flex-wrap justify-end gap-2">
@@ -301,14 +301,14 @@ function MarketplaceContent() {
 
         <div className="space-y-6">
           {showPublishedPanel ? (
-            <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+            <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
-                    Published by agents
+                  <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                    {t('marketplace.publishedTitle')}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    Approved items already circulating through the agent ecosystem.
+                  <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                    {t('marketplace.publishedDesc')}
                   </p>
                 </div>
                 <Badge variant="agent">{catalogItems?.length ?? 0}</Badge>
@@ -317,13 +317,14 @@ function MarketplaceContent() {
               {!shouldShowForbidden && catalogError ? (
                 <SectionNotice
                   tone="error"
-                  message={`Published catalog is temporarily unavailable. ${catalogError}`}
+                  message={`${t('marketplace.catalogErrorPrefix')} ${catalogError}`}
                 />
               ) : null}
 
               {!shouldShowForbidden && !catalogError && publishedAgentSecrets.length > 0 ? (
                 <CatalogSection
-                  title="Assets"
+                  title={t('marketplace.sectionAssets')}
+                  t={t}
                   items={publishedAgentSecrets.map((item) => ({
                     id: item.release_id,
                     resourceKind: item.resource_kind,
@@ -343,7 +344,8 @@ function MarketplaceContent() {
 
               {!shouldShowForbidden && !catalogError && publishedAgentCapabilities.length > 0 ? (
                 <CatalogSection
-                  title="Skills"
+                  title={t('marketplace.sectionSkills')}
+                  t={t}
                   items={publishedAgentCapabilities.map((item) => ({
                     id: item.release_id,
                     resourceKind: item.resource_kind,
@@ -367,39 +369,38 @@ function MarketplaceContent() {
               publishedAgentCapabilities.length === 0 ? (
                 <SectionNotice
                   tone="default"
-                  message="No release-backed agent publications are visible yet."
+                  message={t('marketplace.emptyPublished')}
                 />
               ) : null}
             </Card>
           ) : (
-            <Card className="space-y-4 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+            <Card className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
-                  Published by agents
+                <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('marketplace.publishedTitle')}
                 </h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  Switch back to All or Active to inspect currently published assets and skills.
+                <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {t('marketplace.switchHint')}
                 </p>
               </div>
               <SectionNotice
                 tone="default"
-                message="Published catalog is hidden while reviewing rejected submissions."
+                message={t('marketplace.hiddenWhileReviewing')}
               />
             </Card>
           )}
 
-          <Card className="space-y-4 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+          <Card className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E8E8EC]">
-                  Human oversight only
+                <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('marketplace.oversightTitle')}
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  Humans do not publish into the market. They supervise governance, quality, and
-                  removal decisions.
+                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {t('marketplace.oversightDesc')}
                 </p>
               </div>
             </div>
@@ -407,22 +408,22 @@ function MarketplaceContent() {
             <div className="grid gap-3 sm:grid-cols-2">
               <QuickLink
                 href="/reviews"
-                label="Open review queue"
+                label={t('marketplace.quickLinkReviews')}
                 icon={<ShieldCheck className="h-4 w-4" />}
               />
               <QuickLink
                 href="/assets"
-                label="Inspect assets and skills"
+                label={t('marketplace.quickLinkAssets')}
                 icon={<Boxes className="h-4 w-4" />}
               />
               <QuickLink
                 href="/identities"
-                label="Manage identities"
+                label={t('marketplace.quickLinkIdentities')}
                 icon={<Bot className="h-4 w-4" />}
               />
               <QuickLink
                 href="/inbox"
-                label="Watch agent events"
+                label={t('marketplace.quickLinkInbox')}
                 icon={<ArrowRight className="h-4 w-4" />}
               />
             </div>
@@ -435,7 +436,7 @@ function MarketplaceContent() {
       ) : null}
     </div>
   );
-}
+});
 
 function MetricCard({
   label,
@@ -447,12 +448,12 @@ function MetricCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-pink-100 bg-white/75 px-4 py-3 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/65">
-      <div className="flex items-center gap-2 text-pink-600 dark:text-pink-300">
+    <div className="rounded-2xl border border-[var(--kw-border)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/65">
+      <div className="flex items-center gap-2 text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
         {icon}
         <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
       </div>
-      <p className="mt-3 text-3xl font-semibold text-gray-900 dark:text-[#E8E8EC]">{value}</p>
+      <p className="mt-3 text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
     </div>
   );
 }
@@ -462,8 +463,8 @@ function SectionNotice({ tone, message }: { tone: 'default' | 'error'; message: 
     <div
       className={
         tone === 'error'
-          ? 'rounded-2xl border border-red-100 bg-red-50/80 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400'
-          : 'rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55 dark:text-[#9CA3AF]'
+          ? 'rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 p-4 text-sm text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]'
+          : 'rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/55 dark:text-[var(--kw-dark-text-muted)]'
       }
     >
       {message}
@@ -474,8 +475,10 @@ function SectionNotice({ tone, message }: { tone: 'default' | 'error'; message: 
 function CatalogSection({
   title,
   items,
+  t,
 }: {
   title: string;
+  t: ReturnType<typeof useI18n>['t'];
   items: Array<{
     id: string;
     resourceKind: string;
@@ -492,7 +495,7 @@ function CatalogSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           {title}
         </h3>
         <Badge variant="secondary">{items.length}</Badge>
@@ -502,26 +505,26 @@ function CatalogSection({
           <div
             key={item.id}
             className={cn(
-              'rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55',
-              item.highlighted ? 'ring-2 ring-pink-300 dark:ring-pink-400/60' : null
+              'rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/55',
+              item.highlighted ? 'ring-2 ring-[var(--kw-primary-300)] dark:ring-[var(--kw-primary-400)]/60' : null
             )}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-medium text-gray-900 dark:text-[#E8E8EC]">{item.title}</p>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">{item.subtitle}</p>
-                <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">
-                  Version {item.version}
+                <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{item.title}</p>
+                <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{item.subtitle}</p>
+                <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {t('marketplace.version')} {item.version}
                 </p>
                 {item.releaseNotes ? (
-                  <p className="mt-2 text-sm text-gray-700 dark:text-[#D5D5DB]">
+                  <p className="mt-2 text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                     {item.releaseNotes}
                   </p>
                 ) : null}
-                <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-gray-400 dark:text-[#9CA3AF]">
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {item.priorVersions === 1
-                    ? '1 prior version'
-                    : `${item.priorVersions} prior versions`}
+                    ? t('marketplace.priorVersionOne')
+                    : `${item.priorVersions} ${t('marketplace.priorVersions')}`}
                 </p>
               </div>
               <Badge variant="success">{item.badge}</Badge>
@@ -537,7 +540,7 @@ function QuickLink({ href, label, icon }: { href: string; label: string; icon: R
   return (
     <Link
       href={href}
-      className="group flex items-center justify-between rounded-2xl border border-pink-100 bg-pink-50/35 px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-pink-50 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60 dark:text-[#E8E8EC] dark:hover:bg-[#2A2A45]"
+      className="group flex items-center justify-between rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/35 px-4 py-3 text-sm text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
     >
       <span className="flex items-center gap-2">
         {icon}

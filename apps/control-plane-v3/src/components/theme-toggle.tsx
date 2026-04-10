@@ -21,11 +21,11 @@ export function ThemeToggle({ className }: { className?: string }) {
       <div
         className={cn(
           'flex h-10 w-10 items-center justify-center rounded-full',
-          'border border-pink-200 bg-white/80',
+          'border border-[var(--kw-primary-200)] bg-white/80',
           className
         )}
       >
-        <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
+        <div className="h-5 w-5 animate-pulse rounded-full bg-[var(--kw-border)]" />
       </div>
     );
   }
@@ -40,8 +40,8 @@ export function ThemeToggle({ className }: { className?: string }) {
     <div
       className={cn(
         'flex items-center gap-1 rounded-full p-1',
-        'bg-white/80 dark:bg-[#252540]/80',
-        'border border-pink-200 dark:border-[#3D3D5C]',
+        'bg-white/80 dark:bg-[var(--kw-dark-surface)]/80',
+        'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
         className
       )}
     >
@@ -53,16 +53,16 @@ export function ThemeToggle({ className }: { className?: string }) {
             type="button"
             onClick={() => setTheme(value)}
             className={cn(
-              'relative rounded-full p-2 transition-all duration-200',
-              'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
-              isActive && 'bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-md'
+              'relative rounded-full p-2 transition-colors transition-shadow duration-200',
+              'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+              isActive && 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-md'
             )}
             aria-label={label}
             aria-pressed={isActive}
             title={label}
           >
             <span
-              className={cn('transition-colors', !isActive && 'text-gray-600 dark:text-[#9CA3AF]')}
+              className={cn('transition-colors', !isActive && 'text-[var(--kw-text-muted)]')}
             >
               {icon}
             </span>
@@ -87,11 +87,11 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       <div
         className={cn(
           'flex h-10 w-10 items-center justify-center rounded-full',
-          'border border-pink-200 bg-white/80',
+          'border border-[var(--kw-primary-200)] bg-white/80',
           className
         )}
       >
-        <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
+        <div className="h-5 w-5 animate-pulse rounded-full bg-[var(--kw-border)]" />
       </div>
     );
   }
@@ -104,10 +104,10 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
         'relative flex h-10 w-10 items-center justify-center rounded-full',
-        'bg-white/80 dark:bg-[#252540]/80',
-        'border border-pink-200 dark:border-[#3D3D5C]',
-        'hover:bg-pink-50 dark:hover:bg-[#2D2D50]',
-        'transition-all duration-300',
+        'bg-white/80 dark:bg-[var(--kw-dark-surface)]/80',
+        'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
+        'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+        'transition-colors duration-300',
         className
       )}
       aria-label={isDark ? '切换到浅色模式' : '切换到深色模式'}
@@ -115,19 +115,19 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
     >
       <span
         className={cn(
-          'transition-all duration-300',
+          'transition-transform transition-opacity duration-300',
           isDark ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'
         )}
       >
-        <Moon className="h-5 w-5 text-[#E891C0]" />
+        <Moon className="h-5 w-5 text-[var(--kw-dark-primary)]" />
       </span>
       <span
         className={cn(
-          'absolute transition-all duration-300',
+          'absolute transition-transform transition-opacity duration-300',
           !isDark ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
         )}
       >
-        <Sun className="h-5 w-5 text-pink-500" />
+        <Sun className="h-5 w-5 text-[var(--kw-primary-500)]" />
       </span>
     </button>
   );

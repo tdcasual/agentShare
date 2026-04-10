@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { Download, X, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 interface PWAInstallPromptProps {
   className?: string;
@@ -23,6 +24,7 @@ export function PWAInstallPrompt({
   delay = 5000,
   minVisits = 2,
 }: PWAInstallPromptProps) {
+  const { t } = useI18n();
   const { isInstallable, isInstalled, install } = usePWA();
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -92,27 +94,28 @@ export function PWAInstallPrompt({
     >
       <div className="space-y-4 p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-purple-500">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-500)]">
             <Smartphone className="h-6 w-6 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">安装 Control Plane</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-              添加到主屏幕，像原生应用一样快速访问，支持离线使用
+            <h3 className="font-semibold text-[var(--kw-text)]">{t('pwa.installTitle')}</h3>
+            <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
+              {t('pwa.installDesc')}
             </p>
           </div>
           <button
+            type="button"
             onClick={handleDismiss}
-            className="rounded-lg p-1 transition-colors hover:bg-gray-100 dark:hover:bg-[#3D3D5C]"
-            aria-label="忽略"
+            className="rounded-lg p-1 transition-colors hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+            aria-label={t('pwa.dismiss')}
           >
-            <X className="h-5 w-5 text-gray-400" />
+            <X className="h-5 w-5 text-[var(--kw-text-muted)]" />
           </button>
         </div>
 
         <div className="flex gap-3">
           <Button variant="ghost" size="sm" onClick={handleDismiss} className="flex-1">
-            稍后
+            {t('pwa.later')}
           </Button>
           <Button
             size="sm"
@@ -120,7 +123,7 @@ export function PWAInstallPrompt({
             className="flex-1"
             leftIcon={<Download className="h-4 w-4" />}
           >
-            安装
+            {t('pwa.install')}
           </Button>
         </div>
       </div>
@@ -130,6 +133,7 @@ export function PWAInstallPrompt({
 
 // 简化的安装按钮（用于设置页面）
 export function PWAInstallButton({ className }: { className?: string }) {
+  const { t } = useI18n();
   const { isInstallable, isInstalled, install } = usePWA();
 
   if (!isInstallable || isInstalled) {
@@ -143,7 +147,7 @@ export function PWAInstallButton({ className }: { className?: string }) {
       leftIcon={<Download className="h-4 w-4" />}
       className={className}
     >
-      安装应用
+      {t('pwa.installApp')}
     </Button>
   );
 }

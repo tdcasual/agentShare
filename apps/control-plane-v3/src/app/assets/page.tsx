@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState, memo } from 'react';
 import { Cpu, KeyRound, LockKeyhole, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
@@ -45,7 +45,7 @@ type FlattenedToken = {
 type AccessComposerMode = 'all_tokens' | 'specific_tokens' | 'specific_agents' | 'token_label';
 
 const selectClassName =
-  'w-full rounded-2xl border-2 border-pink-100 bg-white px-4 py-3 text-base text-gray-700 outline-none transition-all duration-200 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]';
+  'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none transition-colors transition-shadow duration-200 focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]';
 
 export default function AssetsPage() {
   return (
@@ -55,7 +55,7 @@ export default function AssetsPage() {
   );
 }
 
-function AssetsContent() {
+const AssetsContent = memo(function AssetsContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
@@ -248,7 +248,7 @@ function AssetsContent() {
       setRefreshError(
         refreshFailure instanceof Error
           ? refreshFailure.message
-          : 'Failed to refresh governance assets'
+          : t('assets.errors.refreshFailed')
       );
     } finally {
       setIsRefreshing(false);
@@ -295,7 +295,7 @@ function AssetsContent() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : '创建密钥失败');
+        setError(submitError instanceof Error ? submitError.message : t('assets.secrets.createFailed'));
       }
     } finally {
       setSubmittingSecret(false);
@@ -313,14 +313,14 @@ function AssetsContent() {
       return;
     }
     if (capabilityForm.access_mode === 'specific_agents' && capabilityForm.agent_ids.length === 0) {
-      setError('选择指定 agent 时，至少需要勾选一个 agent。');
+      setError(t('assets.capabilities.agentRequiredError'));
       return;
     }
     if (
       capabilityForm.access_mode === 'token_label' &&
       (!capabilityForm.label_key || capabilityForm.label_values.length === 0)
     ) {
-      setError('按 token 标签限制时，请选择标签键和值。');
+      setError(t('assets.capabilities.labelRequiredError'));
       return;
     }
 
@@ -411,15 +411,15 @@ function AssetsContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-4 py-2 text-sm text-pink-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E891C0]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-primary)]">
             <ShieldCheck className="h-4 w-4" />
             {t('assets.subtitle')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('assets.title')}
             </h1>
-            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">{t('assets.description')}</p>
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('assets.description')}</p>
           </div>
         </div>
 
@@ -462,19 +462,19 @@ function AssetsContent() {
         />
       </div>
 
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               Governance inventory
             </h2>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               Review what agents are trying to publish, what has already gone live, and which
               resource lane needs human attention next.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             <Badge variant="warning">{pendingReviewItems} pending review items</Badge>
             <Badge variant="success">
               {activeAssets} active asset{activeAssets === 1 ? '' : 's'}
@@ -483,7 +483,7 @@ function AssetsContent() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 Publication state
               </p>
               <div className="flex flex-wrap gap-2">
@@ -515,7 +515,7 @@ function AssetsContent() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 Resource lane
               </p>
               <div className="flex flex-wrap gap-2">
@@ -549,23 +549,23 @@ function AssetsContent() {
         </div>
       </Card>
 
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <Badge variant="primary">{t('common.operator')}</Badge>
-          <span className="dark:text-[#E8E8EC]">{session?.email ?? t('common.loading')}</span>
-          <span className="text-gray-300 dark:text-[#3D3D5C]">•</span>
+          <span className="dark:text-[var(--kw-dark-text)]">{session?.email ?? t('common.loading')}</span>
+          <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
           <span>{session?.role ?? '...'}</span>
-          <span className="text-gray-300 dark:text-[#3D3D5C]">•</span>
+          <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
           <span>{t('assets.policyNote')}</span>
         </div>
       </Card>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to continue managing secrets, capabilities, and token access." />
+        <ManagementSessionExpiredAlert message={t("assets.sessionExpired")} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to manage governed assets. Use an operator-or-higher management session to continue." />
+        <ManagementForbiddenAlert message={t("assets.sessionForbidden")} />
       ) : null}
 
       {refreshError ? (
@@ -573,7 +573,7 @@ function AssetsContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
         >
           {refreshError}
         </Card>
@@ -584,29 +584,29 @@ function AssetsContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
         >
           {combinedError}
         </Card>
       ) : null}
 
       {loading ? (
-        <Card className="flex items-center gap-3 text-gray-600 dark:text-[#9CA3AF]">
+        <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <span className="animate-spin">🌸</span>
           {t('assets.loading')}
         </Card>
       ) : null}
 
       {focusedAsset ? (
-        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               Focused asset
             </p>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {'display_name' in focusedAsset ? focusedAsset.display_name : focusedAsset.name}
             </h2>
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {focus.resourceKind} · {focusedAsset.id}
             </p>
           </div>
@@ -614,17 +614,17 @@ function AssetsContent() {
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <Card variant="feature" className="space-y-4 dark:from-[#252540] dark:to-[#2D2D50]">
+        <Card variant="feature" className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 text-sm text-red-700">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-rose-surface)] px-3 py-1 text-sm text-[var(--kw-rose-text)]">
                 <KeyRound className="h-4 w-4" />
                 {t('assets.secrets.inventory')}
               </div>
-              <h2 className="mt-3 text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              <h2 className="mt-3 text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {t('assets.secrets.title')}
               </h2>
-              <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {t('assets.secrets.description')}
               </p>
             </div>
@@ -640,19 +640,19 @@ function AssetsContent() {
                 icon={<Sparkles className="h-8 w-8" />}
                 title={
                   selectedResourceFilter === 'capabilities'
-                    ? 'Secrets hidden by current filter'
+                    ? t('assets.secretsHiddenTitle')
                     : t('assets.secrets.emptyTitle')
                 }
                 description={
                   selectedResourceFilter === 'capabilities'
-                    ? 'Switch resource lane back to Secrets or All resources to review secret inventory.'
+                    ? t('assets.secretsHiddenDesc')
                     : selectedPublicationFilter === 'all'
                       ? t('assets.secrets.emptyDesc')
-                      : 'No secrets match the current publication filter.'
+                      : t('assets.noSecretsFilter')
                 }
               />
             ) : shouldShowSessionExpired && isUnauthorizedError(secretsQuery.error) ? (
-              <ManagementSessionRecoveryNotice message="Sign in again to reload the secret inventory." />
+              <ManagementSessionRecoveryNotice message={t("assets.secrets.reloadInventory")} />
             ) : (
               visibleSecrets.map((secret) => (
                 <Card
@@ -664,22 +664,22 @@ function AssetsContent() {
                       : 'default'
                   }
                   className={cn(
-                    'border bg-white/80 p-5 dark:bg-[#1A1A2E]/80',
+                    'border bg-white/80 p-5 dark:bg-[var(--kw-dark-bg)]/80',
                     focus.resourceKind === 'secret' && focus.resourceId === secret.id
-                      ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-                      : 'border-pink-100/80 dark:border-[#3D3D5C]'
+                      ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+                      : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
                   )}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1">
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                      <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                         {secret.display_name}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                         {secret.provider} · {secret.kind}
                         {secret.environment ? ` · ${secret.environment}` : ''}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                         Governance state: {governanceStatusLabel(deriveGovernanceStatus(secret))}
                       </p>
                     </div>
@@ -703,17 +703,17 @@ function AssetsContent() {
           </div>
         </Card>
 
-        <Card variant="feature" className="space-y-4 dark:from-[#252540] dark:to-[#2D2D50]">
+        <Card variant="feature" className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-purple-surface)] px-3 py-1 text-sm text-[var(--kw-purple-text)]">
                 <Cpu className="h-4 w-4" />
                 {t('assets.capabilities.access')}
               </div>
-              <h2 className="mt-3 text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              <h2 className="mt-3 text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {t('assets.capabilities.title')}
               </h2>
-              <p className="mt-1 text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {t('assets.capabilities.description')}
               </p>
             </div>
@@ -729,19 +729,19 @@ function AssetsContent() {
                 icon={<ShieldCheck className="h-8 w-8" />}
                 title={
                   selectedResourceFilter === 'secrets'
-                    ? 'Capabilities hidden by current filter'
+                    ? t('assets.capabilitiesHiddenTitle')
                     : t('assets.capabilities.emptyTitle')
                 }
                 description={
                   selectedResourceFilter === 'secrets'
-                    ? 'Switch resource lane back to Capabilities or All resources to review capability inventory.'
+                    ? t('assets.capabilitiesHiddenDesc')
                     : selectedPublicationFilter === 'all'
                       ? t('assets.capabilities.emptyDesc')
-                      : 'No capabilities match the current publication filter.'
+                      : t('assets.noCapabilitiesFilter')
                 }
               />
             ) : shouldShowSessionExpired && isUnauthorizedError(capabilitiesQuery.error) ? (
-              <ManagementSessionRecoveryNotice message="Sign in again to reload capability policy data." />
+              <ManagementSessionRecoveryNotice message={t("assets.capabilities.reloadPolicy")} />
             ) : (
               visibleCapabilities.map((capability) => (
                 <Card
@@ -753,22 +753,22 @@ function AssetsContent() {
                       : 'default'
                   }
                   className={cn(
-                    'border bg-white/80 p-5 dark:bg-[#1A1A2E]/80',
+                    'border bg-white/80 p-5 dark:bg-[var(--kw-dark-bg)]/80',
                     focus.resourceKind === 'capability' && focus.resourceId === capability.id
-                      ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-                      : 'border-pink-100/80 dark:border-[#3D3D5C]'
+                      ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+                      : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
                   )}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1">
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                      <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                         {capability.name}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                         Secret {capability.secret_id} · {capability.allowed_mode} · risk{' '}
                         {capability.risk_level}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                         Governance state:{' '}
                         {governanceStatusLabel(deriveGovernanceStatus(capability))}
                       </p>
@@ -830,7 +830,7 @@ function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, display_name: event.target.value }))
               }
-              placeholder="OpenAI production key"
+              placeholder={t("assets.secrets.providerPlaceholder")}
             />
             <Input
               label={t('assets.secrets.kind')}
@@ -838,7 +838,7 @@ function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, kind: event.target.value }))
               }
-              placeholder="api_token"
+              placeholder={t("assets.secrets.kindPlaceholder")}
             />
             <Input
               label={t('assets.secrets.provider')}
@@ -846,7 +846,7 @@ function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, provider: event.target.value }))
               }
-              placeholder="openai"
+              placeholder={t("assets.secrets.providerPlaceholderShort")}
             />
             <Input
               label={t('assets.secrets.environment')}
@@ -854,7 +854,7 @@ function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, environment: event.target.value }))
               }
-              placeholder="production"
+              placeholder={t("assets.secrets.environmentPlaceholder")}
             />
           </div>
           <Input
@@ -864,7 +864,7 @@ function AssetsContent() {
             onChange={(event) =>
               setSecretForm((current) => ({ ...current, value: event.target.value }))
             }
-            placeholder="sk-live-..."
+            placeholder={t("assets.secrets.valuePlaceholder")}
           />
           <div className="grid gap-4 md:grid-cols-2">
             <Input
@@ -873,7 +873,7 @@ function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, provider_scopes: event.target.value }))
               }
-              placeholder="responses.read, responses.write"
+              placeholder={t("assets.secrets.scopesPlaceholder")}
             />
             <Input
               label={t('assets.secrets.resourceSelector')}
@@ -881,7 +881,7 @@ function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, resource_selector: event.target.value }))
               }
-              placeholder="project:agent-share"
+              placeholder={t("assets.secrets.resourceSelectorPlaceholder")}
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">
@@ -910,12 +910,12 @@ function AssetsContent() {
               onChange={(event) =>
                 setCapabilityForm((current) => ({ ...current, name: event.target.value }))
               }
-              placeholder="openai.config.bootstrap"
+              placeholder={t("assets.secrets.displayNamePlaceholder")}
             />
             <div className="space-y-1.5">
               <label
                 htmlFor="capability-secret"
-                className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
               >
                 {t('assets.capabilities.bindSecret')}
               </label>
@@ -936,7 +936,7 @@ function AssetsContent() {
             <div className="space-y-1.5">
               <label
                 htmlFor="capability-risk"
-                className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
               >
                 {t('assets.capabilities.riskLevel')}
               </label>
@@ -948,15 +948,15 @@ function AssetsContent() {
                   setCapabilityForm((current) => ({ ...current, risk_level: event.target.value }))
                 }
               >
-                <option value="low">low</option>
-                <option value="medium">medium</option>
-                <option value="high">high</option>
+                <option value="low">{t('assets.capabilities.riskLevelLow')}</option>
+                <option value="medium">{t('assets.capabilities.riskLevelMedium')}</option>
+                <option value="high">{t('assets.capabilities.riskLevelHigh')}</option>
               </select>
             </div>
             <div className="space-y-1.5">
               <label
                 htmlFor="capability-mode"
-                className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
               >
                 {t('assets.capabilities.allowedMode')}
               </label>
@@ -968,8 +968,8 @@ function AssetsContent() {
                   setCapabilityForm((current) => ({ ...current, allowed_mode: event.target.value }))
                 }
               >
-                <option value="proxy_only">proxy_only</option>
-                <option value="proxy_or_lease">proxy_or_lease</option>
+                <option value="proxy_only">{t('assets.capabilities.modeProxyOnly')}</option>
+                <option value="proxy_or_lease">{t('assets.capabilities.modeProxyOrLease')}</option>
               </select>
             </div>
             <Input
@@ -992,7 +992,7 @@ function AssetsContent() {
                   required_provider: event.target.value,
                 }))
               }
-              placeholder="openai"
+              placeholder={t("assets.secrets.providerPlaceholderShort")}
             />
             <Input
               label={t('assets.capabilities.requiredScopes')}
@@ -1003,17 +1003,17 @@ function AssetsContent() {
                   required_provider_scopes: event.target.value,
                 }))
               }
-              placeholder="responses.read, responses.write"
+              placeholder={t("assets.secrets.scopesPlaceholder")}
             />
           </div>
 
-          <Card className="border border-pink-100 bg-pink-50/70 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
+          <Card className="border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
             <div className="space-y-3">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                   {t('assets.capabilities.accessPolicy')}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('assets.capabilities.accessPolicyDesc')}
                 </p>
               </div>
@@ -1088,24 +1088,24 @@ function AssetsContent() {
               {capabilityForm.access_mode === 'specific_tokens' ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   {allTokens.length === 0 ? (
-                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                       {t('assets.capabilities.noTokens')}
                     </p>
                   ) : (
                     allTokens.map((token) => (
                       <label
                         key={token.id}
-                        className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E8E8EC]"
+                        className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text)]"
                       >
                         <input
                           type="checkbox"
                           checked={capabilityForm.token_ids.includes(token.id)}
                           onChange={() => toggleCapabilityToken(token.id)}
-                          className="mt-1 h-4 w-4 rounded border-pink-300 text-pink-500 focus:ring-pink-400"
+                          className="mt-1 h-4 w-4 rounded border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] focus:ring-[var(--kw-primary-400)]"
                         />
                         <span className="space-y-1">
                           <span className="block font-medium">{token.label}</span>
-                          <span className="block text-xs text-gray-500 dark:text-[#9CA3AF]">
+                          <span className="block text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                             {token.agentName} · {token.status}
                           </span>
                         </span>
@@ -1118,24 +1118,24 @@ function AssetsContent() {
               {capabilityForm.access_mode === 'specific_agents' ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   {agents.length === 0 ? (
-                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                       还没有可选 agent，请先创建 agent。
                     </p>
                   ) : (
                     agents.map((agent) => (
                       <label
                         key={agent.id}
-                        className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E8E8EC]"
+                        className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text)]"
                       >
                         <input
                           type="checkbox"
                           checked={capabilityForm.agent_ids.includes(agent.id)}
                           onChange={() => toggleCapabilityAgent(agent.id)}
-                          className="mt-1 h-4 w-4 rounded border-pink-300 text-pink-500 focus:ring-pink-400"
+                          className="mt-1 h-4 w-4 rounded border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] focus:ring-[var(--kw-primary-400)]"
                         />
                         <span className="space-y-1">
                           <span className="block font-medium">{agent.name}</span>
-                          <span className="block text-xs text-gray-500 dark:text-[#9CA3AF]">
+                          <span className="block text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                             {agent.id} · {agent.status}
                           </span>
                         </span>
@@ -1150,7 +1150,7 @@ function AssetsContent() {
                   <div className="space-y-1.5">
                     <label
                       htmlFor="token-label-key"
-                      className="block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                      className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
                     >
                       标签键
                     </label>
@@ -1180,24 +1180,24 @@ function AssetsContent() {
                       tokenLabelOptions[capabilityForm.label_key].map((value) => (
                         <label
                           key={value}
-                          className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E8E8EC]"
+                          className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text)]"
                         >
                           <input
                             type="checkbox"
                             checked={capabilityForm.label_values.includes(value)}
                             onChange={() => toggleCapabilityLabelValue(value)}
-                            className="mt-1 h-4 w-4 rounded border-pink-300 text-pink-500 focus:ring-pink-400"
+                            className="mt-1 h-4 w-4 rounded border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] focus:ring-[var(--kw-primary-400)]"
                           />
                           <span className="space-y-1">
                             <span className="block font-medium">{value}</span>
-                            <span className="block text-xs text-gray-500 dark:text-[#9CA3AF]">
+                            <span className="block text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                               {capabilityForm.label_key} = {value}
                             </span>
                           </span>
                         </label>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                         {Object.keys(tokenLabelOptions).length === 0
                           ? '当前 token 还没有标签，无法按标签限制。'
                           : '先选择一个标签键，再勾选允许的值。'}
@@ -1221,15 +1221,15 @@ function AssetsContent() {
       </Modal>
     </div>
   );
-}
+});
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+    <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
       <div className="space-y-2">
-        <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{label}</p>
-        <p className="text-3xl font-semibold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
-        <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{hint}</p>
+        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{label}</p>
+        <p className="text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
       </div>
     </Card>
   );
@@ -1245,23 +1245,23 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <Card className="border border-dashed border-pink-200 bg-white/70 text-center dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/60">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-pink-100 text-pink-500 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+    <Card className="border border-dashed border-[var(--kw-primary-200)] bg-white/70 text-center dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
         {icon}
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">{title}</h3>
-      <p className="mt-2 text-sm text-gray-600 dark:text-[#9CA3AF]">{description}</p>
+      <h3 className="mt-4 text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{title}</h3>
+      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{description}</p>
     </Card>
   );
 }
 
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-gray-50/80 px-4 py-3 dark:bg-[#252540]/80">
-      <p className="text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+    <div className="rounded-2xl bg-[var(--kw-surface-alt)]/80 px-4 py-3 dark:bg-[var(--kw-dark-surface)]/80">
+      <p className="text-xs uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="mt-2 break-words text-sm text-gray-700 dark:text-[#E8E8EC]">{value}</p>
+      <p className="mt-2 break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
     </div>
   );
 }
@@ -1312,8 +1312,8 @@ function policyButtonClass(active: boolean) {
   return [
     'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
     active
-      ? 'border-pink-400 bg-pink-500 text-white'
-      : 'border-pink-200 bg-white text-gray-700 hover:bg-pink-50 dark:border-[#3D3D5C] dark:bg-[#252540] dark:text-[#E8E8EC]',
+      ? 'border-[var(--kw-primary-400)] bg-[var(--kw-primary-500)] text-white'
+      : 'border-[var(--kw-primary-200)] bg-white text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]',
   ].join(' ');
 }
 

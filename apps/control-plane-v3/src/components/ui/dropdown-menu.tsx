@@ -47,7 +47,7 @@ export function DropdownMenu({
         ref={containerRef}
         role="menu"
         className={cn(
-          'absolute top-full z-50 mt-2 animate-slide-up overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]',
+          'absolute top-full z-50 mt-2 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
           align === 'right' ? 'right-0' : 'left-0',
           className
         )}
@@ -82,9 +82,9 @@ export function DropdownMenuItem({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
-        'text-gray-700 hover:bg-pink-50 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]',
-        destructive && 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20',
+        'flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
+        'text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]',
+        destructive && 'text-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)] dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20',
         disabled && 'cursor-not-allowed opacity-50',
         className
       )}
@@ -104,7 +104,7 @@ export function DropdownMenuSection({ title, children }: DropdownMenuSectionProp
   return (
     <div className="py-1">
       {title && (
-        <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-[#9CA3AF]">
+        <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
           {title}
         </p>
       )}
@@ -114,5 +114,5 @@ export function DropdownMenuSection({ title, children }: DropdownMenuSectionProp
 }
 
 export function DropdownMenuDivider() {
-  return <hr className="my-1 border-pink-100 dark:border-[#3D3D5C]" />;
+  return <hr className="my-1 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />;
 }

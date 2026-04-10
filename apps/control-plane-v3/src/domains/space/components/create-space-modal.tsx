@@ -32,10 +32,10 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
           {/* 头部 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-400 to-purple-400 text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-purple-text)] text-white">
                 <Globe className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">创建空间</h2>
+              <h2 className="text-xl font-bold text-[var(--kw-text)]">创建空间</h2>
             </div>
             <Button
               type="button"
@@ -51,8 +51,8 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
           {/* 表单 */}
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                空间名称 <span className="text-red-500">*</span>
+              <label className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
+                空间名称 <span className="text-[var(--kw-error)]">*</span>
               </label>
               <Input
                 value={name}
@@ -61,11 +61,11 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
                 required
                 maxLength={50}
               />
-              <p className="mt-1 text-xs text-gray-400">{name.length}/50</p>
+              <p className="mt-1 text-xs text-[var(--kw-text-muted)]">{name.length}/50</p>
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
                 描述
               </label>
               <textarea
@@ -74,9 +74,9 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
                 placeholder="简要描述这个空间的用途..."
                 rows={3}
                 maxLength={200}
-                className="w-full resize-none rounded-xl border border-pink-200 bg-white px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-gray-100"
+                className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-surface-alt)]"
               />
-              <p className="mt-1 text-xs text-gray-400">{summary.length}/200</p>
+              <p className="mt-1 text-xs text-[var(--kw-text-muted)]">{summary.length}/200</p>
             </div>
           </div>
 

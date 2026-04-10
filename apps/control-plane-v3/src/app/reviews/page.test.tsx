@@ -106,7 +106,7 @@ describe('reviews page', () => {
     await user.click(screen.getByRole('button', { name: /reviews.actions.refreshQueue/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('reviews.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -123,7 +123,7 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    expect(screen.getByRole('alert')).toHaveTextContent('reviews.sessionExpired');
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -138,7 +138,7 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('reviews.sessionForbidden');
   });
 
   it('filters the review queue by submission provenance', async () => {

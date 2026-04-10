@@ -11,6 +11,7 @@ import { EmptyState, SectionError, SectionLoading } from './components';
 import { AgentManagementCard } from './agent-management-card';
 import type { OpenClawAgent, OpenClawDreamRun, OpenClawSession } from '@/domains/identity';
 import type { Event } from '@/domains/event';
+import { useI18n } from '@/components/i18n-provider';
 
 export interface AIAgentsSectionProps {
   agents: OpenClawAgent[];
@@ -61,16 +62,17 @@ export function AIAgentsSection({
   onRetry,
   onDelete,
 }: AIAgentsSectionProps) {
+  const { t } = useI18n();
   const errorMessage = error instanceof Error ? error.message : null;
 
   return (
     <Card variant="feature" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
             Agent Workspaces
           </h2>
-          <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+          <p className="text-sm text-[var(--kw-text-muted)]">
             Workspace and runtime records from `/api/openclaw/agents` and `/api/openclaw/sessions`
           </p>
         </div>
@@ -78,22 +80,22 @@ export function AIAgentsSection({
       </div>
 
       {isLoading ? (
-        <SectionLoading message="Loading OpenClaw agents..." />
+        <SectionLoading message={t("identities.loadingAgents")} />
       ) : shouldShowSessionExpired && isUnauthorizedError(error) ? (
-        <ManagementSessionRecoveryNotice message="Sign in again to reload OpenClaw agents." />
+        <ManagementSessionRecoveryNotice message={t("identities.reloadAgents")} />
       ) : shouldShowForbidden && isForbiddenError(error) ? (
-        <ManagementSessionRecoveryNotice message="An admin session is required to manage OpenClaw identities." />
+        <ManagementSessionRecoveryNotice message={t("identities.adminRequiredForAgents")} />
       ) : errorMessage ? (
         <SectionError
           message={`OpenClaw agent data is temporarily unavailable. ${errorMessage}`}
-          actionLabel="Retry OpenClaw data"
+          actionLabel={t("identities.retryAgents")}
           onRetry={onRetry}
           isRefreshing={isRefreshing}
         />
       ) : agents.length === 0 ? (
         <EmptyState
           icon={<Bot className="h-6 w-6" />}
-          message="No OpenClaw agents are registered yet."
+          message={t("identities.noAgents")}
         />
       ) : filteredAgents.length === 0 ? (
         <EmptyState
@@ -103,13 +105,13 @@ export function AIAgentsSection({
       ) : (
         <div className="space-y-3">
           {sessionsErrorMessage ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+            <div className="rounded-2xl border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/80 p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20 dark:text-[var(--kw-warning)]">
               Session history is temporarily unavailable. {sessionsErrorMessage}
             </div>
           ) : null}
 
           {eventsErrorMessage ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+            <div className="rounded-2xl border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/80 p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20 dark:text-[var(--kw-warning)]">
               Recent event feed is temporarily unavailable. {eventsErrorMessage}
             </div>
           ) : null}
@@ -179,16 +181,16 @@ function AgentCard({
     <div
       data-testid={`agent-card-${agent.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
+      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[var(--kw-dark-surface)]/90 ${
         isFocused
-          ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-          : 'border-pink-100 dark:border-[#3D3D5C]'
+          ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+          : 'border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{agent.name}</p>
-          <p className="break-all text-sm text-gray-500 dark:text-[#9CA3AF]">{agent.id}</p>
+          <p className="font-medium text-[var(--kw-text)]">{agent.name}</p>
+          <p className="break-all text-sm text-[var(--kw-text-muted)]">{agent.id}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="secondary">
               {sessions.length} live session{sessions.length === 1 ? '' : 's'}
@@ -197,7 +199,7 @@ function AgentCard({
               {feedbackCount} recent event{feedbackCount === 1 ? '' : 's'}
             </Badge>
           </div>
-          <p className="mt-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
+          <p className="mt-2 text-sm text-[var(--kw-text-muted)]">
             {agent.model ?? 'default model'} · {agent.thinking_level}
           </p>
         </div>

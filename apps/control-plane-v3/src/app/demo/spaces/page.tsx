@@ -58,25 +58,25 @@ export default function DemoSpacesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-800 dark:bg-amber-900/10">
-        <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+      <div className="rounded-2xl border border-amber-200 bg-[var(--kw-amber-surface)]/80 p-4 dark:border-[var(--kw-dark-amber-surface)] dark:bg-amber-900/10">
+        <p className="text-sm font-medium text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
           Collaboration prototype
         </p>
-        <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
+        <p className="mt-2 text-sm text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
           This space is for chat and collaboration experiments with local state. It is not the inbox
           or events-backed operations workspace.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             href="/demo"
-            className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 transition-colors hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/50"
+            className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 transition-colors hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-950/40 dark:text-[var(--kw-warning)] dark:hover:bg-amber-900/50"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Sandbox Directory
           </Link>
           <Link
             href="/spaces"
-            className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-[#252540] dark:text-stone-100 dark:hover:bg-[#2A2A45]"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
           >
             View live spaces
             <ArrowRight className="h-4 w-4" />
@@ -86,16 +86,16 @@ export default function DemoSpacesPage() {
 
       <div className="flex h-[calc(100vh-260px)] gap-4">
         {/* 侧边栏 - 空间列表 */}
-        <div className="w-64 flex-shrink-0 overflow-hidden rounded-2xl border border-pink-100 bg-white dark:border-[#3D3D5C] dark:bg-[#252540]">
-          <div className="border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
-            <h2 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">Spaces</h2>
+        <div className="w-64 flex-shrink-0 overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+            <h2 className="font-semibold text-[var(--kw-text)]">Spaces</h2>
           </div>
           <div className="p-2">
-            <button className="flex w-full items-center gap-2 rounded-xl bg-pink-50 px-3 py-2 text-left text-pink-700 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+            <button className="flex w-full items-center gap-2 rounded-xl bg-[var(--kw-primary-50)] px-3 py-2 text-left text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Hash className="h-4 w-4" />
               <span className="font-medium">general</span>
             </button>
-            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-gray-600 hover:bg-gray-50 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]/50">
+            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50">
               <Hash className="h-4 w-4" />
               <span>random</span>
             </button>
@@ -103,14 +103,14 @@ export default function DemoSpacesPage() {
         </div>
 
         {/* 主聊天区域 */}
-        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-pink-100 bg-white dark:border-[#3D3D5C] dark:bg-[#252540]">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
           {/* 头部 */}
-          <div className="flex items-center justify-between border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
+          <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
             <div className="flex items-center gap-2">
-              <Hash className="h-5 w-5 text-gray-400" />
-              <h2 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">general</h2>
+              <Hash className="h-5 w-5 text-[var(--kw-text-muted)]" />
+              <h2 className="font-semibold text-[var(--kw-text)]">general</h2>
             </div>
-            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+            <div className="flex items-center gap-1 text-sm text-[var(--kw-text-muted)]">
               <Users className="h-4 w-4" />
               <span>2 members</span>
             </div>
@@ -123,27 +123,27 @@ export default function DemoSpacesPage() {
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
                     msg.isAgent
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+                      ? 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-success-surface)]/30 dark:text-[var(--kw-dark-mint)]'
+                      : 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:bg-[var(--kw-dark-sky-accent-surface)]/30 dark:text-[var(--kw-dark-sky)]'
                   }`}
                 >
                   {msg.isAgent ? '🤖' : '👤'}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                    <span className="font-medium text-[var(--kw-text)]">
                       {msg.author}
                     </span>
-                    <span className="text-xs text-gray-400 dark:text-[#666]">{msg.timestamp}</span>
+                    <span className="text-xs text-[var(--kw-text-muted)]">{msg.timestamp}</span>
                   </div>
-                  <p className="text-gray-700 dark:text-[#9CA3AF]">{msg.content}</p>
+                  <p className="text-[var(--kw-text)] dark:text-[var(--kw-dark-text-muted)]">{msg.content}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* 输入框 */}
-          <div className="border-t border-pink-100 p-4 dark:border-[#3D3D5C]">
+          <div className="border-t border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -151,16 +151,16 @@ export default function DemoSpacesPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Type a message... (Demo mode)"
-                className="flex-1 rounded-xl border border-pink-200 bg-white px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-400 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+                className="flex-1 rounded-xl border border-[var(--kw-primary-200)] bg-white px-4 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
               />
               <button
                 onClick={sendMessage}
-                className="rounded-xl bg-gradient-to-r from-pink-400 to-pink-600 px-4 py-2 text-white transition-all hover:shadow-lg"
+                className="rounded-xl bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-600)] px-4 py-2 text-white transition-shadow hover:shadow-lg"
               >
                 <Send className="h-4 w-4" />
               </button>
             </div>
-            <p className="mt-2 text-xs text-gray-400 dark:text-[#666]">
+            <p className="mt-2 text-xs text-[var(--kw-text-muted)]">
               💡 This is demonstration data. Messages are stored in local state only.
             </p>
           </div>

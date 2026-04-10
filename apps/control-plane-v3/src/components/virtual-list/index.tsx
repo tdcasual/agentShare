@@ -69,7 +69,7 @@ export function VirtualList<T>({
       <div
         className={cn(
           'flex h-full min-h-[200px] items-center justify-center',
-          'text-gray-500 dark:text-[#9CA3AF]',
+          'text-[var(--kw-text-muted)]',
           className
         )}
       >
@@ -127,7 +127,7 @@ export function VariableSizeVirtualList<T>({
       <div
         className={cn(
           'flex h-full min-h-[200px] items-center justify-center',
-          'text-gray-500 dark:text-[#9CA3AF]',
+          'text-[var(--kw-text-muted)]',
           className
         )}
       >

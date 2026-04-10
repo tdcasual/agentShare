@@ -54,10 +54,18 @@ export function Modal({
       firstFocusable?.focus();
     }
 
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
     document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
       // Restore previous focus when modal closes
       if (previousFocusRef.current && document.body.contains(previousFocusRef.current)) {
         previousFocusRef.current.focus();
@@ -129,12 +137,12 @@ export function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between border-b border-pink-100 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-6 py-4">
             <div>
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]"
+                  className="text-xl font-semibold text-[var(--kw-text)]"
                 >
                   {title}
                 </h2>
@@ -142,7 +150,7 @@ export function Modal({
               {description && (
                 <p
                   id="modal-description"
-                  className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]"
+                  className="mt-1 text-sm text-[var(--kw-text-muted)]"
                 >
                   {description}
                 </p>
@@ -153,9 +161,9 @@ export function Modal({
                 onClick={onClose}
                 type="button"
                 aria-label="Close modal"
-                className="rounded-full p-2 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
+                className="rounded-full p-2 transition-colors hover:bg-[var(--kw-surface-alt)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
               >
-                <X className="h-5 w-5 text-gray-500 dark:text-[#9CA3AF]" />
+                <X className="h-5 w-5 text-[var(--kw-text-muted)]" />
               </button>
             )}
           </div>
@@ -189,14 +197,14 @@ export function ConfirmModal({
   return (
     <Modal {...props} size="sm">
       <div className="flex flex-col gap-4">
-        <p className="text-gray-600 dark:text-[#9CA3AF]">
+        <p className="text-[var(--kw-text-muted)]">
           {message || 'Are you sure you want to proceed with this action?'}
         </p>
         <div className="flex justify-end gap-3">
           <button
             onClick={props.onClose}
             type="button"
-            className="rounded-full px-4 py-2 text-gray-600 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:text-[#9CA3AF]"
+            className="rounded-full px-4 py-2 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:text-[var(--kw-dark-text-muted)]"
           >
             {cancelText}
           </button>
@@ -207,7 +215,7 @@ export function ConfirmModal({
             className={cn(
               'rounded-full px-6 py-2 font-medium text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
               variant === 'danger'
-                ? 'bg-red-500 hover:bg-red-600 focus-visible:ring-red-400'
+                ? 'bg-[var(--kw-error)] hover:brightness-90 focus-visible:ring-[var(--kw-error)]'
                 : 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] hover:from-[var(--kw-primary-500)] hover:to-[var(--kw-primary-600)] focus-visible:ring-[var(--kw-primary-400)]'
             )}
           >

@@ -18,11 +18,11 @@ interface PlaybookCardProps {
 
 // 标签颜色映射
 const tagColors: Record<string, string> = {
-  default: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
-  urgent: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  important: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  review: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  approved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  default: 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]',
+  urgent: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:bg-[var(--kw-dark-error-surface)]/30 dark:text-[var(--kw-error)]',
+  important: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)] dark:bg-[var(--kw-dark-amber-surface)]/30 dark:text-[var(--kw-warning)]',
+  review: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)] dark:bg-[var(--kw-dark-amber-surface)]/30 dark:text-[var(--kw-warning)]',
+  approved: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-success-surface)]/30 dark:text-[var(--kw-dark-mint)]',
 };
 
 export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
@@ -39,19 +39,19 @@ export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
     >
       {/* 头部：图标和类型 */}
       <div className="mb-3 flex items-start gap-3">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-400 to-purple-400 text-white">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-purple-text)] text-white">
           <BookOpen className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-1 font-semibold text-gray-800 dark:text-gray-100">
+          <h3 className="line-clamp-1 font-semibold text-[var(--kw-text)]">
             {playbook.title}
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{playbook.taskType}</p>
+          <p className="text-xs text-[var(--kw-text-muted)]">{playbook.taskType}</p>
         </div>
       </div>
 
       {/* 正文预览 */}
-      <p className="mb-4 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">{bodyPreview}</p>
+      <p className="mb-4 line-clamp-3 text-sm text-[var(--kw-text-muted)]">{bodyPreview}</p>
 
       {/* 标签 */}
       {playbook.tags.length > 0 && (
@@ -68,16 +68,16 @@ export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
             </span>
           ))}
           {playbook.tags.length > 5 && (
-            <span className="text-xs text-gray-400">+{playbook.tags.length - 5}</span>
+            <span className="text-xs text-[var(--kw-text-muted)]">+{playbook.tags.length - 5}</span>
           )}
         </div>
       )}
 
       {/* 底部信息 */}
-      <div className="flex items-center justify-between border-t border-pink-100/50 pt-3 text-xs text-gray-500 dark:border-[#3D3D5C] dark:text-gray-400">
+      <div className="flex items-center justify-between border-t border-[var(--kw-border)]/50 pt-3 text-xs text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-text-muted)]">
         <div className="flex items-center gap-1">
           <Shield className="h-3 w-3" />
-          <span className="max-w-[100px] truncate">{playbook.publicationStatus}</span>
+          <span className="max-w-[min(100px,25vw)] truncate">{playbook.publicationStatus}</span>
         </div>
         <div className="flex items-center gap-1">
           <BookOpen className="h-3 w-3" />

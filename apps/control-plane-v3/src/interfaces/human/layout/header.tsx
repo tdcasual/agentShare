@@ -49,7 +49,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   });
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-pink-100 bg-white/80 px-6 backdrop-blur-md dark:border-[#3D3D5C] dark:bg-[#252540]/80">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white/80 px-6 backdrop-blur-md dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80">
       {/* Left - Search */}
       <div className="max-w-xl flex-1">
         <GlobalSearch />
@@ -71,9 +71,9 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
 
         {/* Online Users */}
         {onlineIdentities.length > 0 && (
-          <div className="hidden items-center gap-2 rounded-full border border-green-100 bg-green-50 px-3 py-1.5 md:flex dark:border-green-800 dark:bg-[#2D4A3D]">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" aria-hidden="true" />
-            <span className="text-sm text-green-700 dark:text-green-400">
+          <div className="hidden items-center gap-2 rounded-full border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)] px-3 py-1.5 md:flex dark:border-[var(--kw-dark-success-surface)] dark:bg-[var(--kw-dark-green-accent-surface)]">
+            <span className="h-2 w-2 rounded-full bg-[var(--kw-agent-accent)] ring-2 ring-[var(--kw-agent-accent)]/40" aria-hidden="true" />
+            <span className="text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
               {onlineIdentities.length} online
             </span>
             <AvatarGroup className="ml-1">
@@ -104,8 +104,8 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
             }}
             aria-label="Inbox"
             className={cn(
-              'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
-              'text-gray-500 hover:bg-pink-50 hover:text-pink-600 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C] dark:hover:text-[#E891C0]'
+              'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
+              'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)] dark:hover:text-[var(--kw-dark-primary)]'
             )}
           >
             <MessageSquare className="h-5 w-5" aria-hidden="true" />
@@ -123,7 +123,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
               aria-expanded={showUserMenu}
               aria-haspopup="menu"
               aria-label={`User menu for ${currentIdentity.profile.name}`}
-              className="flex items-center gap-2 rounded-full p-1.5 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 dark:hover:bg-[#3D3D5C]"
+              className="flex items-center gap-2 rounded-full p-1.5 transition-colors hover:bg-[var(--kw-surface-alt)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:hover:bg-[var(--kw-dark-border)]"
             >
               <Avatar
                 src={currentIdentity.profile.avatar}
@@ -131,7 +131,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                 size="sm"
                 status={currentIdentity.presence}
               />
-              <span className="hidden text-sm font-medium text-gray-700 md:block dark:text-[#E8E8EC]">
+              <span className="hidden text-sm font-medium text-[var(--kw-text)] md:block dark:text-[var(--kw-dark-text)]">
                 {currentIdentity.profile.name}
               </span>
             </button>
@@ -147,13 +147,13 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                   ref={userMenuRef}
                   role="menu"
                   aria-label="User menu"
-                  className="absolute right-0 top-full z-50 mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]"
+                  className="absolute right-0 top-full z-50 mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
                 >
-                  <div className="border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
-                    <p className="font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                  <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+                    <p className="font-semibold text-[var(--kw-text)]">
                       {currentIdentity.profile.name}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                    <p className="text-sm text-[var(--kw-text-muted)]">
                       {currentIdentity.type === 'human' ? 'Human User' : 'AI Agent'}
                     </p>
                   </div>
@@ -162,7 +162,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       type="button"
                       role="menuitem"
                       onClick={() => router.push(USER_MENU_ACTIONS.profile)}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-gray-700 transition-colors hover:bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
                     >
                       <User className="h-4 w-4" aria-hidden="true" />
                       <span>Profile</span>
@@ -171,17 +171,17 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       type="button"
                       role="menuitem"
                       onClick={() => router.push(USER_MENU_ACTIONS.settings)}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-gray-700 transition-colors hover:bg-pink-50 focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
                     >
                       <Settings className="h-4 w-4" aria-hidden="true" />
                       <span>Settings</span>
                     </button>
-                    <hr className="my-2 border-pink-100 dark:border-[#3D3D5C]" />
+                    <hr className="my-2 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />
                     <button
                       type="button"
                       role="menuitem"
                       onClick={() => router.push(USER_MENU_ACTIONS.logout)}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:text-red-400 dark:hover:bg-red-900/20"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-error)] transition-colors hover:bg-[var(--kw-rose-surface)] focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20"
                     >
                       <LogOut className="h-4 w-4" aria-hidden="true" />
                       <span>Sign out</span>

@@ -5,12 +5,14 @@ import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { RefreshCw, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 interface PWAUpdatePromptProps {
   className?: string;
 }
 
 export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
+  const { t } = useI18n();
   const { hasUpdate, update, dismissUpdate } = usePWA();
 
   if (!hasUpdate) {
@@ -21,33 +23,34 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
     <Card
       className={cn(
         'fixed left-4 right-4 top-4 z-50 md:left-auto md:right-4 md:w-96',
-        'animate-slide-down border-l-4 border-l-pink-500 shadow-xl',
+        'animate-slide-down border-l-4 border-l-[var(--kw-primary-500)] shadow-xl',
         className
       )}
     >
       <div className="space-y-4 p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-900/30">
-            <RefreshCw className="h-5 w-5 text-pink-500" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-pink-surface)]">
+            <RefreshCw className="h-5 w-5 text-[var(--kw-primary-500)]" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">新版本可用</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-              更新包含新功能和改进，建议立即更新以获得最佳体验
+            <h3 className="font-semibold text-[var(--kw-text)]">{t('pwa.newVersionTitle')}</h3>
+            <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
+              {t('pwa.newVersionDesc')}
             </p>
           </div>
           <button
+            type="button"
             onClick={dismissUpdate}
-            className="rounded-lg p-1 transition-colors hover:bg-gray-100 dark:hover:bg-[#3D3D5C]"
-            aria-label="忽略"
+            className="rounded-lg p-1 transition-colors hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+            aria-label={t('pwa.dismiss')}
           >
-            <X className="h-5 w-5 text-gray-400" />
+            <X className="h-5 w-5 text-[var(--kw-text-muted)]" />
           </button>
         </div>
 
         <div className="flex gap-3">
           <Button variant="ghost" size="sm" onClick={dismissUpdate} className="flex-1">
-            稍后
+            {t('pwa.later')}
           </Button>
           <Button
             size="sm"
@@ -55,7 +58,7 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
             className="flex-1"
             leftIcon={<RefreshCw className="h-4 w-4" />}
           >
-            立即更新
+            {t('pwa.updateNow')}
           </Button>
         </div>
       </div>
@@ -69,6 +72,7 @@ interface PWAOfflineIndicatorProps {
 }
 
 export function PWAOfflineIndicator({ className }: PWAOfflineIndicatorProps) {
+  const { t } = useI18n();
   const { isOffline } = usePWA();
 
   if (!isOffline) {
@@ -79,7 +83,7 @@ export function PWAOfflineIndicator({ className }: PWAOfflineIndicatorProps) {
     <div
       className={cn(
         'fixed left-0 right-0 top-0 z-50',
-        'bg-amber-500 px-4 py-2 text-center text-white',
+        'bg-[var(--kw-warning)] px-4 py-2 text-center text-white',
         'text-sm font-medium',
         'animate-fade-in',
         className
@@ -87,7 +91,7 @@ export function PWAOfflineIndicator({ className }: PWAOfflineIndicatorProps) {
     >
       <span className="inline-flex items-center gap-2">
         <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-        离线模式 - 部分功能可能受限
+        {t('pwa.offlineIndicator')}
       </span>
     </div>
   );

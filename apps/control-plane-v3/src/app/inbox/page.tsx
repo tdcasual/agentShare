@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useEvents, useMarkEventRead } from '@/domains/event';
+import { useI18n } from '@/components/i18n-provider';
 import type { Event } from '@/domains/event';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui-primitives/card';
@@ -19,7 +20,7 @@ const severityVariantMap: Record<string, 'info' | 'success' | 'warning' | 'error
   critical: 'warning',
 };
 
-function formatRelativeTime(timeString: string) {
+function formatRelativeTime(timeString: string, t: ReturnType<typeof useI18n>['t']) {
   const date = new Date(timeString);
   const now = new Date();
   const diffMs = Math.max(0, now.getTime() - date.getTime());
@@ -28,38 +29,38 @@ function formatRelativeTime(timeString: string) {
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMins < 1) {
-    return 'Just now';
+    return t('hub.time.justNow');
   }
   if (diffMins < 60) {
-    return `${diffMins}m ago`;
+    return t('hub.time.minutesAgo').replace('{n}', String(diffMins));
   }
   if (diffHours < 24) {
-    return `${diffHours}h ago`;
+    return t('hub.time.hoursAgo').replace('{n}', String(diffHours));
   }
   if (diffDays < 7) {
-    return `${diffDays}d ago`;
+    return t('hub.time.daysAgo').replace('{n}', String(diffDays));
   }
   return date.toLocaleDateString();
 }
 
-function getActionLabel(event: Event) {
+function getActionLabel(event: Event, t: ReturnType<typeof useI18n>['t']) {
   switch (event.subject_type) {
     case 'task':
     case 'task_target':
-      return 'Open task';
+      return t('inbox.actionLabels.openTask');
     case 'review':
-      return 'Open review item';
+      return t('inbox.actionLabels.openReview');
     case 'agent':
     case 'admin_account':
     case 'human':
-      return 'Open identity';
+      return t('inbox.actionLabels.openIdentity');
     case 'space':
-      return 'Open space';
+      return t('inbox.actionLabels.openSpace');
     case 'secret':
     case 'capability':
-      return 'Open asset';
+      return t('inbox.actionLabels.openAsset');
     default:
-      return 'Open action';
+      return t('inbox.actionLabels.openAction');
   }
 }
 
@@ -71,7 +72,8 @@ export default function InboxPage() {
   );
 }
 
-function InboxContent() {
+const InboxContent = memo(function InboxContent() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { events, isLoading, error, mutate } = useEvents();
@@ -115,37 +117,37 @@ function InboxContent() {
     <div className="space-y-6">
       <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-2xl font-semibold text-gray-900 dark:text-[#E8E8EC]">Inbox</p>
-          <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-            Agent feedback, completion events, and system alerts are collected here.
+          <p className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{t('inbox.title')}</p>
+          <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            {t('inbox.subtitle')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge className="uppercase tracking-wide" variant="info">
-            Unread {unreadCount}
+            {t('inbox.unread')} {unreadCount}
           </Badge>
           <Button variant="outline" size="sm" onClick={() => mutate()}>
-            Refresh
+            {t('common.refresh')}
           </Button>
         </div>
       </header>
 
       {isLoading && (
-        <div className="flex items-center justify-center gap-2 rounded-3xl border border-dashed border-gray-200 bg-white/80 py-12 text-sm text-gray-500 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#9CA3AF]">
+        <div className="flex items-center justify-center gap-2 rounded-3xl border border-dashed border-[var(--kw-border)] bg-white/80 py-12 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
           <Loader2 className="h-5 w-5 animate-spin" />
-          Loading inbox...
+          {t('inbox.loading')}
         </div>
       )}
 
       {error && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-red-200 bg-red-50/80 p-6 text-center text-sm text-red-600 dark:border-red-900/50 dark:bg-red-900/50">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-[var(--kw-error)] bg-[var(--kw-rose-surface)]/80 p-6 text-center text-sm text-[var(--kw-error)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/50">
           <AlertCircle className="h-6 w-6" />
-          <p className="font-semibold">Unable to load events</p>
-          <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">
-            {error instanceof Error ? error.message : 'Please try again in a moment.'}
+          <p className="font-semibold">{t('inbox.loadError')}</p>
+          <p className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            {error instanceof Error ? error.message : t('inbox.tryAgain')}
           </p>
           <Button size="sm" onClick={() => mutate()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </div>
       )}
@@ -153,32 +155,32 @@ function InboxContent() {
       {!isLoading && !error && events.length === 0 && (
         <Card variant="default">
           <CardContent>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">No events to show yet.</p>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-              We will surface agent task feedback, expirations, and alerts here as they arrive.
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('inbox.emptyTitle')}</p>
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('inbox.emptyDesc')}
             </p>
           </CardContent>
         </Card>
       )}
 
       {!isLoading && !error && focusedEvent && (
-        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
           <CardHeader>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
-                  Focused event
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+                  {t('inbox.focusedEvent')}
                 </p>
                 <CardTitle>{focusedEvent.summary}</CardTitle>
               </div>
-              <span className="text-xs text-gray-400 dark:text-[#9CA3AF]">
-                {formatRelativeTime(focusedEvent.created_at)}
+              <span className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                {formatRelativeTime(focusedEvent.created_at, t)}
               </span>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-              {focusedEvent.details ?? 'No additional context provided.'}
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {focusedEvent.details ?? t('inbox.noContext')}
             </p>
           </CardContent>
           <CardFooter>
@@ -189,12 +191,12 @@ function InboxContent() {
                   size="sm"
                   onClick={() => handleActionNavigate(focusedEvent.action_url)}
                 >
-                  {getActionLabel(focusedEvent)}
+                  {getActionLabel(focusedEvent, t)}
                 </Button>
               )}
               {!focusedEvent.read_at && (
                 <Button variant="ghost" size="sm" onClick={() => handleMarkRead(focusedEvent.id)}>
-                  Mark as read
+                  {t('inbox.markAsRead')}
                 </Button>
               )}
             </div>
@@ -213,33 +215,33 @@ function InboxContent() {
               className={cn(
                 'border-2 border-transparent',
                 event.id === selectedEventId &&
-                  'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400',
-                !event.read_at && 'border-pink-200 dark:border-pink-500/60'
+                  'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]',
+                !event.read_at && 'border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]/60'
               )}
             >
               <CardHeader>
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle>{event.summary}</CardTitle>
-                  <span className="text-xs text-gray-400 dark:text-[#9CA3AF]">
-                    {formatRelativeTime(event.created_at)}
+                  <span className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                    {formatRelativeTime(event.created_at, t)}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   <Badge variant={severityVariantMap[event.severity ?? 'info'] ?? 'info'}>
                     {event.event_type.replace(/[_-]/g, ' ')}
                   </Badge>
                   <span>
-                    Actor: {event.actor_type} {event.actor_id}
+                    {t('inbox.actor')}: {event.actor_type} {event.actor_id}
                   </span>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-                  {event.details ?? 'No additional context provided.'}
+                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {event.details ?? t('inbox.noContext')}
                 </p>
-                <div className="mt-4 grid gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                <div className="mt-4 grid gap-2 text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   <span>
-                    Subject: {event.subject_type} {event.subject_id}
+                    {t('inbox.subject')}: {event.subject_type} {event.subject_id}
                   </span>
                 </div>
               </CardContent>
@@ -251,12 +253,12 @@ function InboxContent() {
                       size="sm"
                       onClick={() => handleActionNavigate(event.action_url)}
                     >
-                      {getActionLabel(event)}
+                      {getActionLabel(event, t)}
                     </Button>
                   )}
                   {!event.read_at && (
                     <Button variant="ghost" size="sm" onClick={() => handleMarkRead(event.id)}>
-                      Mark as read
+                      {t('inbox.markAsRead')}
                     </Button>
                   )}
                 </div>
@@ -266,4 +268,4 @@ function InboxContent() {
       </div>
     </div>
   );
-}
+});

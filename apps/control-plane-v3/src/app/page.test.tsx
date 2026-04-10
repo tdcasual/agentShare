@@ -172,10 +172,6 @@ describe('hub page', () => {
     expect(screen.getByText('Bootstrap Primary')).toBeInTheDocument();
     expect(screen.getByText('agent.market.capability')).toBeInTheDocument();
     expect(screen.getByText('Bootstrap Credential completed Sync Config')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /Counts and activity below come from backend-backed identity, review, remote agent access, and event queries/i
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText('hub.snapshotDataSource')).toBeInTheDocument();
   });
 });

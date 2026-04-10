@@ -46,7 +46,7 @@ export default function SetupPage() {
       } catch (loadError) {
         if (!cancelled) {
           setError(
-            loadError instanceof Error ? loadError.message : 'Failed to load bootstrap status'
+            loadError instanceof Error ? loadError.message : t('auth.setup.failedToLoad')
           );
         }
       } finally {
@@ -74,7 +74,7 @@ export default function SetupPage() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : 'Failed to bootstrap owner');
+        setError(submitError instanceof Error ? submitError.message : t('auth.setup.failedToBootstrap'));
       }
     } finally {
       setIsSubmitting(false);
@@ -128,11 +128,11 @@ export default function SetupPage() {
 
       <Card
         variant="feature"
-        className="relative z-10 w-full max-w-3xl dark:border-[#3D3D5C] dark:bg-gradient-to-br dark:from-[#252540] dark:to-[#2D2D50]"
+        className="relative z-10 w-full max-w-3xl dark:border-[var(--kw-dark-border)] dark:bg-gradient-to-br dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
       >
         {/* Decorative elements */}
         <div
-          className="absolute -right-4 -top-4 animate-bounce text-3xl"
+          className="absolute -right-4 -top-4 animate-float text-3xl"
           style={{ animationDuration: '3s' }}
         >
           ✨
@@ -144,31 +144,31 @@ export default function SetupPage() {
           <div className="space-y-6">
             {/* Header */}
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-4 py-2 text-sm font-medium text-pink-700 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
                 <ShieldCheck className="h-4 w-4" />
                 <span className="uppercase tracking-wider">{t('auth.setup.subtitle')}</span>
               </div>
               <div className="space-y-3">
-                <h1 className="text-3xl font-bold leading-tight text-gray-800 lg:text-4xl dark:text-[#E8E8EC]">
+                <h1 className="text-3xl font-bold leading-tight text-[var(--kw-text)] lg:text-4xl dark:text-[var(--kw-dark-text)]">
                   {t('auth.setup.title')}
                 </h1>
-                <p className="leading-relaxed text-gray-600 dark:text-[#9CA3AF]">
+                <p className="leading-relaxed text-[var(--kw-text-muted)]">
                   {t('auth.setup.description')}
                 </p>
               </div>
             </div>
 
             {/* Steps */}
-            <div className="space-y-4 rounded-3xl border border-pink-100 bg-white/80 p-5 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80">
-              <div className="flex items-center gap-3 text-gray-800 dark:text-[#E8E8EC]">
-                <UserRoundPlus className="h-5 w-5 text-pink-500" />
+            <div className="space-y-4 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
+              <div className="flex items-center gap-3 text-[var(--kw-text)]">
+                <UserRoundPlus className="h-5 w-5 text-[var(--kw-primary-500)]" />
                 <span className="font-semibold">{t('auth.setup.whatNext')}</span>
               </div>
               <ul className="space-y-3">
                 {steps.map((step, index) => (
                   <li
                     key={index}
-                    className="flex animate-slide-up items-start gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]"
+                    className="flex animate-slide-up items-start gap-3 text-sm text-[var(--kw-text-muted)]"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <span className="text-lg">{step.icon}</span>
@@ -180,13 +180,13 @@ export default function SetupPage() {
 
             {/* Decoration */}
             <div className="flex justify-center gap-3 text-3xl opacity-40 dark:opacity-20">
-              <span className="animate-bounce" style={{ animationDelay: '0s' }}>
+              <span className="animate-float" style={{ animationDelay: '0s' }}>
                 🌸
               </span>
-              <span className="animate-bounce" style={{ animationDelay: '0.3s' }}>
+              <span className="animate-float" style={{ animationDelay: '0.3s' }}>
                 ✨
               </span>
-              <span className="animate-bounce" style={{ animationDelay: '0.6s' }}>
+              <span className="animate-float" style={{ animationDelay: '0.6s' }}>
                 💕
               </span>
             </div>
@@ -201,8 +201,8 @@ export default function SetupPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, bootstrap_key: event.target.value }))
               }
-              placeholder="changeme-bootstrap-key"
-              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+              placeholder={t("auth.setup.bootstrapKeyPlaceholder")}
+              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
               label={t('auth.setup.ownerEmail')}
@@ -213,7 +213,7 @@ export default function SetupPage() {
                 setForm((current) => ({ ...current, email: event.target.value }))
               }
               placeholder="owner@example.com"
-              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
               label={t('auth.setup.displayName')}
@@ -222,8 +222,8 @@ export default function SetupPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, display_name: event.target.value }))
               }
-              placeholder="Founding Owner"
-              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+              placeholder={t("auth.setup.displayNamePlaceholder")}
+              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
               label={t('auth.setup.password')}
@@ -233,18 +233,18 @@ export default function SetupPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, password: event.target.value }))
               }
-              placeholder="At least 12 characters"
-              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+              placeholder={t("auth.setup.passwordPlaceholder")}
+              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
 
             {/* Status */}
-            <div className="rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/80 dark:text-[#9CA3AF]">
+            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80 dark:text-[var(--kw-dark-text-muted)]">
               {error ? (
                 <span
                   role="alert"
                   aria-live="assertive"
                   aria-atomic="true"
-                  className="text-red-500 dark:text-red-400"
+                  className="text-[var(--kw-error)] dark:text-[var(--kw-error)]"
                 >
                   {error}
                 </span>
@@ -255,7 +255,7 @@ export default function SetupPage() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-pink-500" />
+                  <Heart className="h-4 w-4 text-[var(--kw-primary-500)]" />
                   System not initialized yet. Complete bootstrap to unlock login.
                 </span>
               )}

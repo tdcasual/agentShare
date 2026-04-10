@@ -52,8 +52,8 @@ export const OptimizedImage = memo(function OptimizedImage({
     return (
       <div
         className={cn(
-          'flex items-center justify-center bg-gray-100 dark:bg-[#2D2D50]',
-          'text-gray-400 dark:text-[#9CA3AF]',
+          'flex items-center justify-center bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]',
+          'text-[var(--kw-text-muted)]',
           fill ? 'h-full w-full' : '',
           containerClassName
         )}
@@ -75,7 +75,7 @@ export const OptimizedImage = memo(function OptimizedImage({
     <div
       className={cn(
         'relative overflow-hidden',
-        'bg-gray-100 dark:bg-[#2D2D50]',
+        'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]',
         fill ? 'h-full w-full' : '',
         containerClassName
       )}
@@ -86,7 +86,7 @@ export const OptimizedImage = memo(function OptimizedImage({
           className={cn(
             'absolute inset-0',
             'bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100',
-            'dark:from-[#2D2D50] dark:via-[#3D3D5C] dark:to-[#2D2D50]',
+            'dark:from-[var(--kw-dark-surface-alt)] dark:via-[var(--kw-dark-border)] dark:to-[var(--kw-dark-surface-alt)]',
             'animate-pulse',
             'z-10'
           )}
@@ -142,8 +142,8 @@ export const OptimizedAvatar = memo(function OptimizedAvatar({
       <div
         className={cn(
           'flex items-center justify-center',
-          'bg-gradient-to-br from-pink-100 to-pink-200',
-          'dark:from-[#3D3D5C] dark:to-[#4D4D6C]',
+          'bg-gradient-to-br from-[var(--kw-primary-100)] to-pink-200',
+          'dark:from-[var(--kw-dark-border)] dark:to-[var(--kw-dark-border)]',
           'rounded-full',
           className
         )}
@@ -158,7 +158,7 @@ export const OptimizedAvatar = memo(function OptimizedAvatar({
     <div
       className={cn(
         'relative overflow-hidden rounded-full',
-        'ring-2 ring-white dark:ring-[#3D3D5C]',
+        'ring-2 ring-white dark:ring-[var(--kw-dark-border)]',
         className
       )}
       style={{ width: size, height: size }}

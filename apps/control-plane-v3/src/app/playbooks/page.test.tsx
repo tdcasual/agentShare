@@ -86,7 +86,7 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionForbidden');
   });
 
   it('opens a playbook detail view from the list', async () => {
@@ -107,7 +107,7 @@ describe('playbooks page', () => {
 
     await user.click(screen.getByRole('button', { name: /新建/i }));
     await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
-    await user.type(screen.getByPlaceholderText(/urgent, frontend, react/i), 'incident,backend');
+    await user.type(screen.getByPlaceholderText('playbooks.form.tagsPlaceholder'), 'incident,backend');
     await user.type(
       screen.getByPlaceholderText(/输入手册详细内容/i),
       'Inspect alerts, confirm scope, and notify responders.'
@@ -158,7 +158,7 @@ describe('playbooks page', () => {
     await user.click(screen.getByRole('button', { name: /^创建$/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -176,7 +176,7 @@ describe('playbooks page', () => {
     await user.click(screen.getByRole('button', { name: /刷新/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionExpired');
     });
   });
 

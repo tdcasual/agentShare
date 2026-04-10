@@ -39,8 +39,8 @@ export function ForbiddenState({
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex animate-pulse flex-col items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-pink-200" />
-          <div className="h-4 w-32 rounded bg-pink-200" />
+          <div className="h-16 w-16 rounded-full bg-[var(--kw-primary-200)]" />
+          <div className="h-4 w-32 rounded bg-[var(--kw-primary-200)]" />
         </div>
       </div>
     );
@@ -56,25 +56,25 @@ export function ForbiddenState({
         aria-live="polite"
       >
         {/* 图标 */}
-        <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30">
-          <Lock className="h-12 w-12 animate-pulse text-pink-500" />
+        <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[var(--kw-primary-100)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-pink-surface)] dark:to-[var(--kw-dark-purple-surface)]">
+          <Lock className="h-12 w-12 animate-pulse text-[var(--kw-primary-500)]" />
         </div>
 
         {/* 标题 */}
-        <h1 className="mb-3 text-2xl font-bold text-gray-800 dark:text-gray-100">{title}</h1>
+        <h1 className="mb-3 text-2xl font-bold text-[var(--kw-text)]">{title}</h1>
 
         {/* 描述 */}
-        <p className="mb-6 text-gray-600 dark:text-gray-400">
+        <p className="mb-6 text-[var(--kw-text-muted)]">
           {resourceName ? `您没有权限访问「${resourceName}」` : '您没有权限访问此页面'}
         </p>
 
         {/* 角色对比 */}
         <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <div className="rounded-full bg-pink-100 px-4 py-2 text-sm text-pink-700 dark:bg-pink-900/30 dark:text-pink-300">
+          <div className="rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]">
             当前: {role ? ROLE_LABELS[role] : '未登录'}
           </div>
-          <span className="text-gray-400">→</span>
-          <div className="rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+          <span className="text-[var(--kw-text-muted)]">→</span>
+          <div className="rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)] dark:bg-[var(--kw-dark-purple-surface)]/30 dark:text-[var(--kw-dark-primary)]">
             需要: {ROLE_LABELS[requiredRole]}
           </div>
         </div>
@@ -100,7 +100,7 @@ export function ForbiddenState({
         </div>
 
         {/* 帮助链接 */}
-        <p className="mt-6 text-xs text-gray-500 dark:text-gray-500">
+        <p className="mt-6 text-xs text-[var(--kw-text-muted)]">
           如需访问权限，请联系系统管理员
         </p>
       </Card>
@@ -125,8 +125,8 @@ export function ForbiddenPageWrapper({
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex animate-pulse flex-col items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-pink-200" />
-          <div className="h-4 w-32 rounded bg-pink-200" />
+          <div className="h-16 w-16 rounded-full bg-[var(--kw-primary-200)]" />
+          <div className="h-4 w-32 rounded bg-[var(--kw-primary-200)]" />
         </div>
       </div>
     );

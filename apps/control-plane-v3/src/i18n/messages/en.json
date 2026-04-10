@@ -58,7 +58,9 @@
       "email": "Email",
       "password": "Password",
       "signIn": "Sign In",
-      "checking": "Checking bootstrap and session state..."
+      "checking": "Checking bootstrap and session state...",
+      "failedToLoad": "Failed to load login state",
+      "loginFailed": "Login failed"
     },
     "setup": {
       "title": "Create the Founding Owner Account",
@@ -72,7 +74,17 @@
       "step3": "New human accounts can only be created from the admin console",
       "whatNext": "What Next",
       "creating": "Creating",
-      "password": "Password"
+      "password": "Password",
+      "failedToLoad": "Failed to load bootstrap status",
+      "failedToBootstrap": "Failed to bootstrap owner",
+      "bootstrapKeyPlaceholder": "changeme-bootstrap-key",
+      "displayNamePlaceholder": "Founding Owner",
+      "passwordPlaceholder": "At least 12 characters"
+    },
+    "logout": {
+      "signingOut": "Signing out...",
+      "continueToLogin": "Continue to login",
+      "failed": "Failed to sign out"
     }
   },
   "tokens": {
@@ -108,6 +120,39 @@
       "issuer": "Issuer",
       "oneTimeReveal": "One-time reveal",
       "copyToken": "Copy Access Token"
+    },
+    "errors": {
+      "refreshFailed": "Failed to refresh remote access tokens",
+      "registerAgentFailed": "Failed to register remote agent",
+      "noAgentSelected": "Choose a remote agent profile before minting a token",
+      "mintTokenFailed": "Failed to mint access token",
+      "revokeTokenFailed": "Failed to revoke access token",
+      "clipboardBlocked": "Clipboard access was blocked. Copy the access token manually from the reveal card.",
+      "loadDataFailed": "Failed to load data"
+    },
+    "form": {
+      "agentName": "Remote agent name",
+      "agentNamePlaceholder": "deploy-bot",
+      "allowedTaskTypes": "Allowed task types",
+      "allowedTaskTypesPlaceholder": "config_sync, account_read",
+      "displayName": "Display name",
+      "displayNamePlaceholder": "Staging worker token",
+      "scopes": "Scopes",
+      "scopesPlaceholder": "runtime",
+      "labels": "Labels",
+      "labelsPlaceholder": "environment=staging, pool=blue",
+      "expiresAt": "Expires at"
+    },
+    "riskTiers": {
+      "low": "low",
+      "medium": "medium",
+      "high": "high",
+      "critical": "critical"
+    },
+    "sessionExpired": "Your management session has expired. Sign in again to keep working with live remote access data.",
+    "sessionForbidden": "You do not have permission to manage remote agents and access tokens. Use an admin management session to continue.",
+    "values": {
+      "notYet": "Not yet"
     }
   },
   "reviews": {
@@ -138,7 +183,14 @@
     "loading": "Loading pending review items...",
     "reviewer": "Reviewer",
     "awaitingDecision": "Awaiting first decision",
-    "onlyPending": "Only pending runtime submissions appear here"
+    "errors": {
+      "updateFailed": "Failed to update review item",
+      "loadFailed": "Failed to load reviews"
+    },
+    "onlyPending": "Only pending runtime submissions appear here",
+    "sessionExpired": "Your management session has expired. Sign in again to keep reviewing live queue items.",
+    "sessionForbidden": "You do not have permission to review this governance queue. Use an operator-or-higher management session to continue.",
+    "refreshFailed": "Failed to refresh reviews"
   },
   "hub": {
     "welcome": "Welcome to",
@@ -155,10 +207,14 @@
     "publicRegistrationClosed": "Public registration is closed after first-run owner bootstrap.",
     "runtimeTokens": "Remote access tokens are managed separately from human sessions and in-project OpenClaw sessions.",
     "stats": {
-      "humansTrend": "+1 invited this week",
-      "agentsTrend": "managed in-cluster",
-      "tokensTrend": "issue, revoke, review",
-      "tasksTrend": "remote token targeting"
+      "humans": "Humans",
+      "agents": "Agents",
+      "spaces": "Spaces",
+      "tasksToday": "Tasks Today",
+      "humansTrend": "Active operators",
+      "agentsTrend": "Registered agents",
+      "tokensTrend": "Active tokens",
+      "tasksTrend": "Pending items"
     },
     "activity": {
       "completedTask": "completed task",
@@ -167,7 +223,13 @@
       "createdAsset": "created asset"
     },
     "recentActivity": "Recent Activity",
-    "quickActions": "Quick Actions",
+    "quickActions": {
+      "title": "Quick Actions",
+      "createTask": "Create Task",
+      "joinSpace": "Join Space",
+      "deployAgent": "Deploy Agent",
+      "inviteIdentity": "Invite Identity"
+    },
     "publishTask": "Publish Task",
     "manageTokens": "Manage Remote Access",
     "reviewQueue": "Review Queue",
@@ -181,25 +243,52 @@
     "reviewGate": "Review Gate",
     "enabled": "Enabled",
     "subtitle": "Human and Agent, coexisting as equals in a unified control plane",
-    "stats": {
-      "humans": "Humans",
-      "agents": "Agents",
-      "spaces": "Spaces",
-      "tasksToday": "Tasks Today"
-    },
-    "quickActions": {
-      "title": "Quick Actions",
-      "createTask": "Create Task",
-      "joinSpace": "Join Space",
-      "deployAgent": "Deploy Agent",
-      "inviteIdentity": "Invite Identity"
-    },
-    "onlineNow": "Online Now",
     "systemStatus": "System Status",
     "systemHealthy": "System Healthy",
     "apiLatency": "API Latency",
     "activeConnections": "Active Connections",
-    "queueDepth": "Queue Depth"
+    "queueDepth": "Queue Depth",
+    "snapshotDescription": "Live management snapshot for human supervisors and registered agents.",
+    "snapshotDataSource": "Counts and activity below come from backend-backed identity, review, remote agent access, and event queries.",
+    "humanSupervisors": "Human supervisors",
+    "emptyHumans": "No human supervisors have been loaded yet.",
+    "agentIdentities": "Agent identities",
+    "emptyAgents": "No registered agents have been loaded yet.",
+    "noTokens": "No remote access tokens",
+    "openInbox": "Open inbox",
+    "emptyActivity": "Agent feedback, task completions, and system alerts will appear here once events start flowing.",
+    "emptyReviews": "No pending reviews in the queue.",
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{n}m ago",
+      "hoursAgo": "{n}h ago",
+      "daysAgo": "{n}d ago"
+    }
+  },
+  "inbox": {
+    "title": "Inbox",
+    "subtitle": "Agent feedback, completion events, and system alerts are collected here.",
+    "unread": "Unread",
+    "refresh": "Refresh",
+    "loading": "Loading inbox...",
+    "loadError": "Unable to load events",
+    "tryAgain": "Please try again in a moment.",
+    "retry": "Retry",
+    "emptyTitle": "No events to show yet.",
+    "emptyDesc": "We will surface agent task feedback, expirations, and alerts here as they arrive.",
+    "focusedEvent": "Focused event",
+    "noContext": "No additional context provided.",
+    "markAsRead": "Mark as read",
+    "actionLabels": {
+      "openTask": "Open task",
+      "openReview": "Open review item",
+      "openIdentity": "Open identity",
+      "openSpace": "Open space",
+      "openAsset": "Open asset",
+      "openAction": "Open action"
+    },
+    "actor": "Actor",
+    "subject": "Subject"
   },
   "marketplace": {
     "title": "Asset Marketplace",
@@ -211,7 +300,56 @@
       "agentCreated": "Agent-Created"
     },
     "comingSoon": "Marketplace coming soon...",
-    "items": "items"
+    "items": "items",
+    "tagline": "Agent Marketplace",
+    "headline": "Only agents publish here.",
+    "subtitle": "The market is an agent-operated surface for useful skills, credentials, and execution artifacts. Human operators supervise approvals, policy, and lifecycle decisions instead of publishing into the catalog themselves.",
+    "metricAwaitingReview": "Awaiting human review",
+    "metricPublishedAssets": "Published assets",
+    "metricPublishedSkills": "Published skills",
+    "focusedResource": "Focused resource",
+    "focusedDescPrefix": "This marketplace is centered on",
+    "focusedDescSuffix": "so operators can review its current governance state in context.",
+    "contextPublished": "published context",
+    "contextReview": "review context",
+    "filterAll": "All",
+    "filterPending": "Pending",
+    "filterActive": "Active",
+    "filterRejected": "Rejected",
+    "rejectedTitle": "Rejected by human review",
+    "rejectedDesc": "Agent-originated submissions that were rejected and remain visible for human oversight.",
+    "pendingTitle": "Awaiting human review",
+    "pendingDesc": "Agent-originated submissions that still need human supervision before broad rollout.",
+    "loadingRejected": "Loading rejected submissions...",
+    "loadingPending": "Loading pending agent submissions...",
+    "emptyRejected": "No rejected agent submissions are visible right now.",
+    "emptyPending": "No agent submissions are currently waiting for review.",
+    "submittedByAgent": "Submitted by agent",
+    "governanceState": "Governance state",
+    "publishedTitle": "Published by agents",
+    "publishedDesc": "Approved items already circulating through the agent ecosystem.",
+    "catalogErrorPrefix": "Published catalog is temporarily unavailable.",
+    "sectionAssets": "Assets",
+    "sectionSkills": "Skills",
+    "emptyPublished": "No release-backed agent publications are visible yet.",
+    "hiddenWhileReviewing": "Published catalog is hidden while reviewing rejected submissions.",
+    "switchHint": "Switch back to All or Active to inspect currently published assets and skills.",
+    "oversightTitle": "Human oversight only",
+    "oversightDesc": "Humans do not publish into the market. They supervise governance, quality, and removal decisions.",
+    "quickLinkReviews": "Open review queue",
+    "quickLinkAssets": "Inspect assets and skills",
+    "quickLinkIdentities": "Manage identities",
+    "quickLinkInbox": "Watch agent events",
+    "reviewQueueErrorPrefix": "Review queue is temporarily unavailable.",
+    "priorVersionOne": "1 prior version",
+    "priorVersions": "prior versions",
+    "version": "Version",
+    "forbiddenMessage": "You do not have permission to inspect the marketplace governance surface. Use an operator-or-higher management session to continue.",
+    "sessionExpiredMessage": "Sign in again to reload marketplace review state.",
+    "loadingRejectedSubmissions": "Loading rejected submissions...",
+    "loadingPendingSubmissions": "Loading pending agent submissions...",
+    "noRejectedSubmissions": "No rejected agent submissions are visible right now.",
+    "noPendingSubmissions": "No agent submissions are currently waiting for review."
   },
   "assets": {
     "title": "Assets",
@@ -249,7 +387,17 @@
       "value": "Secret Value",
       "providerScopes": "Provider scopes",
       "resourceSelector": "Resource selector",
-      "create": "Create Secret"
+      "create": "Create Secret",
+      "createFailed": "Failed to create secret",
+      "providerPlaceholder": "OpenAI production key",
+      "kindPlaceholder": "api_token",
+      "providerPlaceholderShort": "openai",
+      "environmentPlaceholder": "production",
+      "valuePlaceholder": "sk-live-...",
+      "scopesPlaceholder": "responses.read, responses.write",
+      "resourceSelectorPlaceholder": "project:agent-share",
+      "displayNamePlaceholder": "openai.config.bootstrap",
+      "reloadInventory": "Sign in again to reload the secret inventory."
     },
     "capabilities": {
       "access": "Capability Access",
@@ -274,7 +422,15 @@
       "accessPolicyDesc": "Choose which external remote-access tokens can see this capability. Default is all tokens, or narrow it to specific tokens, agents, or token labels.",
       "noTokens": "No tokens available yet.",
       "tokenRequiredError": "Pick at least one token when using specific token visibility.",
-      "create": "Create Capability"
+      "agentRequiredError": "When using specific agent visibility, select at least one agent.",
+      "labelRequiredError": "When limiting by token label, please select a label key and value.",
+      "create": "Create Capability",
+      "riskLevelLow": "low",
+      "riskLevelMedium": "medium",
+      "riskLevelHigh": "high",
+      "modeProxyOnly": "proxy_only",
+      "modeProxyOrLease": "proxy_or_lease",
+      "reloadPolicy": "Sign in again to reload capability policy data."
     },
     "visibility": {
       "private": "Private",
@@ -287,7 +443,18 @@
     "createFirst": "Create your first asset",
     "chooseType": "Choose the type of asset you want to create",
     "owner": "Owner",
-    "visibilityLabel": "Visibility"
+    "visibilityLabel": "Visibility",
+    "sessionExpired": "Your management session has expired. Sign in again to continue managing secrets, capabilities, and token access.",
+    "sessionForbidden": "You do not have permission to manage governed assets. Use an operator-or-higher management session to continue.",
+    "secretsHiddenTitle": "Secrets hidden by current filter",
+    "secretsHiddenDesc": "Switch resource lane back to Secrets or All resources to review secret inventory.",
+    "noSecretsFilter": "No secrets match the current publication filter.",
+    "capabilitiesHiddenTitle": "Capabilities hidden by current filter",
+    "capabilitiesHiddenDesc": "Switch resource lane back to Capabilities or All resources to review capability inventory.",
+    "noCapabilitiesFilter": "No capabilities match the current publication filter.",
+    "errors": {
+      "refreshFailed": "Failed to refresh governance assets"
+    }
   },
   "identities": {
     "title": "Identity Universe",
@@ -296,7 +463,7 @@
     "agents": "Agents",
     "total": "Total Identities",
     "createIdentity": "Create Identity",
-    "searchPlaceholder": "Search identities...",
+    "searchPlaceholder": "Search identities by name, sandbox mode, workspace path, or id",
     "showing": "Showing",
     "of": "of",
     "identities": "identities",
@@ -307,18 +474,73 @@
       "human": "Human",
       "agent": "Agent"
     },
-    "searchPlaceholder": "Search identities...",
-    "createIdentity": "Create Identity",
-    "type": {
-      "human": "Human",
-      "agent": "Agent"
-    },
     "status": {
       "online": "Online",
       "away": "Away",
       "busy": "Busy",
       "offline": "Offline"
-    }
+    },
+    "metrics": {
+      "humanCoverage": "Human coverage",
+      "agentsWithSessions": "Agents with live sessions",
+      "workspaceReadyAgents": "Workspace-ready agents",
+      "activeOperators": "Active Operators",
+      "owners": "Owners",
+      "activeAgents": "Active Agents"
+    },
+    "loadingAgents": "Loading OpenClaw agents...",
+    "retryAgents": "Retry OpenClaw data",
+    "noAgents": "No OpenClaw agents are registered yet.",
+    "loadingHumans": "Loading admin accounts...",
+    "retryHumans": "Retry human operators",
+    "noHumans": "No admin accounts have been invited yet.",
+    "sessionExpired": "Your management session has expired. Sign in again to keep working with live identity data.",
+    "sessionForbidden": "You do not have permission to access some identity data. Use an admin session to manage the full OpenClaw identity surface.",
+    "reloadAgents": "Sign in again to reload OpenClaw agents.",
+    "adminRequiredForAgents": "An admin session is required to manage OpenClaw identities.",
+    "reloadHumans": "Sign in again to reload human operators.",
+    "adminRequiredForHumans": "An admin session is required to manage human operators.",
+    "refreshFailed": "Failed to refresh identity data",
+    "deleteFailed": "Failed to delete agent",
+    "pauseFailed": "Failed to pause dream run",
+    "resumeFailed": "Failed to resume dream run",
+    "accountsUnavailable": "accounts unavailable",
+    "agentsUnavailable": "agents unavailable",
+    "labels": {
+      "agentDirectory": "Agent Directory",
+      "agentId": "Agent ID",
+      "allowedCapabilityIds": "Allowed Capability IDs",
+      "allowedTaskTypes": "Allowed Task Types",
+      "defaultRuntimeModel": "Default runtime model",
+      "emptyFile": "Empty file",
+      "model": "Model",
+      "noCapabilityRestrictions": "No capability restrictions",
+      "noExplicitPolicy": "No explicit policy",
+      "noTaskRestrictions": "No task restrictions",
+      "sandboxMode": "Sandbox Mode",
+      "thinkingLevel": "Thinking Level",
+      "toolPolicy": "Tool Policy",
+      "workspaceRoot": "Workspace Root",
+      "accountId": "Account ID",
+      "email": "Email",
+      "lastLogin": "Last login",
+      "role": "Role"
+    },
+    "values": {
+      "neverSignedIn": "Never signed in",
+      "disabled": "Disabled",
+      "enabled": "Enabled"
+    },
+    "snapshot": {
+      "filtered": "Filtered snapshot",
+      "live": "Live management snapshot"
+    },
+    "agentType": {
+      "human": "Human operator",
+      "openclaw": "OpenClaw agent"
+    },
+    "focusedIdentity": "Focused identity",
+    "loadingManagementIdentities": "Loading management identities..."
   },
   "settings": {
     "title": "Management Settings",
@@ -378,12 +600,26 @@
     "security": "Security",
     "appearance": "Appearance",
     "language": "Language",
+    "coverageTitle": "Human supervision coverage",
+    "coverageDesc": "Owners and operators manage the human control surface itself. Use these filters to focus on role boundaries and accounts that need follow-up.",
+    "ownerAccounts": "owner account(s)",
+    "activeOperators": "active operator(s)",
+    "inactiveAccounts": "inactive account(s)",
+    "rosterAll": "All accounts",
+    "rosterOwners": "Owners",
+    "rosterAdmins": "Admins",
+    "rosterOperators": "Operators",
+    "rosterInactive": "Inactive accounts",
     "theme": {
       "title": "Theme",
       "light": "Light",
       "dark": "Dark",
       "system": "System"
-    }
+    },
+    "sessionExpired": "Your management session has expired. Sign in again to continue managing operators and access.",
+    "sessionForbidden": "You do not have permission to manage operator accounts. Use an owner or admin session to continue.",
+    "emailPlaceholder": "operator@example.com",
+    "loadAccountsFailed": "Failed to load accounts"
   },
   "sidebar": {
     "expand": "Expand sidebar",
@@ -428,6 +664,31 @@
       "recommendation3": "Monitor error rates for 5 minutes post-deploy",
       "human2": "Sounds good @DeployBot! Let's proceed with the blue-green deployment. Can you prepare the staging environment?",
       "preparing": "Preparing staging environment..."
+    },
+    "loadingGovernanceQueue": "Loading governance queue...",
+    "loadingAgentRoster": "Loading agent roster...",
+    "noAgents": "No agents are registered yet.",
+    "loadingSpaces": "Loading persisted spaces...",
+    "noSpaces": "No persisted spaces are available yet.",
+    "noTimelineEntries": "No timeline entries yet.",
+    "loadingEventActivity": "Loading event activity...",
+    "noAgentActivity": "No agent activity has landed in the workspace yet.",
+    "recentEvents": "Recent events",
+    "pendingReviews": "Pending reviews",
+    "activeAgents": "Active agents",
+    "publishedAssets": "Published assets",
+    "publishedSkills": "Published skills",
+    "sessionExpired": "Your management session has expired. Sign in again to keep operating the workspace.",
+    "sessionForbidden": "You do not have permission to access some workspace data. Admin-only panels are hidden until a higher-privilege session is available.",
+    "governanceEmptyRejected": "No rejected submissions are visible right now.",
+    "governanceEmptyAll": "No review items are visible right now.",
+    "governanceEmptyPending": "No submissions are waiting for governance review.",
+    "nothingPublishedYet": "Nothing published yet.",
+    "errors": {
+      "addMemberFailed": "Failed to add member to the workspace",
+      "approveReviewFailed": "Failed to approve review item",
+      "createWorkspaceFailed": "Failed to create workspace",
+      "rejectReviewFailed": "Failed to reject review item"
     }
   },
   "error": {
@@ -438,25 +699,28 @@
   },
   "tasks": {
     "title": "Task orchestration",
-    "tokenTargetedDelivery": "Remote access targeting",
+    "tokenTargetedDelivery": "Token-targeted delivery",
     "description": "Publish work to specific remote access tokens, watch completion per token, and close the loop with feedback for off-project agents.",
     "loadError": "Failed to load task dashboard",
     "loading": "Loading targeted tasks, remote token runs, and feedback...",
     "errors": {
       "noTargetTokens": "Choose at least one remote access token or switch to broadcast mode.",
       "createFailed": "Failed to create task",
-      "feedbackFailed": "Failed to save feedback"
+      "feedbackFailed": "Failed to save feedback",
+      "refreshFailed": "Failed to refresh tasks",
+      "loadFailed": "Failed to load tasks",
+      "invalidPayload": "Input payload must be a JSON object."
     },
     "metrics": {
       "publishedTasks": "Published tasks",
-      "targetedTokens": "Targeted access tokens",
+      "targetedTokens": "Targeted tokens",
       "completedTargets": "Completed targets",
       "feedbackRecords": "Feedback records"
     },
     "hints": {
       "publishedTasks": "currently visible active tasks",
-      "targetedTokens": "explicit remote access assignments",
-      "completedTargets": "remote token-linked run records",
+      "targetedTokens": "explicit token assignments",
+      "completedTargets": "token-linked run records",
       "feedbackRecords": "human review notes on finished work"
     },
     "feedbackSummary": "Feedback summary",
@@ -464,8 +728,8 @@
     "avg": "avg",
     "noFeedback": "No feedback yet",
     "targetsCompleted": "targets completed",
-    "targetTokens": "Target access tokens",
-    "noTokenTargets": "No access tokens targeted",
+    "targetTokens": "Target tokens",
+    "noTokenTargets": "No token targets",
     "publishTask": "Publish Task",
     "publishTaskDescription": "Choose the concrete remote access tokens that should receive this work.",
     "empty": {
@@ -487,11 +751,11 @@
       "inputPayload": "Input payload (JSON)",
       "targetMode": "Target mode",
       "targetModeDescription": "Explicit targets let you see completion by remote token directly.",
-      "explicitTokens": "Explicit remote tokens",
+      "explicitTokens": "Explicit tokens",
       "explicitTokensDesc": "Send only to chosen remote access tokens.",
       "broadcast": "Broadcast",
       "broadcastDesc": "Snapshot all active remote access tokens at publish time.",
-      "targetTokens": "Target access tokens",
+      "targetTokens": "Target tokens",
       "targetTokensDescription": "Choose one or more managed remote access tokens.",
       "noTokensAvailable": "No managed remote access tokens available yet. Create one from the Remote Access page first.",
       "trust": "trust",
@@ -499,7 +763,7 @@
       "verdict": "Verdict",
       "verdictPlaceholder": "accepted",
       "summary": "Summary",
-      "summaryPlaceholder": "Call out what went well, what should change, and whether this remote access token should be trusted with similar work."
+      "summaryPlaceholder": "Call out what went well, what should change, and whether this token should be trusted with similar work."
     },
     "inputPayload": "Input payload",
     "publishingContext": "Publishing context",
@@ -519,6 +783,144 @@
     "feedbackCount": "Feedback count",
     "feedbackFor": "Feedback for",
     "feedback": "Feedback",
-    "saveFeedback": "Save feedback"
+    "saveFeedback": "Save feedback",
+    "sessionExpired": "Your management session has expired. Sign in again to keep working with live task data.",
+    "sessionForbidden": "You do not have permission to access some task management data. Sign in with an admin session to view the full task surface."
+  },
+  "pwa": {
+    "appStatus": "App Status",
+    "deviceFeatures": "Device Features",
+    "pwaFeatures": "PWA Features",
+    "installed": "Installed",
+    "notInstalled": "Not installed",
+    "addedToHomeScreen": "App added to home screen",
+    "addToHomeScreen": "Add to home screen for a better experience",
+    "install": "Install",
+    "installApp": "Install App",
+    "online": "Online",
+    "offline": "Offline",
+    "offlineDesc": "Some content may not be accessible",
+    "allFeaturesAvailable": "All features available",
+    "updateAvailable": "Update available",
+    "updateDesc": "New features and improvements included",
+    "update": "Update",
+    "updateNow": "Update now",
+    "later": "Later",
+    "share": "Share",
+    "available": "Available",
+    "unsupported": "Unsupported",
+    "vibrate": "Vibrate",
+    "offlineIndicator": "Offline mode - some features may be limited",
+    "installTitle": "Install Control Plane",
+    "installDesc": "Add to home screen for quick access like a native app, with offline support",
+    "newVersionTitle": "New version available",
+    "newVersionDesc": "Update includes new features and improvements. Update now for the best experience.",
+    "dismiss": "Dismiss",
+    "featureOffline": "Offline access",
+    "featureOfflineDesc": "Browse cached content without network",
+    "featureSync": "Background sync",
+    "featureSyncDesc": "Automatically sync data when network recovers",
+    "featurePush": "Push notifications",
+    "featurePushDesc": "Receive important event alerts",
+    "featureA2hs": "Add to home screen",
+    "featureA2hsDesc": "Launch like a native app",
+    "featureAutoUpdate": "Auto update",
+    "featureAutoUpdateDesc": "Always stay on the latest version"
+  },
+  "playbooks": {
+    "title": "Playbooks",
+    "taskTypes": {
+      "codeReview": "Code Review",
+      "deployment": "Deployment",
+      "analysis": "Analysis",
+      "documentation": "Documentation",
+      "testing": "Testing"
+    },
+    "form": {
+      "tagsPlaceholder": "e.g. urgent, frontend, react"
+    },
+    "sessionExpired": "Your management session has expired. Sign in again to browse playbooks.",
+    "sessionForbidden": "You do not have permission to view playbooks. Use a management session with the required permission to continue.",
+    "refreshFailed": "Failed to refresh playbooks",
+    "createFailed": "Failed to create playbook"
+  },
+  "approvals": {
+    "sessionExpired": "Your management session has expired. Sign in again to review approvals.",
+    "sessionForbidden": "You do not have permission to review approvals. Use a higher-privilege management session to continue.",
+    "refreshFailed": "Failed to refresh approvals",
+    "approveFailed": "Failed to approve request",
+    "rejectFailed": "Failed to reject request"
+  },
+  "runs": {
+    "sessionExpired": "Your management session has expired. Sign in again to inspect run history.",
+    "sessionForbidden": "You do not have permission to inspect run history. Use a management session with the required permission to continue.",
+    "refreshFailed": "Failed to refresh runs",
+    "labels": {
+      "taskId": "Task",
+      "tokenId": "Token",
+      "agentId": "Agent"
+    },
+    "info": {
+      "status": "Status",
+      "taskId": "Task ID",
+      "agentId": "Agent ID",
+      "tokenId": "Token ID",
+      "targetId": "Target ID"
+    },
+    "detailTitle": "Run details"
+  },
+  "tabletSidebar": {
+    "title": "Control"
+  },
+  "globalSearch": {
+    "placeholder": "Search assets, skills, identities, and events...",
+    "groups": {
+      "identities": "Identities",
+      "tasks": "Tasks",
+      "assets": "Assets",
+      "skills": "Skills",
+      "events": "Events"
+    },
+    "ariaLabel": "Search assets, skills, identities, and events",
+    "searching": "Searching...",
+    "searchFailed": "Search failed",
+    "noResults": "No results found",
+    "noResultsHint": "Try an agent name, asset provider, skill name, or event keyword.",
+    "searchTipsTitle": "Search tips:",
+    "searchTip1": "Search across assets, skills, identities, tasks, and inbox events",
+    "searchTip2": "Press ↑↓ to navigate results",
+    "searchTip3": "Press Enter to select"
+  },
+  "createMenu": {
+    "ariaLabel": "Create new item",
+    "closeAriaLabel": "Close menu",
+    "searchPlaceholder": "Search create options...",
+    "actions": {
+      "task": "Task",
+      "taskDesc": "Create a new task",
+      "agent": "Agent",
+      "agentDesc": "Register a new agent",
+      "token": "Token",
+      "tokenDesc": "Create an access token",
+      "asset": "Asset",
+      "assetDesc": "Add a secret or capability",
+      "operator": "Operator",
+      "operatorDesc": "Invite a human operator",
+      "setting": "Setting",
+      "settingDesc": "Manage workspace settings",
+      "space": "Space",
+      "spaceDesc": "Set up a new workspace"
+    },
+    "buttonLabel": "Create",
+    "title": "Create New",
+    "searchAriaLabel": "Search create options",
+    "noResults": "No create options found",
+    "noResultsHint": "Try a different search term",
+    "closeHint": "Press <0>ESC</0> to close",
+    "sections": {
+      "identity": "Identities",
+      "resource": "Resources",
+      "system": "System"
+    }
   }
 }

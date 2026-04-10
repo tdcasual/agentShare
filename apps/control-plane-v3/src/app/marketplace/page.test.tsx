@@ -35,6 +35,12 @@ vi.mock('@/domains/catalog', () => ({
   useCatalog: () => useCatalogMock(),
 }));
 
+vi.mock('@/components/i18n-provider', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 describe('marketplace page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -111,15 +117,15 @@ describe('marketplace page', () => {
   it('shows agent-originated submissions and human oversight framing', () => {
     render(<MarketplacePage />);
 
-    expect(screen.getByText('Agent Marketplace')).toBeInTheDocument();
-    expect(screen.getByText(/Only agents publish here/i)).toBeInTheDocument();
+    expect(screen.getByText('marketplace.tagline')).toBeInTheDocument();
+    expect(screen.getByText(/marketplace.headline/i)).toBeInTheDocument();
     expect(screen.getAllByText('agent.market.capability').length).toBeGreaterThan(0);
     expect(screen.getByText('Agent Market Secret')).toBeInTheDocument();
-    expect(screen.getAllByText(/Awaiting human review/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Version 1/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/marketplace.pendingTitle/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/marketplace.version 1/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/published/i).length).toBeGreaterThan(0);
     expect(screen.getByText('Second release')).toBeInTheDocument();
-    expect(screen.getByText(/1 prior version/i)).toBeInTheDocument();
+    expect(screen.getByText(/marketplace.priorVersionOne/i)).toBeInTheDocument();
   });
 
   it('filters the marketplace catalog by review state', async () => {
@@ -156,7 +162,7 @@ describe('marketplace page', () => {
 
     render(<MarketplacePage />);
 
-    await user.click(screen.getByRole('button', { name: /rejected/i }));
+    await user.click(screen.getByRole('button', { name: /marketplace.filterRejected/i }));
 
     expect(screen.getByText('rejected.market.secret')).toBeInTheDocument();
     expect(screen.queryByText('Agent Market Secret')).not.toBeInTheDocument();
@@ -167,8 +173,8 @@ describe('marketplace page', () => {
 
     render(<MarketplacePage />);
 
-    expect(screen.getByText(/Focused resource/i)).toBeInTheDocument();
-    expect(screen.getByText(/marketplace is centered on/i)).toBeInTheDocument();
+    expect(screen.getByText(/marketplace.focusedResource/i)).toBeInTheDocument();
+    expect(screen.getByText(/marketplace.focusedDescPrefix/i)).toBeInTheDocument();
     expect(screen.getAllByText('agent.market.capability').length).toBeGreaterThan(1);
   });
 
@@ -181,6 +187,6 @@ describe('marketplace page', () => {
 
     render(<MarketplacePage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('marketplace.forbiddenMessage');
   });
 });

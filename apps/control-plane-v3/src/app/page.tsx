@@ -75,11 +75,11 @@ export default function HubPage() {
           className="w-full max-w-lg space-y-4 text-center"
         >
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.35em] text-pink-500">Control Plane V3</p>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">Control Plane V3</p>
+            <h1 className="text-3xl font-bold text-[var(--kw-text)]">
               {t('hub.unableToOpen')}
             </h1>
-            <p className="text-gray-600 dark:text-[#9CA3AF]">{error}</p>
+            <p className="text-[var(--kw-text-muted)]">{error}</p>
           </div>
         </Card>
       </div>
@@ -91,11 +91,11 @@ export default function HubPage() {
       <div className="flex min-h-screen items-center justify-center px-6">
         <Card variant="feature" className="w-full max-w-lg space-y-4 text-center">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.35em] text-pink-500">Control Plane V3</p>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">Control Plane V3</p>
+            <h1 className="text-3xl font-bold text-[var(--kw-text)]">
               {t('hub.routing')}
             </h1>
-            <p className="text-gray-600 dark:text-[#9CA3AF]">{t('hub.checkingStatus')}</p>
+            <p className="text-[var(--kw-text-muted)]">{t('hub.checkingStatus')}</p>
           </div>
         </Card>
       </div>
@@ -120,39 +120,30 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   const agents = agentsWithTokensQuery.agents;
   const tokensByAgent = agentsWithTokensQuery.tokensByAgent;
   const adminAccountList = adminAccounts ?? [];
-  const pendingReviews = useMemo(
-    () =>
-      (reviewsQuery.data?.items ?? []).filter(
-        (item) => item.publication_status === 'pending_review'
-      ),
-    [reviewsQuery.data]
+  const pendingReviews = (reviewsQuery.data?.items ?? []).filter(
+    (item) => item.publication_status === 'pending_review'
   );
-  const totalTokens = useMemo(
-    () => Object.values(tokensByAgent).reduce((count, tokens) => count + tokens.length, 0),
-    [tokensByAgent]
-  );
-  const tasksToday = useMemo(
-    () =>
-      events.filter((event) => isToday(event.created_at) && event.subject_type === 'task').length,
-    [events]
-  );
+  const totalTokens = Object.values(tokensByAgent).reduce((count, tokens) => count + tokens.length, 0);
+  const tasksToday = events.filter(
+    (event) => isToday(event.created_at) && event.subject_type === 'task'
+  ).length;
   const actorDirectory = useMemo(
     () => buildActorDirectory(adminAccounts ?? [], agents),
     [adminAccounts, agents]
   );
   const recentActivity = useMemo(
-    () => events.slice(0, 6).map((event) => buildActivityItem(event, actorDirectory)),
-    [events, actorDirectory]
+    () => events.slice(0, 6).map((event) => buildActivityItem(event, actorDirectory, t)),
+    [events, actorDirectory, t]
   );
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-6">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
-            {t('hub.welcome')} <span className="gradient-text">{t('hub.dualCosmos')}</span>
+          <h1 className="mb-2 text-3xl font-bold text-[var(--kw-text)]">
+            {t('hub.welcome')} {t('hub.dualCosmos')}
           </h1>
-          <p className="text-gray-600 dark:text-[#9CA3AF]">
+          <p className="text-[var(--kw-text-muted)]">
             {t('hub.signedInAs')} {email} {t('hub.withRole')} {role} {t('hub.access')}
           </p>
         </div>
@@ -164,42 +155,39 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         </Link>
       </div>
 
-      <Card className="border border-pink-100 bg-white/90 p-4 dark:bg-[#252540]/90">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+      <Card className="border border-[var(--kw-border)] bg-white/90 p-4 dark:bg-[var(--kw-dark-surface)]/90">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)]">
           <Badge variant="primary">{t('hub.inviteOnly')}</Badge>
-          <span>Live management snapshot for human supervisors and registered agents.</span>
-          <span className="text-gray-300">•</span>
-          <span>
-            Counts and activity below come from backend-backed identity, review, remote agent
-            access, and event queries.
-          </span>
+          <span>{t('hub.snapshotDescription')}</span>
+          <span className="text-[var(--kw-border)]">•</span>
+          <span>{t('hub.snapshotDataSource')}</span>
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          icon={<Users className="h-6 w-6 text-sky-600" />}
+          icon={<Users className="h-6 w-6 text-[var(--kw-sky-text)]" />}
           label={t('identities.humans')}
           value={adminAccountList.length}
           trend={t('hub.stats.humansTrend')}
           color="sky"
         />
         <StatCard
-          icon={<Bot className="h-6 w-6 text-green-600" />}
+          icon={<Bot className="h-6 w-6 text-[var(--kw-green-text)]" />}
           label={t('identities.agents')}
           value={agents.length}
           trend={t('hub.stats.agentsTrend')}
           color="green"
         />
         <StatCard
-          icon={<KeyRound className="h-6 w-6 text-purple-600" />}
+          icon={<KeyRound className="h-6 w-6 text-[var(--kw-purple-text)]" />}
           label={t('navigation.tokens')}
           value={totalTokens}
           trend={t('hub.stats.tokensTrend')}
           color="purple"
         />
         <StatCard
-          icon={<CheckSquare className="h-6 w-6 text-orange-600" />}
+          icon={<CheckSquare className="h-6 w-6 text-[var(--kw-orange-text)]" />}
           label={t('hub.reviewQueue')}
           value={pendingReviews.length}
           trend={t('hub.stats.tasksTrend')}
@@ -211,7 +199,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         <div className="space-y-6 lg:col-span-2">
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              <h2 className="text-xl font-semibold text-[var(--kw-text)]">
                 {t('identities.title')}
               </h2>
               <div className="flex gap-2">
@@ -227,8 +215,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Card className="space-y-4 p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">
-                    Human supervisors
+                  <h3 className="font-semibold text-[var(--kw-text)]">
+                    {t('hub.humanSupervisors')}
                   </h3>
                   <Badge variant="human">{adminAccountList.length}</Badge>
                 </div>
@@ -236,14 +224,14 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                   {adminAccountList.map((account) => (
                     <div
                       key={account.id}
-                      className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60"
+                      className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                          <p className="font-medium text-[var(--kw-text)]">
                             {account.display_name}
                           </p>
-                          <p className="mt-1 break-all text-sm text-gray-500 dark:text-[#9CA3AF]">
+                          <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
                             {account.email}
                           </p>
                         </div>
@@ -254,8 +242,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                     </div>
                   ))}
                   {adminAccountList.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-500 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55 dark:text-[#9CA3AF]">
-                      No human supervisors have been loaded yet.
+                    <div className="rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55 dark:text-[var(--kw-dark-text-muted)]">
+                      {t('hub.emptyHumans')}
                     </div>
                   ) : null}
                 </div>
@@ -263,8 +251,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
               <Card className="space-y-4 p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">
-                    Agent identities
+                  <h3 className="font-semibold text-[var(--kw-text)]">
+                    {t('hub.agentIdentities')}
                   </h3>
                   <Badge variant="agent">{agents.length}</Badge>
                 </div>
@@ -272,14 +260,14 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                   {agents.map((agent) => (
                     <div
                       key={agent.id}
-                      className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60"
+                      className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                          <p className="font-medium text-[var(--kw-text)]">
                             {agent.name}
                           </p>
-                          <p className="mt-1 break-all text-sm text-gray-500 dark:text-[#9CA3AF]">
+                          <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
                             {agent.id}
                           </p>
                         </div>
@@ -297,16 +285,16 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                           </Badge>
                         ))}
                         {(tokensByAgent[agent.id] ?? []).length === 0 ? (
-                          <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">
-                            No remote access tokens
+                          <span className="text-xs text-[var(--kw-text-muted)]">
+                            {t('hub.noTokens')}
                           </span>
                         ) : null}
                       </div>
                     </div>
                   ))}
                   {agents.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-500 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55 dark:text-[#9CA3AF]">
-                      No registered agents have been loaded yet.
+                    <div className="rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55 dark:text-[var(--kw-dark-text-muted)]">
+                      {t('hub.emptyAgents')}
                     </div>
                   ) : null}
                 </div>
@@ -316,47 +304,46 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              <h2 className="text-xl font-semibold text-[var(--kw-text)]">
                 {t('hub.recentActivity')}
               </h2>
               <Link href="/inbox">
                 <Button variant="ghost" size="sm">
-                  Open inbox <ArrowRight className="ml-1 h-4 w-4" />
+                  {t('hub.openInbox')} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
             <Card className="overflow-hidden p-0">
-              <div className="divide-y divide-pink-100">
+              <div className="divide-y divide-[var(--kw-border)]">
                 {recentActivity.length === 0 && (
-                  <div className="p-6 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    Agent feedback, task completions, and system alerts will appear here once events
-                    start flowing.
+                  <div className="p-6 text-sm text-[var(--kw-text-muted)]">
+                    {t('hub.emptyActivity')}
                   </div>
                 )}
                 {recentActivity.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-center gap-4 p-4 transition-colors hover:bg-pink-50/30"
+                    className="flex items-center gap-4 p-4 transition-colors hover:bg-[var(--kw-primary-50)]/30"
                   >
                     <div
                       className={cn(
                         'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-sm font-semibold',
                         activity.actorType === 'agent'
-                          ? 'bg-green-100 text-green-700 dark:bg-[#2D4A3D] dark:text-green-300'
-                          : 'bg-sky-100 text-sky-700 dark:bg-[#2D4A5D] dark:text-sky-300'
+                          ? 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-green-accent-surface)] dark:text-[var(--kw-dark-mint)]'
+                          : 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:bg-[var(--kw-dark-sky-accent-surface)] dark:text-[var(--kw-dark-sky)]'
                       )}
                     >
                       {activity.actorLabel.slice(0, 1).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-800 dark:text-[#E8E8EC]">
+                      <p className="text-sm text-[var(--kw-text)]">
                         {activity.summary}
                       </p>
-                      <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-[#9CA3AF]">
+                      <p className="mt-0.5 truncate text-xs text-[var(--kw-text-muted)]">
                         {activity.actorLabel} · {activity.details}
                       </p>
-                      <p className="mt-0.5 text-xs text-gray-400">{activity.time}</p>
+                      <p className="mt-0.5 text-xs text-[var(--kw-text-muted)]">{activity.time}</p>
                     </div>
                     <Badge variant={activity.badgeVariant} className="flex-shrink-0">
                       {activity.badgeLabel}
@@ -370,7 +357,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-4 font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">
               {t('hub.quickActions')}
             </h3>
             <div className="space-y-3">
@@ -398,22 +385,22 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           </Card>
 
           <Card className="p-6">
-            <h3 className="mb-4 font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">
               {t('hub.reviewQueue')}
             </h3>
             <div className="space-y-2">
               {pendingReviews.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-4 text-sm text-gray-500 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/55 dark:text-[#9CA3AF]">
-                  No pending reviews in the queue.
+                <div className="rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55 dark:text-[var(--kw-dark-text-muted)]">
+                  {t('hub.emptyReviews')}
                 </div>
               ) : (
                 pendingReviews.slice(0, 4).map((item) => (
                   <div
                     key={`${item.resource_kind}-${item.resource_id}`}
-                    className="rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60"
+                    className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
                   >
-                    <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{item.title}</p>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                    <p className="font-medium text-[var(--kw-text)]">{item.title}</p>
+                    <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                       {item.resource_kind} · {item.created_by_actor_id ?? 'unknown-agent'}
                     </p>
                   </div>
@@ -422,25 +409,25 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             </div>
           </Card>
 
-          <Card className="border-green-100 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
+          <Card className="border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)] p-6">
             <div className="mb-3 flex items-center gap-3">
-              <div className="h-3 w-3 animate-pulse rounded-full bg-green-500" />
-              <h3 className="font-semibold text-green-800">{t('hub.controlSurfaceReady')}</h3>
+              <div className="h-3 w-3 animate-pulse rounded-full bg-[var(--kw-green-text)]" />
+              <h3 className="font-semibold text-[var(--kw-green-text)]">{t('hub.controlSurfaceReady')}</h3>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-[var(--kw-green-text)]">
                 <span>{t('hub.bootstrap')}</span>
                 <span className="font-medium">{t('hub.initialized')}</span>
               </div>
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-[var(--kw-green-text)]">
                 <span>{t('hub.managementSession')}</span>
                 <span className="font-medium">{t('hub.active')}</span>
               </div>
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-[var(--kw-green-text)]">
                 <span>{t('hub.reviewGate')}</span>
                 <span className="font-medium">{t('hub.enabled')}</span>
               </div>
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-[var(--kw-green-text)]">
                 <span>{t('hub.tasksToday')}</span>
                 <span className="font-medium">{tasksToday}</span>
               </div>
@@ -466,10 +453,10 @@ const StatCard = memo(function StatCard({
   color: 'sky' | 'green' | 'purple' | 'orange';
 }) {
   const colorClasses = {
-    sky: 'bg-sky-50 text-sky-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
+    sky: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)]',
+    green: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]',
+    purple: 'bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)]',
+    orange: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]',
   };
 
   return (
@@ -483,9 +470,9 @@ const StatCard = memo(function StatCard({
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
-        <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{label}</p>
-        <p className="mt-1 text-xs text-gray-400">{trend}</p>
+        <p className="text-2xl font-bold text-[var(--kw-text)]">{value}</p>
+        <p className="text-sm text-[var(--kw-text-muted)]">{label}</p>
+        <p className="mt-1 text-xs text-[var(--kw-text-muted)]">{trend}</p>
       </div>
     </Card>
   );
@@ -503,9 +490,9 @@ const ActionButton = memo(function ActionButton({
   return (
     <Link
       href={href}
-      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-gray-700 transition-colors hover:bg-pink-50 dark:text-[#E8E8EC]"
+      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)]"
     >
-      <span className="text-pink-500">{icon}</span>
+      <span className="text-[var(--kw-primary-500)]">{icon}</span>
       <span className="font-medium">{label}</span>
     </Link>
   );
@@ -526,7 +513,7 @@ function isToday(timestamp: string) {
   );
 }
 
-function formatRelativeTime(timeString: string) {
+function formatRelativeTime(timeString: string, t: (key: string, options?: Record<string, unknown>) => string) {
   const date = new Date(timeString);
   const now = new Date();
   const diffMs = Math.max(0, now.getTime() - date.getTime());
@@ -535,16 +522,16 @@ function formatRelativeTime(timeString: string) {
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMins < 1) {
-    return 'Just now';
+    return t('hub.time.justNow');
   }
   if (diffMins < 60) {
-    return `${diffMins}m ago`;
+    return t('hub.time.minutesAgo', { n: diffMins });
   }
   if (diffHours < 24) {
-    return `${diffHours}h ago`;
+    return t('hub.time.hoursAgo', { n: diffHours });
   }
   if (diffDays < 7) {
-    return `${diffDays}d ago`;
+    return t('hub.time.daysAgo', { n: diffDays });
   }
   return date.toLocaleDateString();
 }
@@ -594,7 +581,8 @@ function buildActorDirectory(
 
 function buildActivityItem(
   event: Event,
-  actorDirectory: Map<string, { label: string; type: 'human' | 'agent' }>
+  actorDirectory: Map<string, { label: string; type: 'human' | 'agent' }>,
+  t: (key: string, options?: Record<string, unknown>) => string
 ) {
   const actor = actorDirectory.get(event.actor_id);
 
@@ -602,7 +590,7 @@ function buildActivityItem(
     id: event.id,
     summary: event.summary,
     details: event.details ?? `${event.subject_type} ${event.subject_id}`,
-    time: formatRelativeTime(event.created_at),
+    time: formatRelativeTime(event.created_at, t),
     actorLabel: actor?.label ?? event.actor_id,
     actorType: actor?.type ?? event.actor_type,
     badgeLabel: eventBadgeLabel(event),

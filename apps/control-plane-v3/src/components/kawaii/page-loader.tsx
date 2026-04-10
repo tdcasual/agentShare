@@ -23,14 +23,14 @@ export function PageLoader({
   minHeight = '60vh',
 }: PageLoaderProps) {
   const containerClasses = fullScreen
-    ? 'min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]'
+    ? 'min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]'
     : `min-h-[${minHeight}]`;
 
   return (
     <div className={`flex items-center justify-center ${containerClasses}`}>
       <div className="flex flex-col items-center gap-4">
         <CuteSpinner size={fullScreen ? 'lg' : 'md'} />
-        <p className="animate-pulse text-gray-500 dark:text-gray-400">{message}</p>
+        <p className="animate-pulse text-[var(--kw-text-muted)]">{message}</p>
       </div>
     </div>
   );
@@ -43,7 +43,7 @@ export function InlineLoader({ message }: { message?: string }) {
   return (
     <div className="flex items-center justify-center gap-3 py-8">
       <CuteSpinner size="sm" />
-      {message && <span className="text-sm text-gray-500 dark:text-gray-400">{message}</span>}
+      {message && <span className="text-sm text-[var(--kw-text-muted)]">{message}</span>}
     </div>
   );
 }
@@ -57,7 +57,7 @@ export function SkeletonLoader({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="h-20 animate-pulse rounded-2xl bg-pink-100/50 dark:bg-pink-900/20"
+          className="h-20 animate-pulse rounded-2xl bg-[var(--kw-primary-100)]/50 dark:bg-[var(--kw-dark-pink-surface)]/20"
         />
       ))}
     </div>

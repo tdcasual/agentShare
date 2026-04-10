@@ -49,7 +49,7 @@ export function MobileNav() {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className="safe-area-pb fixed bottom-0 left-0 right-0 z-50 border-t border-pink-100 bg-white/90 backdrop-blur-md dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+      <nav className="safe-area-pb fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--kw-border)] bg-white/90 backdrop-blur-md dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex items-center justify-around px-2 py-2">
           {mainItems.map((item) => {
             const Icon = item.icon;
@@ -61,10 +61,10 @@ export function MobileNav() {
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-all duration-200',
+                  'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-colors transition-transform duration-200',
                   isActive
-                    ? 'bg-pink-50 text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]'
-                    : 'text-gray-500 hover:text-pink-500 dark:text-[#9CA3AF] dark:hover:text-[#E891C0]'
+                    ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
+                    : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
                 )}
               >
                 <Icon className={cn('h-5 w-5', isActive && 'scale-110')} aria-hidden="true" />
@@ -81,10 +81,10 @@ export function MobileNav() {
             aria-label={t('common.more') || 'More'}
             type="button"
             className={cn(
-              'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-all duration-200',
+              'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-colors transition-transform duration-200',
               showMore
-                ? 'bg-pink-50 text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]'
-                : 'text-gray-500 hover:text-pink-500 dark:text-[#9CA3AF] dark:hover:text-[#E891C0]'
+                ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
+                : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
             )}
           >
             <Sparkles className="h-5 w-5" />
@@ -102,7 +102,7 @@ export function MobileNav() {
             type="button"
             onClick={() => setShowMore(false)}
           />
-          <div className="fixed bottom-20 left-4 right-4 z-50 animate-slide-up rounded-3xl border border-pink-100 bg-white shadow-2xl dark:border-[#3D3D5C] dark:bg-[#252540]">
+          <div className="fixed bottom-20 left-4 right-4 z-50 animate-slide-up rounded-3xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
             <div className="space-y-1 p-4">
               {moreItems.map((item) => {
                 const Icon = item.icon;
@@ -114,10 +114,10 @@ export function MobileNav() {
                     href={item.href}
                     onClick={() => setShowMore(false)}
                     className={cn(
-                      'flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200',
+                      'flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200',
                       isActive
-                        ? 'bg-pink-50 text-pink-700 dark:bg-[#3D3D5C] dark:text-[#E891C0]'
-                        : 'text-gray-700 hover:bg-pink-50/50 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]/50'
+                        ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
+                        : 'text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)]/50 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50'
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -126,12 +126,12 @@ export function MobileNav() {
                 );
               })}
 
-              <hr className="my-2 border-pink-100 dark:border-[#3D3D5C]" />
+              <hr className="my-2 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />
 
               <Link
                 href="/settings"
                 onClick={() => setShowMore(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-gray-700 transition-all duration-200 hover:bg-pink-50/50 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]/50"
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-[var(--kw-text)] transition-colors duration-200 hover:bg-[var(--kw-primary-50)]/50 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50"
               >
                 <Settings className="h-5 w-5" />
                 <span className="font-medium">{t('navigation.settings')}</span>

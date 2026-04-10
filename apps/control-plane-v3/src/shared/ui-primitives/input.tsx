@@ -11,37 +11,46 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helper, icon, type = 'text', ...props }, ref) => {
+  ({ className, label, error, helper, icon, type = 'text', id: idProp, ...props }, ref) => {
+    const generatedId = React.useId();
+    const id = idProp ?? generatedId;
+    const errorId = error ? `${id}-error` : undefined;
+    const helperId = helper && !error ? `${id}-helper` : undefined;
+    const describedBy = [errorId, helperId].filter(Boolean).join(' ') || undefined;
+
     return (
       <div className="w-full">
         {label && (
-          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">
+          <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
             {label}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#9CA3AF]">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--kw-text-muted)]">
               {icon}
             </div>
           )}
           <input
+            id={id}
             type={type}
             className={cn(
-              'w-full rounded-2xl border-2 bg-white px-4 py-3 text-base outline-none transition-all duration-200',
-              'placeholder:text-gray-400 dark:text-[#9CA3AF]',
-              'focus:border-pink-400 focus:ring-4 focus:ring-pink-100',
-              error && 'border-red-300 focus:border-red-400 focus:ring-red-100',
+              'w-full rounded-2xl border-2 bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200',
+              'placeholder:text-[var(--kw-text-muted)]',
+              'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
+              error && 'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
               icon && 'pl-12',
               className
             )}
             ref={ref}
+            aria-describedby={describedBy}
+            aria-invalid={error ? 'true' : undefined}
             {...props}
           />
         </div>
-        {error && <p className="mt-1.5 text-sm text-red-500">{error}</p>}
+        {error && <p id={errorId} className="mt-1.5 text-sm text-[var(--kw-error)]">{error}</p>}
         {helper && !error && (
-          <p className="mt-1.5 text-sm text-gray-500 dark:text-[#9CA3AF]">{helper}</p>
+          <p id={helperId} className="mt-1.5 text-sm text-[var(--kw-text-muted)]">{helper}</p>
         )}
       </div>
     );
@@ -53,26 +62,34 @@ Input.displayName = 'Input';
 const Textarea = React.forwardRef<
   HTMLTextAreaElement,
   React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string }
->(({ className, label, error, ...props }, ref) => {
+>(({ className, label, error, id: idProp, ...props }, ref) => {
+  const generatedId = React.useId();
+  const id = idProp ?? generatedId;
+  const errorId = error ? `${id}-error` : undefined;
+  const describedBy = errorId || undefined;
+
   return (
     <div className="w-full">
       {label && (
-        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">
+        <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
           {label}
         </label>
       )}
       <textarea
+        id={id}
         className={cn(
-          'w-full resize-none rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none transition-all duration-200',
-          'placeholder:text-gray-400 dark:text-[#9CA3AF]',
-          'focus:border-pink-400 focus:ring-4 focus:ring-pink-100',
-          error && 'border-red-300 focus:border-red-400 focus:ring-red-100',
+          'w-full resize-none rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200',
+          'placeholder:text-[var(--kw-text-muted)]',
+          'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
+          error && 'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
           className
         )}
         ref={ref}
+        aria-describedby={describedBy}
+        aria-invalid={error ? 'true' : undefined}
         {...props}
       />
-      {error && <p className="mt-1.5 text-sm text-red-500">{error}</p>}
+      {error && <p id={errorId} className="mt-1.5 text-sm text-[var(--kw-error)]">{error}</p>}
     </div>
   );
 });

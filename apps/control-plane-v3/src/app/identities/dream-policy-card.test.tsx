@@ -18,7 +18,7 @@ describe('DreamPolicyCard', () => {
     );
 
     expect(screen.getByText('Dream Mode')).toBeInTheDocument();
-    expect(screen.getByText('Enabled')).toBeInTheDocument();
+    expect(screen.getByText('identities.values.enabled')).toBeInTheDocument();
     expect(screen.getByText(/4 steps/i)).toBeInTheDocument();
     expect(screen.getByText(/1 follow-up/i)).toBeInTheDocument();
     expect(screen.getByText(/memory write on/i)).toBeInTheDocument();

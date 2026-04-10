@@ -66,21 +66,21 @@ export class ErrorBoundary extends Component<Props, State> {
             aria-live="assertive"
           >
             {/* 错误图标 */}
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-              <AlertTriangle className="h-10 w-10 text-red-500" />
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20">
+              <AlertTriangle className="h-10 w-10 text-[var(--kw-error)]" />
             </div>
 
             {/* 标题 */}
-            <h2 className="mb-2 text-xl font-bold text-gray-800 dark:text-gray-100">页面出错了</h2>
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">页面出错了</h2>
 
             {/* 错误信息 */}
-            <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mb-2 text-sm text-[var(--kw-text-muted)]">
               {this.state.error?.message || '未知错误'}
             </p>
 
             {/* 技术详情（开发环境显示） */}
             {process.env.NODE_ENV === 'development' && this.state.error?.stack && (
-              <pre className="mb-4 max-h-40 overflow-auto rounded-lg bg-red-50 p-3 text-left text-xs text-red-600 dark:bg-red-900/10 dark:text-red-400">
+              <pre className="mb-4 max-h-40 overflow-auto rounded-lg bg-[var(--kw-rose-surface)] p-3 text-left text-xs text-[var(--kw-error)] dark:bg-[var(--kw-dark-error-surface)]/10 dark:text-[var(--kw-error)]">
                 {this.state.error.stack}
               </pre>
             )}
@@ -104,7 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* 提示 */}
-            <p className="mt-4 text-xs text-gray-500 dark:text-gray-500">
+            <p className="mt-4 text-xs text-[var(--kw-text-muted)]">
               如果问题持续存在，请联系技术支持
             </p>
           </Card>

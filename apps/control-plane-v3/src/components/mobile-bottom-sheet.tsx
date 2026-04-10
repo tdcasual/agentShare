@@ -111,7 +111,7 @@ export function MobileBottomSheet({
         ref={sheetRef}
         className={cn(
           'absolute bottom-0 left-0 right-0',
-          'bg-white dark:bg-[#252540]',
+          'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
           'rounded-t-3xl',
           'shadow-2xl',
           'transition-transform duration-300 ease-out',
@@ -127,24 +127,25 @@ export function MobileBottomSheet({
           className="flex cursor-grab justify-center pb-2 pt-3 active:cursor-grabbing"
           data-sheet-handle
         >
-          <div className="h-1.5 w-12 rounded-full bg-gray-300 dark:bg-[#3D3D5C]" />
+          <div className="h-1.5 w-12 rounded-full bg-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-border)]" />
         </div>
 
         {/* 头部 */}
         {title && (
-          <div className="flex items-center justify-between border-b border-pink-100 px-4 pb-3 dark:border-[#3D3D5C]">
+          <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-4 pb-3 dark:border-[var(--kw-dark-border)]">
             <h2
               id="bottom-sheet-title"
-              className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]"
+              className="text-lg font-semibold text-[var(--kw-text)]"
             >
               {title}
             </h2>
             <button
+              type="button"
               onClick={onClose}
-              className="rounded-full p-2 transition-colors hover:bg-pink-50 dark:hover:bg-[#3D3D5C]"
+              className="rounded-full p-2 transition-colors hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-border)]"
               aria-label="关闭"
             >
-              <X className="h-5 w-5 text-gray-500 dark:text-[#9CA3AF]" />
+              <X className="h-5 w-5 text-[var(--kw-text-muted)]" />
             </button>
           </div>
         )}
@@ -179,6 +180,7 @@ export function MobileActionSheet({ isOpen, onClose, actions }: MobileActionShee
       <div className="space-y-2">
         {actions.map((action, index) => (
           <button
+            type="button"
             key={index}
             onClick={() => {
               action.onClick();
@@ -187,11 +189,11 @@ export function MobileActionSheet({ isOpen, onClose, actions }: MobileActionShee
             className={cn(
               'flex w-full items-center gap-3 rounded-2xl px-4 py-3 transition-colors',
               action.variant === 'danger' &&
-                'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20',
+                'text-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)] dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20',
               action.variant === 'primary' &&
-                'text-pink-600 hover:bg-pink-50 dark:text-[#E891C0] dark:hover:bg-[#3D3D5C]',
+                'text-[var(--kw-primary-600)] hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-border)]',
               (!action.variant || action.variant === 'default') &&
-                'text-gray-700 hover:bg-pink-50 dark:text-[#E8E8EC] dark:hover:bg-[#3D3D5C]'
+                'text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]'
             )}
           >
             {action.icon}
@@ -199,11 +201,12 @@ export function MobileActionSheet({ isOpen, onClose, actions }: MobileActionShee
           </button>
         ))}
 
-        <hr className="my-3 border-pink-100 dark:border-[#3D3D5C]" />
+        <hr className="my-3 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />
 
         <button
+          type="button"
           onClick={onClose}
-          className="w-full rounded-2xl py-3 font-medium text-gray-500 transition-colors hover:bg-gray-100 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]"
+          className="w-full rounded-2xl py-3 font-medium text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
         >
           取消
         </button>

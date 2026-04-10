@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState, memo } from 'react';
 import { ClipboardList, MessageSquarePlus, Plus, RefreshCw, Target } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Layout } from '@/interfaces/human/layout';
@@ -38,6 +38,15 @@ interface FeedbackTargetState {
   tokenLabel: string;
 }
 
+interface TaskFormState {
+  title: string;
+  task_type: string;
+  priority: string;
+  target_mode: 'explicit_tokens' | 'broadcast';
+  target_token_ids: string[];
+  input_json: string;
+}
+
 /**
  * Tasks Page - 任务管理页面
  *
@@ -54,7 +63,7 @@ export default function TasksPage() {
   );
 }
 
-function TasksContent() {
+const TasksContent = memo(function TasksContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
@@ -88,12 +97,12 @@ function TasksContent() {
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(() => focus.taskId ?? null);
   const [feedbackTarget, setFeedbackTarget] = useState<FeedbackTargetState | null>(null);
-  const [taskForm, setTaskForm] = useState({
+  const [taskForm, setTaskForm] = useState<TaskFormState>({
     title: '',
     task_type: 'account_read',
     priority: 'normal',
-    target_mode: 'explicit_tokens' as 'explicit_tokens' | 'broadcast',
-    target_token_ids: [] as string[],
+    target_mode: 'explicit_tokens',
+    target_token_ids: [],
     input_json: '{\n  "provider": "github"\n}',
   });
   const [feedbackForm, setFeedbackForm] = useState({
@@ -165,7 +174,7 @@ function TasksContent() {
       }
 
       setRefreshError(
-        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh tasks'
+        refreshFailure instanceof Error ? refreshFailure.message : t('tasks.errors.refreshFailed')
       );
     } finally {
       setIsRefreshing(false);
@@ -184,7 +193,7 @@ function TasksContent() {
       if (taskForm.target_mode === 'explicit_tokens' && taskForm.target_token_ids.length === 0) {
         throw new Error(
           t('tasks.errors.noTargetTokens') ||
-            'Choose at least one remote access token or switch to broadcast mode.'
+            t('tasks.errors.noTargetTokens')
         );
       }
 
@@ -217,7 +226,7 @@ function TasksContent() {
         setTaskFormError(
           submitError instanceof Error
             ? submitError.message
-            : t('tasks.errors.createFailed') || 'Failed to create task'
+            : t('tasks.errors.createFailed')
         );
       }
     } finally {
@@ -255,7 +264,7 @@ function TasksContent() {
         setFeedbackFormError(
           submitError instanceof Error
             ? submitError.message
-            : t('tasks.errors.feedbackFailed') || 'Failed to save feedback'
+            : t('tasks.errors.feedbackFailed')
         );
       }
     } finally {
@@ -276,17 +285,17 @@ function TasksContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-4 py-2 text-sm text-pink-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <Target className="h-4 w-4" />
-            {t('tasks.tokenTargetedDelivery') || 'Token-targeted delivery'}
+            {t('tasks.tokenTargetedDelivery')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
-              {t('tasks.title') || 'Task orchestration'}
+            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {t('tasks.title')}
             </h1>
-            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('tasks.description') ||
-                'Publish work to specific remote access tokens, watch completion per token, and close the loop with feedback for off-project agents.'}
+                t('tasks.description')}
             </p>
           </div>
         </div>
@@ -294,51 +303,51 @@ function TasksContent() {
         <div className="flex flex-wrap gap-3">
           <Button variant="secondary" onClick={handleRefresh} loading={isRefreshing}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            {t('common.refresh') || 'Refresh'}
+            {t('common.refresh')}
           </Button>
           <Button onClick={() => setShowCreateTaskModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            {t('tasks.publishTask') || 'Publish Task'}
+            {t('tasks.publishTask')}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label={t('tasks.metrics.publishedTasks') || 'Published tasks'}
+          label={t('tasks.metrics.publishedTasks')}
           value={tasks.length.toString()}
           hint={t('tasks.hints.publishedTasks') || 'currently visible active tasks'}
         />
         <MetricCard
-          label={t('tasks.metrics.targetedTokens') || 'Targeted tokens'}
+          label={t('tasks.metrics.targetedTokens')}
           value={totalTargets.toString()}
           hint={t('tasks.hints.targetedTokens') || 'explicit token assignments'}
         />
         <MetricCard
-          label={t('tasks.metrics.completedTargets') || 'Completed targets'}
+          label={t('tasks.metrics.completedTargets')}
           value={completedTargets.toString()}
           hint={t('tasks.hints.completedTargets') || 'token-linked run records'}
         />
         <MetricCard
-          label={t('tasks.metrics.feedbackRecords') || 'Feedback records'}
+          label={t('tasks.metrics.feedbackRecords')}
           value={totalFeedback.toString()}
           hint={t('tasks.hints.feedbackRecords') || 'human review notes on finished work'}
         />
       </div>
 
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               Human follow-up queue
             </h2>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               Track which remote-token-targeted runs are still in flight and which completed targets
               still need explicit feedback from a human supervisor for remote agent supervision.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             <Badge variant="secondary">
               {completedTargetsAwaitingFeedback} completed target
               {completedTargetsAwaitingFeedback === 1 ? '' : 's'} awaiting feedback
@@ -378,15 +387,15 @@ function TasksContent() {
       </Card>
 
       {selectedTask ? (
-        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               Focused task
             </p>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {selectedTask.task.title}
             </h2>
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {selectedTask.targets.length} targeted access token
               {selectedTask.targets.length === 1 ? '' : 's'} linked to this remote-access task.
             </p>
@@ -395,11 +404,11 @@ function TasksContent() {
       ) : null}
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live task data." />
+        <ManagementSessionExpiredAlert message={t("tasks.sessionExpired")} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to access some task management data. Sign in with an admin session to view the full task surface." />
+        <ManagementForbiddenAlert message={t("tasks.sessionForbidden")} />
       ) : null}
 
       {refreshError && (
@@ -407,7 +416,7 @@ function TasksContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
         >
           {refreshError}
         </Card>
@@ -418,39 +427,39 @@ function TasksContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
         >
           {gateError ??
             error ??
-            (dataError instanceof Error ? dataError.message : 'Failed to load tasks')}
+            (dataError instanceof Error ? dataError.message : t('tasks.errors.loadFailed'))}
         </Card>
       )}
 
       {gateLoading || isLoading ? (
-        <Card className="text-gray-600 dark:text-[#9CA3AF]">
-          {t('tasks.loading') || 'Loading targeted tasks, remote token runs, and feedback...'}
+        <Card className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          {t('tasks.loading')}
         </Card>
       ) : null}
 
       {!gateLoading && !isLoading && taskViews.length === 0 ? (
         <Card variant="feature" className="space-y-3 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-pink-100 text-pink-500">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)]">
             <ClipboardList className="h-7 w-7" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
-              {t('tasks.empty.title') || 'No tasks published yet'}
+            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {t('tasks.empty.title')}
             </h2>
-            <p className="text-gray-600 dark:text-[#9CA3AF]">
+            <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('tasks.empty.description') ||
-                'Create a task and target it to one or more remote access tokens from this page.'}
+                t('tasks.empty.description')}
             </p>
           </div>
         </Card>
       ) : null}
 
       {!gateLoading && !isLoading && taskViews.length > 0 && visibleTaskViews.length === 0 ? (
-        <Card className="border border-dashed border-pink-100 bg-white/80 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#9CA3AF]">
+        <Card className="border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text-muted)]">
           No tasks match the current supervision filter.
         </Card>
       ) : null}
@@ -474,7 +483,7 @@ function TasksContent() {
               className={cn(
                 'cursor-pointer space-y-4',
                 isFocusedTask &&
-                  'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
+                  'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
               )}
               onClick={() => setSelectedTaskId(task.id)}
             >
@@ -498,25 +507,25 @@ function TasksContent() {
                     </Badge>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                    <h2 className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                       {task.title}
                     </h2>
-                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                       {task.taskType} • created by {task.createdBy.type}:{task.createdBy.id}
                     </p>
                   </div>
                 </div>
 
-                <div className="grid min-w-[220px] gap-2 rounded-3xl border border-pink-100 bg-white/80 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
-                    {t('tasks.feedbackSummary') || 'Feedback summary'}
+                <div className="grid min-w-0 gap-2 rounded-3xl border border-[var(--kw-border)] bg-white/80 px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                    {t('tasks.feedbackSummary')}
                   </p>
-                  <p className="text-sm font-medium text-gray-800 dark:text-[#E8E8EC]">
+                  <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                     {feedbackItems.length > 0
                       ? `${feedbackItems.length} ${t('tasks.reviews') || 'reviews'} • ${t('tasks.avg') || 'avg'} ${averageScore?.toFixed(1)}`
-                      : t('tasks.noFeedback') || 'No feedback yet'}
+                      : t('tasks.noFeedback')}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">
+                  <p className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                     {targets.filter((target) => target.status === 'completed').length}/
                     {targets.length} {t('tasks.targetsCompleted') || 'targets completed'}
                   </p>
@@ -524,13 +533,13 @@ function TasksContent() {
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">
-                  {t('tasks.targetTokens') || 'Target tokens'}
+                <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {t('tasks.targetTokens')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {targets.length === 0 ? (
                     <Badge variant="default">
-                      {t('tasks.noTokenTargets') || 'No token targets'}
+                      {t('tasks.noTokenTargets')}
                     </Badge>
                   ) : (
                     targets.map((target) => (
@@ -554,26 +563,26 @@ function TasksContent() {
       <Modal
         isOpen={showCreateTaskModal}
         onClose={() => setShowCreateTaskModal(false)}
-        title={t('tasks.publishTask') || 'Publish task'}
+        title={t('tasks.publishTask')}
         description={
           t('tasks.publishTaskDescription') ||
-          'Choose the concrete remote access tokens that should receive this work.'
+          t('tasks.publishTaskDescription')
         }
         size="lg"
       >
         <form className="space-y-4" onSubmit={handleCreateTask}>
           <Input
-            label={t('tasks.form.title') || 'Title'}
+            label={t('tasks.form.title')}
             value={taskForm.title}
             onChange={(event) =>
               setTaskForm((current) => ({ ...current, title: event.target.value }))
             }
-            placeholder={t('tasks.form.titlePlaceholder') || 'Sync staging provider config'}
+            placeholder={t('tasks.form.titlePlaceholder')}
             required
           />
           <div className="grid gap-4 md:grid-cols-2">
             <Input
-              label={t('tasks.form.taskType') || 'Task type'}
+              label={t('tasks.form.taskType')}
               value={taskForm.task_type}
               onChange={(event) =>
                 setTaskForm((current) => ({ ...current, task_type: event.target.value }))
@@ -584,28 +593,28 @@ function TasksContent() {
             <div>
               <label
                 htmlFor="task-priority"
-                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
               >
-                {t('tasks.form.priority') || 'Priority'}
+                {t('tasks.form.priority')}
               </label>
               <select
                 id="task-priority"
-                className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
+                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
                 value={taskForm.priority}
                 onChange={(event) =>
                   setTaskForm((current) => ({ ...current, priority: event.target.value }))
                 }
               >
-                <option value="low">{t('tasks.priorities.low') || 'low'}</option>
-                <option value="normal">{t('tasks.priorities.normal') || 'normal'}</option>
-                <option value="high">{t('tasks.priorities.high') || 'high'}</option>
-                <option value="critical">{t('tasks.priorities.critical') || 'critical'}</option>
+                <option value="low">{t('tasks.priorities.low')}</option>
+                <option value="normal">{t('tasks.priorities.normal')}</option>
+                <option value="high">{t('tasks.priorities.high')}</option>
+                <option value="critical">{t('tasks.priorities.critical')}</option>
               </select>
             </div>
           </div>
 
           <Textarea
-            label={t('tasks.form.inputPayload') || 'Input payload (JSON)'}
+            label={t('tasks.form.inputPayload')}
             value={taskForm.input_json}
             onChange={(event) =>
               setTaskForm((current) => ({ ...current, input_json: event.target.value }))
@@ -615,12 +624,12 @@ function TasksContent() {
 
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">
-                {t('tasks.form.targetMode') || 'Target mode'}
+              <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                {t('tasks.form.targetMode')}
               </p>
-              <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {t('tasks.form.targetModeDescription') ||
-                  'Explicit targets let you see completion by remote token directly.'}
+                  t('tasks.form.targetModeDescription')}
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
@@ -632,16 +641,16 @@ function TasksContent() {
                 aria-pressed={taskForm.target_mode === 'explicit_tokens'}
                 className={`rounded-2xl border p-4 text-left transition-colors ${
                   taskForm.target_mode === 'explicit_tokens'
-                    ? 'border-pink-300 bg-pink-50'
-                    : 'border-pink-100 bg-white'
+                    ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
+                    : 'border-[var(--kw-border)] bg-white'
                 }`}
               >
-                <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                  {t('tasks.form.explicitTokens') || 'Explicit tokens'}
+                <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('tasks.form.explicitTokens')}
                 </p>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('tasks.form.explicitTokensDesc') ||
-                    'Send only to chosen remote access tokens.'}
+                    t('tasks.form.explicitTokensDesc')}
                 </p>
               </button>
               <button
@@ -656,16 +665,16 @@ function TasksContent() {
                 aria-pressed={taskForm.target_mode === 'broadcast'}
                 className={`rounded-2xl border p-4 text-left transition-colors ${
                   taskForm.target_mode === 'broadcast'
-                    ? 'border-pink-300 bg-pink-50'
-                    : 'border-pink-100 bg-white'
+                    ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
+                    : 'border-[var(--kw-border)] bg-white'
                 }`}
               >
-                <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                  {t('tasks.form.broadcast') || 'Broadcast'}
+                <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('tasks.form.broadcast')}
                 </p>
-                <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('tasks.form.broadcastDesc') ||
-                    'Snapshot all active remote access tokens at publish time.'}
+                    t('tasks.form.broadcastDesc')}
                 </p>
               </button>
             </div>
@@ -674,25 +683,25 @@ function TasksContent() {
           {taskForm.target_mode === 'explicit_tokens' ? (
             <div className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-[#E8E8EC]">
-                  {t('tasks.form.targetTokens') || 'Target tokens'}
+                <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('tasks.form.targetTokens')}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('tasks.form.targetTokensDescription') ||
-                    'Choose one or more managed remote access tokens.'}
+                    t('tasks.form.targetTokensDescription')}
                 </p>
               </div>
-              <div className="grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-pink-100 bg-pink-50/30 p-4">
+              <div className="grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/30 p-4">
                 {allTokens.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                  <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                     {t('tasks.form.noTokensAvailable') ||
-                      'No managed remote access tokens available yet. Create one from the Remote Access page first.'}
+                      t('tasks.form.noTokensAvailable')}
                   </p>
                 ) : (
                   allTokens.map((token) => (
                     <label
                       key={token.id}
-                      className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-white px-4 py-3"
+                      className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white px-4 py-3"
                     >
                       <input
                         type="checkbox"
@@ -701,10 +710,10 @@ function TasksContent() {
                         onChange={() => toggleTargetToken(token.id)}
                       />
                       <div>
-                        <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                        <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                           {token.displayName}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                           {token.id} • {token.agentId} • {t('tasks.form.trust') || 'trust'}{' '}
                           {(token.trustScore ?? 0).toFixed(2)}
                         </p>
@@ -721,7 +730,7 @@ function TasksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
+              className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
             >
               {taskFormError}
             </div>
@@ -729,10 +738,10 @@ function TasksContent() {
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowCreateTaskModal(false)}>
-              {t('common.cancel') || 'Cancel'}
+              {t('common.cancel')}
             </Button>
             <Button type="submit" loading={submittingTask}>
-              {t('tasks.publishTask') || 'Publish Task'}
+              {t('tasks.publishTask')}
             </Button>
           </div>
         </form>
@@ -773,33 +782,33 @@ function TasksContent() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-              <Card className="space-y-3 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">
-                  {t('tasks.inputPayload') || 'Input payload'}
+              <Card className="space-y-3 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+                <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {t('tasks.inputPayload')}
                 </p>
-                <pre className="overflow-x-auto rounded-2xl bg-gray-900 px-4 py-4 text-sm text-pink-50">
+                <pre className="overflow-x-auto rounded-2xl bg-[var(--kw-dark-bg)] px-4 py-4 text-sm text-[var(--kw-primary-50)]">
                   {JSON.stringify(selectedTask.task.input ?? {}, null, 2)}
                 </pre>
               </Card>
 
-              <Card className="space-y-3 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">
-                  {t('tasks.publishingContext') || 'Publishing context'}
+              <Card className="space-y-3 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+                <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {t('tasks.publishingContext')}
                 </p>
-                <div className="space-y-2 text-sm text-gray-700 dark:text-[#E8E8EC]">
+                <div className="space-y-2 text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                   <p>
-                    {t('tasks.actor') || 'Actor'}: {selectedTask.task.createdBy.type}:
+                    {t('tasks.actor')}: {selectedTask.task.createdBy.type}:
                     {selectedTask.task.createdBy.id}
                   </p>
                   <p>
-                    {t('tasks.viaToken') || 'Via token'}:{' '}
+                    {t('tasks.viaToken')}:{' '}
                     {selectedTask.task.createdViaTokenId ??
-                      (t('tasks.directHumanPublish') || 'Direct human publish')}
+                      (t('tasks.directHumanPublish'))}
                   </p>
                   <p>
-                    {t('tasks.claimedBy') || 'Claimed by agent'}:{' '}
+                    {t('tasks.claimedBy')}:{' '}
                     {selectedTask.task.claimedBy ??
-                      (t('tasks.notClaimed') || 'Not currently claimed')}
+                      (t('tasks.notClaimed'))}
                   </p>
                 </div>
               </Card>
@@ -807,10 +816,10 @@ function TasksContent() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
-                  {t('tasks.perTokenStatus') || 'Per-token status'}
+                <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('tasks.perTokenStatus')}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {selectedTask.targets.filter((target) => target.status === 'completed').length}/
                   {selectedTask.targets.length} {t('tasks.completed') || 'completed'}
                 </p>
@@ -820,7 +829,7 @@ function TasksContent() {
                 {selectedTask.targets.map((target) => (
                   <Card
                     key={target.targetId}
-                    className="space-y-4 border border-pink-100 bg-pink-50/30"
+                    className="space-y-4 border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/30"
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                       <div className="space-y-2">
@@ -833,10 +842,10 @@ function TasksContent() {
                           </Badge>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+                          <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                             {target.token?.tokenPrefix ?? target.tokenId}
                           </p>
-                          <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                          <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                             Agent {target.token?.agentId ?? 'unknown'} • target {target.targetId}
                           </p>
                         </div>
@@ -858,30 +867,30 @@ function TasksContent() {
                         disabled={target.run === null}
                       >
                         <MessageSquarePlus className="mr-2 h-4 w-4" />
-                        {t('tasks.leaveFeedback') || 'Leave feedback'}
+                        {t('tasks.leaveFeedback')}
                       </Button>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-3">
                       <DetailStat
-                        label={t('tasks.runResult') || 'Run result'}
+                        label={t('tasks.runResult')}
                         value={
                           target.run?.resultSummary ??
                           (target.status === 'pending'
-                            ? t('tasks.waitingToRun') || 'Waiting to run'
-                            : t('tasks.claimedNotCompleted') || 'Claimed, not completed')
+                            ? t('tasks.waitingToRun')
+                            : t('tasks.claimedNotCompleted'))
                         }
                       />
                       <DetailStat
-                        label={t('tasks.tokenTrust') || 'Token trust'}
+                        label={t('tasks.tokenTrust')}
                         value={
                           target.token
                             ? (target.token.trustScore ?? 0).toFixed(2)
-                            : t('tasks.unknown') || 'Unknown'
+                            : t('tasks.unknown')
                         }
                       />
                       <DetailStat
-                        label={t('tasks.feedbackCount') || 'Feedback count'}
+                        label={t('tasks.feedbackCount')}
                         value={target.feedback.length.toString()}
                       />
                     </div>
@@ -889,7 +898,7 @@ function TasksContent() {
                     <div className="flex flex-wrap gap-2">
                       {target.feedback.length === 0 ? (
                         <Badge variant="default">
-                          {t('tasks.noFeedback') || 'No feedback yet'}
+                          {t('tasks.noFeedback')}
                         </Badge>
                       ) : (
                         target.feedback.map((item) => (
@@ -917,8 +926,8 @@ function TasksContent() {
         onClose={() => setFeedbackTarget(null)}
         title={
           feedbackTarget
-            ? `${t('tasks.feedbackFor') || 'Feedback for'} ${feedbackTarget.tokenLabel}`
-            : t('tasks.feedback') || 'Feedback'
+            ? `${t('tasks.feedbackFor')} ${feedbackTarget.tokenLabel}`
+            : t('tasks.feedback')
         }
         description={
           feedbackTarget ? `${feedbackTarget.taskTitle} • ${feedbackTarget.targetId}` : undefined
@@ -929,13 +938,13 @@ function TasksContent() {
             <div>
               <label
                 htmlFor="feedback-score"
-                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
               >
-                {t('tasks.form.score') || 'Score'}
+                {t('tasks.form.score')}
               </label>
               <select
                 id="feedback-score"
-                className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
+                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
                 value={feedbackForm.score}
                 onChange={(event) =>
                   setFeedbackForm((current) => ({ ...current, score: event.target.value }))
@@ -949,7 +958,7 @@ function TasksContent() {
               </select>
             </div>
             <Input
-              label={t('tasks.form.verdict') || 'Verdict'}
+              label={t('tasks.form.verdict')}
               value={feedbackForm.verdict}
               onChange={(event) =>
                 setFeedbackForm((current) => ({ ...current, verdict: event.target.value }))
@@ -960,7 +969,7 @@ function TasksContent() {
           </div>
 
           <Textarea
-            label={t('tasks.form.summary') || 'Summary'}
+            label={t('tasks.form.summary')}
             value={feedbackForm.summary}
             onChange={(event) =>
               setFeedbackForm((current) => ({ ...current, summary: event.target.value }))
@@ -968,7 +977,7 @@ function TasksContent() {
             className="min-h-[140px]"
             placeholder={
               t('tasks.form.summaryPlaceholder') ||
-              'Call out what went well, what should change, and whether this token should be trusted with similar work.'
+              t('tasks.form.summaryPlaceholder')
             }
           />
 
@@ -977,7 +986,7 @@ function TasksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
+              className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
             >
               {feedbackFormError}
             </div>
@@ -985,26 +994,26 @@ function TasksContent() {
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setFeedbackTarget(null)}>
-              {t('common.cancel') || 'Cancel'}
+              {t('common.cancel')}
             </Button>
             <Button type="submit" loading={submittingFeedback}>
-              {t('tasks.saveFeedback') || 'Save feedback'}
+              {t('tasks.saveFeedback')}
             </Button>
           </div>
         </form>
       </Modal>
     </div>
   );
-}
+});
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
-      <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">
+    <Card className="space-y-2 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+      <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
-      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{hint}</p>
+      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
     </Card>
   );
 }
@@ -1012,10 +1021,10 @@ function MetricCard({ label, value, hint }: { label: string; value: string; hint
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.15em] text-gray-400 dark:text-[#9CA3AF]">
+      <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="mt-2 text-sm font-medium text-gray-800 dark:text-[#E8E8EC]">{value}</p>
+      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
     </div>
   );
 }
@@ -1054,10 +1063,10 @@ function buildTaskTargets(
   });
 }
 
-function parseJsonObject(raw: string) {
-  const parsed = JSON.parse(raw) as unknown;
+function parseJsonObject(raw: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(raw);
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('Input payload must be a JSON object.');
+    throw new Error(t('tasks.errors.invalidPayload'));
   }
   return parsed as Record<string, unknown>;
 }

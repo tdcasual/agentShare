@@ -58,21 +58,22 @@ export function MobileFab({
       {actions && actions.length > 0 && (
         <div
           className={cn(
-            'absolute bottom-full right-0 mb-3 space-y-2 transition-all duration-300',
+            'absolute bottom-full right-0 mb-3 space-y-2 transition-transform transition-opacity duration-300',
             isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
           )}
         >
           {actions.map((action, index) => (
             <button
+              type="button"
               key={index}
               onClick={() => handleActionClick(action)}
               className={cn(
-                'flex items-center gap-3 rounded-full py-2 pl-3 pr-4 shadow-lg transition-all duration-200',
+                'flex items-center gap-3 rounded-full py-2 pl-3 pr-4 shadow-lg transition-transform transition-shadow duration-200',
                 'active:scale-95',
-                action.variant === 'danger' && 'bg-red-500 text-white',
+                action.variant === 'danger' && 'bg-[var(--kw-error)] text-white',
                 action.variant === 'secondary' &&
-                  'bg-white text-gray-700 dark:bg-[#252540] dark:text-[#E8E8EC]',
-                (!action.variant || action.variant === 'primary') && 'bg-pink-500 text-white'
+                  'bg-white text-[var(--kw-text)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]',
+                (!action.variant || action.variant === 'primary') && 'bg-[var(--kw-primary-500)] text-white'
               )}
               style={{
                 transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
@@ -87,12 +88,13 @@ export function MobileFab({
 
       {/* 主按钮 */}
       <button
+        type="button"
         onClick={handleMainClick}
         className={cn(
-          'flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300',
-          'bg-gradient-to-r from-pink-400 to-pink-500 text-white',
+          'flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform transition-shadow duration-300',
+          'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white',
           'active:scale-90 active:shadow-md',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
           isOpen && 'rotate-45'
         )}
         aria-label={isOpen ? '关闭菜单' : '打开菜单'}
@@ -132,13 +134,14 @@ export function SimpleFab({
 
   return (
     <button
+      type="button"
       onClick={onClick}
       className={cn(
         'fixed bottom-20 right-4 z-40 lg:hidden',
         'flex h-14 w-14 items-center justify-center rounded-full shadow-lg',
-        'bg-gradient-to-r from-pink-400 to-pink-500 text-white',
-        'transition-all duration-200 active:scale-90 active:shadow-md',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
+        'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white',
+        'transition-transform transition-shadow duration-200 active:scale-90 active:shadow-md',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
         className
       )}
       aria-label={label}

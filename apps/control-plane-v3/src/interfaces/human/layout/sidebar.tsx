@@ -173,16 +173,16 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return (
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen border-r border-pink-100 bg-white transition-all duration-300 dark:border-[#3D3D5C] dark:bg-[#252540]',
+          'fixed left-0 top-0 z-40 h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
           collapsed ? 'w-20' : 'w-64'
         )}
       >
-        <div className="flex h-16 items-center border-b border-pink-100 px-4 dark:border-[#3D3D5C]">
-          <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-xl bg-pink-200" />
+        <div className="flex h-16 items-center border-b border-[var(--kw-border)] px-4 dark:border-[var(--kw-dark-border)]">
+          <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-xl bg-[var(--kw-primary-200)]" />
         </div>
         <nav className="space-y-2 p-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-10 animate-pulse rounded-2xl bg-pink-100/50" />
+            <div key={i} className="h-10 animate-pulse rounded-2xl bg-[var(--kw-primary-100)]/50" />
           ))}
         </nav>
       </aside>
@@ -192,14 +192,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen border-r border-pink-100 bg-white transition-all duration-300 dark:border-[#3D3D5C] dark:bg-[#252540]',
+        'fixed left-0 top-0 z-40 h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
         collapsed ? 'w-20' : 'w-64'
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-pink-100 px-4 dark:border-[#3D3D5C]">
+      <div className="flex h-16 items-center border-b border-[var(--kw-border)] px-4 dark:border-[var(--kw-dark-border)]">
         <div
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-400 to-pink-600 text-xl text-white shadow-glow"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-600)] text-xl text-white shadow-glow"
           aria-label="Sakura logo"
           role="img"
         >
@@ -207,10 +207,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
         {!collapsed && (
           <div className="ml-3 overflow-hidden">
-            <h1 className="whitespace-nowrap font-bold text-gray-800 dark:text-[#E8E8EC]">
+            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">
               Control Plane
             </h1>
-            <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">V3 Dual Cosmos</p>
+            <p className="text-xs text-[var(--kw-text-muted)]">V3 Dual Cosmos</p>
           </div>
         )}
       </div>
@@ -225,7 +225,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             : t('sidebar.collapse') || 'Collapse sidebar'
         }
         type="button"
-        className="absolute -right-3 top-20 flex h-11 w-11 items-center justify-center rounded-full border border-pink-200 bg-white text-gray-400 shadow-sm transition-colors hover:border-pink-300 hover:text-pink-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:border-[#3D3D5C] dark:bg-[#252540] dark:text-[#9CA3AF] dark:hover:border-[#E891C0] dark:hover:text-[#E891C0]"
+        className="absolute -right-3 top-20 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--kw-primary-200)] bg-white text-[var(--kw-text-muted)] shadow-sm transition-colors hover:border-[var(--kw-primary-300)] hover:text-[var(--kw-primary-500)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text-muted)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:text-[var(--kw-dark-primary)]"
       >
         {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </button>
@@ -241,10 +241,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
+                'group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
                 isActive
-                  ? 'bg-gradient-to-r from-pink-50 to-pink-100 text-pink-700 dark:from-[#3D3D5C] dark:to-[#4D4D6C] dark:text-[#E891C0]'
-                  : 'text-gray-600 hover:bg-pink-50/50 hover:text-pink-600 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]/50 dark:hover:text-[#E891C0]',
+                  ? 'bg-gradient-to-r from-[var(--kw-primary-50)] to-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:from-[var(--kw-dark-border)] dark:to-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
+                  : 'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)]/50 hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50 dark:hover:text-[var(--kw-dark-primary)]',
                 collapsed && 'justify-center'
               )}
             >
@@ -258,14 +258,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 <>
                   <span className="flex-1 truncate font-medium">{item.labelKey}</span>
                   {item.badge && (
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-pink-500 text-xs text-white">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-primary-500)] text-xs text-white">
                       {item.badge}
                     </span>
                   )}
                 </>
               )}
               {collapsed && item.badge && (
-                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-pink-500 text-[10px] text-white">
+                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--kw-primary-500)] text-[10px] text-white">
                   {item.badge}
                 </span>
               )}
@@ -275,7 +275,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* Bottom Navigation */}
-      <div className="absolute bottom-0 left-0 right-0 space-y-1 border-t border-pink-100 p-3 dark:border-[#3D3D5C]">
+      <div className="absolute bottom-0 left-0 right-0 space-y-1 border-t border-[var(--kw-border)] p-3 dark:border-[var(--kw-dark-border)]">
         {visibleBottomNavItems.map((item) => {
           const isActive = pathname === item.href;
 
@@ -285,10 +285,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
+                'flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
                 isActive
-                  ? 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 dark:from-[#3D3D5C] dark:to-[#4D4D6C] dark:text-[#E8E8EC]'
-                  : 'text-gray-500 hover:bg-gray-50/50 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]/50',
+                  ? 'bg-gradient-to-r from-[var(--kw-surface-alt)] to-[var(--kw-border)] text-[var(--kw-text)] dark:from-[var(--kw-dark-border)] dark:to-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]'
+                  : 'text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)]/50 dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50',
                 collapsed && 'justify-center'
               )}
             >

@@ -45,7 +45,7 @@ export default function LoginPage() {
         }
       } catch (loadError) {
         if (!cancelled && !(loadError instanceof ApiError && loadError.status === 401)) {
-          setError(loadError instanceof Error ? loadError.message : 'Failed to load login state');
+          setError(loadError instanceof Error ? loadError.message : t('auth.login.failedToLoad'));
         }
       } finally {
         if (!cancelled) {
@@ -71,7 +71,7 @@ export default function LoginPage() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : 'Login failed');
+        setError(submitError instanceof Error ? submitError.message : t('auth.login.loginFailed'));
       }
     } finally {
       setIsSubmitting(false);
@@ -119,11 +119,11 @@ export default function LoginPage() {
 
       <Card
         variant="kawaii"
-        className="relative z-10 w-full max-w-xl dark:border-[#3D3D5C] dark:bg-gradient-to-br dark:from-[#252540] dark:to-[#2D2D50]"
+        className="relative z-10 w-full max-w-xl dark:border-[var(--kw-dark-border)] dark:bg-gradient-to-br dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
       >
         {/* Decorative elements */}
         <div
-          className="absolute -right-3 -top-3 animate-bounce text-2xl"
+          className="absolute -right-3 -top-3 animate-float text-2xl"
           style={{ animationDuration: '2s' }}
         >
           🌸
@@ -133,14 +133,14 @@ export default function LoginPage() {
         <div className="space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-4 py-2 text-sm font-medium text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Heart className="h-4 w-4" />
               <span className="uppercase tracking-wider">{t('auth.login.subtitle')}</span>
             </div>
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+            <h1 className="text-4xl font-bold text-[var(--kw-text)]">
               {t('auth.login.title')}
             </h1>
-            <p className="mx-auto max-w-sm text-gray-600 dark:text-[#9CA3AF]">
+            <p className="mx-auto max-w-sm text-[var(--kw-text-muted)]">
               {t('auth.login.description')}
             </p>
           </div>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                 setForm((current) => ({ ...current, email: event.target.value }))
               }
               placeholder="owner@example.com"
-              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
               label={t('auth.login.password')}
@@ -167,17 +167,17 @@ export default function LoginPage() {
                 setForm((current) => ({ ...current, password: event.target.value }))
               }
               placeholder="••••••••••••"
-              className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
 
             {/* Status message */}
-            <div className="rounded-2xl border border-pink-100 bg-pink-50/50 px-4 py-3 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/50 dark:text-[#9CA3AF]">
+            <div className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/50 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/50 dark:text-[var(--kw-dark-text-muted)]">
               {error ? (
                 <span
                   role="alert"
                   aria-live="assertive"
                   aria-atomic="true"
-                  className="text-red-500 dark:text-red-400"
+                  className="text-[var(--kw-error)] dark:text-[var(--kw-error)]"
                 >
                   {error}
                 </span>
@@ -208,13 +208,13 @@ export default function LoginPage() {
 
           {/* Footer decoration */}
           <div className="flex justify-center gap-2 text-2xl opacity-30 dark:opacity-20">
-            <span className="animate-bounce" style={{ animationDelay: '0s' }}>
+            <span className="animate-float" style={{ animationDelay: '0s' }}>
               🌸
             </span>
-            <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>
+            <span className="animate-float" style={{ animationDelay: '0.2s' }}>
               ✨
             </span>
-            <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>
+            <span className="animate-float" style={{ animationDelay: '0.4s' }}>
               💕
             </span>
           </div>

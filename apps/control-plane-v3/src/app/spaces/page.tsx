@@ -36,8 +36,10 @@ import { GovernancePanel } from './governance-panel';
 import { IdentityPanel } from './identity-panel';
 import { SpacesList } from './spaces-list';
 import { MetricCard, MarketInventoryPanel } from './components';
+import { useI18n } from '@/components/i18n-provider';
 
 function SpacesContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   const { session } = useManagementSessionGate({ redirectOnMissingSession: false });
@@ -168,7 +170,7 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : 'Failed to approve review item');
+      setActionError(error instanceof Error ? error.message : t('spaces.errors.approveReviewFailed'));
     } finally {
       setActionKey(null);
     }
@@ -191,7 +193,7 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : 'Failed to reject review item');
+      setActionError(error instanceof Error ? error.message : t('spaces.errors.rejectReviewFailed'));
     } finally {
       setActionKey(null);
     }
@@ -218,7 +220,7 @@ function SpacesContent() {
         return;
       }
       setActionError(
-        error instanceof Error ? error.message : 'Failed to add member to the workspace'
+        error instanceof Error ? error.message : t('spaces.errors.addMemberFailed')
       );
     }
   }
@@ -227,17 +229,17 @@ function SpacesContent() {
     <div className="mx-auto max-w-6xl space-y-8">
       {/* Hero Section */}
       {canViewAdminPanels ? (
-        <section className="relative overflow-hidden rounded-[2rem] border border-pink-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-8 dark:border-[#3D3D5C] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
+        <section className="relative overflow-hidden rounded-[2rem] border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-orange-600 dark:border-[#4A4568] dark:bg-[#1E1E32]/70 dark:text-orange-300">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-orange-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/70 dark:text-[var(--kw-warning)]">
                 <Sparkles className="h-3.5 w-3.5" />
                 Operations Space
               </div>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight text-gray-900 dark:text-[#E8E8EC]">
+              <h1 className="mt-4 text-4xl font-bold tracking-tight text-[var(--kw-text)]">
                 Live collaboration workspace for humans and agents.
               </h1>
-              <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600 dark:text-[#9CA3AF]">
+              <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--kw-text-muted)]">
                 This space aggregates the current operating picture across agent feedback,
                 governance review, identities, and published market inventory so human supervisors
                 can coordinate from one backend-backed surface.
@@ -267,23 +269,23 @@ function SpacesContent() {
 
       {/* Focused Context */}
       {focusedAgent || focusedEvent || focusedSpace ? (
-        <Card className="border border-pink-200 bg-pink-50/70 dark:border-pink-500/60 dark:bg-pink-500/10">
+        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-pink-600 dark:text-pink-300">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               Focused workspace context
             </p>
             {focusedSpace ? (
-              <p className="text-sm font-medium text-gray-900 dark:text-[#E8E8EC]">
+              <p className="text-sm font-medium text-[var(--kw-text)]">
                 Persisted space: {focusedSpace.name}
               </p>
             ) : null}
             {focusedAgent ? (
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E8E8EC]">
+              <h2 className="text-lg font-semibold text-[var(--kw-text)]">
                 {focusedAgent.name}
               </h2>
             ) : null}
             {focusedEvent ? (
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <p className="text-sm text-[var(--kw-text-muted)]">
                 Event summary: {focusedEvent.summary}
               </p>
             ) : null}
@@ -293,11 +295,11 @@ function SpacesContent() {
 
       {/* Alerts */}
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep operating the workspace." />
+        <ManagementSessionExpiredAlert message={t("spaces.sessionExpired")} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to access some workspace data. Admin-only panels are hidden until a higher-privilege session is available." />
+        <ManagementForbiddenAlert message={t("spaces.sessionForbidden")} />
       ) : null}
 
       {actionNotice ? (
@@ -305,7 +307,7 @@ function SpacesContent() {
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-green-100 bg-green-50/80 text-green-700 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-400"
+          className="border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)]/80 text-[var(--kw-green-text)] dark:border-[var(--kw-dark-success-surface)]/50 dark:bg-[var(--kw-dark-success-surface)]/20 dark:text-[var(--kw-dark-mint)]"
         >
           {actionNotice}
         </Card>
@@ -316,7 +318,7 @@ function SpacesContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
         >
           {actionError ?? gateError}
         </Card>
@@ -372,13 +374,13 @@ function SpacesContent() {
             />
 
             {/* Market Inventory */}
-            <Card className="space-y-5 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+            <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E8E8EC]">
+                  <h2 className="text-xl font-semibold text-[var(--kw-text)]">
                     Market Inventory
                   </h2>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                  <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                     Published assets and skills currently visible to the agent ecosystem.
                   </p>
                 </div>
@@ -416,7 +418,7 @@ function SpacesContent() {
               if (consumeUnauthorized(error)) {
                 return;
               }
-              setActionError(error instanceof Error ? error.message : 'Failed to create workspace');
+              setActionError(error instanceof Error ? error.message : t('spaces.errors.createWorkspaceFailed'));
             }
           }}
           isCreating={isCreating}

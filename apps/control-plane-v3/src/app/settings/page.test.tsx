@@ -103,7 +103,7 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    expect(screen.getByRole('alert')).toHaveTextContent('settings.sessionExpired');
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -118,7 +118,7 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('settings.sessionForbidden');
   });
 
   it('shows a relogin recovery state when inviting an operator hits an expired session', async () => {
@@ -129,13 +129,13 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    await user.type(screen.getByPlaceholderText('operator@example.com'), 'operator@example.com');
+    await user.type(screen.getByPlaceholderText('settings.emailPlaceholder'), 'operator@example.com');
     await user.type(screen.getByPlaceholderText(/settings.displayNamePlaceholder/i), 'Operator');
     await user.type(screen.getByPlaceholderText(/settings.passwordPlaceholder/i), 'password-123');
     await user.click(screen.getByRole('button', { name: /^settings.inviteAccount$/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('settings.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -149,10 +149,10 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByText('1 owner account')).toBeInTheDocument();
-    expect(screen.getByText('2 active operators')).toBeInTheDocument();
+    expect(screen.getByText('1 settings.ownerAccounts')).toBeInTheDocument();
+    expect(screen.getByText('2 settings.activeOperators')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /operators/i }));
+    await user.click(screen.getByRole('button', { name: /settings.rosterOperators/i }));
 
     expect(screen.queryByText('Owner')).not.toBeInTheDocument();
     expect(screen.getByText('Operator')).toBeInTheDocument();
@@ -164,7 +164,7 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    await user.click(screen.getByRole('button', { name: /inactive accounts/i }));
+    await user.click(screen.getByRole('button', { name: /settings.rosterInactive/i }));
 
     expect(screen.queryByText('Owner')).not.toBeInTheDocument();
     expect(screen.queryByText('Operator')).not.toBeInTheDocument();

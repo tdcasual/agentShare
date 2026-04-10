@@ -119,10 +119,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
   // 加载状态
   if (!entryState) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-pink-500" />
-          <p className="text-gray-500 dark:text-[#9CA3AF]">Initializing Control Plane...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
+          <p className="text-[var(--kw-text-muted)]">Initializing Control Plane...</p>
         </div>
       </div>
     );
@@ -131,20 +131,21 @@ export function RouteGuard({ children }: RouteGuardProps) {
   // 服务不可用状态
   if (entryState.kind === 'unavailable') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50/50 to-purple-50/30 p-4 dark:from-[#1A1A2E] dark:to-[#252540]">
-        <div className="w-full max-w-md rounded-3xl border border-red-100 bg-white p-8 text-center shadow-xl dark:border-red-900/30 dark:bg-[#252540]">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+        <div className="w-full max-w-md rounded-3xl border border-[var(--kw-rose-surface)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-error-surface)]/30 dark:bg-[var(--kw-dark-surface)]">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20">
             <span className="text-2xl">⚠️</span>
           </div>
-          <h1 className="mb-2 text-xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+          <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
             Service Unavailable
           </h1>
-          <p className="mb-6 text-gray-600 dark:text-[#9CA3AF]">
+          <p className="mb-6 text-[var(--kw-text-muted)]">
             Unable to connect to the backend service. Please check your connection and try again.
           </p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
-            className="rounded-full bg-gradient-to-r from-pink-400 to-pink-600 px-6 py-3 font-medium text-white transition-all hover:shadow-lg"
+            className="rounded-full bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-600)] px-6 py-3 font-medium text-white transition-shadow hover:shadow-lg"
           >
             Retry
           </button>
@@ -156,7 +157,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   // 角色权限不足 - 显示403页面
   if (roleCheckFailed) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
+      <div className="min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
         <ForbiddenState requiredRole={roleCheckFailed.requiredRole} resourceName={pathname} />
       </div>
     );
@@ -183,7 +184,7 @@ export function ManagementRouteGuard({
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
       </div>
     );
   }
@@ -191,7 +192,7 @@ export function ManagementRouteGuard({
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="rounded-2xl border border-red-100 bg-red-50/80 px-6 py-4 text-red-700">
+        <div className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 px-6 py-4 text-[var(--kw-rose-text)]">
           {error}
         </div>
       </div>
@@ -201,7 +202,7 @@ export function ManagementRouteGuard({
   if (!session && redirectOnMissingSession) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
       </div>
     );
   }

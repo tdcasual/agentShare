@@ -20,6 +20,7 @@ import {
   formatOptionalTimestamp,
 } from './components';
 import type { AdminAccountSummary } from '@/domains/identity';
+import { useI18n } from '@/components/i18n-provider';
 
 export interface HumanOperatorsSectionProps {
   accounts: AdminAccountSummary[];
@@ -50,16 +51,17 @@ export function HumanOperatorsSection({
   onToggleExpand,
   onRetry,
 }: HumanOperatorsSectionProps) {
+  const { t } = useI18n();
   const errorMessage = error instanceof Error ? error.message : null;
 
   return (
     <Card variant="kawaii" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
             Human Operators
           </h2>
-          <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+          <p className="text-sm text-[var(--kw-text-muted)]">
             Persisted admin accounts from `/api/admin-accounts`
           </p>
         </div>
@@ -67,22 +69,22 @@ export function HumanOperatorsSection({
       </div>
 
       {isLoading ? (
-        <SectionLoading message="Loading admin accounts..." />
+        <SectionLoading message={t("identities.loadingHumans")} />
       ) : shouldShowSessionExpired && isUnauthorizedError(error) ? (
-        <ManagementSessionRecoveryNotice message="Sign in again to reload human operators." />
+        <ManagementSessionRecoveryNotice message={t("identities.reloadHumans")} />
       ) : shouldShowForbidden && isForbiddenError(error) ? (
-        <ManagementSessionRecoveryNotice message="An admin session is required to manage human operators." />
+        <ManagementSessionRecoveryNotice message={t("identities.adminRequiredForHumans")} />
       ) : errorMessage ? (
         <SectionError
           message={`Human operator data is temporarily unavailable. ${errorMessage}`}
-          actionLabel="Retry human operators"
+          actionLabel={t("identities.retryHumans")}
           onRetry={onRetry}
           isRefreshing={isRefreshing}
         />
       ) : accounts.length === 0 ? (
         <EmptyState
           icon={<Users className="h-6 w-6" />}
-          message="No admin accounts have been invited yet."
+          message={t("identities.noHumans")}
         />
       ) : filteredAccounts.length === 0 ? (
         <EmptyState
@@ -118,16 +120,16 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
     <div
       data-testid={`admin-card-${account.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[#252540]/90 ${
+      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[var(--kw-dark-surface)]/90 ${
         isFocused
-          ? 'border-pink-400 shadow-[0_0_0_1px_rgba(236,72,153,0.18)] dark:border-pink-400'
-          : 'border-pink-100 dark:border-[#3D3D5C]'
+          ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+          : 'border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{account.display_name}</p>
-          <p className="break-all text-sm text-gray-500 dark:text-[#9CA3AF]">{account.email}</p>
+          <p className="font-medium text-[var(--kw-text)]">{account.display_name}</p>
+          <p className="break-all text-sm text-[var(--kw-text-muted)]">{account.email}</p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
           <Badge variant="human">{account.role}</Badge>
@@ -155,16 +157,16 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
         <div className="space-y-3">
           <IdentityDetailsGrid
             items={[
-              ['Account ID', account.id],
-              ['Email', account.email],
-              ['Role', account.role],
-              ['Last login', formatOptionalTimestamp(account.last_login_at, 'Never signed in')],
+              [t('identities.labels.accountId'), account.id],
+              [t('identities.labels.email'), account.email],
+              [t('identities.labels.role'), account.role],
+              [t('identities.labels.lastLogin'), formatOptionalTimestamp(account.last_login_at, t('identities.values.neverSignedIn'))],
             ]}
           />
           <div className="flex justify-end">
             <Link
               href="/settings"
-              className="text-sm font-medium text-pink-600 hover:text-pink-700"
+              className="text-sm font-medium text-[var(--kw-primary-600)] hover:text-[var(--kw-primary-600)]"
             >
               Manage in Settings
             </Link>

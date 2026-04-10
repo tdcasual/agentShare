@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui-primitives/button';
 import { IdentityDetailsGrid, formatSnapshotTimestamp } from './components';
 import { DreamPolicyCard } from './dream-policy-card';
 import { DreamRunList } from './dream-run-list';
+import { useI18n } from '@/components/i18n-provider';
 
 export interface AgentManagementCardProps {
   agent: OpenClawAgent;
@@ -30,10 +31,10 @@ function formatList(values: string[], fallback: string) {
   return values.length > 0 ? values.join(', ') : fallback;
 }
 
-function formatPolicy(policy: Record<string, unknown>) {
+function formatPolicy(policy: Record<string, unknown>, t: (key: string) => string) {
   const entries = Object.entries(policy);
   if (entries.length === 0) {
-    return 'No explicit policy';
+    return t('identities.labels.noExplicitPolicy');
   }
 
   return entries
@@ -41,8 +42,8 @@ function formatPolicy(policy: Record<string, unknown>) {
     .join(' · ');
 }
 
-function summarizeFileContent(content: string) {
-  return content.split('\n').find((line) => line.trim().length > 0) ?? 'Empty file';
+function summarizeFileContent(content: string, t: (key: string) => string) {
+  return content.split('\n').find((line) => line.trim().length > 0) ?? t('identities.labels.emptyFile');
 }
 
 export function AgentManagementCard({
@@ -58,6 +59,7 @@ export function AgentManagementCard({
   isDeleting,
   onDelete,
 }: AgentManagementCardProps) {
+  const { t } = useI18n();
   const filesQuery = useOpenClawFiles(agent.id);
   const files = filesQuery.data?.items ?? [];
 
@@ -65,18 +67,18 @@ export function AgentManagementCard({
     <div className="mt-4 space-y-4">
       <IdentityDetailsGrid
         items={[
-          ['Agent ID', agent.id],
-          ['Workspace Root', agent.workspace_root],
-          ['Agent Directory', agent.agent_dir],
-          ['Model', agent.model ?? 'Default runtime model'],
-          ['Thinking Level', agent.thinking_level],
-          ['Sandbox Mode', agent.sandbox_mode],
-          ['Allowed Task Types', formatList(agent.allowed_task_types, 'No task restrictions')],
+          [t('identities.labels.agentId'), agent.id],
+          [t('identities.labels.workspaceRoot'), agent.workspace_root],
+          [t('identities.labels.agentDirectory'), agent.agent_dir],
+          [t('identities.labels.model'), agent.model ?? t('identities.labels.defaultRuntimeModel')],
+          [t('identities.labels.thinkingLevel'), agent.thinking_level],
+          [t('identities.labels.sandboxMode'), agent.sandbox_mode],
+          [t('identities.labels.allowedTaskTypes'), formatList(agent.allowed_task_types, t('identities.labels.noTaskRestrictions'))],
           [
-            'Allowed Capability IDs',
-            formatList(agent.allowed_capability_ids, 'No capability restrictions'),
+            t('identities.labels.allowedCapabilityIds'),
+            formatList(agent.allowed_capability_ids, t('identities.labels.noCapabilityRestrictions')),
           ],
-          ['Tool Policy', formatPolicy(agent.tools_policy)],
+          [t('identities.labels.toolPolicy'), formatPolicy(agent.tools_policy, t)],
         ]}
       />
 
@@ -86,57 +88,57 @@ export function AgentManagementCard({
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
-        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
+        <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
               Recent Session
             </h3>
             <Badge variant="info">{sessionCount}</Badge>
           </div>
 
           {sessionErrorMessage ? (
-            <p className="text-sm text-red-600 dark:text-red-400">
+            <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
               Session history unavailable. {sessionErrorMessage}
             </p>
           ) : recentSession === null ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)]">
               No management-visible sessions recorded for this agent yet.
             </p>
           ) : (
-            <div className="rounded-2xl border border-pink-100 bg-white/80 p-3 dark:border-[#3D3D5C] dark:bg-[#252540]/80">
-              <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
+            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80">
+              <p className="font-medium text-[var(--kw-text)]">
                 {recentSession.display_name}
               </p>
-              <p className="mt-1 break-all text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
                 {recentSession.session_key}
               </p>
-              <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                 {recentSession.channel}
                 {recentSession.subject ? ` · ${recentSession.subject}` : ''}
               </p>
-              <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                 Updated {formatSnapshotTimestamp(recentSession.updated_at)}
               </p>
             </div>
           )}
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
+        <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
               Workspace Files
             </h3>
             <Badge variant="secondary">{files.length}</Badge>
           </div>
 
           {filesQuery.isLoading ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Loading workspace files...</p>
+            <p className="text-sm text-[var(--kw-text-muted)]">Loading workspace files...</p>
           ) : filesQuery.error instanceof Error ? (
-            <p className="text-sm text-red-600 dark:text-red-400">
+            <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
               Workspace files unavailable. {filesQuery.error.message}
             </p>
           ) : files.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)]">
               No workspace bootstrap files stored for this agent.
             </p>
           ) : (
@@ -144,11 +146,11 @@ export function AgentManagementCard({
               {files.slice(0, 3).map((file) => (
                 <div
                   key={file.file_name}
-                  className="rounded-2xl border border-pink-100 bg-white/80 p-3 dark:border-[#3D3D5C] dark:bg-[#252540]/80"
+                  className="rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
                 >
-                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{file.file_name}</p>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
-                    {summarizeFileContent(file.content)}
+                  <p className="font-medium text-[var(--kw-text)]">{file.file_name}</p>
+                  <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
+                    {summarizeFileContent(file.content, t)}
                   </p>
                 </div>
               ))}
@@ -156,29 +158,29 @@ export function AgentManagementCard({
           )}
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white/70 p-4 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/60">
+        <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-[#9CA3AF]">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
               Recent Events
             </h3>
             <Badge variant="secondary">{events.length}</Badge>
           </div>
 
           {eventsErrorMessage ? (
-            <p className="text-sm text-red-600 dark:text-red-400">
+            <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
               Event feed unavailable. {eventsErrorMessage}
             </p>
           ) : events.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No recent agent events yet.</p>
+            <p className="text-sm text-[var(--kw-text-muted)]">No recent agent events yet.</p>
           ) : (
             <div className="space-y-2">
               {events.slice(0, 3).map((event) => (
                 <div
                   key={event.id}
-                  className="rounded-2xl border border-pink-100 bg-white/80 p-3 dark:border-[#3D3D5C] dark:bg-[#252540]/80"
+                  className="rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
                 >
-                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{event.summary}</p>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+                  <p className="font-medium text-[var(--kw-text)]">{event.summary}</p>
+                  <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                     {event.event_type.replaceAll('_', ' ')} ·{' '}
                     {formatSnapshotTimestamp(event.created_at)}
                   </p>
@@ -197,7 +199,7 @@ export function AgentManagementCard({
             loading={isDeleting}
             onClick={onDelete}
             leftIcon={!isDeleting ? <Trash2 className="h-4 w-4" /> : undefined}
-            className="border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50"
+            className="border-[var(--kw-error)] text-[var(--kw-error)] hover:border-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)]"
           >
             Delete {agent.name}
           </Button>

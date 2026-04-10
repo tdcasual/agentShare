@@ -179,7 +179,7 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionExpired');
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -194,7 +194,7 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionForbidden');
   });
 
   it('shows a relogin recovery state when refresh hits an expired session', async () => {
@@ -211,7 +211,7 @@ describe('assets page', () => {
     await user.click(screen.getByRole('button', { name: /^common.refresh$/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -232,7 +232,7 @@ describe('assets page', () => {
     await user.click(screen.getByRole('button', { name: /^assets.secrets.create$/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(

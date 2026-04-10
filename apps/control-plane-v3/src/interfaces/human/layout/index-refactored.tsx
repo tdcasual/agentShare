@@ -51,7 +51,7 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar
@@ -62,7 +62,7 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Main Content Area */}
       <div
-        className={`transition-all duration-300 lg:ml-0 ${
+        className={`transition-[margin] duration-300 lg:ml-0 ${
           sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
         }`}
       >
@@ -86,10 +86,10 @@ export function Layout({ children }: LayoutProps) {
  */
 function LoadingScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[#1A1A2E] dark:to-[#252540]">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-pink-500" />
-        <p className="text-gray-500 dark:text-[#9CA3AF]">Initializing Dual Cosmos...</p>
+        <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
+        <p className="text-[var(--kw-text-muted)]">Initializing Dual Cosmos...</p>
       </div>
     </div>
   );
@@ -102,17 +102,17 @@ function LoadingScreen() {
  */
 function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4 dark:from-[#1A1A2E] dark:to-[#252540]">
-      <div className="w-full max-w-md rounded-3xl border border-pink-100 bg-white p-8 text-center shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-          <AlertCircle className="h-8 w-8 text-red-500 dark:text-red-400" />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+      <div className="w-full max-w-md rounded-3xl border border-[var(--kw-border)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20">
+          <AlertCircle className="h-8 w-8 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
         </div>
 
-        <h1 className="mb-2 text-xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+        <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
           Failed to initialize
         </h1>
 
-        <p className="mb-6 text-gray-600 dark:text-[#9CA3AF]">
+        <p className="mb-6 text-[var(--kw-text-muted)]">
           {error.message || 'Something went wrong while loading the application.'}
         </p>
 
@@ -147,7 +147,7 @@ export function SimpleLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/50 to-purple-50/30 dark:from-[#1A1A2E] dark:to-[#252540]">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       <div className="hidden lg:block">
         <Sidebar
           collapsed={sidebarCollapsed}
@@ -156,7 +156,7 @@ export function SimpleLayout({
       </div>
 
       <div
-        className={`transition-all duration-300 lg:ml-0 ${
+        className={`transition-[margin] duration-300 lg:ml-0 ${
           sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
         }`}
       >

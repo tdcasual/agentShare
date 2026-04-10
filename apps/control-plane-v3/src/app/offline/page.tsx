@@ -33,26 +33,26 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4 dark:from-[#1A1A2E] dark:to-[#252540]">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       <Card variant="feature" className="w-full max-w-md space-y-6 p-8 text-center">
         {/* 图标 */}
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-          <WifiOff className="h-10 w-10 text-amber-600 dark:text-amber-400" />
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/30">
+          <WifiOff className="h-10 w-10 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
         </div>
 
         {/* 标题 */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-[#E8E8EC]">您已离线</h1>
-          <p className="text-gray-600 dark:text-[#9CA3AF]">无法连接到网络，部分功能可能无法使用</p>
+          <h1 className="text-2xl font-bold text-[var(--kw-text)]">您已离线</h1>
+          <p className="text-[var(--kw-text-muted)]">无法连接到网络，部分功能可能无法使用</p>
         </div>
 
         {/* 说明 */}
-        <div className="space-y-3 rounded-2xl bg-white/50 p-4 text-left dark:bg-[#252540]/50">
+        <div className="space-y-3 rounded-2xl bg-white/50 p-4 text-left dark:bg-[var(--kw-dark-surface)]/50">
           <div className="flex items-start gap-3">
-            <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+            <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]" />
             <div>
-              <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">离线时可用的功能</p>
-              <ul className="mt-1 space-y-1 text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="font-medium text-[var(--kw-text)]">离线时可用的功能</p>
+              <ul className="mt-1 space-y-1 text-sm text-[var(--kw-text-muted)]">
                 <li>• 浏览已缓存的页面</li>
                 <li>• 查看本地数据</li>
                 <li>• 填写表单（稍后同步）</li>
@@ -79,13 +79,13 @@ export default function OfflinePage() {
 
         {/* 状态提示 */}
         {isOnline && (
-          <p className="animate-fade-in text-sm text-green-600 dark:text-green-400">
+          <p className="animate-fade-in text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
             网络已恢复，正在重新加载...
           </p>
         )}
 
         {/* 底部信息 */}
-        <p className="text-xs text-gray-400 dark:text-gray-600">Control Plane V3 · 离线模式</p>
+        <p className="text-xs text-[var(--kw-text-muted)]">Control Plane V3 · 离线模式</p>
       </Card>
     </div>
   );

@@ -1,55 +1,51 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useTheme } from 'next-themes';
 
 const DECORATIONS = ['🌸', '✨', '💕', '🎀', '🌟', '💖', '🌷', '💫'];
 const DARK_DECORATIONS = ['🌙', '⭐', '✨', '💫', '🌸', '🦋', '🔮', '🌌'];
 
-interface FloatingItem {
-  id: number;
-  emoji: string;
-  left: string;
-  top: string;
-  delay: string;
-  duration: string;
-  size: string;
+// Deterministic pseudo-random generator for stable SSR/CSR match
+function mulberry32(seed: number) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
+
+function generateItems(seed: number) {
+  const rand = mulberry32(seed);
+  return [...Array(12)].map((_, i) => ({
+    id: i,
+    left: `${rand() * 100}%`,
+    top: `${rand() * 100}%`,
+    delay: `${rand() * 5}s`,
+    duration: `${4 + rand() * 3}s`,
+    size: `${1.5 + rand() * 1.5}rem`,
+  }));
+}
+
+// Pre-compute stable positions so they never change across renders or themes
+const STABLE_ITEMS = generateItems(42);
 
 export function KawaiiBackground() {
   const { resolvedTheme } = useTheme();
-  const [items, setItems] = useState<FloatingItem[]>([]);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const isDark = resolvedTheme === 'dark';
-    const decorations = isDark ? DARK_DECORATIONS : DECORATIONS;
-
-    const generated = [...Array(12)].map((_, i) => ({
-      id: i,
-      emoji: decorations[i % decorations.length],
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 5}s`,
-      duration: `${4 + Math.random() * 3}s`,
-      size: `${1.5 + Math.random() * 1.5}rem`,
-    }));
-    setItems(generated);
-  }, [resolvedTheme]);
-
-  if (!mounted) {
-    return (
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-50/80 via-purple-50/60 to-blue-50/80" />
-      </div>
-    );
-  }
 
   const isDark = resolvedTheme === 'dark';
+  const decorations = isDark ? DARK_DECORATIONS : DECORATIONS;
+
+  // Memoize emojis so we only recompute the mapping, not positions
+  const items = useMemo(
+    () =>
+      STABLE_ITEMS.map((item, i) => ({
+        ...item,
+        emoji: decorations[i % decorations.length],
+      })),
+    [decorations]
+  );
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -57,7 +53,7 @@ export function KawaiiBackground() {
       <div
         className={`absolute inset-0 transition-colors duration-500 ${
           isDark
-            ? 'bg-gradient-to-br from-[#1A1A2E]/90 via-[#252540]/80 to-[#1E1E36]/90'
+            ? 'bg-gradient-to-br from-[var(--kw-dark-bg)]/90 via-[var(--kw-dark-surface)]/80 to-[var(--kw-dark-bg)]/90'
             : 'bg-gradient-to-br from-pink-50/80 via-purple-50/60 to-blue-50/80'
         }`}
       />
@@ -84,12 +80,12 @@ export function KawaiiBackground() {
       {/* Soft orb decorations - softer in dark mode */}
       <div
         className={`absolute left-1/4 top-1/4 h-64 w-64 animate-pulse rounded-full blur-3xl transition-colors duration-500 ${
-          isDark ? 'bg-[#E891C0]/5' : 'bg-pink-200/20'
+          isDark ? 'bg-[var(--kw-dark-primary)]/5' : 'bg-[var(--kw-primary-200)]/20'
         }`}
       />
       <div
         className={`absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full blur-3xl transition-colors duration-500 ${
-          isDark ? 'bg-[#6B9AC4]/5' : 'bg-purple-200/20'
+          isDark ? 'bg-[var(--kw-dark-sky)]/5' : 'bg-purple-200/20'
         }`}
         style={{ animationDelay: '1s' }}
       />

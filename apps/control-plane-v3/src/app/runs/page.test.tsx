@@ -80,7 +80,7 @@ describe('runs page', () => {
 
     render(<RunsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('runs.sessionForbidden');
   });
 
   it('filters runs by status from the toolbar', async () => {
@@ -101,7 +101,7 @@ describe('runs page', () => {
 
     await user.click(screen.getByText(/Run #87654321/i));
 
-    expect(screen.getByText(/Run 详情/i)).toBeInTheDocument();
+    expect(screen.getByText('runs.detailTitle')).toBeInTheDocument();
     expect(screen.getByText(/Run finished successfully/i)).toBeInTheDocument();
     expect(screen.getByText(/任务ID/i)).toBeInTheDocument();
   });
@@ -115,7 +115,7 @@ describe('runs page', () => {
     await user.click(screen.getByRole('button', { name: /刷新/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Your management session has expired'
+      'runs.sessionExpired'
     );
   });
 

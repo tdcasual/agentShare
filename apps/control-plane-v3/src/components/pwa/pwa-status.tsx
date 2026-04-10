@@ -14,12 +14,14 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 interface PWAStatusProps {
   className?: string;
 }
 
 export function PWAStatus({ className }: PWAStatusProps) {
+  const { t } = useI18n();
   const {
     isInstallable,
     isInstalled,
@@ -35,11 +37,11 @@ export function PWAStatus({ className }: PWAStatusProps) {
     try {
       await shareContent({
         title: 'Control Plane V3',
-        text: '人类与智能体共享的控制平面',
+        text: t('metadata.description'),
         url: window.location.origin,
       });
     } catch {
-      // 分享失败或用户取消
+      // share failed or user cancelled
     }
   };
 
@@ -51,7 +53,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
     <div className={cn('space-y-4', className)}>
       {/* 安装状态 */}
       <Card className="p-4">
-        <h3 className="mb-4 font-semibold text-gray-800 dark:text-[#E8E8EC]">应用状态</h3>
+        <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.appStatus')}</h3>
         <div className="space-y-3">
           {/* 安装状态 */}
           <div className="flex items-center justify-between">
@@ -59,27 +61,27 @@ export function PWAStatus({ className }: PWAStatusProps) {
               <div
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-xl',
-                  isInstalled ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-800'
+                  isInstalled ? 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
                 )}
               >
                 {isInstalled ? (
-                  <Smartphone className="h-5 w-5 text-green-600" />
+                  <Smartphone className="h-5 w-5 text-[var(--kw-green-text)]" />
                 ) : (
-                  <Download className="h-5 w-5 text-gray-500" />
+                  <Download className="h-5 w-5 text-[var(--kw-text-muted)]" />
                 )}
               </div>
               <div>
-                <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                  {isInstalled ? '已安装' : '未安装'}
+                <p className="font-medium text-[var(--kw-text)]">
+                  {isInstalled ? t('pwa.installed') : t('pwa.notInstalled')}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  {isInstalled ? '应用已添加到主屏幕' : '添加到主屏幕以获得更好体验'}
+                <p className="text-sm text-[var(--kw-text-muted)]">
+                  {isInstalled ? t('pwa.addedToHomeScreen') : t('pwa.addToHomeScreen')}
                 </p>
               </div>
             </div>
             {!isInstalled && isInstallable && (
               <Button size="sm" onClick={install}>
-                安装
+                {t('pwa.install')}
               </Button>
             )}
           </div>
@@ -91,22 +93,22 @@ export function PWAStatus({ className }: PWAStatusProps) {
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-xl',
                   isOffline
-                    ? 'bg-amber-100 dark:bg-amber-900/30'
-                    : 'bg-green-100 dark:bg-green-900/30'
+                    ? 'bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/30'
+                    : 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/30'
                 )}
               >
                 {isOffline ? (
-                  <WifiOff className="h-5 w-5 text-amber-600" />
+                  <WifiOff className="h-5 w-5 text-[var(--kw-amber-text)]" />
                 ) : (
-                  <Wifi className="h-5 w-5 text-green-600" />
+                  <Wifi className="h-5 w-5 text-[var(--kw-green-text)]" />
                 )}
               </div>
               <div>
-                <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">
-                  {isOffline ? '离线模式' : '在线'}
+                <p className="font-medium text-[var(--kw-text)]">
+                  {isOffline ? t('pwa.offline') : t('pwa.online')}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-                  {isOffline ? '部分内容可能无法访问' : '所有功能可用'}
+                <p className="text-sm text-[var(--kw-text-muted)]">
+                  {isOffline ? t('pwa.offlineDesc') : t('pwa.allFeaturesAvailable')}
                 </p>
               </div>
             </div>
@@ -116,16 +118,16 @@ export function PWAStatus({ className }: PWAStatusProps) {
           {hasUpdate && (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-900/30">
-                  <RefreshCw className="h-5 w-5 text-pink-500" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-pink-surface)]">
+                  <RefreshCw className="h-5 w-5 text-[var(--kw-primary-500)]" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">新版本可用</p>
-                  <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">更新包含新功能和改进</p>
+                  <p className="font-medium text-[var(--kw-text)]">{t('pwa.updateAvailable')}</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">{t('pwa.updateDesc')}</p>
                 </div>
               </div>
               <Button size="sm" onClick={update}>
-                更新
+                {t('pwa.update')}
               </Button>
             </div>
           )}
@@ -134,60 +136,62 @@ export function PWAStatus({ className }: PWAStatusProps) {
 
       {/* 功能支持 */}
       <Card className="p-4">
-        <h3 className="mb-4 font-semibold text-gray-800 dark:text-[#E8E8EC]">设备功能</h3>
+        <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.deviceFeatures')}</h3>
         <div className="grid grid-cols-2 gap-3">
           {/* 分享功能 */}
           <button
+            type="button"
             onClick={handleShare}
             disabled={!canShare}
             className={cn(
               'flex items-center gap-3 rounded-xl p-3 text-left transition-colors',
               canShare
-                ? 'cursor-pointer hover:bg-pink-50 dark:hover:bg-[#3D3D5C]'
+                ? 'cursor-pointer hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-border)]'
                 : 'cursor-not-allowed opacity-50'
             )}
           >
             <div
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-xl',
-                canShare ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
+                canShare ? 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-info-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
               )}
             >
-              <Share2 className={cn('h-5 w-5', canShare ? 'text-blue-600' : 'text-gray-400')} />
+              <Share2 className={cn('h-5 w-5', canShare ? 'text-[var(--kw-sky-text)]' : 'text-[var(--kw-text-muted)]')} />
             </div>
             <div>
-              <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">分享</p>
-              <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">
-                {canShare ? '可用' : '不支持'}
+              <p className="font-medium text-[var(--kw-text)]">{t('common.share')}</p>
+              <p className="text-xs text-[var(--kw-text-muted)]">
+                {canShare ? t('pwa.available') : t('pwa.unsupported')}
               </p>
             </div>
           </button>
 
           {/* 振动反馈 */}
           <button
+            type="button"
             onClick={handleVibrate}
             disabled={!canVibrate}
             className={cn(
               'flex items-center gap-3 rounded-xl p-3 text-left transition-colors',
               canVibrate
-                ? 'cursor-pointer hover:bg-pink-50 dark:hover:bg-[#3D3D5C]'
+                ? 'cursor-pointer hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-border)]'
                 : 'cursor-not-allowed opacity-50'
             )}
           >
             <div
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-xl',
-                canVibrate ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'
+                canVibrate ? 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
               )}
             >
               <Vibrate
-                className={cn('h-5 w-5', canVibrate ? 'text-purple-600' : 'text-gray-400')}
+                className={cn('h-5 w-5', canVibrate ? 'text-[var(--kw-purple-text)]' : 'text-[var(--kw-text-muted)]')}
               />
             </div>
             <div>
-              <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">振动</p>
-              <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">
-                {canVibrate ? '可用' : '不支持'}
+              <p className="font-medium text-[var(--kw-text)]">{t('pwa.vibrate')}</p>
+              <p className="text-xs text-[var(--kw-text-muted)]">
+                {canVibrate ? t('pwa.available') : t('pwa.unsupported')}
               </p>
             </div>
           </button>
@@ -196,17 +200,17 @@ export function PWAStatus({ className }: PWAStatusProps) {
 
       {/* 功能清单 */}
       <Card className="p-4">
-        <h3 className="mb-4 font-semibold text-gray-800 dark:text-[#E8E8EC]">PWA 功能</h3>
+        <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.pwaFeatures')}</h3>
         <ul className="space-y-2">
-          <FeatureItem label="离线访问" description="无网络时仍可浏览缓存内容" available={true} />
-          <FeatureItem label="后台同步" description="网络恢复时自动同步数据" available={true} />
-          <FeatureItem label="推送通知" description="接收重要事件提醒" available={true} />
+          <FeatureItem label={t('pwa.featureOffline')} description={t('pwa.featureOfflineDesc')} available={true} />
+          <FeatureItem label={t('pwa.featureSync')} description={t('pwa.featureSyncDesc')} available={true} />
+          <FeatureItem label={t('pwa.featurePush')} description={t('pwa.featurePushDesc')} available={true} />
           <FeatureItem
-            label="添加到主屏幕"
-            description="像原生应用一样启动"
+            label={t('pwa.featureA2hs')}
+            description={t('pwa.featureA2hsDesc')}
             available={isInstallable || isInstalled}
           />
-          <FeatureItem label="自动更新" description="始终保持最新版本" available={true} />
+          <FeatureItem label={t('pwa.featureAutoUpdate')} description={t('pwa.featureAutoUpdateDesc')} available={true} />
         </ul>
       </Card>
     </div>
@@ -227,20 +231,20 @@ function FeatureItem({
       <div
         className={cn(
           'mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full',
-          available ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-800'
+          available ? 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
         )}
       >
         {available ? (
-          <Check className={cn('h-3 w-3', available ? 'text-green-600' : 'text-gray-400')} />
+          <Check className={cn('h-3 w-3', available ? 'text-[var(--kw-green-text)]' : 'text-[var(--kw-text-muted)]')} />
         ) : (
-          <span className="h-3 w-3 rounded-full bg-gray-300 dark:bg-gray-600" />
+          <span className="h-3 w-3 rounded-full bg-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-text-muted)]" />
         )}
       </div>
       <div>
         <p
           className={cn(
             'font-medium',
-            available ? 'text-gray-800 dark:text-[#E8E8EC]' : 'text-gray-400 dark:text-gray-600'
+            available ? 'text-[var(--kw-text)]' : 'text-[var(--kw-text-muted)]'
           )}
         >
           {label}
@@ -248,7 +252,7 @@ function FeatureItem({
         <p
           className={cn(
             'text-sm',
-            available ? 'text-gray-500 dark:text-[#9CA3AF]' : 'text-gray-400 dark:text-gray-600'
+            available ? 'text-[var(--kw-text-muted)]' : 'text-[var(--kw-text-muted)]'
           )}
         >
           {description}

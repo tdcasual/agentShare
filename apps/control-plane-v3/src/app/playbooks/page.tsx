@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Layout } from '@/interfaces/human/layout';
 import { ManagementRouteGuard } from '@/components/route-guard';
 import { useI18n } from '@/components/i18n-provider';
@@ -30,8 +30,8 @@ import { BookOpen, Search, Plus, Tag, RefreshCw, XCircle, Filter } from 'lucide-
 // 常见任务类型
 const TASK_TYPES = ['all', 'code_review', 'deployment', 'analysis', 'documentation', 'testing'];
 
-function PlaybooksContent() {
-  useI18n();
+const PlaybooksContent = memo(function PlaybooksContent() {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTaskType, setSelectedTaskType] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('');
@@ -81,7 +81,7 @@ function PlaybooksContent() {
         return;
       }
       setActionError(
-        actionError instanceof Error ? actionError.message : 'Failed to create playbook'
+        actionError instanceof Error ? actionError.message : t('playbooks.createFailed')
       );
     }
   };
@@ -98,7 +98,7 @@ function PlaybooksContent() {
         return;
       }
       setRefreshError(
-        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh playbooks'
+        refreshFailure instanceof Error ? refreshFailure.message : t('playbooks.refreshFailed')
       );
     }
   };
@@ -118,11 +118,11 @@ function PlaybooksContent() {
       <Layout>
         <div className="flex min-h-[60vh] items-center justify-center p-4">
           <Card variant="kawaii" className="w-full max-w-md text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <XCircle className="h-8 w-8 text-red-500" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
+              <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-gray-800">加载失败</h2>
-            <p className="mb-4 text-gray-600">
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">加载失败</h2>
+            <p className="mb-4 text-[var(--kw-text-muted)]">
               {error instanceof Error ? error.message : '未知错误'}
             </p>
             <Button variant="kawaii" onClick={() => refresh()}>
@@ -139,11 +139,11 @@ function PlaybooksContent() {
       <Layout>
         <div className="space-y-6">
           {shouldShowSessionExpired ? (
-            <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to browse playbooks." />
+            <ManagementSessionExpiredAlert message={t("playbooks.sessionExpired")} />
           ) : null}
 
           {!shouldShowSessionExpired && shouldShowForbidden ? (
-            <ManagementForbiddenAlert message="You do not have permission to view playbooks. Use a management session with the required permission to continue." />
+            <ManagementForbiddenAlert message={t("playbooks.sessionForbidden")} />
           ) : null}
 
           {!shouldShowSessionExpired && !shouldShowForbidden && gateError ? (
@@ -151,7 +151,7 @@ function PlaybooksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {gateError}
             </Card>
@@ -160,8 +160,8 @@ function PlaybooksContent() {
           {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Playbook 手册</h1>
-              <p className="mt-1 text-gray-500 dark:text-gray-400">浏览和搜索可复用的执行手册</p>
+              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">Playbook 手册</h1>
+              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">浏览和搜索可复用的执行手册</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -190,7 +190,7 @@ function PlaybooksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {refreshError}
             </Card>
@@ -201,7 +201,7 @@ function PlaybooksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {actionError}
             </Card>
@@ -212,7 +212,7 @@ function PlaybooksContent() {
             <div className="space-y-4">
               {/* 搜索框 */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--kw-text-muted)]" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -223,16 +223,17 @@ function PlaybooksContent() {
 
               {/* 任务类型筛选 */}
               <div className="flex flex-wrap items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-500">类型:</span>
+                <Filter className="h-4 w-4 text-[var(--kw-text-muted)]" />
+                <span className="text-sm text-[var(--kw-text-muted)]">类型:</span>
                 {TASK_TYPES.map((type) => (
                   <button
+                    type="button"
                     key={type}
                     onClick={() => setSelectedTaskType(type)}
                     className={`rounded-full px-3 py-1 text-sm transition-colors ${
                       selectedTaskType === type
-                        ? 'bg-pink-100 font-medium text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                        ? 'bg-[var(--kw-primary-100)] font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]'
+                        : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
                     }`}
                   >
                     {type === 'all' ? '全部' : type}
@@ -243,16 +244,17 @@ function PlaybooksContent() {
               {/* 标签筛选 */}
               {allTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <Tag className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-500">标签:</span>
+                  <Tag className="h-4 w-4 text-[var(--kw-text-muted)]" />
+                  <span className="text-sm text-[var(--kw-text-muted)]">标签:</span>
                   {allTags.map((tag) => (
                     <button
+                      type="button"
                       key={tag}
                       onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
                       className={`rounded-full px-2 py-0.5 text-xs transition-colors ${
                         selectedTag === tag
-                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                          ? 'bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] dark:bg-[var(--kw-dark-purple-surface)]/30 dark:text-[var(--kw-dark-primary)]'
+                          : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
                       }`}
                     >
                       {tag}
@@ -264,7 +266,7 @@ function PlaybooksContent() {
           </Card>
 
           {/* 统计 */}
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm text-[var(--kw-text-muted)]">
             <span>
               共 {total} 本手册
               {appliedFilters?.q && ` · 搜索: "${appliedFilters.q}"`}
@@ -278,13 +280,13 @@ function PlaybooksContent() {
             {playbooks.length === 0 ? (
               <div className="col-span-full">
                 <Card variant="kawaii" className="p-12 text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-pink-100">
-                    <BookOpen className="h-10 w-10 text-pink-500" />
+                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
+                    <BookOpen className="h-10 w-10 text-[var(--kw-primary-500)]" />
                   </div>
-                  <h3 className="mb-2 text-lg font-medium text-gray-800 dark:text-gray-100">
+                  <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
                     暂无手册
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
                     {searchQuery || selectedTaskType !== 'all' || selectedTag
                       ? '尝试调整搜索条件'
                       : '还没有创建任何手册'}
@@ -315,7 +317,7 @@ function PlaybooksContent() {
       </Layout>
     </ErrorBoundary>
   );
-}
+});
 
 // 创建手册弹窗
 interface CreatePlaybookModalProps {
@@ -325,6 +327,7 @@ interface CreatePlaybookModalProps {
 }
 
 function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookModalProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [taskType, setTaskType] = useState('code_review');
@@ -347,10 +350,10 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <Card variant="kawaii" className="w-full max-w-lg">
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">新建 Playbook</h2>
+          <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">新建 Playbook</h2>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
               标题
             </label>
             <Input
@@ -362,35 +365,35 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
               任务类型
             </label>
             <select
               value={taskType}
               onChange={(e) => setTaskType(e.target.value)}
-              className="w-full rounded-xl border border-pink-200 bg-white px-3 py-2 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]"
+              className="w-full rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
             >
-              <option value="code_review">Code Review</option>
-              <option value="deployment">Deployment</option>
-              <option value="analysis">Analysis</option>
-              <option value="documentation">Documentation</option>
-              <option value="testing">Testing</option>
+              <option value="code_review">{t('playbooks.taskTypes.codeReview')}</option>
+              <option value="deployment">{t('playbooks.taskTypes.deployment')}</option>
+              <option value="analysis">{t('playbooks.taskTypes.analysis')}</option>
+              <option value="documentation">{t('playbooks.taskTypes.documentation')}</option>
+              <option value="testing">{t('playbooks.taskTypes.testing')}</option>
             </select>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
               标签（用逗号分隔）
             </label>
             <Input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="e.g. urgent, frontend, react"
+              placeholder={t("playbooks.form.tagsPlaceholder")}
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
               内容
             </label>
             <textarea
@@ -399,7 +402,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
               placeholder="输入手册详细内容..."
               rows={6}
               required
-              className="w-full resize-none rounded-xl border border-pink-200 bg-white px-3 py-2 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]"
+              className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
             />
           </div>
 

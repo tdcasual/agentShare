@@ -342,7 +342,7 @@ describe('spaces page', () => {
     await user.click(screen.getByRole('button', { name: /approve agent.market.capability/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('spaces.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -436,7 +436,7 @@ describe('spaces page', () => {
     await user.click(screen.getAllByRole('button', { name: /创建空间/i })[1]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('spaces.sessionExpired');
     });
   });
 
@@ -469,7 +469,7 @@ describe('spaces page', () => {
     await user.click(screen.getByRole('button', { name: /^添加$/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('permission');
+      expect(screen.getByRole('alert')).toHaveTextContent('spaces.sessionForbidden');
     });
   });
 
@@ -507,6 +507,6 @@ describe('spaces page', () => {
     const alerts = screen.getAllByRole('alert');
 
     expect(alerts).toHaveLength(1);
-    expect(alerts[0]).toHaveTextContent('permission');
+    expect(alerts[0]).toHaveTextContent('spaces.sessionForbidden');
   });
 });

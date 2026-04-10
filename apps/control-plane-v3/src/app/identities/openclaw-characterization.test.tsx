@@ -245,8 +245,8 @@ describe('openclaw migration characterization on identities page', () => {
     expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
     expect(screen.getByText(/OpenClaw coverage/i)).toBeInTheDocument();
-    expect(screen.getByText(/Agents with live sessions/i)).toBeInTheDocument();
-    expect(screen.getByText(/Workspace-ready agents/i)).toBeInTheDocument();
+    expect(screen.getByText('identities.metrics.agentsWithSessions')).toBeInTheDocument();
+    expect(screen.getByText('identities.metrics.workspaceReadyAgents')).toBeInTheDocument();
     expect(screen.getByText(/Dream Mode/i)).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /manage tokens/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /create agent/i })).not.toBeInTheDocument();

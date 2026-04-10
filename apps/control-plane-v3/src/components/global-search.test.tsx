@@ -60,12 +60,12 @@ describe('GlobalSearch', () => {
     render(<GlobalSearch />);
 
     fireEvent.focus(
-      screen.getByRole('searchbox', { name: /search assets, skills, identities, and events/i })
+      screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' })
     );
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'signal' } });
 
-    expect(await screen.findByText('Assets')).toBeInTheDocument();
-    expect(await screen.findByText('Skills')).toBeInTheDocument();
+    expect(await screen.findByText('globalSearch.groups.assets')).toBeInTheDocument();
+    expect(await screen.findByText('globalSearch.groups.skills')).toBeInTheDocument();
     expect(screen.getByText('Signal Secret')).toBeInTheDocument();
     expect(screen.getByText('signal.skill.invoke')).toBeInTheDocument();
   });
@@ -74,7 +74,7 @@ describe('GlobalSearch', () => {
     render(<GlobalSearch />);
 
     fireEvent.focus(
-      screen.getByRole('searchbox', { name: /search assets, skills, identities, and events/i })
+      screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' })
     );
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'signal' } });
 
@@ -87,7 +87,7 @@ describe('GlobalSearch', () => {
     render(<GlobalSearch />);
 
     fireEvent.focus(
-      screen.getByRole('searchbox', { name: /search assets, skills, identities, and events/i })
+      screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' })
     );
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'signal' } });
 

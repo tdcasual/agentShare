@@ -155,7 +155,7 @@ describe('tasks page', () => {
     await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -172,7 +172,7 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -187,7 +187,7 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionForbidden');
   });
 
   it('surfaces feedback follow-up metrics and filters tasks that still need review', async () => {
@@ -243,7 +243,7 @@ describe('tasks page', () => {
     await user.click(screen.getAllByRole('button', { name: /tasks\.publishTask/i })[1]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -267,7 +267,7 @@ describe('tasks page', () => {
     await user.click(screen.getByRole('button', { name: /tasks\.saveFeedback/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(

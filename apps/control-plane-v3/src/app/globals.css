@@ -40,6 +40,20 @@
   --kw-human-accent: #87ceeb;
   --kw-agent-accent: #98fb98;
 
+  /* Semantic surface backgrounds for light mode */
+  --kw-sky-surface: #e0f2fe;
+  --kw-sky-text: #0284c7;
+  --kw-green-surface: #dcfce7;
+  --kw-green-text: #16a34a;
+  --kw-purple-surface: #f3e8ff;
+  --kw-purple-text: #9333ea;
+  --kw-orange-surface: #ffedd5;
+  --kw-orange-text: #ea580c;
+  --kw-rose-surface: #ffe4e6;
+  --kw-rose-text: #e11d48;
+  --kw-amber-surface: #fef3c7;
+  --kw-amber-text: #b45309;
+
   /* Dark Mode - Soft Anime Theme (No Neon) */
   --kw-dark-bg: #1a1a2e;
   --kw-dark-surface: #252540;
@@ -52,6 +66,19 @@
   --kw-dark-primary: #e891c0;
   --kw-dark-mint: #90ee90;
   --kw-dark-sky: #6b9ac4;
+
+  /* Semantic dark surface backgrounds for badges and icons */
+  --kw-dark-success-surface: #1a3d2a;
+  --kw-dark-warning-surface: #3d3d1a;
+  --kw-dark-error-surface: #3d1a1a;
+  --kw-dark-info-surface: #1a2a3d;
+  --kw-dark-pink-surface: #3d1a3d;
+  --kw-dark-purple-surface: #2d1a3d;
+  --kw-dark-rose-surface: #4a2d40;
+  --kw-dark-amber-surface: #4a3d2d;
+  --kw-dark-green-accent-surface: #2d4a3d;
+  --kw-dark-sky-accent-surface: #2d4a5d;
+  --kw-dark-purple-accent-surface: #3d2d4a;
 }
 
 .dark {
@@ -121,14 +148,6 @@ body {
 
 .dark .scrollbar-thin::-webkit-scrollbar-thumb {
   background: var(--kw-dark-border);
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, var(--kw-primary-400) 0%, var(--kw-primary-500) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 /* Shimmer effect for buttons */
@@ -261,7 +280,7 @@ body {
 
 /* Kawaii card hover - adapts to mode */
 .card-kawaii {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 245, 247, 0.8) 100%);
 }
 

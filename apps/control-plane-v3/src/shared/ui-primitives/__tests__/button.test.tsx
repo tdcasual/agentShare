@@ -46,6 +46,6 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toHaveClass('border-2');
 
     rerender(<Button variant="ghost">Ghost</Button>);
-    expect(screen.getByRole('button')).toHaveClass('hover:bg-pink-100');
+    expect(screen.getByRole('button')).toHaveClass('hover:bg-[var(--kw-primary-100)]');
   });
 });

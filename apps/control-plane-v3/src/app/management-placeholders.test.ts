@@ -39,7 +39,7 @@ describe('management placeholders', () => {
 
     expect(source).toMatch(/useReviews/);
     expect(source).toMatch(/useCatalog/);
-    expect(source).toMatch(/Only agents publish here/);
+    expect(source).toMatch(/marketplace.headline/);
     expect(source).not.toMatch(/Marketplace Coming Soon/);
   });
 });

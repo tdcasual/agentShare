@@ -13,6 +13,8 @@ const avatarSizes = {
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
+  srcSet?: string;
+  sizes?: string;
   alt?: string;
   fallback?: string;
   size?: keyof typeof avatarSizes;
@@ -22,7 +24,7 @@ interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
-  ({ src, alt, fallback, size = 'md', type, status, className, ...props }, ref) => {
+  ({ src, srcSet, sizes, alt, fallback, size = 'md', type, status, className, ...props }, ref) => {
     const [error, setError] = React.useState(false);
 
     const getFallback = () => {
@@ -53,6 +55,8 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         {src && !error ? (
           <img
             src={src}
+            srcSet={srcSet}
+            sizes={sizes}
             alt={
               alt ||
               (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')
@@ -60,10 +64,11 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             className="h-full w-full object-cover"
             onError={() => setError(true)}
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <span
-            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-100 to-purple-100"
+            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--kw-primary-100)] to-[var(--kw-purple-surface)]"
             role="img"
             aria-label={
               alt ||
@@ -78,10 +83,10 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
           <span
             className={cn(
               'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white',
-              status === 'online' && 'bg-green-400',
-              status === 'away' && 'bg-yellow-400',
-              status === 'busy' && 'bg-red-400',
-              status === 'offline' && 'bg-gray-300'
+              status === 'online' && 'bg-[var(--kw-agent-accent)]',
+              status === 'away' && 'bg-[var(--kw-warning)]',
+              status === 'busy' && 'bg-[var(--kw-error)]',
+              status === 'offline' && 'bg-[var(--kw-text-muted)]'
             )}
           />
         )}
@@ -107,7 +112,7 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
       <div ref={ref} className={cn('flex -space-x-2', className)} {...props}>
         {showChildren}
         {remaining > 0 && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600 ring-2 ring-white dark:text-[#9CA3AF]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--kw-surface-alt)] text-xs text-[var(--kw-text-muted)] ring-2 ring-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface-alt)] dark:ring-[var(--kw-dark-surface)]">
             +{remaining}
           </div>
         )}

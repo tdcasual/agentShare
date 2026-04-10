@@ -25,6 +25,12 @@ vi.mock('@/domains/event', () => ({
   useMarkEventRead: () => markEventReadMock,
 }));
 
+vi.mock('@/components/i18n-provider', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 describe('inbox focused entry state', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -74,14 +80,14 @@ describe('inbox focused entry state', () => {
   it('highlights the focused event and renders a task-specific context summary', () => {
     render(<InboxPage />);
 
-    const focusedSummary = screen.getByText('Focused event').closest('[role="region"]');
+    const focusedSummary = screen.getByText('inbox.focusedEvent').closest('[role="region"]');
 
     expect(focusedSummary).not.toBeNull();
     expect(
       within(focusedSummary as HTMLElement).getByText('Bootstrap finished Sync Config')
     ).toBeInTheDocument();
     expect(
-      within(focusedSummary as HTMLElement).getByRole('button', { name: /open task/i })
+      within(focusedSummary as HTMLElement).getByRole('button', { name: /inbox.actionLabels.openTask/i })
     ).toBeInTheDocument();
     expect(screen.getByTestId('inbox-event-event-1')).toHaveAttribute(
       'data-focus-state',
@@ -98,10 +104,10 @@ describe('inbox focused entry state', () => {
 
     render(<InboxPage />);
 
-    const focusedSummary = screen.getByText('Focused event').closest('[role="region"]');
+    const focusedSummary = screen.getByText('inbox.focusedEvent').closest('[role="region"]');
 
     await user.click(
-      within(focusedSummary as HTMLElement).getByRole('button', { name: /mark as read/i })
+      within(focusedSummary as HTMLElement).getByRole('button', { name: /inbox.markAsRead/i })
     );
 
     await waitFor(() => {

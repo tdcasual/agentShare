@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Layout } from '@/interfaces/human/layout';
 import { ManagementRouteGuard } from '@/components/route-guard';
 import { useI18n } from '@/components/i18n-provider';
@@ -28,14 +28,14 @@ import { CheckCircle, Clock, XCircle, Filter, RefreshCw } from 'lucide-react';
 
 // 状态过滤器配置
 const statusFilters: { value: ApprovalStatus | 'all'; label: string; color: string }[] = [
-  { value: 'all', label: '全部', color: 'bg-gray-100 text-gray-700' },
-  { value: 'pending', label: '待审批', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'approved', label: '已批准', color: 'bg-green-100 text-green-700' },
-  { value: 'rejected', label: '已拒绝', color: 'bg-red-100 text-red-700' },
+  { value: 'all', label: '全部', color: 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)]' },
+  { value: 'pending', label: '待审批', color: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]' },
+  { value: 'approved', label: '已批准', color: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]' },
+  { value: 'rejected', label: '已拒绝', color: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]' },
 ];
 
-function ApprovalsContent() {
-  useI18n();
+const ApprovalsContent = memo(function ApprovalsContent() {
+  const { t } = useI18n();
   const [statusFilter, setStatusFilter] = useState<ApprovalStatus | 'all'>('pending');
   const [actionError, setActionError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
@@ -76,7 +76,7 @@ function ApprovalsContent() {
         return;
       }
       setActionError(
-        actionError instanceof Error ? actionError.message : 'Failed to approve request'
+        actionError instanceof Error ? actionError.message : t('approvals.approveFailed')
       );
     }
   };
@@ -94,7 +94,7 @@ function ApprovalsContent() {
         return;
       }
       setActionError(
-        actionError instanceof Error ? actionError.message : 'Failed to reject request'
+        actionError instanceof Error ? actionError.message : t('approvals.rejectFailed')
       );
     }
   };
@@ -111,7 +111,7 @@ function ApprovalsContent() {
         return;
       }
       setRefreshError(
-        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh approvals'
+        refreshFailure instanceof Error ? refreshFailure.message : t('approvals.refreshFailed')
       );
     }
   };
@@ -131,11 +131,11 @@ function ApprovalsContent() {
       <Layout>
         <div className="flex min-h-[60vh] items-center justify-center p-4">
           <Card variant="kawaii" className="w-full max-w-md text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <XCircle className="h-8 w-8 text-red-500" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
+              <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-gray-800">加载失败</h2>
-            <p className="mb-4 text-gray-600">
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">加载失败</h2>
+            <p className="mb-4 text-[var(--kw-text-muted)]">
               {error instanceof Error ? error.message : '未知错误'}
             </p>
             <Button variant="kawaii" onClick={() => refresh()}>
@@ -152,11 +152,11 @@ function ApprovalsContent() {
       <Layout>
         <div className="space-y-6">
           {shouldShowSessionExpired ? (
-            <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to review approvals." />
+            <ManagementSessionExpiredAlert message={t("approvals.sessionExpired")} />
           ) : null}
 
           {!shouldShowSessionExpired && shouldShowForbidden ? (
-            <ManagementForbiddenAlert message="You do not have permission to review approvals. Use a higher-privilege management session to continue." />
+            <ManagementForbiddenAlert message={t("approvals.sessionForbidden")} />
           ) : null}
 
           {!shouldShowSessionExpired && !shouldShowForbidden && gateError ? (
@@ -164,7 +164,7 @@ function ApprovalsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {gateError}
             </Card>
@@ -173,8 +173,8 @@ function ApprovalsContent() {
           {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">审批管理</h1>
-              <p className="mt-1 text-gray-500 dark:text-gray-400">审核来自智能体和用户的请求</p>
+              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">审批管理</h1>
+              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">审核来自智能体和用户的请求</p>
             </div>
             <Button
               variant="outline"
@@ -193,7 +193,7 @@ function ApprovalsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {refreshError}
             </Card>
@@ -204,7 +204,7 @@ function ApprovalsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {actionError}
             </Card>
@@ -214,34 +214,34 @@ function ApprovalsContent() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card variant="gradient" className="p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                  <Clock className="h-5 w-5 text-yellow-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-orange-surface)]">
+                  <Clock className="h-5 w-5 text-[var(--kw-orange-text)]" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.pending}</p>
-                  <p className="text-sm text-gray-500">待审批</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">待审批</p>
                 </div>
               </div>
             </Card>
             <Card variant="gradient" className="p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-green-surface)]">
+                  <CheckCircle className="h-5 w-5 text-[var(--kw-green-text)]" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.approved}</p>
-                  <p className="text-sm text-gray-500">已批准</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">已批准</p>
                 </div>
               </div>
             </Card>
             <Card variant="gradient" className="p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                  <XCircle className="h-5 w-5 text-red-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
+                  <XCircle className="h-5 w-5 text-[var(--kw-error)]" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.rejected}</p>
-                  <p className="text-sm text-gray-500">已拒绝</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">已拒绝</p>
                 </div>
               </div>
             </Card>
@@ -249,15 +249,16 @@ function ApprovalsContent() {
 
           {/* 过滤器 */}
           <div className="flex flex-wrap items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-400" />
+            <Filter className="h-4 w-4 text-[var(--kw-text-muted)]" />
             {statusFilters.map((filter) => (
               <button
+                type="button"
                 key={filter.value}
                 onClick={() => setStatusFilter(filter.value)}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   statusFilter === filter.value
                     ? filter.color
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                    : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
                 }`}
               >
                 {filter.label}
@@ -276,13 +277,13 @@ function ApprovalsContent() {
           <div className="space-y-4">
             {approvals.length === 0 ? (
               <Card variant="kawaii" className="p-12 text-center">
-                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-pink-100">
-                  <CheckCircle className="h-10 w-10 text-pink-500" />
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
+                  <CheckCircle className="h-10 w-10 text-[var(--kw-primary-500)]" />
                 </div>
-                <h3 className="mb-2 text-lg font-medium text-gray-800 dark:text-gray-100">
+                <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
                   暂无审批请求
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
                   当前没有
                   {statusFilter === 'all'
                     ? ''
@@ -305,7 +306,7 @@ function ApprovalsContent() {
 
           {/* 总数提示 */}
           {total > 0 && (
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-center text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
               共 {total} 条记录
             </p>
           )}
@@ -313,7 +314,7 @@ function ApprovalsContent() {
       </Layout>
     </ErrorBoundary>
   );
-}
+});
 
 export default function ApprovalsPage() {
   return (

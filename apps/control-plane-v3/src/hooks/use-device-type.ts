@@ -113,15 +113,27 @@ export function useDeviceType(): DeviceTypeInfo {
       });
     };
 
+    // Throttle resize events to avoid excessive re-renders
+    let ticking = false;
+    const throttledUpdate = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateDeviceType();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
     // Initial check
     updateDeviceType();
 
     // Listen for resize and orientation change
-    window.addEventListener('resize', updateDeviceType);
+    window.addEventListener('resize', throttledUpdate);
     window.addEventListener('orientationchange', updateDeviceType);
 
     return () => {
-      window.removeEventListener('resize', updateDeviceType);
+      window.removeEventListener('resize', throttledUpdate);
       window.removeEventListener('orientationchange', updateDeviceType);
     };
   }, []);

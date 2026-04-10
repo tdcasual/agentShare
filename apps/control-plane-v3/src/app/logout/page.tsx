@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/lib/session-state';
+import { useI18n } from '@/components/i18n-provider';
 
 export default function LogoutPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +21,7 @@ export default function LogoutPage() {
         }
       } catch (logoutError) {
         if (!cancelled) {
-          setError(logoutError instanceof Error ? logoutError.message : 'Failed to sign out');
+          setError(logoutError instanceof Error ? logoutError.message : t('auth.logout.failed'));
         }
       }
     }
@@ -29,7 +31,7 @@ export default function LogoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, t]);
 
   if (error) {
     return (
@@ -37,7 +39,7 @@ export default function LogoutPage() {
         <div role="alert" aria-live="assertive" className="max-w-md text-center">
           <p>{error}</p>
           <button type="button" onClick={() => router.replace('/login')}>
-            Continue to login
+            {t('auth.logout.continueToLogin')}
           </button>
         </div>
       </main>
@@ -46,7 +48,7 @@ export default function LogoutPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6">
-      <p>Signing out...</p>
+      <p>{t('auth.logout.signingOut')}</p>
     </main>
   );
 }

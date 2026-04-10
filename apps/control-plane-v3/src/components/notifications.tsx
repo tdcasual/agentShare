@@ -17,33 +17,33 @@ const MAX_DROPDOWN_EVENTS = 6;
 const severityStyles: Record<string, { icon: string; bgClass: string; textClass: string }> = {
   success: {
     icon: '✅',
-    bgClass: 'bg-green-100 dark:bg-[#2D4A3D]',
-    textClass: 'text-green-600 dark:text-green-300',
+    bgClass: 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-green-accent-surface)]',
+    textClass: 'text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]',
   },
   warning: {
     icon: '⚠️',
-    bgClass: 'bg-amber-100 dark:bg-[#4A3D2D]',
-    textClass: 'text-amber-600 dark:text-amber-400',
+    bgClass: 'bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]',
+    textClass: 'text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]',
   },
   error: {
     icon: '❌',
-    bgClass: 'bg-red-100 dark:bg-[#3D2D50]',
-    textClass: 'text-red-600 dark:text-red-400',
+    bgClass: 'bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-rose-surface)]',
+    textClass: 'text-[var(--kw-error)] dark:text-[var(--kw-error)]',
   },
   info: {
     icon: 'ℹ️',
-    bgClass: 'bg-sky-100 dark:bg-[#2D4A5D]',
-    textClass: 'text-sky-600 dark:text-sky-400',
+    bgClass: 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-sky-accent-surface)]',
+    textClass: 'text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]',
   },
   critical: {
     icon: '🔥',
-    bgClass: 'bg-purple-100 dark:bg-[#3D2D4A]',
-    textClass: 'text-purple-600 dark:text-purple-400',
+    bgClass: 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-accent-surface)]',
+    textClass: 'text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]',
   },
   default: {
     icon: '✨',
-    bgClass: 'bg-purple-100 dark:bg-[#3D2D4A]',
-    textClass: 'text-purple-600 dark:text-purple-400',
+    bgClass: 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-accent-surface)]',
+    textClass: 'text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]',
   },
 };
 
@@ -159,15 +159,15 @@ export function Notifications({ className }: NotificationsProps) {
         aria-haspopup="menu"
         aria-label={`${hubLabel}${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
         className={cn(
-          'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2',
+          'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
           isOpen
-            ? 'bg-pink-50 text-pink-600 dark:bg-[#3D3D5C] dark:text-[#E891C0]'
-            : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C] dark:hover:text-[#E891C0]'
+            ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
+            : 'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)] dark:hover:text-[var(--kw-dark-primary)]'
         )}
       >
         <Bell className="h-5 w-5" aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#DB2777] px-1 text-[10px] font-bold text-white dark:bg-[#E891C0]">
+          <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--kw-primary-500)] px-1 text-[10px] font-bold text-white dark:bg-[var(--kw-dark-primary)]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -181,13 +181,13 @@ export function Notifications({ className }: NotificationsProps) {
             ref={menuRef}
             role="menu"
             aria-label={hubLabel}
-            className="absolute right-0 top-full z-50 mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl sm:w-96 dark:border-[#3D3D5C] dark:bg-[#252540]"
+            className="absolute right-0 top-full z-50 mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl sm:w-96 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           >
-            <div className="flex items-center justify-between border-b border-pink-100 p-4 dark:border-[#3D3D5C]">
+            <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
               <div>
-                <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">{hubLabel}</h3>
+                <h3 className="font-semibold text-[var(--kw-text)]">{hubLabel}</h3>
                 {unreadCount > 0 && (
-                  <p className="mt-0.5 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                  <p className="mt-0.5 text-xs text-[var(--kw-text-muted)]">
                     {unreadCount} unread
                   </p>
                 )}
@@ -199,7 +199,7 @@ export function Notifications({ className }: NotificationsProps) {
                     size="sm"
                     onClick={handleMarkAllRead}
                     disabled={isMarking}
-                    className="text-sm text-pink-600 hover:bg-pink-50 hover:text-pink-700 dark:text-[#E891C0] dark:hover:bg-[#3D3D5C] dark:hover:text-[#C77DAA]"
+                    className="text-sm text-[var(--kw-primary-600)] hover:bg-[var(--kw-primary-50)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-border)] dark:hover:text-[var(--kw-dark-primary)]"
                   >
                     {isMarking ? (
                       <Loader2 className="mr-1 h-3 w-3 animate-spin" />
@@ -210,8 +210,9 @@ export function Notifications({ className }: NotificationsProps) {
                   </Button>
                 )}
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
-                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 dark:text-[#9CA3AF] dark:hover:bg-[#3D3D5C]"
+                  className="rounded-lg p-1 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
                   aria-label="Close notifications"
                 >
                   <X className="h-4 w-4" />
@@ -221,7 +222,7 @@ export function Notifications({ className }: NotificationsProps) {
 
             <div className="max-h-96 overflow-y-auto">
               {isLoading && (
-                <div className="flex flex-col items-center justify-center p-8 text-gray-500 dark:text-[#9CA3AF]">
+                <div className="flex flex-col items-center justify-center p-8 text-[var(--kw-text-muted)]">
                   <Loader2 className="mb-2 h-6 w-6 animate-spin" />
                   <p className="text-sm">Loading activity...</p>
                 </div>
@@ -229,13 +230,13 @@ export function Notifications({ className }: NotificationsProps) {
 
               {!isLoading && availability === 'unavailable' && (
                 <div className="p-8 text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-[#3D3D5C]">
-                    <Bell className="h-6 w-6 text-gray-400 dark:text-[#9CA3AF]" />
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-border)]">
+                    <Bell className="h-6 w-6 text-[var(--kw-text-muted)]" />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                  <p className="text-sm text-[var(--kw-text-muted)]">
                     Notifications are unavailable
                   </p>
-                  <p className="mt-1 text-xs text-gray-400 dark:text-[#9CA3AF]">
+                  <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
                     This environment does not yet publish an events feed.
                   </p>
                 </div>
@@ -243,13 +244,13 @@ export function Notifications({ className }: NotificationsProps) {
 
               {!isLoading && availability !== 'unavailable' && Boolean(error) && (
                 <div className="p-6 text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-                    <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20">
+                    <AlertCircle className="h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
                   </div>
-                  <p className="mb-1 text-sm text-red-600 dark:text-red-400">
+                  <p className="mb-1 text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
                     Failed to load events
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">
+                  <p className="text-xs text-[var(--kw-text-muted)]">
                     {error instanceof Error ? error.message : 'Please try again later'}
                   </p>
                   <Button variant="outline" size="sm" onClick={() => mutate()} className="mt-3">
@@ -263,11 +264,11 @@ export function Notifications({ className }: NotificationsProps) {
                 !error &&
                 eventsToShow.length === 0 && (
                   <div className="p-8 text-center">
-                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-[#3D3D5C]">
-                      <Bell className="h-6 w-6 text-gray-400 dark:text-[#9CA3AF]" />
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-border)]">
+                      <Bell className="h-6 w-6 text-[var(--kw-text-muted)]" />
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">No activity yet</p>
-                    <p className="mt-1 text-xs text-gray-400 dark:text-[#9CA3AF]">
+                    <p className="text-sm text-[var(--kw-text-muted)]">No activity yet</p>
+                    <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
                       We will surface agent feedback and system alerts here.
                     </p>
                   </div>
@@ -277,7 +278,7 @@ export function Notifications({ className }: NotificationsProps) {
                 availability !== 'unavailable' &&
                 !error &&
                 eventsToShow.length > 0 && (
-                  <div className="divide-y divide-pink-50 dark:divide-[#3D3D5C]/50">
+                  <div className="divide-y divide-[var(--kw-primary-50)] dark:divide-[var(--kw-dark-border)]/50">
                     {eventsToShow.map((notification) => {
                       const style = getSeverityStyle(notification.severity);
                       const unread = !notification.read_at;
@@ -290,8 +291,8 @@ export function Notifications({ className }: NotificationsProps) {
                           className={cn(
                             'flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors',
                             unread
-                              ? 'bg-pink-50/40 dark:bg-[#3D2D4A]/60'
-                              : 'hover:bg-pink-50/30 dark:hover:bg-[#2D2D50]'
+                              ? 'bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-purple-accent-surface)]/60'
+                              : 'hover:bg-[var(--kw-primary-50)]/30 dark:hover:bg-[var(--kw-dark-surface-alt)]'
                           )}
                         >
                           <span
@@ -308,17 +309,17 @@ export function Notifications({ className }: NotificationsProps) {
                             <div className="flex items-center justify-between gap-2">
                               <p
                                 className={cn(
-                                  'text-sm text-gray-800 dark:text-[#E8E8EC]',
+                                  'text-sm text-[var(--kw-text)]',
                                   unread && 'font-semibold'
                                 )}
                               >
                                 {notification.summary}
                               </p>
-                              <span className="text-[11px] text-gray-400 dark:text-[#9CA3AF]">
+                              <span className="text-[11px] text-[var(--kw-text-muted)]">
                                 {formatRelativeTime(notification.created_at)}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[#9CA3AF]">
+                            <div className="flex items-center gap-2 text-xs text-[var(--kw-text-muted)]">
                               <span className="uppercase tracking-wide">
                                 {notification.event_type}
                               </span>
@@ -326,20 +327,20 @@ export function Notifications({ className }: NotificationsProps) {
                               <span>{notification.actor_type}</span>
                             </div>
                             {notification.details && (
-                              <p className="truncate text-xs text-gray-500 dark:text-[#9CA3AF]">
+                              <p className="truncate text-xs text-[var(--kw-text-muted)]">
                                 {notification.details}
                               </p>
                             )}
                           </div>
                           {notification.action_url && (
                             <ChevronRight
-                              className="h-4 w-4 text-gray-400 dark:text-[#9CA3AF]"
+                              className="h-4 w-4 text-[var(--kw-text-muted)]"
                               aria-hidden="true"
                             />
                           )}
                           {unread && (
                             <span
-                              className="mt-1.5 h-2 w-2 rounded-full bg-pink-500"
+                              className="mt-1.5 h-2 w-2 rounded-full bg-[var(--kw-primary-500)]"
                               aria-hidden="true"
                             />
                           )}
@@ -350,7 +351,7 @@ export function Notifications({ className }: NotificationsProps) {
                 )}
             </div>
 
-            <div className="border-t border-pink-100 bg-gray-50 p-3 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]">
+            <div className="border-t border-[var(--kw-border)] bg-[var(--kw-surface-alt)] p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]">
               <Button
                 variant="ghost"
                 size="sm"
@@ -358,7 +359,7 @@ export function Notifications({ className }: NotificationsProps) {
                   router.push('/inbox');
                   setIsOpen(false);
                 }}
-                className="w-full py-1 text-center text-sm text-pink-600 transition-colors hover:text-pink-700 dark:text-[#E891C0] dark:hover:text-[#C77DAA]"
+                className="w-full py-1 text-center text-sm text-[var(--kw-primary-600)] transition-colors hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)] dark:hover:text-[var(--kw-dark-primary)]"
               >
                 Open inbox
               </Button>

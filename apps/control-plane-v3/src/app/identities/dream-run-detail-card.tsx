@@ -23,20 +23,20 @@ export function DreamRunDetailCard({
   onResume,
 }: DreamRunDetailCardProps) {
   return (
-    <Card className="border border-sky-100 bg-sky-50/70 dark:border-[#3D3D5C] dark:bg-[#1E1E32]/80">
+    <Card className="border border-[var(--kw-sky-surface)] bg-[var(--kw-sky-surface)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/80">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600 dark:text-sky-300">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]">
             Dream run detail
           </p>
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+          <h2 className="text-lg font-semibold text-[var(--kw-text)]">
             {run.objective}
           </h2>
-          <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <p className="text-sm text-[var(--kw-text-muted)]">
             {run.consumed_steps}/{run.step_budget} steps
             {run.stop_reason ? ` · ${run.stop_reason.replaceAll('_', ' ')}` : ''}
           </p>
-          <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <p className="text-sm text-[var(--kw-text-muted)]">
             Updated {formatSnapshotTimestamp(run.updated_at)}
           </p>
         </div>

@@ -53,8 +53,7 @@ describe('Control Plane Pages', () => {
     const source = await readRouteSource('../components/global-search.tsx');
 
     expect(source).toMatch(/useGlobalSearch/);
-    expect(source).toMatch(/Assets/);
-    expect(source).toMatch(/Skills/);
+    expect(source).toMatch(/globalSearch\.groups\.\$\{key\}/);
     expect(source).not.toMatch(/mockResults/);
   });
 

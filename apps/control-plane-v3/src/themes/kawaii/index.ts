@@ -70,12 +70,12 @@ export const kawaiiTheme: ThemeDefinition = {
       base: 'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
       variants: {
         primary:
-          'bg-gradient-to-r from-[#FF69B4] to-[#FF1493] text-white shadow-lg hover:shadow-pink-300/50 hover:-translate-y-0.5 active:translate-y-0 rounded-full',
+          'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-lg hover:shadow-[var(--kw-primary-300)]/50 hover:-translate-y-0.5 active:translate-y-0 rounded-full',
         secondary:
-          'bg-white border-2 border-[#FFB6C1] text-[#FF1493] hover:bg-pink-50 hover:border-[#FF69B4] rounded-full',
-        ghost: 'text-[#FF1493] hover:bg-pink-100 rounded-full',
+          'bg-white border-2 border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-50)] hover:border-[var(--kw-primary-400)] rounded-full',
+        ghost: 'text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-100)] rounded-full',
         gradient:
-          'bg-gradient-to-r from-[#87CEEB] to-[#98FB98] text-white shadow-lg hover:shadow-lg hover:-translate-y-0.5 rounded-full',
+          'bg-gradient-to-r from-[var(--kw-sky)] to-[var(--kw-mint)] text-white shadow-lg hover:shadow-lg hover:-translate-y-0.5 rounded-full',
       },
       sizes: {
         sm: 'px-4 py-2 text-sm min-h-[36px]',
@@ -85,34 +85,34 @@ export const kawaiiTheme: ThemeDefinition = {
     },
 
     Card: {
-      base: 'rounded-3xl bg-white/80 backdrop-blur-sm border border-pink-100 shadow-soft',
+      base: 'rounded-3xl bg-white/80 backdrop-blur-sm border border-[var(--kw-primary-100)] shadow-soft',
       variants: {
         default: '',
         elevated: 'shadow-medium hover:shadow-glow',
         glass: 'bg-white/60 backdrop-blur-md',
-        gradient: 'bg-gradient-to-br from-pink-50 to-lavender-50',
+        gradient: 'bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-lavender)]',
       },
     },
 
     Input: {
-      base: 'w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none transition-all duration-200 placeholder:text-gray-400',
+      base: 'w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200 placeholder:text-[var(--kw-text-muted)]',
       states: {
-        focus: 'focus:border-pink-400 focus:ring-4 focus:ring-pink-100',
-        error: 'border-red-300 focus:border-red-400 focus:ring-red-100',
+        focus: 'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
+        error: 'border-[var(--kw-rose-surface)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
       },
     },
 
     Badge: {
       base: 'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium',
       variants: {
-        default: 'bg-gray-100 text-gray-700',
-        success: 'bg-green-100 text-green-700 border border-green-200',
-        warning: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
-        error: 'bg-red-100 text-red-700 border border-red-200',
-        info: 'bg-blue-100 text-blue-700 border border-blue-200',
-        pink: 'bg-pink-100 text-pink-700 border border-pink-200',
-        human: 'bg-sky-100 text-sky-700 border border-sky-200',
-        agent: 'bg-green-100 text-green-700 border border-green-200',
+        default: 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)]',
+        success: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] border border-[var(--kw-green-surface)]',
+        warning: 'bg-[var(--kw-amber-surface)] text-[var(--kw-amber-text)] border border-[var(--kw-amber-surface)]',
+        error: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] border border-[var(--kw-rose-surface)]',
+        info: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] border border-[var(--kw-sky-surface)]',
+        pink: 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] border border-[var(--kw-primary-200)]',
+        human: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] border border-[var(--kw-sky-surface)]',
+        agent: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] border border-[var(--kw-green-surface)]',
       },
     },
 
@@ -125,8 +125,8 @@ export const kawaiiTheme: ThemeDefinition = {
         xl: 'w-24 h-24',
       },
       types: {
-        human: 'border-sky-300',
-        agent: 'border-green-300',
+        human: 'border-[var(--kw-human-accent)]',
+        agent: 'border-[var(--kw-agent-accent)]',
       },
     },
   },
@@ -147,7 +147,7 @@ export const kawaiiTheme: ThemeDefinition = {
         to: { opacity: 1, transform: 'translateY(0)' },
       },
       duration: '400ms',
-      easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
     },
 
     'bounce-in': {
@@ -157,7 +157,7 @@ export const kawaiiTheme: ThemeDefinition = {
         '100%': { opacity: 1, transform: 'scale(1)' },
       },
       duration: '500ms',
-      easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
     },
 
     float: {

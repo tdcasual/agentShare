@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState, memo } from 'react';
 import { useI18n } from '@/components/i18n-provider';
 import {
   Bot,
@@ -40,7 +40,7 @@ export default function TokensPage() {
   );
 }
 
-function TokensContent() {
+const TokensContent = memo(function TokensContent() {
   const t = useI18n().t;
   // 使用新的 SWR hooks 替代手动 useEffect
   const {
@@ -123,7 +123,7 @@ function TokensContent() {
       setRefreshError(
         refreshFailure instanceof Error
           ? refreshFailure.message
-          : 'Failed to refresh remote access tokens'
+          : t('tokens.errors.refreshFailed')
       );
     } finally {
       setIsRefreshing(false);
@@ -159,7 +159,7 @@ function TokensContent() {
         setError(submitError.detail);
       } else {
         setError(
-          submitError instanceof Error ? submitError.message : 'Failed to register remote agent'
+          submitError instanceof Error ? submitError.message : t('tokens.errors.registerAgentFailed')
         );
       }
     } finally {
@@ -170,7 +170,7 @@ function TokensContent() {
   async function handleCreateToken(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!issuingAgentId) {
-      setError('Choose a remote agent profile before minting a token');
+      setError(t('tokens.errors.noAgentSelected'));
       return;
     }
 
@@ -209,7 +209,7 @@ function TokensContent() {
         setError(submitError.detail);
       } else {
         setError(
-          submitError instanceof Error ? submitError.message : 'Failed to mint access token'
+          submitError instanceof Error ? submitError.message : t('tokens.errors.mintTokenFailed')
         );
       }
     } finally {
@@ -232,7 +232,7 @@ function TokensContent() {
         setError(revokeError.detail);
       } else {
         setError(
-          revokeError instanceof Error ? revokeError.message : 'Failed to revoke access token'
+          revokeError instanceof Error ? revokeError.message : t('tokens.errors.revokeTokenFailed')
         );
       }
     }
@@ -242,9 +242,7 @@ function TokensContent() {
     try {
       await navigator.clipboard.writeText(secret);
     } catch {
-      setError(
-        'Clipboard access was blocked. Copy the access token manually from the reveal card.'
-      );
+      setError(t('tokens.errors.clipboardBlocked'));
     }
   }
 
@@ -253,15 +251,15 @@ function TokensContent() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-4 py-2 text-sm text-pink-700 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#E891C0]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-primary)]">
             <ShieldCheck className="h-4 w-4" />
             {t('tokens.subtitle')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('tokens.title')}
             </h1>
-            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">{t('tokens.description')}</p>
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('tokens.description')}</p>
           </div>
         </div>
 
@@ -281,17 +279,17 @@ function TokensContent() {
       {revealedSecret ? (
         <Card
           variant="feature"
-          className="space-y-4 border border-pink-100 dark:border-[#3D3D5C] dark:from-[#252540] dark:to-[#2D2D50]"
+          className="space-y-4 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
         >
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-1">
-              <p className="text-sm uppercase tracking-[0.3em] text-pink-500 dark:text-[#E891C0]">
+              <p className="text-sm uppercase tracking-[0.3em] text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]">
                 🌸 {t('tokens.token.oneTimeReveal')}
               </p>
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {revealedSecret.label}
               </h2>
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 Prefix: <span className="font-mono">{revealedSecret.prefix}</span>
               </p>
             </div>
@@ -300,7 +298,7 @@ function TokensContent() {
               {t('tokens.token.copyToken')}
             </Button>
           </div>
-          <div className="break-all rounded-2xl border border-pink-100 bg-white/90 p-4 font-mono text-sm text-gray-700 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]">
+          <div className="break-all rounded-2xl border border-[var(--kw-border)] bg-white/90 p-4 font-mono text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]">
             {revealedSecret.apiKey}
           </div>
         </Card>
@@ -330,19 +328,19 @@ function TokensContent() {
         />
       </div>
 
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               Remote access supervision
             </h2>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               Human operators can quickly isolate access tokens used by external machines and
               off-project agents when they still need feedback or fall below the trust threshold.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             <Badge variant="secondary">
               {tokensNeedingFeedback} token{tokensNeedingFeedback === 1 ? '' : 's'} need
               {tokensNeedingFeedback === 1 ? 's' : ''} feedback
@@ -382,21 +380,21 @@ function TokensContent() {
       </Card>
 
       {/* Session Info */}
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <Badge variant="primary">Operator</Badge>
-          <span className="dark:text-[#E8E8EC]">{session?.email ?? 'Loading...'}</span>
-          <span className="text-gray-300 dark:text-[#3D3D5C]">•</span>
+          <span className="dark:text-[var(--kw-dark-text)]">{session?.email ?? t('common.loading')}</span>
+          <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
           <span>{session?.role ?? '...'}</span>
         </div>
       </Card>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to keep working with live remote access data." />
+        <ManagementSessionExpiredAlert message={t("tokens.sessionExpired")} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to manage remote agents and access tokens. Use an admin management session to continue." />
+        <ManagementForbiddenAlert message={t("tokens.sessionForbidden")} />
       ) : null}
 
       {refreshError ? (
@@ -404,7 +402,7 @@ function TokensContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
         >
           {refreshError}
         </Card>
@@ -416,17 +414,17 @@ function TokensContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
         >
           {gateError ??
             error ??
-            (dataError instanceof Error ? dataError.message : 'Failed to load data')}
+            (dataError instanceof Error ? dataError.message : t('tokens.errors.loadDataFailed'))}
         </Card>
       ) : null}
 
       {/* Loading */}
       {gateLoading || isLoading ? (
-        <Card className="flex items-center gap-3 text-gray-600 dark:text-[#9CA3AF]">
+        <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <span className="animate-spin">🌸</span>
           Loading remote agents and access tokens...
         </Card>
@@ -436,16 +434,16 @@ function TokensContent() {
       {!gateLoading && !isLoading && agents.length === 0 ? (
         <Card
           variant="kawaii"
-          className="space-y-4 text-center dark:border-[#3D3D5C] dark:from-[#252540] dark:to-[#2D2D50]"
+          className="space-y-4 text-center dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
         >
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-pink-100 text-pink-500 dark:bg-[#3D3D5C] dark:text-[#E891C0]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             <Bot className="h-8 w-8" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('tokens.agent.noAgents')}
             </h2>
-            <p className="mx-auto max-w-sm text-gray-600 dark:text-[#9CA3AF]">
+            <p className="mx-auto max-w-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('tokens.agent.createFirst')}
             </p>
           </div>
@@ -479,7 +477,7 @@ function TokensContent() {
             <Card
               key={agent.id}
               variant="kawaii"
-              className="space-y-5 dark:border-[#3D3D5C] dark:from-[#252540] dark:to-[#2D2D50]"
+              className="space-y-5 dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
             >
               {/* Agent Header */}
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -492,10 +490,10 @@ function TokensContent() {
                     <Badge variant="default">{agent.auth_method}</Badge>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                    <h2 className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                       {agent.name}
                     </h2>
-                    <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">ID: {agent.id}</p>
+                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">ID: {agent.id}</p>
                   </div>
                 </div>
 
@@ -516,7 +514,7 @@ function TokensContent() {
               {/* Tokens Grid */}
               <div className="grid gap-4 xl:grid-cols-2">
                 {tokens.length === 0 ? (
-                  <Card className="border border-dashed border-pink-200 bg-pink-50/40 py-8 text-center text-gray-600 xl:col-span-2 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/40 dark:text-[#9CA3AF]">
+                  <Card className="border border-dashed border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/40 py-8 text-center text-[var(--kw-text-muted)] xl:col-span-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/40 dark:text-[var(--kw-dark-text-muted)]">
                     <span className="mr-2 text-2xl">🌸</span>
                     {t('tokens.agent.noTokens')}
                   </Card>
@@ -524,7 +522,7 @@ function TokensContent() {
                   tokens.map((token) => (
                     <Card
                       key={token.id}
-                      className="space-y-4 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/90"
+                      className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/90"
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-2">
@@ -535,10 +533,10 @@ function TokensContent() {
                             <Badge variant="primary">{token.displayName}</Badge>
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                            <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                               {token.tokenPrefix}
                             </h3>
-                            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+                            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                               ID: {token.id}
                             </p>
                           </div>
@@ -556,24 +554,24 @@ function TokensContent() {
 
                       <div className="grid gap-3 sm:grid-cols-2">
                         <DataPoint
-                          icon={<Clock3 className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
+                          icon={<Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
                           label={t('tokens.token.lastUsed')}
-                          value={formatDateTime(token.lastUsedAt ?? null)}
+                          value={formatDateTime(token.lastUsedAt ?? null, t('tokens.values.notYet'))}
                         />
                         <DataPoint
-                          icon={<Sparkles className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
+                          icon={<Sparkles className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
                           label={t('tokens.token.lastFeedback')}
-                          value={formatDateTime(token.lastFeedbackAt ?? null)}
+                          value={formatDateTime(token.lastFeedbackAt ?? null, t('tokens.values.notYet'))}
                         />
                         <DataPoint
                           icon={
-                            <ShieldCheck className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />
+                            <ShieldCheck className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                           }
                           label={t('tokens.token.successRate')}
                           value={`${Math.round((token.successRate ?? 0) * 100)}%`}
                         />
                         <DataPoint
-                          icon={<Star className="h-4 w-4 text-pink-500 dark:text-[#E891C0]" />}
+                          icon={<Star className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
                           label={t('tokens.token.trustScore')}
                           value={formatDecimal(token.trustScore ?? 0)}
                         />
@@ -626,38 +624,38 @@ function TokensContent() {
       >
         <form className="space-y-4" onSubmit={handleCreateAgent}>
           <Input
-            label="Remote agent name"
+            label={t("tokens.form.agentName")}
             value={createAgentForm.name}
             onChange={(event) =>
               setCreateAgentForm((current) => ({ ...current, name: event.target.value }))
             }
-            placeholder="deploy-bot"
+            placeholder={t("tokens.form.agentNamePlaceholder")}
             required
-            className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <div>
             <label
               htmlFor="agent-risk-tier"
-              className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
             >
               Risk tier
             </label>
             <select
               id="agent-risk-tier"
-              className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base text-gray-800 outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC] dark:focus:border-[#E891C0] dark:focus:ring-pink-500/10"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)] dark:focus:ring-[var(--kw-dark-primary)]/10"
               value={createAgentForm.risk_tier}
               onChange={(event) =>
                 setCreateAgentForm((current) => ({ ...current, risk_tier: event.target.value }))
               }
             >
-              <option value="low">low</option>
-              <option value="medium">medium</option>
-              <option value="high">high</option>
-              <option value="critical">critical</option>
+              <option value="low">{t('tokens.riskTiers.low')}</option>
+              <option value="medium">{t('tokens.riskTiers.medium')}</option>
+              <option value="high">{t('tokens.riskTiers.high')}</option>
+              <option value="critical">{t('tokens.riskTiers.critical')}</option>
             </select>
           </div>
           <Input
-            label="Allowed task types"
+            label={t("tokens.form.allowedTaskTypes")}
             value={createAgentForm.allowed_task_types}
             onChange={(event) =>
               setCreateAgentForm((current) => ({
@@ -665,9 +663,9 @@ function TokensContent() {
                 allowed_task_types: event.target.value,
               }))
             }
-            placeholder="config_sync, account_read"
+            placeholder={t("tokens.form.allowedTaskTypesPlaceholder")}
             helper="Comma-separated. Leave blank to keep the allowlist open until policy UI expands."
-            className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
 
           <div className="flex justify-end gap-3">
@@ -697,13 +695,13 @@ function TokensContent() {
           <div>
             <label
               htmlFor="token-agent-select"
-              className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
             >
               Remote agent
             </label>
             <select
               id="token-agent-select"
-              className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base text-gray-800 outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC] dark:focus:border-[#E891C0] dark:focus:ring-pink-500/10"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)] dark:focus:ring-[var(--kw-dark-primary)]/10"
               value={issuingAgentId ?? ''}
               onChange={(event) => setIssuingAgentId(event.target.value)}
               required
@@ -720,43 +718,43 @@ function TokensContent() {
           </div>
 
           <Input
-            label="Display name"
+            label={t("tokens.form.displayName")}
             value={createTokenForm.display_name}
             onChange={(event) =>
               setCreateTokenForm((current) => ({ ...current, display_name: event.target.value }))
             }
-            placeholder="Staging worker token"
+            placeholder={t("tokens.form.displayNamePlaceholder")}
             required
-            className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
-            label="Scopes"
+            label={t("tokens.form.scopes")}
             value={createTokenForm.scopes}
             onChange={(event) =>
               setCreateTokenForm((current) => ({ ...current, scopes: event.target.value }))
             }
-            placeholder="runtime"
+            placeholder={t("tokens.form.scopesPlaceholder")}
             helper="Comma-separated scope labels."
-            className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
-            label="Labels"
+            label={t("tokens.form.labels")}
             value={createTokenForm.labels}
             onChange={(event) =>
               setCreateTokenForm((current) => ({ ...current, labels: event.target.value }))
             }
-            placeholder="environment=staging, pool=blue"
+            placeholder={t("tokens.form.labelsPlaceholder")}
             helper="Comma-separated key=value labels."
-            className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
-            label="Expires at"
+            label={t("tokens.form.expiresAt")}
             type="datetime-local"
             value={createTokenForm.expires_at}
             onChange={(event) =>
               setCreateTokenForm((current) => ({ ...current, expires_at: event.target.value }))
             }
-            className="dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#E8E8EC]"
+            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
 
           <div className="flex justify-end gap-3">
@@ -776,16 +774,16 @@ function TokensContent() {
       </Modal>
     </div>
   );
-}
+});
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
-      <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">
+    <Card className="space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
-      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{hint}</p>
+      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
     </Card>
   );
 }
@@ -800,23 +798,23 @@ function DataPoint({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-pink-100 bg-pink-50/40 p-3 dark:border-[#3D3D5C] dark:bg-[#1A1A2E]/60">
-      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
+    <div className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/40 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60">
+      <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {icon}
         {label}
       </div>
-      <p className="mt-2 text-sm font-medium text-gray-800 dark:text-[#E8E8EC]">{value}</p>
+      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-gray-50 px-4 py-3 dark:bg-[#1A1A2E]">
-      <p className="text-xs uppercase tracking-[0.15em] text-gray-400 dark:text-[#9CA3AF]">
+    <div className="rounded-2xl bg-[var(--kw-surface-alt)] px-4 py-3 dark:bg-[var(--kw-dark-bg)]">
+      <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="mt-2 break-all text-sm font-semibold text-gray-800 dark:text-[#E8E8EC]">
+      <p className="mt-2 break-all text-sm font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
         {value}
       </p>
     </div>
@@ -848,9 +846,9 @@ function parseLabels(value: string) {
   );
 }
 
-function formatDateTime(value: string | null) {
+function formatDateTime(value: string | null, notYetLabel: string) {
   if (!value) {
-    return 'Not yet';
+    return notYetLabel;
   }
   return new Date(value).toLocaleString();
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState, memo } from 'react';
 import { LogOut, ShieldCheck, UserCog, UserPlus, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Layout } from '@/interfaces/human/layout';
@@ -31,7 +31,7 @@ export default function SettingsPage() {
   );
 }
 
-function SettingsContent() {
+const SettingsContent = memo(function SettingsContent() {
   const { t } = useI18n();
   const router = useRouter();
   // 使用 SWR hooks
@@ -164,15 +164,15 @@ function SettingsContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-4 py-2 text-sm text-pink-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <ShieldCheck className="h-4 w-4" />
             {t('settings.inviteOnlyAccess')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">
+            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('settings.title')}
             </h1>
-            <p className="mt-1 text-gray-600 dark:text-[#9CA3AF]">{t('settings.description')}</p>
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('settings.description')}</p>
           </div>
         </div>
 
@@ -205,25 +205,24 @@ function SettingsContent() {
         />
       </div>
 
-      <Card className="border border-pink-100 bg-white/90 dark:border-[#3D3D5C] dark:bg-[#252540]/90">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
-              Human supervision coverage
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {t('settings.coverageTitle')}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
-              Owners and operators manage the human control surface itself. Use these filters to
-              focus on role boundaries and accounts that need follow-up.
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('settings.coverageDesc')}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+          <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             <Badge variant="primary">
-              {roleCounts.owner ?? 0} owner account{(roleCounts.owner ?? 0) === 1 ? '' : 's'}
+              {roleCounts.owner ?? 0} {t('settings.ownerAccounts')}
             </Badge>
-            <Badge variant="human">{activeAccountsCount} active operators</Badge>
+            <Badge variant="human">{activeAccountsCount} {t('settings.activeOperators')}</Badge>
             <Badge variant="warning">
-              {inactiveAccountsCount} inactive account{inactiveAccountsCount === 1 ? '' : 's'}
+              {inactiveAccountsCount} {t('settings.inactiveAccounts')}
             </Badge>
           </div>
 
@@ -234,7 +233,7 @@ function SettingsContent() {
               aria-pressed={selectedRosterFilter === 'all'}
               onClick={() => setSelectedRosterFilter('all')}
             >
-              All accounts
+              {t('settings.rosterAll')}
             </Button>
             <Button
               variant={selectedRosterFilter === 'owner' ? 'primary' : 'secondary'}
@@ -242,7 +241,7 @@ function SettingsContent() {
               aria-pressed={selectedRosterFilter === 'owner'}
               onClick={() => setSelectedRosterFilter('owner')}
             >
-              Owners
+              {t('settings.rosterOwners')}
             </Button>
             <Button
               variant={selectedRosterFilter === 'admin' ? 'primary' : 'secondary'}
@@ -250,7 +249,7 @@ function SettingsContent() {
               aria-pressed={selectedRosterFilter === 'admin'}
               onClick={() => setSelectedRosterFilter('admin')}
             >
-              Admins
+              {t('settings.rosterAdmins')}
             </Button>
             <Button
               variant={selectedRosterFilter === 'operator' ? 'primary' : 'secondary'}
@@ -258,7 +257,7 @@ function SettingsContent() {
               aria-pressed={selectedRosterFilter === 'operator'}
               onClick={() => setSelectedRosterFilter('operator')}
             >
-              Operators
+              {t('settings.rosterOperators')}
             </Button>
             <Button
               variant={selectedRosterFilter === 'inactive' ? 'primary' : 'secondary'}
@@ -266,7 +265,7 @@ function SettingsContent() {
               aria-pressed={selectedRosterFilter === 'inactive'}
               onClick={() => setSelectedRosterFilter('inactive')}
             >
-              Inactive accounts
+              {t('settings.rosterInactive')}
             </Button>
           </div>
         </div>
@@ -275,15 +274,15 @@ function SettingsContent() {
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Card variant="kawaii" className="space-y-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-3 py-1 text-xs font-medium text-pink-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-100)] px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
               <UserPlus className="h-4 w-4" />
               {t('settings.inviteAccount')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {t('settings.createAdminTitle')}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {t('settings.createAdminDesc')}
               </p>
             </div>
@@ -297,7 +296,7 @@ function SettingsContent() {
               onChange={(event) =>
                 setInviteForm((current) => ({ ...current, email: event.target.value }))
               }
-              placeholder="operator@example.com"
+              placeholder={t("settings.emailPlaceholder")}
               required
             />
             <Input
@@ -322,13 +321,13 @@ function SettingsContent() {
             <div>
               <label
                 htmlFor="role-select"
-                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-[#E8E8EC]"
+                className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
               >
                 {t('settings.role')}
               </label>
               <select
                 id="role-select"
-                className="w-full rounded-2xl border-2 border-pink-200 bg-white px-4 py-3 text-base outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100"
+                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
                 value={inviteForm.role}
                 onChange={(event) =>
                   setInviteForm((current) => ({
@@ -343,7 +342,7 @@ function SettingsContent() {
               </select>
             </div>
 
-            <div className="rounded-2xl border border-pink-100 bg-white/80 px-4 py-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('settings.inviteNotice')}
             </div>
 
@@ -355,15 +354,15 @@ function SettingsContent() {
 
         <Card variant="feature" className="space-y-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-3 py-1 text-xs font-medium text-pink-700">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
               <UserCog className="h-4 w-4" />
               {t('settings.currentSession')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+              <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {t('settings.operatorPosture')}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {t('settings.operatorPostureDesc')}
               </p>
             </div>
@@ -394,16 +393,16 @@ function SettingsContent() {
             />
           </div>
 
-          <div className="rounded-3xl border border-pink-100 bg-white/80 p-5">
+          <div className="rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pink-100 text-pink-600">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div className="space-y-2">
-                <h3 className="font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                <h3 className="font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                   {t('settings.accessModel')}
                 </h3>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-[#9CA3AF]">
+                <ul className="space-y-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   <li>{t('settings.accessModel1')}</li>
                   <li>{t('settings.accessModel2')}</li>
                   <li>{t('settings.accessModel3')}</li>
@@ -416,13 +415,13 @@ function SettingsContent() {
 
       {shouldShowSessionExpired ? (
         <ManagementSessionExpiredAlert
-          className="border-red-100 bg-red-50/80 text-red-700"
-          message="Your management session has expired. Sign in again to continue managing operators and access."
+          className="border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
+          message={t("settings.sessionExpired")}
         />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message="You do not have permission to manage operator accounts. Use an owner or admin session to continue." />
+        <ManagementForbiddenAlert message={t("settings.sessionForbidden")} />
       ) : null}
 
       {(gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError)) && (
@@ -430,29 +429,29 @@ function SettingsContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-red-100 bg-red-50/80 text-red-700"
+          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
         >
           {gateError ??
             error ??
-            (dataError instanceof Error ? dataError.message : 'Failed to load accounts')}
+            (dataError instanceof Error ? dataError.message : t('settings.loadAccountsFailed'))}
         </Card>
       )}
 
       {gateLoading || isLoading ? (
-        <Card className="text-gray-600 dark:text-[#9CA3AF]">{t('settings.loadingInventory')}</Card>
+        <Card className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('settings.loadingInventory')}</Card>
       ) : null}
 
       <Card variant="kawaii" className="space-y-5">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-3 py-1 text-xs font-medium text-pink-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
             <Users className="h-4 w-4" />
             {t('settings.invitedAccounts')}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-[#E8E8EC]">
+            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('settings.managementRoster')}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{t('settings.rosterDesc')}</p>
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('settings.rosterDesc')}</p>
           </div>
         </div>
 
@@ -464,7 +463,7 @@ function SettingsContent() {
             return (
               <Card
                 key={account.id}
-                className="space-y-4 border border-pink-100 bg-white/90 dark:bg-[#252540]/90"
+                className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-2">
@@ -488,10 +487,10 @@ function SettingsContent() {
                       ) : null}
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-[#E8E8EC]">
+                      <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                         {account.display_name}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{account.email}</p>
+                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{account.email}</p>
                     </div>
                   </div>
 
@@ -530,7 +529,7 @@ function SettingsContent() {
             );
           })}
           {visibleAccounts.length === 0 ? (
-            <Card className="border border-dashed border-pink-100 bg-white/80 text-sm text-gray-600 dark:border-[#3D3D5C] dark:bg-[#252540]/80 dark:text-[#9CA3AF]">
+            <Card className="border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text-muted)]">
               No accounts match the current supervision filter.
             </Card>
           ) : null}
@@ -538,16 +537,16 @@ function SettingsContent() {
       </Card>
     </div>
   );
-}
+});
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-pink-100 bg-white/90 dark:bg-[#252540]/90">
-      <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-[#9CA3AF]">
+    <Card className="space-y-2 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+      <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="text-3xl font-bold text-gray-800 dark:text-[#E8E8EC]">{value}</p>
-      <p className="text-sm text-gray-500 dark:text-[#9CA3AF]">{hint}</p>
+      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
     </Card>
   );
 }
@@ -563,11 +562,11 @@ function SessionStat({
 }) {
   return (
     <div className="rounded-2xl bg-white/80 px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.15em] text-gray-400 dark:text-[#9CA3AF]">
+      <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
       <p
-        className={`mt-2 text-sm font-medium text-gray-800 dark:text-[#E8E8EC] ${monospace ? 'break-all font-mono' : ''}`}
+        className={`mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] ${monospace ? 'break-all font-mono' : ''}`}
       >
         {value}
       </p>

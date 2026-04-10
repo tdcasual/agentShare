@@ -113,7 +113,7 @@ describe('tokens page', () => {
     await user.click(screen.getByRole('button', { name: /tokens.actions.refresh/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('tokens.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -130,7 +130,7 @@ describe('tokens page', () => {
 
     render(<TokensPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+    expect(screen.getByRole('alert')).toHaveTextContent('tokens.sessionExpired');
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -145,7 +145,7 @@ describe('tokens page', () => {
 
     render(<TokensPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('tokens.sessionForbidden');
   });
 
   it('shows a relogin recovery state when creating an agent hits an expired session', async () => {
@@ -158,11 +158,11 @@ describe('tokens page', () => {
     render(<TokensPage />);
 
     await user.click(screen.getAllByRole('button', { name: /tokens.actions.createAgent/i })[0]);
-    await user.type(screen.getByPlaceholderText(/deploy-bot/i), 'Deploy Bot');
+    await user.type(screen.getByPlaceholderText('tokens.form.agentNamePlaceholder'), 'Deploy Bot');
     await user.click(screen.getAllByRole('button', { name: /tokens.actions.createAgent/i })[1]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('tokens.sessionExpired');
     });
   });
 
@@ -174,11 +174,11 @@ describe('tokens page', () => {
     render(<TokensPage />);
 
     await user.click(screen.getByRole('button', { name: /tokens.actions.mintToken/i }));
-    await user.type(screen.getByPlaceholderText(/staging worker token/i), 'Staging Worker');
+    await user.type(screen.getByPlaceholderText('tokens.form.displayNamePlaceholder'), 'Staging Worker');
     await user.click(screen.getAllByRole('button', { name: /tokens.actions.mintToken/i })[1]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('permission');
+      expect(screen.getByRole('alert')).toHaveTextContent('tokens.sessionForbidden');
     });
   });
 
@@ -194,7 +194,7 @@ describe('tokens page', () => {
     await user.click(screen.getAllByRole('button', { name: /tokens.actions.revoke/i })[0]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('tokens.sessionExpired');
     });
   });
 

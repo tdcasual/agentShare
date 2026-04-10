@@ -8,10 +8,8 @@ const nextConfig = {
       },
     ],
   },
-  eslint: {
-    // 使用独立的 ESLint 配置，禁用 Next.js 内置的 ESLint
-    ignoreDuringBuilds: true,
-  },
+  // ESLint is run via CI and npm scripts; keep Next.js build-time checks enabled
+  // for additional safety net.
 };
 
 export default nextConfig;

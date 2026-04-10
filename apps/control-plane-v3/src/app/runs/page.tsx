@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Layout } from '@/interfaces/human/layout';
 import { ManagementRouteGuard } from '@/components/route-guard';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -37,6 +37,7 @@ import {
   Terminal,
   Activity,
 } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 
 // 状态配置
 const statusConfig: Record<
@@ -46,36 +47,37 @@ const statusConfig: Record<
   pending: {
     label: '等待中',
     icon: <Clock className="h-4 w-4" />,
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
+    color: 'text-[var(--kw-orange-text)]',
+    bgColor: 'bg-[var(--kw-orange-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20',
   },
   running: {
     label: '运行中',
     icon: <Activity className="h-4 w-4 animate-pulse" />,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+    color: 'text-[var(--kw-sky-text)]',
+    bgColor: 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-info-surface)]/20',
   },
   completed: {
     label: '已完成',
     icon: <CheckCircle className="h-4 w-4" />,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100 dark:bg-green-900/20',
+    color: 'text-[var(--kw-green-text)]',
+    bgColor: 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/20',
   },
   failed: {
     label: '失败',
     icon: <XCircle className="h-4 w-4" />,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100 dark:bg-red-900/20',
+    color: 'text-[var(--kw-error)]',
+    bgColor: 'bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20',
   },
   cancelled: {
     label: '已取消',
     icon: <AlertCircle className="h-4 w-4" />,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100 dark:bg-gray-800',
+    color: 'text-[var(--kw-text-muted)]',
+    bgColor: 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]',
   },
 };
 
-function RunsContent() {
+const RunsContent = memo(function RunsContent() {
+  const { t } = useI18n();
   const [selectedStatus, setSelectedStatus] = useState<RunStatus | 'all'>('all');
   const [selectedRun, setSelectedRun] = useState<Run | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
@@ -122,7 +124,7 @@ function RunsContent() {
         return;
       }
       setRefreshError(
-        refreshFailure instanceof Error ? refreshFailure.message : 'Failed to refresh runs'
+        refreshFailure instanceof Error ? refreshFailure.message : t('runs.refreshFailed')
       );
     }
   };
@@ -140,11 +142,11 @@ function RunsContent() {
       <Layout>
         <div className="flex min-h-[60vh] items-center justify-center p-4">
           <Card variant="kawaii" className="w-full max-w-md text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <XCircle className="h-8 w-8 text-red-500" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
+              <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-gray-800">加载失败</h2>
-            <p className="mb-4 text-gray-600">{error.message}</p>
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">加载失败</h2>
+            <p className="mb-4 text-[var(--kw-text-muted)]">{error.message}</p>
             <Button variant="kawaii" onClick={() => refresh()}>
               重试
             </Button>
@@ -159,11 +161,11 @@ function RunsContent() {
       <Layout>
         <div className="space-y-6">
           {shouldShowSessionExpired ? (
-            <ManagementSessionExpiredAlert message="Your management session has expired. Sign in again to inspect run history." />
+            <ManagementSessionExpiredAlert message={t("runs.sessionExpired")} />
           ) : null}
 
           {!shouldShowSessionExpired && shouldShowForbidden ? (
-            <ManagementForbiddenAlert message="You do not have permission to inspect run history. Use a management session with the required permission to continue." />
+            <ManagementForbiddenAlert message={t("runs.sessionForbidden")} />
           ) : null}
 
           {!shouldShowSessionExpired && !shouldShowForbidden && gateError ? (
@@ -171,7 +173,7 @@ function RunsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {gateError}
             </Card>
@@ -180,8 +182,8 @@ function RunsContent() {
           {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">运行观测</h1>
-              <p className="mt-1 text-gray-500 dark:text-gray-400">查看任务执行历史和状态</p>
+              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">运行观测</h1>
+              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">查看任务执行历史和状态</p>
             </div>
             <Button
               variant="outline"
@@ -200,7 +202,7 @@ function RunsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-red-100 bg-red-50/80 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
             >
               {refreshError}
             </Card>
@@ -212,31 +214,31 @@ function RunsContent() {
               label="总计"
               value={stats.total}
               icon={<PlayCircle className="h-5 w-5" />}
-              color="bg-pink-100 text-pink-600"
+              color="bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]"
             />
             <StatCard
               label="等待中"
               value={stats.pending}
               icon={<Clock className="h-5 w-5" />}
-              color="bg-yellow-100 text-yellow-600"
+              color="bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]"
             />
             <StatCard
               label="运行中"
               value={stats.running}
               icon={<Activity className="h-5 w-5" />}
-              color="bg-blue-100 text-blue-600"
+              color="bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)]"
             />
             <StatCard
               label="已完成"
               value={stats.completed}
               icon={<CheckCircle className="h-5 w-5" />}
-              color="bg-green-100 text-green-600"
+              color="bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]"
             />
             <StatCard
               label="失败"
               value={stats.failed}
               icon={<XCircle className="h-5 w-5" />}
-              color="bg-red-100 text-red-600"
+              color="bg-[var(--kw-rose-surface)] text-[var(--kw-error)]"
             />
           </div>
 
@@ -267,13 +269,13 @@ function RunsContent() {
           <div className="space-y-3">
             {filteredRuns.length === 0 ? (
               <Card variant="kawaii" className="p-12 text-center">
-                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-pink-100">
-                  <Terminal className="h-10 w-10 text-pink-500" />
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
+                  <Terminal className="h-10 w-10 text-[var(--kw-primary-500)]" />
                 </div>
-                <h3 className="mb-2 text-lg font-medium text-gray-800 dark:text-gray-100">
+                <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
                   暂无运行记录
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
                   {selectedStatus === 'all' ? '还没有任务被执行' : '该状态下没有运行记录'}
                 </p>
               </Card>
@@ -298,20 +300,20 @@ function RunsContent() {
                       {/* 信息 */}
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex items-center gap-2">
-                          <h3 className="truncate font-medium text-gray-800 dark:text-gray-100">
+                          <h3 className="truncate font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
                             Run #{run.id.slice(-8)}
                           </h3>
                           <Badge className={config.color}>{config.label}</Badge>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center gap-4 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
                           <span>任务: {run.taskId.slice(-8)}</span>
-                          {run.tokenId && <span>Token: {run.tokenId.slice(-8)}</span>}
-                          {run.agentId && <span>Agent: {run.agentId.slice(-8)}</span>}
+                          {run.tokenId && <span>{t("runs.labels.tokenId")}: {run.tokenId.slice(-8)}</span>}
+                          {run.agentId && <span>{t("runs.labels.agentId")}: {run.agentId.slice(-8)}</span>}
                         </div>
                       </div>
 
                       {/* 箭头 */}
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                      <ChevronRight className="h-5 w-5 text-[var(--kw-text-muted)]" />
                     </div>
                   </Card>
                 );
@@ -325,7 +327,7 @@ function RunsContent() {
       </Layout>
     </ErrorBoundary>
   );
-}
+});
 
 // 统计卡片组件
 function StatCard({
@@ -347,7 +349,7 @@ function StatCard({
         </div>
         <div>
           <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-gray-500">{label}</p>
+          <p className="text-xs text-[var(--kw-text-muted)]">{label}</p>
         </div>
       </div>
     </Card>
@@ -361,6 +363,7 @@ interface RunDetailModalProps {
 }
 
 function RunDetailModal({ run, onClose }: RunDetailModalProps) {
+  const { t } = useI18n();
   const config = statusConfig[run.status];
 
   return (
@@ -370,7 +373,7 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
         className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden"
       >
         {/* 头部 */}
-        <div className="flex items-center justify-between border-b border-pink-100 p-6 dark:border-[#3D3D5C]">
+        <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-12 w-12 items-center justify-center rounded-xl ${config.bgColor} ${config.color}`}
@@ -378,8 +381,8 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
               {config.icon}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Run 详情</h2>
-              <p className="text-sm text-gray-500">{run.id}</p>
+              <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">{t("runs.detailTitle")}</h2>
+              <p className="text-sm text-[var(--kw-text-muted)]">{run.id}</p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -393,16 +396,16 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <InfoItem label="状态" value={config.label} />
             <InfoItem label="任务ID" value={run.taskId} />
-            <InfoItem label="Agent ID" value={run.agentId ?? '-'} />
-            <InfoItem label="Token ID" value={run.tokenId ?? '-'} />
+            <InfoItem label={t("runs.info.agentId")} value={run.agentId ?? '-'} />
+            <InfoItem label={t("runs.info.tokenId")} value={run.tokenId ?? '-'} />
             <InfoItem label="目标ID" value={run.taskTargetId ?? '-'} />
           </div>
 
           {/* 结果摘要 */}
           {run.resultSummary !== null && run.resultSummary !== undefined && (
             <div className="space-y-2">
-              <h3 className="font-medium text-gray-800 dark:text-gray-100">结果摘要</h3>
-              <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">结果摘要</h3>
+              <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 text-sm text-[var(--kw-text)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-border)]">
                 {String(run.resultSummary)}
               </div>
             </div>
@@ -411,8 +414,8 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           {/* 错误摘要 */}
           {run.errorSummary !== null && run.errorSummary !== undefined && (
             <div className="space-y-2">
-              <h3 className="font-medium text-red-600">错误</h3>
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+              <h3 className="font-medium text-[var(--kw-error)]">错误</h3>
+              <div className="rounded-lg bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]">
                 {String(run.errorSummary)}
               </div>
             </div>
@@ -421,8 +424,8 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           {/* 输出载荷 */}
           {run.outputPayload !== null && run.outputPayload !== undefined && (
             <div className="space-y-2">
-              <h3 className="font-medium text-gray-800 dark:text-gray-100">输出</h3>
-              <pre className="max-h-48 overflow-auto rounded-lg bg-gray-900 p-3 text-xs text-gray-100">
+              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">输出</h3>
+              <pre className="max-h-48 overflow-auto rounded-lg bg-[var(--kw-dark-bg)] p-3 text-xs text-[var(--kw-surface-alt)]">
                 {JSON.stringify(run.outputPayload, null, 2)}
               </pre>
             </div>
@@ -430,7 +433,7 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
         </div>
 
         {/* 底部 */}
-        <div className="flex justify-end border-t border-pink-100 p-6 dark:border-[#3D3D5C]">
+        <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <Button variant="outline" onClick={onClose}>
             关闭
           </Button>
@@ -443,9 +446,9 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
 // 信息项组件
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-      <p className="mb-1 text-xs text-gray-500">{label}</p>
-      <p className="truncate text-sm font-medium text-gray-800 dark:text-gray-100" title={value}>
+    <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 dark:bg-[var(--kw-dark-surface-alt)]">
+      <p className="mb-1 text-xs text-[var(--kw-text-muted)]">{label}</p>
+      <p className="truncate text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]" title={value}>
         {value}
       </p>
     </div>

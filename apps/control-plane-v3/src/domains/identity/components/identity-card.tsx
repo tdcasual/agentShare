@@ -18,17 +18,17 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
   const isAgent = identity.type === 'agent';
 
   const presenceColors = {
-    online: 'bg-green-400',
-    away: 'bg-yellow-400',
-    busy: 'bg-red-400',
-    offline: 'bg-gray-300',
+    online: 'bg-[var(--kw-agent-accent)]',
+    away: 'bg-[var(--kw-warning)]',
+    busy: 'bg-[var(--kw-error)]',
+    offline: 'bg-[var(--kw-text-muted)]',
   };
 
   return (
     <Card
       hover
       decoration
-      className={cn('cursor-pointer transition-all duration-300', className)}
+      className={cn('cursor-pointer transition-transform transition-shadow duration-300', className)}
       onClick={onClick}
     >
       <CardContent className="p-5">
@@ -39,10 +39,12 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
               <img
                 src={identity.profile.avatar}
                 alt={identity.profile.name}
+                loading="lazy"
+                decoding="async"
                 className={cn(
                   'border-3 h-16 w-16 rounded-full object-cover shadow-md',
-                  isHuman ? 'border-sky-300' : 'border-green-300',
-                  identity.presence === 'online' && 'shadow-lg shadow-green-200'
+                  isHuman ? 'border-[var(--kw-human-accent)]' : 'border-[var(--kw-agent-accent)]',
+                  identity.presence === 'online' && 'shadow-lg shadow-[var(--kw-agent-accent)]/30'
                 )}
               />
               {/* Presence indicator with pulse */}
@@ -50,14 +52,14 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 className={cn(
                   'absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full border-2 border-white',
                   presenceColors[identity.presence],
-                  identity.presence === 'online' && 'animate-pulse'
+                  identity.presence === 'online' && 'ring-2 ring-[var(--kw-agent-accent)]/40'
                 )}
               />
               {/* Type badge */}
               <span
                 className={cn(
                   'absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs shadow-sm',
-                  isHuman ? 'bg-sky-400 text-white' : 'bg-green-400 text-white'
+                  isHuman ? 'bg-[var(--kw-sky)] text-white' : 'bg-[var(--kw-agent-accent)] text-white'
                 )}
               >
                 {isHuman ? '👤' : '🤖'}
@@ -68,12 +70,12 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
           {/* Info */}
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <h3 className="truncate font-bold text-gray-900">{identity.profile.name}</h3>
+              <h3 className="truncate font-bold text-[var(--kw-text)]">{identity.profile.name}</h3>
               <Badge variant={isHuman ? 'human' : 'agent'}>{isHuman ? 'Human' : 'Agent'}</Badge>
             </div>
 
             {identity.profile.bio && (
-              <p className="mb-2 line-clamp-2 text-sm text-gray-500 dark:text-[#9CA3AF]">
+              <p className="mb-2 line-clamp-2 text-sm text-[var(--kw-text-muted)]">
                 {identity.profile.bio}
               </p>
             )}
@@ -83,13 +85,13 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
               {identity.profile.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-pink-100 bg-pink-50 px-2.5 py-0.5 text-xs text-pink-600"
+                  className="rounded-full border border-[var(--kw-border)] bg-[var(--kw-primary-50)] px-2.5 py-0.5 text-xs text-[var(--kw-primary-600)]"
                 >
                   {tag}
                 </span>
               ))}
               {identity.profile.tags.length > 3 && (
-                <span className="px-2 py-0.5 text-xs text-gray-400">
+                <span className="px-2 py-0.5 text-xs text-[var(--kw-text-muted)]">
                   +{identity.profile.tags.length - 3}
                 </span>
               )}
@@ -97,24 +99,24 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
 
             {/* Agent-specific info */}
             {isAgent && (identity as AgentIdentity).runtime && (
-              <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-[#9CA3AF]">
+              <div className="mt-3 flex items-center gap-3 text-xs text-[var(--kw-text-muted)]">
                 <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-green-400" />
+                  <span className="h-2 w-2 rounded-full bg-[var(--kw-agent-accent)]" />
                   {(identity as AgentIdentity).runtime!.adapterType}
                 </span>
-                <span className="text-pink-300">✦</span>
+                <span className="text-[var(--kw-primary-300)]">✦</span>
                 <span>max {(identity as AgentIdentity).runtime!.maxConcurrent} concurrent</span>
               </div>
             )}
 
             {/* Human-specific info */}
             {isHuman && (
-              <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-[#9CA3AF]">
+              <div className="mt-3 flex items-center gap-3 text-xs text-[var(--kw-text-muted)]">
                 <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-sky-400" />
+                  <span className="h-2 w-2 rounded-full bg-[var(--kw-sky)]" />
                   {(identity as HumanIdentity).session?.managementRole || 'member'}
                 </span>
-                <span className="text-pink-300">✦</span>
+                <span className="text-[var(--kw-primary-300)]">✦</span>
                 <span>{(identity as HumanIdentity).profile.timezone || 'UTC'}</span>
               </div>
             )}
@@ -151,31 +153,33 @@ export function IdentityCardCompact({
 
   return (
     <div
-      className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-all duration-200 hover:scale-[1.02] hover:bg-pink-50/50"
+      className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-colors transition-transform duration-200 hover:scale-[1.02] hover:bg-[var(--kw-primary-50)]/50"
       {...interactiveProps}
     >
       <div className="relative">
         <img
           src={identity.profile.avatar}
           alt={identity.profile.name}
+          loading="lazy"
+          decoding="async"
           className={cn(
             'h-10 w-10 rounded-full border-2 object-cover',
-            isHuman ? 'border-sky-300' : 'border-green-300',
+            isHuman ? 'border-[var(--kw-human-accent)]' : 'border-[var(--kw-agent-accent)]',
             isOnline && 'shadow-md shadow-green-100'
           )}
         />
         {isOnline && (
-          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-400" />
+          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-[var(--kw-agent-accent)]" />
         )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-semibold text-gray-900">
+          <span className="truncate text-sm font-semibold text-[var(--kw-text)]">
             {identity.profile.name}
           </span>
           <span className="text-xs opacity-60">{isHuman ? '👤' : '🤖'}</span>
         </div>
-        <span className={cn('text-xs', isOnline ? 'text-green-600' : 'text-gray-400')}>
+        <span className={cn('text-xs', isOnline ? 'text-[var(--kw-green-text)]' : 'text-[var(--kw-text-muted)]')}>
           {isOnline ? '● online' : identity.presence}
         </span>
       </div>

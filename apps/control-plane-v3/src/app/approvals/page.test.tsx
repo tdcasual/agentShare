@@ -90,7 +90,7 @@ describe('approvals page', () => {
 
     render(<ApprovalsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('permission');
+    expect(screen.getByRole('alert')).toHaveTextContent('approvals.sessionForbidden');
   });
 
   it('approves a pending request from the approvals list', async () => {
@@ -146,7 +146,7 @@ describe('approvals page', () => {
     await user.click(screen.getAllByRole('button', { name: /^批准$/i })[0]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('approvals.sessionExpired');
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -164,7 +164,7 @@ describe('approvals page', () => {
     await user.click(screen.getByRole('button', { name: /刷新/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Your management session has expired');
+      expect(screen.getByRole('alert')).toHaveTextContent('approvals.sessionExpired');
     });
   });
 

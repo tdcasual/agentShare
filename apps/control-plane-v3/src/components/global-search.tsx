@@ -7,18 +7,13 @@ import { cn } from '@/lib/utils';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useGlobalSearch } from '@/domains/search';
 import type { SearchResultItem } from '@/domains/search';
+import { useI18n } from '@/components/i18n-provider';
 
 interface GlobalSearchProps {
   className?: string;
 }
 
-const SEARCH_GROUPS = [
-  { key: 'identities', label: 'Identities' },
-  { key: 'tasks', label: 'Tasks' },
-  { key: 'assets', label: 'Assets' },
-  { key: 'skills', label: 'Skills' },
-  { key: 'events', label: 'Events' },
-] as const;
+const SEARCH_GROUP_KEYS = ['identities', 'tasks', 'assets', 'skills', 'events'] as const;
 
 function getResultIcon(kind: string) {
   switch (kind) {
@@ -40,21 +35,22 @@ function getResultIcon(kind: string) {
 function getResultColors(kind: string) {
   switch (kind) {
     case 'agent':
-      return 'bg-green-100 dark:bg-[#2D4A3D] text-green-600 dark:text-green-400';
+      return 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-green-accent-surface)] text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]';
     case 'task':
-      return 'bg-amber-100 dark:bg-[#4A3D2D] text-amber-600 dark:text-amber-400';
+      return 'bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)] text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]';
     case 'secret':
-      return 'bg-sky-100 dark:bg-[#2D4A5D] text-sky-600 dark:text-sky-400';
+      return 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-sky-accent-surface)] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]';
     case 'capability':
-      return 'bg-purple-100 dark:bg-[#3D2D4A] text-purple-600 dark:text-purple-400';
+      return 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-accent-surface)] text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]';
     case 'event':
-      return 'bg-rose-100 dark:bg-[#4A2D40] text-rose-600 dark:text-rose-300';
+      return 'bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-dark-primary)]';
     default:
-      return 'bg-gray-100 dark:bg-[#3D3D5C] text-gray-600 dark:text-[#E8E8EC]';
+      return 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-border)] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text)]';
   }
 }
 
 export function GlobalSearch({ className }: GlobalSearchProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -66,11 +62,12 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
 
   const groupedResults = useMemo(
     () =>
-      SEARCH_GROUPS.map((group) => ({
-        ...group,
-        items: results[group.key],
+      SEARCH_GROUP_KEYS.map((key) => ({
+        key,
+        label: t(`globalSearch.groups.${key}`),
+        items: results[key],
       })).filter((group) => group.items.length > 0),
-    [results]
+    [results, t]
   );
 
   const flatResults = useMemo(
@@ -130,7 +127,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
     <div ref={containerRef} className={cn('relative', className)}>
       <div className="relative">
         <Search
-          className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-[#9CA3AF]"
+          className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--kw-text-muted)]"
           aria-hidden="true"
         />
         <input
@@ -143,28 +140,28 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search assets, skills, identities, and events..."
-          aria-label="Search assets, skills, identities, and events"
-          className="w-full rounded-full border-none bg-gray-100/80 py-2 pl-11 pr-12 text-sm text-gray-800 transition-all focus:bg-white focus:ring-2 focus:ring-pink-300 dark:bg-[#1A1A2E]/80 dark:text-[#E8E8EC] dark:focus:bg-[#1A1A2E] dark:focus:ring-[#E891C0]/50"
+          placeholder={t("globalSearch.placeholder")}
+          aria-label={t("globalSearch.ariaLabel")}
+          className="w-full rounded-full border-none bg-[var(--kw-surface-alt)]/80 py-2 pl-11 pr-12 text-sm text-[var(--kw-text)] transition-colors transition-shadow focus:bg-white focus:ring-2 focus:ring-[var(--kw-primary-300)] dark:bg-[var(--kw-dark-bg)]/80 dark:text-[var(--kw-dark-text)] dark:focus:bg-[var(--kw-dark-bg)] dark:focus:ring-[var(--kw-dark-primary)]/50"
         />
-        <kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-400 md:flex dark:border-[#3D3D5C] dark:bg-[#1A1A2E] dark:text-[#9CA3AF]">
+        <kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded border border-[var(--kw-border)] bg-white px-2 py-0.5 text-xs text-[var(--kw-text-muted)] md:flex dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
           <Command className="h-3 w-3" aria-hidden="true" />
           <span>K</span>
         </kbd>
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-xl dark:border-[#3D3D5C] dark:bg-[#252540]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
           {isLoading && (
-            <div className="flex items-center justify-center gap-2 p-4 text-gray-500 dark:text-[#9CA3AF]">
+            <div className="flex items-center justify-center gap-2 p-4 text-[var(--kw-text-muted)]">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Searching...</span>
+              <span className="text-sm">{t("globalSearch.searching")}</span>
             </div>
           )}
 
           {error && (
-            <div className="p-4 text-sm text-red-600 dark:text-red-400">
-              {error instanceof Error ? error.message : 'Search failed'}
+            <div className="p-4 text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
+              {error instanceof Error ? error.message : t("globalSearch.searchFailed")}
             </div>
           )}
 
@@ -172,7 +169,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
             <div className="py-2">
               {groupedResults.map((group) => (
                 <div key={group.key} className="px-2 pb-2">
-                  <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-[#9CA3AF]">
+                  <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--kw-text-muted)]">
                     {group.label}
                   </p>
                   {group.items.map((result) => {
@@ -198,21 +195,21 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           )}
 
           {!isLoading && !error && hasQuery && groupedResults.length === 0 && (
-            <div className="p-4 text-center text-gray-500 dark:text-[#9CA3AF]">
-              <p className="text-sm">No results found</p>
+            <div className="p-4 text-center text-[var(--kw-text-muted)]">
+              <p className="text-sm">{t("globalSearch.noResults")}</p>
               <p className="mt-1 text-xs">
-                Try an agent name, asset provider, skill name, or event keyword.
+                {t("globalSearch.noResultsHint")}
               </p>
             </div>
           )}
 
           {!hasQuery && (
-            <div className="p-4 text-sm text-gray-500 dark:text-[#9CA3AF]">
-              <p className="mb-1 font-medium">Search tips:</p>
+            <div className="p-4 text-sm text-[var(--kw-text-muted)]">
+              <p className="mb-1 font-medium">{t("globalSearch.searchTipsTitle")}</p>
               <ul className="space-y-1 text-xs">
-                <li>• Search across assets, skills, identities, tasks, and inbox events</li>
-                <li>• Press ↑↓ to navigate results</li>
-                <li>• Press Enter to select</li>
+                <li>• {t("globalSearch.searchTip1")}</li>
+                <li>• {t("globalSearch.searchTip2")}</li>
+                <li>• {t("globalSearch.searchTip3")}</li>
               </ul>
             </div>
           )}
@@ -237,8 +234,8 @@ function SearchResultButton({
       onClick={onSelect}
       className={cn(
         'flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors',
-        selected && 'bg-pink-50 dark:bg-[#3D3D5C]',
-        'hover:bg-pink-50/50 dark:hover:bg-[#3D3D5C]/50'
+        selected && 'bg-[var(--kw-primary-50)] dark:bg-[var(--kw-dark-border)]',
+        'hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50'
       )}
     >
       <div
@@ -250,8 +247,8 @@ function SearchResultButton({
         {getResultIcon(result.kind)}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-gray-800 dark:text-[#E8E8EC]">{result.title}</p>
-        <p className="truncate text-sm text-gray-500 dark:text-[#9CA3AF]">{result.subtitle}</p>
+        <p className="font-medium text-[var(--kw-text)]">{result.title}</p>
+        <p className="truncate text-sm text-[var(--kw-text-muted)]">{result.subtitle}</p>
       </div>
     </button>
   );
