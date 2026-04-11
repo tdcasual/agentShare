@@ -135,4 +135,3 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
     </Card>
   );
 }
-
