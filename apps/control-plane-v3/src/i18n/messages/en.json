@@ -207,7 +207,9 @@
     "pageNotFoundTitle": "Page not found",
     "pageNotFoundDescription": "Sorry, we couldn't find the page you're looking for. It might have moved or never existed.",
     "backToHome": "Back to home",
-    "preparingPage": "Preparing page..."
+    "preparingPage": "Preparing page...",
+    "unexpectedErrorTitle": "Something went wrong",
+    "unexpectedErrorDescription": "An unexpected error occurred. Please try again or contact support."
   },
   "createMenu": {
     "actions": {

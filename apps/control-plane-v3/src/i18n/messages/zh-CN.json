@@ -207,7 +207,9 @@
     "pageNotFoundTitle": "页面迷路了",
     "pageNotFoundDescription": "抱歉，我们找不到你要去的页面。它可能已经搬家了，或者从未存在过。",
     "backToHome": "返回首页",
-    "preparingPage": "正在准备页面..."
+    "preparingPage": "正在准备页面...",
+    "unexpectedErrorTitle": "出错了",
+    "unexpectedErrorDescription": "遇到了意外错误，请重试或联系支持。"
   },
   "createMenu": {
     "actions": {
