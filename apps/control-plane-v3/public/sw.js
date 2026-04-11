@@ -89,7 +89,7 @@ self.addEventListener('fetch', (event) => {
           if (request.mode === 'navigate') {
             return caches.match('/offline');
           }
-          return new Response('Network error', {
+          return new Response('网络错误', {
             status: 408,
             headers: { 'Content-Type': 'text/plain' }
           });
