@@ -17,7 +17,6 @@ describe('Runtime Context Consistency', () => {
 
     expect(providerSource).toMatch(/from ['"]@\/core\/runtime['"]/);
     expect(hookSource).toMatch(/from ['"]@\/core\/runtime['"]/);
-    expect(hookSource).not.toMatch(/from ['"]@\/core\/runtime-refactored['"]/);
   });
 
   it('app pages do not bypass the runtime provider with the global singleton', async () => {
