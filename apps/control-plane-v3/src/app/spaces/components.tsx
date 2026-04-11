@@ -2,7 +2,7 @@
  * Spaces Page Components - 可复用的子组件
  */
 
-import { Sparkles, ShieldCheck, Bot, Boxes, Wrench } from 'lucide-react';
+import { Boxes, Wrench } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
 export interface MetricCardProps {
@@ -70,35 +70,6 @@ export function formatTimestamp(value: string) {
     return value;
   }
   return date.toISOString().replace('T', ' ').replace('.000Z', ' UTC');
-}
-
-export interface MetricData {
-  events: number;
-  pendingReviews: number;
-  activeAgents: number;
-}
-
-export function SpacesHeroMetrics({ data }: { data: MetricData }) {
-  const { t } = useI18n();
-  return (
-    <div className="grid gap-3 sm:grid-cols-3">
-      <MetricCard
-        label={t('spaces.recentEvents')}
-        value={data.events.toString()}
-        icon={<Sparkles className="h-4 w-4" />}
-      />
-      <MetricCard
-        label={t('spaces.pendingReviews')}
-        value={data.pendingReviews.toString()}
-        icon={<ShieldCheck className="h-4 w-4" />}
-      />
-      <MetricCard
-        label={t('spaces.activeAgents')}
-        value={data.activeAgents.toString()}
-        icon={<Bot className="h-4 w-4" />}
-      />
-    </div>
-  );
 }
 
 export interface MarketInventoryData {
