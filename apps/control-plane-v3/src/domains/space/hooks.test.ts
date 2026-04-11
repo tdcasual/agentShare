@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const swrMock = vi.fn();
@@ -54,10 +54,12 @@ describe('space hooks', () => {
 
     const { result } = renderHook(() => useAddSpaceMember('space-1', { agentId: 'test-agent' }));
 
-    await result.current.addMember({
-      memberType: 'agent',
-      memberId: 'agent-1',
-      role: 'viewer',
+    await act(async () => {
+      await result.current.addMember({
+        memberType: 'agent',
+        memberId: 'agent-1',
+        role: 'viewer',
+      });
     });
 
     expect(mutateMock).toHaveBeenCalledWith('/spaces/space-1');
