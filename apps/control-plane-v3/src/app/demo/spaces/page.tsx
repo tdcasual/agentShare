@@ -150,7 +150,7 @@ export default function DemoSpacesPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Type a message... (Demo mode)"
+                placeholder="输入消息…（演示模式）"
                 className="flex-1 rounded-xl border border-[var(--kw-primary-200)] bg-white px-4 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
               />
               <button
