@@ -158,7 +158,7 @@ export function useShellIdentity() {
           currentIdentity: null,
           onlineIdentities: [],
           isLoading: false,
-          error: error instanceof Error ? error : new Error('Failed to load shell identities'),
+          error: error instanceof Error ? error : new Error('加载身份列表失败'),
         });
       }
     }

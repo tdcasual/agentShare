@@ -70,8 +70,8 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
     return NextResponse.json(
       {
         error: 'backend_unavailable',
-        message: 'Backend service is unavailable',
-        detail: error instanceof Error ? error.message : 'Unknown error',
+        message: '后端服务不可用',
+        detail: error instanceof Error ? error.message : '未知错误',
       },
       { status: 503 }
     );

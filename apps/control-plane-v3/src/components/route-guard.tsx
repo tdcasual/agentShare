@@ -54,7 +54,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
         if (!cancelled) {
           setEntryState({
             kind: 'unavailable',
-            error: 'Failed to resolve app entry state',
+            error: '无法解析应用入口状态',
           });
         }
       }

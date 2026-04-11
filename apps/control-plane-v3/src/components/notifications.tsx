@@ -251,13 +251,13 @@ export function Notifications({ className }: NotificationsProps) {
                     <AlertCircle className="h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
                   </div>
                   <p className="mb-1 text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-                    Failed to load events
+                    加载事件失败
                   </p>
                   <p className="text-xs text-[var(--kw-text-muted)]">
-                    {error instanceof Error ? error.message : 'Please try again later'}
+                    {error instanceof Error ? error.message : '请稍后重试'}
                   </p>
                   <Button variant="outline" size="sm" onClick={() => mutate()} className="mt-3">
-                    Retry
+                    重试
                   </Button>
                 </div>
               )}

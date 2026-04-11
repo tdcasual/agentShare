@@ -43,7 +43,7 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
         }
       } catch (err) {
         if (mounted) {
-          setError(err instanceof Error ? err : new Error('Failed to initialize runtime'));
+          setError(err instanceof Error ? err : new Error('初始化运行环境失败'));
         }
       }
     }
