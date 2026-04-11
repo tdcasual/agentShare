@@ -41,6 +41,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
           {/* Avatar with effects */}
           <SparkleEffect>
             <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={identity.profile.avatar}
                 alt={identity.profile.name}
