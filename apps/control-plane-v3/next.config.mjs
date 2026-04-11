@@ -8,8 +8,12 @@ const nextConfig = {
       },
     ],
   },
-  // ESLint is run via CI and npm scripts; keep Next.js build-time checks enabled
-  // for additional safety net.
+  // Next.js build-time ESLint detection does not recognize ESLint 9 flat config
+  // (eslint.config.mjs). We run `npm run lint` in CI, so disabling build-time
+  // checks avoids the false-positive plugin-missing warning.
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
