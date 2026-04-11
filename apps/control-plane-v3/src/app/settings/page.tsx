@@ -32,7 +32,7 @@ export default function SettingsPage() {
 }
 
 const SettingsContent = memo(function SettingsContent() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const router = useRouter();
   // 使用 SWR hooks
   const { data: accountsData, isLoading, error: dataError } = useAdminAccounts();
@@ -391,7 +391,7 @@ const SettingsContent = memo(function SettingsContent() {
                       typeof session.expires_at === 'number'
                         ? session.expires_at * 1000
                         : session.expires_at
-                    ).toLocaleString()
+                    ).toLocaleString(locale)
                   : t('common.loading')
               }
             />
@@ -522,7 +522,7 @@ const SettingsContent = memo(function SettingsContent() {
                     label={t('settings.lastLogin')}
                     value={
                       account.last_login_at
-                        ? new Date(account.last_login_at).toLocaleString()
+                        ? new Date(account.last_login_at).toLocaleString(locale)
                         : t('settings.never')
                     }
                   />

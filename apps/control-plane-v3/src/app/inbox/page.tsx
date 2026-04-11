@@ -20,7 +20,11 @@ const severityVariantMap: Record<string, 'info' | 'success' | 'warning' | 'error
   critical: 'warning',
 };
 
-function formatRelativeTime(timeString: string, t: ReturnType<typeof useI18n>['t']) {
+function formatRelativeTime(
+  timeString: string,
+  t: ReturnType<typeof useI18n>['t'],
+  locale: string
+) {
   const date = new Date(timeString);
   const now = new Date();
   const diffMs = Math.max(0, now.getTime() - date.getTime());
@@ -40,7 +44,7 @@ function formatRelativeTime(timeString: string, t: ReturnType<typeof useI18n>['t
   if (diffDays < 7) {
     return t('hub.time.daysAgo').replace('{n}', String(diffDays));
   }
-  return date.toLocaleDateString();
+  return date.toLocaleDateString(locale);
 }
 
 function getActionLabel(event: Event, t: ReturnType<typeof useI18n>['t']) {
@@ -73,7 +77,7 @@ export default function InboxPage() {
 }
 
 const InboxContent = memo(function InboxContent() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { events, isLoading, error, mutate } = useEvents();
@@ -178,7 +182,7 @@ const InboxContent = memo(function InboxContent() {
                 <CardTitle>{focusedEvent.summary}</CardTitle>
               </div>
               <span className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {formatRelativeTime(focusedEvent.created_at, t)}
+                {formatRelativeTime(focusedEvent.created_at, t, locale)}
               </span>
             </div>
           </CardHeader>
@@ -228,7 +232,7 @@ const InboxContent = memo(function InboxContent() {
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <CardTitle>{event.summary}</CardTitle>
                   <span className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                    {formatRelativeTime(event.created_at, t)}
+                    {formatRelativeTime(event.created_at, t, locale)}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">

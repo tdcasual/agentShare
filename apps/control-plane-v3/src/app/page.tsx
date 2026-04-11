@@ -110,7 +110,7 @@ export default function HubPage() {
 }
 
 const HubContent = memo(function HubContent({ email, role }: { email: string; role: string }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const { events } = useEvents();
   const adminAccountsQuery = useAdminAccounts();
   const agentsWithTokensQuery = useAgentsWithTokens();
@@ -135,8 +135,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
     [adminAccounts, agents]
   );
   const recentActivity = useMemo(
-    () => events.slice(0, 6).map((event) => buildActivityItem(event, actorDirectory, t)),
-    [events, actorDirectory, t]
+    () => events.slice(0, 6).map((event) => buildActivityItem(event, actorDirectory, t, locale)),
+    [events, actorDirectory, t, locale]
   );
 
   return (
@@ -512,7 +512,8 @@ function isToday(timestamp: string) {
 
 function formatRelativeTime(
   timeString: string,
-  t: (key: string, options?: Record<string, string | number>) => string
+  t: (key: string, options?: Record<string, string | number>) => string,
+  locale: string
 ) {
   const date = new Date(timeString);
   const now = new Date();
@@ -533,7 +534,7 @@ function formatRelativeTime(
   if (diffDays < 7) {
     return t('hub.time.daysAgo', { n: diffDays });
   }
-  return date.toLocaleDateString();
+  return date.toLocaleDateString(locale);
 }
 
 function eventBadgeVariant(event: Event): 'default' | 'success' | 'warning' | 'error' | 'info' {
@@ -582,7 +583,8 @@ function buildActorDirectory(
 function buildActivityItem(
   event: Event,
   actorDirectory: Map<string, { label: string; type: 'human' | 'agent' }>,
-  t: (key: string, options?: Record<string, string | number>) => string
+  t: (key: string, options?: Record<string, string | number>) => string,
+  locale: string
 ) {
   const actor = actorDirectory.get(event.actor_id);
 
@@ -590,7 +592,7 @@ function buildActivityItem(
     id: event.id,
     summary: event.summary,
     details: event.details ?? `${event.subject_type} ${event.subject_id}`,
-    time: formatRelativeTime(event.created_at, t),
+    time: formatRelativeTime(event.created_at, t, locale),
     actorLabel: actor?.label ?? event.actor_id,
     actorType: actor?.type ?? event.actor_type,
     badgeLabel: eventBadgeLabel(event),

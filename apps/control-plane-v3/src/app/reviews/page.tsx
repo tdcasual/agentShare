@@ -41,7 +41,7 @@ export default function ReviewsPage() {
 }
 
 const ReviewsContent = memo(function ReviewsContent() {
-  const t = useI18n().t;
+  const { locale, t } = useI18n();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   // 使用 SWR hooks 替代手动 useEffect
@@ -580,7 +580,7 @@ const ReviewsContent = memo(function ReviewsContent() {
                   label={t('reviews.item.lastReview')}
                   value={
                     item.reviewed_at
-                      ? new Date(item.reviewed_at).toLocaleString()
+                      ? new Date(item.reviewed_at).toLocaleString(locale)
                       : t('reviews.awaitingDecision')
                   }
                 />

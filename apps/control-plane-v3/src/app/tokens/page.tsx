@@ -41,7 +41,7 @@ export default function TokensPage() {
 }
 
 const TokensContent = memo(function TokensContent() {
-  const t = useI18n().t;
+  const { locale, t } = useI18n();
   // 使用新的 SWR hooks 替代手动 useEffect
   const {
     agents,
@@ -566,7 +566,8 @@ const TokensContent = memo(function TokensContent() {
                           label={t('tokens.token.lastUsed')}
                           value={formatDateTime(
                             token.lastUsedAt ?? null,
-                            t('tokens.values.notYet')
+                            t('tokens.values.notYet'),
+                            locale
                           )}
                         />
                         <DataPoint
@@ -576,7 +577,8 @@ const TokensContent = memo(function TokensContent() {
                           label={t('tokens.token.lastFeedback')}
                           value={formatDateTime(
                             token.lastFeedbackAt ?? null,
-                            t('tokens.values.notYet')
+                            t('tokens.values.notYet'),
+                            locale
                           )}
                         />
                         <DataPoint
@@ -870,11 +872,11 @@ function parseLabels(value: string) {
   );
 }
 
-function formatDateTime(value: string | null, notYetLabel: string) {
+function formatDateTime(value: string | null, notYetLabel: string, locale: string) {
   if (!value) {
     return notYetLabel;
   }
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleString(locale);
 }
 
 function formatDecimal(value: number) {

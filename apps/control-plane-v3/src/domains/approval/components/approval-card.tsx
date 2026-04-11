@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
+import { useI18n } from '@/components/i18n-provider';
 import type { Approval, ApprovalStatus } from '../types';
 import { CheckCircle, XCircle, Clock, Bot, FileText, Shield } from 'lucide-react';
 
@@ -63,6 +64,7 @@ export function ApprovalCard({
   onReject,
   isProcessing = false,
 }: ApprovalCardProps) {
+  const { locale } = useI18n();
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [localProcessing, setLocalProcessing] = useState(false);
@@ -142,7 +144,7 @@ export function ApprovalCard({
           {approval.expiresAt && (
             <div className="flex items-center gap-1 text-xs">
               <Shield className="h-3 w-3" />
-              <span>过期: {new Date(approval.expiresAt).toLocaleString()}</span>
+              <span>过期: {new Date(approval.expiresAt).toLocaleString(locale)}</span>
             </div>
           )}
         </div>
