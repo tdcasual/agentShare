@@ -58,6 +58,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 跳过 API 请求，避免缓存敏感数据或返回过期的认证状态
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   // 网络优先，回退到缓存
   event.respondWith(
     fetch(request)
