@@ -106,33 +106,3 @@ export function ForbiddenState({
   );
 }
 
-/**
- * 页面级别的403包装组件
- * 自动根据路由判断是否需要显示403
- */
-export function ForbiddenPageWrapper({
-  children,
-  requiredRole,
-}: {
-  children: React.ReactNode;
-  requiredRole: ManagementRole;
-}) {
-  const { hasRole, isLoading } = useRole();
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex animate-pulse flex-col items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-[var(--kw-primary-200)]" />
-          <div className="h-4 w-32 rounded bg-[var(--kw-primary-200)]" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!hasRole(requiredRole)) {
-    return <ForbiddenState requiredRole={requiredRole} />;
-  }
-
-  return <>{children}</>;
-}

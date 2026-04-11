@@ -116,18 +116,3 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-/**
- * 页面级错误边界包装器
- */
-export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  fallback?: ReactNode
-) {
-  return function WithErrorBoundaryWrapper(props: P) {
-    return (
-      <ErrorBoundary fallback={fallback}>
-        <Component {...props} />
-      </ErrorBoundary>
-    );
-  };
-}
