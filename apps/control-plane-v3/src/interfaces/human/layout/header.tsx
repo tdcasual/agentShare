@@ -12,12 +12,16 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { MessageSquare, User, Settings, LogOut } from 'lucide-react';
 import { Avatar, AvatarGroup } from '@/shared/ui-primitives/avatar';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { GlobalSearch } from '@/components/global-search';
+const GlobalSearch = dynamic(() => import('@/components/global-search').then((m) => m.GlobalSearch), {
+  ssr: false,
+  loading: () => <div className="h-10 w-64 animate-pulse rounded-full bg-[var(--kw-primary-100)]" />,
+});
 import { CreateMenu } from '@/components/create-menu';
 import { Notifications } from '@/components/notifications';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
