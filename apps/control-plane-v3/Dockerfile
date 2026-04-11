@@ -14,13 +14,6 @@ COPY apps/control-plane-v3 ./
 
 RUN npm run build
 
-FROM node:22-bookworm-slim AS prod-deps
-
-WORKDIR /srv/agentShare/apps/control-plane-v3
-
-COPY apps/control-plane-v3/package.json apps/control-plane-v3/package-lock.json ./
-RUN npm ci --omit=dev
-
 FROM node:22-bookworm-slim AS runner
 
 ENV NODE_ENV=production \
@@ -29,11 +22,13 @@ ENV NODE_ENV=production \
 
 WORKDIR /srv/agentShare/apps/control-plane-v3
 
-COPY --from=prod-deps /srv/agentShare/apps/control-plane-v3/node_modules ./node_modules
-COPY --from=builder /srv/agentShare/apps/control-plane-v3/.next ./.next
-COPY apps/control-plane-v3/package.json ./package.json
-COPY apps/control-plane-v3/next.config.mjs ./next.config.mjs
+# Standalone output contains the minimal server and node_modules
+COPY --from=builder /srv/agentShare/apps/control-plane-v3/.next/standalone ./
+# Static assets must be copied separately
+COPY --from=builder /srv/agentShare/apps/control-plane-v3/.next/static ./.next/static
+# Public assets (PWA icons, manifest, service worker)
+COPY --from=builder /srv/agentShare/apps/control-plane-v3/public ./public
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start", "--", "--hostname", "0.0.0.0", "--port", "3000"]
+CMD ["node", "server.js"]
