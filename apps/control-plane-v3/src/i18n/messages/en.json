@@ -1,7 +1,8 @@
 {
   "metadata": {
     "title": "Control Plane V3 - Dual Cosmos",
-    "description": "Human and Agent shared control plane"
+    "description": "Human and Agent shared control plane",
+    "appName": "Control Plane V3"
   },
   "navigation": {
     "hub": "Hub",
@@ -12,7 +13,11 @@
     "tasks": "Tasks",
     "reviews": "Reviews",
     "marketplace": "Marketplace",
-    "settings": "Settings"
+    "settings": "Settings",
+    "inbox": "Inbox",
+    "approvals": "Approvals",
+    "playbooks": "Playbooks",
+    "runs": "Runs"
   },
   "common": {
     "loading": "Loading...",
@@ -35,7 +40,7 @@
     "copy": "Copy",
     "copied": "Copied",
     "refresh": "Refresh",
-    "online": "Online",
+    "online": "online",
     "offline": "Offline",
     "active": "Active",
     "inactive": "Inactive",
@@ -48,7 +53,22 @@
     "total": "total",
     "operator": "Operator",
     "notSpecified": "Not specified",
-    "switchLanguage": "Switch language"
+    "switchLanguage": "Switch language",
+    "onlineCount": "{count} online",
+    "nA": "N/A",
+    "totalAccounts": "{count} total accounts",
+    "registeredAgents": "{count} registered",
+    "closeLanguageMenu": "Close language menu",
+    "closeModal": "Close modal",
+    "collapseSidebar": "Collapse sidebar",
+    "userAvatar": "User avatar",
+    "agentAvatar": "Agent avatar",
+    "human": "Human",
+    "agent": "Agent",
+    "loadingEllipsis": "Loading...",
+    "initializing": "Initializing Control Plane...",
+    "serviceUnavailable": "Service Unavailable",
+    "serviceUnavailableDescription": "Unable to connect to the backend service. Please check your connection and try again."
   },
   "auth": {
     "login": {
@@ -540,7 +560,11 @@
       "openclaw": "OpenClaw agent"
     },
     "focusedIdentity": "Focused identity",
-    "loadingManagementIdentities": "Loading management identities..."
+    "loadingManagementIdentities": "Loading management identities...",
+    "ownersHint": "governance and account custody",
+    "loadingWorkspaceFiles": "Loading workspace files...",
+    "workspaceFilesUnavailable": "Workspace files unavailable.",
+    "noWorkspaceFiles": "No workspace bootstrap files stored for this agent."
   },
   "settings": {
     "title": "Management Settings",
@@ -922,5 +946,25 @@
       "resource": "Resources",
       "system": "System"
     }
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago"
+  },
+  "modal": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "defaultConfirmMessage": "Are you sure you want to proceed with this action?"
+  },
+  "errors": {
+    "validationFailed": "Validation failed",
+    "permissionDenied": "You do not have permission to perform this action",
+    "bootstrapAlreadyComplete": "Bootstrap already complete",
+    "alreadyAuthenticated": "Already authenticated",
+    "routeNotImplemented": "Route not implemented",
+    "invalidCredentials": "Invalid credentials",
+    "sessionResolutionFailed": "Session resolution failed"
   }
 }

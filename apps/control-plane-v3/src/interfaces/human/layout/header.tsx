@@ -23,6 +23,7 @@ import { Notifications } from '@/components/notifications';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { cn } from '@/lib/utils';
 import type { Identity } from '@/domains/identity/types';
+import { useI18n } from '@/components/i18n-provider';
 
 interface HeaderProps {
   currentIdentity: Identity | null;
@@ -40,6 +41,7 @@ export function getUserMenuTargets() {
 }
 
 export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -74,7 +76,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
           <div className="hidden items-center gap-2 rounded-full border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)] px-3 py-1.5 md:flex dark:border-[var(--kw-dark-success-surface)] dark:bg-[var(--kw-dark-green-accent-surface)]">
             <span className="h-2 w-2 rounded-full bg-[var(--kw-agent-accent)] ring-2 ring-[var(--kw-agent-accent)]/40" aria-hidden="true" />
             <span className="text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
-              {onlineIdentities.length} online
+              {t('common.onlineCount', { count: onlineIdentities.length })}
             </span>
             <AvatarGroup className="ml-1">
               {onlineIdentities.slice(0, 3).map((identity) => (
@@ -102,7 +104,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
               router.push('/inbox');
               setShowUserMenu(false);
             }}
-            aria-label="Inbox"
+            aria-label={t("navigation.inbox")}
             className={cn(
               'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
               'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)] dark:hover:text-[var(--kw-dark-primary)]'

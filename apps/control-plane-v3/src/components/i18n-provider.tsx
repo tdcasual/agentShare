@@ -9,7 +9,7 @@ const messages = { 'zh-CN': zhCN, en };
 
 interface I18nContextType {
   locale: Locale;
-  t: (key: string) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
   setLocale: (locale: Locale) => void;
 }
 
@@ -36,7 +36,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string): string => {
+    (key: string, values?: Record<string, string | number>): string => {
       const keys = key.split('.');
       let value: unknown = messages[locale];
       for (const k of keys) {
@@ -46,7 +46,13 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
           return key;
         }
       }
-      return typeof value === 'string' ? value : key;
+      let text = typeof value === 'string' ? value : key;
+      if (values) {
+        Object.entries(values).forEach(([k, v]) => {
+          text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+        });
+      }
+      return text;
     },
     [locale]
   );

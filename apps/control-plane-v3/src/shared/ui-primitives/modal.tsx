@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 
 interface ModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export function Modal({
   showCloseButton = true,
   initialFocusRef,
 }: ModalProps) {
+  const { t } = useI18n();
   const modalRef = React.useRef<HTMLDivElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
@@ -117,7 +119,7 @@ export function Modal({
       {/* Backdrop */}
       <button
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        aria-label="Close modal"
+        aria-label={t("common.closeModal")}
         type="button"
         onClick={onClose}
       />
@@ -160,7 +162,7 @@ export function Modal({
               <button
                 onClick={onClose}
                 type="button"
-                aria-label="Close modal"
+                aria-label={t("common.closeModal")}
                 className="rounded-full p-2 transition-colors hover:bg-[var(--kw-surface-alt)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
               >
                 <X className="h-5 w-5 text-[var(--kw-text-muted)]" />
@@ -187,18 +189,21 @@ interface ConfirmModalProps extends Omit<ModalProps, 'children'> {
 
 export function ConfirmModal({
   onConfirm,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   message,
   isLoading,
   variant = 'primary',
   ...props
 }: ConfirmModalProps) {
+  const { t } = useI18n();
+  const finalConfirmText = confirmText ?? t('modal.confirm');
+  const finalCancelText = cancelText ?? t('modal.cancel');
   return (
     <Modal {...props} size="sm">
       <div className="flex flex-col gap-4">
         <p className="text-[var(--kw-text-muted)]">
-          {message || 'Are you sure you want to proceed with this action?'}
+          {message || t('modal.defaultConfirmMessage')}
         </p>
         <div className="flex justify-end gap-3">
           <button
@@ -206,7 +211,7 @@ export function ConfirmModal({
             type="button"
             className="rounded-full px-4 py-2 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:text-[var(--kw-dark-text-muted)]"
           >
-            {cancelText}
+            {finalCancelText}
           </button>
           <button
             onClick={onConfirm}
@@ -219,7 +224,7 @@ export function ConfirmModal({
                 : 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] hover:from-[var(--kw-primary-500)] hover:to-[var(--kw-primary-600)] focus-visible:ring-[var(--kw-primary-400)]'
             )}
           >
-            {isLoading ? 'Loading...' : confirmText}
+            {isLoading ? t('common.loadingEllipsis') : finalConfirmText}
           </button>
         </div>
       </div>

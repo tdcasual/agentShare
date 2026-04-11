@@ -20,6 +20,7 @@ import {
 } from '@/lib/role-system';
 import { ForbiddenState } from './forbidden-state';
 import { Loader2 } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ interface RouteGuardProps {
  * 处理引导、认证、角色权限三层检查
  */
 export function RouteGuard({ children }: RouteGuardProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const [entryState, setEntryState] = useState<Awaited<
@@ -122,7 +124,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
-          <p className="text-[var(--kw-text-muted)]">Initializing Control Plane...</p>
+          <p className="text-[var(--kw-text-muted)]">{t('common.initializing')}</p>
         </div>
       </div>
     );
@@ -137,17 +139,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
             <span className="text-2xl">⚠️</span>
           </div>
           <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
-            Service Unavailable
+            {t('common.serviceUnavailable')}
           </h1>
           <p className="mb-6 text-[var(--kw-text-muted)]">
-            Unable to connect to the backend service. Please check your connection and try again.
+            {t('common.serviceUnavailableDescription')}
           </p>
           <button
             type="button"
             onClick={() => window.location.reload()}
             className="rounded-full bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-600)] px-6 py-3 font-medium text-white transition-shadow hover:shadow-lg"
           >
-            Retry
+            {t('common.retry')}
           </button>
         </div>
       </div>

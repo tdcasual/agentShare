@@ -189,7 +189,7 @@ const TasksContent = memo(function TasksContent() {
     clearAllAuthErrors();
 
     try {
-      const parsedInput = parseJsonObject(taskForm.input_json);
+      const parsedInput = parseJsonObject(taskForm.input_json, t('tasks.errors.invalidPayload'));
       if (taskForm.target_mode === 'explicit_tokens' && taskForm.target_token_ids.length === 0) {
         throw new Error(
           t('tasks.errors.noTargetTokens') ||
@@ -1063,10 +1063,10 @@ function buildTaskTargets(
   });
 }
 
-function parseJsonObject(raw: string): Record<string, unknown> {
+function parseJsonObject(raw: string, invalidPayloadMessage: string): Record<string, unknown> {
   const parsed: unknown = JSON.parse(raw);
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error(t('tasks.errors.invalidPayload'));
+    throw new Error(invalidPayloadMessage);
   }
   return parsed as Record<string, unknown>;
 }

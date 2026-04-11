@@ -48,6 +48,7 @@ export function getTabletShellNavTargets() {
  * - Desktop: 完整侧边栏（由 DesktopSidebar 处理）
  */
 export function TabletSidebar() {
+  const { t } = useI18n();
   const device = useDeviceType();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();

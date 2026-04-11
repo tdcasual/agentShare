@@ -90,7 +90,7 @@ export async function resolveSession(): Promise<SessionData> {
 
     return {
       state: 'unavailable',
-      error: error instanceof Error ? error.message : 'Session resolution failed',
+      error: error instanceof Error ? error.message : '会话解析失败',
       lastLoadedAt: Date.now(),
     };
   }
@@ -113,7 +113,7 @@ export async function login(email: string, password: string): Promise<SessionDat
     if (error instanceof ApiError && error.status === 401) {
       return {
         state: 'anonymous',
-        error: 'Invalid credentials',
+        error: '凭据无效',
         lastLoadedAt: Date.now(),
       };
     }

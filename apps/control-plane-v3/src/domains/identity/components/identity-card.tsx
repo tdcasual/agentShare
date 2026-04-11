@@ -6,6 +6,7 @@ import type { Identity, HumanIdentity, AgentIdentity } from '../../../shared/typ
 import { Card, CardContent } from '../../../shared/ui-primitives/card';
 import { Badge } from '../../../shared/ui-primitives/badge';
 import { SparkleEffect } from '@/components/kawaii/sparkle-effect';
+import { useI18n } from '@/components/i18n-provider';
 
 interface IdentityCardProps {
   identity: Identity;
@@ -14,6 +15,7 @@ interface IdentityCardProps {
 }
 
 export function IdentityCard({ identity, onClick, className }: IdentityCardProps) {
+  const { t } = useI18n();
   const isHuman = identity.type === 'human';
   const isAgent = identity.type === 'agent';
 
@@ -71,7 +73,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
               <h3 className="truncate font-bold text-[var(--kw-text)]">{identity.profile.name}</h3>
-              <Badge variant={isHuman ? 'human' : 'agent'}>{isHuman ? 'Human' : 'Agent'}</Badge>
+              <Badge variant={isHuman ? 'human' : 'agent'}>{isHuman ? t('common.human') : t('common.agent')}</Badge>
             </div>
 
             {identity.profile.bio && (

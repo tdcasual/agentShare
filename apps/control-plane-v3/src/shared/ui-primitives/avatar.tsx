@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 const avatarSizes = {
   xs: 'w-6 h-6 text-xs',
@@ -25,6 +26,7 @@ interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
   ({ src, srcSet, sizes, alt, fallback, size = 'md', type, status, className, ...props }, ref) => {
+    const { t } = useI18n();
     const [error, setError] = React.useState(false);
 
     const getFallback = () => {
@@ -59,7 +61,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             sizes={sizes}
             alt={
               alt ||
-              (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')
+              (type === 'human' ? t('common.userAvatar') : type === 'agent' ? t('common.agentAvatar') : t('common.userAvatar'))
             }
             className="h-full w-full object-cover"
             onError={() => setError(true)}
@@ -72,7 +74,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             role="img"
             aria-label={
               alt ||
-              (type === 'human' ? 'User avatar' : type === 'agent' ? 'Agent avatar' : 'Avatar')
+              (type === 'human' ? t('common.userAvatar') : type === 'agent' ? t('common.agentAvatar') : t('common.userAvatar'))
             }
           >
             {getFallback()}

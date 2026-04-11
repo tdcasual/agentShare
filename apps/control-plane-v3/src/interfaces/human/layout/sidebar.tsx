@@ -56,7 +56,7 @@ function useAllNavItems(): NavItem[] {
     },
     {
       href: '/inbox',
-      labelKey: t('navigation.inbox') || '收件箱',
+      labelKey: t('navigation.inbox'),
       icon: <Inbox className="h-5 w-5" />,
       requiredRole: 'admin',
     },
@@ -77,7 +77,7 @@ function useAllNavItems(): NavItem[] {
     },
     {
       href: '/approvals',
-      labelKey: t('navigation.approvals') || '审批',
+      labelKey: t('navigation.approvals'),
       icon: <Gavel className="h-5 w-5" />,
       requiredRole: 'operator',
     },
@@ -89,13 +89,13 @@ function useAllNavItems(): NavItem[] {
     },
     {
       href: '/playbooks',
-      labelKey: t('navigation.playbooks') || '手册',
+      labelKey: t('navigation.playbooks'),
       icon: <BookOpen className="h-5 w-5" />,
       requiredRole: 'viewer',
     },
     {
       href: '/runs',
-      labelKey: t('navigation.runs') || '运行',
+      labelKey: t('navigation.runs'),
       icon: <PlayCircle className="h-5 w-5" />,
       requiredRole: 'viewer',
     },
@@ -221,8 +221,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         aria-expanded={!collapsed}
         aria-label={
           collapsed
-            ? t('sidebar.expand') || 'Expand sidebar'
-            : t('sidebar.collapse') || 'Collapse sidebar'
+            ? t('sidebar.expand')
+            : t('sidebar.collapse')
         }
         type="button"
         className="absolute -right-3 top-20 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--kw-primary-200)] bg-white text-[var(--kw-text-muted)] shadow-sm transition-colors hover:border-[var(--kw-primary-300)] hover:text-[var(--kw-primary-500)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text-muted)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:text-[var(--kw-dark-primary)]"

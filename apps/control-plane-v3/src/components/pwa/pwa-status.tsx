@@ -36,7 +36,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
   const handleShare = async () => {
     try {
       await shareContent({
-        title: 'Control Plane V3',
+        title: t('metadata.appName'),
         text: t('metadata.description'),
         url: window.location.origin,
       });

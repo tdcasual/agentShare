@@ -513,7 +513,7 @@ function isToday(timestamp: string) {
   );
 }
 
-function formatRelativeTime(timeString: string, t: (key: string, options?: Record<string, unknown>) => string) {
+function formatRelativeTime(timeString: string, t: (key: string, options?: Record<string, string | number>) => string) {
   const date = new Date(timeString);
   const now = new Date();
   const diffMs = Math.max(0, now.getTime() - date.getTime());
@@ -582,7 +582,7 @@ function buildActorDirectory(
 function buildActivityItem(
   event: Event,
   actorDirectory: Map<string, { label: string; type: 'human' | 'agent' }>,
-  t: (key: string, options?: Record<string, unknown>) => string
+  t: (key: string, options?: Record<string, string | number>) => string
 ) {
   const actor = actorDirectory.get(event.actor_id);
 

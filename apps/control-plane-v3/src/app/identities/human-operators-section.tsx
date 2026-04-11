@@ -116,6 +116,8 @@ interface AccountCardProps {
 }
 
 function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: AccountCardProps) {
+  const { t } = useI18n();
+
   return (
     <div
       data-testid={`admin-card-${account.id}`}

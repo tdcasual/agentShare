@@ -5,7 +5,7 @@
 import { apiFetch } from '@/lib/api-client';
 import type { ApprovalTransportDTO, ApprovalQuery, ApproveInput, RejectInput } from './types';
 
-const BASE_URL = '/api/approvals';
+const BASE_URL = '/approvals';
 
 export interface ApprovalListResponse {
   items: ApprovalTransportDTO[];

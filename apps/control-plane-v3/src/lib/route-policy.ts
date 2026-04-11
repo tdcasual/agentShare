@@ -237,7 +237,7 @@ export function isRouteAllowed(
   // 引导路由特殊处理
   if (policy.mode === 'bootstrap') {
     if (sessionState === 'authenticated') {
-      return { allowed: false, redirect: '/login', reason: 'Bootstrap already complete' };
+      return { allowed: false, redirect: '/login', reason: '引导已完成' };
     }
     return { allowed: true };
   }
@@ -245,7 +245,7 @@ export function isRouteAllowed(
   // 认证路由特殊处理
   if (policy.mode === 'auth') {
     if (sessionState === 'authenticated') {
-      return { allowed: false, redirect: '/', reason: 'Already authenticated' };
+      return { allowed: false, redirect: '/', reason: '已认证' };
     }
     return { allowed: true };
   }
@@ -273,7 +273,7 @@ export function isRouteAllowed(
 
   // 不可用路由
   if (policy.mode === 'unavailable') {
-    return { allowed: false, reason: 'Route not implemented' };
+    return { allowed: false, reason: '路由尚未实现' };
   }
 
   return { allowed: true };

@@ -1,7 +1,8 @@
 {
   "metadata": {
     "title": "Control Plane V3 - 双生宇宙",
-    "description": "人类与智能体共享的控制平面"
+    "description": "人类与智能体共享的控制平面",
+    "appName": "控制平面 V3"
   },
   "navigation": {
     "hub": "首页",
@@ -12,7 +13,11 @@
     "tasks": "任务",
     "reviews": "审核",
     "marketplace": "市场",
-    "settings": "设置"
+    "settings": "设置",
+    "inbox": "收件箱",
+    "approvals": "审批",
+    "playbooks": "手册",
+    "runs": "运行"
   },
   "common": {
     "loading": "加载中...",
@@ -48,7 +53,22 @@
     "total": "总计",
     "operator": "操作员",
     "notSpecified": "未指定",
-    "switchLanguage": "切换语言"
+    "switchLanguage": "切换语言",
+    "onlineCount": "{count} 在线",
+    "nA": "不适用",
+    "totalAccounts": "共 {count} 个账户",
+    "registeredAgents": "共 {count} 个已注册",
+    "closeLanguageMenu": "关闭语言菜单",
+    "closeModal": "关闭弹窗",
+    "collapseSidebar": "收起侧边栏",
+    "userAvatar": "用户头像",
+    "agentAvatar": "智能体头像",
+    "human": "人类",
+    "agent": "智能体",
+    "loadingEllipsis": "加载中...",
+    "initializing": "正在初始化控制平面...",
+    "serviceUnavailable": "服务不可用",
+    "serviceUnavailableDescription": "无法连接到后端服务。请检查您的网络连接后重试。"
   },
   "auth": {
     "login": {
@@ -540,7 +560,11 @@
       "openclaw": "OpenClaw 智能体"
     },
     "focusedIdentity": "聚焦身份",
-    "loadingManagementIdentities": "正在加载管理身份..."
+    "loadingManagementIdentities": "正在加载管理身份...",
+    "ownersHint": "治理与账户托管",
+    "loadingWorkspaceFiles": "正在加载工作区文件...",
+    "workspaceFilesUnavailable": "工作区文件不可用。",
+    "noWorkspaceFiles": "此智能体尚未存储工作区引导文件。"
   },
   "settings": {
     "title": "管理设置",
@@ -623,7 +647,7 @@
   },
   "sidebar": {
     "expand": "展开侧边栏",
-    "collapse": "折叠侧边栏"
+    "collapse": "收起侧边栏"
   },
   "spaces": {
     "title": "空间",
@@ -922,5 +946,25 @@
       "resource": "资源",
       "system": "系统"
     }
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{n}分钟前",
+    "hoursAgo": "{n}小时前",
+    "daysAgo": "{n}天前"
+  },
+  "modal": {
+    "confirm": "确认",
+    "cancel": "取消",
+    "defaultConfirmMessage": "您确定要继续此操作吗？"
+  },
+  "errors": {
+    "validationFailed": "验证失败",
+    "permissionDenied": "您没有权限执行此操作",
+    "bootstrapAlreadyComplete": "引导已完成",
+    "alreadyAuthenticated": "已认证",
+    "routeNotImplemented": "路由尚未实现",
+    "invalidCredentials": "凭据无效",
+    "sessionResolutionFailed": "会话解析失败"
   }
 }

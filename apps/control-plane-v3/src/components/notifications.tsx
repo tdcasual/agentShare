@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useNotifications, useMarkNotificationsRead } from '@/hooks/use-notifications';
 import { Button } from '@/shared/ui-primitives/button';
 import type { Notification } from '@/hooks/use-notifications';
+import { useI18n } from '@/components/i18n-provider';
 
 interface NotificationsProps {
   className?: string;
@@ -51,7 +52,10 @@ function getSeverityStyle(severity?: string) {
   return severity && severityStyles[severity] ? severityStyles[severity] : severityStyles.default;
 }
 
-function formatRelativeTime(timeString: string) {
+function formatRelativeTime(
+  timeString: string,
+  t: (key: string, values?: Record<string, string | number>) => string
+) {
   const date = new Date(timeString);
   const now = new Date();
   const diffMs = Math.max(0, now.getTime() - date.getTime());
@@ -60,21 +64,22 @@ function formatRelativeTime(timeString: string) {
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMins < 1) {
-    return 'Just now';
+    return t('time.justNow');
   }
   if (diffMins < 60) {
-    return `${diffMins}m ago`;
+    return t('time.minutesAgo', { n: diffMins });
   }
   if (diffHours < 24) {
-    return `${diffHours}h ago`;
+    return t('time.hoursAgo', { n: diffHours });
   }
   if (diffDays < 7) {
-    return `${diffDays}d ago`;
+    return t('time.daysAgo', { n: diffDays });
   }
   return date.toLocaleDateString();
 }
 
 export function Notifications({ className }: NotificationsProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -316,7 +321,7 @@ export function Notifications({ className }: NotificationsProps) {
                                 {notification.summary}
                               </p>
                               <span className="text-[11px] text-[var(--kw-text-muted)]">
-                                {formatRelativeTime(notification.created_at)}
+                                {formatRelativeTime(notification.created_at, t)}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-[var(--kw-text-muted)]">

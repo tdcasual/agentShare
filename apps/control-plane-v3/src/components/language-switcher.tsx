@@ -44,7 +44,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           <>
             <button
               className="fixed inset-0 z-40"
-              aria-label="Close language menu"
+              aria-label={t("common.closeLanguageMenu")}
               type="button"
               onClick={() => setIsOpen(false)}
             />
@@ -117,7 +117,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         <>
           <button
             className="fixed inset-0 z-40"
-            aria-label="Close language menu"
+            aria-label={t("common.closeLanguageMenu")}
             type="button"
             onClick={() => setIsOpen(false)}
           />

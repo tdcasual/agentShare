@@ -491,20 +491,20 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           label={t("identities.metrics.activeOperators")}
-          value={accountsErrorMessage ? 'N/A' : operatorCount.toString()}
+          value={accountsErrorMessage ? t('common.nA') : operatorCount.toString()}
           hint={
-            accountsErrorMessage ? t('identities.accountsUnavailable') : `${adminAccounts.length} total accounts`
+            accountsErrorMessage ? t('identities.accountsUnavailable') : t('common.totalAccounts', { count: adminAccounts.length })
           }
         />
         <MetricCard
           label={t("identities.metrics.owners")}
-          value={accountsErrorMessage ? 'N/A' : ownerCount.toString()}
-          hint={accountsErrorMessage ? t('identities.accountsUnavailable') : 'governance and account custody'}
+          value={accountsErrorMessage ? t('common.nA') : ownerCount.toString()}
+          hint={accountsErrorMessage ? t('identities.accountsUnavailable') : t('identities.ownersHint')}
         />
         <MetricCard
           label={t("identities.metrics.activeAgents")}
-          value={agentsErrorMessage ? 'N/A' : activeAgentCount.toString()}
-          hint={agentsErrorMessage ? t('identities.agentsUnavailable') : `${agents.length} registered`}
+          value={agentsErrorMessage ? t('common.nA') : activeAgentCount.toString()}
+          hint={agentsErrorMessage ? t('identities.agentsUnavailable') : t('common.registeredAgents', { count: agents.length })}
         />
       </div>
 

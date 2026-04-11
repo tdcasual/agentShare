@@ -10,7 +10,7 @@ import type {
   CreatePlaybookInput,
 } from './types';
 
-const BASE_URL = '/api/playbooks';
+const BASE_URL = '/playbooks';
 
 // 重新导出类型
 export type { PlaybookSearchResponse } from './types';

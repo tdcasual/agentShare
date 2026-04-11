@@ -178,12 +178,12 @@ export function createNetworkError(cause?: Error): AppError {
   return new AppError({
     type: ErrorType.NETWORK,
     code: 'NETWORK_ERROR',
-    message: 'Network request failed',
+    message: '网络请求失败',
     cause,
   });
 }
 
-export function createAuthError(message = 'Authentication failed'): AppError {
+export function createAuthError(message = '认证失败'): AppError {
   return new AppError({
     type: ErrorType.AUTH,
     code: 'AUTH_ERROR',
@@ -196,7 +196,7 @@ export function createValidationError(details: Record<string, unknown>): AppErro
   return new AppError({
     type: ErrorType.VALIDATION,
     code: 'VALIDATION_ERROR',
-    message: 'Validation failed',
+    message: '验证失败',
     status: 422,
     details,
   });
@@ -206,7 +206,7 @@ export function createNotFoundError(resource: string): AppError {
   return new AppError({
     type: ErrorType.NOT_FOUND,
     code: 'NOT_FOUND',
-    message: `${resource} not found`,
+    message: `${resource} 不存在`,
     status: 404,
   });
 }

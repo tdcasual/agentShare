@@ -132,14 +132,14 @@ export function AgentManagementCard({
           </div>
 
           {filesQuery.isLoading ? (
-            <p className="text-sm text-[var(--kw-text-muted)]">Loading workspace files...</p>
+            <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.loadingWorkspaceFiles')}</p>
           ) : filesQuery.error instanceof Error ? (
             <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-              Workspace files unavailable. {filesQuery.error.message}
+              {t('identities.workspaceFilesUnavailable')} {filesQuery.error.message}
             </p>
           ) : files.length === 0 ? (
             <p className="text-sm text-[var(--kw-text-muted)]">
-              No workspace bootstrap files stored for this agent.
+              {t('identities.noWorkspaceFiles')}
             </p>
           ) : (
             <div className="space-y-2">
