@@ -197,7 +197,13 @@
     "total": "total",
     "totalAccounts": "{count} total accounts",
     "userAvatar": "User avatar",
-    "view": "View"
+    "view": "View",
+    "operationsFeed": "Operations feed",
+    "searchIdentities": "Search identities",
+    "closeNotifications": "Close notifications",
+    "closeNavigationMenu": "Close navigation menu",
+    "userMenu": "User menu",
+    "sakuraLogo": "Sakura logo"
   },
   "createMenu": {
     "actions": {

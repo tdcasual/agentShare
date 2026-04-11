@@ -99,7 +99,7 @@ export function OperationsFeed({
       ) : events.length === 0 ? (
         <SectionNotice message={t('spaces.noAgentActivity')} />
       ) : (
-        <div role="region" aria-label="Operations feed" className="space-y-3">
+        <div role="region" aria-label={t('common.operationsFeed')} className="space-y-3">
           {events.map((event) => (
             <div
               key={event.id}

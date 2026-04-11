@@ -216,7 +216,7 @@ export function Notifications({ className }: NotificationsProps) {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   className="rounded-lg p-1 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
-                  aria-label="Close notifications"
+                  aria-label={t('common.closeNotifications')}
                 >
                   <X className="h-4 w-4" />
                 </button>

@@ -249,7 +249,7 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
-    const operationsFeed = screen.getByRole('region', { name: /operations feed/i });
+    const operationsFeed = screen.getByRole('region', { name: /common.operationsFeed/i });
 
     await user.click(screen.getByRole('button', { name: /show activity for bootstrap/i }));
 
@@ -275,7 +275,7 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
-    const operationsFeed = screen.getByRole('region', { name: /operations feed/i });
+    const operationsFeed = screen.getByRole('region', { name: /common.operationsFeed/i });
 
     await user.click(screen.getByRole('button', { name: /failed/i }));
 
@@ -368,7 +368,7 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
-    const operationsFeed = screen.getByRole('region', { name: /operations feed/i });
+    const operationsFeed = screen.getByRole('region', { name: /common.operationsFeed/i });
 
     await user.click(screen.getByRole('button', { name: /focus bootstrap credential/i }));
 

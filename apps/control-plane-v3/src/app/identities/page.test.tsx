@@ -296,7 +296,7 @@ describe('identities page', () => {
     expect(screen.getByText('Alice Operator')).toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
 
-    await user.type(screen.getByRole('searchbox', { name: /search identities/i }), 'read-only');
+    await user.type(screen.getByRole('searchbox', { name: /common.searchIdentities/i }), 'read-only');
 
     expect(screen.queryByText('Alice Operator')).not.toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();

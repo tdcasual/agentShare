@@ -200,7 +200,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div className="flex h-16 items-center border-b border-[var(--kw-border)] px-4 dark:border-[var(--kw-dark-border)]">
         <div
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-600)] text-xl text-white shadow-glow"
-          aria-label="Sakura logo"
+          aria-label={t('common.sakuraLogo')}
           role="img"
         >
           <span aria-hidden="true">🌸</span>

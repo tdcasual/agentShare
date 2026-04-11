@@ -373,7 +373,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder={t('identities.searchPlaceholder')}
-                aria-label="Search identities"
+                aria-label={t('common.searchIdentities')}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--kw-text-muted)] dark:placeholder:text-[var(--kw-dark-text-muted)]"
               />
             </div>

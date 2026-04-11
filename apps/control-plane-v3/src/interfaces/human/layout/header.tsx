@@ -151,7 +151,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                 <div
                   ref={userMenuRef}
                   role="menu"
-                  aria-label="User menu"
+                  aria-label={t('common.userMenu')}
                   className="absolute right-0 top-full z-50 mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
                 >
                   <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">

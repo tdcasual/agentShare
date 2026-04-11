@@ -98,7 +98,7 @@ export function MobileNav() {
         <>
           <button
             className="fixed inset-0 z-50 bg-black/20 dark:bg-black/40"
-            aria-label="Close navigation menu"
+            aria-label={t('common.closeNavigationMenu')}
             type="button"
             onClick={() => setShowMore(false)}
           />

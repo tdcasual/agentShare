@@ -197,7 +197,13 @@
     "total": "总计",
     "totalAccounts": "共 {count} 个账户",
     "userAvatar": "用户头像",
-    "view": "查看"
+    "view": "查看",
+    "operationsFeed": "操作动态",
+    "searchIdentities": "搜索身份",
+    "closeNotifications": "关闭通知",
+    "closeNavigationMenu": "关闭导航菜单",
+    "userMenu": "用户菜单",
+    "sakuraLogo": "樱花标志"
   },
   "createMenu": {
     "actions": {
