@@ -203,7 +203,11 @@
     "closeNotifications": "Close notifications",
     "closeNavigationMenu": "Close navigation menu",
     "userMenu": "User menu",
-    "sakuraLogo": "Sakura logo"
+    "sakuraLogo": "Sakura logo",
+    "pageNotFoundTitle": "Page not found",
+    "pageNotFoundDescription": "Sorry, we couldn't find the page you're looking for. It might have moved or never existed.",
+    "backToHome": "Back to home",
+    "preparingPage": "Preparing page..."
   },
   "createMenu": {
     "actions": {
