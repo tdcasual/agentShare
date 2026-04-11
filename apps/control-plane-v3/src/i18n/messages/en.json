@@ -121,7 +121,8 @@
       "password": "Password",
       "signIn": "Sign In",
       "subtitle": "Invite-only access",
-      "title": "Management Login"
+      "title": "Management Login",
+      "emailPlaceholder": "owner@example.com"
     },
     "logout": {
       "continueToLogin": "Continue to login",
@@ -209,7 +210,8 @@
     "backToHome": "Back to home",
     "preparingPage": "Preparing page...",
     "unexpectedErrorTitle": "Something went wrong",
-    "unexpectedErrorDescription": "An unexpected error occurred. Please try again or contact support."
+    "unexpectedErrorDescription": "An unexpected error occurred. Please try again or contact support.",
+    "skipToContent": "Skip to main content"
   },
   "createMenu": {
     "actions": {

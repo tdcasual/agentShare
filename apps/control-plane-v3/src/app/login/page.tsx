@@ -143,7 +143,7 @@ export default function LoginPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, email: event.target.value }))
               }
-              placeholder="owner@example.com"
+              placeholder={t('auth.login.emailPlaceholder')}
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
@@ -159,16 +159,14 @@ export default function LoginPage() {
             />
 
             {/* Status message */}
-            <div className="bg-[var(--kw-primary-50)]/50 dark:bg-[var(--kw-dark-bg)]/50 rounded-2xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+            <div
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              className="bg-[var(--kw-primary-50)]/50 dark:bg-[var(--kw-dark-bg)]/50 rounded-2xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]"
+            >
               {error ? (
-                <span
-                  role="alert"
-                  aria-live="assertive"
-                  aria-atomic="true"
-                  className="text-[var(--kw-error)] dark:text-[var(--kw-error)]"
-                >
-                  {error}
-                </span>
+                <span className="text-[var(--kw-error)] dark:text-[var(--kw-error)]">{error}</span>
               ) : checking ? (
                 <span className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 animate-pulse" />

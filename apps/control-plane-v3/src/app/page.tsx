@@ -316,7 +316,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             </div>
 
             <Card className="overflow-hidden p-0">
-              <div className="divide-y divide-[var(--kw-border)]">
+              <div className="divide-y divide-[var(--kw-border)]" role="list">
                 {recentActivity.length === 0 && (
                   <div className="p-6 text-sm text-[var(--kw-text-muted)]">
                     {t('hub.emptyActivity')}
@@ -325,6 +325,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                 {recentActivity.map((activity) => (
                   <div
                     key={activity.id}
+                    role="listitem"
                     className="hover:bg-[var(--kw-primary-50)]/30 flex items-center gap-4 p-4 transition-colors"
                   >
                     <div

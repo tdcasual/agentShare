@@ -121,7 +121,8 @@
       "password": "密码",
       "signIn": "登录",
       "subtitle": "邀请制访问",
-      "title": "管理登录"
+      "title": "管理登录",
+      "emailPlaceholder": "owner@example.com"
     },
     "logout": {
       "continueToLogin": "继续登录",
@@ -209,7 +210,8 @@
     "backToHome": "返回首页",
     "preparingPage": "正在准备页面...",
     "unexpectedErrorTitle": "出错了",
-    "unexpectedErrorDescription": "遇到了意外错误，请重试或联系支持。"
+    "unexpectedErrorDescription": "遇到了意外错误，请重试或联系支持。",
+    "skipToContent": "跳转到主内容"
   },
   "createMenu": {
     "actions": {

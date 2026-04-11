@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
+import { SkipLink } from '@/components/skip-link';
 import { MobileNav } from '@/components/mobile-nav';
 import { TabletSidebar } from '@/components/tablet-sidebar';
 import { useDeviceType } from '@/hooks/use-device-type';
@@ -82,9 +83,11 @@ export function Layout({ children }: LayoutProps) {
           device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
         )}
       >
+        <SkipLink />
         <Header currentIdentity={currentIdentity} onlineIdentities={onlineIdentities} />
 
         <main
+          id="main-content"
           className={cn(
             'touch-pan-y',
             // 移动端更多底部空间给底部导航
