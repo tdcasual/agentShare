@@ -12,10 +12,12 @@
 const CACHE_NAME = 'control-plane-v3-v1';
 const STATIC_ASSETS = [
   '/',
+  '/login',
+  '/setup',
+  '/offline',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/offline',
 ];
 
 // 安装时缓存静态资源
