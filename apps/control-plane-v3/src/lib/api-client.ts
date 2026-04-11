@@ -28,35 +28,56 @@ export class ApiError extends Error {
 /**
  * 基础 API 请求函数
  */
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const headers = new Headers(init.headers);
-  if (!headers.has('Content-Type') && init.body) {
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit & { timeout?: number } = {}
+): Promise<T> {
+  const { timeout = 30000, signal: externalSignal, ...rest } = init;
+  const headers = new Headers(rest.headers);
+  if (!headers.has('Content-Type') && rest.body) {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-    credentials: 'include',
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  const text = await response.text();
-  const payload = text ? (JSON.parse(text) as JsonValue) : null;
-
-  if (!response.ok) {
-    const detail =
-      payload &&
-      typeof payload === 'object' &&
-      'detail' in payload &&
-      typeof payload.detail === 'string'
-        ? payload.detail
-        : response.statusText;
-    throw new ApiError(response.status, detail);
+  if (externalSignal) {
+    externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
   }
 
-  // Note: Runtime validation would be better, but for now we trust the API
-  // Consider using zod or similar for runtime type checking
-  return payload as T;
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...rest,
+      headers,
+      credentials: 'include',
+      signal: controller.signal,
+    });
+
+    const text = await response.text();
+    const payload = text ? (JSON.parse(text) as JsonValue) : null;
+
+    if (!response.ok) {
+      const detail =
+        payload &&
+        typeof payload === 'object' &&
+        'detail' in payload &&
+        typeof payload.detail === 'string'
+          ? payload.detail
+          : response.statusText;
+      throw new ApiError(response.status, detail);
+    }
+
+    // Note: Runtime validation would be better, but for now we trust the API
+    // Consider using zod or similar for runtime type checking
+    return payload as T;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new ApiError(0, '请求超时，请检查网络连接');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // ============================================
