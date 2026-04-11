@@ -54,7 +54,8 @@ function getSeverityStyle(severity?: string) {
 
 function formatRelativeTime(
   timeString: string,
-  t: (key: string, values?: Record<string, string | number>) => string
+  t: (key: string, values?: Record<string, string | number>) => string,
+  locale: string
 ) {
   const date = new Date(timeString);
   const now = new Date();
@@ -75,11 +76,11 @@ function formatRelativeTime(
   if (diffDays < 7) {
     return t('time.daysAgo', { n: diffDays });
   }
-  return date.toLocaleDateString();
+  return date.toLocaleDateString(locale);
 }
 
 export function Notifications({ className }: NotificationsProps) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -319,7 +320,7 @@ export function Notifications({ className }: NotificationsProps) {
                                 {notification.summary}
                               </p>
                               <span className="text-[11px] text-[var(--kw-text-muted)]">
-                                {formatRelativeTime(notification.created_at, t)}
+                                {formatRelativeTime(notification.created_at, t, locale)}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-[var(--kw-text-muted)]">
