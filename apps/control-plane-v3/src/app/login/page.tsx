@@ -4,8 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
 import { LockKeyhole, Mail, Sparkles, Heart } from 'lucide-react';
-import { ApiError, api } from '@/lib/api';
-import { resolveAppEntryState } from '@/lib/session';
+import { api } from '@/lib/api';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
@@ -25,26 +24,17 @@ export default function LoginPage() {
 
     async function load() {
       try {
-        const entryState = await resolveAppEntryState();
+        const bootstrap = await api.getBootstrapStatus();
         if (cancelled) {
           return;
         }
 
-        if (entryState.kind === 'bootstrap_required') {
+        if (!bootstrap.initialized) {
           router.replace('/setup');
           return;
         }
-
-        if (entryState.kind === 'authenticated_ready') {
-          router.replace('/tokens');
-          return;
-        }
-
-        if (entryState.kind === 'unavailable') {
-          setError(entryState.error);
-        }
       } catch (loadError) {
-        if (!cancelled && !(loadError instanceof ApiError && loadError.status === 401)) {
+        if (!cancelled) {
           setError(loadError instanceof Error ? loadError.message : t('auth.login.failedToLoad'));
         }
       } finally {
