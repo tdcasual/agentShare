@@ -77,7 +77,7 @@ export function ManagementSessionExpiredAlert({
       aria-live="assertive"
       aria-atomic="true"
       className={cn(
-        'border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]',
+        'bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]',
         className
       )}
     >
@@ -85,7 +85,7 @@ export function ManagementSessionExpiredAlert({
         <span>{message}</span>
         <Link
           href="/login"
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--kw-error)] bg-white px-4 py-2 text-sm font-semibold text-[var(--kw-rose-text)] transition-colors hover:bg-[var(--kw-rose-surface)] dark:border-[var(--kw-dark-error-surface)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20"
+          className="dark:hover:bg-[var(--kw-dark-error-surface)]/20 inline-flex items-center justify-center gap-2 rounded-full border border-[var(--kw-error)] bg-white px-4 py-2 text-sm font-semibold text-[var(--kw-rose-text)] transition-colors hover:bg-[var(--kw-rose-surface)] dark:border-[var(--kw-dark-error-surface)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-error)]"
         >
           Return to Login
         </Link>
@@ -107,7 +107,7 @@ export function ManagementForbiddenAlert({
       aria-live="assertive"
       aria-atomic="true"
       className={cn(
-        'border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/80 text-[var(--kw-amber-text)] dark:dark:border-[var(--kw-dark-amber-surface)]/50 dark:bg-[var(--kw-dark-amber-surface)]/20 dark:text-[var(--kw-warning)]',
+        'bg-[var(--kw-amber-surface)]/80 dark:dark:border-[var(--kw-dark-amber-surface)]/50 dark:bg-[var(--kw-dark-amber-surface)]/20 border border-[var(--kw-amber-surface)] text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]',
         className
       )}
     >
@@ -128,7 +128,7 @@ export function ManagementSessionRecoveryNotice({
   return (
     <Card
       className={cn(
-        'border border-dashed border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/40 text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/40 dark:text-[var(--kw-dark-text-muted)]',
+        'bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/40 border border-dashed border-[var(--kw-primary-200)] text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]',
         className
       )}
     >

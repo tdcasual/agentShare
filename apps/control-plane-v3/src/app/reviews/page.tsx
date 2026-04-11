@@ -197,7 +197,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-primary)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             <ShieldAlert className="h-4 w-4" />
             {t('reviews.subtitle')}
           </div>
@@ -205,7 +205,9 @@ const ReviewsContent = memo(function ReviewsContent() {
             <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('reviews.title')}
             </h1>
-            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('reviews.description')}</p>
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('reviews.description')}
+            </p>
           </div>
         </div>
 
@@ -220,12 +222,16 @@ const ReviewsContent = memo(function ReviewsContent() {
         <MetricCard
           label={t('reviews.metrics.pendingItems')}
           value={reviewItems.length.toString()}
-          icon={<ShieldAlert className="h-5 w-5 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
+          icon={
+            <ShieldAlert className="h-5 w-5 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
+          }
         />
         <MetricCard
           label={t('reviews.metrics.tasksQueued')}
           value={(countByKind.task ?? 0).toString()}
-          icon={<FileText className="h-5 w-5 text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]" />}
+          icon={
+            <FileText className="h-5 w-5 text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]" />
+          }
         />
         <MetricCard
           label={t('reviews.metrics.playbooksQueued')}
@@ -239,7 +245,7 @@ const ReviewsContent = memo(function ReviewsContent() {
         />
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -350,21 +356,23 @@ const ReviewsContent = memo(function ReviewsContent() {
       </Card>
 
       {/* Session Info */}
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <Badge variant="primary">{session?.role ?? t('reviews.reviewer')}</Badge>
-          <span className="dark:text-[var(--kw-dark-text)]">{session?.email ?? t('common.loading')}</span>
+          <span className="dark:text-[var(--kw-dark-text)]">
+            {session?.email ?? t('common.loading')}
+          </span>
           <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
           <span>{t('reviews.onlyPending')}</span>
         </div>
       </Card>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t("reviews.sessionExpired")} />
+        <ManagementSessionExpiredAlert message={t('reviews.sessionExpired')} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t("reviews.sessionForbidden")} />
+        <ManagementForbiddenAlert message={t('reviews.sessionForbidden')} />
       ) : null}
 
       {refreshError ? (
@@ -372,7 +380,7 @@ const ReviewsContent = memo(function ReviewsContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {refreshError}
         </Card>
@@ -384,7 +392,7 @@ const ReviewsContent = memo(function ReviewsContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {gateError ??
             error ??
@@ -436,13 +444,13 @@ const ReviewsContent = memo(function ReviewsContent() {
       !shouldShowSessionExpired &&
       reviewItems.length > 0 &&
       visibleItems.length === 0 ? (
-        <Card className="border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text-muted)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
           No review items match the current provenance and resource filters.
         </Card>
       ) : null}
 
       {focusedReviewItem ? (
-        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
+        <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               Focused review item
@@ -479,7 +487,7 @@ const ReviewsContent = memo(function ReviewsContent() {
                 'animate-slide-up space-y-4 dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]',
                 item.resource_kind === focus.resourceKind &&
                   item.resource_id === focus.resourceId &&
-                  'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+                  'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
               )}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
@@ -531,7 +539,7 @@ const ReviewsContent = memo(function ReviewsContent() {
                         loading={actionKey === rejectKey}
                         disabled={busy}
                         onClick={() => handleDecision(item, 'reject')}
-                        className="border-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)] dark:border-[var(--kw-dark-error-surface)]/50 dark:hover:bg-[var(--kw-dark-error-surface)]/20"
+                        className="dark:border-[var(--kw-dark-error-surface)]/50 dark:hover:bg-[var(--kw-dark-error-surface)]/20 border-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)]"
                       >
                         <XCircle className="mr-2 h-4 w-4 text-[var(--kw-error)]" />
                         {t('reviews.actions.reject')}
@@ -552,17 +560,23 @@ const ReviewsContent = memo(function ReviewsContent() {
               {/* Details */}
               <div className="grid gap-3 md:grid-cols-3">
                 <ReviewStat
-                  icon={<Heart className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
+                  icon={
+                    <Heart className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
+                  }
                   label={t('reviews.item.submittedBy')}
                   value={`${item.created_by_actor_type}:${item.created_by_actor_id}`}
                 />
                 <ReviewStat
-                  icon={<ShieldAlert className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
+                  icon={
+                    <ShieldAlert className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
+                  }
                   label={t('reviews.item.tokenProvenance')}
                   value={item.created_via_token_id ?? t('reviews.item.createdDirectly')}
                 />
                 <ReviewStat
-                  icon={<Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
+                  icon={
+                    <Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
+                  }
                   label={t('reviews.item.lastReview')}
                   value={
                     item.reviewed_at
@@ -602,14 +616,16 @@ function MetricCard({
   icon: React.ReactNode;
 }) {
   return (
-    <Card className="space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center gap-2">
         {icon}
         <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           {label}
         </p>
       </div>
-      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
     </Card>
   );
 }
@@ -624,7 +640,7 @@ function ReviewStat({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/40 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60">
+    <div className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/60 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {icon}
         {label}

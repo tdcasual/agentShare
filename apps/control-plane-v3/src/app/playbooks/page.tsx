@@ -139,11 +139,11 @@ const PlaybooksContent = memo(function PlaybooksContent() {
       <Layout>
         <div className="space-y-6">
           {shouldShowSessionExpired ? (
-            <ManagementSessionExpiredAlert message={t("playbooks.sessionExpired")} />
+            <ManagementSessionExpiredAlert message={t('playbooks.sessionExpired')} />
           ) : null}
 
           {!shouldShowSessionExpired && shouldShowForbidden ? (
-            <ManagementForbiddenAlert message={t("playbooks.sessionForbidden")} />
+            <ManagementForbiddenAlert message={t('playbooks.sessionForbidden')} />
           ) : null}
 
           {!shouldShowSessionExpired && !shouldShowForbidden && gateError ? (
@@ -151,7 +151,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {gateError}
             </Card>
@@ -160,8 +160,12 @@ const PlaybooksContent = memo(function PlaybooksContent() {
           {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">Playbook 手册</h1>
-              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">浏览和搜索可复用的执行手册</p>
+              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+                Playbook 手册
+              </h1>
+              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
+                浏览和搜索可复用的执行手册
+              </p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -190,7 +194,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {refreshError}
             </Card>
@@ -201,7 +205,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {actionError}
             </Card>
@@ -253,7 +257,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
                       onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
                       className={`rounded-full px-2 py-0.5 text-xs transition-colors ${
                         selectedTag === tag
-                          ? 'bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] dark:bg-[var(--kw-dark-purple-surface)]/30 dark:text-[var(--kw-dark-primary)]'
+                          ? 'dark:bg-[var(--kw-dark-purple-surface)]/30 bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]'
                           : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
                       }`}
                     >
@@ -350,7 +354,9 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <Card variant="kawaii" className="w-full max-w-lg">
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
-          <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">新建 Playbook</h2>
+          <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+            新建 Playbook
+          </h2>
 
           <div>
             <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
@@ -388,7 +394,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
             <Input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder={t("playbooks.form.tagsPlaceholder")}
+              placeholder={t('playbooks.form.tagsPlaceholder')}
             />
           </div>
 

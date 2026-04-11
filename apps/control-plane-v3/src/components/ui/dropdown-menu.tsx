@@ -84,7 +84,8 @@ export function DropdownMenuItem({
       className={cn(
         'flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
         'text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]',
-        destructive && 'text-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)] dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20',
+        destructive &&
+          'dark:hover:bg-[var(--kw-dark-error-surface)]/20 text-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)] dark:text-[var(--kw-error)]',
         disabled && 'cursor-not-allowed opacity-50',
         className
       )}

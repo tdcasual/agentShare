@@ -51,7 +51,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   });
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white/80 px-6 backdrop-blur-md dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80">
+    <header className="dark:bg-[var(--kw-dark-surface)]/80 sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white/80 px-6 backdrop-blur-md dark:border-[var(--kw-dark-border)]">
       {/* Left - Search */}
       <div className="max-w-xl flex-1">
         <GlobalSearch />
@@ -74,7 +74,10 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
         {/* Online Users */}
         {onlineIdentities.length > 0 && (
           <div className="hidden items-center gap-2 rounded-full border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)] px-3 py-1.5 md:flex dark:border-[var(--kw-dark-success-surface)] dark:bg-[var(--kw-dark-green-accent-surface)]">
-            <span className="h-2 w-2 rounded-full bg-[var(--kw-agent-accent)] ring-2 ring-[var(--kw-agent-accent)]/40" aria-hidden="true" />
+            <span
+              className="ring-[var(--kw-agent-accent)]/40 h-2 w-2 rounded-full bg-[var(--kw-agent-accent)] ring-2"
+              aria-hidden="true"
+            />
             <span className="text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
               {t('common.onlineCount', { count: onlineIdentities.length })}
             </span>
@@ -104,7 +107,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
               router.push('/inbox');
               setShowUserMenu(false);
             }}
-            aria-label={t("navigation.inbox")}
+            aria-label={t('navigation.inbox')}
             className={cn(
               'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
               'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)] dark:hover:text-[var(--kw-dark-primary)]'
@@ -183,7 +186,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       type="button"
                       role="menuitem"
                       onClick={() => router.push(USER_MENU_ACTIONS.logout)}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-error)] transition-colors hover:bg-[var(--kw-rose-surface)] focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20"
+                      className="dark:hover:bg-[var(--kw-dark-error-surface)]/20 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-error)] transition-colors hover:bg-[var(--kw-rose-surface)] focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:text-[var(--kw-error)]"
                     >
                       <LogOut className="h-4 w-4" aria-hidden="true" />
                       <span>Sign out</span>

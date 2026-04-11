@@ -43,7 +43,9 @@ function formatPolicy(policy: Record<string, unknown>, t: (key: string) => strin
 }
 
 function summarizeFileContent(content: string, t: (key: string) => string) {
-  return content.split('\n').find((line) => line.trim().length > 0) ?? t('identities.labels.emptyFile');
+  return (
+    content.split('\n').find((line) => line.trim().length > 0) ?? t('identities.labels.emptyFile')
+  );
 }
 
 export function AgentManagementCard({
@@ -73,10 +75,16 @@ export function AgentManagementCard({
           [t('identities.labels.model'), agent.model ?? t('identities.labels.defaultRuntimeModel')],
           [t('identities.labels.thinkingLevel'), agent.thinking_level],
           [t('identities.labels.sandboxMode'), agent.sandbox_mode],
-          [t('identities.labels.allowedTaskTypes'), formatList(agent.allowed_task_types, t('identities.labels.noTaskRestrictions'))],
+          [
+            t('identities.labels.allowedTaskTypes'),
+            formatList(agent.allowed_task_types, t('identities.labels.noTaskRestrictions')),
+          ],
           [
             t('identities.labels.allowedCapabilityIds'),
-            formatList(agent.allowed_capability_ids, t('identities.labels.noCapabilityRestrictions')),
+            formatList(
+              agent.allowed_capability_ids,
+              t('identities.labels.noCapabilityRestrictions')
+            ),
           ],
           [t('identities.labels.toolPolicy'), formatPolicy(agent.tools_policy, t)],
         ]}
@@ -88,7 +96,7 @@ export function AgentManagementCard({
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
-        <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
+        <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
               Recent Session
@@ -105,10 +113,8 @@ export function AgentManagementCard({
               No management-visible sessions recorded for this agent yet.
             </p>
           ) : (
-            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80">
-              <p className="font-medium text-[var(--kw-text)]">
-                {recentSession.display_name}
-              </p>
+            <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]">
+              <p className="font-medium text-[var(--kw-text)]">{recentSession.display_name}</p>
               <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
                 {recentSession.session_key}
               </p>
@@ -123,7 +129,7 @@ export function AgentManagementCard({
           )}
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
+        <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
               Workspace Files
@@ -132,7 +138,9 @@ export function AgentManagementCard({
           </div>
 
           {filesQuery.isLoading ? (
-            <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.loadingWorkspaceFiles')}</p>
+            <p className="text-sm text-[var(--kw-text-muted)]">
+              {t('identities.loadingWorkspaceFiles')}
+            </p>
           ) : filesQuery.error instanceof Error ? (
             <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
               {t('identities.workspaceFilesUnavailable')} {filesQuery.error.message}
@@ -146,7 +154,7 @@ export function AgentManagementCard({
               {files.slice(0, 3).map((file) => (
                 <div
                   key={file.file_name}
-                  className="rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
+                  className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]"
                 >
                   <p className="font-medium text-[var(--kw-text)]">{file.file_name}</p>
                   <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
@@ -158,7 +166,7 @@ export function AgentManagementCard({
           )}
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
+        <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
               Recent Events
@@ -177,7 +185,7 @@ export function AgentManagementCard({
               {events.slice(0, 3).map((event) => (
                 <div
                   key={event.id}
-                  className="rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
+                  className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]"
                 >
                   <p className="font-medium text-[var(--kw-text)]">{event.summary}</p>
                   <p className="mt-1 text-sm text-[var(--kw-text-muted)]">

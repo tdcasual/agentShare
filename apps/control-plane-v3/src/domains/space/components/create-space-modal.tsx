@@ -65,9 +65,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
-                描述
-              </label>
+              <label className="mb-1 block text-sm font-medium text-[var(--kw-text)]">描述</label>
               <textarea
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}

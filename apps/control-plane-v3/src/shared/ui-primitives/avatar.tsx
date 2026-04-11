@@ -61,7 +61,11 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             sizes={sizes}
             alt={
               alt ||
-              (type === 'human' ? t('common.userAvatar') : type === 'agent' ? t('common.agentAvatar') : t('common.userAvatar'))
+              (type === 'human'
+                ? t('common.userAvatar')
+                : type === 'agent'
+                  ? t('common.agentAvatar')
+                  : t('common.userAvatar'))
             }
             className="h-full w-full object-cover"
             onError={() => setError(true)}
@@ -74,7 +78,11 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             role="img"
             aria-label={
               alt ||
-              (type === 'human' ? t('common.userAvatar') : type === 'agent' ? t('common.agentAvatar') : t('common.userAvatar'))
+              (type === 'human'
+                ? t('common.userAvatar')
+                : type === 'agent'
+                  ? t('common.agentAvatar')
+                  : t('common.userAvatar'))
             }
           >
             {getFallback()}

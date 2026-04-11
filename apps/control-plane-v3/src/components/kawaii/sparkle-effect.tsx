@@ -66,7 +66,7 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
         <span
           key={sparkle.id}
           className={cn(
-            'pointer-events-none absolute transition-transform transition-opacity duration-500',
+            'pointer-events-none absolute transition-opacity transition-transform duration-500',
             isHovering ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
           )}
           style={{

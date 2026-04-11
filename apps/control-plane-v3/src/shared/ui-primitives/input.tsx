@@ -38,7 +38,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'w-full rounded-2xl border-2 bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200',
               'placeholder:text-[var(--kw-text-muted)]',
               'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
-              error && 'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
+              error &&
+                'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
               icon && 'pl-12',
               className
             )}
@@ -48,9 +49,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
         </div>
-        {error && <p id={errorId} className="mt-1.5 text-sm text-[var(--kw-error)]">{error}</p>}
+        {error && (
+          <p id={errorId} className="mt-1.5 text-sm text-[var(--kw-error)]">
+            {error}
+          </p>
+        )}
         {helper && !error && (
-          <p id={helperId} className="mt-1.5 text-sm text-[var(--kw-text-muted)]">{helper}</p>
+          <p id={helperId} className="mt-1.5 text-sm text-[var(--kw-text-muted)]">
+            {helper}
+          </p>
         )}
       </div>
     );
@@ -81,7 +88,8 @@ const Textarea = React.forwardRef<
           'w-full resize-none rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200',
           'placeholder:text-[var(--kw-text-muted)]',
           'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
-          error && 'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
+          error &&
+            'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
           className
         )}
         ref={ref}
@@ -89,7 +97,11 @@ const Textarea = React.forwardRef<
         aria-invalid={error ? 'true' : undefined}
         {...props}
       />
-      {error && <p id={errorId} className="mt-1.5 text-sm text-[var(--kw-error)]">{error}</p>}
+      {error && (
+        <p id={errorId} className="mt-1.5 text-sm text-[var(--kw-error)]">
+          {error}
+        </p>
+      )}
     </div>
   );
 });

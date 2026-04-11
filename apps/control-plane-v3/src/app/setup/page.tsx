@@ -45,9 +45,7 @@ export default function SetupPage() {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(
-            loadError instanceof Error ? loadError.message : t('auth.setup.failedToLoad')
-          );
+          setError(loadError instanceof Error ? loadError.message : t('auth.setup.failedToLoad'));
         }
       } finally {
         if (!cancelled) {
@@ -74,7 +72,9 @@ export default function SetupPage() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : t('auth.setup.failedToBootstrap'));
+        setError(
+          submitError instanceof Error ? submitError.message : t('auth.setup.failedToBootstrap')
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -159,7 +159,7 @@ export default function SetupPage() {
             </div>
 
             {/* Steps */}
-            <div className="space-y-4 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
+            <div className="dark:bg-[var(--kw-dark-bg)]/80 space-y-4 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-center gap-3 text-[var(--kw-text)]">
                 <UserRoundPlus className="h-5 w-5 text-[var(--kw-primary-500)]" />
                 <span className="font-semibold">{t('auth.setup.whatNext')}</span>
@@ -201,7 +201,7 @@ export default function SetupPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, bootstrap_key: event.target.value }))
               }
-              placeholder={t("auth.setup.bootstrapKeyPlaceholder")}
+              placeholder={t('auth.setup.bootstrapKeyPlaceholder')}
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
@@ -222,7 +222,7 @@ export default function SetupPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, display_name: event.target.value }))
               }
-              placeholder={t("auth.setup.displayNamePlaceholder")}
+              placeholder={t('auth.setup.displayNamePlaceholder')}
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
@@ -233,12 +233,12 @@ export default function SetupPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, password: event.target.value }))
               }
-              placeholder={t("auth.setup.passwordPlaceholder")}
+              placeholder={t('auth.setup.passwordPlaceholder')}
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
 
             {/* Status */}
-            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80 dark:text-[var(--kw-dark-text-muted)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
               {error ? (
                 <span
                   role="alert"

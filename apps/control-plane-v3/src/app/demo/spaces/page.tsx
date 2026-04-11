@@ -58,7 +58,7 @@ export default function DemoSpacesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-amber-200 bg-[var(--kw-amber-surface)]/80 p-4 dark:border-[var(--kw-dark-amber-surface)] dark:bg-amber-900/10">
+      <div className="bg-[var(--kw-amber-surface)]/80 rounded-2xl border border-amber-200 p-4 dark:border-[var(--kw-dark-amber-surface)] dark:bg-amber-900/10">
         <p className="text-sm font-medium text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
           Collaboration prototype
         </p>
@@ -95,7 +95,7 @@ export default function DemoSpacesPage() {
               <Hash className="h-4 w-4" />
               <span className="font-medium">general</span>
             </button>
-            <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50">
+            <button className="dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)]">
               <Hash className="h-4 w-4" />
               <span>random</span>
             </button>
@@ -123,20 +123,20 @@ export default function DemoSpacesPage() {
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
                     msg.isAgent
-                      ? 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-success-surface)]/30 dark:text-[var(--kw-dark-mint)]'
-                      : 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:bg-[var(--kw-dark-sky-accent-surface)]/30 dark:text-[var(--kw-dark-sky)]'
+                      ? 'dark:bg-[var(--kw-dark-success-surface)]/30 bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]'
+                      : 'dark:bg-[var(--kw-dark-sky-accent-surface)]/30 bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]'
                   }`}
                 >
                   {msg.isAgent ? '🤖' : '👤'}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-medium text-[var(--kw-text)]">
-                      {msg.author}
-                    </span>
+                    <span className="font-medium text-[var(--kw-text)]">{msg.author}</span>
                     <span className="text-xs text-[var(--kw-text-muted)]">{msg.timestamp}</span>
                   </div>
-                  <p className="text-[var(--kw-text)] dark:text-[var(--kw-dark-text-muted)]">{msg.content}</p>
+                  <p className="text-[var(--kw-text)] dark:text-[var(--kw-dark-text-muted)]">
+                    {msg.content}
+                  </p>
                 </div>
               </div>
             ))}

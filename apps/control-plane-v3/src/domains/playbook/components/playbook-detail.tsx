@@ -56,9 +56,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
               <BookOpen className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[var(--kw-text)]">
-                {playbook.title}
-              </h2>
+              <h2 className="text-xl font-bold text-[var(--kw-text)]">{playbook.title}</h2>
               <p className="text-sm text-[var(--kw-text-muted)]">{playbook.taskType}</p>
             </div>
           </div>
@@ -95,7 +93,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
                 {copied ? '已复制' : '复制'}
               </Button>
             </div>
-            <div className="rounded-xl bg-[var(--kw-primary-50)]/50 p-4 dark:bg-[var(--kw-dark-bg)]">
+            <div className="bg-[var(--kw-primary-50)]/50 rounded-xl p-4 dark:bg-[var(--kw-dark-bg)]">
               <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-[var(--kw-text)]">
                 {playbook.body}
               </pre>

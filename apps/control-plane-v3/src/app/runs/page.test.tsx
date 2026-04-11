@@ -114,9 +114,7 @@ describe('runs page', () => {
 
     await user.click(screen.getByRole('button', { name: /刷新/i }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'runs.sessionExpired'
-    );
+    expect(await screen.findByRole('alert')).toHaveTextContent('runs.sessionExpired');
   });
 
   it('shows a refresh error when runs refresh fails for a non-auth reason', async () => {

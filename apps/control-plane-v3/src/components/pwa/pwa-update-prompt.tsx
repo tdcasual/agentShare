@@ -34,9 +34,7 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-[var(--kw-text)]">{t('pwa.newVersionTitle')}</h3>
-            <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-              {t('pwa.newVersionDesc')}
-            </p>
+            <p className="mt-1 text-sm text-[var(--kw-text-muted)]">{t('pwa.newVersionDesc')}</p>
           </div>
           <button
             type="button"

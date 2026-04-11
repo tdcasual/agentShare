@@ -58,9 +58,7 @@ export function HumanOperatorsSection({
     <Card variant="kawaii" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-            Human Operators
-          </h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Human Operators</h2>
           <p className="text-sm text-[var(--kw-text-muted)]">
             Persisted admin accounts from `/api/admin-accounts`
           </p>
@@ -69,23 +67,20 @@ export function HumanOperatorsSection({
       </div>
 
       {isLoading ? (
-        <SectionLoading message={t("identities.loadingHumans")} />
+        <SectionLoading message={t('identities.loadingHumans')} />
       ) : shouldShowSessionExpired && isUnauthorizedError(error) ? (
-        <ManagementSessionRecoveryNotice message={t("identities.reloadHumans")} />
+        <ManagementSessionRecoveryNotice message={t('identities.reloadHumans')} />
       ) : shouldShowForbidden && isForbiddenError(error) ? (
-        <ManagementSessionRecoveryNotice message={t("identities.adminRequiredForHumans")} />
+        <ManagementSessionRecoveryNotice message={t('identities.adminRequiredForHumans')} />
       ) : errorMessage ? (
         <SectionError
           message={`Human operator data is temporarily unavailable. ${errorMessage}`}
-          actionLabel={t("identities.retryHumans")}
+          actionLabel={t('identities.retryHumans')}
           onRetry={onRetry}
           isRefreshing={isRefreshing}
         />
       ) : accounts.length === 0 ? (
-        <EmptyState
-          icon={<Users className="h-6 w-6" />}
-          message={t("identities.noHumans")}
-        />
+        <EmptyState icon={<Users className="h-6 w-6" />} message={t('identities.noHumans')} />
       ) : filteredAccounts.length === 0 ? (
         <EmptyState
           icon={<Users className="h-6 w-6" />}
@@ -122,9 +117,9 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
     <div
       data-testid={`admin-card-${account.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[var(--kw-dark-surface)]/90 ${
+      className={`dark:bg-[var(--kw-dark-surface)]/90 rounded-2xl border bg-white/90 p-4 ${
         isFocused
-          ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+          ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]'
       }`}
     >
@@ -162,7 +157,13 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
               [t('identities.labels.accountId'), account.id],
               [t('identities.labels.email'), account.email],
               [t('identities.labels.role'), account.role],
-              [t('identities.labels.lastLogin'), formatOptionalTimestamp(account.last_login_at, t('identities.values.neverSignedIn'))],
+              [
+                t('identities.labels.lastLogin'),
+                formatOptionalTimestamp(
+                  account.last_login_at,
+                  t('identities.values.neverSignedIn')
+                ),
+              ],
             ]}
           />
           <div className="flex justify-end">

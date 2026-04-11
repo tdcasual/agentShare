@@ -129,7 +129,10 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    await user.type(screen.getByPlaceholderText('settings.emailPlaceholder'), 'operator@example.com');
+    await user.type(
+      screen.getByPlaceholderText('settings.emailPlaceholder'),
+      'operator@example.com'
+    );
     await user.type(screen.getByPlaceholderText(/settings.displayNamePlaceholder/i), 'Operator');
     await user.type(screen.getByPlaceholderText(/settings.passwordPlaceholder/i), 'password-123');
     await user.click(screen.getByRole('button', { name: /^settings.inviteAccount$/i }));

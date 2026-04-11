@@ -15,7 +15,7 @@ interface DemoLayoutProps {
 
 export default function DemoLayout({ children }: DemoLayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[var(--kw-sky-surface)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-bg)]">
+    <div className="from-[var(--kw-sky-surface)]/50 to-[var(--kw-purple-surface)]/30 min-h-screen bg-gradient-to-br dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-bg)]">
       {/* 演示模式顶部横幅 */}
       <div className="bg-[var(--kw-warning)] px-4 py-2 text-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
@@ -35,7 +35,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
 
       {/* 警告提示 */}
       <div className="mx-auto max-w-7xl px-4 py-4">
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20">
+        <div className="dark:bg-[var(--kw-dark-amber-surface)]/20 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-[var(--kw-dark-amber-surface)]">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
           <div className="space-y-2 text-sm text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
             <p className="font-medium">Demonstration Environment</p>
@@ -56,7 +56,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
       </div>
 
       <div className="mx-auto max-w-7xl px-4">
-        <div className="rounded-2xl border border-[var(--kw-amber-surface)]/80 bg-white/80 p-4 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-surface-alt)]/70">
+        <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-surface-alt)]/70 rounded-2xl border bg-white/80 p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-3">
               <Compass className="mt-0.5 h-5 w-5 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />

@@ -33,12 +33,10 @@ export function OperationsFeed({
   const activeAgents = agents.filter((agent) => agent.status === 'active');
 
   return (
-    <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-            Operations Space
-          </h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Operations Space</h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
             Recent agent feedback and runtime activity flowing through the inbox event stream.
           </p>
@@ -97,15 +95,15 @@ export function OperationsFeed({
       </div>
 
       {isLoading && events.length === 0 ? (
-        <SectionNotice message={t("spaces.loadingEventActivity")} />
+        <SectionNotice message={t('spaces.loadingEventActivity')} />
       ) : events.length === 0 ? (
-        <SectionNotice message={t("spaces.noAgentActivity")} />
+        <SectionNotice message={t('spaces.noAgentActivity')} />
       ) : (
         <div role="region" aria-label="Operations feed" className="space-y-3">
           {events.map((event) => (
             <div
               key={event.id}
-              className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/40 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
+              className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

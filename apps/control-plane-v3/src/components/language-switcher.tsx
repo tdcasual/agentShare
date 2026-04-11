@@ -31,7 +31,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
-            'border border-[var(--kw-primary-200)] bg-white/80 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80',
+            'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)] bg-white/80 dark:border-[var(--kw-dark-border)]',
             'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
             'text-[var(--kw-text)]'
           )}
@@ -44,7 +44,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           <>
             <button
               className="fixed inset-0 z-40"
-              aria-label={t("common.closeLanguageMenu")}
+              aria-label={t('common.closeLanguageMenu')}
               type="button"
               onClick={() => setIsOpen(false)}
             />
@@ -54,7 +54,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
                 'w-32 overflow-hidden rounded-2xl',
                 'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
                 'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-                'shadow-lg shadow-[var(--kw-primary-500)]/10 dark:shadow-black/30',
+                'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
                 'animate-slide-up'
               )}
             >
@@ -67,7 +67,8 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
                     'flex w-full items-center gap-2 px-3 py-2.5 text-left',
                     'transition-colors duration-200',
                     'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
-                    locale === l && 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
+                    locale === l &&
+                      'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
                   )}
                 >
                   <span className="text-base">{localeFlags[l]}</span>
@@ -100,7 +101,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         type="button"
         className={cn(
           'flex items-center gap-2 rounded-full px-3 py-2 transition-colors duration-200',
-          'border border-[var(--kw-primary-200)] bg-white/80 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80',
+          'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)] bg-white/80 dark:border-[var(--kw-dark-border)]',
           'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
           'text-[var(--kw-text)]',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]'
@@ -117,7 +118,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         <>
           <button
             className="fixed inset-0 z-40"
-            aria-label={t("common.closeLanguageMenu")}
+            aria-label={t('common.closeLanguageMenu')}
             type="button"
             onClick={() => setIsOpen(false)}
           />
@@ -127,7 +128,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
               'w-40 overflow-hidden rounded-2xl',
               'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
               'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-              'shadow-lg shadow-[var(--kw-primary-500)]/10 dark:shadow-black/30',
+              'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
               'animate-slide-up'
             )}
           >
@@ -140,7 +141,8 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
                   'flex w-full items-center gap-3 px-4 py-3 text-left',
                   'transition-colors duration-200',
                   'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
-                  locale === l && 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
+                  locale === l &&
+                    'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
                 )}
               >
                 <span className="text-lg">{localeFlags[l]}</span>

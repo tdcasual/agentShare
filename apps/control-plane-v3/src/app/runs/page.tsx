@@ -161,11 +161,11 @@ const RunsContent = memo(function RunsContent() {
       <Layout>
         <div className="space-y-6">
           {shouldShowSessionExpired ? (
-            <ManagementSessionExpiredAlert message={t("runs.sessionExpired")} />
+            <ManagementSessionExpiredAlert message={t('runs.sessionExpired')} />
           ) : null}
 
           {!shouldShowSessionExpired && shouldShowForbidden ? (
-            <ManagementForbiddenAlert message={t("runs.sessionForbidden")} />
+            <ManagementForbiddenAlert message={t('runs.sessionForbidden')} />
           ) : null}
 
           {!shouldShowSessionExpired && !shouldShowForbidden && gateError ? (
@@ -173,7 +173,7 @@ const RunsContent = memo(function RunsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {gateError}
             </Card>
@@ -182,8 +182,12 @@ const RunsContent = memo(function RunsContent() {
           {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">运行观测</h1>
-              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">查看任务执行历史和状态</p>
+              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+                运行观测
+              </h1>
+              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
+                查看任务执行历史和状态
+              </p>
             </div>
             <Button
               variant="outline"
@@ -202,7 +206,7 @@ const RunsContent = memo(function RunsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {refreshError}
             </Card>
@@ -307,8 +311,16 @@ const RunsContent = memo(function RunsContent() {
                         </div>
                         <div className="flex items-center gap-4 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
                           <span>任务: {run.taskId.slice(-8)}</span>
-                          {run.tokenId && <span>{t("runs.labels.tokenId")}: {run.tokenId.slice(-8)}</span>}
-                          {run.agentId && <span>{t("runs.labels.agentId")}: {run.agentId.slice(-8)}</span>}
+                          {run.tokenId && (
+                            <span>
+                              {t('runs.labels.tokenId')}: {run.tokenId.slice(-8)}
+                            </span>
+                          )}
+                          {run.agentId && (
+                            <span>
+                              {t('runs.labels.agentId')}: {run.agentId.slice(-8)}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -381,7 +393,9 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
               {config.icon}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">{t("runs.detailTitle")}</h2>
+              <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+                {t('runs.detailTitle')}
+              </h2>
               <p className="text-sm text-[var(--kw-text-muted)]">{run.id}</p>
             </div>
           </div>
@@ -396,15 +410,17 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <InfoItem label="状态" value={config.label} />
             <InfoItem label="任务ID" value={run.taskId} />
-            <InfoItem label={t("runs.info.agentId")} value={run.agentId ?? '-'} />
-            <InfoItem label={t("runs.info.tokenId")} value={run.tokenId ?? '-'} />
+            <InfoItem label={t('runs.info.agentId')} value={run.agentId ?? '-'} />
+            <InfoItem label={t('runs.info.tokenId')} value={run.tokenId ?? '-'} />
             <InfoItem label="目标ID" value={run.taskTargetId ?? '-'} />
           </div>
 
           {/* 结果摘要 */}
           {run.resultSummary !== null && run.resultSummary !== undefined && (
             <div className="space-y-2">
-              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">结果摘要</h3>
+              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+                结果摘要
+              </h3>
               <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 text-sm text-[var(--kw-text)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-border)]">
                 {String(run.resultSummary)}
               </div>
@@ -415,7 +431,7 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           {run.errorSummary !== null && run.errorSummary !== undefined && (
             <div className="space-y-2">
               <h3 className="font-medium text-[var(--kw-error)]">错误</h3>
-              <div className="rounded-lg bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]">
+              <div className="dark:bg-[var(--kw-dark-error-surface)]/20 rounded-lg bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]">
                 {String(run.errorSummary)}
               </div>
             </div>
@@ -424,7 +440,9 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           {/* 输出载荷 */}
           {run.outputPayload !== null && run.outputPayload !== undefined && (
             <div className="space-y-2">
-              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">输出</h3>
+              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+                输出
+              </h3>
               <pre className="max-h-48 overflow-auto rounded-lg bg-[var(--kw-dark-bg)] p-3 text-xs text-[var(--kw-surface-alt)]">
                 {JSON.stringify(run.outputPayload, null, 2)}
               </pre>
@@ -448,7 +466,10 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 dark:bg-[var(--kw-dark-surface-alt)]">
       <p className="mb-1 text-xs text-[var(--kw-text-muted)]">{label}</p>
-      <p className="truncate text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]" title={value}>
+      <p
+        className="truncate text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]"
+        title={value}
+      >
         {value}
       </p>
     </div>

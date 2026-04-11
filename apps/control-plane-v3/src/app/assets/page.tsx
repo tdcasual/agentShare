@@ -246,9 +246,7 @@ const AssetsContent = memo(function AssetsContent() {
       }
 
       setRefreshError(
-        refreshFailure instanceof Error
-          ? refreshFailure.message
-          : t('assets.errors.refreshFailed')
+        refreshFailure instanceof Error ? refreshFailure.message : t('assets.errors.refreshFailed')
       );
     } finally {
       setIsRefreshing(false);
@@ -295,7 +293,9 @@ const AssetsContent = memo(function AssetsContent() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : t('assets.secrets.createFailed'));
+        setError(
+          submitError instanceof Error ? submitError.message : t('assets.secrets.createFailed')
+        );
       }
     } finally {
       setSubmittingSecret(false);
@@ -411,7 +411,7 @@ const AssetsContent = memo(function AssetsContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-primary)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             <ShieldCheck className="h-4 w-4" />
             {t('assets.subtitle')}
           </div>
@@ -419,7 +419,9 @@ const AssetsContent = memo(function AssetsContent() {
             <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('assets.title')}
             </h1>
-            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('assets.description')}</p>
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('assets.description')}
+            </p>
           </div>
         </div>
 
@@ -462,7 +464,7 @@ const AssetsContent = memo(function AssetsContent() {
         />
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -549,10 +551,12 @@ const AssetsContent = memo(function AssetsContent() {
         </div>
       </Card>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <Badge variant="primary">{t('common.operator')}</Badge>
-          <span className="dark:text-[var(--kw-dark-text)]">{session?.email ?? t('common.loading')}</span>
+          <span className="dark:text-[var(--kw-dark-text)]">
+            {session?.email ?? t('common.loading')}
+          </span>
           <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
           <span>{session?.role ?? '...'}</span>
           <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
@@ -561,11 +565,11 @@ const AssetsContent = memo(function AssetsContent() {
       </Card>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t("assets.sessionExpired")} />
+        <ManagementSessionExpiredAlert message={t('assets.sessionExpired')} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t("assets.sessionForbidden")} />
+        <ManagementForbiddenAlert message={t('assets.sessionForbidden')} />
       ) : null}
 
       {refreshError ? (
@@ -573,7 +577,7 @@ const AssetsContent = memo(function AssetsContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {refreshError}
         </Card>
@@ -584,7 +588,7 @@ const AssetsContent = memo(function AssetsContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {combinedError}
         </Card>
@@ -598,7 +602,7 @@ const AssetsContent = memo(function AssetsContent() {
       ) : null}
 
       {focusedAsset ? (
-        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
+        <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               Focused asset
@@ -614,7 +618,10 @@ const AssetsContent = memo(function AssetsContent() {
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <Card variant="feature" className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]">
+        <Card
+          variant="feature"
+          className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+        >
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-rose-surface)] px-3 py-1 text-sm text-[var(--kw-rose-text)]">
@@ -652,7 +659,7 @@ const AssetsContent = memo(function AssetsContent() {
                 }
               />
             ) : shouldShowSessionExpired && isUnauthorizedError(secretsQuery.error) ? (
-              <ManagementSessionRecoveryNotice message={t("assets.secrets.reloadInventory")} />
+              <ManagementSessionRecoveryNotice message={t('assets.secrets.reloadInventory')} />
             ) : (
               visibleSecrets.map((secret) => (
                 <Card
@@ -664,9 +671,9 @@ const AssetsContent = memo(function AssetsContent() {
                       : 'default'
                   }
                   className={cn(
-                    'border bg-white/80 p-5 dark:bg-[var(--kw-dark-bg)]/80',
+                    'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-5',
                     focus.resourceKind === 'secret' && focus.resourceId === secret.id
-                      ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+                      ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
                       : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
                   )}
                 >
@@ -703,7 +710,10 @@ const AssetsContent = memo(function AssetsContent() {
           </div>
         </Card>
 
-        <Card variant="feature" className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]">
+        <Card
+          variant="feature"
+          className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+        >
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-purple-surface)] px-3 py-1 text-sm text-[var(--kw-purple-text)]">
@@ -741,7 +751,7 @@ const AssetsContent = memo(function AssetsContent() {
                 }
               />
             ) : shouldShowSessionExpired && isUnauthorizedError(capabilitiesQuery.error) ? (
-              <ManagementSessionRecoveryNotice message={t("assets.capabilities.reloadPolicy")} />
+              <ManagementSessionRecoveryNotice message={t('assets.capabilities.reloadPolicy')} />
             ) : (
               visibleCapabilities.map((capability) => (
                 <Card
@@ -753,9 +763,9 @@ const AssetsContent = memo(function AssetsContent() {
                       : 'default'
                   }
                   className={cn(
-                    'border bg-white/80 p-5 dark:bg-[var(--kw-dark-bg)]/80',
+                    'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-5',
                     focus.resourceKind === 'capability' && focus.resourceId === capability.id
-                      ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+                      ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
                       : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
                   )}
                 >
@@ -830,7 +840,7 @@ const AssetsContent = memo(function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, display_name: event.target.value }))
               }
-              placeholder={t("assets.secrets.providerPlaceholder")}
+              placeholder={t('assets.secrets.providerPlaceholder')}
             />
             <Input
               label={t('assets.secrets.kind')}
@@ -838,7 +848,7 @@ const AssetsContent = memo(function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, kind: event.target.value }))
               }
-              placeholder={t("assets.secrets.kindPlaceholder")}
+              placeholder={t('assets.secrets.kindPlaceholder')}
             />
             <Input
               label={t('assets.secrets.provider')}
@@ -846,7 +856,7 @@ const AssetsContent = memo(function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, provider: event.target.value }))
               }
-              placeholder={t("assets.secrets.providerPlaceholderShort")}
+              placeholder={t('assets.secrets.providerPlaceholderShort')}
             />
             <Input
               label={t('assets.secrets.environment')}
@@ -854,7 +864,7 @@ const AssetsContent = memo(function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, environment: event.target.value }))
               }
-              placeholder={t("assets.secrets.environmentPlaceholder")}
+              placeholder={t('assets.secrets.environmentPlaceholder')}
             />
           </div>
           <Input
@@ -864,7 +874,7 @@ const AssetsContent = memo(function AssetsContent() {
             onChange={(event) =>
               setSecretForm((current) => ({ ...current, value: event.target.value }))
             }
-            placeholder={t("assets.secrets.valuePlaceholder")}
+            placeholder={t('assets.secrets.valuePlaceholder')}
           />
           <div className="grid gap-4 md:grid-cols-2">
             <Input
@@ -873,7 +883,7 @@ const AssetsContent = memo(function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, provider_scopes: event.target.value }))
               }
-              placeholder={t("assets.secrets.scopesPlaceholder")}
+              placeholder={t('assets.secrets.scopesPlaceholder')}
             />
             <Input
               label={t('assets.secrets.resourceSelector')}
@@ -881,7 +891,7 @@ const AssetsContent = memo(function AssetsContent() {
               onChange={(event) =>
                 setSecretForm((current) => ({ ...current, resource_selector: event.target.value }))
               }
-              placeholder={t("assets.secrets.resourceSelectorPlaceholder")}
+              placeholder={t('assets.secrets.resourceSelectorPlaceholder')}
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">
@@ -910,7 +920,7 @@ const AssetsContent = memo(function AssetsContent() {
               onChange={(event) =>
                 setCapabilityForm((current) => ({ ...current, name: event.target.value }))
               }
-              placeholder={t("assets.secrets.displayNamePlaceholder")}
+              placeholder={t('assets.secrets.displayNamePlaceholder')}
             />
             <div className="space-y-1.5">
               <label
@@ -992,7 +1002,7 @@ const AssetsContent = memo(function AssetsContent() {
                   required_provider: event.target.value,
                 }))
               }
-              placeholder={t("assets.secrets.providerPlaceholderShort")}
+              placeholder={t('assets.secrets.providerPlaceholderShort')}
             />
             <Input
               label={t('assets.capabilities.requiredScopes')}
@@ -1003,11 +1013,11 @@ const AssetsContent = memo(function AssetsContent() {
                   required_provider_scopes: event.target.value,
                 }))
               }
-              placeholder={t("assets.secrets.scopesPlaceholder")}
+              placeholder={t('assets.secrets.scopesPlaceholder')}
             />
           </div>
 
-          <Card className="border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
+          <Card className="bg-[var(--kw-primary-50)]/70 dark:bg-[var(--kw-dark-bg)]/80 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
             <div className="space-y-3">
               <div>
                 <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -1095,7 +1105,7 @@ const AssetsContent = memo(function AssetsContent() {
                     allTokens.map((token) => (
                       <label
                         key={token.id}
-                        className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text)]"
+                        className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]"
                       >
                         <input
                           type="checkbox"
@@ -1125,7 +1135,7 @@ const AssetsContent = memo(function AssetsContent() {
                     agents.map((agent) => (
                       <label
                         key={agent.id}
-                        className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text)]"
+                        className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]"
                       >
                         <input
                           type="checkbox"
@@ -1180,7 +1190,7 @@ const AssetsContent = memo(function AssetsContent() {
                       tokenLabelOptions[capabilityForm.label_key].map((value) => (
                         <label
                           key={value}
-                          className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text)]"
+                          className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]"
                         >
                           <input
                             type="checkbox"
@@ -1225,11 +1235,17 @@ const AssetsContent = memo(function AssetsContent() {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="space-y-2">
-        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{label}</p>
-        <p className="text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
-        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
+        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          {label}
+        </p>
+        <p className="text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          {value}
+        </p>
+        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          {hint}
+        </p>
       </div>
     </Card>
   );
@@ -1245,23 +1261,29 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <Card className="border border-dashed border-[var(--kw-primary-200)] bg-white/70 text-center dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60">
+    <Card className="dark:bg-[var(--kw-dark-bg)]/60 border border-dashed border-[var(--kw-primary-200)] bg-white/70 text-center dark:border-[var(--kw-dark-border)]">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
         {icon}
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{title}</h3>
-      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{description}</p>
+      <h3 className="mt-4 text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {title}
+      </h3>
+      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        {description}
+      </p>
     </Card>
   );
 }
 
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-[var(--kw-surface-alt)]/80 px-4 py-3 dark:bg-[var(--kw-dark-surface)]/80">
+    <div className="bg-[var(--kw-surface-alt)]/80 dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl px-4 py-3">
       <p className="text-xs uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="mt-2 break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="mt-2 break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
     </div>
   );
 }

@@ -30,7 +30,10 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
     <Card
       hover
       decoration
-      className={cn('cursor-pointer transition-transform transition-shadow duration-300', className)}
+      className={cn(
+        'cursor-pointer transition-shadow transition-transform duration-300',
+        className
+      )}
       onClick={onClick}
     >
       <CardContent className="p-5">
@@ -46,7 +49,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 className={cn(
                   'border-3 h-16 w-16 rounded-full object-cover shadow-md',
                   isHuman ? 'border-[var(--kw-human-accent)]' : 'border-[var(--kw-agent-accent)]',
-                  identity.presence === 'online' && 'shadow-lg shadow-[var(--kw-agent-accent)]/30'
+                  identity.presence === 'online' && 'shadow-[var(--kw-agent-accent)]/30 shadow-lg'
                 )}
               />
               {/* Presence indicator with pulse */}
@@ -54,14 +57,16 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 className={cn(
                   'absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full border-2 border-white',
                   presenceColors[identity.presence],
-                  identity.presence === 'online' && 'ring-2 ring-[var(--kw-agent-accent)]/40'
+                  identity.presence === 'online' && 'ring-[var(--kw-agent-accent)]/40 ring-2'
                 )}
               />
               {/* Type badge */}
               <span
                 className={cn(
                   'absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs shadow-sm',
-                  isHuman ? 'bg-[var(--kw-sky)] text-white' : 'bg-[var(--kw-agent-accent)] text-white'
+                  isHuman
+                    ? 'bg-[var(--kw-sky)] text-white'
+                    : 'bg-[var(--kw-agent-accent)] text-white'
                 )}
               >
                 {isHuman ? '👤' : '🤖'}
@@ -73,7 +78,9 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
               <h3 className="truncate font-bold text-[var(--kw-text)]">{identity.profile.name}</h3>
-              <Badge variant={isHuman ? 'human' : 'agent'}>{isHuman ? t('common.human') : t('common.agent')}</Badge>
+              <Badge variant={isHuman ? 'human' : 'agent'}>
+                {isHuman ? t('common.human') : t('common.agent')}
+              </Badge>
             </div>
 
             {identity.profile.bio && (
@@ -155,7 +162,7 @@ export function IdentityCardCompact({
 
   return (
     <div
-      className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-colors transition-transform duration-200 hover:scale-[1.02] hover:bg-[var(--kw-primary-50)]/50"
+      className="hover:bg-[var(--kw-primary-50)]/50 flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-colors transition-transform duration-200 hover:scale-[1.02]"
       {...interactiveProps}
     >
       <div className="relative">
@@ -181,7 +188,12 @@ export function IdentityCardCompact({
           </span>
           <span className="text-xs opacity-60">{isHuman ? '👤' : '🤖'}</span>
         </div>
-        <span className={cn('text-xs', isOnline ? 'text-[var(--kw-green-text)]' : 'text-[var(--kw-text-muted)]')}>
+        <span
+          className={cn(
+            'text-xs',
+            isOnline ? 'text-[var(--kw-green-text)]' : 'text-[var(--kw-text-muted)]'
+          )}
+        >
           {isOnline ? '● online' : identity.presence}
         </span>
       </div>

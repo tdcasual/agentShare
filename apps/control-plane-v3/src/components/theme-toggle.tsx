@@ -40,7 +40,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     <div
       className={cn(
         'flex items-center gap-1 rounded-full p-1',
-        'bg-white/80 dark:bg-[var(--kw-dark-surface)]/80',
+        'dark:bg-[var(--kw-dark-surface)]/80 bg-white/80',
         'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
         className
       )}
@@ -55,15 +55,14 @@ export function ThemeToggle({ className }: { className?: string }) {
             className={cn(
               'relative rounded-full p-2 transition-colors transition-shadow duration-200',
               'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
-              isActive && 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-md'
+              isActive &&
+                'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-md'
             )}
             aria-label={label}
             aria-pressed={isActive}
             title={label}
           >
-            <span
-              className={cn('transition-colors', !isActive && 'text-[var(--kw-text-muted)]')}
-            >
+            <span className={cn('transition-colors', !isActive && 'text-[var(--kw-text-muted)]')}>
               {icon}
             </span>
           </button>
@@ -104,7 +103,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
         'relative flex h-10 w-10 items-center justify-center rounded-full',
-        'bg-white/80 dark:bg-[var(--kw-dark-surface)]/80',
+        'dark:bg-[var(--kw-dark-surface)]/80 bg-white/80',
         'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
         'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
         'transition-colors duration-300',
@@ -115,7 +114,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
     >
       <span
         className={cn(
-          'transition-transform transition-opacity duration-300',
+          'transition-opacity transition-transform duration-300',
           isDark ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'
         )}
       >
@@ -123,7 +122,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       </span>
       <span
         className={cn(
-          'absolute transition-transform transition-opacity duration-300',
+          'absolute transition-opacity transition-transform duration-300',
           !isDark ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
         )}
       >

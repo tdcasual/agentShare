@@ -121,9 +121,7 @@ const TokensContent = memo(function TokensContent() {
       }
 
       setRefreshError(
-        refreshFailure instanceof Error
-          ? refreshFailure.message
-          : t('tokens.errors.refreshFailed')
+        refreshFailure instanceof Error ? refreshFailure.message : t('tokens.errors.refreshFailed')
       );
     } finally {
       setIsRefreshing(false);
@@ -159,7 +157,9 @@ const TokensContent = memo(function TokensContent() {
         setError(submitError.detail);
       } else {
         setError(
-          submitError instanceof Error ? submitError.message : t('tokens.errors.registerAgentFailed')
+          submitError instanceof Error
+            ? submitError.message
+            : t('tokens.errors.registerAgentFailed')
         );
       }
     } finally {
@@ -251,7 +251,7 @@ const TokensContent = memo(function TokensContent() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-primary)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             <ShieldCheck className="h-4 w-4" />
             {t('tokens.subtitle')}
           </div>
@@ -259,7 +259,9 @@ const TokensContent = memo(function TokensContent() {
             <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('tokens.title')}
             </h1>
-            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('tokens.description')}</p>
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('tokens.description')}
+            </p>
           </div>
         </div>
 
@@ -328,7 +330,7 @@ const TokensContent = memo(function TokensContent() {
         />
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -380,21 +382,23 @@ const TokensContent = memo(function TokensContent() {
       </Card>
 
       {/* Session Info */}
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <Badge variant="primary">Operator</Badge>
-          <span className="dark:text-[var(--kw-dark-text)]">{session?.email ?? t('common.loading')}</span>
+          <span className="dark:text-[var(--kw-dark-text)]">
+            {session?.email ?? t('common.loading')}
+          </span>
           <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
           <span>{session?.role ?? '...'}</span>
         </div>
       </Card>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t("tokens.sessionExpired")} />
+        <ManagementSessionExpiredAlert message={t('tokens.sessionExpired')} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t("tokens.sessionForbidden")} />
+        <ManagementForbiddenAlert message={t('tokens.sessionForbidden')} />
       ) : null}
 
       {refreshError ? (
@@ -402,7 +406,7 @@ const TokensContent = memo(function TokensContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {refreshError}
         </Card>
@@ -414,7 +418,7 @@ const TokensContent = memo(function TokensContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {gateError ??
             error ??
@@ -493,7 +497,9 @@ const TokensContent = memo(function TokensContent() {
                     <h2 className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                       {agent.name}
                     </h2>
-                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">ID: {agent.id}</p>
+                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                      ID: {agent.id}
+                    </p>
                   </div>
                 </div>
 
@@ -514,7 +520,7 @@ const TokensContent = memo(function TokensContent() {
               {/* Tokens Grid */}
               <div className="grid gap-4 xl:grid-cols-2">
                 {tokens.length === 0 ? (
-                  <Card className="border border-dashed border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/40 py-8 text-center text-[var(--kw-text-muted)] xl:col-span-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/40 dark:text-[var(--kw-dark-text-muted)]">
+                  <Card className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/40 border border-dashed border-[var(--kw-primary-200)] py-8 text-center text-[var(--kw-text-muted)] xl:col-span-2 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                     <span className="mr-2 text-2xl">🌸</span>
                     {t('tokens.agent.noTokens')}
                   </Card>
@@ -522,7 +528,7 @@ const TokensContent = memo(function TokensContent() {
                   tokens.map((token) => (
                     <Card
                       key={token.id}
-                      className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/90"
+                      className="dark:bg-[var(--kw-dark-bg)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]"
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-2">
@@ -554,14 +560,24 @@ const TokensContent = memo(function TokensContent() {
 
                       <div className="grid gap-3 sm:grid-cols-2">
                         <DataPoint
-                          icon={<Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
+                          icon={
+                            <Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
+                          }
                           label={t('tokens.token.lastUsed')}
-                          value={formatDateTime(token.lastUsedAt ?? null, t('tokens.values.notYet'))}
+                          value={formatDateTime(
+                            token.lastUsedAt ?? null,
+                            t('tokens.values.notYet')
+                          )}
                         />
                         <DataPoint
-                          icon={<Sparkles className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
+                          icon={
+                            <Sparkles className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
+                          }
                           label={t('tokens.token.lastFeedback')}
-                          value={formatDateTime(token.lastFeedbackAt ?? null, t('tokens.values.notYet'))}
+                          value={formatDateTime(
+                            token.lastFeedbackAt ?? null,
+                            t('tokens.values.notYet')
+                          )}
                         />
                         <DataPoint
                           icon={
@@ -571,7 +587,9 @@ const TokensContent = memo(function TokensContent() {
                           value={`${Math.round((token.successRate ?? 0) * 100)}%`}
                         />
                         <DataPoint
-                          icon={<Star className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />}
+                          icon={
+                            <Star className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
+                          }
                           label={t('tokens.token.trustScore')}
                           value={formatDecimal(token.trustScore ?? 0)}
                         />
@@ -624,12 +642,12 @@ const TokensContent = memo(function TokensContent() {
       >
         <form className="space-y-4" onSubmit={handleCreateAgent}>
           <Input
-            label={t("tokens.form.agentName")}
+            label={t('tokens.form.agentName')}
             value={createAgentForm.name}
             onChange={(event) =>
               setCreateAgentForm((current) => ({ ...current, name: event.target.value }))
             }
-            placeholder={t("tokens.form.agentNamePlaceholder")}
+            placeholder={t('tokens.form.agentNamePlaceholder')}
             required
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
@@ -642,7 +660,7 @@ const TokensContent = memo(function TokensContent() {
             </label>
             <select
               id="agent-risk-tier"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)] dark:focus:ring-[var(--kw-dark-primary)]/10"
+              className="dark:focus:ring-[var(--kw-dark-primary)]/10 w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)]"
               value={createAgentForm.risk_tier}
               onChange={(event) =>
                 setCreateAgentForm((current) => ({ ...current, risk_tier: event.target.value }))
@@ -655,7 +673,7 @@ const TokensContent = memo(function TokensContent() {
             </select>
           </div>
           <Input
-            label={t("tokens.form.allowedTaskTypes")}
+            label={t('tokens.form.allowedTaskTypes')}
             value={createAgentForm.allowed_task_types}
             onChange={(event) =>
               setCreateAgentForm((current) => ({
@@ -663,7 +681,7 @@ const TokensContent = memo(function TokensContent() {
                 allowed_task_types: event.target.value,
               }))
             }
-            placeholder={t("tokens.form.allowedTaskTypesPlaceholder")}
+            placeholder={t('tokens.form.allowedTaskTypesPlaceholder')}
             helper="Comma-separated. Leave blank to keep the allowlist open until policy UI expands."
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
@@ -701,7 +719,7 @@ const TokensContent = memo(function TokensContent() {
             </label>
             <select
               id="token-agent-select"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)] dark:focus:ring-[var(--kw-dark-primary)]/10"
+              className="dark:focus:ring-[var(--kw-dark-primary)]/10 w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)]"
               value={issuingAgentId ?? ''}
               onChange={(event) => setIssuingAgentId(event.target.value)}
               required
@@ -718,37 +736,37 @@ const TokensContent = memo(function TokensContent() {
           </div>
 
           <Input
-            label={t("tokens.form.displayName")}
+            label={t('tokens.form.displayName')}
             value={createTokenForm.display_name}
             onChange={(event) =>
               setCreateTokenForm((current) => ({ ...current, display_name: event.target.value }))
             }
-            placeholder={t("tokens.form.displayNamePlaceholder")}
+            placeholder={t('tokens.form.displayNamePlaceholder')}
             required
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
-            label={t("tokens.form.scopes")}
+            label={t('tokens.form.scopes')}
             value={createTokenForm.scopes}
             onChange={(event) =>
               setCreateTokenForm((current) => ({ ...current, scopes: event.target.value }))
             }
-            placeholder={t("tokens.form.scopesPlaceholder")}
+            placeholder={t('tokens.form.scopesPlaceholder')}
             helper="Comma-separated scope labels."
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
-            label={t("tokens.form.labels")}
+            label={t('tokens.form.labels')}
             value={createTokenForm.labels}
             onChange={(event) =>
               setCreateTokenForm((current) => ({ ...current, labels: event.target.value }))
             }
-            placeholder={t("tokens.form.labelsPlaceholder")}
+            placeholder={t('tokens.form.labelsPlaceholder')}
             helper="Comma-separated key=value labels."
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
-            label={t("tokens.form.expiresAt")}
+            label={t('tokens.form.expiresAt')}
             type="datetime-local"
             value={createTokenForm.expires_at}
             onChange={(event) =>
@@ -778,12 +796,16 @@ const TokensContent = memo(function TokensContent() {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
-      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
+      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
+      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        {hint}
+      </p>
     </Card>
   );
 }
@@ -798,12 +820,14 @@ function DataPoint({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/40 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60">
+    <div className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/60 rounded-2xl border border-[var(--kw-border)] p-3 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {icon}
         {label}
       </div>
-      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
     </div>
   );
 }

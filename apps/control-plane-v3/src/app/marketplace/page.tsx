@@ -127,7 +127,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
       <section className="relative overflow-hidden rounded-[2rem] border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(252,231,243,0.92))] p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(236,72,153,0.14),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-primary-200)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/70 dark:text-[var(--kw-dark-primary)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-primary-200)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Store className="h-3.5 w-3.5" />
               {t('marketplace.tagline')}
             </div>
@@ -159,7 +159,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
         </div>
 
         {focusedMarketplaceItem ? (
-          <div className="mt-6 rounded-3xl border border-[var(--kw-primary-200)]/70 bg-white/75 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/70">
+          <div className="border-[var(--kw-primary-200)]/70 dark:bg-[var(--kw-dark-bg)]/70 mt-6 rounded-3xl border bg-white/75 p-4 dark:border-[var(--kw-dark-border)]">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
@@ -172,14 +172,16 @@ const MarketplaceContent = memo(function MarketplaceContent() {
                 </p>
               </div>
               <Badge variant={focusedPublishedItem ? 'success' : 'warning'}>
-                {focusedPublishedItem ? t('marketplace.contextPublished') : t('marketplace.contextReview')}
+                {focusedPublishedItem
+                  ? t('marketplace.contextPublished')
+                  : t('marketplace.contextReview')}
               </Badge>
             </div>
           </div>
         ) : null}
       </section>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap gap-3">
           {reviewFilterItems.map((item) => (
             <Button
@@ -201,7 +203,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         {showReviewPanel ? (
-          <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+          <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -269,7 +271,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
                 {visibleReviewItems.map((item) => (
                   <div
                     key={`${item.resource_kind}-${item.resource_id}`}
-                    className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/40 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60"
+                    className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/60 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -277,10 +279,12 @@ const MarketplaceContent = memo(function MarketplaceContent() {
                           {item.title}
                         </p>
                         <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                          {t('marketplace.submittedByAgent')} {item.created_by_actor_id ?? 'unknown-agent'}
+                          {t('marketplace.submittedByAgent')}{' '}
+                          {item.created_by_actor_id ?? 'unknown-agent'}
                         </p>
                         <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                          {t('marketplace.governanceState')}: {governanceStatusLabel(deriveGovernanceStatus(item))}
+                          {t('marketplace.governanceState')}:{' '}
+                          {governanceStatusLabel(deriveGovernanceStatus(item))}
                         </p>
                       </div>
                       <div className="flex flex-wrap justify-end gap-2">
@@ -301,7 +305,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
 
         <div className="space-y-6">
           {showPublishedPanel ? (
-            <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -367,14 +371,11 @@ const MarketplaceContent = memo(function MarketplaceContent() {
               !catalogError &&
               publishedAgentSecrets.length === 0 &&
               publishedAgentCapabilities.length === 0 ? (
-                <SectionNotice
-                  tone="default"
-                  message={t('marketplace.emptyPublished')}
-                />
+                <SectionNotice tone="default" message={t('marketplace.emptyPublished')} />
               ) : null}
             </Card>
           ) : (
-            <Card className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
               <div>
                 <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                   {t('marketplace.publishedTitle')}
@@ -383,14 +384,11 @@ const MarketplaceContent = memo(function MarketplaceContent() {
                   {t('marketplace.switchHint')}
                 </p>
               </div>
-              <SectionNotice
-                tone="default"
-                message={t('marketplace.hiddenWhileReviewing')}
-              />
+              <SectionNotice tone="default" message={t('marketplace.hiddenWhileReviewing')} />
             </Card>
           )}
 
-          <Card className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+          <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
                 <Sparkles className="h-5 w-5" />
@@ -448,12 +446,14 @@ function MetricCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--kw-border)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/65">
+    <div className="dark:bg-[var(--kw-dark-bg)]/65 rounded-2xl border border-[var(--kw-border)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center gap-2 text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
         {icon}
         <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
       </div>
-      <p className="mt-3 text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="mt-3 text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
     </div>
   );
 }
@@ -463,8 +463,8 @@ function SectionNotice({ tone, message }: { tone: 'default' | 'error'; message: 
     <div
       className={
         tone === 'error'
-          ? 'rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 p-4 text-sm text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]'
-          : 'rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/55 dark:text-[var(--kw-dark-text-muted)]'
+          ? 'bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 rounded-2xl border border-[var(--kw-rose-surface)] p-4 text-sm text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]'
+          : 'dark:bg-[var(--kw-dark-bg)]/55 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]'
       }
     >
       {message}
@@ -505,14 +505,20 @@ function CatalogSection({
           <div
             key={item.id}
             className={cn(
-              'rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/55',
-              item.highlighted ? 'ring-2 ring-[var(--kw-primary-300)] dark:ring-[var(--kw-primary-400)]/60' : null
+              'dark:bg-[var(--kw-dark-bg)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]',
+              item.highlighted
+                ? 'dark:ring-[var(--kw-primary-400)]/60 ring-2 ring-[var(--kw-primary-300)]'
+                : null
             )}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{item.title}</p>
-                <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{item.subtitle}</p>
+                <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {item.title}
+                </p>
+                <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {item.subtitle}
+                </p>
                 <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('marketplace.version')} {item.version}
                 </p>
@@ -540,7 +546,7 @@ function QuickLink({ href, label, icon }: { href: string; label: string; icon: R
   return (
     <Link
       href={href}
-      className="group flex items-center justify-between rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/35 px-4 py-3 text-sm text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/60 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+      className="bg-[var(--kw-primary-50)]/35 dark:bg-[var(--kw-dark-bg)]/60 group flex items-center justify-between rounded-2xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
     >
       <span className="flex items-center gap-2">
         {icon}

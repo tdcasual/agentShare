@@ -192,9 +192,7 @@ export function Notifications({ className }: NotificationsProps) {
               <div>
                 <h3 className="font-semibold text-[var(--kw-text)]">{hubLabel}</h3>
                 {unreadCount > 0 && (
-                  <p className="mt-0.5 text-xs text-[var(--kw-text-muted)]">
-                    {unreadCount} unread
-                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--kw-text-muted)]">{unreadCount} unread</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -249,7 +247,7 @@ export function Notifications({ className }: NotificationsProps) {
 
               {!isLoading && availability !== 'unavailable' && Boolean(error) && (
                 <div className="p-6 text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20">
+                  <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
                     <AlertCircle className="h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
                   </div>
                   <p className="mb-1 text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
@@ -283,7 +281,7 @@ export function Notifications({ className }: NotificationsProps) {
                 availability !== 'unavailable' &&
                 !error &&
                 eventsToShow.length > 0 && (
-                  <div className="divide-y divide-[var(--kw-primary-50)] dark:divide-[var(--kw-dark-border)]/50">
+                  <div className="dark:divide-[var(--kw-dark-border)]/50 divide-y divide-[var(--kw-primary-50)]">
                     {eventsToShow.map((notification) => {
                       const style = getSeverityStyle(notification.severity);
                       const unread = !notification.read_at;

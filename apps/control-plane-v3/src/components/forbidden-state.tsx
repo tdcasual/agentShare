@@ -74,7 +74,7 @@ export function ForbiddenState({
             当前: {role ? ROLE_LABELS[role] : '未登录'}
           </div>
           <span className="text-[var(--kw-text-muted)]">→</span>
-          <div className="rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)] dark:bg-[var(--kw-dark-purple-surface)]/30 dark:text-[var(--kw-dark-primary)]">
+          <div className="dark:bg-[var(--kw-dark-purple-surface)]/30 rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]">
             需要: {ROLE_LABELS[requiredRole]}
           </div>
         </div>
@@ -100,9 +100,7 @@ export function ForbiddenState({
         </div>
 
         {/* 帮助链接 */}
-        <p className="mt-6 text-xs text-[var(--kw-text-muted)]">
-          如需访问权限，请联系系统管理员
-        </p>
+        <p className="mt-6 text-xs text-[var(--kw-text-muted)]">如需访问权限，请联系系统管理员</p>
       </Card>
     </div>
   );

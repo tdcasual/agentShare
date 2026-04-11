@@ -85,7 +85,7 @@ export function TabletSidebar() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-sm font-bold text-white">
               CP
             </div>
-            {!device.isTabletLandscape && <span>{t("tabletSidebar.title")}</span>}
+            {!device.isTabletLandscape && <span>{t('tabletSidebar.title')}</span>}
           </Link>
         )}
 

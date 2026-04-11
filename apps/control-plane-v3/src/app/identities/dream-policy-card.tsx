@@ -9,7 +9,7 @@ export interface DreamPolicyCardProps {
 export function DreamPolicyCard({ dreamPolicy }: DreamPolicyCardProps) {
   const { t } = useI18n();
   return (
-    <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
           Dream Mode

@@ -158,10 +158,10 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        aria-label={t("createMenu.ariaLabel")}
+        aria-label={t('createMenu.ariaLabel')}
       >
         <Plus className={cn('h-4 w-4', size === 'sm' ? 'mr-1' : 'mr-2')} aria-hidden="true" />
-        {t("createMenu.buttonLabel")}
+        {t('createMenu.buttonLabel')}
       </Button>
 
       {/* 下拉菜单 */}
@@ -174,18 +174,18 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
           <div
             ref={menuRef}
             role="menu"
-            aria-label={t("createMenu.ariaLabel")}
+            aria-label={t('createMenu.ariaLabel')}
             className="absolute right-0 top-full z-50 mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           >
             {/* 头部搜索 */}
             <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-semibold text-[var(--kw-text)]">{t("createMenu.title")}</h3>
+                <h3 className="font-semibold text-[var(--kw-text)]">{t('createMenu.title')}</h3>
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
                   className="rounded-lg p-1 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
-                  aria-label={t("createMenu.closeAriaLabel")}
+                  aria-label={t('createMenu.closeAriaLabel')}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -200,9 +200,9 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                       setIsOpen(false);
                     }
                   }}
-                  placeholder={t("createMenu.searchPlaceholder")}
-                  aria-label={t("createMenu.searchAriaLabel")}
-                  className="w-full rounded-lg border border-transparent bg-[var(--kw-surface-alt)] py-2 pl-9 pr-3 text-sm text-[var(--kw-text)] transition-colors transition-shadow placeholder:text-[var(--kw-text-muted)] focus:border-[var(--kw-primary-300)] focus:ring-2 focus:ring-[var(--kw-primary-300)]/20 dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:placeholder:text-[var(--kw-dark-text-muted)] dark:focus:border-[var(--kw-dark-primary)]/50 dark:focus:ring-[var(--kw-dark-primary)]/20"
+                  placeholder={t('createMenu.searchPlaceholder')}
+                  aria-label={t('createMenu.searchAriaLabel')}
+                  className="focus:ring-[var(--kw-primary-300)]/20 dark:focus:border-[var(--kw-dark-primary)]/50 dark:focus:ring-[var(--kw-dark-primary)]/20 w-full rounded-lg border border-transparent bg-[var(--kw-surface-alt)] py-2 pl-9 pr-3 text-sm text-[var(--kw-text)] transition-colors transition-shadow placeholder:text-[var(--kw-text-muted)] focus:border-[var(--kw-primary-300)] focus:ring-2 dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:placeholder:text-[var(--kw-dark-text-muted)]"
                 />
                 <Plus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--kw-text-muted)]" />
               </div>
@@ -214,7 +214,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
               {identityActions.length > 0 && (
                 <div className="mb-2 px-2">
                   <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
-                    {t("createMenu.sections.identity")}
+                    {t('createMenu.sections.identity')}
                   </p>
                   {identityActions.map((action) => (
                     <button
@@ -243,7 +243,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
               {resourceActions.length > 0 && (
                 <div className="mb-2 px-2">
                   <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
-                    {t("createMenu.sections.resource")}
+                    {t('createMenu.sections.resource')}
                   </p>
                   {resourceActions.map((action) => (
                     <button
@@ -271,7 +271,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
               {systemActions.length > 0 && (
                 <div className="px-2">
                   <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
-                    {t("createMenu.sections.system")}
+                    {t('createMenu.sections.system')}
                   </p>
                   {systemActions.map((action) => (
                     <button
@@ -298,11 +298,9 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
               {/* 无结果 */}
               {filteredActions.length === 0 && (
                 <div className="px-4 py-8 text-center">
-                  <p className="text-sm text-[var(--kw-text-muted)]">
-                    {t("createMenu.noResults")}
-                  </p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">{t('createMenu.noResults')}</p>
                   <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
-                    {t("createMenu.noResultsHint")}
+                    {t('createMenu.noResultsHint')}
                   </p>
                 </div>
               )}
@@ -311,15 +309,20 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
             {/* 底部提示 */}
             <div className="border-t border-[var(--kw-border)] bg-[var(--kw-surface-alt)] px-4 py-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]">
               <p className="text-xs text-[var(--kw-text-muted)]">
-                {t("createMenu.closeHint").split("<0>").map((part, i) =>
-                  i === 1 ? (
-                    <kbd key={i} className="rounded border border-[var(--kw-border)] bg-white px-1.5 py-0.5 font-mono dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
-                      {part.split("</0>")[0]}
-                    </kbd>
-                  ) : (
-                    part.split("</0>")[0]
-                  )
-                )}
+                {t('createMenu.closeHint')
+                  .split('<0>')
+                  .map((part, i) =>
+                    i === 1 ? (
+                      <kbd
+                        key={i}
+                        className="rounded border border-[var(--kw-border)] bg-white px-1.5 py-0.5 font-mono dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+                      >
+                        {part.split('</0>')[0]}
+                      </kbd>
+                    ) : (
+                      part.split('</0>')[0]
+                    )
+                  )}
               </p>
             </div>
           </div>

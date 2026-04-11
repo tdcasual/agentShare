@@ -191,10 +191,7 @@ const TasksContent = memo(function TasksContent() {
     try {
       const parsedInput = parseJsonObject(taskForm.input_json, t('tasks.errors.invalidPayload'));
       if (taskForm.target_mode === 'explicit_tokens' && taskForm.target_token_ids.length === 0) {
-        throw new Error(
-          t('tasks.errors.noTargetTokens') ||
-            t('tasks.errors.noTargetTokens')
-        );
+        throw new Error(t('tasks.errors.noTargetTokens') || t('tasks.errors.noTargetTokens'));
       }
 
       await createTask({
@@ -224,9 +221,7 @@ const TasksContent = memo(function TasksContent() {
         setTaskFormError(submitError.detail);
       } else {
         setTaskFormError(
-          submitError instanceof Error
-            ? submitError.message
-            : t('tasks.errors.createFailed')
+          submitError instanceof Error ? submitError.message : t('tasks.errors.createFailed')
         );
       }
     } finally {
@@ -262,9 +257,7 @@ const TasksContent = memo(function TasksContent() {
         setFeedbackFormError(submitError.detail);
       } else {
         setFeedbackFormError(
-          submitError instanceof Error
-            ? submitError.message
-            : t('tasks.errors.feedbackFailed')
+          submitError instanceof Error ? submitError.message : t('tasks.errors.feedbackFailed')
         );
       }
     } finally {
@@ -294,8 +287,7 @@ const TasksContent = memo(function TasksContent() {
               {t('tasks.title')}
             </h1>
             <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('tasks.description') ||
-                t('tasks.description')}
+              {t('tasks.description') || t('tasks.description')}
             </p>
           </div>
         </div>
@@ -335,7 +327,7 @@ const TasksContent = memo(function TasksContent() {
         />
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -387,7 +379,7 @@ const TasksContent = memo(function TasksContent() {
       </Card>
 
       {selectedTask ? (
-        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
+        <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               Focused task
@@ -404,11 +396,11 @@ const TasksContent = memo(function TasksContent() {
       ) : null}
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t("tasks.sessionExpired")} />
+        <ManagementSessionExpiredAlert message={t('tasks.sessionExpired')} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t("tasks.sessionForbidden")} />
+        <ManagementForbiddenAlert message={t('tasks.sessionForbidden')} />
       ) : null}
 
       {refreshError && (
@@ -416,7 +408,7 @@ const TasksContent = memo(function TasksContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
+          className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
         >
           {refreshError}
         </Card>
@@ -427,7 +419,7 @@ const TasksContent = memo(function TasksContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
+          className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
         >
           {gateError ??
             error ??
@@ -451,15 +443,14 @@ const TasksContent = memo(function TasksContent() {
               {t('tasks.empty.title')}
             </h2>
             <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('tasks.empty.description') ||
-                t('tasks.empty.description')}
+              {t('tasks.empty.description') || t('tasks.empty.description')}
             </p>
           </div>
         </Card>
       ) : null}
 
       {!gateLoading && !isLoading && taskViews.length > 0 && visibleTaskViews.length === 0 ? (
-        <Card className="border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text-muted)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
           No tasks match the current supervision filter.
         </Card>
       ) : null}
@@ -483,7 +474,7 @@ const TasksContent = memo(function TasksContent() {
               className={cn(
                 'cursor-pointer space-y-4',
                 isFocusedTask &&
-                  'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+                  'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
               )}
               onClick={() => setSelectedTaskId(task.id)}
             >
@@ -538,9 +529,7 @@ const TasksContent = memo(function TasksContent() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {targets.length === 0 ? (
-                    <Badge variant="default">
-                      {t('tasks.noTokenTargets')}
-                    </Badge>
+                    <Badge variant="default">{t('tasks.noTokenTargets')}</Badge>
                   ) : (
                     targets.map((target) => (
                       <Badge
@@ -564,10 +553,7 @@ const TasksContent = memo(function TasksContent() {
         isOpen={showCreateTaskModal}
         onClose={() => setShowCreateTaskModal(false)}
         title={t('tasks.publishTask')}
-        description={
-          t('tasks.publishTaskDescription') ||
-          t('tasks.publishTaskDescription')
-        }
+        description={t('tasks.publishTaskDescription') || t('tasks.publishTaskDescription')}
         size="lg"
       >
         <form className="space-y-4" onSubmit={handleCreateTask}>
@@ -628,8 +614,7 @@ const TasksContent = memo(function TasksContent() {
                 {t('tasks.form.targetMode')}
               </p>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {t('tasks.form.targetModeDescription') ||
-                  t('tasks.form.targetModeDescription')}
+                {t('tasks.form.targetModeDescription') || t('tasks.form.targetModeDescription')}
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
@@ -649,8 +634,7 @@ const TasksContent = memo(function TasksContent() {
                   {t('tasks.form.explicitTokens')}
                 </p>
                 <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  {t('tasks.form.explicitTokensDesc') ||
-                    t('tasks.form.explicitTokensDesc')}
+                  {t('tasks.form.explicitTokensDesc') || t('tasks.form.explicitTokensDesc')}
                 </p>
               </button>
               <button
@@ -673,8 +657,7 @@ const TasksContent = memo(function TasksContent() {
                   {t('tasks.form.broadcast')}
                 </p>
                 <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  {t('tasks.form.broadcastDesc') ||
-                    t('tasks.form.broadcastDesc')}
+                  {t('tasks.form.broadcastDesc') || t('tasks.form.broadcastDesc')}
                 </p>
               </button>
             </div>
@@ -691,11 +674,10 @@ const TasksContent = memo(function TasksContent() {
                     t('tasks.form.targetTokensDescription')}
                 </p>
               </div>
-              <div className="grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/30 p-4">
+              <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-[var(--kw-border)] p-4">
                 {allTokens.length === 0 ? (
                   <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                    {t('tasks.form.noTokensAvailable') ||
-                      t('tasks.form.noTokensAvailable')}
+                    {t('tasks.form.noTokensAvailable') || t('tasks.form.noTokensAvailable')}
                   </p>
                 ) : (
                   allTokens.map((token) => (
@@ -782,7 +764,7 @@ const TasksContent = memo(function TasksContent() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-              <Card className="space-y-3 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+              <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90">
                 <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('tasks.inputPayload')}
                 </p>
@@ -791,7 +773,7 @@ const TasksContent = memo(function TasksContent() {
                 </pre>
               </Card>
 
-              <Card className="space-y-3 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+              <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90">
                 <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('tasks.publishingContext')}
                 </p>
@@ -802,13 +784,10 @@ const TasksContent = memo(function TasksContent() {
                   </p>
                   <p>
                     {t('tasks.viaToken')}:{' '}
-                    {selectedTask.task.createdViaTokenId ??
-                      (t('tasks.directHumanPublish'))}
+                    {selectedTask.task.createdViaTokenId ?? t('tasks.directHumanPublish')}
                   </p>
                   <p>
-                    {t('tasks.claimedBy')}:{' '}
-                    {selectedTask.task.claimedBy ??
-                      (t('tasks.notClaimed'))}
+                    {t('tasks.claimedBy')}: {selectedTask.task.claimedBy ?? t('tasks.notClaimed')}
                   </p>
                 </div>
               </Card>
@@ -829,7 +808,7 @@ const TasksContent = memo(function TasksContent() {
                 {selectedTask.targets.map((target) => (
                   <Card
                     key={target.targetId}
-                    className="space-y-4 border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/30"
+                    className="bg-[var(--kw-primary-50)]/30 space-y-4 border border-[var(--kw-border)]"
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                       <div className="space-y-2">
@@ -897,9 +876,7 @@ const TasksContent = memo(function TasksContent() {
 
                     <div className="flex flex-wrap gap-2">
                       {target.feedback.length === 0 ? (
-                        <Badge variant="default">
-                          {t('tasks.noFeedback')}
-                        </Badge>
+                        <Badge variant="default">{t('tasks.noFeedback')}</Badge>
                       ) : (
                         target.feedback.map((item) => (
                           <Badge
@@ -975,10 +952,7 @@ const TasksContent = memo(function TasksContent() {
               setFeedbackForm((current) => ({ ...current, summary: event.target.value }))
             }
             className="min-h-[140px]"
-            placeholder={
-              t('tasks.form.summaryPlaceholder') ||
-              t('tasks.form.summaryPlaceholder')
-            }
+            placeholder={t('tasks.form.summaryPlaceholder') || t('tasks.form.summaryPlaceholder')}
           />
 
           {feedbackFormError ? (
@@ -1008,12 +982,16 @@ const TasksContent = memo(function TasksContent() {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90">
       <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
-      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
+      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
+      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        {hint}
+      </p>
     </Card>
   );
 }
@@ -1024,7 +1002,9 @@ function DetailStat({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
+      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
     </div>
   );
 }

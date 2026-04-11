@@ -49,7 +49,7 @@ export function MobileNav() {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className="safe-area-pb fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--kw-border)] bg-white/90 backdrop-blur-md dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <nav className="safe-area-pb dark:bg-[var(--kw-dark-surface)]/90 fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--kw-border)] bg-white/90 backdrop-blur-md dark:border-[var(--kw-dark-border)]">
         <div className="flex items-center justify-around px-2 py-2">
           {mainItems.map((item) => {
             const Icon = item.icon;
@@ -117,7 +117,7 @@ export function MobileNav() {
                       'flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200',
                       isActive
                         ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
-                        : 'text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)]/50 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50'
+                        : 'hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]'
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -131,7 +131,7 @@ export function MobileNav() {
               <Link
                 href="/settings"
                 onClick={() => setShowMore(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-[var(--kw-text)] transition-colors duration-200 hover:bg-[var(--kw-primary-50)]/50 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50"
+                className="hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex items-center gap-3 rounded-2xl px-4 py-3 text-[var(--kw-text)] transition-colors duration-200 dark:text-[var(--kw-dark-text)]"
               >
                 <Settings className="h-5 w-5" />
                 <span className="font-medium">{t('navigation.settings')}</span>

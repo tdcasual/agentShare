@@ -172,7 +172,9 @@ const SettingsContent = memo(function SettingsContent() {
             <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('settings.title')}
             </h1>
-            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('settings.description')}</p>
+            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('settings.description')}
+            </p>
           </div>
         </div>
 
@@ -205,7 +207,7 @@ const SettingsContent = memo(function SettingsContent() {
         />
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -220,7 +222,9 @@ const SettingsContent = memo(function SettingsContent() {
             <Badge variant="primary">
               {roleCounts.owner ?? 0} {t('settings.ownerAccounts')}
             </Badge>
-            <Badge variant="human">{activeAccountsCount} {t('settings.activeOperators')}</Badge>
+            <Badge variant="human">
+              {activeAccountsCount} {t('settings.activeOperators')}
+            </Badge>
             <Badge variant="warning">
               {inactiveAccountsCount} {t('settings.inactiveAccounts')}
             </Badge>
@@ -296,7 +300,7 @@ const SettingsContent = memo(function SettingsContent() {
               onChange={(event) =>
                 setInviteForm((current) => ({ ...current, email: event.target.value }))
               }
-              placeholder={t("settings.emailPlaceholder")}
+              placeholder={t('settings.emailPlaceholder')}
               required
             />
             <Input
@@ -415,13 +419,13 @@ const SettingsContent = memo(function SettingsContent() {
 
       {shouldShowSessionExpired ? (
         <ManagementSessionExpiredAlert
-          className="border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
-          message={t("settings.sessionExpired")}
+          className="bg-[var(--kw-rose-surface)]/80 border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
+          message={t('settings.sessionExpired')}
         />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t("settings.sessionForbidden")} />
+        <ManagementForbiddenAlert message={t('settings.sessionForbidden')} />
       ) : null}
 
       {(gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError)) && (
@@ -429,7 +433,7 @@ const SettingsContent = memo(function SettingsContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)]"
+          className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
         >
           {gateError ??
             error ??
@@ -438,7 +442,9 @@ const SettingsContent = memo(function SettingsContent() {
       )}
 
       {gateLoading || isLoading ? (
-        <Card className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('settings.loadingInventory')}</Card>
+        <Card className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          {t('settings.loadingInventory')}
+        </Card>
       ) : null}
 
       <Card variant="kawaii" className="space-y-5">
@@ -451,7 +457,9 @@ const SettingsContent = memo(function SettingsContent() {
             <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('settings.managementRoster')}
             </h2>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('settings.rosterDesc')}</p>
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('settings.rosterDesc')}
+            </p>
           </div>
         </div>
 
@@ -463,7 +471,7 @@ const SettingsContent = memo(function SettingsContent() {
             return (
               <Card
                 key={account.id}
-                className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90"
+                className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-2">
@@ -490,7 +498,9 @@ const SettingsContent = memo(function SettingsContent() {
                       <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                         {account.display_name}
                       </h3>
-                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{account.email}</p>
+                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                        {account.email}
+                      </p>
                     </div>
                   </div>
 
@@ -529,7 +539,7 @@ const SettingsContent = memo(function SettingsContent() {
             );
           })}
           {visibleAccounts.length === 0 ? (
-            <Card className="border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-text-muted)]">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
               No accounts match the current supervision filter.
             </Card>
           ) : null}
@@ -541,12 +551,16 @@ const SettingsContent = memo(function SettingsContent() {
 
 function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <Card className="space-y-2 border border-[var(--kw-border)] bg-white/90 dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90">
       <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{value}</p>
-      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{hint}</p>
+      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {value}
+      </p>
+      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        {hint}
+      </p>
     </Card>
   );
 }

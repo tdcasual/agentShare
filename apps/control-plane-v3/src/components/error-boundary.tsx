@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
             aria-live="assertive"
           >
             {/* 错误图标 */}
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20">
+            <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <AlertTriangle className="h-10 w-10 text-[var(--kw-error)]" />
             </div>
 
@@ -80,7 +80,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {/* 技术详情（开发环境显示） */}
             {process.env.NODE_ENV === 'development' && this.state.error?.stack && (
-              <pre className="mb-4 max-h-40 overflow-auto rounded-lg bg-[var(--kw-rose-surface)] p-3 text-left text-xs text-[var(--kw-error)] dark:bg-[var(--kw-dark-error-surface)]/10 dark:text-[var(--kw-error)]">
+              <pre className="dark:bg-[var(--kw-dark-error-surface)]/10 mb-4 max-h-40 overflow-auto rounded-lg bg-[var(--kw-rose-surface)] p-3 text-left text-xs text-[var(--kw-error)] dark:text-[var(--kw-error)]">
                 {this.state.error.stack}
               </pre>
             )}

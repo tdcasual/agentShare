@@ -469,8 +469,7 @@ describe('identities page', () => {
         useManagementPageSessionRecoveryMock.mockReturnValue({
           session: null,
           loading: false,
-          error:
-            'identities.sessionExpired',
+          error: 'identities.sessionExpired',
           shouldShowForbidden: false,
           shouldShowSessionExpired: true,
           clearAllAuthErrors: vi.fn(),
@@ -500,9 +499,7 @@ describe('identities page', () => {
     await user.click(screen.getByRole('button', { name: /refresh snapshot/i }));
 
     await waitFor(() => {
-      expect(screen.getAllByRole('alert')[0]).toHaveTextContent(
-        'identities.sessionExpired'
-      );
+      expect(screen.getAllByRole('alert')[0]).toHaveTextContent('identities.sessionExpired');
     });
   });
 

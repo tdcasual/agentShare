@@ -29,9 +29,21 @@ import { CheckCircle, Clock, XCircle, Filter, RefreshCw } from 'lucide-react';
 // 状态过滤器配置
 const statusFilters: { value: ApprovalStatus | 'all'; label: string; color: string }[] = [
   { value: 'all', label: '全部', color: 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)]' },
-  { value: 'pending', label: '待审批', color: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]' },
-  { value: 'approved', label: '已批准', color: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]' },
-  { value: 'rejected', label: '已拒绝', color: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]' },
+  {
+    value: 'pending',
+    label: '待审批',
+    color: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]',
+  },
+  {
+    value: 'approved',
+    label: '已批准',
+    color: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]',
+  },
+  {
+    value: 'rejected',
+    label: '已拒绝',
+    color: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]',
+  },
 ];
 
 const ApprovalsContent = memo(function ApprovalsContent() {
@@ -152,11 +164,11 @@ const ApprovalsContent = memo(function ApprovalsContent() {
       <Layout>
         <div className="space-y-6">
           {shouldShowSessionExpired ? (
-            <ManagementSessionExpiredAlert message={t("approvals.sessionExpired")} />
+            <ManagementSessionExpiredAlert message={t('approvals.sessionExpired')} />
           ) : null}
 
           {!shouldShowSessionExpired && shouldShowForbidden ? (
-            <ManagementForbiddenAlert message={t("approvals.sessionForbidden")} />
+            <ManagementForbiddenAlert message={t('approvals.sessionForbidden')} />
           ) : null}
 
           {!shouldShowSessionExpired && !shouldShowForbidden && gateError ? (
@@ -164,7 +176,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {gateError}
             </Card>
@@ -173,8 +185,12 @@ const ApprovalsContent = memo(function ApprovalsContent() {
           {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">审批管理</h1>
-              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">审核来自智能体和用户的请求</p>
+              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+                审批管理
+              </h1>
+              <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
+                审核来自智能体和用户的请求
+              </p>
             </div>
             <Button
               variant="outline"
@@ -193,7 +209,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {refreshError}
             </Card>
@@ -204,7 +220,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+              className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
             >
               {actionError}
             </Card>

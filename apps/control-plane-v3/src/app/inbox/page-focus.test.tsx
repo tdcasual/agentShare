@@ -87,7 +87,9 @@ describe('inbox focused entry state', () => {
       within(focusedSummary as HTMLElement).getByText('Bootstrap finished Sync Config')
     ).toBeInTheDocument();
     expect(
-      within(focusedSummary as HTMLElement).getByRole('button', { name: /inbox.actionLabels.openTask/i })
+      within(focusedSummary as HTMLElement).getByRole('button', {
+        name: /inbox.actionLabels.openTask/i,
+      })
     ).toBeInTheDocument();
     expect(screen.getByTestId('inbox-event-event-1')).toHaveAttribute(
       'data-focus-state',

@@ -31,12 +31,10 @@ export function GovernancePanel({
 }: GovernancePanelProps) {
   const { t } = useI18n();
   return (
-    <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-            Governance Space
-          </h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Governance Space</h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
             Human review backlog for agent-originated market submissions.
           </p>
@@ -74,7 +72,7 @@ export function GovernancePanel({
       </div>
 
       {isLoading && reviews.length === 0 ? (
-        <SectionNotice message={t("spaces.loadingGovernanceQueue")} />
+        <SectionNotice message={t('spaces.loadingGovernanceQueue')} />
       ) : reviews.length === 0 ? (
         <SectionNotice
           message={
@@ -90,7 +88,7 @@ export function GovernancePanel({
           {reviews.slice(0, 4).map((item) => (
             <div
               key={`${item.resource_kind}-${item.resource_id}`}
-              className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55"
+              className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

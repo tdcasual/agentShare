@@ -56,7 +56,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={type}
         className={cn(
-          'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-transform transition-shadow duration-200',
+          'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-shadow transition-transform duration-200',
           'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:scale-100',
           'relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
           buttonVariants[variant],

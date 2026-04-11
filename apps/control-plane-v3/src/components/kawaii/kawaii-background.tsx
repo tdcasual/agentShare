@@ -53,7 +53,7 @@ export function KawaiiBackground() {
       <div
         className={`absolute inset-0 transition-colors duration-500 ${
           isDark
-            ? 'bg-gradient-to-br from-[var(--kw-dark-bg)]/90 via-[var(--kw-dark-surface)]/80 to-[var(--kw-dark-bg)]/90'
+            ? 'from-[var(--kw-dark-bg)]/90 via-[var(--kw-dark-surface)]/80 to-[var(--kw-dark-bg)]/90 bg-gradient-to-br'
             : 'bg-gradient-to-br from-pink-50/80 via-purple-50/60 to-blue-50/80'
         }`}
       />

@@ -18,11 +18,16 @@ interface PlaybookCardProps {
 
 // 标签颜色映射
 const tagColors: Record<string, string> = {
-  default: 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]',
-  urgent: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:bg-[var(--kw-dark-error-surface)]/30 dark:text-[var(--kw-error)]',
-  important: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)] dark:bg-[var(--kw-dark-amber-surface)]/30 dark:text-[var(--kw-warning)]',
-  review: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)] dark:bg-[var(--kw-dark-amber-surface)]/30 dark:text-[var(--kw-warning)]',
-  approved: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-success-surface)]/30 dark:text-[var(--kw-dark-mint)]',
+  default:
+    'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]',
+  urgent:
+    'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:bg-[var(--kw-dark-error-surface)]/30 dark:text-[var(--kw-error)]',
+  important:
+    'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)] dark:bg-[var(--kw-dark-amber-surface)]/30 dark:text-[var(--kw-warning)]',
+  review:
+    'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)] dark:bg-[var(--kw-dark-amber-surface)]/30 dark:text-[var(--kw-warning)]',
+  approved:
+    'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-success-surface)]/30 dark:text-[var(--kw-dark-mint)]',
 };
 
 export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
@@ -43,9 +48,7 @@ export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
           <BookOpen className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-1 font-semibold text-[var(--kw-text)]">
-            {playbook.title}
-          </h3>
+          <h3 className="line-clamp-1 font-semibold text-[var(--kw-text)]">{playbook.title}</h3>
           <p className="text-xs text-[var(--kw-text-muted)]">{playbook.taskType}</p>
         </div>
       </div>
@@ -74,7 +77,7 @@ export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
       )}
 
       {/* 底部信息 */}
-      <div className="flex items-center justify-between border-t border-[var(--kw-border)]/50 pt-3 text-xs text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-text-muted)]">
+      <div className="border-[var(--kw-border)]/50 flex items-center justify-between border-t pt-3 text-xs text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-text-muted)]">
         <div className="flex items-center gap-1">
           <Shield className="h-3 w-3" />
           <span className="max-w-[min(100px,25vw)] truncate">{playbook.publicationStatus}</span>

@@ -133,10 +133,7 @@ export function MobileBottomSheet({
         {/* 头部 */}
         {title && (
           <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-4 pb-3 dark:border-[var(--kw-dark-border)]">
-            <h2
-              id="bottom-sheet-title"
-              className="text-lg font-semibold text-[var(--kw-text)]"
-            >
+            <h2 id="bottom-sheet-title" className="text-lg font-semibold text-[var(--kw-text)]">
               {title}
             </h2>
             <button
@@ -189,7 +186,7 @@ export function MobileActionSheet({ isOpen, onClose, actions }: MobileActionShee
             className={cn(
               'flex w-full items-center gap-3 rounded-2xl px-4 py-3 transition-colors',
               action.variant === 'danger' &&
-                'text-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)] dark:text-[var(--kw-error)] dark:hover:bg-[var(--kw-dark-error-surface)]/20',
+                'dark:hover:bg-[var(--kw-dark-error-surface)]/20 text-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)] dark:text-[var(--kw-error)]',
               action.variant === 'primary' &&
                 'text-[var(--kw-primary-600)] hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-border)]',
               (!action.variant || action.variant === 'default') &&

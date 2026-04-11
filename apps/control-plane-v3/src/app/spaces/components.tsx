@@ -13,7 +13,7 @@ export interface MetricCardProps {
 
 export function MetricCard({ label, value, icon }: MetricCardProps) {
   return (
-    <div className="rounded-2xl border border-[var(--kw-orange-surface)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/65">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/65 rounded-2xl border border-[var(--kw-orange-surface)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center gap-2 text-[var(--kw-orange-text)] dark:text-[var(--kw-warning)]">
         {icon}
         <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
@@ -29,7 +29,7 @@ export interface SectionNoticeProps {
 
 export function SectionNotice({ message }: SectionNoticeProps) {
   return (
-    <div className="rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55 dark:text-[var(--kw-dark-text-muted)]">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
       {message}
     </div>
   );
@@ -44,7 +44,7 @@ export interface InventoryCardProps {
 export function InventoryCard({ icon, title, items }: InventoryCardProps) {
   const { t } = useI18n();
   return (
-    <div className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center gap-2 text-sm font-semibold text-[var(--kw-text)]">
         {icon}
         {title}
@@ -83,17 +83,17 @@ export function SpacesHeroMetrics({ data }: { data: MetricData }) {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <MetricCard
-        label={t("spaces.recentEvents")}
+        label={t('spaces.recentEvents')}
         value={data.events.toString()}
         icon={<Sparkles className="h-4 w-4" />}
       />
       <MetricCard
-        label={t("spaces.pendingReviews")}
+        label={t('spaces.pendingReviews')}
         value={data.pendingReviews.toString()}
         icon={<ShieldCheck className="h-4 w-4" />}
       />
       <MetricCard
-        label={t("spaces.activeAgents")}
+        label={t('spaces.activeAgents')}
         value={data.activeAgents.toString()}
         icon={<Bot className="h-4 w-4" />}
       />
@@ -112,12 +112,12 @@ export function MarketInventoryPanel({ data }: { data: MarketInventoryData }) {
     <div className="grid gap-3 sm:grid-cols-2">
       <InventoryCard
         icon={<Boxes className="h-4 w-4" />}
-        title={t("spaces.publishedAssets")}
+        title={t('spaces.publishedAssets')}
         items={data.assets}
       />
       <InventoryCard
         icon={<Wrench className="h-4 w-4" />}
-        title={t("spaces.publishedSkills")}
+        title={t('spaces.publishedSkills')}
         items={data.skills}
       />
     </div>

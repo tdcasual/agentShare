@@ -174,7 +174,10 @@ describe('tokens page', () => {
     render(<TokensPage />);
 
     await user.click(screen.getByRole('button', { name: /tokens.actions.mintToken/i }));
-    await user.type(screen.getByPlaceholderText('tokens.form.displayNamePlaceholder'), 'Staging Worker');
+    await user.type(
+      screen.getByPlaceholderText('tokens.form.displayNamePlaceholder'),
+      'Staging Worker'
+    );
     await user.click(screen.getAllByRole('button', { name: /tokens.actions.mintToken/i })[1]);
 
     await waitFor(() => {

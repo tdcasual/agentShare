@@ -61,7 +61,9 @@ export function PWAStatus({ className }: PWAStatusProps) {
               <div
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-xl',
-                  isInstalled ? 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
+                  isInstalled
+                    ? 'dark:bg-[var(--kw-dark-success-surface)]/30 bg-[var(--kw-green-surface)]'
+                    : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
                 )}
               >
                 {isInstalled ? (
@@ -93,8 +95,8 @@ export function PWAStatus({ className }: PWAStatusProps) {
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-xl',
                   isOffline
-                    ? 'bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/30'
-                    : 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/30'
+                    ? 'dark:bg-[var(--kw-dark-amber-surface)]/30 bg-[var(--kw-amber-surface)]'
+                    : 'dark:bg-[var(--kw-dark-success-surface)]/30 bg-[var(--kw-green-surface)]'
                 )}
               >
                 {isOffline ? (
@@ -153,10 +155,17 @@ export function PWAStatus({ className }: PWAStatusProps) {
             <div
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-xl',
-                canShare ? 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-info-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
+                canShare
+                  ? 'dark:bg-[var(--kw-dark-info-surface)]/30 bg-[var(--kw-sky-surface)]'
+                  : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
               )}
             >
-              <Share2 className={cn('h-5 w-5', canShare ? 'text-[var(--kw-sky-text)]' : 'text-[var(--kw-text-muted)]')} />
+              <Share2
+                className={cn(
+                  'h-5 w-5',
+                  canShare ? 'text-[var(--kw-sky-text)]' : 'text-[var(--kw-text-muted)]'
+                )}
+              />
             </div>
             <div>
               <p className="font-medium text-[var(--kw-text)]">{t('common.share')}</p>
@@ -181,11 +190,16 @@ export function PWAStatus({ className }: PWAStatusProps) {
             <div
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-xl',
-                canVibrate ? 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
+                canVibrate
+                  ? 'dark:bg-[var(--kw-dark-purple-surface)]/30 bg-[var(--kw-purple-surface)]'
+                  : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
               )}
             >
               <Vibrate
-                className={cn('h-5 w-5', canVibrate ? 'text-[var(--kw-purple-text)]' : 'text-[var(--kw-text-muted)]')}
+                className={cn(
+                  'h-5 w-5',
+                  canVibrate ? 'text-[var(--kw-purple-text)]' : 'text-[var(--kw-text-muted)]'
+                )}
               />
             </div>
             <div>
@@ -202,15 +216,31 @@ export function PWAStatus({ className }: PWAStatusProps) {
       <Card className="p-4">
         <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.pwaFeatures')}</h3>
         <ul className="space-y-2">
-          <FeatureItem label={t('pwa.featureOffline')} description={t('pwa.featureOfflineDesc')} available={true} />
-          <FeatureItem label={t('pwa.featureSync')} description={t('pwa.featureSyncDesc')} available={true} />
-          <FeatureItem label={t('pwa.featurePush')} description={t('pwa.featurePushDesc')} available={true} />
+          <FeatureItem
+            label={t('pwa.featureOffline')}
+            description={t('pwa.featureOfflineDesc')}
+            available={true}
+          />
+          <FeatureItem
+            label={t('pwa.featureSync')}
+            description={t('pwa.featureSyncDesc')}
+            available={true}
+          />
+          <FeatureItem
+            label={t('pwa.featurePush')}
+            description={t('pwa.featurePushDesc')}
+            available={true}
+          />
           <FeatureItem
             label={t('pwa.featureA2hs')}
             description={t('pwa.featureA2hsDesc')}
             available={isInstallable || isInstalled}
           />
-          <FeatureItem label={t('pwa.featureAutoUpdate')} description={t('pwa.featureAutoUpdateDesc')} available={true} />
+          <FeatureItem
+            label={t('pwa.featureAutoUpdate')}
+            description={t('pwa.featureAutoUpdateDesc')}
+            available={true}
+          />
         </ul>
       </Card>
     </div>
@@ -231,11 +261,18 @@ function FeatureItem({
       <div
         className={cn(
           'mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full',
-          available ? 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/30' : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
+          available
+            ? 'dark:bg-[var(--kw-dark-success-surface)]/30 bg-[var(--kw-green-surface)]'
+            : 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]'
         )}
       >
         {available ? (
-          <Check className={cn('h-3 w-3', available ? 'text-[var(--kw-green-text)]' : 'text-[var(--kw-text-muted)]')} />
+          <Check
+            className={cn(
+              'h-3 w-3',
+              available ? 'text-[var(--kw-green-text)]' : 'text-[var(--kw-text-muted)]'
+            )}
+          />
         ) : (
           <span className="h-3 w-3 rounded-full bg-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-text-muted)]" />
         )}

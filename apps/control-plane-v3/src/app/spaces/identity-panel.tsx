@@ -29,12 +29,10 @@ export function IdentityPanel({
 }: IdentityPanelProps) {
   const { t } = useI18n();
   return (
-    <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-            Identity Space
-          </h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Identity Space</h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
             Active agent roster available to the management control plane.
           </p>
@@ -43,9 +41,9 @@ export function IdentityPanel({
       </div>
 
       {isLoading && agents.length === 0 ? (
-        <SectionNotice message={t("spaces.loadingAgentRoster")} />
+        <SectionNotice message={t('spaces.loadingAgentRoster')} />
       ) : agents.length === 0 ? (
-        <SectionNotice message={t("spaces.noAgents")} />
+        <SectionNotice message={t('spaces.noAgents')} />
       ) : (
         <div className="space-y-2">
           {agents.slice(0, 4).map((agent) => (
@@ -53,13 +51,11 @@ export function IdentityPanel({
               key={agent.id}
               role="group"
               aria-label={`${agent.name} identity`}
-              className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55"
+              className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-medium text-[var(--kw-text)]">
-                    Identity: {agent.name}
-                  </p>
+                  <p className="font-medium text-[var(--kw-text)]">Identity: {agent.name}</p>
                   <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                     {agent.id} · {agent.auth_method}
                   </p>

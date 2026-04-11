@@ -23,15 +23,13 @@ export function DreamRunDetailCard({
   onResume,
 }: DreamRunDetailCardProps) {
   return (
-    <Card className="border border-[var(--kw-sky-surface)] bg-[var(--kw-sky-surface)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/80">
+    <Card className="bg-[var(--kw-sky-surface)]/70 dark:bg-[var(--kw-dark-surface-alt)]/80 border border-[var(--kw-sky-surface)] dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]">
             Dream run detail
           </p>
-          <h2 className="text-lg font-semibold text-[var(--kw-text)]">
-            {run.objective}
-          </h2>
+          <h2 className="text-lg font-semibold text-[var(--kw-text)]">{run.objective}</h2>
           <p className="text-sm text-[var(--kw-text-muted)]">
             {run.consumed_steps}/{run.step_budget} steps
             {run.stop_reason ? ` · ${run.stop_reason.replaceAll('_', ' ')}` : ''}

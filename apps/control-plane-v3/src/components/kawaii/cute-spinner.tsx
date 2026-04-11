@@ -30,18 +30,14 @@ export function CuteSpinner({ size = 'md', className }: CuteSpinnerProps) {
   );
 }
 
-export function CuteLoading({
-  text,
-  className,
-}: {
-  text?: string;
-  className?: string;
-}) {
+export function CuteLoading({ text, className }: { text?: string; className?: string }) {
   const { t } = useI18n();
   return (
     <div className={cn('flex flex-col items-center gap-3', className)}>
       <CuteSpinner />
-      <span className="text-sm font-medium text-[var(--kw-primary-500)]">{text ?? t('common.loading')}</span>
+      <span className="text-sm font-medium text-[var(--kw-primary-500)]">
+        {text ?? t('common.loading')}
+      </span>
     </div>
   );
 }

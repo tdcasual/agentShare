@@ -69,9 +69,7 @@ export function AIAgentsSection({
     <Card variant="feature" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-            Agent Workspaces
-          </h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Agent Workspaces</h2>
           <p className="text-sm text-[var(--kw-text-muted)]">
             Workspace and runtime records from `/api/openclaw/agents` and `/api/openclaw/sessions`
           </p>
@@ -80,23 +78,20 @@ export function AIAgentsSection({
       </div>
 
       {isLoading ? (
-        <SectionLoading message={t("identities.loadingAgents")} />
+        <SectionLoading message={t('identities.loadingAgents')} />
       ) : shouldShowSessionExpired && isUnauthorizedError(error) ? (
-        <ManagementSessionRecoveryNotice message={t("identities.reloadAgents")} />
+        <ManagementSessionRecoveryNotice message={t('identities.reloadAgents')} />
       ) : shouldShowForbidden && isForbiddenError(error) ? (
-        <ManagementSessionRecoveryNotice message={t("identities.adminRequiredForAgents")} />
+        <ManagementSessionRecoveryNotice message={t('identities.adminRequiredForAgents')} />
       ) : errorMessage ? (
         <SectionError
           message={`OpenClaw agent data is temporarily unavailable. ${errorMessage}`}
-          actionLabel={t("identities.retryAgents")}
+          actionLabel={t('identities.retryAgents')}
           onRetry={onRetry}
           isRefreshing={isRefreshing}
         />
       ) : agents.length === 0 ? (
-        <EmptyState
-          icon={<Bot className="h-6 w-6" />}
-          message={t("identities.noAgents")}
-        />
+        <EmptyState icon={<Bot className="h-6 w-6" />} message={t('identities.noAgents')} />
       ) : filteredAgents.length === 0 ? (
         <EmptyState
           icon={<Bot className="h-6 w-6" />}
@@ -105,13 +100,13 @@ export function AIAgentsSection({
       ) : (
         <div className="space-y-3">
           {sessionsErrorMessage ? (
-            <div className="rounded-2xl border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/80 p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20 dark:text-[var(--kw-warning)]">
+            <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
               Session history is temporarily unavailable. {sessionsErrorMessage}
             </div>
           ) : null}
 
           {eventsErrorMessage ? (
-            <div className="rounded-2xl border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/80 p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20 dark:text-[var(--kw-warning)]">
+            <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
               Recent event feed is temporarily unavailable. {eventsErrorMessage}
             </div>
           ) : null}
@@ -181,9 +176,9 @@ function AgentCard({
     <div
       data-testid={`agent-card-${agent.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`rounded-2xl border bg-white/90 p-4 dark:bg-[var(--kw-dark-surface)]/90 ${
+      className={`dark:bg-[var(--kw-dark-surface)]/90 rounded-2xl border bg-white/90 p-4 ${
         isFocused
-          ? 'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]'
+          ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]'
       }`}
     >

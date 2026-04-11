@@ -182,7 +182,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
         <nav className="space-y-2 p-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-10 animate-pulse rounded-2xl bg-[var(--kw-primary-100)]/50" />
+            <div key={i} className="bg-[var(--kw-primary-100)]/50 h-10 animate-pulse rounded-2xl" />
           ))}
         </nav>
       </aside>
@@ -207,9 +207,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
         {!collapsed && (
           <div className="ml-3 overflow-hidden">
-            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">
-              Control Plane
-            </h1>
+            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">Control Plane</h1>
             <p className="text-xs text-[var(--kw-text-muted)]">V3 Dual Cosmos</p>
           </div>
         )}
@@ -219,11 +217,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <button
         onClick={onToggle}
         aria-expanded={!collapsed}
-        aria-label={
-          collapsed
-            ? t('sidebar.expand')
-            : t('sidebar.collapse')
-        }
+        aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
         type="button"
         className="absolute -right-3 top-20 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--kw-primary-200)] bg-white text-[var(--kw-text-muted)] shadow-sm transition-colors hover:border-[var(--kw-primary-300)] hover:text-[var(--kw-primary-500)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text-muted)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:text-[var(--kw-dark-primary)]"
       >
@@ -244,7 +238,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 'group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
                 isActive
                   ? 'bg-gradient-to-r from-[var(--kw-primary-50)] to-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:from-[var(--kw-dark-border)] dark:to-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
-                  : 'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)]/50 hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50 dark:hover:text-[var(--kw-dark-primary)]',
+                  : 'hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]',
                 collapsed && 'justify-center'
               )}
             >
@@ -288,7 +282,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 'flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
                 isActive
                   ? 'bg-gradient-to-r from-[var(--kw-surface-alt)] to-[var(--kw-border)] text-[var(--kw-text)] dark:from-[var(--kw-dark-border)] dark:to-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]'
-                  : 'text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)]/50 dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-surface-alt)]/50',
+                  : 'hover:bg-[var(--kw-surface-alt)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]',
                 collapsed && 'justify-center'
               )}
             >

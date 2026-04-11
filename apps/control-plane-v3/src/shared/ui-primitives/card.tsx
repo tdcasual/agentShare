@@ -4,13 +4,16 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const cardVariants = {
-  default: 'bg-white/90 dark:bg-[var(--kw-dark-surface)]/90 backdrop-blur-sm border border-[var(--kw-border)]/50',
+  default:
+    'bg-white/90 dark:bg-[var(--kw-dark-surface)]/90 backdrop-blur-sm border border-[var(--kw-border)]/50',
   elevated: 'bg-white shadow-lg shadow-[var(--kw-primary-100)]/50 dark:shadow-black/20',
   glass: 'bg-white/70 backdrop-blur-md border border-white/60',
   gradient:
     'bg-gradient-to-br from-pink-50/80 via-white/90 to-[var(--kw-purple-surface)]/80 border border-[var(--kw-border)]/30',
-  feature: 'bg-gradient-to-br from-pink-50/90 to-[var(--kw-purple-surface)]/90 relative overflow-hidden',
-  kawaii: 'bg-gradient-to-br from-white via-[var(--kw-primary-50)]/30 to-[var(--kw-purple-surface)]/50 border border-[var(--kw-border)]/40',
+  feature:
+    'bg-gradient-to-br from-pink-50/90 to-[var(--kw-purple-surface)]/90 relative overflow-hidden',
+  kawaii:
+    'bg-gradient-to-br from-white via-[var(--kw-primary-50)]/30 to-[var(--kw-purple-surface)]/50 border border-[var(--kw-border)]/40',
 } as const;
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -77,11 +80,7 @@ CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3
-      ref={ref}
-      className={cn('text-xl font-bold text-[var(--kw-text)]', className)}
-      {...props}
-    />
+    <h3 ref={ref} className={cn('text-xl font-bold text-[var(--kw-text)]', className)} {...props} />
   )
 );
 CardTitle.displayName = 'CardTitle';
@@ -103,7 +102,10 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('mt-4 flex items-center gap-3 border-t border-[var(--kw-border)]/50 pt-4', className)}
+      className={cn(
+        'border-[var(--kw-border)]/50 mt-4 flex items-center gap-3 border-t pt-4',
+        className
+      )}
       {...props}
     />
   )

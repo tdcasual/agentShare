@@ -107,7 +107,10 @@ describe('playbooks page', () => {
 
     await user.click(screen.getByRole('button', { name: /新建/i }));
     await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
-    await user.type(screen.getByPlaceholderText('playbooks.form.tagsPlaceholder'), 'incident,backend');
+    await user.type(
+      screen.getByPlaceholderText('playbooks.form.tagsPlaceholder'),
+      'incident,backend'
+    );
     await user.type(
       screen.getByPlaceholderText(/输入手册详细内容/i),
       'Inspect alerts, confirm scope, and notify responders.'

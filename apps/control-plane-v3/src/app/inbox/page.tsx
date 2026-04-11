@@ -117,7 +117,9 @@ const InboxContent = memo(function InboxContent() {
     <div className="space-y-6">
       <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{t('inbox.title')}</p>
+          <p className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            {t('inbox.title')}
+          </p>
           <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             {t('inbox.subtitle')}
           </p>
@@ -140,7 +142,7 @@ const InboxContent = memo(function InboxContent() {
       )}
 
       {error && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-[var(--kw-error)] bg-[var(--kw-rose-surface)]/80 p-6 text-center text-sm text-[var(--kw-error)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/50">
+        <div className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/50 flex flex-col items-center gap-3 rounded-3xl border border-[var(--kw-error)] p-6 text-center text-sm text-[var(--kw-error)]">
           <AlertCircle className="h-6 w-6" />
           <p className="font-semibold">{t('inbox.loadError')}</p>
           <p className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -155,7 +157,9 @@ const InboxContent = memo(function InboxContent() {
       {!isLoading && !error && events.length === 0 && (
         <Card variant="default">
           <CardContent>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{t('inbox.emptyTitle')}</p>
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('inbox.emptyTitle')}
+            </p>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('inbox.emptyDesc')}
             </p>
@@ -164,7 +168,7 @@ const InboxContent = memo(function InboxContent() {
       )}
 
       {!isLoading && !error && focusedEvent && (
-        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
+        <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <CardHeader>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -215,8 +219,9 @@ const InboxContent = memo(function InboxContent() {
               className={cn(
                 'border-2 border-transparent',
                 event.id === selectedEventId &&
-                  'border-[var(--kw-primary-400)] ring-1 ring-[var(--kw-primary-400)]/20 dark:border-[var(--kw-primary-400)]',
-                !event.read_at && 'border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]/60'
+                  'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]',
+                !event.read_at &&
+                  'dark:border-[var(--kw-dark-primary)]/60 border-[var(--kw-primary-200)]'
               )}
             >
               <CardHeader>

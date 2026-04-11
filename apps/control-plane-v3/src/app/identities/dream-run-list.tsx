@@ -9,7 +9,7 @@ export interface DreamRunListProps {
 
 export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
   return (
-    <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
           Recent Dream Runs
@@ -24,7 +24,7 @@ export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
           {runs.slice(0, 3).map((run) => (
             <div
               key={run.id}
-              className="rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
+              className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <p className="font-medium text-[var(--kw-text)]">{run.objective}</p>

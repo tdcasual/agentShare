@@ -99,9 +99,7 @@ export function PWAInstallPrompt({
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-[var(--kw-text)]">{t('pwa.installTitle')}</h3>
-            <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-              {t('pwa.installDesc')}
-            </p>
+            <p className="mt-1 text-sm text-[var(--kw-text-muted)]">{t('pwa.installDesc')}</p>
           </div>
           <button
             type="button"

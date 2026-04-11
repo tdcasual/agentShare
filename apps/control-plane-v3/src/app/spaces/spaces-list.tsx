@@ -37,12 +37,10 @@ export function SpacesList({
 }: SpacesListProps) {
   const { t } = useI18n();
   return (
-    <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-            Persisted spaces
-          </h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Persisted spaces</h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
             API-backed operational containers with explicit members and timeline history.
           </p>
@@ -63,9 +61,9 @@ export function SpacesList({
       </div>
 
       {isLoading && spaces.length === 0 ? (
-        <SectionNotice message={t("spaces.loadingSpaces")} />
+        <SectionNotice message={t('spaces.loadingSpaces')} />
       ) : spaces.length === 0 ? (
-        <SectionNotice message={t("spaces.noSpaces")} />
+        <SectionNotice message={t('spaces.noSpaces')} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {spaces.map((space) => (
@@ -73,7 +71,7 @@ export function SpacesList({
               key={space.id}
               role="group"
               aria-label={`${space.name} space`}
-              className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/40 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
+              className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -101,18 +99,16 @@ export function SpacesList({
                 {space.timeline.slice(0, 2).map((entry) => (
                   <div
                     key={entry.id}
-                    className="rounded-xl border border-white/70 bg-white/70 px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
+                    className="dark:bg-[var(--kw-dark-surface)]/80 rounded-xl border border-white/70 bg-white/70 px-3 py-2 dark:border-[var(--kw-dark-border)]"
                   >
-                    <p className="text-sm font-medium text-[var(--kw-text)]">
-                      {entry.summary}
-                    </p>
+                    <p className="text-sm font-medium text-[var(--kw-text)]">{entry.summary}</p>
                     <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--kw-text-muted)]">
                       {entry.entry_type.replaceAll('_', ' ')}
                     </p>
                   </div>
                 ))}
                 {space.timeline.length === 0 ? (
-                  <SectionNotice message={t("spaces.noTimelineEntries")} />
+                  <SectionNotice message={t('spaces.noTimelineEntries')} />
                 ) : null}
               </div>
             </div>

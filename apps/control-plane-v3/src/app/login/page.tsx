@@ -137,9 +137,7 @@ export default function LoginPage() {
               <Heart className="h-4 w-4" />
               <span className="uppercase tracking-wider">{t('auth.login.subtitle')}</span>
             </div>
-            <h1 className="text-4xl font-bold text-[var(--kw-text)]">
-              {t('auth.login.title')}
-            </h1>
+            <h1 className="text-4xl font-bold text-[var(--kw-text)]">{t('auth.login.title')}</h1>
             <p className="mx-auto max-w-sm text-[var(--kw-text-muted)]">
               {t('auth.login.description')}
             </p>
@@ -171,7 +169,7 @@ export default function LoginPage() {
             />
 
             {/* Status message */}
-            <div className="rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-primary-50)]/50 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/50 dark:text-[var(--kw-dark-text-muted)]">
+            <div className="bg-[var(--kw-primary-50)]/50 dark:bg-[var(--kw-dark-bg)]/50 rounded-2xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
               {error ? (
                 <span
                   role="alert"

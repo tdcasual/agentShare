@@ -59,9 +59,7 @@ describe('GlobalSearch', () => {
   it('renders grouped backend search results for assets and skills', async () => {
     render(<GlobalSearch />);
 
-    fireEvent.focus(
-      screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' })
-    );
+    fireEvent.focus(screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' }));
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'signal' } });
 
     expect(await screen.findByText('globalSearch.groups.assets')).toBeInTheDocument();
@@ -73,9 +71,7 @@ describe('GlobalSearch', () => {
   it('navigates to the selected grouped result', async () => {
     render(<GlobalSearch />);
 
-    fireEvent.focus(
-      screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' })
-    );
+    fireEvent.focus(screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' }));
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'signal' } });
 
     fireEvent.click(await screen.findByRole('button', { name: /signal secret/i }));
@@ -86,9 +82,7 @@ describe('GlobalSearch', () => {
   it('routes event search results through the inbox focus state', async () => {
     render(<GlobalSearch />);
 
-    fireEvent.focus(
-      screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' })
-    );
+    fireEvent.focus(screen.getByRole('searchbox', { name: 'globalSearch.ariaLabel' }));
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'signal' } });
 
     fireEvent.click(await screen.findByRole('button', { name: /signal event/i }));

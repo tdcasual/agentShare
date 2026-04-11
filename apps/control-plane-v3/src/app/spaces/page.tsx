@@ -170,7 +170,9 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : t('spaces.errors.approveReviewFailed'));
+      setActionError(
+        error instanceof Error ? error.message : t('spaces.errors.approveReviewFailed')
+      );
     } finally {
       setActionKey(null);
     }
@@ -193,7 +195,9 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : t('spaces.errors.rejectReviewFailed'));
+      setActionError(
+        error instanceof Error ? error.message : t('spaces.errors.rejectReviewFailed')
+      );
     } finally {
       setActionKey(null);
     }
@@ -219,9 +223,7 @@ function SpacesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(
-        error instanceof Error ? error.message : t('spaces.errors.addMemberFailed')
-      );
+      setActionError(error instanceof Error ? error.message : t('spaces.errors.addMemberFailed'));
     }
   }
 
@@ -232,7 +234,7 @@ function SpacesContent() {
         <section className="relative overflow-hidden rounded-[2rem] border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-orange-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/70 dark:text-[var(--kw-warning)]">
+              <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-orange-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">
                 <Sparkles className="h-3.5 w-3.5" />
                 Operations Space
               </div>
@@ -269,7 +271,7 @@ function SpacesContent() {
 
       {/* Focused Context */}
       {focusedAgent || focusedEvent || focusedSpace ? (
-        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
+        <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               Focused workspace context
@@ -280,9 +282,7 @@ function SpacesContent() {
               </p>
             ) : null}
             {focusedAgent ? (
-              <h2 className="text-lg font-semibold text-[var(--kw-text)]">
-                {focusedAgent.name}
-              </h2>
+              <h2 className="text-lg font-semibold text-[var(--kw-text)]">{focusedAgent.name}</h2>
             ) : null}
             {focusedEvent ? (
               <p className="text-sm text-[var(--kw-text-muted)]">
@@ -295,11 +295,11 @@ function SpacesContent() {
 
       {/* Alerts */}
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t("spaces.sessionExpired")} />
+        <ManagementSessionExpiredAlert message={t('spaces.sessionExpired')} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t("spaces.sessionForbidden")} />
+        <ManagementForbiddenAlert message={t('spaces.sessionForbidden')} />
       ) : null}
 
       {actionNotice ? (
@@ -307,7 +307,7 @@ function SpacesContent() {
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)]/80 text-[var(--kw-green-text)] dark:border-[var(--kw-dark-success-surface)]/50 dark:bg-[var(--kw-dark-success-surface)]/20 dark:text-[var(--kw-dark-mint)]"
+          className="bg-[var(--kw-green-surface)]/80 dark:border-[var(--kw-dark-success-surface)]/50 dark:bg-[var(--kw-dark-success-surface)]/20 border border-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]"
         >
           {actionNotice}
         </Card>
@@ -318,7 +318,7 @@ function SpacesContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {actionError ?? gateError}
         </Card>
@@ -374,12 +374,10 @@ function SpacesContent() {
             />
 
             {/* Market Inventory */}
-            <Card className="space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-                    Market Inventory
-                  </h2>
+                  <h2 className="text-xl font-semibold text-[var(--kw-text)]">Market Inventory</h2>
                   <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                     Published assets and skills currently visible to the agent ecosystem.
                   </p>
@@ -418,7 +416,9 @@ function SpacesContent() {
               if (consumeUnauthorized(error)) {
                 return;
               }
-              setActionError(error instanceof Error ? error.message : t('spaces.errors.createWorkspaceFailed'));
+              setActionError(
+                error instanceof Error ? error.message : t('spaces.errors.createWorkspaceFailed')
+              );
             }
           }}
           isCreating={isCreating}

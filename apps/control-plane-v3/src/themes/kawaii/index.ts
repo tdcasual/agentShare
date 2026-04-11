@@ -97,8 +97,10 @@ export const kawaiiTheme: ThemeDefinition = {
     Input: {
       base: 'w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200 placeholder:text-[var(--kw-text-muted)]',
       states: {
-        focus: 'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
-        error: 'border-[var(--kw-rose-surface)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
+        focus:
+          'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
+        error:
+          'border-[var(--kw-rose-surface)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
       },
     },
 
@@ -106,13 +108,18 @@ export const kawaiiTheme: ThemeDefinition = {
       base: 'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium',
       variants: {
         default: 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)]',
-        success: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] border border-[var(--kw-green-surface)]',
-        warning: 'bg-[var(--kw-amber-surface)] text-[var(--kw-amber-text)] border border-[var(--kw-amber-surface)]',
-        error: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] border border-[var(--kw-rose-surface)]',
+        success:
+          'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] border border-[var(--kw-green-surface)]',
+        warning:
+          'bg-[var(--kw-amber-surface)] text-[var(--kw-amber-text)] border border-[var(--kw-amber-surface)]',
+        error:
+          'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] border border-[var(--kw-rose-surface)]',
         info: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] border border-[var(--kw-sky-surface)]',
         pink: 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] border border-[var(--kw-primary-200)]',
-        human: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] border border-[var(--kw-sky-surface)]',
-        agent: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] border border-[var(--kw-green-surface)]',
+        human:
+          'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] border border-[var(--kw-sky-surface)]',
+        agent:
+          'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] border border-[var(--kw-green-surface)]',
       },
     },
 

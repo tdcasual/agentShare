@@ -331,10 +331,12 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+          <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               <Badge variant="primary">Operator</Badge>
-              <span className="dark:text-[var(--kw-dark-text)]">{session?.email ?? t('common.loading')}</span>
+              <span className="dark:text-[var(--kw-dark-text)]">
+                {session?.email ?? t('common.loading')}
+              </span>
               <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
               <span>{session?.role ?? '...'}</span>
             </div>
@@ -360,7 +362,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         </div>
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
             <span className="sr-only">Search identities</span>
@@ -370,7 +372,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={t("identities.searchPlaceholder")}
+                placeholder={t('identities.searchPlaceholder')}
                 aria-label="Search identities"
                 className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--kw-text-muted)] dark:placeholder:text-[var(--kw-dark-text-muted)]"
               />
@@ -390,10 +392,10 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       </Card>
 
       {focusedIdentity ? (
-        <Card className="border border-[var(--kw-primary-200)] bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10">
+        <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-              {t("identities.focusedIdentity")}
+              {t('identities.focusedIdentity')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {'name' in focusedIdentity ? focusedIdentity.name : focusedIdentity.display_name}
@@ -417,13 +419,15 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border border-[var(--kw-sky-surface)] bg-[var(--kw-sky-surface)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
+        <Card className="bg-[var(--kw-sky-surface)]/70 dark:bg-[var(--kw-dark-bg)]/80 border border-[var(--kw-sky-surface)] dark:border-[var(--kw-dark-border)]">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:bg-[var(--kw-dark-sky-accent-surface)] dark:text-[var(--kw-dark-sky)]">
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">Human supervisors</h2>
+              <h2 className="font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                Human supervisors
+              </h2>
               <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 Human operators supervise policy, approvals, and account hygiene across the control
                 plane.
@@ -432,7 +436,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           </div>
         </Card>
 
-        <Card className="border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)]/70 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]/80">
+        <Card className="bg-[var(--kw-green-surface)]/70 dark:bg-[var(--kw-dark-bg)]/80 border border-[var(--kw-green-surface)] dark:border-[var(--kw-dark-border)]">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-green-accent-surface)] dark:text-[var(--kw-dark-mint)]">
               <Bot className="h-5 w-5" />
@@ -450,10 +454,10 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         </Card>
       </div>
 
-      <Card className="border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)]/90 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20">
+      <Card className="bg-[var(--kw-amber-surface)]/90 dark:bg-[var(--kw-dark-amber-surface)]/20 border border-[var(--kw-amber-surface)] dark:border-[var(--kw-dark-amber-surface)]">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/30">
+            <div className="dark:bg-[var(--kw-dark-amber-surface)]/30 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-amber-surface)]">
               <ShieldCheck className="h-6 w-6 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
             </div>
             <div>
@@ -470,17 +474,17 @@ const IdentitiesContent = memo(function IdentitiesContent() {
 
           <div className="grid gap-3 sm:grid-cols-3">
             <CoverageMetric
-              label={t("identities.metrics.humanCoverage")}
+              label={t('identities.metrics.humanCoverage')}
               value={`${ownerCount} owner${ownerCount === 1 ? '' : 's'}`}
               hint={`${operatorCount} active operator${operatorCount === 1 ? '' : 's'} on duty`}
             />
             <CoverageMetric
-              label={t("identities.metrics.agentsWithSessions")}
+              label={t('identities.metrics.agentsWithSessions')}
               value={agentsWithSessionsCount.toString()}
               hint={`${Math.max(agents.length - agentsWithSessionsCount, 0)} awaiting first runtime session`}
             />
             <CoverageMetric
-              label={t("identities.metrics.workspaceReadyAgents")}
+              label={t('identities.metrics.workspaceReadyAgents')}
               value={workspaceReadyCount.toString()}
               hint={`${Math.max(agents.length - workspaceReadyCount, 0)} missing workspace metadata`}
             />
@@ -490,30 +494,38 @@ const IdentitiesContent = memo(function IdentitiesContent() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
-          label={t("identities.metrics.activeOperators")}
+          label={t('identities.metrics.activeOperators')}
           value={accountsErrorMessage ? t('common.nA') : operatorCount.toString()}
           hint={
-            accountsErrorMessage ? t('identities.accountsUnavailable') : t('common.totalAccounts', { count: adminAccounts.length })
+            accountsErrorMessage
+              ? t('identities.accountsUnavailable')
+              : t('common.totalAccounts', { count: adminAccounts.length })
           }
         />
         <MetricCard
-          label={t("identities.metrics.owners")}
+          label={t('identities.metrics.owners')}
           value={accountsErrorMessage ? t('common.nA') : ownerCount.toString()}
-          hint={accountsErrorMessage ? t('identities.accountsUnavailable') : t('identities.ownersHint')}
+          hint={
+            accountsErrorMessage ? t('identities.accountsUnavailable') : t('identities.ownersHint')
+          }
         />
         <MetricCard
-          label={t("identities.metrics.activeAgents")}
+          label={t('identities.metrics.activeAgents')}
           value={agentsErrorMessage ? t('common.nA') : activeAgentCount.toString()}
-          hint={agentsErrorMessage ? t('identities.agentsUnavailable') : t('common.registeredAgents', { count: agents.length })}
+          hint={
+            agentsErrorMessage
+              ? t('identities.agentsUnavailable')
+              : t('common.registeredAgents', { count: agents.length })
+          }
         />
       </div>
 
       {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t("identities.sessionExpired")} />
+        <ManagementSessionExpiredAlert message={t('identities.sessionExpired')} />
       ) : null}
 
       {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t("identities.sessionForbidden")} />
+        <ManagementForbiddenAlert message={t('identities.sessionForbidden')} />
       ) : null}
 
       {actionError ? (
@@ -521,7 +533,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           role="alert"
           aria-live="polite"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           {actionError}
         </Card>
@@ -532,7 +544,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
-          className="border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 text-[var(--kw-rose-text)] dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 dark:text-[var(--kw-error)]"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <span>{guardedError}</span>
@@ -601,14 +613,16 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       ) : null}
 
       {!isLoading && !guardedError ? (
-        <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
               <h3 className="mb-1 font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {hasActiveSearch ? t('identities.snapshot.filtered') : t('identities.snapshot.live')}
+                {hasActiveSearch
+                  ? t('identities.snapshot.filtered')
+                  : t('identities.snapshot.live')}
               </h3>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {hasActiveSearch

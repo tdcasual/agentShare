@@ -61,9 +61,7 @@ export function MemberManager({
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-[var(--kw-primary-500)]" />
-          <h3 className="font-semibold text-[var(--kw-text)]">
-            {canManage ? '成员管理' : '成员'}
-          </h3>
+          <h3 className="font-semibold text-[var(--kw-text)]">{canManage ? '成员管理' : '成员'}</h3>
           <Badge variant="secondary">{members.length}</Badge>
         </div>
         {canManage ? (
@@ -82,7 +80,7 @@ export function MemberManager({
       {canManage && showAddForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-4 space-y-3 rounded-xl bg-[var(--kw-primary-50)]/50 p-4 dark:bg-[var(--kw-dark-bg)]"
+          className="bg-[var(--kw-primary-50)]/50 mb-4 space-y-3 rounded-xl p-4 dark:bg-[var(--kw-dark-bg)]"
         >
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -179,7 +177,7 @@ export function MemberManager({
               className="flex items-center justify-between rounded-xl bg-[var(--kw-surface-alt)] p-3 dark:bg-[var(--kw-dark-surface)]"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-pink-surface)]/20">
+                <div className="dark:bg-[var(--kw-dark-pink-surface)]/20 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
                   {member.member_type === 'human' ? (
                     <User className="h-4 w-4 text-[var(--kw-primary-500)]" />
                   ) : (

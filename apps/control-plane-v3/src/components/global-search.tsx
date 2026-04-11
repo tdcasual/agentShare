@@ -140,9 +140,9 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder={t("globalSearch.placeholder")}
-          aria-label={t("globalSearch.ariaLabel")}
-          className="w-full rounded-full border-none bg-[var(--kw-surface-alt)]/80 py-2 pl-11 pr-12 text-sm text-[var(--kw-text)] transition-colors transition-shadow focus:bg-white focus:ring-2 focus:ring-[var(--kw-primary-300)] dark:bg-[var(--kw-dark-bg)]/80 dark:text-[var(--kw-dark-text)] dark:focus:bg-[var(--kw-dark-bg)] dark:focus:ring-[var(--kw-dark-primary)]/50"
+          placeholder={t('globalSearch.placeholder')}
+          aria-label={t('globalSearch.ariaLabel')}
+          className="bg-[var(--kw-surface-alt)]/80 dark:bg-[var(--kw-dark-bg)]/80 dark:focus:ring-[var(--kw-dark-primary)]/50 w-full rounded-full border-none py-2 pl-11 pr-12 text-sm text-[var(--kw-text)] transition-colors transition-shadow focus:bg-white focus:ring-2 focus:ring-[var(--kw-primary-300)] dark:text-[var(--kw-dark-text)] dark:focus:bg-[var(--kw-dark-bg)]"
         />
         <kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded border border-[var(--kw-border)] bg-white px-2 py-0.5 text-xs text-[var(--kw-text-muted)] md:flex dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
           <Command className="h-3 w-3" aria-hidden="true" />
@@ -155,13 +155,13 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-[var(--kw-text-muted)]">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">{t("globalSearch.searching")}</span>
+              <span className="text-sm">{t('globalSearch.searching')}</span>
             </div>
           )}
 
           {error && (
             <div className="p-4 text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-              {error instanceof Error ? error.message : t("globalSearch.searchFailed")}
+              {error instanceof Error ? error.message : t('globalSearch.searchFailed')}
             </div>
           )}
 
@@ -196,20 +196,18 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
 
           {!isLoading && !error && hasQuery && groupedResults.length === 0 && (
             <div className="p-4 text-center text-[var(--kw-text-muted)]">
-              <p className="text-sm">{t("globalSearch.noResults")}</p>
-              <p className="mt-1 text-xs">
-                {t("globalSearch.noResultsHint")}
-              </p>
+              <p className="text-sm">{t('globalSearch.noResults')}</p>
+              <p className="mt-1 text-xs">{t('globalSearch.noResultsHint')}</p>
             </div>
           )}
 
           {!hasQuery && (
             <div className="p-4 text-sm text-[var(--kw-text-muted)]">
-              <p className="mb-1 font-medium">{t("globalSearch.searchTipsTitle")}</p>
+              <p className="mb-1 font-medium">{t('globalSearch.searchTipsTitle')}</p>
               <ul className="space-y-1 text-xs">
-                <li>• {t("globalSearch.searchTip1")}</li>
-                <li>• {t("globalSearch.searchTip2")}</li>
-                <li>• {t("globalSearch.searchTip3")}</li>
+                <li>• {t('globalSearch.searchTip1')}</li>
+                <li>• {t('globalSearch.searchTip2')}</li>
+                <li>• {t('globalSearch.searchTip3')}</li>
               </ul>
             </div>
           )}

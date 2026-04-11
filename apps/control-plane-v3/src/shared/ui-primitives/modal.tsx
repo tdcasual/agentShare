@@ -119,7 +119,7 @@ export function Modal({
       {/* Backdrop */}
       <button
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        aria-label={t("common.closeModal")}
+        aria-label={t('common.closeModal')}
         type="button"
         onClick={onClose}
       />
@@ -142,18 +142,12 @@ export function Modal({
           <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-6 py-4">
             <div>
               {title && (
-                <h2
-                  id="modal-title"
-                  className="text-xl font-semibold text-[var(--kw-text)]"
-                >
+                <h2 id="modal-title" className="text-xl font-semibold text-[var(--kw-text)]">
                   {title}
                 </h2>
               )}
               {description && (
-                <p
-                  id="modal-description"
-                  className="mt-1 text-sm text-[var(--kw-text-muted)]"
-                >
+                <p id="modal-description" className="mt-1 text-sm text-[var(--kw-text-muted)]">
                   {description}
                 </p>
               )}
@@ -162,7 +156,7 @@ export function Modal({
               <button
                 onClick={onClose}
                 type="button"
-                aria-label={t("common.closeModal")}
+                aria-label={t('common.closeModal')}
                 className="rounded-full p-2 transition-colors hover:bg-[var(--kw-surface-alt)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
               >
                 <X className="h-5 w-5 text-[var(--kw-text-muted)]" />
@@ -202,9 +196,7 @@ export function ConfirmModal({
   return (
     <Modal {...props} size="sm">
       <div className="flex flex-col gap-4">
-        <p className="text-[var(--kw-text-muted)]">
-          {message || t('modal.defaultConfirmMessage')}
-        </p>
+        <p className="text-[var(--kw-text-muted)]">{message || t('modal.defaultConfirmMessage')}</p>
         <div className="flex justify-end gap-3">
           <button
             onClick={props.onClose}

@@ -57,7 +57,7 @@ export function SkeletonLoader({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="h-20 animate-pulse rounded-2xl bg-[var(--kw-primary-100)]/50 dark:bg-[var(--kw-dark-pink-surface)]/20"
+          className="bg-[var(--kw-primary-100)]/50 dark:bg-[var(--kw-dark-pink-surface)]/20 h-20 animate-pulse rounded-2xl"
         />
       ))}
     </div>

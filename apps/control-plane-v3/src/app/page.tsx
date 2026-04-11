@@ -75,10 +75,10 @@ export default function HubPage() {
           className="w-full max-w-lg space-y-4 text-center"
         >
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">Control Plane V3</p>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)]">
-              {t('hub.unableToOpen')}
-            </h1>
+            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">
+              Control Plane V3
+            </p>
+            <h1 className="text-3xl font-bold text-[var(--kw-text)]">{t('hub.unableToOpen')}</h1>
             <p className="text-[var(--kw-text-muted)]">{error}</p>
           </div>
         </Card>
@@ -91,10 +91,10 @@ export default function HubPage() {
       <div className="flex min-h-screen items-center justify-center px-6">
         <Card variant="feature" className="w-full max-w-lg space-y-4 text-center">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">Control Plane V3</p>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)]">
-              {t('hub.routing')}
-            </h1>
+            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">
+              Control Plane V3
+            </p>
+            <h1 className="text-3xl font-bold text-[var(--kw-text)]">{t('hub.routing')}</h1>
             <p className="text-[var(--kw-text-muted)]">{t('hub.checkingStatus')}</p>
           </div>
         </Card>
@@ -123,7 +123,10 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   const pendingReviews = (reviewsQuery.data?.items ?? []).filter(
     (item) => item.publication_status === 'pending_review'
   );
-  const totalTokens = Object.values(tokensByAgent).reduce((count, tokens) => count + tokens.length, 0);
+  const totalTokens = Object.values(tokensByAgent).reduce(
+    (count, tokens) => count + tokens.length,
+    0
+  );
   const tasksToday = events.filter(
     (event) => isToday(event.created_at) && event.subject_type === 'task'
   ).length;
@@ -155,7 +158,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         </Link>
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 p-4 dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-4">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)]">
           <Badge variant="primary">{t('hub.inviteOnly')}</Badge>
           <span>{t('hub.snapshotDescription')}</span>
@@ -224,7 +227,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                   {adminAccountList.map((account) => (
                     <div
                       key={account.id}
-                      className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
+                      className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -242,7 +245,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                     </div>
                   ))}
                   {adminAccountList.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55 dark:text-[var(--kw-dark-text-muted)]">
+                    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                       {t('hub.emptyHumans')}
                     </div>
                   ) : null}
@@ -260,13 +263,11 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                   {agents.map((agent) => (
                     <div
                       key={agent.id}
-                      className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
+                      className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-medium text-[var(--kw-text)]">
-                            {agent.name}
-                          </p>
+                          <p className="font-medium text-[var(--kw-text)]">{agent.name}</p>
                           <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
                             {agent.id}
                           </p>
@@ -293,7 +294,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                     </div>
                   ))}
                   {agents.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55 dark:text-[var(--kw-dark-text-muted)]">
+                    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                       {t('hub.emptyAgents')}
                     </div>
                   ) : null}
@@ -324,7 +325,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                 {recentActivity.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-center gap-4 p-4 transition-colors hover:bg-[var(--kw-primary-50)]/30"
+                    className="hover:bg-[var(--kw-primary-50)]/30 flex items-center gap-4 p-4 transition-colors"
                   >
                     <div
                       className={cn(
@@ -337,9 +338,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                       {activity.actorLabel.slice(0, 1).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-[var(--kw-text)]">
-                        {activity.summary}
-                      </p>
+                      <p className="text-sm text-[var(--kw-text)]">{activity.summary}</p>
                       <p className="mt-0.5 truncate text-xs text-[var(--kw-text-muted)]">
                         {activity.actorLabel} · {activity.details}
                       </p>
@@ -357,9 +356,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">
-              {t('hub.quickActions')}
-            </h3>
+            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.quickActions')}</h3>
             <div className="space-y-3">
               <ActionButton
                 href="/tasks"
@@ -385,19 +382,17 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           </Card>
 
           <Card className="p-6">
-            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">
-              {t('hub.reviewQueue')}
-            </h3>
+            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.reviewQueue')}</h3>
             <div className="space-y-2">
               {pendingReviews.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/55 dark:text-[var(--kw-dark-text-muted)]">
+                <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('hub.emptyReviews')}
                 </div>
               ) : (
                 pendingReviews.slice(0, 4).map((item) => (
                   <div
                     key={`${item.resource_kind}-${item.resource_id}`}
-                    className="rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/60"
+                    className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
                   >
                     <p className="font-medium text-[var(--kw-text)]">{item.title}</p>
                     <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
@@ -412,7 +407,9 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           <Card className="border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)] p-6">
             <div className="mb-3 flex items-center gap-3">
               <div className="h-3 w-3 animate-pulse rounded-full bg-[var(--kw-green-text)]" />
-              <h3 className="font-semibold text-[var(--kw-green-text)]">{t('hub.controlSurfaceReady')}</h3>
+              <h3 className="font-semibold text-[var(--kw-green-text)]">
+                {t('hub.controlSurfaceReady')}
+              </h3>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-[var(--kw-green-text)]">
@@ -513,7 +510,10 @@ function isToday(timestamp: string) {
   );
 }
 
-function formatRelativeTime(timeString: string, t: (key: string, options?: Record<string, string | number>) => string) {
+function formatRelativeTime(
+  timeString: string,
+  t: (key: string, options?: Record<string, string | number>) => string
+) {
   const date = new Date(timeString);
   const now = new Date();
   const diffMs = Math.max(0, now.getTime() - date.getTime());
