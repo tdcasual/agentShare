@@ -85,6 +85,7 @@ class StoreImpl<T> implements Store<T> {
         listener(this.state, prevState);
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
+           
           console.error(`Error in store ${this.name} listener:`, err);
         }
       }

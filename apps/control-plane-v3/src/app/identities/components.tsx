@@ -4,23 +4,6 @@
 
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/ui-primitives/button';
-import { Card } from '@/shared/ui-primitives/card';
-
-export interface MetricCardProps {
-  label: string;
-  value: string;
-  hint: string;
-}
-
-export function MetricCard({ label, value, hint }: MetricCardProps) {
-  return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-      <p className="text-sm text-[var(--kw-text-muted)]">{label}</p>
-      <p className="text-3xl font-bold text-[var(--kw-text)]">{value}</p>
-      <p className="text-xs text-[var(--kw-text-muted)]">{hint}</p>
-    </Card>
-  );
-}
 
 export interface CoverageMetricProps {
   label: string;

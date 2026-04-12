@@ -22,8 +22,12 @@ import {
   KeyRound,
   ShieldCheck,
 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
+
+const UsersIcon = <Users className="h-6 w-6 text-[var(--kw-sky-text)]" />;
+const BotIcon = <Bot className="h-6 w-6 text-[var(--kw-green-text)]" />;
+const KeyRoundIcon = <KeyRound className="h-6 w-6 text-[var(--kw-purple-text)]" />;
+const CheckSquareIcon = <CheckSquare className="h-6 w-6 text-[var(--kw-orange-text)]" />;
 
 export default function HubPage() {
   const router = useRouter();
@@ -63,7 +67,9 @@ export default function HubPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, t]);
+    // t 不需要作为依赖，入口状态检查只在挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 
   if (error) {
     return (
@@ -169,28 +175,28 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          icon={<Users className="h-6 w-6 text-[var(--kw-sky-text)]" />}
+          icon={UsersIcon}
           label={t('identities.humans')}
           value={adminAccountList.length}
           trend={t('hub.stats.humansTrend')}
           color="sky"
         />
         <StatCard
-          icon={<Bot className="h-6 w-6 text-[var(--kw-green-text)]" />}
+          icon={BotIcon}
           label={t('identities.agents')}
           value={agents.length}
           trend={t('hub.stats.agentsTrend')}
           color="green"
         />
         <StatCard
-          icon={<KeyRound className="h-6 w-6 text-[var(--kw-purple-text)]" />}
+          icon={KeyRoundIcon}
           label={t('navigation.tokens')}
           value={totalTokens}
           trend={t('hub.stats.tokensTrend')}
           color="purple"
         />
         <StatCard
-          icon={<CheckSquare className="h-6 w-6 text-[var(--kw-orange-text)]" />}
+          icon={CheckSquareIcon}
           label={t('hub.reviewQueue')}
           value={pendingReviews.length}
           trend={t('hub.stats.tasksTrend')}
@@ -495,10 +501,6 @@ const ActionButton = memo(function ActionButton({
     </Link>
   );
 });
-
-const cn = (...inputs: ClassValue[]) => {
-  return twMerge(clsx(inputs));
-};
 
 function isToday(timestamp: string) {
   const date = new Date(timestamp);
