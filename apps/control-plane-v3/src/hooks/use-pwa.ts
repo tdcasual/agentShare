@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '@/lib/logger';
 
 export interface PWAState {
@@ -117,49 +117,79 @@ export function usePWA(): PWAState {
 
   // 监听 Service Worker 更新
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      const handleControllerChange = () => {
-        logger.pwa.info('Service worker controller changed');
-        // 页面需要刷新以使用新版本的 service worker
-        window.location.reload();
+    if (!('serviceWorker' in navigator)) {return undefined;}
+
+    const handleControllerChange = () => {
+      logger.pwa.info('Service worker controller changed');
+      window.location.reload();
+    };
+
+    let registration: ServiceWorkerRegistration | null = null;
+    const stateChangeHandlers = new Map<ServiceWorker, EventListener>();
+
+    const handleUpdateFound = () => {
+      if (!registration) {return;}
+      const newWorker = registration.installing;
+      if (!newWorker) {return;}
+
+      const onStateChange = () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          setHasUpdate(true);
+          setUpdateWorker(newWorker);
+          logger.pwa.info('New app version available');
+        }
       };
+      newWorker.addEventListener('statechange', onStateChange);
+      stateChangeHandlers.set(newWorker, onStateChange);
+    };
 
-      const checkForUpdates = async () => {
-        const registration = await navigator.serviceWorker.ready;
-
-        // 检查更新
-        registration.update().catch((error) => {
-          logger.pwa.warn('Failed to check for updates', error);
-        });
-
-        // 监听更新
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // 新版本可用
-                setHasUpdate(true);
-                setUpdateWorker(newWorker);
-                logger.pwa.info('New app version available');
-              }
-            });
-          }
-        });
-      };
-
+    const setup = async () => {
+      registration = await navigator.serviceWorker.ready;
+      registration.addEventListener('updatefound', handleUpdateFound);
       navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
-      // 定期检查更新（每 60 分钟）
+      // 首次检查 + 定期更新
+      const checkForUpdates = () => {
+        registration!.update().catch((error) => {
+          logger.pwa.warn('Failed to check for updates', error);
+        });
+      };
       checkForUpdates();
       const interval = setInterval(checkForUpdates, 60 * 60 * 1000);
 
+      // 若当前已有 installing worker，立即处理
+      if (registration.installing) {
+        handleUpdateFound();
+      }
+
       return () => {
+        registration?.removeEventListener('updatefound', handleUpdateFound);
         navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
         clearInterval(interval);
+        stateChangeHandlers.forEach((handler, worker) => {
+          worker.removeEventListener('statechange', handler);
+        });
+        stateChangeHandlers.clear();
       };
-    }
-    return undefined;
+    };
+
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    setup().then((cleanupFn) => {
+      if (!cancelled) {
+        cleanup = cleanupFn;
+      } else {
+        // Component unmounted before setup completed — clean up immediately
+        cleanupFn?.();
+      }
+    }).catch((error) => {
+      logger.pwa.error('Failed to setup service worker update listener', error);
+    });
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
   }, []);
 
   // 安装应用

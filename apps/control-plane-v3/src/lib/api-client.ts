@@ -54,7 +54,14 @@ export async function apiFetch<T>(
     });
 
     const text = await response.text();
-    const payload = text ? (JSON.parse(text) as JsonValue) : null;
+    let payload: JsonValue | null = null;
+    if (text) {
+      try {
+        payload = JSON.parse(text) as JsonValue;
+      } catch {
+        throw new ApiError(response.status, '响应格式错误，无法解析 JSON');
+      }
+    }
 
     if (!response.ok) {
       const detail =

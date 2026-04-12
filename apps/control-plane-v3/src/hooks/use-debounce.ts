@@ -35,6 +35,12 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   delay: number
 ): (...args: Parameters<T>) => void {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const callbackRef = useRef(callback);
+
+  // Keep the callback ref up to date without resetting the debounce timer
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -52,10 +58,10 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
       }
 
       timeoutRef.current = setTimeout(() => {
-        callback(...args);
+        callbackRef.current(...args);
       }, delay);
     },
-    [callback, delay]
+    [delay]
   );
 }
 

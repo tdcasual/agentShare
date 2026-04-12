@@ -7,6 +7,7 @@
 'use client';
 
 import useSWR, { SWRConfiguration, mutate } from 'swr';
+import { useCallback } from 'react';
 import { swrConfig, pollingConfig } from '@/lib/swr-config';
 import * as api from './api';
 import type { Task, Run, TokenFeedback, TaskPriority, TaskTargetMode } from './types';
@@ -28,7 +29,7 @@ export function useTasks(options?: SWRConfiguration) {
  * 创建 Task（带乐观更新）
  */
 export function useCreateTask() {
-  return async (taskData: TaskCreateInput) => {
+  return useCallback(async (taskData: TaskCreateInput) => {
     // 乐观更新：先更新本地缓存
     const optimisticTask: Task = {
       id: 'temp-' + Date.now(),
@@ -67,7 +68,7 @@ export function useCreateTask() {
     await mutate('/api/tasks');
 
     return result;
-  };
+  }, []);
 }
 
 // ============================================
@@ -97,7 +98,7 @@ export function useTokenFeedback(tokenId: string | null, options?: SWRConfigurat
 }
 
 export function useCreateTaskTargetFeedback() {
-  return async (targetId: string, payload: TokenFeedbackCreateInput) => {
+  return useCallback(async (targetId: string, payload: TokenFeedbackCreateInput) => {
     const result = await api.createTaskTargetFeedback(targetId, payload);
     // 刷新相关缓存
     await mutate('/api/tasks');
@@ -108,7 +109,7 @@ export function useCreateTaskTargetFeedback() {
         (key[0] === TASK_DASHBOARD_FEEDBACK_KEY || key[0] === TASK_DASHBOARD_TOKENS_KEY)
     );
     return result;
-  };
+  }, []);
 }
 
 // ============================================

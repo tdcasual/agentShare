@@ -5,6 +5,8 @@
  * 支持延迟转换和缓存机制
  */
 
+import { logger } from './logger';
+
 // ============================================
 // 基础类型定义
 // ============================================
@@ -177,7 +179,7 @@ export function safeTransform<T>(transform: () => T, errorMessage: string): T | 
   try {
     return transform();
   } catch (error) {
-    console.error(errorMessage, error);
+    logger.error.error(errorMessage, error);
     return null;
   }
 }

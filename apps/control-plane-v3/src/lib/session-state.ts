@@ -7,8 +7,8 @@
  * - 会话刷新和注销
  */
 
-import { useCallback, useEffect, useState } from 'react';
-import type { ManagementSessionSummary } from '@/shared/types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ManagementSessionSummary, ManagementRole } from '@/shared/types';
 import { ApiError, apiFetch } from './api-client';
 
 export type SessionState =
@@ -22,7 +22,7 @@ export type SessionState =
 export interface SessionData {
   state: SessionState;
   email?: string;
-  role?: string;
+  role?: ManagementRole;
   sessionId?: string;
   lastLoadedAt?: number;
   error?: string;
@@ -150,8 +150,10 @@ export async function logout(): Promise<void> {
 export function useSession() {
   const [session, setSession] = useState<SessionData>(getGlobalSession());
   const [isLoading, setIsLoading] = useState(session.state === 'unknown');
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     const initialSession = getGlobalSession();
 
     // 订阅全局会话变化
@@ -161,19 +163,30 @@ export function useSession() {
     if (initialSession.state === 'unknown') {
       setIsLoading(true);
       resolveSession().then((newSession) => {
-        setGlobalSession(newSession);
-        setIsLoading(false);
+        if (mountedRef.current) {
+          setGlobalSession(newSession);
+          setIsLoading(false);
+        }
       });
+      return () => {
+        mountedRef.current = false;
+        unsubscribe();
+      };
     }
 
-    return unsubscribe;
+    return () => {
+      mountedRef.current = false;
+      unsubscribe();
+    };
   }, []);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
     const newSession = await resolveSession();
-    setGlobalSession(newSession);
-    setIsLoading(false);
+    if (mountedRef.current) {
+      setGlobalSession(newSession);
+      setIsLoading(false);
+    }
   }, []);
 
   const doLogin = useCallback(async (email: string, password: string) => {
@@ -182,7 +195,9 @@ export function useSession() {
       const result = await login(email, password);
       return result;
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -191,7 +206,9 @@ export function useSession() {
     try {
       await logout();
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 

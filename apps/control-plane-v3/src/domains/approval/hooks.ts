@@ -58,7 +58,7 @@ export function useApprovals(query?: ApprovalQuery, config?: SWRConfiguration) {
   // 转换DTO到Model
   const approvals = useMemo(() => {
     return (data?.items || []).map(toApprovalModel);
-  }, [data?.items]);
+  }, [data]);
 
   return {
     approvals,

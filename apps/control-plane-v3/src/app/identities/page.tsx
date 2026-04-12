@@ -28,7 +28,8 @@ import { readFocusedEntry } from '@/lib/focused-entry';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
-import { MetricCard, CoverageMetric } from './components';
+import { CoverageMetric } from './components';
+import { MetricCard } from '@/shared/ui-primitives/metric';
 import { HumanOperatorsSection } from './human-operators-section';
 import { AIAgentsSection } from './ai-agents-section';
 import { DreamRunDetailCard } from './dream-run-detail-card';
@@ -50,7 +51,7 @@ function matchesAdminAccountQuery(account: AdminAccountSummary, query: string) {
     return true;
   }
   return [account.display_name, account.email, account.role, account.status, account.id].some(
-    (value) => value.toLowerCase().includes(query)
+    (value) => value?.toLowerCase().includes(query)
   );
 }
 
@@ -494,6 +495,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
+          variant="identity"
           label={t('identities.metrics.activeOperators')}
           value={accountsErrorMessage ? t('common.nA') : operatorCount.toString()}
           hint={
@@ -503,6 +505,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           }
         />
         <MetricCard
+          variant="identity"
           label={t('identities.metrics.owners')}
           value={accountsErrorMessage ? t('common.nA') : ownerCount.toString()}
           hint={
@@ -510,6 +513,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           }
         />
         <MetricCard
+          variant="identity"
           label={t('identities.metrics.activeAgents')}
           value={agentsErrorMessage ? t('common.nA') : activeAgentCount.toString()}
           hint={

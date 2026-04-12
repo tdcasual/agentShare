@@ -7,6 +7,7 @@
 'use client';
 
 import useSWR, { SWRConfiguration, mutate } from 'swr';
+import { useCallback } from 'react';
 import { swrConfig, staticConfig } from '@/lib/swr-config';
 import * as api from './api';
 import type {
@@ -20,7 +21,7 @@ import type {
   OpenClawDreamRun,
   OpenClawSession,
 } from './types';
-import type { AgentToken } from '../task/types';
+import type { AgentToken } from '../shared-types';
 import type {
   AgentCreateInput,
   AdminAccountCreateInput,
@@ -53,19 +54,19 @@ export function useSession(options?: SWRConfiguration) {
 }
 
 export function useLogin() {
-  return async (payload: LoginInput) => {
+  return useCallback(async (payload: LoginInput) => {
     const result = await api.login(payload);
     await mutate('/api/session/me', result, false);
     return result;
-  };
+  }, []);
 }
 
 export function useLogout() {
-  return async () => {
+  return useCallback(async () => {
     const result = await api.logout();
     await mutate('/api/session/me', null, false);
     return result;
-  };
+  }, []);
 }
 
 // ============================================
@@ -84,21 +85,21 @@ export function useAgents(options?: SWRConfiguration) {
 }
 
 export function useCreateAgent() {
-  return async (payload: AgentCreateInput) => {
+  return useCallback(async (payload: AgentCreateInput) => {
     const result = await api.createAgent(payload);
     await mutate('/api/agents');
     return result;
-  };
+  }, []);
 }
 
 export function useDeleteAgent() {
-  return async (agentId: string) => {
+  return useCallback(async (agentId: string) => {
     const result = await api.deleteAgent(agentId);
     await mutate('/api/agents');
     await mutate(`/api/agents/${agentId}/tokens`, { items: [] }, false);
     await mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
     return result;
-  };
+  }, []);
 }
 
 export function useOpenClawAgents(options?: SWRConfiguration) {
@@ -113,30 +114,30 @@ export function useOpenClawAgents(options?: SWRConfiguration) {
 }
 
 export function useCreateOpenClawAgent() {
-  return async (payload: api.OpenClawAgentCreateInput) => {
+  return useCallback(async (payload: api.OpenClawAgentCreateInput) => {
     const result = await api.createOpenClawAgent(payload);
     await mutate('/api/openclaw/agents');
     return result;
-  };
+  }, []);
 }
 
 export function useUpdateOpenClawAgent() {
-  return async (agentId: string, payload: api.OpenClawAgentUpdateInput) => {
+  return useCallback(async (agentId: string, payload: api.OpenClawAgentUpdateInput) => {
     const result = await api.updateOpenClawAgent(agentId, payload);
     await mutate('/api/openclaw/agents');
     await mutate(`/api/openclaw/agents/${agentId}`);
     return result;
-  };
+  }, []);
 }
 
 export function useDeleteOpenClawAgent() {
-  return async (agentId: string) => {
+  return useCallback(async (agentId: string) => {
     const result = await api.deleteOpenClawAgent(agentId);
     await mutate('/api/openclaw/agents');
     await mutate('/api/openclaw/sessions');
     await mutate(`/api/openclaw/agents/${agentId}/files`, { items: [] }, false);
     return result;
-  };
+  }, []);
 }
 
 export function useOpenClawSessions(options?: SWRConfiguration) {
@@ -182,21 +183,21 @@ export function useOpenClawFiles(agentId: string | null, options?: SWRConfigurat
 }
 
 export function usePauseOpenClawDreamRun() {
-  return async (runId: string, reason: string) => {
+  return useCallback(async (runId: string, reason: string) => {
     const result = await api.pauseOpenClawDreamRun(runId, reason);
     await mutate('/api/openclaw/dream-runs');
     await mutate(`/api/openclaw/dream-runs/${runId}`);
     return result;
-  };
+  }, []);
 }
 
 export function useResumeOpenClawDreamRun() {
-  return async (runId: string) => {
+  return useCallback(async (runId: string) => {
     const result = await api.resumeOpenClawDreamRun(runId);
     await mutate('/api/openclaw/dream-runs');
     await mutate(`/api/openclaw/dream-runs/${runId}`);
     return result;
-  };
+  }, []);
 }
 
 // ============================================
@@ -215,19 +216,19 @@ export function useAdminAccounts(options?: SWRConfiguration) {
 }
 
 export function useCreateAdminAccount() {
-  return async (payload: AdminAccountCreateInput) => {
+  return useCallback(async (payload: AdminAccountCreateInput) => {
     const result = await api.createAdminAccount(payload);
     await mutate('/api/admin-accounts');
     return result;
-  };
+  }, []);
 }
 
 export function useDisableAdminAccount() {
-  return async (accountId: string) => {
+  return useCallback(async (accountId: string) => {
     const result = await api.disableAdminAccount(accountId);
     await mutate('/api/admin-accounts');
     return result;
-  };
+  }, []);
 }
 
 // ============================================
@@ -306,21 +307,21 @@ export function useAgentTokens(agentId: string | null, options?: SWRConfiguratio
 }
 
 export function useCreateAgentToken() {
-  return async (agentId: string, payload: AgentTokenCreateInput) => {
+  return useCallback(async (agentId: string, payload: AgentTokenCreateInput) => {
     const result = await api.createAgentToken(agentId, payload);
     await mutate(`/api/agents/${agentId}/tokens`);
     await mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
     return result;
-  };
+  }, []);
 }
 
 export function useRevokeAgentToken() {
-  return async (tokenId: string, agentId: string) => {
+  return useCallback(async (tokenId: string, agentId: string) => {
     const result = await api.revokeAgentToken(tokenId);
     await mutate(`/api/agents/${agentId}/tokens`);
     await mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
     return result;
-  };
+  }, []);
 }
 
 // ============================================

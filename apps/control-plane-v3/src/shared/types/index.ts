@@ -90,7 +90,8 @@ export type DomainEvents = IdentityEvents & TaskEvents & ReviewEvents;
 // 向后兼容的别名
 // ============================================
 
-// 身份相关别名（向后兼容）
+// 身份相关别名（向后兼容） — NOTE: HumanIdentity and AgentIdentity are both Identity.
+// Consumers should use discriminated access via identity.type instead.
 export type HumanIdentity = import('@/domains/identity/types').Identity;
 export type AgentIdentity = import('@/domains/identity/types').Identity;
 
@@ -100,7 +101,9 @@ export type RunSummary = import('@/domains/task/types').Run;
 export type TokenFeedbackSummary = import('@/domains/task/types').TokenFeedback;
 export type AgentTokenSummary = import('@/domains/task/types').AgentToken;
 
-// 输入类型别名
+// 输入类型别名 — NOTE: These alias the domain types (camelCase, typed unions).
+// The API client in @/lib/api-client exports separate types with snake_case fields.
+// Consumers importing from @/lib/api-client get the correct API-layer types.
 export type TaskCreateInput = import('@/domains/task/types').CreateTaskInput;
 export type TokenFeedbackCreateInput = import('@/domains/task/types').CreateFeedbackInput;
 
@@ -120,6 +123,9 @@ export type { ManagementSessionSummary } from '@/domains/identity/types';
 
 import type { ManagementSessionSummary } from '@/domains/identity/types';
 
+/** Role union shared between DTO and domain model */
+export type ManagementRole = ManagementSessionSummary['role'];
+
 /**
  * 前端使用的Domain Model
  * 使用 camelCase 和 Date 对象
@@ -129,7 +135,7 @@ export interface ManagementSession {
   readonly actorType: string;
   readonly sessionId: string;
   readonly email: string;
-  readonly role: string;
+  readonly role: ManagementRole;
   readonly authMethod: string;
   readonly expiresIn: number;
   readonly issuedAt: Date;
@@ -163,7 +169,7 @@ export function toManagementSessionDTO(model: ManagementSession): Omit<
     actor_type: model.actorType,
     session_id: model.sessionId,
     email: model.email,
-    role: model.role as 'viewer' | 'operator' | 'admin' | 'owner',
+    role: model.role,
     issued_at: Math.floor(model.issuedAt.getTime() / 1000),
     expires_at: Math.floor(model.expiresAt.getTime() / 1000),
   };
