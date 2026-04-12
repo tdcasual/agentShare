@@ -1,7 +1,6 @@
 services:
   caddy:
     image: caddy:2.10-alpine
-    container_name: agentshare-caddy
     depends_on:
       web:
         condition: service_healthy
@@ -23,7 +22,6 @@ services:
 
   web:
     image: ${WEB_IMAGE:?WEB_IMAGE is required}
-    container_name: agentshare-web
     depends_on:
       api:
         condition: service_healthy
@@ -45,7 +43,6 @@ services:
 
   api:
     image: ${API_IMAGE:?API_IMAGE is required}
-    container_name: agentshare-api
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,7 +76,6 @@ services:
 
   postgres:
     image: postgres:16
-    container_name: agentshare-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-agent_share}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -97,7 +93,6 @@ services:
 
   redis:
     image: redis:7
-    container_name: agentshare-redis
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
