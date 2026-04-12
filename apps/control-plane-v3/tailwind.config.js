@@ -36,6 +36,16 @@ const config = {
         'medium': '0 8px 30px rgba(255, 105, 180, 0.2)',
         'glow': '0 0 20px rgba(255, 105, 180, 0.4)',
       },
+      zIndex: {
+        background: '-10',
+        base: '0',
+        sticky: '30',
+        drawer: '40',
+        dropdown: '50',
+        modal: '60',
+        toast: '70',
+        skip: '80',
+      },
       animation: {
         'float': 'float 3s ease-in-out infinite',
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',

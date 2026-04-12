@@ -4,7 +4,35 @@
     "refreshFailed": "刷新审批失败",
     "rejectFailed": "拒绝请求失败",
     "sessionExpired": "您的管理会话已过期。请重新登录以查看审批。",
-    "sessionForbidden": "您没有权限查看审批。请使用更高权限的管理会话继续。"
+    "sessionForbidden": "您没有权限查看审批。请使用更高权限的管理会话继续。",
+    "title": "审批管理",
+    "description": "审核来自智能体和用户的请求",
+    "loading": "加载审批列表...",
+    "loadFailed": "加载审批失败",
+    "emptyTitle": "暂无审批请求",
+    "emptyDescAll": "当前没有审批请求。",
+    "emptyDescFiltered": "当前没有{status}的审批请求。",
+    "totalRecords": "共 {count} 条记录",
+    "status": {
+      "pending": "待审批",
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "expired": "已过期"
+    },
+    "actionType": {
+      "invoke": "调用",
+      "lease": "租赁"
+    },
+    "capability": "Capability",
+    "task": "Task",
+    "expiresAt": "过期",
+    "policyReason": "策略原因",
+    "source": "来源",
+    "reasonLabel": "申请理由",
+    "rejectReasonLabel": "拒绝原因",
+    "rejectReasonPlaceholder": "请输入拒绝原因...",
+    "confirmReject": "确认拒绝",
+    "processedBy": "{action}由 {decidedBy}"
   },
   "assets": {
     "allTypes": "所有类型",
@@ -39,7 +67,16 @@
       "selectSecretError": "请先选择一个密钥。",
       "title": "能力",
       "tokenAccess": "可见范围",
-      "tokenRequiredError": "选择指定 token 时，至少需要勾选一个 token。"
+      "tokenRequiredError": "选择指定 token 时，至少需要勾选一个 token。",
+      "specificTokens": "指定 token",
+      "specificAgents": "指定 agent",
+      "byTokenLabel": "按 token 标签",
+      "noAgentsAvailable": "还没有可选 agent，请先创建 agent。",
+      "labelKey": "标签键",
+      "selectLabelKey": "选择一个 token 标签键",
+      "noLabelsAvailable": "当前 token 还没有标签，无法按标签限制。",
+      "selectLabelKeyFirst": "先选择一个标签键，再勾选允许的值。",
+      "createFailed": "创建 capability 失败"
     },
     "capabilitiesHiddenDesc": "将资源通道切换回能力或全部资源以查看能力库存。",
     "capabilitiesHiddenTitle": "当前筛选器已隐藏能力",
@@ -144,9 +181,12 @@
       "step1": "所有者引导将系统切换到初始化模式",
       "step2": "普通管理访问切换到邮箱和密码",
       "step3": "新的人类账户只能从管理控制台创建",
+      "checkingStatus": "正在检查状态...",
+      "systemNotInitialized": "系统尚未初始化。完成引导后即可解锁登录。",
       "subtitle": "首次引导",
       "title": "创建创始所有者账户",
-      "whatNext": "下一步"
+      "whatNext": "下一步",
+      "emailPlaceholder": "owner@example.com"
     }
   },
   "common": {
@@ -211,7 +251,18 @@
     "preparingPage": "正在准备页面...",
     "unexpectedErrorTitle": "出错了",
     "unexpectedErrorDescription": "遇到了意外错误，请重试或联系支持。",
-    "skipToContent": "跳转到主内容"
+    "unknownError": "未知错误",
+    "skipToContent": "跳转到主内容",
+    "refreshPage": "刷新页面",
+    "tryAgainLater": "请稍后重试",
+    "add": "添加",
+    "adding": "添加中...",
+    "approve": "批准",
+    "reject": "拒绝",
+    "profile": "个人资料",
+    "signOut": "退出登录",
+    "humanUser": "人类用户",
+    "aiAgent": "AI 智能体"
   },
   "createMenu": {
     "actions": {
@@ -555,6 +606,28 @@
   },
   "playbooks": {
     "createFailed": "创建手册失败",
+    "description": "浏览和搜索可复用的执行手册",
+    "loading": "加载手册列表...",
+    "loadFailed": "加载手册失败",
+    "unknownError": "未知错误",
+    "searchPlaceholder": "搜索手册标题和内容...",
+    "typeFilter": "类型:",
+    "tagFilter": "标签:",
+    "totalCount": "共 {count} 本手册",
+    "searchPrefix": "搜索",
+    "typePrefix": "类型",
+    "tagPrefix": "标签",
+    "emptyTitle": "暂无手册",
+    "emptyDescFilter": "尝试调整搜索条件",
+    "emptyDescNoData": "还没有创建任何手册",
+    "modal": {
+      "title": "新建 Playbook",
+      "titlePlaceholder": "输入手册标题",
+      "tagsLabel": "标签（用逗号分隔）",
+      "bodyLabel": "内容",
+      "bodyPlaceholder": "输入手册详细内容...",
+      "creating": "创建中..."
+    },
     "form": {
       "tagsPlaceholder": "例如：urgent, frontend, react"
     },
@@ -648,22 +721,42 @@
     "title": "待审核"
   },
   "runs": {
-    "detailTitle": "Run 详情",
+    "detailTitle": "运行详情",
     "info": {
-      "agentId": "Agent ID",
       "status": "状态",
-      "targetId": "目标 ID",
-      "taskId": "任务 ID",
-      "tokenId": "Token ID"
+      "taskId": "任务ID",
+      "agentId": "智能体ID",
+      "tokenId": "令牌ID",
+      "targetId": "目标ID",
+      "resultSummary": "结果摘要",
+      "error": "错误",
+      "output": "输出"
     },
     "labels": {
-      "agentId": "智能体",
+      "runId": "运行",
       "taskId": "任务",
+      "agentId": "智能体",
       "tokenId": "令牌"
     },
     "refreshFailed": "刷新运行记录失败",
     "sessionExpired": "您的管理会话已过期。请重新登录以查看运行历史。",
-    "sessionForbidden": "您没有权限查看运行历史。请使用具有所需权限的管理会话继续。"
+    "sessionForbidden": "您没有权限查看运行历史。请使用具有所需权限的管理会话继续。",
+    "title": "运行观测",
+    "description": "查看任务执行历史和状态",
+    "loading": "加载运行记录...",
+    "loadFailed": "加载失败",
+    "refresh": "刷新",
+    "stats": {
+      "total": "总计",
+      "pending": "等待中",
+      "running": "运行中",
+      "completed": "已完成",
+      "failed": "失败"
+    },
+    "emptyTitle": "暂无运行记录",
+    "emptyDescAll": "还没有任务被执行",
+    "emptyDescFiltered": "该状态下没有运行记录",
+    "close": "关闭"
   },
   "settings": {
     "accessDisabled": "访问已禁用",
@@ -746,7 +839,9 @@
   },
   "sidebar": {
     "collapse": "收起侧边栏",
-    "expand": "展开侧边栏"
+    "expand": "展开侧边栏",
+    "appName": "Control Plane",
+    "appTagline": "V3 Dual Cosmos"
   },
   "spaces": {
     "activeAgents": "活跃智能体",
@@ -767,6 +862,15 @@
       "approveReviewFailed": "批准审核项目失败",
       "createWorkspaceFailed": "创建工作区失败",
       "rejectReviewFailed": "拒绝审核项目失败"
+    },
+    "governance": {
+      "title": "治理空间",
+      "description": "针对智能体发起的市场提交项的人工审核待办。",
+      "allReviews": "全部审核",
+      "pendingReview": "待审核",
+      "rejectedReview": "已拒绝审核",
+      "reject": "拒绝 {title}",
+      "approve": "通过 {title}"
     },
     "governanceEmptyAll": "当前没有可见的审核项目。",
     "governanceEmptyPending": "没有等待治理审核的提交。",
@@ -815,7 +919,11 @@
     "welcomeTo": "欢迎来到"
   },
   "tabletSidebar": {
-    "title": "Control"
+    "title": "Control",
+    "expand": "展开侧边栏",
+    "collapse": "折叠侧边栏",
+    "userNamePlaceholder": "User Name",
+    "userEmailPlaceholder": "user@example.com"
   },
   "tasks": {
     "actor": "执行者",
@@ -979,6 +1087,54 @@
     },
     "values": {
       "notYet": "尚无"
-    }
+    },
+    "remoteAccessSupervision": "远程访问监管",
+    "remoteAccessSupervisionDesc": "当外部机器和项目外智能体使用的访问令牌仍需要反馈或低于信任阈值时，人工操作员可以快速将其隔离。",
+    "operator": "操作员",
+    "loadingAgents": "正在加载远程智能体和访问令牌...",
+    "createAgentModalDesc": "注册一个远程智能体配置文件并铸造其第一个访问令牌。",
+    "createTokenModalDesc": "为现有的远程智能体配置文件发行另一个访问令牌。",
+    "riskTier": "风险等级",
+    "remoteAgent": "远程智能体",
+    "selectRemoteAgent": "选择一个远程智能体",
+    "filters": {
+      "allTokens": "全部令牌",
+      "needsFeedback": "需要反馈",
+      "lowTrust": "低信任"
+    },
+    "badge": {
+      "needsFeedback": "{count} 个令牌需要反馈",
+      "lowTrust": "{count} 个低信任令牌"
+    },
+    "secretLabel": "{name} 主令牌"
+  },
+  "errorBoundary": {
+    "title": "页面出错了",
+    "contactSupport": "如果问题持续存在，请联系技术支持"
+  },
+  "forbiddenState": {
+    "title": "访问受限",
+    "noPermission": "您没有权限访问此页面",
+    "noPermissionWithResource": "您没有权限访问「{resource}」",
+    "currentRole": "当前",
+    "notLoggedIn": "未登录",
+    "requiredRole": "需要",
+    "contactAdmin": "如需访问权限，请联系系统管理员"
+  },
+  "offline": {
+    "title": "您已离线",
+    "description": "无法连接到网络，部分功能可能无法使用",
+    "availableFeaturesTitle": "离线时可用的功能",
+    "cachedPages": "浏览已缓存的页面",
+    "localData": "查看本地数据",
+    "formsSync": "填写表单（稍后同步）",
+    "backOnline": "网络已恢复，正在重新加载..."
+  },
+  "runtime": {
+    "initializing": "正在初始化 Dual Cosmos...",
+    "initFailedTitle": "初始化失败"
+  },
+  "header": {
+    "userMenuAriaLabel": "用户菜单：{name}"
   }
 }

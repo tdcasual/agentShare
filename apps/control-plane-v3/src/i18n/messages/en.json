@@ -4,7 +4,35 @@
     "refreshFailed": "Failed to refresh approvals",
     "rejectFailed": "Failed to reject request",
     "sessionExpired": "Your management session has expired. Sign in again to review approvals.",
-    "sessionForbidden": "You do not have permission to review approvals. Use a higher-privilege management session to continue."
+    "sessionForbidden": "You do not have permission to review approvals. Use a higher-privilege management session to continue.",
+    "title": "Approvals",
+    "description": "Review and manage requests from agents and users",
+    "loading": "Loading approvals...",
+    "loadFailed": "Failed to load approvals",
+    "emptyTitle": "No approval requests",
+    "emptyDescAll": "No approval requests right now.",
+    "emptyDescFiltered": "No {status} approval requests.",
+    "totalRecords": "{count} records total",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "actionType": {
+      "invoke": "Invoke",
+      "lease": "Lease"
+    },
+    "capability": "Capability",
+    "task": "Task",
+    "expiresAt": "Expires",
+    "policyReason": "Policy reason",
+    "source": "Source",
+    "reasonLabel": "Reason",
+    "rejectReasonLabel": "Rejection reason",
+    "rejectReasonPlaceholder": "Please enter rejection reason...",
+    "confirmReject": "Confirm reject",
+    "processedBy": "{action} by {decidedBy}"
   },
   "assets": {
     "allTypes": "All Types",
@@ -39,7 +67,16 @@
       "selectSecretError": "Select a secret first.",
       "title": "Capabilities",
       "tokenAccess": "Visibility",
-      "tokenRequiredError": "Pick at least one token when using specific token visibility."
+      "tokenRequiredError": "Pick at least one token when using specific token visibility.",
+      "specificTokens": "Specific tokens",
+      "specificAgents": "Specific agents",
+      "byTokenLabel": "By token label",
+      "noAgentsAvailable": "No agents available yet. Please create an agent first.",
+      "labelKey": "Label key",
+      "selectLabelKey": "Select a token label key",
+      "noLabelsAvailable": "Current tokens have no labels, so label-based restriction is unavailable.",
+      "selectLabelKeyFirst": "Select a label key first, then check allowed values.",
+      "createFailed": "Failed to create capability"
     },
     "capabilitiesHiddenDesc": "Switch resource lane back to Capabilities or All resources to review capability inventory.",
     "capabilitiesHiddenTitle": "Capabilities hidden by current filter",
@@ -144,9 +181,12 @@
       "step1": "Owner bootstrap flips the system into initialized mode",
       "step2": "Normal management access switches to email and password",
       "step3": "New human accounts can only be created from the admin console",
+      "checkingStatus": "Checking status...",
+      "systemNotInitialized": "System not initialized yet. Complete bootstrap to unlock login.",
       "subtitle": "First-run bootstrap",
       "title": "Create the Founding Owner Account",
-      "whatNext": "What Next"
+      "whatNext": "What Next",
+      "emailPlaceholder": "owner@example.com"
     }
   },
   "common": {
@@ -211,7 +251,18 @@
     "preparingPage": "Preparing page...",
     "unexpectedErrorTitle": "Something went wrong",
     "unexpectedErrorDescription": "An unexpected error occurred. Please try again or contact support.",
-    "skipToContent": "Skip to main content"
+    "unknownError": "Unknown error",
+    "skipToContent": "Skip to main content",
+    "refreshPage": "Refresh page",
+    "tryAgainLater": "Please try again later",
+    "add": "Add",
+    "adding": "Adding...",
+    "approve": "Approve",
+    "reject": "Reject",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "humanUser": "Human User",
+    "aiAgent": "AI Agent"
   },
   "createMenu": {
     "actions": {
@@ -555,6 +606,28 @@
   },
   "playbooks": {
     "createFailed": "Failed to create playbook",
+    "description": "Browse and search reusable execution playbooks",
+    "loading": "Loading playbooks...",
+    "loadFailed": "Failed to load playbooks",
+    "unknownError": "Unknown error",
+    "searchPlaceholder": "Search playbook titles and content...",
+    "typeFilter": "Type:",
+    "tagFilter": "Tag:",
+    "totalCount": "{count} playbooks total",
+    "searchPrefix": "Search",
+    "typePrefix": "Type",
+    "tagPrefix": "Tag",
+    "emptyTitle": "No playbooks yet",
+    "emptyDescFilter": "Try adjusting your search or filters",
+    "emptyDescNoData": "No playbooks have been created yet",
+    "modal": {
+      "title": "New Playbook",
+      "titlePlaceholder": "Enter playbook title",
+      "tagsLabel": "Tags (comma separated)",
+      "bodyLabel": "Content",
+      "bodyPlaceholder": "Enter detailed playbook content...",
+      "creating": "Creating..."
+    },
     "form": {
       "tagsPlaceholder": "e.g. urgent, frontend, react"
     },
@@ -648,22 +721,42 @@
     "title": "Pending Reviews"
   },
   "runs": {
-    "detailTitle": "Run details",
+    "detailTitle": "Run Detail",
     "info": {
-      "agentId": "Agent ID",
       "status": "Status",
-      "targetId": "Target ID",
       "taskId": "Task ID",
-      "tokenId": "Token ID"
+      "agentId": "Agent ID",
+      "tokenId": "Token ID",
+      "targetId": "Target ID",
+      "resultSummary": "Result Summary",
+      "error": "Error",
+      "output": "Output"
     },
     "labels": {
-      "agentId": "Agent",
+      "runId": "Run",
       "taskId": "Task",
+      "agentId": "Agent",
       "tokenId": "Token"
     },
     "refreshFailed": "Failed to refresh runs",
     "sessionExpired": "Your management session has expired. Sign in again to inspect run history.",
-    "sessionForbidden": "You do not have permission to inspect run history. Use a management session with the required permission to continue."
+    "sessionForbidden": "You do not have permission to inspect run history. Use a management session with the required permission to continue.",
+    "title": "Run Observatory",
+    "description": "View task execution history and status",
+    "loading": "Loading runs...",
+    "loadFailed": "Failed to load runs",
+    "refresh": "Refresh",
+    "stats": {
+      "total": "Total",
+      "pending": "Pending",
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "emptyTitle": "No runs yet",
+    "emptyDescAll": "No tasks have been executed yet",
+    "emptyDescFiltered": "No runs in this status",
+    "close": "Close"
   },
   "settings": {
     "accessDisabled": "Access disabled",
@@ -746,7 +839,9 @@
   },
   "sidebar": {
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "appName": "Control Plane",
+    "appTagline": "V3 Dual Cosmos"
   },
   "spaces": {
     "activeAgents": "Active agents",
@@ -767,6 +862,15 @@
       "approveReviewFailed": "Failed to approve review item",
       "createWorkspaceFailed": "Failed to create workspace",
       "rejectReviewFailed": "Failed to reject review item"
+    },
+    "governance": {
+      "title": "Governance Space",
+      "description": "Human review backlog for agent-originated market submissions.",
+      "allReviews": "All reviews",
+      "pendingReview": "Pending Review",
+      "rejectedReview": "Rejected Review",
+      "reject": "Reject {title}",
+      "approve": "Approve {title}"
     },
     "governanceEmptyAll": "No review items are visible right now.",
     "governanceEmptyPending": "No submissions are waiting for governance review.",
@@ -815,7 +919,11 @@
     "welcomeTo": "Welcome to"
   },
   "tabletSidebar": {
-    "title": "Control"
+    "title": "Control",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "userNamePlaceholder": "User Name",
+    "userEmailPlaceholder": "user@example.com"
   },
   "tasks": {
     "actor": "Actor",
@@ -979,6 +1087,54 @@
     },
     "values": {
       "notYet": "Not yet"
-    }
+    },
+    "remoteAccessSupervision": "Remote access supervision",
+    "remoteAccessSupervisionDesc": "Human operators can quickly isolate access tokens used by external machines and off-project agents when they still need feedback or fall below the trust threshold.",
+    "operator": "Operator",
+    "loadingAgents": "Loading remote agents and access tokens...",
+    "createAgentModalDesc": "Register a remote agent profile and mint its first access token.",
+    "createTokenModalDesc": "Issue another access token for an existing remote agent profile.",
+    "riskTier": "Risk tier",
+    "remoteAgent": "Remote agent",
+    "selectRemoteAgent": "Select a remote agent",
+    "filters": {
+      "allTokens": "All tokens",
+      "needsFeedback": "Needs feedback",
+      "lowTrust": "Low trust"
+    },
+    "badge": {
+      "needsFeedback": "{count} token{suffix} need{verbSuffix} feedback",
+      "lowTrust": "{count} low-trust token{suffix}"
+    },
+    "secretLabel": "{name} primary token"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "contactSupport": "If the issue persists, please contact technical support"
+  },
+  "forbiddenState": {
+    "title": "Access restricted",
+    "noPermission": "You do not have permission to access this page",
+    "noPermissionWithResource": "You do not have permission to access \"{resource}\"",
+    "currentRole": "Current",
+    "notLoggedIn": "Not logged in",
+    "requiredRole": "Required",
+    "contactAdmin": "If you need access, please contact the system administrator"
+  },
+  "offline": {
+    "title": "You are offline",
+    "description": "Unable to connect to the network. Some features may not be available.",
+    "availableFeaturesTitle": "Features available offline",
+    "cachedPages": "Browse cached pages",
+    "localData": "View local data",
+    "formsSync": "Fill out forms (sync later)",
+    "backOnline": "Network restored. Reloading..."
+  },
+  "runtime": {
+    "initializing": "Initializing Dual Cosmos...",
+    "initFailedTitle": "Initialization Failed"
+  },
+  "header": {
+    "userMenuAriaLabel": "User menu for {name}"
   }
 }

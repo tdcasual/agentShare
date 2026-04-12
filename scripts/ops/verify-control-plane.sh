@@ -21,6 +21,7 @@ fi
   npm run lint
   npm run test:contracts
   npm test -- --run
+  npm run test:coverage
   npm run build
 )
 
