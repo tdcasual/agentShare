@@ -58,7 +58,7 @@ export default function DemoSpacesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-[var(--kw-amber-surface)]/80 rounded-2xl border border-amber-200 p-4 dark:border-[var(--kw-dark-amber-surface)] dark:bg-amber-900/10">
+      <div className="bg-[var(--kw-amber-surface)]/80 rounded-2xl border border-[var(--kw-amber-surface)] p-4 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]">
         <p className="text-sm font-medium text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
           Collaboration prototype
         </p>
@@ -69,7 +69,7 @@ export default function DemoSpacesPage() {
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             href="/demo"
-            className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 transition-colors hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-950/40 dark:text-[var(--kw-warning)] dark:hover:bg-amber-900/50"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-amber-text)] bg-[var(--kw-amber-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-amber-text)] transition-colors hover:bg-[var(--kw-warning)]/30 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/40 dark:text-[var(--kw-warning)] dark:hover:bg-[var(--kw-dark-amber-surface)]/60"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Sandbox Directory
@@ -91,11 +91,11 @@ export default function DemoSpacesPage() {
             <h2 className="font-semibold text-[var(--kw-text)]">Spaces</h2>
           </div>
           <div className="p-2">
-            <button className="flex w-full items-center gap-2 rounded-xl bg-[var(--kw-primary-50)] px-3 py-2 text-left text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+            <button type="button" className="flex w-full items-center gap-2 rounded-xl bg-[var(--kw-primary-50)] px-3 py-2 text-left text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Hash className="h-4 w-4" />
               <span className="font-medium">general</span>
             </button>
-            <button className="dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)]">
+            <button type="button" className="dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)]">
               <Hash className="h-4 w-4" />
               <span>random</span>
             </button>
@@ -151,10 +151,13 @@ export default function DemoSpacesPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="输入消息…（演示模式）"
+                aria-label="Message"
                 className="flex-1 rounded-xl border border-[var(--kw-primary-200)] bg-white px-4 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
               />
               <button
+                type="button"
                 onClick={sendMessage}
+                aria-label="Send message"
                 className="rounded-xl bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-600)] px-4 py-2 text-white transition-shadow hover:shadow-lg"
               >
                 <Send className="h-4 w-4" />

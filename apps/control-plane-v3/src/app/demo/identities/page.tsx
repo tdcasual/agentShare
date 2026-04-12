@@ -92,7 +92,7 @@ function IdentitiesContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--kw-primary-200)] border-t-pink-500" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--kw-primary-200)] border-t-[var(--kw-error)]" />
       </div>
     );
   }
@@ -123,7 +123,7 @@ function IdentitiesContent() {
         </Button>
       </div>
 
-      <Card className="bg-[var(--kw-amber-surface)]/80 border border-amber-200 dark:border-[var(--kw-dark-amber-surface)] dark:bg-amber-900/10">
+      <Card className="bg-[var(--kw-amber-surface)]/80 border border-[var(--kw-amber-surface)] dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]">
         <div className="space-y-2 p-4">
           <p className="text-sm font-medium text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
             Identity interaction sandbox
@@ -135,7 +135,7 @@ function IdentitiesContent() {
           <div className="flex flex-wrap gap-2 pt-2">
             <Link
               href="/demo"
-              className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 transition-colors hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-950/40 dark:text-[var(--kw-warning)] dark:hover:bg-amber-900/50"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-amber-text)] bg-[var(--kw-amber-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-amber-text)] transition-colors hover:bg-[var(--kw-warning)]/30 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/40 dark:text-[var(--kw-warning)] dark:hover:bg-[var(--kw-dark-amber-surface)]/60"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Sandbox Directory
@@ -193,7 +193,7 @@ function IdentitiesContent() {
           />
         </div>
         <div className="flex gap-2">
-          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-white p-1">
+          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-white p-1 dark:bg-[var(--kw-dark-bg)]">
             <FilterButton
               active={typeFilter === 'all'}
               onClick={() => setTypeFilter('all')}
@@ -213,13 +213,14 @@ function IdentitiesContent() {
               count={agents.length}
             />
           </div>
-          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-white p-1">
+          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-white p-1 dark:bg-[var(--kw-dark-bg)]">
             <button
+              type="button"
               onClick={() => setViewMode('grid')}
               aria-label={t('identities.gridView')}
               aria-pressed={viewMode === 'grid'}
               className={cn(
-                'rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400',
+                'rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
                 viewMode === 'grid'
                   ? 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]'
                   : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-text-muted)]'
@@ -228,11 +229,12 @@ function IdentitiesContent() {
               <Grid className="h-4 w-4" aria-hidden="true" />
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('list')}
               aria-label={t('identities.listView')}
               aria-pressed={viewMode === 'list'}
               className={cn(
-                'rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:ring-pink-400',
+                'rounded-full p-2 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]',
                 viewMode === 'list'
                   ? 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]'
                   : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-text-muted)]'
@@ -286,9 +288,9 @@ function IdentitiesContent() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-[var(--kw-text)]">
+                      <h2 className="font-semibold text-[var(--kw-text)]">
                         {identity.profile.name}
-                      </h3>
+                      </h2>
                       <Badge variant={identity.type === 'human' ? 'human' : 'agent'}>
                         {identity.type === 'human'
                           ? t('identities.type.human')
@@ -301,6 +303,7 @@ function IdentitiesContent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span
+                      aria-label={identity.presence}
                       className={cn(
                         'h-2 w-2 rounded-full',
                         identity.presence === 'online'
@@ -332,27 +335,29 @@ function IdentitiesContent() {
       >
         <div className="grid grid-cols-2 gap-4">
           <button
+            type="button"
             onClick={() => setShowCreateModal(false)}
-            className="bg-[var(--kw-sky-surface)]/50 rounded-2xl border-2 border-sky-200 p-6 text-center transition-colors hover:bg-[var(--kw-sky-surface)]"
+            className="bg-[var(--kw-sky-surface)]/50 rounded-2xl border-2 border-[var(--kw-sky-surface)] p-6 text-center transition-colors hover:bg-[var(--kw-sky-surface)]"
           >
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-sky-surface)]">
               <Users className="h-8 w-8 text-[var(--kw-sky-text)]" />
             </div>
-            <h3 className="mb-1 font-semibold text-[var(--kw-text)]">
+            <h2 className="mb-1 font-semibold text-[var(--kw-text)]">
               {t('identities.type.human')}
-            </h3>
+            </h2>
             <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.createHumanDesc')}</p>
           </button>
           <button
+            type="button"
             onClick={() => setShowCreateModal(false)}
-            className="bg-[var(--kw-green-surface)]/50 rounded-2xl border-2 border-green-200 p-6 text-center transition-colors hover:bg-[var(--kw-green-surface)]"
+            className="bg-[var(--kw-green-surface)]/50 rounded-2xl border-2 border-[var(--kw-green-surface)] p-6 text-center transition-colors hover:bg-[var(--kw-green-surface)]"
           >
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-green-surface)]">
               <Bot className="h-8 w-8 text-[var(--kw-green-text)]" />
             </div>
-            <h3 className="mb-1 font-semibold text-[var(--kw-text)]">
+            <h2 className="mb-1 font-semibold text-[var(--kw-text)]">
               {t('identities.type.agent')}
-            </h3>
+            </h2>
             <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.createAgentDesc')}</p>
           </button>
         </div>

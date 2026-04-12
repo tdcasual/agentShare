@@ -75,8 +75,8 @@ describe('approvals page', () => {
   it('renders the approvals page with pending review data', () => {
     render(<ApprovalsPage />);
 
-    expect(screen.getByRole('heading', { name: /审批管理/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /刷新/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /approvals.title/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /common.refresh/i })).toBeInTheDocument();
   });
 
   it('shows a forbidden-specific state when approval queries return forbidden', () => {
@@ -98,7 +98,7 @@ describe('approvals page', () => {
 
     render(<ApprovalsPage />);
 
-    await user.click(screen.getAllByRole('button', { name: /^批准$/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /^common.approve$/i })[0]);
 
     await waitFor(() => {
       expect(approveMock).toHaveBeenCalledWith('approval-1');
@@ -110,12 +110,12 @@ describe('approvals page', () => {
 
     render(<ApprovalsPage />);
 
-    await user.click(screen.getAllByRole('button', { name: /^拒绝$/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /^common.reject$/i })[0]);
     await user.type(
-      screen.getByPlaceholderText(/请输入拒绝原因/i),
+      screen.getByPlaceholderText('approvals.rejectReasonPlaceholder'),
       'Policy denied for this request'
     );
-    await user.click(screen.getByRole('button', { name: /确认拒绝/i }));
+    await user.click(screen.getByRole('button', { name: /^approvals.confirmReject$/i }));
 
     await waitFor(() => {
       expect(rejectMock).toHaveBeenCalledWith('approval-1', {
@@ -130,7 +130,7 @@ describe('approvals page', () => {
 
     render(<ApprovalsPage />);
 
-    await user.click(screen.getAllByRole('button', { name: /^批准$/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /^common.approve$/i })[0]);
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Approval service unavailable');
@@ -143,7 +143,7 @@ describe('approvals page', () => {
 
     render(<ApprovalsPage />);
 
-    await user.click(screen.getAllByRole('button', { name: /^批准$/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /^common.approve$/i })[0]);
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('approvals.sessionExpired');
@@ -161,7 +161,7 @@ describe('approvals page', () => {
 
     render(<ApprovalsPage />);
 
-    await user.click(screen.getByRole('button', { name: /刷新/i }));
+    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('approvals.sessionExpired');
@@ -174,7 +174,7 @@ describe('approvals page', () => {
 
     render(<ApprovalsPage />);
 
-    await user.click(screen.getByRole('button', { name: /刷新/i }));
+    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Approval refresh unavailable');

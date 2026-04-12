@@ -206,13 +206,13 @@ describe('tokens page', () => {
 
     render(<TokensPage />);
 
-    expect(screen.getByText(/Remote access supervision/i)).toBeInTheDocument();
-    expect(screen.getByText(/external machines and off-project agents/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /tokens.remoteAccessSupervision/i })).toBeInTheDocument();
+    expect(screen.getByText(/tokens.remoteAccessSupervisionDesc/i)).toBeInTheDocument();
 
-    expect(screen.getByText('1 token needs feedback')).toBeInTheDocument();
-    expect(screen.getByText('1 low-trust token')).toBeInTheDocument();
+    expect(screen.getByText('tokens.badge.needsFeedback')).toBeInTheDocument();
+    expect(screen.getByText('tokens.badge.lowTrust')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /needs feedback/i }));
+    await user.click(screen.getByRole('button', { name: /tokens.filters.needsFeedback/i }));
 
     expect(screen.getByText('Primary Token')).toBeInTheDocument();
     expect(screen.queryByText('Risk Scan Token')).not.toBeInTheDocument();
@@ -223,7 +223,7 @@ describe('tokens page', () => {
 
     render(<TokensPage />);
 
-    await user.click(screen.getByRole('button', { name: /low trust/i }));
+    await user.click(screen.getByRole('button', { name: /tokens.filters.lowTrust/i }));
 
     expect(screen.queryByText('Primary Token')).not.toBeInTheDocument();
     expect(screen.getByText('Risk Scan Token')).toBeInTheDocument();
@@ -232,8 +232,8 @@ describe('tokens page', () => {
   it('frames tokens as remote external access instead of internal runtime identity', () => {
     render(<TokensPage />);
 
-    expect(screen.getByText(/Remote access supervision/i)).toBeInTheDocument();
-    expect(screen.getByText(/external machines and off-project agents/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /tokens.remoteAccessSupervision/i })).toBeInTheDocument();
+    expect(screen.getByText(/tokens.remoteAccessSupervisionDesc/i)).toBeInTheDocument();
     expect(
       screen.queryByText(/Creating an agent automatically mints its primary token/i)
     ).not.toBeInTheDocument();

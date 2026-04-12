@@ -2,11 +2,7 @@
  * Runs Page - 运行观测页面
  *
  * viewer+ 角色可访问（后端只要求任意 management session）
- * 显示任务运行历史、状态、结果
- *
- * 数据对齐说明：
- * - hooks 层会把后端 snake_case DTO 归一化为 camelCase model
- * - 页面只消费归一化后的 Run 模型
+ * 显示任务运行历史、状态
  */
 
 'use client';
@@ -39,38 +35,32 @@ import {
 } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
-// 状态配置
-const statusConfig: Record<
-  RunStatus,
-  { label: string; icon: React.ReactNode; color: string; bgColor: string }
-> = {
+const statusIcons: Record<RunStatus, React.ReactNode> = {
+  pending: <Clock className="h-4 w-4" />,
+  running: <Activity className="h-4 w-4 animate-pulse" />,
+  completed: <CheckCircle className="h-4 w-4" />,
+  failed: <XCircle className="h-4 w-4" />,
+  cancelled: <AlertCircle className="h-4 w-4" />,
+};
+
+const statusColors: Record<RunStatus, { color: string; bgColor: string }> = {
   pending: {
-    label: '等待中',
-    icon: <Clock className="h-4 w-4" />,
     color: 'text-[var(--kw-orange-text)]',
     bgColor: 'bg-[var(--kw-orange-surface)] dark:bg-[var(--kw-dark-amber-surface)]/20',
   },
   running: {
-    label: '运行中',
-    icon: <Activity className="h-4 w-4 animate-pulse" />,
     color: 'text-[var(--kw-sky-text)]',
     bgColor: 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-info-surface)]/20',
   },
   completed: {
-    label: '已完成',
-    icon: <CheckCircle className="h-4 w-4" />,
     color: 'text-[var(--kw-green-text)]',
     bgColor: 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-success-surface)]/20',
   },
   failed: {
-    label: '失败',
-    icon: <XCircle className="h-4 w-4" />,
     color: 'text-[var(--kw-error)]',
     bgColor: 'bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-error-surface)]/20',
   },
   cancelled: {
-    label: '已取消',
-    icon: <AlertCircle className="h-4 w-4" />,
     color: 'text-[var(--kw-text-muted)]',
     bgColor: 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-surface-alt)]',
   },
@@ -91,10 +81,8 @@ const RunsContent = memo(function RunsContent() {
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(error);
 
-  // 获取 runs 数组
   const runs = useMemo(() => data?.items || [], [data]);
 
-  // 过滤运行记录
   const filteredRuns = useMemo(() => {
     if (selectedStatus === 'all') {
       return runs;
@@ -102,7 +90,6 @@ const RunsContent = memo(function RunsContent() {
     return runs.filter((r: Run) => r.status === selectedStatus);
   }, [runs, selectedStatus]);
 
-  // 统计
   const stats = useMemo(() => {
     return {
       total: runs.length,
@@ -112,6 +99,28 @@ const RunsContent = memo(function RunsContent() {
       failed: runs.filter((r: Run) => r.status === 'failed').length,
     };
   }, [runs]);
+
+  const statusCounts = useMemo(() => {
+    return {
+      pending: runs.filter((r) => r.status === 'pending').length,
+      running: runs.filter((r) => r.status === 'running').length,
+      completed: runs.filter((r) => r.status === 'completed').length,
+      failed: runs.filter((r) => r.status === 'failed').length,
+      cancelled: runs.filter((r) => r.status === 'cancelled').length,
+    };
+  }, [runs]);
+
+  const statusLabels: Record<RunStatus | 'all', string> = useMemo(
+    () => ({
+      all: t('common.all'),
+      pending: t('runs.stats.pending'),
+      running: t('runs.stats.running'),
+      completed: t('runs.stats.completed'),
+      failed: t('runs.stats.failed'),
+      cancelled: t('common.cancelled'),
+    }),
+    [t]
+  );
 
   const handleRefresh = async () => {
     clearAllAuthErrors();
@@ -132,7 +141,7 @@ const RunsContent = memo(function RunsContent() {
   if (isLoading) {
     return (
       <Layout>
-        <PageLoader message="加载运行记录..." />
+        <PageLoader message={t('runs.loading')} />
       </Layout>
     );
   }
@@ -145,10 +154,10 @@ const RunsContent = memo(function RunsContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">加载失败</h2>
-            <p className="mb-4 text-[var(--kw-text-muted)]">{error.message}</p>
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('runs.loadFailed')}</h2>
+            <p className="mb-4 text-[var(--kw-text-muted)]">{error instanceof Error ? error.message : String(error)}</p>
             <Button variant="kawaii" onClick={() => refresh()}>
-              重试
+              {t('common.retry')}
             </Button>
           </Card>
         </div>
@@ -179,14 +188,13 @@ const RunsContent = memo(function RunsContent() {
             </Card>
           ) : null}
 
-          {/* 页面标题 */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                运行观测
+                {t('runs.title')}
               </h1>
               <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                查看任务执行历史和状态
+                {t('runs.description')}
               </p>
             </div>
             <Button
@@ -197,7 +205,7 @@ const RunsContent = memo(function RunsContent() {
               }}
               leftIcon={<RefreshCw className="h-4 w-4" />}
             >
-              刷新
+              {t('common.refresh')}
             </Button>
           </div>
 
@@ -212,136 +220,88 @@ const RunsContent = memo(function RunsContent() {
             </Card>
           ) : null}
 
-          {/* 统计卡片 */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
             <StatCard
-              label="总计"
+              label={t('runs.stats.total')}
               value={stats.total}
               icon={<PlayCircle className="h-5 w-5" />}
               color="bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]"
             />
             <StatCard
-              label="等待中"
+              label={t('runs.stats.pending')}
               value={stats.pending}
               icon={<Clock className="h-5 w-5" />}
               color="bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]"
             />
             <StatCard
-              label="运行中"
+              label={t('runs.stats.running')}
               value={stats.running}
               icon={<Activity className="h-5 w-5" />}
               color="bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)]"
             />
             <StatCard
-              label="已完成"
+              label={t('runs.stats.completed')}
               value={stats.completed}
               icon={<CheckCircle className="h-5 w-5" />}
               color="bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]"
             />
             <StatCard
-              label="失败"
+              label={t('runs.stats.failed')}
               value={stats.failed}
               icon={<XCircle className="h-5 w-5" />}
               color="bg-[var(--kw-rose-surface)] text-[var(--kw-error)]"
             />
           </div>
 
-          {/* 状态筛选 */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant={selectedStatus === 'all' ? 'kawaii' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedStatus('all')}
-            >
-              全部 ({stats.total})
-            </Button>
+            <StatusFilterButton
+              status="all"
+              label={`${statusLabels.all} (${stats.total})`}
+              active={selectedStatus === 'all'}
+              onSelect={setSelectedStatus}
+            />
             {(['pending', 'running', 'completed', 'failed', 'cancelled'] as RunStatus[]).map(
               (status) => (
-                <Button
+                <StatusFilterButton
                   key={status}
-                  variant={selectedStatus === status ? 'kawaii' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus(status)}
-                >
-                  {statusConfig[status].label} ({runs.filter((r) => r.status === status).length})
-                </Button>
+                  status={status}
+                  label={`${statusLabels[status]} (${statusCounts[status]})`}
+                  active={selectedStatus === status}
+                  onSelect={setSelectedStatus}
+                />
               )
             )}
           </div>
 
-          {/* 运行列表 */}
-          <div className="space-y-3">
+          <div className="space-y-3" role="list">
             {filteredRuns.length === 0 ? (
               <Card variant="kawaii" className="p-12 text-center">
                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
                   <Terminal className="h-10 w-10 text-[var(--kw-primary-500)]" />
                 </div>
                 <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                  暂无运行记录
+                  {t('runs.emptyTitle')}
                 </h3>
                 <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                  {selectedStatus === 'all' ? '还没有任务被执行' : '该状态下没有运行记录'}
+                  {selectedStatus === 'all'
+                    ? t('runs.emptyDescAll')
+                    : t('runs.emptyDescFiltered')}
                 </p>
               </Card>
             ) : (
-              filteredRuns.map((run) => {
-                const config = statusConfig[run.status];
-                return (
-                  <Card
-                    key={run.id}
-                    variant="default"
-                    className="cursor-pointer transition-shadow hover:shadow-md"
-                    onClick={() => setSelectedRun(run)}
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* 状态图标 */}
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-full ${config.bgColor} ${config.color}`}
-                      >
-                        {config.icon}
-                      </div>
-
-                      {/* 信息 */}
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex items-center gap-2">
-                          <h3 className="truncate font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                            Run #{run.id.slice(-8)}
-                          </h3>
-                          <Badge className={config.color}>{config.label}</Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                          <span>任务: {run.taskId.slice(-8)}</span>
-                          {run.tokenId && (
-                            <span>
-                              {t('runs.labels.tokenId')}: {run.tokenId.slice(-8)}
-                            </span>
-                          )}
-                          {run.agentId && (
-                            <span>
-                              {t('runs.labels.agentId')}: {run.agentId.slice(-8)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* 箭头 */}
-                      <ChevronRight className="h-5 w-5 text-[var(--kw-text-muted)]" />
-                    </div>
-                  </Card>
-                );
-              })
+              filteredRuns.map((run) => (
+                <RunCard key={run.id} run={run} statusLabels={statusLabels} onSelect={setSelectedRun} />
+              ))
             )}
           </div>
         </div>
 
-        {/* 详情弹窗 */}
         {selectedRun && <RunDetailModal run={selectedRun} onClose={() => setSelectedRun(null)} />}
       </Layout>
     </ErrorBoundary>
   );
 });
 
-// 统计卡片组件
 function StatCard({
   label,
   value,
@@ -368,7 +328,83 @@ function StatCard({
   );
 }
 
-// 运行详情弹窗
+interface StatusFilterButtonProps {
+  status: RunStatus | 'all';
+  label: string;
+  active: boolean;
+  onSelect: (status: RunStatus | 'all') => void;
+}
+
+const StatusFilterButton = memo(function StatusFilterButton({
+  status,
+  label,
+  active,
+  onSelect,
+}: StatusFilterButtonProps) {
+  return (
+    <Button
+      variant={active ? 'kawaii' : 'outline'}
+      size="sm"
+      onClick={() => onSelect(status)}
+    >
+      {label}
+    </Button>
+  );
+});
+
+interface RunCardProps {
+  run: Run;
+  statusLabels: Record<RunStatus | 'all', string>;
+  onSelect: (run: Run) => void;
+}
+
+const RunCard = memo(function RunCard({ run, statusLabels, onSelect }: RunCardProps) {
+  const { t } = useI18n();
+  const config = statusColors[run.status];
+
+  return (
+    <Card
+      variant="default"
+      className="cursor-pointer transition-shadow hover:shadow-soft"
+      onClick={() => onSelect(run)}
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-full ${config.bgColor} ${config.color}`}
+        >
+          {statusIcons[run.status]}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <h3 className="truncate font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+              {t('runs.labels.runId')} #{run.id.slice(-8)}
+            </h3>
+            <Badge className={config.color}>{statusLabels[run.status]}</Badge>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
+            <span>
+              {t('runs.labels.taskId')}: {run.taskId.slice(-8)}
+            </span>
+            {run.tokenId && (
+              <span>
+                {t('runs.labels.tokenId')}: {run.tokenId.slice(-8)}
+              </span>
+            )}
+            {run.agentId && (
+              <span>
+                {t('runs.labels.agentId')}: {run.agentId.slice(-8)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <ChevronRight className="h-5 w-5 text-[var(--kw-text-muted)]" />
+      </div>
+    </Card>
+  );
+});
+
 interface RunDetailModalProps {
   run: Run;
   onClose: () => void;
@@ -376,21 +412,18 @@ interface RunDetailModalProps {
 
 function RunDetailModal({ run, onClose }: RunDetailModalProps) {
   const { t } = useI18n();
-  const config = statusConfig[run.status];
+  const config = statusColors[run.status];
+  const statusLabel = t(`runs.stats.${run.status}`);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <Card
-        variant="kawaii"
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden"
-      >
-        {/* 头部 */}
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <Card variant="kawaii" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden">
         <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-12 w-12 items-center justify-center rounded-xl ${config.bgColor} ${config.color}`}
             >
-              {config.icon}
+              {statusIcons[run.status]}
             </div>
             <div>
               <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
@@ -404,22 +437,19 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           </Button>
         </div>
 
-        {/* 内容 */}
         <div className="flex-1 space-y-6 overflow-y-auto p-6">
-          {/* 基本信息 */}
           <div className="grid grid-cols-2 gap-4">
-            <InfoItem label="状态" value={config.label} />
-            <InfoItem label="任务ID" value={run.taskId} />
+            <InfoItem label={t('runs.info.status')} value={statusLabel} />
+            <InfoItem label={t('runs.info.taskId')} value={run.taskId} />
             <InfoItem label={t('runs.info.agentId')} value={run.agentId ?? '-'} />
             <InfoItem label={t('runs.info.tokenId')} value={run.tokenId ?? '-'} />
-            <InfoItem label="目标ID" value={run.taskTargetId ?? '-'} />
+            <InfoItem label={t('runs.info.targetId')} value={run.taskTargetId ?? '-'} />
           </div>
 
-          {/* 结果摘要 */}
           {run.resultSummary !== null && run.resultSummary !== undefined && (
             <div className="space-y-2">
               <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                结果摘要
+                {t('runs.info.resultSummary')}
               </h3>
               <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 text-sm text-[var(--kw-text)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-border)]">
                 {String(run.resultSummary)}
@@ -427,21 +457,19 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
             </div>
           )}
 
-          {/* 错误摘要 */}
           {run.errorSummary !== null && run.errorSummary !== undefined && (
             <div className="space-y-2">
-              <h3 className="font-medium text-[var(--kw-error)]">错误</h3>
+              <h3 className="font-medium text-[var(--kw-error)]">{t('runs.info.error')}</h3>
               <div className="dark:bg-[var(--kw-dark-error-surface)]/20 rounded-lg bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]">
                 {String(run.errorSummary)}
               </div>
             </div>
           )}
 
-          {/* 输出载荷 */}
           {run.outputPayload !== null && run.outputPayload !== undefined && (
             <div className="space-y-2">
               <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                输出
+                {t('runs.info.output')}
               </h3>
               <pre className="max-h-48 overflow-auto rounded-lg bg-[var(--kw-dark-bg)] p-3 text-xs text-[var(--kw-surface-alt)]">
                 {JSON.stringify(run.outputPayload, null, 2)}
@@ -450,10 +478,9 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           )}
         </div>
 
-        {/* 底部 */}
         <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <Button variant="outline" onClick={onClose}>
-            关闭
+            {t('common.close')}
           </Button>
         </div>
       </Card>
@@ -461,7 +488,6 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
   );
 }
 
-// 信息项组件
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 dark:bg-[var(--kw-dark-surface-alt)]">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, memo } from 'react';
+import { useMemo, useState, memo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
 import {
@@ -22,14 +22,16 @@ import { useReviews, useApproveReview, useRejectReview } from '@/domains/review'
 import { ApiError } from '@/lib/api-client';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import {
-  ManagementForbiddenAlert,
-  ManagementSessionExpiredAlert,
+  ManagementPageAlerts,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
 import type { ReviewQueueItem } from '@/domains/review';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
+import { MetricCard } from '@/shared/ui-primitives/metric';
+import { FilterButton } from '@/shared/ui-primitives/filter-button';
+import { StatDisplay } from '@/shared/ui-primitives/stat-display';
 import { cn } from '@/lib/utils';
 
 export default function ReviewsPage() {
@@ -39,6 +41,8 @@ export default function ReviewsPage() {
     </Layout>
   );
 }
+
+const REVIEWS_POLLING_CONFIG = { refreshInterval: 10_000 };
 
 const ReviewsContent = memo(function ReviewsContent() {
   const { locale, t } = useI18n();
@@ -50,9 +54,7 @@ const ReviewsContent = memo(function ReviewsContent() {
     isLoading,
     error: dataError,
     mutate,
-  } = useReviews({
-    refreshInterval: 10000, // 10秒自动刷新
-  });
+  } = useReviews(REVIEWS_POLLING_CONFIG);
   const {
     session,
     loading: gateLoading,
@@ -86,7 +88,7 @@ const ReviewsContent = memo(function ReviewsContent() {
   );
 
   const items = reviewsData?.items;
-  const reviewItems = items ?? [];
+  const reviewItems = useMemo(() => items ?? [], [items]);
 
   const countByKind = useMemo(() => {
     return (items ?? []).reduce<Record<string, number>>((accumulator, item) => {
@@ -94,15 +96,18 @@ const ReviewsContent = memo(function ReviewsContent() {
       return accumulator;
     }, {});
   }, [items]);
-  const agentSubmittedCount = reviewItems.filter(
-    (item) => item.created_by_actor_type === 'agent'
-  ).length;
-  const humanSubmittedCount = reviewItems.filter(
-    (item) => item.created_by_actor_type === 'human'
-  ).length;
-  const tokenOriginatedCount = reviewItems.filter((item) =>
-    Boolean(item.created_via_token_id)
-  ).length;
+  const agentSubmittedCount = useMemo(
+    () => reviewItems.filter((item) => item.created_by_actor_type === 'agent').length,
+    [reviewItems]
+  );
+  const humanSubmittedCount = useMemo(
+    () => reviewItems.filter((item) => item.created_by_actor_type === 'human').length,
+    [reviewItems]
+  );
+  const tokenOriginatedCount = useMemo(
+    () => reviewItems.filter((item) => Boolean(item.created_via_token_id)).length,
+    [reviewItems]
+  );
   const visibleItems = useMemo(
     () =>
       (items ?? []).filter((item) => {
@@ -150,47 +155,37 @@ const ReviewsContent = memo(function ReviewsContent() {
     }
   }
 
-  async function handleDecision(item: ReviewQueueItem, decision: 'approve' | 'reject') {
-    const nextActionKey = `${decision}:${item.resource_kind}:${item.resource_id}`;
-    setActionKey(nextActionKey);
-    setError(null);
-    clearAllAuthErrors();
+  const handleDecision = useCallback(
+    async (item: ReviewQueueItem, decision: 'approve' | 'reject') => {
+      const nextActionKey = `${decision}:${item.resource_kind}:${item.resource_id}`;
+      setActionKey(nextActionKey);
+      setError(null);
+      clearAllAuthErrors();
 
-    try {
-      if (decision === 'approve') {
-        await approveReview(item.resource_kind, item.resource_id);
-      } else {
-        await rejectReview(item.resource_kind, item.resource_id, { reason: '' });
-      }
-    } catch (decisionError) {
-      if (consumeUnauthorized(decisionError)) {
-        return;
-      }
+      try {
+        if (decision === 'approve') {
+          await approveReview(item.resource_kind, item.resource_id);
+        } else {
+          await rejectReview(item.resource_kind, item.resource_id, { reason: '' });
+        }
+      } catch (decisionError) {
+        if (consumeUnauthorized(decisionError)) {
+          return;
+        }
 
-      if (decisionError instanceof ApiError) {
-        setError(decisionError.detail);
-      } else {
-        setError(
-          decisionError instanceof Error ? decisionError.message : t('reviews.errors.updateFailed')
-        );
+        if (decisionError instanceof ApiError) {
+          setError(decisionError.detail);
+        } else {
+          setError(
+            decisionError instanceof Error ? decisionError.message : t('reviews.errors.updateFailed')
+          );
+        }
+      } finally {
+        setActionKey(null);
       }
-    } finally {
-      setActionKey(null);
-    }
-  }
-
-  const getResourceIcon = (kind: string) => {
-    switch (kind) {
-      case 'task':
-        return <FileText className="h-5 w-5" />;
-      case 'playbook':
-        return <Play className="h-5 w-5" />;
-      case 'secret':
-        return <Lock className="h-5 w-5" />;
-      default:
-        return <Sparkles className="h-5 w-5" />;
-    }
-  };
+    },
+    [approveReview, rejectReview, clearAllAuthErrors, consumeUnauthorized, t]
+  );
 
   return (
     <div className="space-y-6">
@@ -220,6 +215,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
+          variant="review"
           label={t('reviews.metrics.pendingItems')}
           value={reviewItems.length.toString()}
           icon={
@@ -227,6 +223,7 @@ const ReviewsContent = memo(function ReviewsContent() {
           }
         />
         <MetricCard
+          variant="review"
           label={t('reviews.metrics.tasksQueued')}
           value={(countByKind.task ?? 0).toString()}
           icon={
@@ -234,11 +231,13 @@ const ReviewsContent = memo(function ReviewsContent() {
           }
         />
         <MetricCard
+          variant="review"
           label={t('reviews.metrics.playbooksQueued')}
           value={(countByKind.playbook ?? 0).toString()}
           icon={<Play className="h-5 w-5 text-[var(--kw-purple-text)]" />}
         />
         <MetricCard
+          variant="review"
           label={t('reviews.metrics.secretsCapabilities')}
           value={((countByKind.secret ?? 0) + (countByKind.capability ?? 0)).toString()}
           icon={<Lock className="h-5 w-5 text-[var(--kw-amber-text)]" />}
@@ -269,38 +268,30 @@ const ReviewsContent = memo(function ReviewsContent() {
                 Submission provenance
               </p>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedProvenance === 'all' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedProvenance === 'all'}
-                  onClick={() => setSelectedProvenance('all')}
-                >
-                  All submissions
-                </Button>
-                <Button
-                  variant={selectedProvenance === 'agent' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedProvenance === 'agent'}
-                  onClick={() => setSelectedProvenance('agent')}
-                >
-                  Agent submissions
-                </Button>
-                <Button
-                  variant={selectedProvenance === 'human' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedProvenance === 'human'}
-                  onClick={() => setSelectedProvenance('human')}
-                >
-                  Human submissions
-                </Button>
-                <Button
-                  variant={selectedProvenance === 'token' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedProvenance === 'token'}
-                  onClick={() => setSelectedProvenance('token')}
-                >
-                  Token-originated
-                </Button>
+                <FilterButton
+                  value="all"
+                  active={selectedProvenance === 'all'}
+                  onSelect={setSelectedProvenance}
+                  label="All submissions"
+                />
+                <FilterButton
+                  value="agent"
+                  active={selectedProvenance === 'agent'}
+                  onSelect={setSelectedProvenance}
+                  label="Agent submissions"
+                />
+                <FilterButton
+                  value="human"
+                  active={selectedProvenance === 'human'}
+                  onSelect={setSelectedProvenance}
+                  label="Human submissions"
+                />
+                <FilterButton
+                  value="token"
+                  active={selectedProvenance === 'token'}
+                  onSelect={setSelectedProvenance}
+                  label="Token-originated"
+                />
               </div>
             </div>
 
@@ -309,46 +300,36 @@ const ReviewsContent = memo(function ReviewsContent() {
                 Resource lane
               </p>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedKind === 'all' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedKind === 'all'}
-                  onClick={() => setSelectedKind('all')}
-                >
-                  All resources
-                </Button>
-                <Button
-                  variant={selectedKind === 'task' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedKind === 'task'}
-                  onClick={() => setSelectedKind('task')}
-                >
-                  Tasks
-                </Button>
-                <Button
-                  variant={selectedKind === 'capability' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedKind === 'capability'}
-                  onClick={() => setSelectedKind('capability')}
-                >
-                  Capabilities
-                </Button>
-                <Button
-                  variant={selectedKind === 'secret' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedKind === 'secret'}
-                  onClick={() => setSelectedKind('secret')}
-                >
-                  Secrets
-                </Button>
-                <Button
-                  variant={selectedKind === 'playbook' ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={selectedKind === 'playbook'}
-                  onClick={() => setSelectedKind('playbook')}
-                >
-                  Playbooks
-                </Button>
+                <FilterButton
+                  value="all"
+                  active={selectedKind === 'all'}
+                  onSelect={setSelectedKind}
+                  label="All resources"
+                />
+                <FilterButton
+                  value="task"
+                  active={selectedKind === 'task'}
+                  onSelect={setSelectedKind}
+                  label="Tasks"
+                />
+                <FilterButton
+                  value="capability"
+                  active={selectedKind === 'capability'}
+                  onSelect={setSelectedKind}
+                  label="Capabilities"
+                />
+                <FilterButton
+                  value="secret"
+                  active={selectedKind === 'secret'}
+                  onSelect={setSelectedKind}
+                  label="Secrets"
+                />
+                <FilterButton
+                  value="playbook"
+                  active={selectedKind === 'playbook'}
+                  onSelect={setSelectedKind}
+                  label="Playbooks"
+                />
               </div>
             </div>
           </div>
@@ -367,38 +348,17 @@ const ReviewsContent = memo(function ReviewsContent() {
         </div>
       </Card>
 
-      {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t('reviews.sessionExpired')} />
-      ) : null}
-
-      {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t('reviews.sessionForbidden')} />
-      ) : null}
-
-      {refreshError ? (
-        <Card
-          role="alert"
-          aria-live="polite"
-          aria-atomic="true"
-          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
-        >
-          {refreshError}
-        </Card>
-      ) : null}
-
-      {/* Error */}
-      {gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError) ? (
-        <Card
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
-        >
-          {gateError ??
-            error ??
-            (dataError instanceof Error ? dataError.message : t('reviews.errors.loadFailed'))}
-        </Card>
-      ) : null}
+      <ManagementPageAlerts
+        shouldShowSessionExpired={shouldShowSessionExpired}
+        shouldShowForbidden={shouldShowForbidden}
+        refreshError={refreshError}
+        gateError={gateError}
+        error={error}
+        dataError={dataError}
+        sessionExpiredMessage={t('reviews.sessionExpired')}
+        forbiddenMessage={t('reviews.sessionForbidden')}
+        dataErrorMessage={t('reviews.errors.loadFailed')}
+      />
 
       {/* Loading */}
       {gateLoading || isLoading ? (
@@ -426,13 +386,13 @@ const ReviewsContent = memo(function ReviewsContent() {
             </p>
           </div>
           <div className="flex justify-center gap-2 text-3xl opacity-30 dark:opacity-20">
-            <span className="animate-float" style={{ animationDelay: '0s' }}>
+            <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0s' }}>
               🌸
             </span>
-            <span className="animate-float" style={{ animationDelay: '0.2s' }}>
+            <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0.2s' }}>
               ✨
             </span>
-            <span className="animate-float" style={{ animationDelay: '0.4s' }}>
+            <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0.4s' }}>
               💕
             </span>
           </div>
@@ -466,16 +426,15 @@ const ReviewsContent = memo(function ReviewsContent() {
       ) : null}
 
       {/* Review Items */}
-      <div className="grid gap-4">
+      <div className="grid gap-4" role="list">
         {visibleItems.map((item, index) => {
           const governanceStatus = deriveGovernanceStatus(item);
           const busy = actionKey !== null;
-          const approveKey = `approve:${item.resource_kind}:${item.resource_id}`;
-          const rejectKey = `reject:${item.resource_kind}:${item.resource_id}`;
 
           return (
             <Card
               key={`${item.resource_kind}:${item.resource_id}`}
+              role="listitem"
               data-testid={`review-card-${item.resource_kind}-${item.resource_id}`}
               data-focus-state={
                 item.resource_kind === focus.resourceKind && item.resource_id === focus.resourceId
@@ -507,7 +466,7 @@ const ReviewsContent = memo(function ReviewsContent() {
                       {governanceStatusLabel(governanceStatus)}
                     </Badge>
                     <Badge variant="secondary" className="flex items-center gap-1">
-                      {getResourceIcon(item.resource_kind)}
+                      <ResourceIcon kind={item.resource_kind} />
                       {item.resource_kind}
                     </Badge>
                     {item.created_via_token_id ? (
@@ -533,47 +492,34 @@ const ReviewsContent = memo(function ReviewsContent() {
 
                 <div className="flex flex-wrap gap-3">
                   {governanceStatus === 'pending_review' ? (
-                    <>
-                      <Button
-                        variant="secondary"
-                        loading={actionKey === rejectKey}
-                        disabled={busy}
-                        onClick={() => handleDecision(item, 'reject')}
-                        className="dark:border-[var(--kw-dark-error-surface)]/50 dark:hover:bg-[var(--kw-dark-error-surface)]/20 border-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)]"
-                      >
-                        <XCircle className="mr-2 h-4 w-4 text-[var(--kw-error)]" />
-                        {t('reviews.actions.reject')}
-                      </Button>
-                      <Button
-                        loading={actionKey === approveKey}
-                        disabled={busy}
-                        onClick={() => handleDecision(item, 'approve')}
-                      >
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        {t('reviews.actions.approve')}
-                      </Button>
-                    </>
+                    <ReviewDecisionButtons
+                      item={item}
+                      actionKey={actionKey}
+                      busy={busy}
+                      onDecision={handleDecision}
+                      t={t}
+                    />
                   ) : null}
                 </div>
               </div>
 
               {/* Details */}
               <div className="grid gap-3 md:grid-cols-3">
-                <ReviewStat
+                <StatDisplay
                   icon={
                     <Heart className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                   }
                   label={t('reviews.item.submittedBy')}
                   value={`${item.created_by_actor_type}:${item.created_by_actor_id}`}
                 />
-                <ReviewStat
+                <StatDisplay
                   icon={
                     <ShieldAlert className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                   }
                   label={t('reviews.item.tokenProvenance')}
                   value={item.created_via_token_id ?? t('reviews.item.createdDirectly')}
                 />
-                <ReviewStat
+                <StatDisplay
                   icon={
                     <Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                   }
@@ -606,48 +552,61 @@ const ReviewsContent = memo(function ReviewsContent() {
   );
 });
 
-function MetricCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-      <div className="flex items-center gap-2">
-        {icon}
-        <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {label}
-        </p>
-      </div>
-      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {value}
-      </p>
-    </Card>
-  );
+
+
+function ResourceIcon({ kind }: { kind: string }) {
+  switch (kind) {
+    case 'task':
+      return <FileText className="h-5 w-5" />;
+    case 'playbook':
+      return <Play className="h-5 w-5" />;
+    case 'secret':
+      return <Lock className="h-5 w-5" />;
+    default:
+      return <Sparkles className="h-5 w-5" />;
+  }
 }
 
-function ReviewStat({
-  icon,
-  label,
-  value,
+function ReviewDecisionButtons({
+  item,
+  actionKey,
+  busy,
+  onDecision,
+  t,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
+  item: ReviewQueueItem;
+  actionKey: string | null;
+  busy: boolean;
+  onDecision: (item: ReviewQueueItem, decision: 'approve' | 'reject') => void;
+  t: (key: string) => string;
 }) {
+  const approveKey = `approve:${item.resource_kind}:${item.resource_id}`;
+  const rejectKey = `reject:${item.resource_kind}:${item.resource_id}`;
+
+  const handleApprove = useCallback(() => {
+    onDecision(item, 'approve');
+  }, [onDecision, item]);
+
+  const handleReject = useCallback(() => {
+    onDecision(item, 'reject');
+  }, [onDecision, item]);
+
   return (
-    <div className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/60 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
-      <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {icon}
-        {label}
-      </div>
-      <p className="mt-2 break-all text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {value}
-      </p>
-    </div>
+    <>
+      <Button
+        variant="secondary"
+        loading={actionKey === rejectKey}
+        disabled={busy}
+        onClick={handleReject}
+        className="dark:border-[var(--kw-dark-error-surface)]/50 dark:hover:bg-[var(--kw-dark-error-surface)]/20 border-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)]"
+      >
+        <XCircle className="mr-2 h-4 w-4 text-[var(--kw-error)]" />
+        {t('reviews.actions.reject')}
+      </Button>
+      <Button loading={actionKey === approveKey} disabled={busy} onClick={handleApprove}>
+        <CheckCircle2 className="mr-2 h-4 w-4" />
+        {t('reviews.actions.approve')}
+      </Button>
+    </>
   );
 }

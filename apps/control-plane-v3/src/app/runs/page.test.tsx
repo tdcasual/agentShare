@@ -65,9 +65,9 @@ describe('runs page', () => {
   it('renders the runs page with backend run data', () => {
     render(<RunsPage />);
 
-    expect(screen.getByRole('heading', { name: /运行观测/i })).toBeInTheDocument();
-    expect(screen.getByText(/Run #12345678/i)).toBeInTheDocument();
-    expect(screen.getByText(/Run #87654321/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /runs.title/i })).toBeInTheDocument();
+    expect(screen.getByText(/runs.labels.runId #12345678/i)).toBeInTheDocument();
+    expect(screen.getByText(/runs.labels.runId #87654321/i)).toBeInTheDocument();
   });
 
   it('shows a forbidden-specific state when run queries return forbidden', () => {
@@ -88,10 +88,10 @@ describe('runs page', () => {
 
     render(<RunsPage />);
 
-    await user.click(screen.getByRole('button', { name: /已完成 \(1\)/i }));
+    await user.click(screen.getByRole('button', { name: /runs.stats.completed \(1\)/i }));
 
-    expect(screen.getByText(/Run #87654321/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Run #12345678/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/runs.labels.runId #87654321/i)).toBeInTheDocument();
+    expect(screen.queryByText(/runs.labels.runId #12345678/i)).not.toBeInTheDocument();
   });
 
   it('opens the run detail modal from the list', async () => {
@@ -99,11 +99,11 @@ describe('runs page', () => {
 
     render(<RunsPage />);
 
-    await user.click(screen.getByText(/Run #87654321/i));
+    await user.click(screen.getByText(/runs.labels.runId #87654321/i));
 
     expect(screen.getByText('runs.detailTitle')).toBeInTheDocument();
     expect(screen.getByText(/Run finished successfully/i)).toBeInTheDocument();
-    expect(screen.getByText(/任务ID/i)).toBeInTheDocument();
+    expect(screen.getByText(/runs.info.taskId/i)).toBeInTheDocument();
   });
 
   it('shows a relogin recovery state when refreshing runs hits an expired session', async () => {
@@ -112,7 +112,7 @@ describe('runs page', () => {
 
     render(<RunsPage />);
 
-    await user.click(screen.getByRole('button', { name: /刷新/i }));
+    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('runs.sessionExpired');
   });
@@ -123,7 +123,7 @@ describe('runs page', () => {
 
     render(<RunsPage />);
 
-    await user.click(screen.getByRole('button', { name: /刷新/i }));
+    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Run refresh unavailable');
   });

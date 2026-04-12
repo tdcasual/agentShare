@@ -15,17 +15,14 @@ describe('custom selection accessibility', () => {
   it('marks task target-mode cards as pressed state toggles', async () => {
     const source = await readRouteSource('tasks/page.tsx');
 
-    expect(source).toMatch(/aria-pressed=\{taskForm\.target_mode === 'explicit_tokens'\}/);
-    expect(source).toMatch(/aria-pressed=\{taskForm\.target_mode === 'broadcast'\}/);
+    expect(source).toMatch(/aria-pressed=\{form\.taskForm\.target_mode === 'explicit_tokens'\}/);
+    expect(source).toMatch(/aria-pressed=\{form\.taskForm\.target_mode === 'broadcast'\}/);
   });
 
   it('marks capability access-mode chips as pressed state toggles', async () => {
     const source = await readRouteSource('assets/page.tsx');
 
-    expect(source).toMatch(/aria-pressed=\{capabilityForm\.access_mode === 'all_tokens'\}/);
-    expect(source).toMatch(/aria-pressed=\{capabilityForm\.access_mode === 'specific_tokens'\}/);
-    expect(source).toMatch(/aria-pressed=\{capabilityForm\.access_mode === 'specific_agents'\}/);
-    expect(source).toMatch(/aria-pressed=\{capabilityForm\.access_mode === 'token_label'\}/);
+    expect(source).toMatch(/aria-pressed=\{active\}/);
   });
 
   it('marks demo identity filter chips as pressed state toggles', async () => {

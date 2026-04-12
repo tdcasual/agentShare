@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState, memo } from 'react';
+import { FormEvent, useMemo, useState, memo, useCallback } from 'react';
 import { useI18n } from '@/components/i18n-provider';
 import {
   Bot,
@@ -22,15 +22,16 @@ import {
 } from '@/domains/identity';
 import { ApiError, type AgentCreateInput, type AgentTokenCreateInput } from '@/lib/api-client';
 import {
-  ManagementForbiddenAlert,
-  ManagementSessionExpiredAlert,
+  ManagementPageAlerts,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
+import { MetricCard } from '@/shared/ui-primitives/metric';
 import { Input } from '@/shared/ui-primitives/input';
 import { Modal } from '@/shared/ui-primitives/modal';
+import { StatDisplay } from '@/shared/ui-primitives/stat-display';
 
 export default function TokensPage() {
   return (
@@ -39,6 +40,8 @@ export default function TokensPage() {
     </Layout>
   );
 }
+
+const TOKENS_POLLING_CONFIG = { refreshInterval: 10_000 };
 
 const TokensContent = memo(function TokensContent() {
   const { locale, t } = useI18n();
@@ -49,9 +52,7 @@ const TokensContent = memo(function TokensContent() {
     isLoading,
     error: dataError,
     mutate,
-  } = useAgentsWithTokens({
-    refreshInterval: 10000, // 10秒自动刷新
-  });
+  } = useAgentsWithTokens(TOKENS_POLLING_CONFIG);
   const {
     session,
     loading: gateLoading,
@@ -98,15 +99,38 @@ const TokensContent = memo(function TokensContent() {
     () => agents.flatMap((agent) => tokensByAgent[agent.id] ?? []),
     [agents, tokensByAgent]
   );
-  const activeAgents = agents.filter((agent) => agent.status === 'active').length;
-  const activeTokens = allTokens.filter((token) => token.status === 'active').length;
-  const averageTrust =
-    allTokens.length > 0
-      ? allTokens.reduce((total, token) => total + (token.trustScore ?? 0), 0) / allTokens.length
-      : 0;
-  const tokensWithFeedback = allTokens.filter((token) => token.lastFeedbackAt).length;
-  const tokensNeedingFeedback = allTokens.filter((token) => !token.lastFeedbackAt).length;
-  const lowTrustTokens = allTokens.filter((token) => (token.trustScore ?? 0) < 0.6).length;
+  const activeAgents = useMemo(
+    () => agents.filter((agent) => agent.status === 'active').length,
+    [agents]
+  );
+  const activeTokens = useMemo(
+    () => allTokens.filter((token) => token.status === 'active').length,
+    [allTokens]
+  );
+  const averageTrust = useMemo(
+    () =>
+      allTokens.length > 0
+        ? allTokens.reduce((total, token) => total + (token.trustScore ?? 0), 0) / allTokens.length
+        : 0,
+    [allTokens]
+  );
+  const tokensWithFeedback = useMemo(
+    () => allTokens.filter((token) => token.lastFeedbackAt).length,
+    [allTokens]
+  );
+  const tokensNeedingFeedback = useMemo(
+    () => allTokens.filter((token) => !token.lastFeedbackAt).length,
+    [allTokens]
+  );
+  const lowTrustTokens = useMemo(
+    () => allTokens.filter((token) => (token.trustScore ?? 0) < 0.6).length,
+    [allTokens]
+  );
+
+  const handleMintToken = useCallback((agentId: string) => {
+    setIssuingAgentId(agentId);
+    setShowCreateTokenModal(true);
+  }, []);
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -141,7 +165,11 @@ const TokensContent = memo(function TokensContent() {
         allowed_task_types: parseCommaSeparatedList(createAgentForm.allowed_task_types),
       };
       const created = await createAgent(payload);
-      setRevealedSecret(secretFromAgentResponse(created));
+      setRevealedSecret({
+        label: t('tokens.secretLabel').replace('{name}', created.name),
+        prefix: created.token_prefix,
+        apiKey: created.api_key ?? '',
+      });
       setCreateAgentForm({
         name: '',
         risk_tier: 'medium',
@@ -217,26 +245,31 @@ const TokensContent = memo(function TokensContent() {
     }
   }
 
-  async function handleRevokeToken(tokenId: string, agentId: string) {
-    setError(null);
-    clearAllAuthErrors();
+  const handleRevokeToken = useCallback(
+    async (tokenId: string, agentId: string) => {
+      setError(null);
+      clearAllAuthErrors();
 
-    try {
-      await revokeAgentToken(tokenId, agentId);
-    } catch (revokeError) {
-      if (consumeUnauthorized(revokeError)) {
-        return;
-      }
+      try {
+        await revokeAgentToken(tokenId, agentId);
+      } catch (revokeError) {
+        if (consumeUnauthorized(revokeError)) {
+          return;
+        }
 
-      if (revokeError instanceof ApiError) {
-        setError(revokeError.detail);
-      } else {
-        setError(
-          revokeError instanceof Error ? revokeError.message : t('tokens.errors.revokeTokenFailed')
-        );
+        if (revokeError instanceof ApiError) {
+          setError(revokeError.detail);
+        } else {
+          setError(
+            revokeError instanceof Error
+              ? revokeError.message
+              : t('tokens.errors.revokeTokenFailed')
+          );
+        }
       }
-    }
-  }
+    },
+    [clearAllAuthErrors, consumeUnauthorized, revokeAgentToken, t]
+  );
 
   async function copySecret(secret: string) {
     try {
@@ -334,21 +367,24 @@ const TokensContent = memo(function TokensContent() {
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              Remote access supervision
+              {t('tokens.remoteAccessSupervision')}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              Human operators can quickly isolate access tokens used by external machines and
-              off-project agents when they still need feedback or fall below the trust threshold.
+              {t('tokens.remoteAccessSupervisionDesc')}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             <Badge variant="secondary">
-              {tokensNeedingFeedback} token{tokensNeedingFeedback === 1 ? '' : 's'} need
-              {tokensNeedingFeedback === 1 ? 's' : ''} feedback
+              {t('tokens.badge.needsFeedback')
+                .replace('{count}', String(tokensNeedingFeedback))
+                .replace('{suffix}', tokensNeedingFeedback === 1 ? '' : 's')
+                .replace('{verbSuffix}', tokensNeedingFeedback === 1 ? 's' : '')}
             </Badge>
             <Badge variant="warning">
-              {lowTrustTokens} low-trust token{lowTrustTokens === 1 ? '' : 's'}
+              {t('tokens.badge.lowTrust')
+                .replace('{count}', String(lowTrustTokens))
+                .replace('{suffix}', lowTrustTokens === 1 ? '' : 's')}
             </Badge>
           </div>
 
@@ -359,7 +395,7 @@ const TokensContent = memo(function TokensContent() {
               aria-pressed={selectedHealthFilter === 'all'}
               onClick={() => setSelectedHealthFilter('all')}
             >
-              All tokens
+              {t('tokens.filters.allTokens')}
             </Button>
             <Button
               variant={selectedHealthFilter === 'needs_feedback' ? 'primary' : 'secondary'}
@@ -367,7 +403,7 @@ const TokensContent = memo(function TokensContent() {
               aria-pressed={selectedHealthFilter === 'needs_feedback'}
               onClick={() => setSelectedHealthFilter('needs_feedback')}
             >
-              Needs feedback
+              {t('tokens.filters.needsFeedback')}
             </Button>
             <Button
               variant={selectedHealthFilter === 'low_trust' ? 'primary' : 'secondary'}
@@ -375,7 +411,7 @@ const TokensContent = memo(function TokensContent() {
               aria-pressed={selectedHealthFilter === 'low_trust'}
               onClick={() => setSelectedHealthFilter('low_trust')}
             >
-              Low trust
+              {t('tokens.filters.lowTrust')}
             </Button>
           </div>
         </div>
@@ -384,53 +420,32 @@ const TokensContent = memo(function TokensContent() {
       {/* Session Info */}
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <Badge variant="primary">Operator</Badge>
+          <Badge variant="primary">{t('tokens.operator')}</Badge>
           <span className="dark:text-[var(--kw-dark-text)]">
             {session?.email ?? t('common.loading')}
           </span>
           <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
-          <span>{session?.role ?? '...'}</span>
+          <span>{session?.role ?? t('common.loading')}</span>
         </div>
       </Card>
 
-      {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t('tokens.sessionExpired')} />
-      ) : null}
-
-      {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t('tokens.sessionForbidden')} />
-      ) : null}
-
-      {refreshError ? (
-        <Card
-          role="alert"
-          aria-live="polite"
-          aria-atomic="true"
-          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
-        >
-          {refreshError}
-        </Card>
-      ) : null}
-
-      {/* Error */}
-      {gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError) ? (
-        <Card
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
-        >
-          {gateError ??
-            error ??
-            (dataError instanceof Error ? dataError.message : t('tokens.errors.loadDataFailed'))}
-        </Card>
-      ) : null}
+      <ManagementPageAlerts
+        shouldShowSessionExpired={shouldShowSessionExpired}
+        shouldShowForbidden={shouldShowForbidden}
+        refreshError={refreshError}
+        gateError={gateError}
+        error={error}
+        dataError={dataError}
+        sessionExpiredMessage={t('tokens.sessionExpired')}
+        forbiddenMessage={t('tokens.sessionForbidden')}
+        dataErrorMessage={t('tokens.errors.loadDataFailed')}
+      />
 
       {/* Loading */}
       {gateLoading || isLoading ? (
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <span className="animate-spin">🌸</span>
-          Loading remote agents and access tokens...
+          <span className="animate-spin" aria-hidden="true">🌸</span>
+          {t('tokens.loadingAgents')}
         </Card>
       ) : null}
 
@@ -504,21 +519,12 @@ const TokensContent = memo(function TokensContent() {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setIssuingAgentId(agent.id);
-                      setShowCreateTokenModal(true);
-                    }}
-                  >
-                    <KeyRound className="mr-2 h-4 w-4" />
-                    {t('tokens.actions.mintToken')}
-                  </Button>
+                  <MintTokenButton agentId={agent.id} onMint={handleMintToken} />
                 </div>
               </div>
 
               {/* Tokens Grid */}
-              <div className="grid gap-4 xl:grid-cols-2">
+              <div className="grid gap-4 xl:grid-cols-2" role="list">
                 {tokens.length === 0 ? (
                   <Card className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/40 border border-dashed border-[var(--kw-primary-200)] py-8 text-center text-[var(--kw-text-muted)] xl:col-span-2 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                     <span className="mr-2 text-2xl">🌸</span>
@@ -548,18 +554,16 @@ const TokensContent = memo(function TokensContent() {
                           </div>
                         </div>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRevokeToken(token.id, agent.id)}
+                        <RevokeTokenButton
+                          tokenId={token.id}
+                          agentId={agent.id}
                           disabled={token.status !== 'active'}
-                        >
-                          {t('tokens.actions.revoke')}
-                        </Button>
+                          onRevoke={handleRevokeToken}
+                        />
                       </div>
 
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <DataPoint
+                        <StatDisplay
                           icon={
                             <Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                           }
@@ -570,7 +574,7 @@ const TokensContent = memo(function TokensContent() {
                             locale
                           )}
                         />
-                        <DataPoint
+                        <StatDisplay
                           icon={
                             <Sparkles className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                           }
@@ -581,14 +585,14 @@ const TokensContent = memo(function TokensContent() {
                             locale
                           )}
                         />
-                        <DataPoint
+                        <StatDisplay
                           icon={
                             <ShieldCheck className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                           }
                           label={t('tokens.token.successRate')}
                           value={`${Math.round((token.successRate ?? 0) * 100)}%`}
                         />
-                        <DataPoint
+                        <StatDisplay
                           icon={
                             <Star className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
                           }
@@ -598,7 +602,7 @@ const TokensContent = memo(function TokensContent() {
                       </div>
 
                       <div className="flex flex-wrap gap-2">
-                        {((token.scopes?.length ?? 0) > 0 ? token.scopes : ['runtime'])!.map(
+                        {((token.scopes?.length ?? 0) > 0 ? token.scopes : ['runtime']).map(
                           (scope: string) => (
                             <Badge key={scope} variant="secondary" className="text-xs">
                               {scope}
@@ -640,7 +644,7 @@ const TokensContent = memo(function TokensContent() {
         isOpen={showCreateAgentModal}
         onClose={() => setShowCreateAgentModal(false)}
         title={t('tokens.actions.createAgent')}
-        description="Register a remote agent profile and mint its first access token."
+        description={t('tokens.createAgentModalDesc')}
       >
         <form className="space-y-4" onSubmit={handleCreateAgent}>
           <Input
@@ -658,7 +662,7 @@ const TokensContent = memo(function TokensContent() {
               htmlFor="agent-risk-tier"
               className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
             >
-              Risk tier
+              {t('tokens.riskTier')}
             </label>
             <select
               id="agent-risk-tier"
@@ -690,7 +694,7 @@ const TokensContent = memo(function TokensContent() {
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowCreateAgentModal(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" loading={submitting}>
               {submitting ? (
@@ -709,7 +713,7 @@ const TokensContent = memo(function TokensContent() {
         isOpen={showCreateTokenModal}
         onClose={() => setShowCreateTokenModal(false)}
         title={t('tokens.actions.mintToken')}
-        description="Issue another access token for an existing remote agent profile."
+        description={t('tokens.createTokenModalDesc')}
       >
         <form className="space-y-4" onSubmit={handleCreateToken}>
           <div>
@@ -717,7 +721,7 @@ const TokensContent = memo(function TokensContent() {
               htmlFor="token-agent-select"
               className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
             >
-              Remote agent
+              {t('tokens.remoteAgent')}
             </label>
             <select
               id="token-agent-select"
@@ -727,7 +731,7 @@ const TokensContent = memo(function TokensContent() {
               required
             >
               <option value="" disabled>
-                Select a remote agent
+                {t('tokens.selectRemoteAgent')}
               </option>
               {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>
@@ -779,7 +783,7 @@ const TokensContent = memo(function TokensContent() {
 
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowCreateTokenModal(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" loading={submitting}>
               {submitting ? (
@@ -796,43 +800,43 @@ const TokensContent = memo(function TokensContent() {
   );
 });
 
-function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
-  return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-      <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {label}
-      </p>
-      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {value}
-      </p>
-      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {hint}
-      </p>
-    </Card>
-  );
+
+
+interface MintTokenButtonProps {
+  agentId: string;
+  onMint: (agentId: string) => void;
 }
 
-function DataPoint({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+const MintTokenButton = memo(function MintTokenButton({ agentId, onMint }: MintTokenButtonProps) {
+  const { t } = useI18n();
   return (
-    <div className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/60 rounded-2xl border border-[var(--kw-border)] p-3 dark:border-[var(--kw-dark-border)]">
-      <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {icon}
-        {label}
-      </div>
-      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {value}
-      </p>
-    </div>
+    <Button variant="secondary" onClick={() => onMint(agentId)}>
+      <KeyRound className="mr-2 h-4 w-4" />
+      {t('tokens.actions.mintToken')}
+    </Button>
   );
+});
+
+interface RevokeTokenButtonProps {
+  tokenId: string;
+  agentId: string;
+  disabled: boolean;
+  onRevoke: (tokenId: string, agentId: string) => void;
 }
+
+const RevokeTokenButton = memo(function RevokeTokenButton({
+  tokenId,
+  agentId,
+  disabled,
+  onRevoke,
+}: RevokeTokenButtonProps) {
+  const { t } = useI18n();
+  return (
+    <Button variant="ghost" size="sm" onClick={() => onRevoke(tokenId, agentId)} disabled={disabled}>
+      {t('tokens.actions.revoke')}
+    </Button>
+  );
+});
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
@@ -883,14 +887,3 @@ function formatDecimal(value: number) {
   return value.toFixed(2);
 }
 
-function secretFromAgentResponse(response: {
-  name: string;
-  token_prefix: string;
-  api_key: string;
-}) {
-  return {
-    label: `${response.name} primary token`,
-    prefix: response.token_prefix,
-    apiKey: response.api_key,
-  };
-}

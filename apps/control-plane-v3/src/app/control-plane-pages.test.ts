@@ -24,9 +24,10 @@ describe('Control Plane Pages', () => {
 
   it('tasks page publishes to tokens and records feedback per target', async () => {
     const source = await readRouteSource('tasks/page.tsx');
+    const hookSource = await readRouteSource('tasks/use-tasks-page.ts');
 
     expect(source).toMatch(/target_token_ids/);
-    expect(source).toMatch(/buildTaskTargets/);
+    expect(hookSource).toMatch(/buildTaskTargets/);
     expect(source).toMatch(/useCreateTaskTargetFeedback/);
   });
 

@@ -26,25 +26,7 @@ import { ApprovalCard } from '@/domains/approval/components/approval-card';
 import type { ApprovalStatus } from '@/domains/approval/types';
 import { CheckCircle, Clock, XCircle, Filter, RefreshCw } from 'lucide-react';
 
-// 状态过滤器配置
-const statusFilters: { value: ApprovalStatus | 'all'; label: string; color: string }[] = [
-  { value: 'all', label: '全部', color: 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)]' },
-  {
-    value: 'pending',
-    label: '待审批',
-    color: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]',
-  },
-  {
-    value: 'approved',
-    label: '已批准',
-    color: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]',
-  },
-  {
-    value: 'rejected',
-    label: '已拒绝',
-    color: 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]',
-  },
-];
+
 
 const ApprovalsContent = memo(function ApprovalsContent() {
   const { t } = useI18n();
@@ -132,7 +114,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
   if (isLoading) {
     return (
       <Layout>
-        <PageLoader message="加载审批列表..." />
+        <PageLoader message={t('approvals.loading')} />
       </Layout>
     );
   }
@@ -146,12 +128,12 @@ const ApprovalsContent = memo(function ApprovalsContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">加载失败</h2>
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('approvals.loadFailed')}</h2>
             <p className="mb-4 text-[var(--kw-text-muted)]">
-              {error instanceof Error ? error.message : '未知错误'}
+              {error instanceof Error ? error.message : t('common.unknownError')}
             </p>
             <Button variant="kawaii" onClick={() => refresh()}>
-              重试
+              {t('common.retry')}
             </Button>
           </Card>
         </div>
@@ -186,10 +168,10 @@ const ApprovalsContent = memo(function ApprovalsContent() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                审批管理
+                {t('approvals.title')}
               </h1>
               <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                审核来自智能体和用户的请求
+                {t('approvals.subtitle')}
               </p>
             </div>
             <Button
@@ -200,7 +182,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
               }}
               leftIcon={<RefreshCw className="h-4 w-4" />}
             >
-              刷新
+              {t('common.refresh')}
             </Button>
           </div>
 
@@ -235,7 +217,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.pending}</p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">待审批</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">{t('approvals.pending')}</p>
                 </div>
               </div>
             </Card>
@@ -246,7 +228,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.approved}</p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">已批准</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">{t('approvals.approved')}</p>
                 </div>
               </div>
             </Card>
@@ -257,7 +239,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.rejected}</p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">已拒绝</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">{t('approvals.rejected')}</p>
                 </div>
               </div>
             </Card>
@@ -266,45 +248,58 @@ const ApprovalsContent = memo(function ApprovalsContent() {
           {/* 过滤器 */}
           <div className="flex flex-wrap items-center gap-2">
             <Filter className="h-4 w-4 text-[var(--kw-text-muted)]" />
-            {statusFilters.map((filter) => (
-              <button
-                type="button"
-                key={filter.value}
-                onClick={() => setStatusFilter(filter.value)}
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                  statusFilter === filter.value
-                    ? filter.color
-                    : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
-                }`}
-              >
-                {filter.label}
-                {filter.value !== 'all' && (
-                  <span className="ml-1.5 text-xs opacity-70">
-                    {filter.value === 'pending' && stats.pending}
-                    {filter.value === 'approved' && stats.approved}
-                    {filter.value === 'rejected' && stats.rejected}
-                  </span>
-                )}
-              </button>
-            ))}
+            <StatusFilterButton
+              value="all"
+              label={t('common.all')}
+              activeColor="bg-[var(--kw-surface-alt)] text-[var(--kw-text)]"
+              active={statusFilter === 'all'}
+              count={undefined}
+              onSelect={setStatusFilter}
+            />
+            <StatusFilterButton
+              value="pending"
+              label={t('approvals.pending')}
+              activeColor="bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]"
+              active={statusFilter === 'pending'}
+              count={stats.pending}
+              onSelect={setStatusFilter}
+            />
+            <StatusFilterButton
+              value="approved"
+              label={t('approvals.approved')}
+              activeColor="bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]"
+              active={statusFilter === 'approved'}
+              count={stats.approved}
+              onSelect={setStatusFilter}
+            />
+            <StatusFilterButton
+              value="rejected"
+              label={t('approvals.rejected')}
+              activeColor="bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
+              active={statusFilter === 'rejected'}
+              count={stats.rejected}
+              onSelect={setStatusFilter}
+            />
           </div>
 
           {/* 审批列表 */}
-          <div className="space-y-4">
+          <div className="space-y-4" role="list">
             {approvals.length === 0 ? (
               <Card variant="kawaii" className="p-12 text-center">
                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
                   <CheckCircle className="h-10 w-10 text-[var(--kw-primary-500)]" />
                 </div>
                 <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                  暂无审批请求
+                  {t('approvals.emptyTitle')}
                 </h3>
                 <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                  当前没有
                   {statusFilter === 'all'
-                    ? ''
-                    : statusFilters.find((f) => f.value === statusFilter)?.label}
-                  的审批请求
+                    ? t('approvals.emptyDescAll')
+                    : t('approvals.emptyDescFiltered').replace('{status}',
+                        statusFilter === 'pending' ? t('approvals.pending')
+                        : statusFilter === 'approved' ? t('approvals.approved')
+                        : t('approvals.rejected')
+                      )}
                 </p>
               </Card>
             ) : (
@@ -323,12 +318,45 @@ const ApprovalsContent = memo(function ApprovalsContent() {
           {/* 总数提示 */}
           {total > 0 && (
             <p className="text-center text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-              共 {total} 条记录
+              {t('approvals.totalRecords').replace('{total}', String(total))}
             </p>
           )}
         </div>
       </Layout>
     </ErrorBoundary>
+  );
+});
+
+interface StatusFilterButtonProps {
+  value: 'all' | 'pending' | 'approved' | 'rejected';
+  label: string;
+  activeColor: string;
+  active: boolean;
+  count: number | undefined;
+  onSelect: (value: 'all' | 'pending' | 'approved' | 'rejected') => void;
+}
+
+const StatusFilterButton = memo(function StatusFilterButton({
+  value,
+  label,
+  activeColor,
+  active,
+  count,
+  onSelect,
+}: StatusFilterButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(value)}
+      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+        active
+          ? activeColor
+          : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
+      }`}
+    >
+      {label}
+      {count !== undefined && <span className="ml-1.5 text-xs opacity-70">{count}</span>}
+    </button>
   );
 });
 

@@ -72,7 +72,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Main Content Area */}
       <div
         className={cn(
-          'transition-[margin] duration-300',
+          'transition-[margin] duration-300 will-change-[margin]',
           // 移动端无侧边栏
           device.isMobile && 'ml-0 pb-20',
           // 平板竖屏：可折叠侧边栏
@@ -115,7 +115,7 @@ export function Layout({ children }: LayoutProps) {
  */
 function LoadingScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
         <p className="text-[var(--kw-text-muted)]">Initializing Dual Cosmos...</p>
@@ -131,7 +131,7 @@ function LoadingScreen() {
  */
 function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       <div className="w-full max-w-md rounded-3xl border border-[var(--kw-border)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
         <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
           <AlertCircle className="h-8 w-8 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />

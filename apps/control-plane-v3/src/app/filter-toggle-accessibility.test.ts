@@ -4,40 +4,34 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const appDir = path.dirname(fileURLToPath(import.meta.url));
+const sharedDir = path.join(appDir, '..', 'shared', 'ui-primitives');
 
-async function readRouteSource(routePath: string) {
-  const absolutePath = path.join(appDir, routePath);
+async function readSource(filePath: string) {
+  const absolutePath = path.isAbsolute(filePath) ? filePath : path.join(appDir, filePath);
   await access(absolutePath);
   return readFile(absolutePath, 'utf8');
 }
 
 describe('filter toggle accessibility', () => {
-  it('marks marketplace filter buttons as pressed state toggles', async () => {
-    const source = await readRouteSource('marketplace/page.tsx');
+  it('shared FilterButton renders aria-pressed', async () => {
+    const source = await readSource(path.join(sharedDir, 'filter-button.tsx'));
 
-    expect(source).toMatch(/aria-pressed=\{selectedFilter === item\.key\}/);
+    expect(source).toMatch(/aria-pressed=\{active\}/);
   });
 
-  it('marks tasks filters as pressed state toggles', async () => {
-    const source = await readRouteSource('tasks/page.tsx');
+  it('marketplace, tasks, reviews, assets, and settings use shared FilterButton', async () => {
+    const pages = ['marketplace/page.tsx', 'tasks/page.tsx', 'reviews/page.tsx', 'assets/page.tsx', 'settings/page.tsx'];
+    const sources = await Promise.all(pages.map((p) => readSource(p)));
 
-    expect(source).toMatch(/aria-pressed=\{selectedTaskFilter === 'all'\}/);
-    expect(source).toMatch(/aria-pressed=\{selectedTaskFilter === 'needs_feedback'\}/);
-    expect(source).toMatch(/aria-pressed=\{selectedTaskFilter === 'in_flight'\}/);
-  });
-
-  it('marks review filters as pressed state toggles', async () => {
-    const source = await readRouteSource('reviews/page.tsx');
-
-    expect(source).toMatch(/aria-pressed=\{selectedProvenance === 'all'\}/);
-    expect(source).toMatch(/aria-pressed=\{selectedKind === 'all'\}/);
+    for (let i = 0; i < pages.length; i++) {
+      expect(sources[i]).toMatch(/FilterButton/);
+    }
   });
 
   it('marks asset filters as pressed state toggles', async () => {
-    const source = await readRouteSource('assets/page.tsx');
+    const source = await readSource('assets/page.tsx');
 
-    expect(source).toMatch(/aria-pressed=\{selectedPublicationFilter === 'all'\}/);
-    expect(source).toMatch(/aria-pressed=\{selectedResourceFilter === 'all'\}/);
+    expect(source).toMatch(/FilterButton/);
   });
 
   it('marks settings, spaces, and tokens filters as pressed state toggles', async () => {
@@ -48,14 +42,14 @@ describe('filter toggle accessibility', () => {
       governancePanelSource,
       tokensSource,
     ] = await Promise.all([
-      readRouteSource('settings/page.tsx'),
-      readRouteSource('spaces/page.tsx'),
-      readRouteSource('spaces/operations-feed.tsx'),
-      readRouteSource('spaces/governance-panel.tsx'),
-      readRouteSource('tokens/page.tsx'),
+      readSource('settings/page.tsx'),
+      readSource('spaces/page.tsx'),
+      readSource('spaces/operations-feed.tsx'),
+      readSource('spaces/governance-panel.tsx'),
+      readSource('tokens/page.tsx'),
     ]);
 
-    expect(settingsSource).toMatch(/aria-pressed=\{selectedRosterFilter === 'all'\}/);
+    expect(settingsSource).toMatch(/FilterButton/);
     // Spaces page aria-pressed attributes are now in sub-components
     expect(operationsFeedSource).toMatch(/aria-pressed=\{selectedAgentId === null\}/);
     expect(operationsFeedSource).toMatch(/aria-pressed=\{selectedEventType === 'all'\}/);
