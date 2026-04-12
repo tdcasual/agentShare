@@ -48,15 +48,16 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 loading="lazy"
                 decoding="async"
                 className={cn(
-                  'border-3 h-16 w-16 rounded-full object-cover shadow-md',
+                  'border-3 h-16 w-16 rounded-full object-cover shadow-soft',
                   isHuman ? 'border-[var(--kw-human-accent)]' : 'border-[var(--kw-agent-accent)]',
-                  identity.presence === 'online' && 'shadow-[var(--kw-agent-accent)]/30 shadow-lg'
+                  identity.presence === 'online' && 'shadow-[var(--kw-agent-accent)]/30 shadow-medium'
                 )}
               />
               {/* Presence indicator with pulse */}
               <span
+                aria-label={identity.presence}
                 className={cn(
-                  'absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full border-2 border-white',
+                  'absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full border-2 border-[var(--kw-surface)] dark:border-[var(--kw-dark-surface)]',
                   presenceColors[identity.presence],
                   identity.presence === 'online' && 'ring-[var(--kw-agent-accent)]/40 ring-2'
                 )}
@@ -64,11 +65,13 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
               {/* Type badge */}
               <span
                 className={cn(
-                  'absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs shadow-sm',
+                  'absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[var(--kw-surface)] dark:border-[var(--kw-dark-surface)] text-xs shadow-soft',
                   isHuman
                     ? 'bg-[var(--kw-sky)] text-white'
                     : 'bg-[var(--kw-agent-accent)] text-white'
                 )}
+                aria-label={isHuman ? t('common.human') : t('common.agent')}
+                role="img"
               >
                 {isHuman ? '👤' : '🤖'}
               </span>

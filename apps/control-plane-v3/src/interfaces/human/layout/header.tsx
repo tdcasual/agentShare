@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { MessageSquare, User, Settings, LogOut } from 'lucide-react';
@@ -49,13 +49,24 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  useEffect(() => {
+    if (!showUserMenu) {return;}
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [showUserMenu]);
+
   const { containerRef: userMenuRef } = useFocusTrap({
     isActive: showUserMenu,
     onEscape: () => setShowUserMenu(false),
   });
 
   return (
-    <header className="dark:bg-[var(--kw-dark-surface)]/80 sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white/80 px-6 backdrop-blur-md dark:border-[var(--kw-dark-border)]">
+    <header className="sticky top-0 z-sticky flex h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white px-6 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
       {/* Left - Search */}
       <div className="max-w-xl flex-1">
         <GlobalSearch />
@@ -131,7 +142,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
               }}
               aria-expanded={showUserMenu}
               aria-haspopup="menu"
-              aria-label={`User menu for ${currentIdentity.profile.name}`}
+              aria-label={t('header.userMenuAriaLabel').replace('{name}', currentIdentity.profile.name)}
               className="flex items-center gap-2 rounded-full p-1.5 transition-colors hover:bg-[var(--kw-surface-alt)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:hover:bg-[var(--kw-dark-border)]"
             >
               <Avatar
@@ -148,7 +159,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
             {showUserMenu && (
               <>
                 <div
-                  className="fixed inset-0 z-40"
+                  className="fixed inset-0 z-dropdown"
                   onClick={() => setShowUserMenu(false)}
                   aria-hidden="true"
                 />
@@ -156,14 +167,14 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                   ref={userMenuRef}
                   role="menu"
                   aria-label={t('common.userMenu')}
-                  className="absolute right-0 top-full z-50 mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+                  className="absolute right-0 top-full z-dropdown mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
                 >
                   <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
                     <p className="font-semibold text-[var(--kw-text)]">
                       {currentIdentity.profile.name}
                     </p>
                     <p className="text-sm text-[var(--kw-text-muted)]">
-                      {currentIdentity.type === 'human' ? 'Human User' : 'AI Agent'}
+                      {currentIdentity.type === 'human' ? t('common.humanUser') : t('common.aiAgent')}
                     </p>
                   </div>
                   <div className="p-2">
@@ -174,7 +185,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
                     >
                       <User className="h-4 w-4" aria-hidden="true" />
-                      <span>Profile</span>
+                      <span>{t('common.profile')}</span>
                     </button>
                     <button
                       type="button"
@@ -183,7 +194,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
                     >
                       <Settings className="h-4 w-4" aria-hidden="true" />
-                      <span>Settings</span>
+                      <span>{t('common.settings')}</span>
                     </button>
                     <hr className="my-2 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />
                     <button
@@ -193,7 +204,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                       className="dark:hover:bg-[var(--kw-dark-error-surface)]/20 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-error)] transition-colors hover:bg-[var(--kw-rose-surface)] focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 dark:text-[var(--kw-error)]"
                     >
                       <LogOut className="h-4 w-4" aria-hidden="true" />
-                      <span>Sign out</span>
+                      <span>{t('common.signOut')}</span>
                     </button>
                   </div>
                 </div>

@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
@@ -39,6 +39,9 @@ export function MemberManager({
   const [memberType, setMemberType] = useState<'agent' | 'human'>('agent');
   const [memberId, setMemberId] = useState('');
   const [role, setRole] = useState('viewer');
+  const idPrefix = useId();
+  const memberIdInputId = `${idPrefix}-memberId`;
+  const roleId = `${idPrefix}-role`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,10 +118,11 @@ export function MemberManager({
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
+              <label htmlFor={roleId} className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
                 角色
               </label>
               <select
+                id={roleId}
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full rounded-lg border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
@@ -132,10 +136,11 @@ export function MemberManager({
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
+            <label htmlFor={memberIdInputId} className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
               成员ID
             </label>
             <Input
+              id={memberIdInputId}
               value={memberId}
               onChange={(e) => setMemberId(e.target.value)}
               placeholder={`输入${memberType === 'human' ? '用户' : '智能体'}ID`}

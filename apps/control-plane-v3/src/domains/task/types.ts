@@ -8,7 +8,7 @@
  * - Task 领域事件
  */
 
-import { IdentityReference } from '../identity/types';
+import type { IdentityReference, AgentToken } from '../shared-types';
 
 // ============================================
 // 基础类型
@@ -90,24 +90,8 @@ export interface TokenFeedbackTransport {
   readonly created_at?: string | null;
 }
 
-export interface AgentTokenTransport {
-  readonly id: string;
-  readonly agent_id: string;
-  readonly display_name: string;
-  readonly token_prefix: string;
-  readonly status: string;
-  readonly scopes?: string[];
-  readonly labels?: Record<string, string>;
-  readonly expires_at?: string | null;
-  readonly issued_by_actor_type?: string | null;
-  readonly issued_by_actor_id?: string | null;
-  readonly last_used_at?: string | null;
-  readonly completed_runs?: number | null;
-  readonly successful_runs?: number | null;
-  readonly success_rate?: number | null;
-  readonly last_feedback_at?: string | null;
-  readonly trust_score?: number | null;
-}
+export type { AgentTokenTransport, AgentToken } from '../shared-types';
+export { normalizeAgentToken } from '../shared-types';
 
 // ============================================
 // 实体: Task
@@ -168,29 +152,6 @@ export interface TokenFeedback {
   readonly summary: string;
   readonly createdBy: IdentityReference;
   readonly createdAt?: string;
-}
-
-// ============================================
-// 实体: Agent Token
-// ============================================
-
-export interface AgentToken {
-  readonly id: string;
-  readonly agentId: string;
-  readonly displayName: string;
-  readonly tokenPrefix: string;
-  readonly trustScore?: number;
-  readonly status: string;
-  readonly scopes: string[];
-  readonly labels: Record<string, string>;
-  readonly expiresAt?: string;
-  readonly issuedByActorType?: string;
-  readonly issuedByActorId?: string;
-  readonly lastUsedAt?: string;
-  readonly lastFeedbackAt?: string;
-  readonly successRate?: number;
-  readonly completedRuns?: number;
-  readonly successfulRuns?: number;
 }
 
 // ============================================
@@ -345,26 +306,5 @@ export function normalizeTokenFeedback(dto: TokenFeedbackTransport): TokenFeedba
     summary: dto.summary,
     createdBy: normalizeIdentityReference(dto.created_by_actor_type, dto.created_by_actor_id),
     createdAt: dto.created_at ?? undefined,
-  };
-}
-
-export function normalizeAgentToken(dto: AgentTokenTransport): AgentToken {
-  return {
-    id: dto.id,
-    agentId: dto.agent_id,
-    displayName: dto.display_name,
-    tokenPrefix: dto.token_prefix,
-    trustScore: dto.trust_score ?? undefined,
-    status: dto.status,
-    scopes: dto.scopes ?? [],
-    labels: dto.labels ?? {},
-    expiresAt: dto.expires_at ?? undefined,
-    issuedByActorType: dto.issued_by_actor_type ?? undefined,
-    issuedByActorId: dto.issued_by_actor_id ?? undefined,
-    lastUsedAt: dto.last_used_at ?? undefined,
-    lastFeedbackAt: dto.last_feedback_at ?? undefined,
-    successRate: dto.success_rate ?? undefined,
-    completedRuns: dto.completed_runs ?? undefined,
-    successfulRuns: dto.successful_runs ?? undefined,
   };
 }

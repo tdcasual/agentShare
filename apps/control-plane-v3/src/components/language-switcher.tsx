@@ -5,6 +5,7 @@ import { useI18n } from '@/components/i18n-provider';
 import { Globe, ChevronDown } from 'lucide-react';
 import { locales, type Locale, localeLabels, localeFlags } from '@/i18n/config';
 import { cn } from '@/lib/utils';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -15,12 +16,19 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
   const { locale, setLocale, t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { containerRef } = useFocusTrap({
+    isActive: isOpen,
+    onEscape: () => setIsOpen(false),
+    onFocusOutside: () => setIsOpen(false),
+  });
+
   function handleLocaleChange(newLocale: Locale) {
     if (newLocale === locale) {
       setIsOpen(false);
       return;
     }
     setLocale(newLocale);
+    setIsOpen(false);
   }
 
   if (compact) {
@@ -41,23 +49,17 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         </button>
 
         {isOpen && (
-          <>
-            <button
-              className="fixed inset-0 z-40"
-              aria-label={t('common.closeLanguageMenu')}
-              type="button"
-              onClick={() => setIsOpen(false)}
-            />
-            <div
-              className={cn(
-                'absolute right-0 top-full z-50 mt-2',
-                'w-32 overflow-hidden rounded-2xl',
-                'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
-                'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-                'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
-                'animate-slide-up'
-              )}
-            >
+          <div
+            ref={containerRef}
+            className={cn(
+              'absolute right-0 top-full z-dropdown mt-2',
+              'w-32 overflow-hidden rounded-2xl',
+              'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
+              'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
+              'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
+              'animate-slide-up'
+            )}
+          >
               {locales.map((l) => (
                 <button
                   type="button"
@@ -84,8 +86,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
                   </span>
                 </button>
               ))}
-            </div>
-          </>
+          </div>
         )}
       </div>
     );
@@ -115,23 +116,17 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
       </button>
 
       {isOpen && (
-        <>
-          <button
-            className="fixed inset-0 z-40"
-            aria-label={t('common.closeLanguageMenu')}
-            type="button"
-            onClick={() => setIsOpen(false)}
-          />
-          <div
-            className={cn(
-              'absolute right-0 top-full z-50 mt-2',
-              'w-40 overflow-hidden rounded-2xl',
-              'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
-              'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-              'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
-              'animate-slide-up'
-            )}
-          >
+        <div
+          ref={containerRef}
+          className={cn(
+            'absolute right-0 top-full z-dropdown mt-2',
+            'w-40 overflow-hidden rounded-2xl',
+            'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
+            'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
+            'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
+            'animate-slide-up'
+          )}
+        >
             {locales.map((l) => (
               <button
                 type="button"
@@ -158,8 +153,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
                 </span>
               </button>
             ))}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

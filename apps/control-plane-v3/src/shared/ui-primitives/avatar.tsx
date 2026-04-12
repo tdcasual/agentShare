@@ -48,8 +48,8 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         className={cn(
           'relative inline-flex items-center justify-center overflow-hidden rounded-full',
           avatarSizes[size],
-          type === 'human' && 'ring-2 ring-sky-300',
-          type === 'agent' && 'ring-2 ring-green-300',
+          type === 'human' && 'ring-2 ring-[var(--kw-human-accent)]',
+          type === 'agent' && 'ring-2 ring-[var(--kw-agent-accent)]',
           className
         )}
         {...props}
@@ -92,8 +92,9 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
 
         {status && (
           <span
+            aria-label={status}
             className={cn(
-              'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white',
+              'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[var(--kw-surface)] dark:border-[var(--kw-dark-surface)]',
               status === 'online' && 'bg-[var(--kw-agent-accent)]',
               status === 'away' && 'bg-[var(--kw-warning)]',
               status === 'busy' && 'bg-[var(--kw-error)]',

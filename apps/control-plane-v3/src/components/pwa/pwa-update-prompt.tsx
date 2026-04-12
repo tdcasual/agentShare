@@ -22,7 +22,7 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
   return (
     <Card
       className={cn(
-        'fixed left-4 right-4 top-4 z-50 md:left-auto md:right-4 md:w-96',
+        'fixed left-4 right-4 top-4 z-toast md:left-auto md:right-4 md:w-96',
         'animate-slide-down border-l-4 border-l-[var(--kw-primary-500)] shadow-xl',
         className
       )}
@@ -80,7 +80,7 @@ export function PWAOfflineIndicator({ className }: PWAOfflineIndicatorProps) {
   return (
     <div
       className={cn(
-        'fixed left-0 right-0 top-0 z-50',
+        'fixed left-0 right-0 top-0 z-toast',
         'bg-[var(--kw-warning)] px-4 py-2 text-center text-white',
         'text-sm font-medium',
         'animate-fade-in',

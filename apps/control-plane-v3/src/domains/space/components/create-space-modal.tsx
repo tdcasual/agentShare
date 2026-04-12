@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
@@ -19,6 +19,9 @@ interface CreateSpaceModalProps {
 export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceModalProps) {
   const [name, setName] = useState('');
   const [summary, setSummary] = useState('');
+  const idPrefix = useId();
+  const nameId = `${idPrefix}-name`;
+  const summaryId = `${idPrefix}-summary`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +29,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <Card variant="kawaii" className="w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {/* 头部 */}
@@ -51,10 +54,11 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
           {/* 表单 */}
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
+              <label htmlFor={nameId} className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
                 空间名称 <span className="text-[var(--kw-error)]">*</span>
               </label>
               <Input
+                id={nameId}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="输入空间名称"
@@ -65,8 +69,9 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--kw-text)]">描述</label>
+              <label htmlFor={summaryId} className="mb-1 block text-sm font-medium text-[var(--kw-text)]">描述</label>
               <textarea
+                id={summaryId}
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="简要描述这个空间的用途..."

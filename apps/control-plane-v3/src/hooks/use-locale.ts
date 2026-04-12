@@ -10,18 +10,24 @@ export function useLocale() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // 从 localStorage 读取保存的语言
-    const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (saved && (saved === 'zh-CN' || saved === 'en')) {
-      setLocaleState(saved);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
+      if (saved && (saved === 'zh-CN' || saved === 'en')) {
+        setLocaleState(saved);
+      }
+    } catch {
+      // ignore localStorage errors (SSR, private mode, disabled)
     }
     setIsReady(true);
   }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
-    localStorage.setItem(STORAGE_KEY, newLocale);
-    // 刷新页面以应用新语言
+    try {
+      localStorage.setItem(STORAGE_KEY, newLocale);
+    } catch {
+      // ignore localStorage errors
+    }
     window.location.reload();
   }, []);
 

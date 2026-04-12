@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 
+import { useI18n } from '@/components/i18n-provider';
 import { useRole } from '@/hooks/use-role';
 import { ROLE_LABELS, type ManagementRole } from '@/lib/role-system';
 import { Lock, ArrowLeft, Home } from 'lucide-react';
@@ -30,9 +31,10 @@ export function ForbiddenState({
   requiredRole,
   resourceName,
   showBackButton = true,
-  title = '访问受限',
+  title,
 }: ForbiddenStateProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const { role, isLoading } = useRole();
 
   if (isLoading) {
@@ -61,21 +63,23 @@ export function ForbiddenState({
         </div>
 
         {/* 标题 */}
-        <h1 className="mb-3 text-2xl font-bold text-[var(--kw-text)]">{title}</h1>
+        <h1 className="mb-3 text-2xl font-bold text-[var(--kw-text)]">{title ?? t('forbiddenState.title')}</h1>
 
         {/* 描述 */}
         <p className="mb-6 text-[var(--kw-text-muted)]">
-          {resourceName ? `您没有权限访问「${resourceName}」` : '您没有权限访问此页面'}
+          {resourceName
+            ? t('forbiddenState.noPermissionWithResource').replace('{resource}', resourceName)
+            : t('forbiddenState.noPermission')}
         </p>
 
         {/* 角色对比 */}
         <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <div className="rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]">
-            当前: {role ? ROLE_LABELS[role] : '未登录'}
+            {t('forbiddenState.currentRole')}: {role ? ROLE_LABELS[role] : t('forbiddenState.notLoggedIn')}
           </div>
           <span className="text-[var(--kw-text-muted)]">→</span>
           <div className="dark:bg-[var(--kw-dark-purple-surface)]/30 rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]">
-            需要: {ROLE_LABELS[requiredRole]}
+            {t('forbiddenState.requiredRole')}: {ROLE_LABELS[requiredRole]}
           </div>
         </div>
 
@@ -86,7 +90,7 @@ export function ForbiddenState({
             onClick={() => router.push('/')}
             leftIcon={<Home className="h-4 w-4" />}
           >
-            返回首页
+            {t('common.backToHome')}
           </Button>
           {showBackButton && (
             <Button
@@ -94,13 +98,13 @@ export function ForbiddenState({
               onClick={() => router.back()}
               leftIcon={<ArrowLeft className="h-4 w-4" />}
             >
-              返回上一页
+              {t('common.back')}
             </Button>
           )}
         </div>
 
         {/* 帮助链接 */}
-        <p className="mt-6 text-xs text-[var(--kw-text-muted)]">如需访问权限，请联系系统管理员</p>
+        <p className="mt-6 text-xs text-[var(--kw-text-muted)]">{t('forbiddenState.contactAdmin')}</p>
       </Card>
     </div>
   );

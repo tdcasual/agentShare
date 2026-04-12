@@ -115,7 +115,7 @@ export function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
       {/* Backdrop */}
       <button
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -132,7 +132,7 @@ export function Modal({
         aria-labelledby={title ? 'modal-title' : undefined}
         aria-describedby={description ? 'modal-description' : undefined}
         className={cn(
-          'relative w-full overflow-hidden rounded-3xl bg-white shadow-2xl',
+          'relative w-full overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-[var(--kw-dark-surface)]',
           'animate-scale-in',
           modalSizes[size]
         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Bell, Check, ChevronRight, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,7 @@ import { useNotifications, useMarkNotificationsRead } from '@/hooks/use-notifica
 import { Button } from '@/shared/ui-primitives/button';
 import type { Notification } from '@/hooks/use-notifications';
 import { useI18n } from '@/components/i18n-provider';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 interface NotificationsProps {
   className?: string;
@@ -83,8 +84,13 @@ export function Notifications({ className }: NotificationsProps) {
   const { locale, t } = useI18n();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const { containerRef } = useFocusTrap({
+    isActive: isOpen,
+    onEscape: () => setIsOpen(false),
+    onFocusOutside: () => setIsOpen(false),
+  });
 
   const { availability, notifications, isLoading, error, mutate } = useNotifications();
   const { markAllRead, markOneRead, isMarking } = useMarkNotificationsRead();
@@ -97,43 +103,22 @@ export function Notifications({ className }: NotificationsProps) {
   const unreadCount = unreadEvents.length;
   const eventsToShow = useMemo(() => notifications.slice(0, MAX_DROPDOWN_EVENTS), [notifications]);
 
-  const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (
-      menuRef.current &&
-      !menuRef.current.contains(e.target as Node) &&
-      buttonRef.current &&
-      !buttonRef.current.contains(e.target as Node)
-    ) {
-      setIsOpen(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, handleClickOutside]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
-  }, [isOpen]);
+  const [markAllError, setMarkAllError] = useState<string | null>(null);
 
   const handleMarkAllRead = useCallback(async () => {
     if (unreadIds.length === 0) {
       return;
     }
-    await markAllRead(unreadIds);
-    mutate();
+    setMarkAllError(null);
+    try {
+      await markAllRead(unreadIds);
+      await mutate();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '标记已读失败，请重试';
+      setMarkAllError(message);
+    }
   }, [markAllRead, mutate, unreadIds]);
 
   const handleEventClick = useCallback(
@@ -180,15 +165,12 @@ export function Notifications({ className }: NotificationsProps) {
       </button>
 
       {isOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
-
-          <div
-            ref={menuRef}
-            role="menu"
-            aria-label={hubLabel}
-            className="absolute right-0 top-full z-50 mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl sm:w-96 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-          >
+        <div
+          ref={containerRef}
+          role="menu"
+          aria-label={hubLabel}
+          className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl sm:w-96 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
             <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
               <div>
                 <h3 className="font-semibold text-[var(--kw-text)]">{hubLabel}</h3>
@@ -224,6 +206,11 @@ export function Notifications({ className }: NotificationsProps) {
               </div>
             </div>
 
+            {markAllError && (
+              <div className="border-b border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/20 px-4 py-2 text-xs text-[var(--kw-error)] dark:border-[var(--kw-dark-border)]">
+                {markAllError}
+              </div>
+            )}
             <div className="max-h-96 overflow-y-auto">
               {isLoading && (
                 <div className="flex flex-col items-center justify-center p-8 text-[var(--kw-text-muted)]">
@@ -291,6 +278,7 @@ export function Notifications({ className }: NotificationsProps) {
                           type="button"
                           key={notification.id}
                           role="menuitem"
+                          aria-label={`${unread ? '未读 ' : ''}${notification.summary || '通知'}`}
                           onClick={() => handleEventClick(notification)}
                           className={cn(
                             'flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors',
@@ -317,6 +305,7 @@ export function Notifications({ className }: NotificationsProps) {
                                   unread && 'font-semibold'
                                 )}
                               >
+                                {unread && <span className="sr-only">未读</span>}
                                 {notification.summary}
                               </p>
                               <span className="text-[11px] text-[var(--kw-text-muted)]">
@@ -368,8 +357,7 @@ export function Notifications({ className }: NotificationsProps) {
                 Open inbox
               </Button>
             </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

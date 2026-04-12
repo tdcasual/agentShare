@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   Menu,
 } from 'lucide-react';
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useMemo } from 'react';
 import { useI18n } from '@/components/i18n-provider';
 
 interface NavItem {
@@ -25,13 +25,16 @@ interface NavItem {
 
 function useNavItems(): NavItem[] {
   const { t } = useI18n();
-  return [
-    { icon: <LayoutDashboard className="h-5 w-5" />, label: t('navigation.hub'), href: '/' },
-    { icon: <KeyRound className="h-5 w-5" />, label: t('navigation.tokens'), href: '/tokens' },
-    { icon: <CheckSquare className="h-5 w-5" />, label: t('navigation.tasks'), href: '/tasks' },
-    { icon: <ShieldCheck className="h-5 w-5" />, label: t('navigation.reviews'), href: '/reviews' },
-    { icon: <Settings className="h-5 w-5" />, label: t('navigation.settings'), href: '/settings' },
-  ];
+  return useMemo(
+    () => [
+      { icon: <LayoutDashboard className="h-5 w-5" />, label: t('navigation.hub'), href: '/' },
+      { icon: <KeyRound className="h-5 w-5" />, label: t('navigation.tokens'), href: '/tokens' },
+      { icon: <CheckSquare className="h-5 w-5" />, label: t('navigation.tasks'), href: '/tasks' },
+      { icon: <ShieldCheck className="h-5 w-5" />, label: t('navigation.reviews'), href: '/reviews' },
+      { icon: <Settings className="h-5 w-5" />, label: t('navigation.settings'), href: '/settings' },
+    ],
+    [t]
+  );
 }
 
 export function getTabletShellNavTargets() {
@@ -69,7 +72,7 @@ export function TabletSidebar() {
       className={cn(
         'fixed left-0 top-0 h-full bg-white dark:bg-[var(--kw-dark-bg)]',
         'border-r border-[var(--kw-border)] dark:border-[var(--kw-dark-surface)]',
-        'z-40 transition-[width] duration-300 ease-in-out',
+        'z-drawer transition-[width] duration-300 ease-in-out will-change-[width]',
         'flex flex-col',
         width,
         device.isTabletPortrait && 'shadow-lg'
@@ -95,7 +98,7 @@ export function TabletSidebar() {
             type="button"
             onClick={toggleSidebar}
             className="rounded-lg p-2 transition-colors hover:bg-[var(--kw-surface-alt)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
-            aria-label={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
+            aria-label={isCollapsed ? t('tabletSidebar.expand') : t('tabletSidebar.collapse')}
           >
             {isCollapsed ? <Menu className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
           </button>
@@ -124,10 +127,10 @@ export function TabletSidebar() {
             {!device.isTabletLandscape && (
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                  User Name
+                  {t('tabletSidebar.userNamePlaceholder')}
                 </p>
                 <p className="truncate text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  user@example.com
+                  {t('tabletSidebar.userEmailPlaceholder')}
                 </p>
               </div>
             )}
@@ -178,7 +181,7 @@ const NavLink = memo(function NavLink({ item, isActive, isCollapsed }: NavLinkPr
 
       {/* 折叠状态下的 Tooltip */}
       {isCollapsed && (
-        <div className="invisible absolute left-full z-50 ml-2 whitespace-nowrap rounded-md bg-[var(--kw-text)] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 dark:bg-[var(--kw-dark-surface-alt)]">
+        <div className="invisible absolute left-full z-dropdown ml-2 whitespace-nowrap rounded-md bg-[var(--kw-text)] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 dark:bg-[var(--kw-dark-surface-alt)]">
           {item.label}
           {item.badge && <span className="ml-2 text-[var(--kw-primary-400)]">({item.badge})</span>}
         </div>

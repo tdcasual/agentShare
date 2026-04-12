@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useRuntime } from '@/core/runtime';
 import type { Identity } from '@/domains/identity/types';
@@ -114,6 +114,12 @@ export function useShellIdentity() {
 
   const useManagementShell = usesManagementShellIdentity(pathname) && !isDemoRoute(pathname);
 
+  const runtimeRef = useRef(runtime);
+
+  useLayoutEffect(() => {
+    runtimeRef.current = runtime;
+  });
+
   useEffect(() => {
     if (useManagementShell) {
       setRuntimeState({
@@ -135,7 +141,7 @@ export function useShellIdentity() {
     }));
 
     try {
-      const registry = runtime.di.resolve(IdentityRegistryServiceId);
+      const registry = runtimeRef.current.di.resolve(IdentityRegistryServiceId);
       const syncRuntimeIdentity = () => {
         if (!mounted) {
           return;
@@ -167,7 +173,7 @@ export function useShellIdentity() {
       mounted = false;
       unsubscribe();
     };
-  }, [pathname, refreshNonce, runtime, useManagementShell]);
+  }, [pathname, refreshNonce, useManagementShell]);
 
   const shellIdentity = useMemo(
     () =>

@@ -4,7 +4,7 @@
  * 提供 React 友好的 API，隐藏 Runtime 复杂性
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRuntime } from '@/core/runtime';
 import { IdentityRegistryServiceId } from '@/domains/identity/services/identity-registry';
 import type { Identity, IdentityType, PresenceStatus } from '@/shared/types';
@@ -33,7 +33,7 @@ export interface UseIdentityReturn {
  */
 export function useIdentities(options: UseIdentityOptions = {}): UseIdentityReturn {
   const runtime = useRuntime();
-  const registry = runtime.di.resolve(IdentityRegistryServiceId);
+  const registry = useMemo(() => runtime.di.resolve(IdentityRegistryServiceId), [runtime]);
   void options;
 
   const [identities, setIdentities] = useState<Identity[]>([]);

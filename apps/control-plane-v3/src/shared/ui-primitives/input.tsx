@@ -35,7 +35,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={id}
             type={type}
             className={cn(
-              'w-full rounded-2xl border-2 bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200',
+              'w-full rounded-2xl border-2 bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-[var(--kw-duration-fast)] dark:bg-[var(--kw-dark-surface)]',
               'placeholder:text-[var(--kw-text-muted)]',
               'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
               error &&
@@ -85,7 +85,7 @@ const Textarea = React.forwardRef<
       <textarea
         id={id}
         className={cn(
-          'w-full resize-none rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-200',
+          'w-full resize-none rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-[var(--kw-duration-fast)] dark:bg-[var(--kw-dark-surface)]',
           'placeholder:text-[var(--kw-text-muted)]',
           'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
           error &&

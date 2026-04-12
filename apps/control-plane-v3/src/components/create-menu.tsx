@@ -6,13 +6,14 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Plus, User, Key, Box, Users, Settings, X, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/ui-primitives/button';
 import { useI18n } from '@/components/i18n-provider';
 import { useMemo } from 'react';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 interface CreateAction {
   id: string;
@@ -83,8 +84,13 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const { containerRef } = useFocusTrap({
+    isActive: isOpen,
+    onEscape: () => setIsOpen(false),
+    onFocusOutside: () => setIsOpen(false),
+  });
 
   const actions = useMemo(
     () =>
@@ -106,41 +112,6 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
   const identityActions = filteredActions.filter((a) => a.section === 'identity');
   const resourceActions = filteredActions.filter((a) => a.section === 'resource');
   const systemActions = filteredActions.filter((a) => a.section === 'system');
-
-  // 点击外部关闭
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
-  // ESC 关闭
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
 
   const handleAction = (href: string) => {
     router.push(href);
@@ -166,17 +137,12 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
 
       {/* 下拉菜单 */}
       {isOpen && (
-        <>
-          {/* 遮罩 */}
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
-
-          {/* 菜单面板 */}
-          <div
-            ref={menuRef}
-            role="menu"
-            aria-label={t('createMenu.ariaLabel')}
-            className="absolute right-0 top-full z-50 mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-          >
+        <div
+          ref={containerRef}
+          role="menu"
+          aria-label={t('createMenu.ariaLabel')}
+          className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
             {/* 头部搜索 */}
             <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
               <div className="mb-3 flex items-center justify-between">
@@ -247,6 +213,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                   </p>
                   {resourceActions.map((action) => (
                     <button
+                      type="button"
                       key={action.id}
                       role="menuitem"
                       onClick={() => handleAction(action.href)}
@@ -275,6 +242,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                   </p>
                   {systemActions.map((action) => (
                     <button
+                      type="button"
                       key={action.id}
                       role="menuitem"
                       onClick={() => handleAction(action.href)}
@@ -325,8 +293,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                   )}
               </p>
             </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

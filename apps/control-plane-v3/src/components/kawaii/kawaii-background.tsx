@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useTheme } from 'next-themes';
 
 const DECORATIONS = ['🌸', '✨', '💕', '🎀', '🌟', '💖', '🌷', '💫'];
@@ -31,7 +31,7 @@ function generateItems(seed: number) {
 // Pre-compute stable positions so they never change across renders or themes
 const STABLE_ITEMS = generateItems(42);
 
-export function KawaiiBackground() {
+export const KawaiiBackground = memo(function KawaiiBackground() {
   const { resolvedTheme } = useTheme();
 
   const isDark = resolvedTheme === 'dark';
@@ -48,13 +48,13 @@ export function KawaiiBackground() {
   );
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-background overflow-hidden">
       {/* Soft gradient overlay - changes based on theme */}
       <div
         className={`absolute inset-0 transition-colors duration-500 ${
           isDark
             ? 'from-[var(--kw-dark-bg)]/90 via-[var(--kw-dark-surface)]/80 to-[var(--kw-dark-bg)]/90 bg-gradient-to-br'
-            : 'bg-gradient-to-br from-pink-50/80 via-purple-50/60 to-blue-50/80'
+            : 'bg-gradient-to-br from-[var(--kw-primary-50)]/80 via-[var(--kw-lavender)]/60 to-[var(--kw-sky-surface)]/80'
         }`}
       />
 
@@ -85,10 +85,10 @@ export function KawaiiBackground() {
       />
       <div
         className={`absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full blur-3xl transition-colors duration-500 ${
-          isDark ? 'bg-[var(--kw-dark-sky)]/5' : 'bg-purple-200/20'
+          isDark ? 'bg-[var(--kw-dark-sky)]/5' : 'bg-[var(--kw-lavender)]/40'
         }`}
         style={{ animationDelay: '1s' }}
       />
     </div>
   );
-}
+});

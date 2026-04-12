@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback, memo } from 'react';
 import { Command, Loader2, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -75,6 +75,14 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
     [groupedResults]
   );
 
+  const resultIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    flatResults.forEach((item, index) => {
+      map.set(`${item.kind}-${item.id}`, index);
+    });
+    return map;
+  }, [flatResults]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -103,6 +111,15 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleNavigate = useCallback(
+    (result: SearchResultItem) => {
+      router.push(result.href);
+      setIsOpen(false);
+      setQuery('');
+    },
+    [router]
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown' && flatResults.length > 0) {
       e.preventDefault();
@@ -112,10 +129,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
       setSelectedIndex((prev) => (prev - 1 + flatResults.length) % flatResults.length);
     } else if (e.key === 'Enter' && flatResults[selectedIndex]) {
       e.preventDefault();
-      const result = flatResults[selectedIndex];
-      router.push(result.href);
-      setIsOpen(false);
-      setQuery('');
+      handleNavigate(flatResults[selectedIndex]);
     }
   };
 
@@ -151,7 +165,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div className="absolute left-0 right-0 top-full z-dropdown mt-2 overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-[var(--kw-text-muted)]">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -173,19 +187,13 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
                     {group.label}
                   </p>
                   {group.items.map((result) => {
-                    const itemIndex = flatResults.findIndex(
-                      (item) => item.id === result.id && item.kind === result.kind
-                    );
+                    const itemIndex = resultIndexMap.get(`${result.kind}-${result.id}`) ?? -1;
                     return (
-                      <SearchResultButton
+                      <ResultRow
                         key={`${group.key}-${result.id}`}
                         result={result}
                         selected={itemIndex === selectedIndex}
-                        onSelect={() => {
-                          router.push(result.href);
-                          setIsOpen(false);
-                          setQuery('');
-                        }}
+                        onNavigate={handleNavigate}
                       />
                     );
                   })}
@@ -216,6 +224,24 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
     </div>
   );
 }
+
+const ResultRow = memo(function ResultRow({
+  result,
+  selected,
+  onNavigate,
+}: {
+  result: SearchResultItem;
+  selected: boolean;
+  onNavigate: (result: SearchResultItem) => void;
+}) {
+  return (
+    <SearchResultButton
+      result={result}
+      selected={selected}
+      onSelect={() => onNavigate(result)}
+    />
+  );
+});
 
 function SearchResultButton({
   result,

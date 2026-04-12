@@ -76,7 +76,7 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
             transitionDelay: `${sparkle.delay}s`,
           }}
         >
-          ✨
+          <span aria-hidden="true">✨</span>
         </span>
       ))}
     </div>

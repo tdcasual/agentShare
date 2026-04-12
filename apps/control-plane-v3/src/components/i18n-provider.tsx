@@ -23,15 +23,23 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale);
 
   useEffect(() => {
-    const saved = localStorage.getItem('app-locale') as Locale | null;
-    if (saved && (saved === 'zh-CN' || saved === 'en')) {
-      setLocaleState(saved);
+    try {
+      const saved = localStorage.getItem('app-locale') as Locale | null;
+      if (saved && (saved === 'zh-CN' || saved === 'en')) {
+        setLocaleState(saved);
+      }
+    } catch {
+      // ignore localStorage errors (SSR, private mode, disabled)
     }
   }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
-    localStorage.setItem('app-locale', newLocale);
+    try {
+      localStorage.setItem('app-locale', newLocale);
+    } catch {
+      // ignore localStorage errors
+    }
     window.location.reload();
   }, []);
 

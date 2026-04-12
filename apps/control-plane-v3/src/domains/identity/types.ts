@@ -90,12 +90,7 @@ export interface Identity {
 // 引用对象（用于跨领域引用）
 // ============================================
 
-export interface IdentityReference {
-  readonly id: string;
-  readonly type: IdentityType;
-  readonly name: string;
-  readonly avatar?: string;
-}
+export type { IdentityReference } from '../shared-types';
 
 // ============================================
 // 领域事件

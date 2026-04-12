@@ -46,98 +46,104 @@ interface NavItem {
 function useAllNavItems(): NavItem[] {
   const { t } = useI18n();
 
-  return [
-    // admin级别（Hub 依赖 admin-only API）
-    {
-      href: '/',
-      labelKey: t('navigation.hub'),
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      requiredRole: 'admin',
-    },
-    {
-      href: '/inbox',
-      labelKey: t('navigation.inbox'),
-      icon: <Inbox className="h-5 w-5" />,
-      requiredRole: 'admin',
-    },
+  return React.useMemo(
+    () => [
+      // admin级别（Hub 依赖 admin-only API）
+      {
+        href: '/',
+        labelKey: t('navigation.hub'),
+        icon: <LayoutDashboard className="h-5 w-5" />,
+        requiredRole: 'admin',
+      },
+      {
+        href: '/inbox',
+        labelKey: t('navigation.inbox'),
+        icon: <Inbox className="h-5 w-5" />,
+        requiredRole: 'admin',
+      },
 
-    // operator级别
-    {
-      href: '/tasks',
-      labelKey: t('navigation.tasks'),
-      icon: <CheckSquare className="h-5 w-5" />,
-      badge: 3,
-      requiredRole: 'admin',
-    },
-    {
-      href: '/reviews',
-      labelKey: t('navigation.reviews'),
-      icon: <ShieldCheck className="h-5 w-5" />,
-      requiredRole: 'operator',
-    },
-    {
-      href: '/approvals',
-      labelKey: t('navigation.approvals'),
-      icon: <Gavel className="h-5 w-5" />,
-      requiredRole: 'operator',
-    },
-    {
-      href: '/marketplace',
-      labelKey: t('navigation.marketplace'),
-      icon: <Sparkles className="h-5 w-5" />,
-      requiredRole: 'operator',
-    },
-    {
-      href: '/playbooks',
-      labelKey: t('navigation.playbooks'),
-      icon: <BookOpen className="h-5 w-5" />,
-      requiredRole: 'viewer',
-    },
-    {
-      href: '/runs',
-      labelKey: t('navigation.runs'),
-      icon: <PlayCircle className="h-5 w-5" />,
-      requiredRole: 'viewer',
-    },
+      // operator级别
+      {
+        href: '/tasks',
+        labelKey: t('navigation.tasks'),
+        icon: <CheckSquare className="h-5 w-5" />,
+        badge: 3,
+        requiredRole: 'admin',
+      },
+      {
+        href: '/reviews',
+        labelKey: t('navigation.reviews'),
+        icon: <ShieldCheck className="h-5 w-5" />,
+        requiredRole: 'operator',
+      },
+      {
+        href: '/approvals',
+        labelKey: t('navigation.approvals'),
+        icon: <Gavel className="h-5 w-5" />,
+        requiredRole: 'operator',
+      },
+      {
+        href: '/marketplace',
+        labelKey: t('navigation.marketplace'),
+        icon: <Sparkles className="h-5 w-5" />,
+        requiredRole: 'operator',
+      },
+      {
+        href: '/playbooks',
+        labelKey: t('navigation.playbooks'),
+        icon: <BookOpen className="h-5 w-5" />,
+        requiredRole: 'viewer',
+      },
+      {
+        href: '/runs',
+        labelKey: t('navigation.runs'),
+        icon: <PlayCircle className="h-5 w-5" />,
+        requiredRole: 'viewer',
+      },
 
-    // admin级别
-    {
-      href: '/identities',
-      labelKey: t('navigation.identities'),
-      icon: <Users className="h-5 w-5" />,
-      requiredRole: 'admin',
-    },
-    {
-      href: '/assets',
-      labelKey: t('navigation.assets'),
-      icon: <Package className="h-5 w-5" />,
-      requiredRole: 'admin',
-    },
-    {
-      href: '/spaces',
-      labelKey: t('navigation.spaces'),
-      icon: <Globe className="h-5 w-5" />,
-      requiredRole: 'viewer',
-    },
-    {
-      href: '/tokens',
-      labelKey: t('navigation.tokens'),
-      icon: <KeyRound className="h-5 w-5" />,
-      requiredRole: 'admin',
-    },
-  ];
+      // admin级别
+      {
+        href: '/identities',
+        labelKey: t('navigation.identities'),
+        icon: <Users className="h-5 w-5" />,
+        requiredRole: 'admin',
+      },
+      {
+        href: '/assets',
+        labelKey: t('navigation.assets'),
+        icon: <Package className="h-5 w-5" />,
+        requiredRole: 'admin',
+      },
+      {
+        href: '/spaces',
+        labelKey: t('navigation.spaces'),
+        icon: <Globe className="h-5 w-5" />,
+        requiredRole: 'viewer',
+      },
+      {
+        href: '/tokens',
+        labelKey: t('navigation.tokens'),
+        icon: <KeyRound className="h-5 w-5" />,
+        requiredRole: 'admin',
+      },
+    ],
+    [t]
+  );
 }
 
 function useBottomNavItems(): NavItem[] {
   const { t } = useI18n();
-  return [
-    {
-      href: '/settings',
-      labelKey: t('navigation.settings'),
-      icon: <Settings className="h-5 w-5" />,
-      requiredRole: 'admin',
-    },
-  ];
+  return React.useMemo(
+    () => [
+      {
+        href: '/settings',
+        labelKey: t('navigation.settings'),
+        icon: <Settings className="h-5 w-5" />,
+        requiredRole: 'admin',
+      },
+    ],
+    [t]
+  );
 }
 
 interface SidebarProps {
@@ -173,7 +179,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return (
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
+          'fixed left-0 top-0 z-drawer h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 will-change-[width] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
           collapsed ? 'w-20' : 'w-64'
         )}
       >
@@ -192,7 +198,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
+        'fixed left-0 top-0 z-drawer h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 will-change-[width] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
         collapsed ? 'w-20' : 'w-64'
       )}
     >
@@ -207,8 +213,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
         {!collapsed && (
           <div className="ml-3 overflow-hidden">
-            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">Control Plane</h1>
-            <p className="text-xs text-[var(--kw-text-muted)]">V3 Dual Cosmos</p>
+            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">{t('sidebar.appName')}</h1>
+            <p className="text-xs text-[var(--kw-text-muted)]">{t('sidebar.appTagline')}</p>
           </div>
         )}
       </div>

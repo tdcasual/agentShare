@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { createCoreRuntime, initializeRuntime, RuntimeContext } from '@/core/runtime';
 import { IdentityDomainPlugin } from '@/domains/identity/plugin';
+import { useI18n } from '@/components/i18n-provider';
 import { Loader2 } from 'lucide-react';
 
 interface RuntimeProviderProps {
@@ -20,6 +21,7 @@ interface RuntimeProviderProps {
  * 4. 通过 Context 提供 Runtime
  */
 export function RuntimeProvider({ children }: RuntimeProviderProps) {
+  const { t } = useI18n();
   const [runtime, setRuntime] = useState<ReturnType<typeof createCoreRuntime> | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -61,7 +63,7 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
-          <p className="text-[var(--kw-text-muted)]">Initializing Dual Cosmos...</p>
+          <p className="text-[var(--kw-text-muted)]">{t('runtime.initializing')}</p>
         </div>
       </div>
     );
@@ -72,7 +74,7 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
         <div className="w-full max-w-md rounded-3xl border border-[var(--kw-border)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
-          <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">Initialization Failed</h1>
+          <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('runtime.initFailedTitle')}</h1>
           <p className="text-[var(--kw-text-muted)]">{error.message}</p>
         </div>
       </div>

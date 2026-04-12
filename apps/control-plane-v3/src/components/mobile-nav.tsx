@@ -49,7 +49,7 @@ export function MobileNav() {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className="safe-area-pb dark:bg-[var(--kw-dark-surface)]/90 fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--kw-border)] bg-white/90 backdrop-blur-md dark:border-[var(--kw-dark-border)]">
+      <nav className="safe-area-pb fixed bottom-0 left-0 right-0 z-drawer border-t border-[var(--kw-border)] bg-white dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
         <div className="flex items-center justify-around px-2 py-2">
           {mainItems.map((item) => {
             const Icon = item.icon;
@@ -97,12 +97,12 @@ export function MobileNav() {
       {showMore && (
         <>
           <button
-            className="fixed inset-0 z-50 bg-black/20 dark:bg-black/40"
+            className="fixed inset-0 z-dropdown bg-black/20 dark:bg-black/40"
             aria-label={t('common.closeNavigationMenu')}
             type="button"
             onClick={() => setShowMore(false)}
           />
-          <div className="fixed bottom-20 left-4 right-4 z-50 animate-slide-up rounded-3xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <div className="fixed bottom-20 left-4 right-4 z-dropdown animate-slide-up rounded-3xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
             <div className="space-y-1 p-4">
               {moreItems.map((item) => {
                 const Icon = item.icon;

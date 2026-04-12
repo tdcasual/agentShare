@@ -28,7 +28,7 @@ import type {
   OpenClawDreamRun,
   OpenClawSession,
 } from './types';
-import { normalizeAgentToken, type AgentTokenTransport } from '../task/types';
+import { normalizeAgentToken, type AgentTokenTransport } from '../shared-types';
 
 export interface OpenClawAgentCreateInput {
   name: string;

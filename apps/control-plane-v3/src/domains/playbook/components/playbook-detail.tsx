@@ -44,7 +44,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <Card
         variant="kawaii"
         className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden"

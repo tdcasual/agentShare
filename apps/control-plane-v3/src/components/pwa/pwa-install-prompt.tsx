@@ -87,7 +87,7 @@ export function PWAInstallPrompt({
   return (
     <Card
       className={cn(
-        'fixed bottom-24 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96',
+        'fixed bottom-24 left-4 right-4 z-toast md:left-auto md:right-4 md:w-96',
         'animate-slide-up shadow-xl',
         className
       )}

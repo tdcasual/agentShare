@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 interface UseFocusTrapOptions {
   isActive: boolean;
@@ -31,12 +31,19 @@ export function useFocusTrap({
   const triggerRef = useRef<HTMLElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const onEscapeRef = useRef(onEscape);
+  const onFocusOutsideRef = useRef(onFocusOutside);
+
+  useLayoutEffect(() => {
+    onEscapeRef.current = onEscape;
+    onFocusOutsideRef.current = onFocusOutside;
+  });
 
   // 保存触发前的焦点
   useEffect(() => {
-    if (isActive) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
-      triggerRef.current = document.activeElement as HTMLElement;
+    if (isActive && document.activeElement instanceof HTMLElement) {
+      previousFocusRef.current = document.activeElement;
+      triggerRef.current = document.activeElement;
     }
   }, [isActive]);
 
@@ -82,9 +89,9 @@ export function useFocusTrap({
 
     // 键盘事件处理
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onEscape) {
+      if (e.key === 'Escape' && onEscapeRef.current) {
         e.preventDefault();
-        onEscape();
+        onEscapeRef.current();
         return;
       }
 
@@ -116,11 +123,11 @@ export function useFocusTrap({
     // 点击外部处理
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        onFocusOutside &&
+        onFocusOutsideRef.current &&
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        onFocusOutside();
+        onFocusOutsideRef.current();
       }
     };
 
@@ -142,7 +149,7 @@ export function useFocusTrap({
         previousFocusRef.current.focus();
       }
     };
-  }, [isActive, onEscape, onFocusOutside, returnFocusOnDeactivate]);
+  }, [isActive, returnFocusOnDeactivate]);
 
   return { containerRef, triggerRef };
 }
