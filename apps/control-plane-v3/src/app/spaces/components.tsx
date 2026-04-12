@@ -5,24 +5,6 @@
 import { Boxes, Wrench } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
-export interface MetricCardProps {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}
-
-export function MetricCard({ label, value, icon }: MetricCardProps) {
-  return (
-    <div className="dark:bg-[var(--kw-dark-surface-alt)]/65 rounded-2xl border border-[var(--kw-orange-surface)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
-      <div className="flex items-center gap-2 text-[var(--kw-orange-text)] dark:text-[var(--kw-warning)]">
-        {icon}
-        <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
-      </div>
-      <p className="mt-3 text-3xl font-semibold text-[var(--kw-text)]">{value}</p>
-    </div>
-  );
-}
-
 export interface SectionNoticeProps {
   message: string;
 }

@@ -2,6 +2,7 @@
  * Governance Panel Component - 审批治理面板
  */
 
+import { memo } from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
@@ -34,9 +35,9 @@ export function GovernancePanel({
     <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Governance Space</h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">{t('spaces.governance.title')}</h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-            Human review backlog for agent-originated market submissions.
+            {t('spaces.governance.description')}
           </p>
         </div>
         <Badge variant={selectedStatus === 'rejected' ? 'secondary' : 'warning'}>
@@ -51,7 +52,7 @@ export function GovernancePanel({
           aria-pressed={selectedStatus === 'all'}
           onClick={() => onSelectStatus('all')}
         >
-          All reviews
+          {t('spaces.governance.allReviews')}
         </Button>
         <Button
           variant={selectedStatus === 'pending' ? 'primary' : 'secondary'}
@@ -59,7 +60,7 @@ export function GovernancePanel({
           aria-pressed={selectedStatus === 'pending'}
           onClick={() => onSelectStatus('pending')}
         >
-          Pending Review
+          {t('spaces.governance.pendingReview')}
         </Button>
         <Button
           variant={selectedStatus === 'rejected' ? 'primary' : 'secondary'}
@@ -67,7 +68,7 @@ export function GovernancePanel({
           aria-pressed={selectedStatus === 'rejected'}
           onClick={() => onSelectStatus('rejected')}
         >
-          Rejected Review
+          {t('spaces.governance.rejectedReview')}
         </Button>
       </div>
 
@@ -86,55 +87,73 @@ export function GovernancePanel({
       ) : (
         <div className="space-y-2">
           {reviews.slice(0, 4).map((item) => (
-            <div
+            <GovernanceReviewItem
               key={`${item.resource_kind}-${item.resource_id}`}
-              className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-medium text-[var(--kw-text)]">{item.title}</p>
-                  <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                    {item.resource_kind} · submitted by{' '}
-                    {item.created_by_actor_id ?? 'unknown-agent'}
-                  </p>
-                </div>
-                {item.publication_status === 'pending_review' ? (
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      loading={actionKey === `reject:${item.resource_kind}:${item.resource_id}`}
-                      onClick={() => onReject(item.resource_kind, item.resource_id)}
-                      leftIcon={
-                        actionKey !== `reject:${item.resource_kind}:${item.resource_id}` ? (
-                          <XCircle className="h-4 w-4" />
-                        ) : undefined
-                      }
-                    >
-                      Reject {item.title}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      loading={actionKey === `approve:${item.resource_kind}:${item.resource_id}`}
-                      onClick={() => onApprove(item.resource_kind, item.resource_id)}
-                      leftIcon={
-                        actionKey !== `approve:${item.resource_kind}:${item.resource_id}` ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : undefined
-                      }
-                    >
-                      Approve {item.title}
-                    </Button>
-                  </div>
-                ) : (
-                  <Badge variant="secondary">{item.publication_status}</Badge>
-                )}
-              </div>
-            </div>
+              item={item}
+              actionKey={actionKey}
+              onApprove={onApprove}
+              onReject={onReject}
+            />
           ))}
         </div>
       )}
     </Card>
   );
 }
+
+interface GovernanceReviewItemProps {
+  item: ReviewItem;
+  actionKey: string | null;
+  onApprove: (resourceKind: string, resourceId: string) => void;
+  onReject: (resourceKind: string, resourceId: string) => void;
+}
+
+const GovernanceReviewItem = memo(function GovernanceReviewItem({
+  item,
+  actionKey,
+  onApprove,
+  onReject,
+}: GovernanceReviewItemProps) {
+  const { t } = useI18n();
+  const isRejecting = actionKey === `reject:${item.resource_kind}:${item.resource_id}`;
+  const isApproving = actionKey === `approve:${item.resource_kind}:${item.resource_id}`;
+
+  return (
+    <div
+      className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-[var(--kw-text)]">{item.title}</p>
+          <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
+            {item.resource_kind} · submitted by {item.created_by_actor_id ?? 'unknown-agent'}
+          </p>
+        </div>
+        {item.publication_status === 'pending_review' ? (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={isRejecting}
+              onClick={() => onReject(item.resource_kind, item.resource_id)}
+              leftIcon={!isRejecting ? <XCircle className="h-4 w-4" /> : undefined}
+            >
+              {t('spaces.governance.reject').replace('{title}', item.title)}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={isApproving}
+              onClick={() => onApprove(item.resource_kind, item.resource_id)}
+              leftIcon={!isApproving ? <CheckCircle2 className="h-4 w-4" /> : undefined}
+            >
+              {t('spaces.governance.approve').replace('{title}', item.title)}
+            </Button>
+          </div>
+        ) : (
+          <Badge variant="secondary">{item.publication_status}</Badge>
+        )}
+      </div>
+    </div>
+  );
+});

@@ -2,6 +2,7 @@
  * Identity Panel Component - 身份面板
  */
 
+import { memo } from 'react';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -47,47 +48,60 @@ export function IdentityPanel({
       ) : (
         <div className="space-y-2">
           {agents.slice(0, 4).map((agent) => (
-            <div
+            <AgentRow
               key={agent.id}
-              role="group"
-              aria-label={`${agent.name} identity`}
-              className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-medium text-[var(--kw-text)]">Identity: {agent.name}</p>
-                  <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                    {agent.id} · {agent.auth_method}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {(tokensByAgent[agent.id] ?? []).map((token) => (
-                      <Badge key={token.id} variant="secondary">
-                        {token.displayName ?? token.id}
-                      </Badge>
-                    ))}
-                    <Badge variant="secondary">
-                      {eventCounts[agent.id] ?? 0} recent event
-                      {(eventCounts[agent.id] ?? 0) === 1 ? '' : 's'}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
-                    {agent.status}
-                  </Badge>
-                  <Button
-                    variant={selectedAgentId === agent.id ? 'primary' : 'secondary'}
-                    size="sm"
-                    onClick={() => onSelectAgent(agent.id)}
-                  >
-                    Focus {agent.name}
-                  </Button>
-                </div>
-              </div>
-            </div>
+              agent={agent}
+              tokens={tokensByAgent[agent.id] ?? []}
+              eventCount={eventCounts[agent.id] ?? 0}
+              selected={selectedAgentId === agent.id}
+              onSelect={onSelectAgent}
+            />
           ))}
         </div>
       )}
     </Card>
   );
 }
+
+interface AgentRowProps {
+  agent: Agent;
+  tokens: AgentToken[];
+  eventCount: number;
+  selected: boolean;
+  onSelect: (agentId: string) => void;
+}
+
+const AgentRow = memo(function AgentRow({ agent, tokens, eventCount, selected, onSelect }: AgentRowProps) {
+  return (
+    <div
+      role="group"
+      aria-label={`${agent.name} identity`}
+      className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-[var(--kw-text)]">Identity: {agent.name}</p>
+          <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
+            {agent.id} · {agent.auth_method}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {tokens.map((token) => (
+              <Badge key={token.id} variant="secondary">
+                {token.displayName ?? token.id}
+              </Badge>
+            ))}
+            <Badge variant="secondary">
+              {eventCount} recent event{eventCount === 1 ? '' : 's'}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+          <Button variant={selected ? 'primary' : 'secondary'} size="sm" onClick={() => onSelect(agent.id)}>
+            Focus {agent.name}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+});

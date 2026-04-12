@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState, memo } from 'react';
+import { useMemo, useState, memo, useCallback } from 'react';
 import { ArrowRight, Boxes, Bot, ShieldCheck, Sparkles, Store, Wrench } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useCatalog } from '@/domains/catalog';
@@ -20,6 +20,8 @@ import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
+import { MetricCard } from '@/shared/ui-primitives/metric';
+import { FilterButton } from '@/shared/ui-primitives/filter-button';
 
 type MarketplaceFilter = 'all' | 'pending' | 'active' | 'rejected';
 
@@ -141,16 +143,19 @@ const MarketplaceContent = memo(function MarketplaceContent() {
 
           <div className="grid gap-3 sm:grid-cols-3">
             <MetricCard
+              variant="marketplace"
               label={t('marketplace.metricAwaitingReview')}
               value={pendingAgentSubmissions.length.toString()}
               icon={<ShieldCheck className="h-4 w-4" />}
             />
             <MetricCard
+              variant="marketplace"
               label={t('marketplace.metricPublishedAssets')}
               value={publishedAgentSecrets.length.toString()}
               icon={<Boxes className="h-4 w-4" />}
             />
             <MetricCard
+              variant="marketplace"
               label={t('marketplace.metricPublishedSkills')}
               value={publishedAgentCapabilities.length.toString()}
               icon={<Wrench className="h-4 w-4" />}
@@ -184,15 +189,13 @@ const MarketplaceContent = memo(function MarketplaceContent() {
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap gap-3">
           {reviewFilterItems.map((item) => (
-            <Button
+            <FilterButton
               key={item.key}
-              variant={selectedFilter === item.key ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedFilter === item.key}
-              onClick={() => setSelectedFilter(item.key)}
-            >
-              {item.label} ({item.count})
-            </Button>
+              value={item.key}
+              active={selectedFilter === item.key}
+              onSelect={setSelectedFilter}
+              label={`${item.label} (${item.count})`}
+            />
           ))}
         </div>
       </Card>
@@ -436,27 +439,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
   );
 });
 
-function MetricCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="dark:bg-[var(--kw-dark-bg)]/65 rounded-2xl border border-[var(--kw-border)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
-      <div className="flex items-center gap-2 text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-        {icon}
-        <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
-      </div>
-      <p className="mt-3 text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {value}
-      </p>
-    </div>
-  );
-}
+
 
 function SectionNotice({ tone, message }: { tone: 'default' | 'error'; message: string }) {
   return (

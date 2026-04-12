@@ -35,7 +35,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
 
       {/* 警告提示 */}
       <div className="mx-auto max-w-7xl px-4 py-4">
-        <div className="dark:bg-[var(--kw-dark-amber-surface)]/20 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-[var(--kw-dark-amber-surface)]">
+        <div className="dark:bg-[var(--kw-dark-amber-surface)]/20 flex items-start gap-3 rounded-xl border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)] p-4 dark:border-[var(--kw-dark-amber-surface)]">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
           <div className="space-y-2 text-sm text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
             <p className="font-medium">Demonstration Environment</p>
@@ -72,7 +72,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/demo"
-                className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 transition-colors hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-950/40 dark:text-[var(--kw-warning)] dark:hover:bg-amber-900/50"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-amber-text)] bg-[var(--kw-amber-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-amber-text)] transition-colors hover:bg-[var(--kw-warning)]/30 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/40 dark:text-[var(--kw-warning)] dark:hover:bg-[var(--kw-dark-amber-surface)]/60"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Sandbox Directory

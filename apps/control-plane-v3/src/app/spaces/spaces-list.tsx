@@ -87,9 +87,7 @@ export function SpacesList({
                   canManage={canManageSpaces}
                   onAddMember={async (input) => {
                     setActiveSpaceId(space.id);
-                    setTimeout(async () => {
-                      await onAddMember(space.id, input);
-                    }, 0);
+                    await onAddMember(space.id, input);
                   }}
                   isAdding={isAdding && activeSpaceId === space.id}
                 />

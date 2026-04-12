@@ -35,7 +35,8 @@ import { OperationsFeed } from './operations-feed';
 import { GovernancePanel } from './governance-panel';
 import { IdentityPanel } from './identity-panel';
 import { SpacesList } from './spaces-list';
-import { MetricCard, MarketInventoryPanel } from './components';
+import { MarketInventoryPanel } from './components';
+import { MetricCard } from '@/shared/ui-primitives/metric';
 import { useI18n } from '@/components/i18n-provider';
 
 function SpacesContent() {
@@ -250,16 +251,19 @@ function SpacesContent() {
 
             <div className="grid gap-3 sm:grid-cols-3">
               <MetricCard
+                variant="space"
                 label="Recent events"
                 value={events.length.toString()}
                 icon={<Sparkles className="h-4 w-4" />}
               />
               <MetricCard
+                variant="space"
                 label="Pending reviews"
                 value={pendingReviews.length.toString()}
                 icon={<ShieldCheck className="h-4 w-4" />}
               />
               <MetricCard
+                variant="space"
                 label="Active agents"
                 value={activeAgents.length.toString()}
                 icon={<Bot className="h-4 w-4" />}

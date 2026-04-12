@@ -48,7 +48,9 @@ export default function LoginPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, t]);
+    // t 不需要作为依赖，bootstrap 检查只在挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,28 +74,28 @@ export default function LoginPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
       {/* Floating decorations */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <span className="absolute left-[10%] top-20 animate-float text-4xl opacity-10 dark:opacity-5">
+        <span aria-hidden="true" className="absolute left-[10%] top-20 animate-float text-4xl opacity-10 dark:opacity-5">
           🌸
         </span>
-        <span
+        <span aria-hidden="true"
           className="absolute right-[15%] top-40 animate-float text-3xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '1s' }}
         >
           ✨
         </span>
-        <span
+        <span aria-hidden="true"
           className="absolute bottom-32 left-[20%] animate-float text-5xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '2s' }}
         >
           💕
         </span>
-        <span
+        <span aria-hidden="true"
           className="absolute left-[70%] top-60 animate-float text-3xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '0.5s' }}
         >
           🌟
         </span>
-        <span
+        <span aria-hidden="true"
           className="absolute bottom-20 right-[25%] animate-float text-4xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '1.5s' }}
         >
@@ -102,7 +104,7 @@ export default function LoginPage() {
       </div>
 
       {/* Header controls */}
-      <div className="fixed right-4 top-4 z-50 flex items-center gap-3">
+      <div className="fixed right-4 top-4 z-toast flex items-center gap-3">
         <LanguageSwitcher />
         <SimpleThemeToggle />
       </div>

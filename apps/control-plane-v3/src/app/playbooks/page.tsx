@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useMemo, memo } from 'react';
+import { useId, useState, useMemo, memo } from 'react';
 import { Layout } from '@/interfaces/human/layout';
 import { ManagementRouteGuard } from '@/components/route-guard';
 import { useI18n } from '@/components/i18n-provider';
@@ -107,7 +107,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
   if (isLoading) {
     return (
       <Layout>
-        <PageLoader message="加载手册列表..." />
+        <PageLoader message={t('playbooks.loading')} />
       </Layout>
     );
   }
@@ -121,12 +121,12 @@ const PlaybooksContent = memo(function PlaybooksContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">加载失败</h2>
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('playbooks.loadFailed')}</h2>
             <p className="mb-4 text-[var(--kw-text-muted)]">
-              {error instanceof Error ? error.message : '未知错误'}
+              {error instanceof Error ? error.message : t('common.unknownError')}
             </p>
             <Button variant="kawaii" onClick={() => refresh()}>
-              重试
+              {t('common.retry')}
             </Button>
           </Card>
         </div>
@@ -161,10 +161,10 @@ const PlaybooksContent = memo(function PlaybooksContent() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                Playbook 手册
+                {t('playbooks.title')}
               </h1>
               <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                浏览和搜索可复用的执行手册
+                {t('playbooks.description')}
               </p>
             </div>
             <div className="flex gap-2">
@@ -176,7 +176,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
                 }}
                 leftIcon={<RefreshCw className="h-4 w-4" />}
               >
-                刷新
+                {t('common.refresh')}
               </Button>
               <Button
                 variant="kawaii"
@@ -184,7 +184,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
                 onClick={() => setShowCreateForm(true)}
                 leftIcon={<Plus className="h-4 w-4" />}
               >
-                新建
+                {t('common.new')}
               </Button>
             </div>
           </div>
@@ -220,7 +220,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="搜索手册标题和内容..."
+                  placeholder={t('playbooks.searchPlaceholder')}
                   className="pl-10"
                 />
               </div>
@@ -228,20 +228,14 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               {/* 任务类型筛选 */}
               <div className="flex flex-wrap items-center gap-2">
                 <Filter className="h-4 w-4 text-[var(--kw-text-muted)]" />
-                <span className="text-sm text-[var(--kw-text-muted)]">类型:</span>
+                <span className="text-sm text-[var(--kw-text-muted)]">{t('playbooks.typeFilter')}</span>
                 {TASK_TYPES.map((type) => (
-                  <button
-                    type="button"
+                  <TaskTypeFilterButton
                     key={type}
-                    onClick={() => setSelectedTaskType(type)}
-                    className={`rounded-full px-3 py-1 text-sm transition-colors ${
-                      selectedTaskType === type
-                        ? 'bg-[var(--kw-primary-100)] font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]'
-                        : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
-                    }`}
-                  >
-                    {type === 'all' ? '全部' : type}
-                  </button>
+                    type={type}
+                    selected={selectedTaskType === type}
+                    onSelect={setSelectedTaskType}
+                  />
                 ))}
               </div>
 
@@ -249,20 +243,14 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               {allTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                   <Tag className="h-4 w-4 text-[var(--kw-text-muted)]" />
-                  <span className="text-sm text-[var(--kw-text-muted)]">标签:</span>
+                  <span className="text-sm text-[var(--kw-text-muted)]">{t('playbooks.tagFilter')}</span>
                   {allTags.map((tag) => (
-                    <button
-                      type="button"
+                    <TagFilterButton
                       key={tag}
-                      onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
-                      className={`rounded-full px-2 py-0.5 text-xs transition-colors ${
-                        selectedTag === tag
-                          ? 'dark:bg-[var(--kw-dark-purple-surface)]/30 bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]'
-                          : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
-                      }`}
-                    >
-                      {tag}
-                    </button>
+                      tag={tag}
+                      selected={selectedTag === tag}
+                      onToggle={setSelectedTag}
+                    />
                   ))}
                 </div>
               )}
@@ -272,10 +260,10 @@ const PlaybooksContent = memo(function PlaybooksContent() {
           {/* 统计 */}
           <div className="flex items-center justify-between text-sm text-[var(--kw-text-muted)]">
             <span>
-              共 {total} 本手册
-              {appliedFilters?.q && ` · 搜索: "${appliedFilters.q}"`}
-              {appliedFilters?.task_type && ` · 类型: ${appliedFilters.task_type}`}
-              {appliedFilters?.tag && ` · 标签: ${appliedFilters.tag}`}
+              {t('playbooks.totalCount').replace('{count}', String(total))}
+              {appliedFilters?.q && ` · ${t('playbooks.searchPrefix')}: "${appliedFilters.q}"`}
+              {appliedFilters?.task_type && ` · ${t('playbooks.typePrefix')}: ${appliedFilters.task_type}`}
+              {appliedFilters?.tag && ` · ${t('playbooks.tagPrefix')}: ${appliedFilters.tag}`}
             </span>
           </div>
 
@@ -288,12 +276,12 @@ const PlaybooksContent = memo(function PlaybooksContent() {
                     <BookOpen className="h-10 w-10 text-[var(--kw-primary-500)]" />
                   </div>
                   <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                    暂无手册
+                    {t('playbooks.emptyTitle')}
                   </h3>
                   <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
                     {searchQuery || selectedTaskType !== 'all' || selectedTag
-                      ? '尝试调整搜索条件'
-                      : '还没有创建任何手册'}
+                      ? t('playbooks.emptyDescFilter')
+                      : t('playbooks.emptyDescNoData')}
                   </p>
                 </Card>
               </div>
@@ -336,6 +324,11 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
   const [body, setBody] = useState('');
   const [taskType, setTaskType] = useState('code_review');
   const [tags, setTags] = useState('');
+  const idPrefix = useId();
+  const titleId = `${idPrefix}-title`;
+  const taskTypeId = `${idPrefix}-taskType`;
+  const tagsId = `${idPrefix}-tags`;
+  const bodyId = `${idPrefix}-body`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,30 +344,32 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <Card variant="kawaii" className="w-full max-w-lg">
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
           <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-            新建 Playbook
+            {t('playbooks.modal.title')}
           </h2>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
-              标题
+            <label htmlFor={titleId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+              {t('tasks.form.title')}
             </label>
             <Input
+              id={titleId}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="输入手册标题"
+              placeholder={t('playbooks.modal.titlePlaceholder')}
               required
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
-              任务类型
+            <label htmlFor={taskTypeId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+              {t('tasks.form.taskType')}
             </label>
             <select
+              id={taskTypeId}
               value={taskType}
               onChange={(e) => setTaskType(e.target.value)}
               className="w-full rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
@@ -388,10 +383,11 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
-              标签（用逗号分隔）
+            <label htmlFor={tagsId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+              {t('playbooks.modal.tagsLabel')}
             </label>
             <Input
+              id={tagsId}
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder={t('playbooks.form.tagsPlaceholder')}
@@ -399,13 +395,14 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
-              内容
+            <label htmlFor={bodyId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+              {t('playbooks.modal.bodyLabel')}
             </label>
             <textarea
+              id={bodyId}
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="输入手册详细内容..."
+              placeholder={t('playbooks.modal.bodyPlaceholder')}
               rows={6}
               required
               className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
@@ -420,7 +417,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
               disabled={isCreating}
               className="flex-1"
             >
-              取消
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -428,7 +425,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
               disabled={isCreating || !title.trim() || !body.trim()}
               className="flex-1"
             >
-              {isCreating ? '创建中...' : '创建'}
+              {isCreating ? t('playbooks.modal.creating') : t('common.create')}
             </Button>
           </div>
         </form>
@@ -436,6 +433,55 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
     </div>
   );
 }
+
+interface TaskTypeFilterButtonProps {
+  type: string;
+  selected: boolean;
+  onSelect: (type: string) => void;
+}
+
+const TaskTypeFilterButton = memo(function TaskTypeFilterButton({
+  type,
+  selected,
+  onSelect,
+}: TaskTypeFilterButtonProps) {
+  const { t } = useI18n();
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(type)}
+      className={`rounded-full px-3 py-1 text-sm transition-colors ${
+        selected
+          ? 'bg-[var(--kw-primary-100)] font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]'
+          : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
+      }`}
+    >
+      {type === 'all' ? t('common.all') : t(`playbooks.taskTypes.${type}`)}
+    </button>
+  );
+});
+
+interface TagFilterButtonProps {
+  tag: string;
+  selected: boolean;
+  onToggle: (tag: string) => void;
+}
+
+const TagFilterButton = memo(function TagFilterButton({ tag, selected, onToggle }: TagFilterButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(selected ? '' : tag)}
+      className={`rounded-full px-2 py-0.5 text-xs transition-colors ${
+        selected
+          ? 'dark:bg-[var(--kw-dark-purple-surface)]/30 bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]'
+          : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
+      }`}
+    >
+      {tag}
+    </button>
+  );
+});
 
 export default function PlaybooksPage() {
   return (

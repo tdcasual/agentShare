@@ -264,7 +264,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /approve agent.market.capability/i }));
+    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.approve$/i }));
 
     await waitFor(() => {
       expect(approveReviewMock).toHaveBeenCalledWith('capability', 'capability-1');
@@ -290,7 +290,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /rejected review/i }));
+    await user.click(screen.getByRole('button', { name: /spaces.governance.rejectedReview/i }));
 
     expect(screen.getByText('rejected.market.secret')).toBeInTheDocument();
     expect(screen.queryByText('agent.market.capability')).not.toBeInTheDocument();
@@ -301,7 +301,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /reject agent.market.capability/i }));
+    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.reject$/i }));
 
     await waitFor(() => {
       expect(rejectReviewMock).toHaveBeenCalledWith('capability', 'capability-1', { reason: '' });
@@ -313,7 +313,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /approve agent.market.capability/i }));
+    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.approve$/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent('Approved agent.market.capability');
@@ -326,7 +326,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /reject agent.market.capability/i }));
+    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.reject$/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Review backend unavailable');
@@ -339,7 +339,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /approve agent.market.capability/i }));
+    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.approve$/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('spaces.sessionExpired');

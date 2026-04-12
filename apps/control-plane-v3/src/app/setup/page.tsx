@@ -58,7 +58,9 @@ export default function SetupPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, t]);
+    // t 不需要作为依赖，bootstrap 检查只在挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,28 +93,32 @@ export default function SetupPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
       {/* Floating decorations */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <span className="absolute left-[8%] top-16 animate-float text-4xl opacity-10 dark:opacity-5">
+        <span aria-hidden="true" className="absolute left-[8%] top-16 animate-float text-4xl opacity-10 dark:opacity-5">
           🌟
         </span>
         <span
+          aria-hidden="true"
           className="absolute right-[12%] top-32 animate-float text-3xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '1s' }}
         >
           💫
         </span>
         <span
+          aria-hidden="true"
           className="absolute bottom-40 left-[15%] animate-float text-5xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '2s' }}
         >
           🎀
         </span>
         <span
+          aria-hidden="true"
           className="absolute right-[70%] top-48 animate-float text-3xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '0.5s' }}
         >
           🌸
         </span>
         <span
+          aria-hidden="true"
           className="absolute bottom-24 right-[20%] animate-float text-4xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '1.5s' }}
         >
@@ -121,7 +127,7 @@ export default function SetupPage() {
       </div>
 
       {/* Header controls */}
-      <div className="fixed right-4 top-4 z-50 flex items-center gap-3">
+      <div className="fixed right-4 top-4 z-toast flex items-center gap-3">
         <LanguageSwitcher />
         <SimpleThemeToggle />
       </div>
@@ -134,10 +140,11 @@ export default function SetupPage() {
         <div
           className="absolute -right-4 -top-4 animate-float text-3xl"
           style={{ animationDuration: '3s' }}
+          aria-hidden="true"
         >
           ✨
         </div>
-        <div className="absolute -bottom-3 -left-3 text-2xl opacity-60">🌸</div>
+        <div className="absolute -bottom-3 -left-3 text-2xl opacity-60" aria-hidden="true">🌸</div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left side - Info */}
@@ -212,7 +219,7 @@ export default function SetupPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, email: event.target.value }))
               }
-              placeholder="owner@example.com"
+              placeholder={t('auth.setup.emailPlaceholder')}
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
             <Input
@@ -251,12 +258,12 @@ export default function SetupPage() {
               ) : !isReady ? (
                 <span className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 animate-pulse" />
-                  Checking status...
+                  {t('auth.setup.checkingStatus')}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <Heart className="h-4 w-4 text-[var(--kw-primary-500)]" />
-                  System not initialized yet. Complete bootstrap to unlock login.
+                  {t('auth.setup.systemNotInitialized')}
                 </span>
               )}
             </div>

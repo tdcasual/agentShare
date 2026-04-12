@@ -7,11 +7,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/components/i18n-provider';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { WifiOff, RefreshCw, CloudOff } from 'lucide-react';
 
 export default function OfflinePage() {
+  const { t } = useI18n();
   const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
@@ -42,8 +44,8 @@ export default function OfflinePage() {
 
         {/* 标题 */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-[var(--kw-text)]">您已离线</h1>
-          <p className="text-[var(--kw-text-muted)]">无法连接到网络，部分功能可能无法使用</p>
+          <h1 className="text-2xl font-bold text-[var(--kw-text)]">{t('offline.title')}</h1>
+          <p className="text-[var(--kw-text-muted)]">{t('offline.description')}</p>
         </div>
 
         {/* 说明 */}
@@ -51,11 +53,11 @@ export default function OfflinePage() {
           <div className="flex items-start gap-3">
             <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]" />
             <div>
-              <p className="font-medium text-[var(--kw-text)]">离线时可用的功能</p>
+              <p className="font-medium text-[var(--kw-text)]">{t('offline.availableFeaturesTitle')}</p>
               <ul className="mt-1 space-y-1 text-sm text-[var(--kw-text-muted)]">
-                <li>• 浏览已缓存的页面</li>
-                <li>• 查看本地数据</li>
-                <li>• 填写表单（稍后同步）</li>
+                <li>• {t('offline.cachedPages')}</li>
+                <li>• {t('offline.localData')}</li>
+                <li>• {t('offline.formsSync')}</li>
               </ul>
             </div>
           </div>
@@ -64,7 +66,7 @@ export default function OfflinePage() {
         {/* 操作按钮 */}
         <div className="flex gap-3">
           <Button variant="secondary" onClick={() => window.history.back()} className="flex-1">
-            返回
+            {t('common.back')}
           </Button>
           <Button
             onClick={handleRetry}
@@ -73,19 +75,19 @@ export default function OfflinePage() {
             className="flex-1"
             leftIcon={<RefreshCw className="h-4 w-4" />}
           >
-            重试
+            {t('common.retry')}
           </Button>
         </div>
 
         {/* 状态提示 */}
         {isOnline && (
           <p className="animate-fade-in text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
-            网络已恢复，正在重新加载...
+            {t('offline.backOnline')}
           </p>
         )}
 
         {/* 底部信息 */}
-        <p className="text-xs text-[var(--kw-text-muted)]">Control Plane V3 · 离线模式</p>
+        <p className="text-xs text-[var(--kw-text-muted)]">Control Plane V3 · {t('common.offline')}</p>
       </Card>
     </div>
   );

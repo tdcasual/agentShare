@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState, memo } from 'react';
+import { FormEvent, useMemo, useState, memo, useCallback } from 'react';
 import { LogOut, ShieldCheck, UserCog, UserPlus, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Layout } from '@/interfaces/human/layout';
@@ -22,6 +22,8 @@ import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { Input } from '@/shared/ui-primitives/input';
+import { MetricCard } from '@/shared/ui-primitives/metric';
+import { FilterButton } from '@/shared/ui-primitives/filter-button';
 
 export default function SettingsPage() {
   return (
@@ -164,7 +166,7 @@ const SettingsContent = memo(function SettingsContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <ShieldCheck className="h-4 w-4" />
             {t('settings.inviteOnlyAccess')}
           </div>
@@ -231,46 +233,36 @@ const SettingsContent = memo(function SettingsContent() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedRosterFilter === 'all' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedRosterFilter === 'all'}
-              onClick={() => setSelectedRosterFilter('all')}
-            >
-              {t('settings.rosterAll')}
-            </Button>
-            <Button
-              variant={selectedRosterFilter === 'owner' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedRosterFilter === 'owner'}
-              onClick={() => setSelectedRosterFilter('owner')}
-            >
-              {t('settings.rosterOwners')}
-            </Button>
-            <Button
-              variant={selectedRosterFilter === 'admin' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedRosterFilter === 'admin'}
-              onClick={() => setSelectedRosterFilter('admin')}
-            >
-              {t('settings.rosterAdmins')}
-            </Button>
-            <Button
-              variant={selectedRosterFilter === 'operator' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedRosterFilter === 'operator'}
-              onClick={() => setSelectedRosterFilter('operator')}
-            >
-              {t('settings.rosterOperators')}
-            </Button>
-            <Button
-              variant={selectedRosterFilter === 'inactive' ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={selectedRosterFilter === 'inactive'}
-              onClick={() => setSelectedRosterFilter('inactive')}
-            >
-              {t('settings.rosterInactive')}
-            </Button>
+            <FilterButton
+              value="all"
+              active={selectedRosterFilter === 'all'}
+              onSelect={setSelectedRosterFilter}
+              label={t('settings.rosterAll')}
+            />
+            <FilterButton
+              value="owner"
+              active={selectedRosterFilter === 'owner'}
+              onSelect={setSelectedRosterFilter}
+              label={t('settings.rosterOwners')}
+            />
+            <FilterButton
+              value="admin"
+              active={selectedRosterFilter === 'admin'}
+              onSelect={setSelectedRosterFilter}
+              label={t('settings.rosterAdmins')}
+            />
+            <FilterButton
+              value="operator"
+              active={selectedRosterFilter === 'operator'}
+              onSelect={setSelectedRosterFilter}
+              label={t('settings.rosterOperators')}
+            />
+            <FilterButton
+              value="inactive"
+              active={selectedRosterFilter === 'inactive'}
+              onSelect={setSelectedRosterFilter}
+              label={t('settings.rosterInactive')}
+            />
           </div>
         </div>
       </Card>
@@ -331,7 +323,7 @@ const SettingsContent = memo(function SettingsContent() {
               </label>
               <select
                 id="role-select"
-                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
+                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white dark:bg-[var(--kw-dark-bg)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
                 value={inviteForm.role}
                 onChange={(event) =>
                   setInviteForm((current) => ({
@@ -346,7 +338,7 @@ const SettingsContent = memo(function SettingsContent() {
               </select>
             </div>
 
-            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('settings.inviteNotice')}
             </div>
 
@@ -358,7 +350,7 @@ const SettingsContent = memo(function SettingsContent() {
 
         <Card variant="feature" className="space-y-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
               <UserCog className="h-4 w-4" />
               {t('settings.currentSession')}
             </div>
@@ -387,17 +379,20 @@ const SettingsContent = memo(function SettingsContent() {
               label={t('settings.expires')}
               value={
                 session
-                  ? new Date(
-                      typeof session.expires_at === 'number'
-                        ? session.expires_at * 1000
-                        : session.expires_at
-                    ).toLocaleString(locale)
+                  ? (() => {
+                      const d = new Date(
+                        typeof session.expires_at === 'number'
+                          ? session.expires_at * 1000
+                          : session.expires_at
+                      );
+                      return isNaN(d.getTime()) ? t('common.unknown') : d.toLocaleString(locale);
+                    })()
                   : t('common.loading')
               }
             />
           </div>
 
-          <div className="rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5">
+          <div className="rounded-3xl border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 p-5">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]">
                 <ShieldCheck className="h-5 w-5" />
@@ -449,7 +444,7 @@ const SettingsContent = memo(function SettingsContent() {
 
       <Card variant="kawaii" className="space-y-5">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
             <Users className="h-4 w-4" />
             {t('settings.invitedAccounts')}
           </div>
@@ -464,80 +459,16 @@ const SettingsContent = memo(function SettingsContent() {
         </div>
 
         <div className="grid gap-4">
-          {visibleAccounts.map((account) => {
-            const isCurrentUser = session?.actor_id === account.id;
-            const canDisable = account.role !== 'owner' && account.status === 'active';
-
-            return (
-              <Card
-                key={account.id}
-                className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant={
-                          account.role === 'owner'
-                            ? 'primary'
-                            : account.role === 'admin'
-                              ? 'secondary'
-                              : 'default'
-                        }
-                      >
-                        {account.role}
-                      </Badge>
-                      <Badge variant={account.status === 'active' ? 'success' : 'warning'}>
-                        {account.status}
-                      </Badge>
-                      {isCurrentUser ? (
-                        <Badge variant="info">{t('settings.currentSession')}</Badge>
-                      ) : null}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                        {account.display_name}
-                      </h3>
-                      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                        {account.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDisable(account.id)}
-                      disabled={!canDisable}
-                    >
-                      {t('settings.disable')}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-3">
-                  <SessionStat label={t('settings.accountId')} value={account.id} monospace />
-                  <SessionStat
-                    label={t('settings.lastLogin')}
-                    value={
-                      account.last_login_at
-                        ? new Date(account.last_login_at).toLocaleString(locale)
-                        : t('settings.never')
-                    }
-                  />
-                  <SessionStat
-                    label={t('settings.availability')}
-                    value={
-                      account.status === 'active'
-                        ? t('settings.canLogin')
-                        : t('settings.accessDisabled')
-                    }
-                  />
-                </div>
-              </Card>
-            );
-          })}
+          {visibleAccounts.map((account) => (
+            <AccountRow
+              key={account.id}
+              account={account}
+              isCurrentUser={session?.actor_id === account.id}
+              locale={locale}
+              onDisable={handleDisable}
+              t={t}
+            />
+          ))}
           {visibleAccounts.length === 0 ? (
             <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
               No accounts match the current supervision filter.
@@ -549,18 +480,78 @@ const SettingsContent = memo(function SettingsContent() {
   );
 });
 
-function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
+
+
+function AccountRow({
+  account,
+  isCurrentUser,
+  locale,
+  onDisable,
+  t,
+}: {
+  account: {
+    id: string;
+    role: string;
+    status: string;
+    display_name: string;
+    email: string;
+    last_login_at?: string | null;
+  };
+  isCurrentUser: boolean;
+  locale: string;
+  onDisable: (id: string) => void;
+  t: (key: string) => string;
+}) {
+  const canDisable = account.role !== 'owner' && account.status === 'active';
+  const handleClick = useCallback(() => {
+    onDisable(account.id);
+  }, [onDisable, account.id]);
+
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90">
-      <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {label}
-      </p>
-      <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {value}
-      </p>
-      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {hint}
-      </p>
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant={
+                account.role === 'owner' ? 'primary' : account.role === 'admin' ? 'secondary' : 'default'
+              }
+            >
+              {account.role}
+            </Badge>
+            <Badge variant={account.status === 'active' ? 'success' : 'warning'}>
+              {account.status}
+            </Badge>
+            {isCurrentUser ? <Badge variant="info">{t('settings.currentSession')}</Badge> : null}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {account.display_name}
+            </h3>
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {account.email}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <Button variant="ghost" size="sm" onClick={handleClick} disabled={!canDisable}>
+            {t('settings.disable')}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <SessionStat label={t('settings.accountId')} value={account.id} monospace />
+        <SessionStat
+          label={t('settings.lastLogin')}
+          value={account.last_login_at ? new Date(account.last_login_at).toLocaleString(locale) : t('settings.never')}
+        />
+        <SessionStat
+          label={t('settings.availability')}
+          value={account.status === 'active' ? t('settings.canLogin') : t('settings.accessDisabled')}
+        />
+      </div>
     </Card>
   );
 }
@@ -575,7 +566,7 @@ function SessionStat({
   monospace?: boolean;
 }) {
   return (
-    <div className="rounded-2xl bg-white/80 px-4 py-3">
+    <div className="rounded-2xl bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-3">
       <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>

@@ -118,125 +118,76 @@ const InboxContent = memo(function InboxContent() {
   );
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-            {t('inbox.title')}
-          </p>
-          <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            {t('inbox.subtitle')}
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--kw-text)]">{t('inbox.title')}</h1>
+          <p className="text-sm text-[var(--kw-text-muted)]">{t('inbox.subtitle')}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge className="uppercase tracking-wide" variant="info">
-            {t('inbox.unread')} {unreadCount}
+        {unreadCount > 0 && (
+          <Badge variant="warning" className="px-3 py-1">
+            {unreadCount} {t('inbox.unread')}
           </Badge>
-          <Button variant="outline" size="sm" onClick={() => mutate()}>
-            {t('common.refresh')}
-          </Button>
-        </div>
-      </header>
+        )}
+      </div>
 
-      {isLoading && (
-        <div className="flex items-center justify-center gap-2 rounded-3xl border border-dashed border-[var(--kw-border)] bg-white/80 py-12 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          {t('inbox.loading')}
+      {isLoading && events.length === 0 && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
         </div>
       )}
 
       {error && (
-        <div className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/50 flex flex-col items-center gap-3 rounded-3xl border border-[var(--kw-error)] p-6 text-center text-sm text-[var(--kw-error)]">
-          <AlertCircle className="h-6 w-6" />
-          <p className="font-semibold">{t('inbox.loadError')}</p>
-          <p className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            {error instanceof Error ? error.message : t('inbox.tryAgain')}
-          </p>
-          <Button size="sm" onClick={() => mutate()}>
-            {t('common.retry')}
-          </Button>
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/10 p-4 text-[var(--kw-error)]">
+          <AlertCircle className="h-5 w-5" />
+          <p>{error instanceof Error ? error.message : t('inbox.loadFailed')}</p>
         </div>
       )}
 
-      {!isLoading && !error && events.length === 0 && (
-        <Card variant="default">
-          <CardContent>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('inbox.emptyTitle')}
-            </p>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('inbox.emptyDesc')}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {!isLoading && !error && focusedEvent && (
-        <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
+      {focusedEvent && (
+        <Card className="border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]">
           <CardHeader>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-                  {t('inbox.focusedEvent')}
-                </p>
-                <CardTitle>{focusedEvent.summary}</CardTitle>
-              </div>
-              <span className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {formatRelativeTime(focusedEvent.created_at, t, locale)}
-              </span>
-            </div>
+            <CardTitle className="text-lg">{t('inbox.focusedEvent')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {focusedEvent.details ?? t('inbox.noContext')}
-            </p>
+            <div className="space-y-2">
+              <p className="font-medium text-[var(--kw-text)]">{focusedEvent.summary}</p>
+              <p className="text-sm text-[var(--kw-text-muted)]">
+                {formatRelativeTime(focusedEvent.created_at, t, locale)}
+              </p>
+            </div>
           </CardContent>
           <CardFooter>
-            <div className="flex flex-wrap items-center gap-2">
-              {focusedEvent.action_url && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleActionNavigate(focusedEvent.action_url)}
-                >
-                  {getActionLabel(focusedEvent, t)}
-                </Button>
-              )}
-              {!focusedEvent.read_at && (
-                <Button variant="ghost" size="sm" onClick={() => handleMarkRead(focusedEvent.id)}>
-                  {t('inbox.markAsRead')}
-                </Button>
-              )}
-            </div>
+            <EventActionButtons
+              event={focusedEvent}
+              t={t}
+              onActionNavigate={handleActionNavigate}
+              onMarkRead={handleMarkRead}
+            />
           </CardFooter>
         </Card>
       )}
 
-      <div className="grid gap-4">
-        {!isLoading &&
-          !error &&
-          events.map((event) => (
+      <div className="space-y-4">
+        {events.map((event) => (
             <Card
               key={event.id}
               data-testid={`inbox-event-${event.id}`}
               data-focus-state={event.id === selectedEventId ? 'focused' : 'default'}
               className={cn(
-                'border-2 border-transparent',
-                event.id === selectedEventId &&
-                  'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]',
-                !event.read_at &&
-                  'dark:border-[var(--kw-dark-primary)]/60 border-[var(--kw-primary-200)]'
+                'transition-shadow hover:shadow-sm',
+                !event.read_at && 'border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]'
               )}
             >
               <CardHeader>
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <CardTitle>{event.summary}</CardTitle>
-                  <span className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                <div className="flex items-start justify-between gap-4">
+                  <CardTitle className="text-base font-medium">{event.summary}</CardTitle>
+                  <span className="text-xs text-[var(--kw-text-muted)]">
                     {formatRelativeTime(event.created_at, t, locale)}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  <Badge variant={severityVariantMap[event.severity ?? 'info'] ?? 'info'}>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--kw-text-muted)]">
+                  <Badge variant={severityVariantMap[event.severity ?? ''] ?? 'info'}>
                     {event.event_type.replace(/[_-]/g, ' ')}
                   </Badge>
                   <span>
@@ -255,26 +206,45 @@ const InboxContent = memo(function InboxContent() {
                 </div>
               </CardContent>
               <CardFooter>
-                <div className="flex flex-wrap items-center gap-2">
-                  {event.action_url && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleActionNavigate(event.action_url)}
-                    >
-                      {getActionLabel(event, t)}
-                    </Button>
-                  )}
-                  {!event.read_at && (
-                    <Button variant="ghost" size="sm" onClick={() => handleMarkRead(event.id)}>
-                      {t('inbox.markAsRead')}
-                    </Button>
-                  )}
-                </div>
+                <EventActionButtons
+                  event={event}
+                  t={t}
+                  onActionNavigate={handleActionNavigate}
+                  onMarkRead={handleMarkRead}
+                />
               </CardFooter>
             </Card>
           ))}
       </div>
+    </div>
+  );
+});
+
+interface EventActionButtonsProps {
+  event: Event;
+  t: ReturnType<typeof useI18n>['t'];
+  onActionNavigate: (actionUrl?: string) => void;
+  onMarkRead: (eventId: string) => void;
+}
+
+const EventActionButtons = memo(function EventActionButtons({
+  event,
+  t,
+  onActionNavigate,
+  onMarkRead,
+}: EventActionButtonsProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {event.action_url && (
+        <Button variant="ghost" size="sm" onClick={() => onActionNavigate(event.action_url)}>
+          {getActionLabel(event, t)}
+        </Button>
+      )}
+      {!event.read_at && (
+        <Button variant="ghost" size="sm" onClick={() => onMarkRead(event.id)}>
+          {t('inbox.markAsRead')}
+        </Button>
+      )}
     </div>
   );
 });

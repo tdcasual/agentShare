@@ -70,7 +70,7 @@ describe('playbooks page', () => {
   it('renders the playbooks page with backend playbook data', () => {
     render(<PlaybooksPage />);
 
-    expect(screen.getByRole('heading', { name: /playbook 手册/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /playbooks.title/i })).toBeInTheDocument();
     expect(screen.getByText(/Deploy Edge Worker/i)).toBeInTheDocument();
   });
 
@@ -105,17 +105,17 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /新建/i }));
-    await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
+    await user.click(screen.getByRole('button', { name: /common.new/i }));
+    await user.type(screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'), 'Incident Triage');
     await user.type(
       screen.getByPlaceholderText('playbooks.form.tagsPlaceholder'),
       'incident,backend'
     );
     await user.type(
-      screen.getByPlaceholderText(/输入手册详细内容/i),
+      screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: /^创建$/i }));
+    await user.click(screen.getByRole('button', { name: /^common.create$/i }));
 
     await waitFor(() => {
       expect(createPlaybookMock).toHaveBeenCalledWith({
@@ -133,13 +133,13 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /新建/i }));
-    await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
+    await user.click(screen.getByRole('button', { name: /common.new/i }));
+    await user.type(screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'), 'Incident Triage');
     await user.type(
-      screen.getByPlaceholderText(/输入手册详细内容/i),
+      screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: /^创建$/i }));
+    await user.click(screen.getByRole('button', { name: /^common.create$/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Playbook service unavailable');
@@ -152,13 +152,13 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /新建/i }));
-    await user.type(screen.getByPlaceholderText(/输入手册标题/i), 'Incident Triage');
+    await user.click(screen.getByRole('button', { name: /common.new/i }));
+    await user.type(screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'), 'Incident Triage');
     await user.type(
-      screen.getByPlaceholderText(/输入手册详细内容/i),
+      screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: /^创建$/i }));
+    await user.click(screen.getByRole('button', { name: /^common.create$/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionExpired');
@@ -176,7 +176,7 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /刷新/i }));
+    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionExpired');
@@ -189,7 +189,7 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /刷新/i }));
+    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Playbook refresh unavailable');
