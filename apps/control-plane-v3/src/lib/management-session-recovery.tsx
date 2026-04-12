@@ -140,3 +140,68 @@ export function ManagementSessionRecoveryNotice({
 function normalizeErrors(errors: QueryErrorInput) {
   return Array.isArray(errors) ? errors : [errors];
 }
+
+interface ManagementPageAlertsProps {
+  shouldShowSessionExpired: boolean;
+  shouldShowForbidden: boolean;
+  refreshError: string | null;
+  gateError: string | null;
+  error: string | null;
+  dataError: unknown;
+  sessionExpiredMessage: string;
+  forbiddenMessage: string;
+  dataErrorMessage: string;
+}
+
+/**
+ * Renders the standard set of management-page alert blocks:
+ * session expired, forbidden, refresh error, and gate/query error.
+ * Used across tokens, reviews, tasks, runs, and approvals pages.
+ */
+export function ManagementPageAlerts({
+  shouldShowSessionExpired,
+  shouldShowForbidden,
+  refreshError,
+  gateError,
+  error,
+  dataError,
+  sessionExpiredMessage,
+  forbiddenMessage,
+  dataErrorMessage,
+}: ManagementPageAlertsProps) {
+  return (
+    <>
+      {shouldShowSessionExpired ? (
+        <ManagementSessionExpiredAlert message={sessionExpiredMessage} />
+      ) : null}
+
+      {!shouldShowSessionExpired && shouldShowForbidden ? (
+        <ManagementForbiddenAlert message={forbiddenMessage} />
+      ) : null}
+
+      {refreshError ? (
+        <Card
+          role="alert"
+          aria-live="polite"
+          aria-atomic="true"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
+        >
+          {refreshError}
+        </Card>
+      ) : null}
+
+      {gateError || error || (!shouldShowSessionExpired && !shouldShowForbidden && dataError) ? (
+        <Card
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
+        >
+          {gateError ??
+            error ??
+            (dataError instanceof Error ? dataError.message : dataErrorMessage)}
+        </Card>
+      ) : null}
+    </>
+  );
+}
