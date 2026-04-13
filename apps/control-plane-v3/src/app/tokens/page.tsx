@@ -325,7 +325,7 @@ const TokensContent = memo(function TokensContent() {
                 {revealedSecret.label}
               </h2>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                Prefix: <span className="font-mono">{revealedSecret.prefix}</span>
+                {t('tokens.token.prefix')}: <span className="font-mono">{revealedSecret.prefix}</span>
               </p>
             </div>
             <Button variant="secondary" onClick={() => copySecret(revealedSecret.apiKey)}>
@@ -344,22 +344,22 @@ const TokensContent = memo(function TokensContent() {
         <MetricCard
           label={t('tokens.metrics.activeAgents')}
           value={activeAgents.toString()}
-          hint={`${agents.length} total`}
+          hint={t('tokens.metrics.totalHint', { count: agents.length })}
         />
         <MetricCard
           label={t('tokens.metrics.activeTokens')}
           value={activeTokens.toString()}
-          hint={`${allTokens.length} total`}
+          hint={t('tokens.metrics.totalHint', { count: allTokens.length })}
         />
         <MetricCard
           label={t('tokens.metrics.averageTrust')}
           value={formatDecimal(averageTrust)}
-          hint="feedback"
+          hint={t('tokens.metrics.averageTrustHint')}
         />
         <MetricCard
           label={t('tokens.metrics.tokensWithFeedback')}
           value={tokensWithFeedback.toString()}
-          hint="reviewed"
+          hint={t('tokens.metrics.tokensWithFeedbackHint')}
         />
       </div>
 
@@ -502,7 +502,7 @@ const TokensContent = memo(function TokensContent() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="agent">{agent.risk_tier} risk</Badge>
+                    <Badge variant="agent">{t('tokens.agent.riskBadge', { tier: agent.risk_tier })}</Badge>
                     <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
                       {agent.status}
                     </Badge>
@@ -513,7 +513,7 @@ const TokensContent = memo(function TokensContent() {
                       {agent.name}
                     </h2>
                     <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                      ID: {agent.id}
+                      {t('tokens.labels.id')}: {agent.id}
                     </p>
                   </div>
                 </div>
@@ -549,7 +549,7 @@ const TokensContent = memo(function TokensContent() {
                               {token.tokenPrefix}
                             </h3>
                             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                              ID: {token.id}
+                              {t('tokens.labels.id')}: {token.id}
                             </p>
                           </div>
                         </div>
@@ -688,7 +688,7 @@ const TokensContent = memo(function TokensContent() {
               }))
             }
             placeholder={t('tokens.form.allowedTaskTypesPlaceholder')}
-            helper="Comma-separated. Leave blank to keep the allowlist open until policy UI expands."
+            helper={t('tokens.form.allowedTaskTypesHelper')}
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
 
@@ -758,7 +758,7 @@ const TokensContent = memo(function TokensContent() {
               setCreateTokenForm((current) => ({ ...current, scopes: event.target.value }))
             }
             placeholder={t('tokens.form.scopesPlaceholder')}
-            helper="Comma-separated scope labels."
+            helper={t('tokens.form.scopesHelper')}
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
@@ -768,7 +768,7 @@ const TokensContent = memo(function TokensContent() {
               setCreateTokenForm((current) => ({ ...current, labels: event.target.value }))
             }
             placeholder={t('tokens.form.labelsPlaceholder')}
-            helper="Comma-separated key=value labels."
+            helper={t('tokens.form.labelsHelper')}
             className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
           />
           <Input
@@ -886,4 +886,3 @@ function formatDateTime(value: string | null, notYetLabel: string, locale: strin
 function formatDecimal(value: number) {
   return value.toFixed(2);
 }
-

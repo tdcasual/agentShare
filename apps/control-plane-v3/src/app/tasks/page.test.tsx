@@ -2,7 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import TasksPage from './page';
+
+const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
 const useManagementSessionGateMock = vi.fn();
@@ -15,7 +18,8 @@ const createFeedbackActionMock = vi.fn();
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    locale: 'en',
+    t: translateMessage,
   }),
 }));
 
@@ -152,10 +156,10 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
+    await user.click(screen.getByRole('button', { name: t('common.refresh') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -172,7 +176,7 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -187,7 +191,7 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionForbidden');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionForbidden'));
   });
 
   it('surfaces feedback follow-up metrics and filters tasks that still need review', async () => {
@@ -195,9 +199,13 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    expect(screen.getByText('1 completed target awaiting feedback')).toBeInTheDocument();
+    expect(
+      screen.getByText(t('tasks.supervision.completedTargetsAwaitingFeedback', { count: 1 }))
+    ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /needs feedback/i }));
+    await user.click(
+      screen.getByRole('button', { name: t('tasks.supervision.filters.needsFeedback') })
+    );
 
     expect(screen.queryByText('Sync Config')).not.toBeInTheDocument();
     expect(screen.getByText('Run Risk Scan')).toBeInTheDocument();
@@ -208,7 +216,9 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    await user.click(screen.getByRole('button', { name: /in flight/i }));
+    await user.click(
+      screen.getByRole('button', { name: t('tasks.supervision.filters.inFlight') })
+    );
 
     expect(screen.getByText('Sync Config')).toBeInTheDocument();
     expect(screen.queryByText('Run Risk Scan')).not.toBeInTheDocument();
@@ -219,7 +229,7 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    expect(screen.getByText('Focused task')).toBeInTheDocument();
+    expect(screen.getByText(t('tasks.focusedTask.title'))).toBeInTheDocument();
     expect(screen.getByTestId('task-card-task-2')).toHaveAttribute('data-focus-state', 'focused');
     expect(screen.getByTestId('task-card-task-1')).toHaveAttribute('data-focus-state', 'default');
   });
@@ -230,20 +240,14 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    await user.click(screen.getByRole('button', { name: /tasks\.publishTask/i }));
-    await user.type(
-      screen.getByPlaceholderText(/tasks\.form\.titlePlaceholder/i),
-      'Ship config sync'
-    );
-    await user.type(
-      screen.getByPlaceholderText(/tasks\.form\.taskTypePlaceholder/i),
-      'config_sync'
-    );
+    await user.click(screen.getByRole('button', { name: t('tasks.publishTask') }));
+    await user.type(screen.getByPlaceholderText(t('tasks.form.titlePlaceholder')), 'Ship config sync');
+    await user.type(screen.getByPlaceholderText(t('tasks.form.taskTypePlaceholder')), 'config_sync');
     await user.click(screen.getAllByRole('checkbox')[0]);
-    await user.click(screen.getAllByRole('button', { name: /tasks\.publishTask/i })[1]);
+    await user.click(screen.getAllByRole('button', { name: t('tasks.publishTask') })[1]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -259,15 +263,15 @@ describe('tasks page', () => {
     render(<TasksPage />);
 
     await user.click(screen.getByTestId('task-card-task-2'));
-    await user.click(screen.getByRole('button', { name: /tasks\.leaveFeedback/i }));
+    await user.click(screen.getByRole('button', { name: t('tasks.leaveFeedback') }));
     await user.type(
-      screen.getByPlaceholderText(/tasks\.form\.summaryPlaceholder/i),
+      screen.getByPlaceholderText(t('tasks.form.summaryPlaceholder')),
       'Needs a clearer risk summary.'
     );
-    await user.click(screen.getByRole('button', { name: /tasks\.saveFeedback/i }));
+    await user.click(screen.getByRole('button', { name: t('tasks.saveFeedback') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('tasks.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(

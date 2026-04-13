@@ -82,22 +82,22 @@ const TasksContent = memo(function TasksContent() {
         <MetricCard
           label={page.t('tasks.metrics.publishedTasks')}
           value={page.taskViews.length.toString()}
-          hint={page.t('tasks.hints.publishedTasks') || 'currently visible active tasks'}
+          hint={page.t('tasks.hints.publishedTasks')}
         />
         <MetricCard
           label={page.t('tasks.metrics.targetedTokens')}
           value={page.metrics.totalTargets.toString()}
-          hint={page.t('tasks.hints.targetedTokens') || 'explicit token assignments'}
+          hint={page.t('tasks.hints.targetedTokens')}
         />
         <MetricCard
           label={page.t('tasks.metrics.completedTargets')}
           value={page.metrics.completedTargets.toString()}
-          hint={page.t('tasks.hints.completedTargets') || 'token-linked run records'}
+          hint={page.t('tasks.hints.completedTargets')}
         />
         <MetricCard
           label={page.t('tasks.metrics.feedbackRecords')}
           value={page.metrics.totalFeedback.toString()}
-          hint={page.t('tasks.hints.feedbackRecords') || 'human review notes on finished work'}
+          hint={page.t('tasks.hints.feedbackRecords')}
         />
       </div>
 
@@ -105,22 +105,23 @@ const TasksContent = memo(function TasksContent() {
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              Human follow-up queue
+              {page.t('tasks.supervision.title')}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              Track which remote-token-targeted runs are still in flight and which completed targets
-              still need explicit feedback from a human supervisor for remote agent supervision.
+              {page.t('tasks.supervision.description')}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             <Badge variant="secondary">
-              {page.metrics.completedTargetsAwaitingFeedback} completed target
-              {page.metrics.completedTargetsAwaitingFeedback === 1 ? '' : 's'} awaiting feedback
+              {page.t('tasks.supervision.completedTargetsAwaitingFeedback', {
+                count: page.metrics.completedTargetsAwaitingFeedback,
+              })}
             </Badge>
             <Badge variant="info">
-              {page.metrics.inFlightTasksCount} in-flight task
-              {page.metrics.inFlightTasksCount === 1 ? '' : 's'}
+              {page.t('tasks.supervision.inFlightTasks', {
+                count: page.metrics.inFlightTasksCount,
+              })}
             </Badge>
           </div>
 
@@ -129,19 +130,19 @@ const TasksContent = memo(function TasksContent() {
               value="all"
               active={page.selectedTaskFilter === 'all'}
               onSelect={page.setSelectedTaskFilter}
-              label="All tasks"
+              label={page.t('tasks.supervision.filters.all')}
             />
             <FilterButton
               value="needs_feedback"
               active={page.selectedTaskFilter === 'needs_feedback'}
               onSelect={page.setSelectedTaskFilter}
-              label="Needs feedback"
+              label={page.t('tasks.supervision.filters.needsFeedback')}
             />
             <FilterButton
               value="in_flight"
               active={page.selectedTaskFilter === 'in_flight'}
               onSelect={page.setSelectedTaskFilter}
-              label="In flight"
+              label={page.t('tasks.supervision.filters.inFlight')}
             />
           </div>
         </div>
@@ -151,14 +152,15 @@ const TasksContent = memo(function TasksContent() {
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-              Focused task
+              {page.t('tasks.focusedTask.title')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {page.selectedTask.task.title}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {page.selectedTask.targets.length} targeted access token
-              {page.selectedTask.targets.length === 1 ? '' : 's'} linked to this remote-access task.
+              {page.t('tasks.focusedTask.description', {
+                count: page.selectedTask.targets.length,
+              })}
             </p>
           </div>
         </Card>
@@ -203,7 +205,7 @@ const TasksContent = memo(function TasksContent() {
       page.taskViews.length > 0 &&
       page.visibleTaskViews.length === 0 ? (
         <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
-          No tasks match the current supervision filter.
+          {page.t('tasks.supervision.noMatches')}
         </Card>
       ) : null}
 
@@ -238,7 +240,7 @@ function TaskCard({
   taskView: TaskView;
   isFocused: boolean;
   onSelect: (id: string) => void;
-  t: (key: string) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }) {
   const { task, targets } = taskView;
   const feedbackItems = targets.flatMap((target) => target.feedback);
@@ -288,7 +290,11 @@ function TaskCard({
               {task.title}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {task.taskType} • created by {task.createdBy.type}:{task.createdBy.id}
+              {t('tasks.createdByLine', {
+                taskType: task.taskType,
+                actorType: task.createdBy.type,
+                actorId: task.createdBy.id,
+              })}
             </p>
           </div>
         </div>
@@ -299,12 +305,20 @@ function TaskCard({
           </p>
           <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
             {feedbackItems.length > 0
-              ? `${feedbackItems.length} ${t('tasks.reviews') || 'reviews'} • ${t('tasks.avg') || 'avg'} ${averageScore !== null && averageScore !== undefined ? averageScore.toFixed(1) : '—'}`
+              ? t('tasks.feedbackSummaryLine', {
+                  count: feedbackItems.length,
+                  average:
+                    averageScore !== null && averageScore !== undefined
+                      ? averageScore.toFixed(1)
+                      : '—',
+                })
               : t('tasks.noFeedback')}
           </p>
           <p className="text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            {targets.filter((target) => target.status === 'completed').length}/{targets.length}{' '}
-            {t('tasks.targetsCompleted') || 'targets completed'}
+            {t('tasks.targetsCompletedLine', {
+              completed: targets.filter((target) => target.status === 'completed').length,
+              total: targets.length,
+            })}
           </p>
         </div>
       </div>
@@ -527,7 +541,14 @@ function TaskDetailModal({
       isOpen={task !== null}
       onClose={() => page.setSelectedTaskId(null)}
       title={task?.task.title}
-      description={task ? `${task.task.taskType} • ${task.task.id}` : undefined}
+      description={
+        task
+          ? page.t('tasks.taskMetaLine', {
+              taskType: task.task.taskType,
+              taskId: task.task.id,
+            })
+          : undefined
+      }
       size="xl"
     >
       {task ? (
@@ -585,8 +606,10 @@ function TaskDetailModal({
                 {page.t('tasks.perTokenStatus')}
               </h3>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {task.targets.filter((target) => target.status === 'completed').length}/
-                {task.targets.length} {page.t('tasks.completed') || 'completed'}
+                {page.t('tasks.completedCount', {
+                  completed: task.targets.filter((target) => target.status === 'completed').length,
+                  total: task.targets.length,
+                })}
               </p>
             </div>
 
@@ -609,7 +632,10 @@ function TaskDetailModal({
                           {target.token?.tokenPrefix ?? target.tokenId}
                         </p>
                         <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                          Agent {target.token?.agentId ?? 'unknown'} • target {target.targetId}
+                          {page.t('tasks.targetMetaLine', {
+                            agentId: target.token?.agentId ?? page.t('tasks.unknown'),
+                            targetId: target.targetId,
+                          })}
                         </p>
                       </div>
                     </div>

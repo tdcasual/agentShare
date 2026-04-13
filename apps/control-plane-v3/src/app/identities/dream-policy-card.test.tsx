@@ -1,6 +1,16 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import { DreamPolicyCard } from './dream-policy-card';
+
+const t = translateMessage;
+
+vi.mock('@/components/i18n-provider', () => ({
+  useI18n: () => ({
+    locale: 'en',
+    t: translateMessage,
+  }),
+}));
 
 describe('DreamPolicyCard', () => {
   it('renders enabled dream mode limits and flags', () => {
@@ -17,8 +27,8 @@ describe('DreamPolicyCard', () => {
       />
     );
 
-    expect(screen.getByText('Dream Mode')).toBeInTheDocument();
-    expect(screen.getByText('identities.values.enabled')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.sections.dreamModeTitle'))).toBeInTheDocument();
+    expect(screen.getByText(t('identities.values.enabled'))).toBeInTheDocument();
     expect(screen.getByText(/4 steps/i)).toBeInTheDocument();
     expect(screen.getByText(/1 follow-up/i)).toBeInTheDocument();
     expect(screen.getByText(/memory write on/i)).toBeInTheDocument();

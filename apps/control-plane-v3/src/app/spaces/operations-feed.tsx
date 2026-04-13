@@ -36,9 +36,11 @@ export function OperationsFeed({
     <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Operations Space</h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+            {t('spaces.sections.operationsSpaceTitle')}
+          </h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-            Recent agent feedback and runtime activity flowing through the inbox event stream.
+            {t('spaces.sections.operationsSpaceDescription')}
           </p>
         </div>
         <Badge variant="agent">{events.length}</Badge>
@@ -51,7 +53,7 @@ export function OperationsFeed({
           aria-pressed={selectedAgentId === null}
           onClick={() => onSelectAgent(null)}
         >
-          All agents
+          {t('spaces.sections.allAgents')}
         </Button>
         {activeAgents.map((agent) => (
           <Button
@@ -60,9 +62,9 @@ export function OperationsFeed({
             size="sm"
             aria-pressed={selectedAgentId === agent.id}
             onClick={() => onSelectAgent(agent.id)}
-            aria-label={`Show activity for ${agent.id}`}
+            aria-label={t('spaces.sections.showActivityFor', { id: agent.id })}
           >
-            Agent {agent.name}
+            {t('spaces.sections.agentLabel', { name: agent.name })}
           </Button>
         ))}
       </div>
@@ -74,7 +76,7 @@ export function OperationsFeed({
           aria-pressed={selectedEventType === 'all'}
           onClick={() => onSelectEventType('all')}
         >
-          All activity
+          {t('spaces.sections.allActivity')}
         </Button>
         <Button
           variant={selectedEventType === 'completed' ? 'primary' : 'secondary'}
@@ -82,7 +84,7 @@ export function OperationsFeed({
           aria-pressed={selectedEventType === 'completed'}
           onClick={() => onSelectEventType('completed')}
         >
-          Completed
+          {t('spaces.sections.completed')}
         </Button>
         <Button
           variant={selectedEventType === 'failed' ? 'primary' : 'secondary'}
@@ -90,7 +92,7 @@ export function OperationsFeed({
           aria-pressed={selectedEventType === 'failed'}
           onClick={() => onSelectEventType('failed')}
         >
-          Failed
+          {t('spaces.sections.failed')}
         </Button>
       </div>
 

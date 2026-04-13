@@ -2,7 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import AssetsPage from './page';
+
+const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
 const useManagementSessionGateMock = vi.fn();
@@ -14,7 +17,8 @@ const useCreateCapabilityMock = vi.fn();
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    locale: 'en',
+    t: translateMessage,
   }),
 }));
 
@@ -179,7 +183,7 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionExpired');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('assets.sessionExpired'));
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -194,7 +198,7 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionForbidden');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('assets.sessionForbidden'));
   });
 
   it('shows a relogin recovery state when refresh hits an expired session', async () => {
@@ -208,10 +212,10 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    await user.click(screen.getByRole('button', { name: /^common.refresh$/i }));
+    await user.click(screen.getByRole('button', { name: t('common.refresh') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('assets.sessionExpired'));
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -228,11 +232,11 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    await user.click(screen.getByRole('button', { name: /^assets.newSecret$/i }));
-    await user.click(screen.getByRole('button', { name: /^assets.secrets.create$/i }));
+    await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
+    await user.click(screen.getByRole('button', { name: t('assets.secrets.create') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('assets.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('assets.sessionExpired'));
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -246,10 +250,14 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    expect(screen.getByText('2 pending review items')).toBeInTheDocument();
-    expect(screen.getByText('2 active assets')).toBeInTheDocument();
+    expect(
+      screen.getByText(t('assets.governance.pendingReviewItems', { count: 2 }))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(t('assets.governance.activeAssets', { count: 2 }))
+    ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /pending review/i }));
+    await user.click(screen.getByRole('button', { name: t('assets.governance.pendingReview') }));
 
     expect(screen.getByText('OpenAI production key')).toBeInTheDocument();
     expect(screen.getByText('openai.config.bootstrap')).toBeInTheDocument();
@@ -278,7 +286,7 @@ describe('assets page', () => {
     await user.click(screen.getByRole('button', { name: /active/i }));
 
     expect(screen.getByText('Anthropic staging key')).toBeInTheDocument();
-    expect(screen.getByText('Approved by human review')).toBeInTheDocument();
+    expect(screen.getByText(t('governance.status.approved'))).toBeInTheDocument();
     expect(screen.queryByText('Rejected secret')).not.toBeInTheDocument();
   });
 
@@ -287,7 +295,7 @@ describe('assets page', () => {
 
     render(<AssetsPage />);
 
-    expect(screen.getByText('Focused asset')).toBeInTheDocument();
+    expect(screen.getByText(t('assets.focusedAsset'))).toBeInTheDocument();
     expect(screen.queryByText('OpenAI production key')).not.toBeInTheDocument();
     expect(screen.getByTestId('capability-card-capability-1')).toHaveAttribute(
       'data-focus-state',

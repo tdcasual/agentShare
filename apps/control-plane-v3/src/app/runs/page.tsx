@@ -117,7 +117,7 @@ const RunsContent = memo(function RunsContent() {
       running: t('runs.stats.running'),
       completed: t('runs.stats.completed'),
       failed: t('runs.stats.failed'),
-      cancelled: t('common.cancelled'),
+      cancelled: t('runs.stats.cancelled'),
     }),
     [t]
   );

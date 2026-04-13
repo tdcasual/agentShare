@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState, memo, useCallback } from 'react';
+import { useMemo, useState, memo } from 'react';
 import { ArrowRight, Boxes, Bot, ShieldCheck, Sparkles, Store, Wrench } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useCatalog } from '@/domains/catalog';
 import { useReviews } from '@/domains/review';
 import { readFocusedEntry } from '@/lib/focused-entry';
-import { deriveGovernanceStatus, governanceStatusLabel } from '@/domains/governance';
+import { deriveGovernanceStatus, governanceStatusTranslationKey } from '@/domains/governance';
 import {
   ManagementForbiddenAlert,
   ManagementSessionExpiredAlert,
@@ -17,7 +17,6 @@ import {
 } from '@/lib/management-session-recovery';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Card } from '@/shared/ui-primitives/card';
-import { Button } from '@/shared/ui-primitives/button';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 import { MetricCard } from '@/shared/ui-primitives/metric';
@@ -232,7 +231,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
             {!shouldShowSessionExpired && !shouldShowForbidden && reviewError ? (
               <SectionNotice
                 tone="error"
-                message={`Review queue is temporarily unavailable. ${reviewError}`}
+                message={`${t('marketplace.reviewQueueErrorPrefix')} ${reviewError}`}
               />
             ) : null}
 
@@ -287,7 +286,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
                         </p>
                         <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                           {t('marketplace.governanceState')}:{' '}
-                          {governanceStatusLabel(deriveGovernanceStatus(item))}
+                          {t(governanceStatusTranslationKey(deriveGovernanceStatus(item)))}
                         </p>
                       </div>
                       <div className="flex flex-wrap justify-end gap-2">

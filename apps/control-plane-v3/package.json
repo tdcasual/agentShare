@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "node ./scripts/start-standalone.mjs",
+    "start:next": "next start",
     "lint": "npx eslint src --ext .ts,.tsx",
     "lint:fix": "npx eslint src --ext .ts,.tsx --fix",
     "typecheck": "rm -f tsconfig.tsbuildinfo && rm -rf .next/types && next typegen && tsc --noEmit --incremental false",

@@ -58,9 +58,11 @@ export function HumanOperatorsSection({
     <Card variant="kawaii" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Human Operators</h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+            {t('identities.sections.humanOperatorsTitle')}
+          </h2>
           <p className="text-sm text-[var(--kw-text-muted)]">
-            Persisted admin accounts from `/api/admin-accounts`
+            {t('identities.sections.humanOperatorsDescription')}
           </p>
         </div>
         <Badge variant="human">{accounts.length}</Badge>
@@ -74,7 +76,7 @@ export function HumanOperatorsSection({
         <ManagementSessionRecoveryNotice message={t('identities.adminRequiredForHumans')} />
       ) : errorMessage ? (
         <SectionError
-          message={`Human operator data is temporarily unavailable. ${errorMessage}`}
+          message={t('identities.sections.humanOperatorsUnavailable', { message: errorMessage })}
           actionLabel={t('identities.retryHumans')}
           onRetry={onRetry}
           isRefreshing={isRefreshing}
@@ -84,7 +86,9 @@ export function HumanOperatorsSection({
       ) : filteredAccounts.length === 0 ? (
         <EmptyState
           icon={<Users className="h-6 w-6" />}
-          message={`No human operators match "${searchQuery.trim()}".`}
+          message={t('identities.sections.noHumanOperatorsMatch', {
+            query: searchQuery.trim(),
+          })}
         />
       ) : (
         <div className="space-y-3">
@@ -146,8 +150,8 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
           }
         >
           {isExpanded
-            ? `Hide details for ${account.display_name}`
-            : `View details for ${account.display_name}`}
+            ? t('identities.sections.hideDetails', { name: account.display_name })
+            : t('identities.sections.viewDetails', { name: account.display_name })}
         </Button>
       </div>
       {isExpanded ? (
@@ -171,7 +175,7 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
               href="/settings"
               className="text-sm font-medium text-[var(--kw-primary-600)] hover:text-[var(--kw-primary-600)]"
             >
-              Manage in Settings
+              {t('identities.sections.manageInSettings')}
             </Link>
           </div>
         </div>

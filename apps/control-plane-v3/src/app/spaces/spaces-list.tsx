@@ -40,9 +40,11 @@ export function SpacesList({
     <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Persisted spaces</h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+            {t('spaces.sections.persistedSpacesTitle')}
+          </h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-            API-backed operational containers with explicit members and timeline history.
+            {t('spaces.sections.persistedSpacesDescription')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -53,7 +55,7 @@ export function SpacesList({
               onClick={onShowCreateModal}
               leftIcon={<Plus className="h-4 w-4" />}
             >
-              创建空间
+              {t('spaces.createSpace')}
             </Button>
           ) : null}
           <Badge variant="info">{spaces.length}</Badge>
@@ -70,7 +72,7 @@ export function SpacesList({
             <div
               key={space.id}
               role="group"
-              aria-label={`${space.name} space`}
+              aria-label={t('spaces.sections.spaceAriaLabel', { name: space.name })}
               className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">

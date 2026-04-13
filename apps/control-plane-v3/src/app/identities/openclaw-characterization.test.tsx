@@ -1,7 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import IdentitiesPage from './page';
+
+const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
 const useManagementPageSessionRecoveryMock = vi.fn();
@@ -19,6 +22,13 @@ vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   ),
+}));
+
+vi.mock('@/components/i18n-provider', () => ({
+  useI18n: () => ({
+    locale: 'en',
+    t: translateMessage,
+  }),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -237,7 +247,9 @@ describe('openclaw migration characterization on identities page', () => {
     render(<IdentitiesPage />);
 
     await user.click(
-      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+      screen.getByRole('button', {
+        name: t('identities.sections.viewDetails', { name: 'Bootstrap Credential' }),
+      })
     );
 
     expect(screen.getByText('Identity Management')).toBeInTheDocument();
@@ -245,9 +257,9 @@ describe('openclaw migration characterization on identities page', () => {
     expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
     expect(screen.getByText(/OpenClaw coverage/i)).toBeInTheDocument();
-    expect(screen.getByText('identities.metrics.agentsWithSessions')).toBeInTheDocument();
-    expect(screen.getByText('identities.metrics.workspaceReadyAgents')).toBeInTheDocument();
-    expect(screen.getByText(/Dream Mode/i)).toBeInTheDocument();
+    expect(screen.getByText(t('identities.metrics.agentsWithSessions'))).toBeInTheDocument();
+    expect(screen.getByText(t('identities.metrics.workspaceReadyAgents'))).toBeInTheDocument();
+    expect(screen.getByText(t('identities.sections.dreamModeTitle'))).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /manage tokens/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /create agent/i })).not.toBeInTheDocument();
   });

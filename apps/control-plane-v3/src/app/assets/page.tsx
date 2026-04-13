@@ -12,7 +12,7 @@ import {
 import { useCreateSecret, useCreateCapability } from '@/domains/governance';
 import {
   deriveGovernanceStatus,
-  governanceStatusLabel,
+  governanceStatusTranslationKey,
   type GovernedCapability,
   type GovernedSecret,
 } from '@/domains/governance';
@@ -146,70 +146,73 @@ function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
       <div className="flex flex-col gap-5">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-            Governance inventory
+            {page.t('assets.governance.title')}
           </h2>
           <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            Review what agents are trying to publish, what has already gone live, and which resource
-            lane needs human attention next.
+            {page.t('assets.governance.description')}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <Badge variant="warning">{page.metrics.pendingReviewItems} pending review items</Badge>
+          <Badge variant="warning">
+            {page.t('assets.governance.pendingReviewItems', {
+              count: page.metrics.pendingReviewItems,
+            })}
+          </Badge>
           <Badge variant="success">
-            {page.metrics.activeAssets} active asset{page.metrics.activeAssets === 1 ? '' : 's'}
+            {page.t('assets.governance.activeAssets', { count: page.metrics.activeAssets })}
           </Badge>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              Publication state
+              {page.t('assets.governance.publicationState')}
             </p>
             <div className="flex flex-wrap gap-2">
               <FilterButton
                 value="all"
                 active={page.selectedPublicationFilter === 'all'}
                 onSelect={page.setSelectedPublicationFilter}
-                label="All states"
+                label={page.t('assets.governance.allStates')}
               />
               <FilterButton
                 value="pending_review"
                 active={page.selectedPublicationFilter === 'pending_review'}
                 onSelect={page.setSelectedPublicationFilter}
-                label="Pending Review"
+                label={page.t('assets.governance.pendingReview')}
               />
               <FilterButton
                 value="active"
                 active={page.selectedPublicationFilter === 'active'}
                 onSelect={page.setSelectedPublicationFilter}
-                label="Active"
+                label={page.t('common.active')}
               />
             </div>
           </div>
 
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              Resource lane
+              {page.t('assets.governance.resourceLane')}
             </p>
             <div className="flex flex-wrap gap-2">
               <FilterButton
                 value="all"
                 active={page.selectedResourceFilter === 'all'}
                 onSelect={page.setSelectedResourceFilter}
-                label="All resources"
+                label={page.t('assets.governance.allResources')}
               />
               <FilterButton
                 value="secrets"
                 active={page.selectedResourceFilter === 'secrets'}
                 onSelect={page.setSelectedResourceFilter}
-                label="Secrets"
+                label={page.t('assets.metrics.secrets')}
               />
               <FilterButton
                 value="capabilities"
                 active={page.selectedResourceFilter === 'capabilities'}
                 onSelect={page.setSelectedResourceFilter}
-                label="Capabilities"
+                label={page.t('assets.metrics.capabilities')}
               />
             </div>
           </div>
@@ -286,7 +289,7 @@ function Alerts({
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-              Focused asset
+              {page.t('assets.focusedAsset')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {'display_name' in page.focusedAsset
@@ -385,7 +388,7 @@ function SecretCard({
 }: {
   secret: GovernedSecret;
   focus: { resourceKind?: string; resourceId?: string };
-  t: (key: string) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }) {
   const governanceStatus = deriveGovernanceStatus(secret);
   return (
@@ -409,11 +412,13 @@ function SecretCard({
             {secret.environment ? ` · ${secret.environment}` : ''}
           </p>
           <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            Governance state: {governanceStatusLabel(governanceStatus)}
+            {t('assets.governanceStateLine', {
+              state: t(governanceStatusTranslationKey(governanceStatus)),
+            })}
           </p>
         </div>
         <Badge variant={statusVariant(governanceStatus)}>
-          {governanceStatusLabel(governanceStatus)}
+          {t(governanceStatusTranslationKey(governanceStatus))}
         </Badge>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -502,7 +507,7 @@ function CapabilityCard({
   focus: { resourceKind?: string; resourceId?: string };
   tokenNameById: Record<string, string>;
   agentNameById: Record<string, string>;
-  t: (key: string) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }) {
   const governanceStatus = deriveGovernanceStatus(capability);
   return (
@@ -524,20 +529,26 @@ function CapabilityCard({
             {capability.name}
           </h3>
           <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            Secret {capability.secret_id} · {capability.allowed_mode} · risk {capability.risk_level}
+            {t('assets.capabilities.summaryLine', {
+              secretId: capability.secret_id,
+              allowedMode: capability.allowed_mode,
+              riskLevel: capability.risk_level,
+            })}
           </p>
           <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            Governance state: {governanceStatusLabel(governanceStatus)}
+            {t('assets.governanceStateLine', {
+              state: t(governanceStatusTranslationKey(governanceStatus)),
+            })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge variant={statusVariant(governanceStatus)}>
-            {governanceStatusLabel(governanceStatus)}
+            {t(governanceStatusTranslationKey(governanceStatus))}
           </Badge>
           <Badge variant={capability.access_policy.mode === 'all_tokens' ? 'success' : 'warning'}>
             {capability.access_policy.mode === 'all_tokens'
               ? t('assets.capabilities.allTokens')
-              : '定向访问'}
+              : t('assets.capabilities.scopedAccess')}
           </Badge>
         </div>
       </div>
@@ -1083,19 +1094,26 @@ function formatAccessPolicy(
   capability: GovernedCapability,
   tokenNameById: Record<string, string>,
   agentNameById: Record<string, string>,
-  t: (key: string) => string
+  t: (key: string, values?: Record<string, string | number>) => string
 ) {
   if (capability.access_policy.mode === 'all_tokens') {return t('assets.capabilities.allTokens');}
 
   return capability.access_policy.selectors
     .map((selector) => {
       if (selector.kind === 'token') {
-        return `Token: ${(selector.ids ?? []).map((tokenId) => tokenNameById[tokenId] ?? tokenId).join(', ')}`;
+        return t('assets.capabilities.accessPolicyToken', {
+          items: (selector.ids ?? []).map((tokenId) => tokenNameById[tokenId] ?? tokenId).join(', '),
+        });
       }
       if (selector.kind === 'agent') {
-        return `Agent: ${(selector.ids ?? []).map((agentId) => agentNameById[agentId] ?? agentId).join(', ')}`;
+        return t('assets.capabilities.accessPolicyAgent', {
+          items: (selector.ids ?? []).map((agentId) => agentNameById[agentId] ?? agentId).join(', '),
+        });
       }
-      return `Label: ${selector.key} = ${(selector.values ?? []).join(', ')}`;
+      return t('assets.capabilities.accessPolicyLabel', {
+        key: selector.key ?? t('common.unknown'),
+        values: (selector.values ?? []).join(', '),
+      });
     })
     .join(' | ');
 }

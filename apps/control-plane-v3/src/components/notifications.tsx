@@ -116,10 +116,11 @@ export function Notifications({ className }: NotificationsProps) {
       await markAllRead(unreadIds);
       await mutate();
     } catch (err) {
-      const message = err instanceof Error ? err.message : '标记已读失败，请重试';
+      const message =
+        err instanceof Error ? err.message : t('notifications.errors.markAllReadFailed');
       setMarkAllError(message);
     }
-  }, [markAllRead, mutate, unreadIds]);
+  }, [markAllRead, mutate, t, unreadIds]);
 
   const handleEventClick = useCallback(
     async (event: Notification) => {
@@ -138,7 +139,8 @@ export function Notifications({ className }: NotificationsProps) {
     [markOneRead, router]
   );
 
-  const hubLabel = availability === 'unavailable' ? 'Notifications unavailable' : 'Notifications';
+  const hubLabel =
+    availability === 'unavailable' ? t('notifications.unavailableLabel') : t('notifications.title');
 
   return (
     <div className={cn('relative', className)}>
@@ -148,7 +150,11 @@ export function Notifications({ className }: NotificationsProps) {
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        aria-label={`${hubLabel}${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+        aria-label={
+          unreadCount > 0
+            ? t('notifications.buttonAriaLabelWithUnread', { label: hubLabel, count: unreadCount })
+            : hubLabel
+        }
         className={cn(
           'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
           isOpen
@@ -175,7 +181,9 @@ export function Notifications({ className }: NotificationsProps) {
               <div>
                 <h3 className="font-semibold text-[var(--kw-text)]">{hubLabel}</h3>
                 {unreadCount > 0 && (
-                  <p className="mt-0.5 text-xs text-[var(--kw-text-muted)]">{unreadCount} unread</p>
+                  <p className="mt-0.5 text-xs text-[var(--kw-text-muted)]">
+                    {t('notifications.unreadCount', { count: unreadCount })}
+                  </p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -192,7 +200,7 @@ export function Notifications({ className }: NotificationsProps) {
                     ) : (
                       <Check className="mr-1 h-3 w-3" />
                     )}
-                    Mark all read
+                    {t('notifications.markAllRead')}
                   </Button>
                 )}
                 <button
@@ -215,7 +223,7 @@ export function Notifications({ className }: NotificationsProps) {
               {isLoading && (
                 <div className="flex flex-col items-center justify-center p-8 text-[var(--kw-text-muted)]">
                   <Loader2 className="mb-2 h-6 w-6 animate-spin" />
-                  <p className="text-sm">Loading activity...</p>
+                  <p className="text-sm">{t('notifications.loading')}</p>
                 </div>
               )}
 
@@ -225,10 +233,10 @@ export function Notifications({ className }: NotificationsProps) {
                     <Bell className="h-6 w-6 text-[var(--kw-text-muted)]" />
                   </div>
                   <p className="text-sm text-[var(--kw-text-muted)]">
-                    Notifications are unavailable
+                    {t('notifications.unavailableTitle')}
                   </p>
                   <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
-                    This environment does not yet publish an events feed.
+                    {t('notifications.unavailableDescription')}
                   </p>
                 </div>
               )}
@@ -239,13 +247,13 @@ export function Notifications({ className }: NotificationsProps) {
                     <AlertCircle className="h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
                   </div>
                   <p className="mb-1 text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-                    加载事件失败
+                    {t('notifications.errors.loadFailed')}
                   </p>
                   <p className="text-xs text-[var(--kw-text-muted)]">
-                    {error instanceof Error ? error.message : '请稍后重试'}
+                    {error instanceof Error ? error.message : t('common.tryAgainLater')}
                   </p>
                   <Button variant="outline" size="sm" onClick={() => mutate()} className="mt-3">
-                    重试
+                    {t('common.retry')}
                   </Button>
                 </div>
               )}
@@ -258,9 +266,11 @@ export function Notifications({ className }: NotificationsProps) {
                     <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-border)]">
                       <Bell className="h-6 w-6 text-[var(--kw-text-muted)]" />
                     </div>
-                    <p className="text-sm text-[var(--kw-text-muted)]">No activity yet</p>
+                    <p className="text-sm text-[var(--kw-text-muted)]">
+                      {t('notifications.emptyTitle')}
+                    </p>
                     <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
-                      We will surface agent feedback and system alerts here.
+                      {t('notifications.emptyDescription')}
                     </p>
                   </div>
                 )}
@@ -278,7 +288,9 @@ export function Notifications({ className }: NotificationsProps) {
                           type="button"
                           key={notification.id}
                           role="menuitem"
-                          aria-label={`${unread ? '未读 ' : ''}${notification.summary || '通知'}`}
+                          aria-label={`${unread ? `${t('notifications.unreadLabel')} ` : ''}${
+                            notification.summary || t('notifications.notification')
+                          }`}
                           onClick={() => handleEventClick(notification)}
                           className={cn(
                             'flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors',
@@ -305,7 +317,9 @@ export function Notifications({ className }: NotificationsProps) {
                                   unread && 'font-semibold'
                                 )}
                               >
-                                {unread && <span className="sr-only">未读</span>}
+                                {unread && (
+                                  <span className="sr-only">{t('notifications.unreadLabel')}</span>
+                                )}
                                 {notification.summary}
                               </p>
                               <span className="text-[11px] text-[var(--kw-text-muted)]">
@@ -354,7 +368,7 @@ export function Notifications({ className }: NotificationsProps) {
                 }}
                 className="w-full py-1 text-center text-sm text-[var(--kw-primary-600)] transition-colors hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)] dark:hover:text-[var(--kw-dark-primary)]"
               >
-                Open inbox
+                {t('notifications.openInbox')}
               </Button>
             </div>
         </div>

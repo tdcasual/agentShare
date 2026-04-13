@@ -2,7 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import IdentitiesPage from './page';
+
+const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
 const useManagementPageSessionRecoveryMock = vi.fn();
@@ -24,6 +27,13 @@ const refreshOpenClawAgentsMock = vi.fn();
 const refreshOpenClawSessionsMock = vi.fn();
 const refreshOpenClawDreamRunsMock = vi.fn();
 const refreshEventsMock = vi.fn();
+
+vi.mock('@/components/i18n-provider', () => ({
+  useI18n: () => ({
+    locale: 'en',
+    t: translateMessage,
+  }),
+}));
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
@@ -296,12 +306,14 @@ describe('identities page', () => {
     expect(screen.getByText('Alice Operator')).toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
 
-    await user.type(screen.getByRole('searchbox', { name: /common.searchIdentities/i }), 'read-only');
+    await user.type(screen.getByRole('searchbox', { name: t('common.searchIdentities') }), 'read-only');
 
     expect(screen.queryByText('Alice Operator')).not.toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
     expect(screen.queryByText('Bootstrap Credential')).not.toBeInTheDocument();
-    expect(screen.getByText(/No human operators match/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(t('identities.sections.noHumanOperatorsMatch', { query: 'read-only' }))
+    ).toBeInTheDocument();
   });
 
   it('refreshes the management snapshot when refresh is requested', async () => {
@@ -315,7 +327,7 @@ describe('identities page', () => {
 
     render(<IdentitiesPage />);
 
-    await user.click(screen.getByRole('button', { name: /refresh snapshot/i }));
+    await user.click(screen.getByRole('button', { name: t('identities.page.refreshSnapshot') }));
 
     await waitFor(() => {
       expect(refreshSessionMock).toHaveBeenCalledTimes(1);
@@ -333,11 +345,13 @@ describe('identities page', () => {
     render(<IdentitiesPage />);
 
     await user.click(
-      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+      screen.getByRole('button', {
+        name: t('identities.sections.viewDetails', { name: 'Bootstrap Credential' }),
+      })
     );
 
-    expect(screen.getByText('Dream Mode')).toBeInTheDocument();
-    expect(screen.getByText('identities.values.enabled')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.sections.dreamModeTitle'))).toBeInTheDocument();
+    expect(screen.getByText(t('identities.values.enabled'))).toBeInTheDocument();
     expect(screen.getAllByText('Inspect deployment drift').length).toBeGreaterThan(0);
     expect(screen.getByText(/budget exhausted/i)).toBeInTheDocument();
   });
@@ -372,10 +386,10 @@ describe('identities page', () => {
 
     const { rerender } = render(<IdentitiesPage />);
 
-    expect(screen.getByText('Dream run detail')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.sections.dreamRunDetail'))).toBeInTheDocument();
     expect(screen.getAllByText('Inspect deployment drift').length).toBeGreaterThan(0);
 
-    await user.click(screen.getByRole('button', { name: /pause dream run/i }));
+    await user.click(screen.getByRole('button', { name: t('identities.sections.pauseDreamRun') }));
     expect(pauseOpenClawDreamRunMock).toHaveBeenCalledWith('dream-run-1', 'operator_paused');
 
     useOpenClawDreamRunsMock.mockReturnValue({
@@ -405,7 +419,7 @@ describe('identities page', () => {
 
     rerender(<IdentitiesPage key="after-pause" />);
 
-    await user.click(screen.getByRole('button', { name: /resume dream run/i }));
+    await user.click(screen.getByRole('button', { name: t('identities.sections.resumeDreamRun') }));
     expect(resumeOpenClawDreamRunMock).toHaveBeenCalledWith('dream-run-1');
   });
 
@@ -430,18 +444,20 @@ describe('identities page', () => {
     render(<IdentitiesPage />);
 
     await user.click(
-      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+      screen.getByRole('button', {
+        name: t('identities.sections.viewDetails', { name: 'Bootstrap Credential' }),
+      })
     );
 
-    expect(screen.getByText('identities.labels.workspaceRoot')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.labels.workspaceRoot'))).toBeInTheDocument();
     expect(screen.getAllByText('/srv/openclaw/bootstrap').length).toBeGreaterThan(0);
-    expect(screen.getByText('identities.labels.agentDirectory')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.labels.agentDirectory'))).toBeInTheDocument();
     expect(screen.getAllByText('.openclaw/agents/bootstrap').length).toBeGreaterThan(0);
-    expect(screen.getByText('identities.labels.toolPolicy')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.labels.toolPolicy'))).toBeInTheDocument();
     expect(screen.getByText(/allowlist/i)).toBeInTheDocument();
-    expect(screen.getByText('identities.labels.allowedTaskTypes')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.labels.allowedTaskTypes'))).toBeInTheDocument();
     expect(screen.getByText('config_sync, prompt_run')).toBeInTheDocument();
-    expect(screen.getByText('identities.labels.allowedCapabilityIds')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.labels.allowedCapabilityIds'))).toBeInTheDocument();
     expect(screen.getByText('cap-deploy')).toBeInTheDocument();
     expect(screen.getByText('Primary Bootstrap Session')).toBeInTheDocument();
     expect(screen.getByText('AGENTS.md')).toBeInTheDocument();
@@ -455,7 +471,9 @@ describe('identities page', () => {
     render(<IdentitiesPage />);
 
     await user.click(
-      screen.getByRole('button', { name: /view details for bootstrap credential/i })
+      screen.getByRole('button', {
+        name: t('identities.sections.viewDetails', { name: 'Bootstrap Credential' }),
+      })
     );
     await user.click(screen.getByRole('button', { name: /delete bootstrap credential/i }));
 
@@ -496,10 +514,10 @@ describe('identities page', () => {
 
     render(<IdentitiesPage />);
 
-    await user.click(screen.getByRole('button', { name: /refresh snapshot/i }));
+    await user.click(screen.getByRole('button', { name: t('identities.page.refreshSnapshot') }));
 
     await waitFor(() => {
-      expect(screen.getAllByRole('alert')[0]).toHaveTextContent('identities.sessionExpired');
+      expect(screen.getAllByRole('alert')[0]).toHaveTextContent(t('identities.sessionExpired'));
     });
   });
 
@@ -508,10 +526,12 @@ describe('identities page', () => {
 
     render(<IdentitiesPage />);
 
-    expect(screen.getByText('identities.focusedIdentity')).toBeInTheDocument();
-    expect(screen.getByText(/identities.agentType.openclaw · bootstrap/i)).toBeInTheDocument();
+    expect(screen.getByText(t('identities.focusedIdentity'))).toBeInTheDocument();
+    expect(screen.getByText(`${t('identities.agentType.openclaw')} · bootstrap`)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /hide details for bootstrap credential/i })
+      screen.getByRole('button', {
+        name: t('identities.sections.hideDetails', { name: 'Bootstrap Credential' }),
+      })
     ).toBeInTheDocument();
     expect(screen.getByTestId('agent-card-bootstrap')).toHaveAttribute(
       'data-focus-state',

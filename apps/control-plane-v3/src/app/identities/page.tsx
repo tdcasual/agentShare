@@ -324,17 +324,16 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-            Identity Management
+            {t('identities.page.title')}
           </h1>
           <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            Review persisted human operators and in-project OpenClaw-native agents. Remote-access
-            tokens for external machines remain on the dedicated Tokens page.
+            {t('identities.page.description')}
           </p>
         </div>
         <div className="flex flex-col gap-3">
           <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              <Badge variant="primary">Operator</Badge>
+              <Badge variant="primary">{t('common.operator')}</Badge>
               <span className="dark:text-[var(--kw-dark-text)]">
                 {session?.email ?? t('common.loading')}
               </span>
@@ -349,7 +348,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
               onClick={() => router.push('/settings')}
               leftIcon={<UserPlus className="h-4 w-4" />}
             >
-              Invite Operator
+              {t('hub.inviteAdmin')}
             </Button>
             <Button
               variant="secondary"
@@ -357,7 +356,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
               onClick={() => router.push('/spaces')}
               leftIcon={<Building2 className="h-4 w-4" />}
             >
-              Review Spaces
+              {t('identities.page.reviewSpaces')}
             </Button>
           </div>
         </div>
@@ -366,7 +365,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
-            <span className="sr-only">Search identities</span>
+            <span className="sr-only">{t('common.searchIdentities')}</span>
             <div className="flex items-center gap-3 rounded-2xl border border-[var(--kw-border)] bg-white px-4 py-3 text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
               <Search className="h-4 w-4 flex-shrink-0" />
               <input
@@ -387,7 +386,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             onClick={refreshSnapshot}
             leftIcon={refreshingAction !== 'all' ? <RefreshCw className="h-4 w-4" /> : undefined}
           >
-            Refresh Snapshot
+            {t('identities.page.refreshSnapshot')}
           </Button>
         </div>
       </Card>
@@ -427,11 +426,10 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             </div>
             <div>
               <h2 className="font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                Human supervisors
+                {t('hub.humanSupervisors')}
               </h2>
               <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                Human operators supervise policy, approvals, and account hygiene across the control
-                plane.
+                {t('identities.page.humansDescription')}
               </p>
             </div>
           </div>
@@ -444,11 +442,10 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             </div>
             <div>
               <h2 className="font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                OpenClaw runtime identities
+                {t('identities.page.runtimeTitle')}
               </h2>
               <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                Agents now surface workspace roots, session history, sandbox posture, and tool
-                policy instead of linked token state.
+                {t('identities.page.runtimeDescription')}
               </p>
             </div>
           </div>
@@ -463,12 +460,10 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             </div>
             <div>
               <h2 className="mb-2 text-lg font-semibold text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
-                OpenClaw coverage
+                {t('identities.page.coverageTitle')}
               </h2>
               <p className="text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
-                This route now reads persisted management accounts plus OpenClaw workspaces and
-                session telemetry from the backend. Humans supervise governance while agents expose
-                runtime posture through sessions, workspace files, and recent events.
+                {t('identities.page.coverageDescription')}
               </p>
             </div>
           </div>
@@ -476,18 +471,22 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           <div className="grid gap-3 sm:grid-cols-3">
             <CoverageMetric
               label={t('identities.metrics.humanCoverage')}
-              value={`${ownerCount} owner${ownerCount === 1 ? '' : 's'}`}
-              hint={`${operatorCount} active operator${operatorCount === 1 ? '' : 's'} on duty`}
+              value={t('identities.page.ownerCount', { count: ownerCount })}
+              hint={t('identities.page.activeOperatorHint', { count: operatorCount })}
             />
             <CoverageMetric
               label={t('identities.metrics.agentsWithSessions')}
               value={agentsWithSessionsCount.toString()}
-              hint={`${Math.max(agents.length - agentsWithSessionsCount, 0)} awaiting first runtime session`}
+              hint={t('identities.page.awaitingFirstSessionHint', {
+                count: Math.max(agents.length - agentsWithSessionsCount, 0),
+              })}
             />
             <CoverageMetric
               label={t('identities.metrics.workspaceReadyAgents')}
               value={workspaceReadyCount.toString()}
-              hint={`${Math.max(agents.length - workspaceReadyCount, 0)} missing workspace metadata`}
+              hint={t('identities.page.missingWorkspaceHint', {
+                count: Math.max(agents.length - workspaceReadyCount, 0),
+              })}
             />
           </div>
         </div>
@@ -559,7 +558,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
               onClick={refreshSnapshot}
               leftIcon={refreshingAction !== 'all' ? <RefreshCw className="h-4 w-4" /> : undefined}
             >
-              Retry Loading
+              {t('common.retry')}
             </Button>
           </div>
         </Card>
@@ -630,8 +629,13 @@ const IdentitiesContent = memo(function IdentitiesContent() {
               </h3>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {hasActiveSearch
-                  ? `Showing ${filteredAdminAccounts.length} human operators and ${filteredAgents.length} workspace runtimes that match the current query. Metrics above still reflect the full backend snapshot.`
-                  : `Humans and workspace runtimes are now rendered from persisted backend data, including ${agentsWithFeedbackCount} agent${agentsWithFeedbackCount === 1 ? '' : 's'} with recent feedback visibility.`}
+                  ? t('identities.page.filteredSnapshotDescription', {
+                      humanCount: filteredAdminAccounts.length,
+                      agentCount: filteredAgents.length,
+                    })
+                  : t('identities.page.liveSnapshotDescription', {
+                      count: agentsWithFeedbackCount,
+                    })}
               </p>
             </div>
           </div>

@@ -166,7 +166,9 @@ function SpacesContent() {
 
     try {
       await approveReview(resourceKind, resourceId);
-      setActionNotice(`Approved ${reviewedItem?.title ?? resourceId}.`);
+      setActionNotice(
+        t('spaces.notices.approvedReview', { title: reviewedItem?.title ?? resourceId })
+      );
     } catch (error) {
       if (consumeUnauthorized(error)) {
         return;
@@ -191,7 +193,9 @@ function SpacesContent() {
 
     try {
       await rejectReview(resourceKind, resourceId, { reason: '' });
-      setActionNotice(`Rejected ${reviewedItem?.title ?? resourceId}.`);
+      setActionNotice(
+        t('spaces.notices.rejectedReview', { title: reviewedItem?.title ?? resourceId })
+      );
     } catch (error) {
       if (consumeUnauthorized(error)) {
         return;
@@ -219,7 +223,12 @@ function SpacesContent() {
 
     try {
       await addMember(input);
-      setActionNotice(`Added ${input.memberType} ${input.memberId} to the workspace.`);
+      setActionNotice(
+        t('spaces.notices.addedMember', {
+          memberType: input.memberType,
+          memberId: input.memberId,
+        })
+      );
     } catch (error) {
       if (consumeUnauthorized(error)) {
         return;
@@ -237,34 +246,32 @@ function SpacesContent() {
             <div className="max-w-3xl">
               <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-orange-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">
                 <Sparkles className="h-3.5 w-3.5" />
-                Operations Space
+                {t('spaces.hero.badge')}
               </div>
               <h1 className="mt-4 text-4xl font-bold tracking-tight text-[var(--kw-text)]">
-                Live collaboration workspace for humans and agents.
+                {t('spaces.hero.title')}
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--kw-text-muted)]">
-                This space aggregates the current operating picture across agent feedback,
-                governance review, identities, and published market inventory so human supervisors
-                can coordinate from one backend-backed surface.
+                {t('spaces.hero.description')}
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
               <MetricCard
                 variant="space"
-                label="Recent events"
+                label={t('spaces.hero.metrics.recentEvents')}
                 value={events.length.toString()}
                 icon={<Sparkles className="h-4 w-4" />}
               />
               <MetricCard
                 variant="space"
-                label="Pending reviews"
+                label={t('spaces.hero.metrics.pendingReviews')}
                 value={pendingReviews.length.toString()}
                 icon={<ShieldCheck className="h-4 w-4" />}
               />
               <MetricCard
                 variant="space"
-                label="Active agents"
+                label={t('spaces.hero.metrics.activeAgents')}
                 value={activeAgents.length.toString()}
                 icon={<Bot className="h-4 w-4" />}
               />
@@ -278,11 +285,11 @@ function SpacesContent() {
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-              Focused workspace context
+              {t('spaces.focusedContext.title')}
             </p>
             {focusedSpace ? (
               <p className="text-sm font-medium text-[var(--kw-text)]">
-                Persisted space: {focusedSpace.name}
+                {t('spaces.focusedContext.persistedSpace', { name: focusedSpace.name })}
               </p>
             ) : null}
             {focusedAgent ? (
@@ -290,7 +297,7 @@ function SpacesContent() {
             ) : null}
             {focusedEvent ? (
               <p className="text-sm text-[var(--kw-text-muted)]">
-                Event summary: {focusedEvent.summary}
+                {t('spaces.focusedContext.eventSummary', { summary: focusedEvent.summary })}
               </p>
             ) : null}
           </div>
@@ -381,14 +388,20 @@ function SpacesContent() {
             <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-[var(--kw-text)]">Market Inventory</h2>
+                  <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+                    {t('spaces.marketInventory.title')}
+                  </h2>
                   <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                    Published assets and skills currently visible to the agent ecosystem.
+                    {t('spaces.marketInventory.description')}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="secondary">{publishedAssets.length} assets</Badge>
-                  <Badge variant="secondary">{publishedSkills.length} skills</Badge>
+                  <Badge variant="secondary">
+                    {t('spaces.marketInventory.assetsCount', { count: publishedAssets.length })}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {t('spaces.marketInventory.skillsCount', { count: publishedSkills.length })}
+                  </Badge>
                 </div>
               </div>
               <MarketInventoryPanel
@@ -414,7 +427,7 @@ function SpacesContent() {
             try {
               await create(input);
               setShowCreateModal(false);
-              setActionNotice(`Created workspace ${input.name}.`);
+              setActionNotice(t('spaces.notices.createdWorkspace', { name: input.name }));
               await spacesQuery.refresh();
             } catch (error) {
               if (consumeUnauthorized(error)) {

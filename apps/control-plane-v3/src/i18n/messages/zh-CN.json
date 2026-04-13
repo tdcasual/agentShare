@@ -36,6 +36,7 @@
   },
   "assets": {
     "allTypes": "所有类型",
+    "focusedAsset": "聚焦资产",
     "capabilities": {
       "access": "能力访问",
       "accessPolicy": "可见范围",
@@ -63,8 +64,10 @@
       "riskLevelHigh": "高",
       "riskLevelLow": "低",
       "riskLevelMedium": "中",
+      "scopedAccess": "定向访问",
       "selectSecret": "选择一个密钥",
       "selectSecretError": "请先选择一个密钥。",
+      "summaryLine": "密钥 {secretId} · {allowedMode} · 风险 {riskLevel}",
       "title": "能力",
       "tokenAccess": "可见范围",
       "tokenRequiredError": "选择指定 token 时，至少需要勾选一个 token。",
@@ -76,7 +79,10 @@
       "selectLabelKey": "选择一个 token 标签键",
       "noLabelsAvailable": "当前 token 还没有标签，无法按标签限制。",
       "selectLabelKeyFirst": "先选择一个标签键，再勾选允许的值。",
-      "createFailed": "创建 capability 失败"
+      "createFailed": "创建 capability 失败",
+      "accessPolicyAgent": "智能体：{items}",
+      "accessPolicyLabel": "标签：{key} = {values}",
+      "accessPolicyToken": "令牌：{items}"
     },
     "capabilitiesHiddenDesc": "将资源通道切换回能力或全部资源以查看能力库存。",
     "capabilitiesHiddenTitle": "当前筛选器已隐藏能力",
@@ -88,6 +94,18 @@
       "refreshFailed": "刷新治理资产失败"
     },
     "filter": "筛选",
+    "governance": {
+      "activeAssets": "{count} 个活跃资产",
+      "allResources": "全部资源",
+      "allStates": "全部状态",
+      "description": "查看智能体正在发布什么、哪些内容已经上线，以及下一个需要人工关注的资源通道。",
+      "pendingReview": "待审核",
+      "pendingReviewItems": "{count} 个待审核项目",
+      "publicationState": "发布状态",
+      "resourceLane": "资源通道",
+      "title": "治理资产总览"
+    },
+    "governanceStateLine": "治理状态: {state}",
     "loading": "正在加载密钥、能力和令牌映射...",
     "metrics": {
       "activeTokens": "活跃令牌",
@@ -197,6 +215,7 @@
     "approved": "已通过",
     "back": "返回",
     "cancel": "取消",
+    "cancelled": "已取消",
     "close": "关闭",
     "closeLanguageMenu": "关闭语言菜单",
     "closeModal": "关闭弹窗",
@@ -234,6 +253,7 @@
     "serviceUnavailableDescription": "无法连接到后端服务。请检查您的网络连接后重试。",
     "share": "分享",
     "submit": "提交",
+    "settings": "设置",
     "switchLanguage": "切换语言",
     "total": "总计",
     "totalAccounts": "共 {count} 个账户",
@@ -251,6 +271,7 @@
     "preparingPage": "正在准备页面...",
     "unexpectedErrorTitle": "出错了",
     "unexpectedErrorDescription": "遇到了意外错误，请重试或联系支持。",
+    "unknown": "未知",
     "unknownError": "未知错误",
     "skipToContent": "跳转到主内容",
     "refreshPage": "刷新页面",
@@ -301,6 +322,15 @@
     "goHome": "返回首页",
     "reload": "刷新页面",
     "title": "哎呀！出错了"
+  },
+  "governance": {
+    "status": {
+      "active": "活跃",
+      "approved": "已通过人工审核",
+      "expired": "已过期",
+      "pendingReview": "等待人工审核",
+      "rejected": "已被人工审核拒绝"
+    }
   },
   "errors": {
     "alreadyAuthenticated": "已认证",
@@ -460,12 +490,64 @@
     "of": "共",
     "ownersHint": "治理与账户托管",
     "pauseFailed": "暂停 Dream Run 失败",
+    "page": {
+      "activeOperatorHint": "{count} 名活跃操作员正在值守",
+      "awaitingFirstSessionHint": "{count} 个等待首次运行会话",
+      "coverageDescription": "此页面现在从后端读取持久化管理账户以及 OpenClaw 工作区和会话遥测。人类负责治理监督，智能体则通过会话、工作区文件和最近事件暴露运行姿态。",
+      "coverageTitle": "OpenClaw 覆盖面",
+      "description": "查看持久化的人类操作员和项目内的 OpenClaw 原生智能体。外部机器使用的远程接入令牌仍在专门的远程接入页面管理。",
+      "filteredSnapshotDescription": "当前筛选匹配 {humanCount} 名人类操作员和 {agentCount} 个工作区运行时。上方指标仍显示完整后端快照。",
+      "humansDescription": "人类操作员负责监督整个控制平面的策略、审批和账户卫生。",
+      "liveSnapshotDescription": "人类与工作区运行时现在都由后端持久化数据渲染，其中 {count} 个智能体最近带有可见反馈。",
+      "missingWorkspaceHint": "{count} 个缺少工作区元数据",
+      "ownerCount": "{count} 个所有者",
+      "refreshSnapshot": "刷新快照",
+      "reviewSpaces": "查看空间",
+      "runtimeDescription": "智能体现在展示工作区根目录、会话历史、沙盒姿态和工具策略，而不再展示关联令牌状态。",
+      "runtimeTitle": "OpenClaw 运行时身份",
+      "title": "身份管理"
+    },
     "refreshFailed": "刷新身份数据失败",
     "reloadAgents": "请重新登录以重新加载 OpenClaw 智能体。",
     "reloadHumans": "请重新登录以重新加载人类操作员。",
     "resumeFailed": "恢复 Dream Run 失败",
     "retryAgents": "重试 OpenClaw 数据",
     "retryHumans": "重试人类操作员",
+    "sections": {
+      "agentDataUnavailable": "OpenClaw 智能体数据暂时不可用。{message}",
+      "agentWorkspacesDescription": "来自 `/api/openclaw/agents` 与 `/api/openclaw/sessions` 的工作区和运行时记录。",
+      "agentWorkspacesTitle": "智能体工作区",
+      "defaultModel": "默认模型",
+      "deleteAgent": "删除 {name}",
+      "dreamModeSummary": "{steps} 步 · {followUps} 个后续任务 · 最大上下文 {maxContext}",
+      "dreamModeTitle": "Dream 模式",
+      "dreamModeToggles": "任务提议 {proposalState} · 内存写入 {memoryState}",
+      "dreamRunDetail": "Dream Run 详情",
+      "dreamRunSteps": "{consumed}/{budget} 步",
+      "hideDetails": "收起 {name} 的详情",
+      "humanOperatorsDescription": "来自 `/api/admin-accounts` 的持久化管理员账户。",
+      "humanOperatorsTitle": "人类操作员",
+      "humanOperatorsUnavailable": "人类操作员数据暂时不可用。{message}",
+      "liveSessions": "{count} 个活跃会话",
+      "manageInSettings": "在设置中管理",
+      "noAgentsMatch": "没有 OpenClaw 智能体匹配“{query}”。",
+      "noDreamRuns": "还没有记录任何 Dream Run。",
+      "noHumanOperatorsMatch": "没有人类操作员匹配“{query}”。",
+      "noRecentEvents": "还没有最近的智能体事件。",
+      "noRecentSessions": "这个智能体还没有可供管理面查看的会话记录。",
+      "recentEvents": "{count} 个最近事件",
+      "recentEventsUnavailable": "最近事件流暂时不可用。{message}",
+      "recentEventsTitle": "最近事件",
+      "recentDreamRunsTitle": "最近 Dream Run",
+      "recentSessionTitle": "最近会话",
+      "pauseDreamRun": "暂停 Dream Run",
+      "resumeDreamRun": "恢复 Dream Run",
+      "sessionHistoryUnavailable": "会话历史暂时不可用。{message}",
+      "updatedAt": "更新于 {value}",
+      "viewRunDetail": "查看运行详情",
+      "workspaceFilesTitle": "工作区文件",
+      "viewDetails": "查看 {name} 的详情"
+    },
     "searchPlaceholder": "按名称、沙盒模式、工作区路径或 ID 搜索身份",
     "sessionExpired": "您的管理会话已过期。请重新登录以继续使用实时身份数据。",
     "sessionForbidden": "您没有权限访问部分身份数据。请使用管理员会话来管理完整的 OpenClaw 身份面。",
@@ -489,6 +571,8 @@
     "values": {
       "disabled": "已禁用",
       "enabled": "已启用",
+      "off": "关闭",
+      "on": "开启",
       "neverSignedIn": "从未登录"
     },
     "workspaceFilesUnavailable": "工作区文件不可用。"
@@ -578,6 +662,25 @@
     "tagline": "智能体市场",
     "title": "资产市场",
     "version": "版本"
+  },
+  "notifications": {
+    "buttonAriaLabelWithUnread": "{label}，{count} 条未读",
+    "emptyDescription": "智能体反馈和系统告警会显示在这里。",
+    "emptyTitle": "还没有活动",
+    "errors": {
+      "loadFailed": "加载活动失败",
+      "markAllReadFailed": "标记通知已读失败，请重试。"
+    },
+    "loading": "正在加载活动...",
+    "markAllRead": "全部标记已读",
+    "notification": "通知",
+    "openInbox": "打开收件箱",
+    "title": "通知",
+    "unavailableDescription": "当前环境还没有发布事件流。",
+    "unavailableLabel": "通知不可用",
+    "unavailableTitle": "通知暂不可用",
+    "unreadCount": "{count} 条未读",
+    "unreadLabel": "未读"
   },
   "metadata": {
     "appName": "控制平面 V3",
@@ -699,9 +802,26 @@
       "loadFailed": "加载审核失败",
       "updateFailed": "更新审核项目失败"
     },
+    "filters": {
+      "agentOnly": "智能体提交",
+      "agentSubmissions": "{count} 个智能体提交",
+      "allResources": "全部资源",
+      "allSubmissions": "全部提交",
+      "description": "人工审核者可以查看哪些提交直接来自智能体、哪些来自令牌，以及当前最需要关注的资源通道。",
+      "humanOnly": "人类提交",
+      "humanSubmissions": "{count} 个人类提交",
+      "provenance": "提交来源",
+      "resourceLane": "资源通道",
+      "title": "治理覆盖面",
+      "tokenOnly": "令牌来源",
+      "tokenOriginated": "{count} 个令牌来源"
+    },
     "item": {
       "createdDirectly": "由人类直接创建",
+      "governanceStateLine": "治理状态: {state}",
       "lastReview": "最后审核",
+      "resourceId": "资源 ID: {id}",
+      "submittedByLine": "提交者 {actorType}: {actorId}",
       "submittedBy": "提交者",
       "tokenProvenance": "令牌来源"
     },
@@ -712,7 +832,9 @@
       "secretsCapabilities": "密钥和能力",
       "tasksQueued": "任务队列"
     },
+    "focusedItem": "聚焦审核项",
     "onlyPending": "仅显示待处理的运行时提交",
+    "noMatches": "当前提交来源和资源筛选器下没有匹配的审核项。",
     "refreshFailed": "刷新审核失败",
     "reviewer": "审核员",
     "sessionExpired": "您的管理会话已过期。请重新登录以继续审核实时队列项目。",
@@ -751,7 +873,8 @@
       "pending": "等待中",
       "running": "运行中",
       "completed": "已完成",
-      "failed": "失败"
+      "failed": "失败",
+      "cancelled": "已取消"
     },
     "emptyTitle": "暂无运行记录",
     "emptyDescAll": "还没有任务被执行",
@@ -848,6 +971,14 @@
     "addAttachment": "添加附件",
     "createSpace": "创建空间",
     "createSpaceDescription": "创建一个新的协作空间",
+    "createModal": {
+      "creating": "创建中...",
+      "nameLabel": "空间名称",
+      "namePlaceholder": "输入空间名称",
+      "summaryLabel": "描述",
+      "summaryPlaceholder": "简要描述这个空间的用途...",
+      "title": "创建空间"
+    },
     "demoMessages": {
       "agent1": "我已经分析了当前环境。以下是我的建议：",
       "human1": "大家好！让我们来讨论今天的部署策略。",
@@ -875,24 +1006,92 @@
     "governanceEmptyAll": "当前没有可见的审核项目。",
     "governanceEmptyPending": "没有等待治理审核的提交。",
     "governanceEmptyRejected": "当前没有可见的被拒绝提交。",
+    "focusedContext": {
+      "eventSummary": "事件摘要：{summary}",
+      "persistedSpace": "持久化空间：{name}",
+      "title": "聚焦工作区上下文"
+    },
+    "hero": {
+      "badge": "操作空间",
+      "description": "这个空间聚合了智能体反馈、治理审核、身份信息以及已发布市场库存，让人类监督者能在一个由后端支撑的界面中统一协调。",
+      "metrics": {
+        "activeAgents": "活跃智能体",
+        "pendingReviews": "待处理审核",
+        "recentEvents": "最近事件"
+      },
+      "title": "面向人类与智能体的实时协作工作区。"
+    },
     "invite": "邀请",
     "loadingAgentRoster": "正在加载智能体名单...",
     "loadingEventActivity": "正在加载事件活动...",
     "loadingGovernanceQueue": "正在加载治理队列...",
     "loadingSpaces": "正在加载持久化空间...",
     "members": "成员",
+    "memberManager": {
+      "addMember": "添加成员",
+      "adding": "添加中...",
+      "empty": "暂无成员",
+      "manageTitle": "成员管理",
+      "memberIdLabel": "成员 ID",
+      "memberIdPlaceholderAgent": "输入智能体ID",
+      "memberIdPlaceholderHuman": "输入用户ID",
+      "memberType": "成员类型",
+      "readOnlyTitle": "成员",
+      "roleLabel": "角色",
+      "roles": {
+        "admin": "管理员",
+        "operator": "操作员",
+        "viewer": "观察者"
+      },
+      "submit": "添加"
+    },
+    "memberTypes": {
+      "agent": "智能体",
+      "human": "人类"
+    },
     "messageInput": "消息输入",
     "messagePlaceholder": "向 @DeployBot 或群组发送消息...",
+    "marketInventory": {
+      "assetsCount": "{count} 个资产",
+      "description": "当前对智能体生态可见的已发布资产和技能。",
+      "skillsCount": "{count} 个技能",
+      "title": "市场库存"
+    },
     "noAgentActivity": "工作区尚未收到任何智能体活动。",
     "noAgents": "尚未注册任何智能体。",
     "noSpaces": "暂无可用的持久化空间。",
     "noTimelineEntries": "暂无任何时间线条目。",
     "nothingPublishedYet": "尚未发布任何内容。",
+    "notices": {
+      "addedMember": "已将 {memberType} {memberId} 添加到工作区。",
+      "approvedReview": "已通过 {title}。",
+      "createdWorkspace": "已创建工作区 {name}。",
+      "rejectedReview": "已拒绝 {title}。"
+    },
     "pendingReviews": "待处理审核",
     "publishedAssets": "已发布资产",
     "publishedSkills": "已发布技能",
     "recentEvents": "最近事件",
     "searchPlaceholder": "搜索空间...",
+    "sections": {
+      "agentLabel": "智能体 {name}",
+      "allActivity": "全部活动",
+      "allAgents": "全部智能体",
+      "completed": "已完成",
+      "failed": "失败",
+      "focusIdentity": "聚焦 {name}",
+      "identityAriaLabel": "{name} 身份",
+      "identityLabel": "身份：{name}",
+      "identitySpaceDescription": "当前管理控制面可见的活跃智能体名单。",
+      "identitySpaceTitle": "身份空间",
+      "operationsSpaceDescription": "通过收件箱事件流汇聚的最近智能体反馈和运行时活动。",
+      "operationsSpaceTitle": "操作空间",
+      "persistedSpacesDescription": "由 API 支持、带明确成员和时间线历史的运行空间。",
+      "persistedSpacesTitle": "持久化空间",
+      "recentEvents": "{count} 个最近事件",
+      "showActivityFor": "显示 {id} 的活动",
+      "spaceAriaLabel": "{name} 空间"
+    },
     "selectSpace": "选择一个空间",
     "selectSpaceDescription": "从列表中选择一个空间开始协作",
     "sendMessage": "发送消息",
@@ -931,6 +1130,8 @@
     "claimedBy": "已被智能体认领",
     "claimedNotCompleted": "已认领，未完成",
     "completed": "已完成",
+    "completedCount": "{completed}/{total} 已完成",
+    "createdByLine": "{taskType} • 创建者 {actorType}:{actorId}",
     "description": "将工作发布到特定的远程访问令牌，逐令牌监控完成情况，并与外部智能体闭环反馈。",
     "directHumanPublish": "直接人工发布",
     "empty": {
@@ -949,6 +1150,11 @@
     "feedbackCount": "反馈次数",
     "feedbackFor": "反馈对象",
     "feedbackSummary": "反馈摘要",
+    "feedbackSummaryLine": "{count} 条反馈 • 平均 {average}",
+    "focusedTask": {
+      "description": "这个远程接入任务关联了 {count} 个定向访问令牌。",
+      "title": "聚焦任务"
+    },
     "form": {
       "broadcast": "广播",
       "broadcastDesc": "在发布时快照所有活跃的远程访问令牌。",
@@ -1006,8 +1212,23 @@
     "saveFeedback": "保存反馈",
     "sessionExpired": "您的管理会话已过期。请重新登录以继续使用实时任务数据。",
     "sessionForbidden": "您没有权限访问部分任务管理数据。请使用管理员会话查看完整任务面。",
+    "supervision": {
+      "completedTargetsAwaitingFeedback": "{count} 个已完成目标等待反馈",
+      "description": "跟踪哪些定向到远程令牌的运行仍在进行中，以及哪些已完成目标仍需要人类监督者补充明确反馈。",
+      "filters": {
+        "all": "全部任务",
+        "inFlight": "进行中",
+        "needsFeedback": "需要反馈"
+      },
+      "inFlightTasks": "{count} 个进行中的任务",
+      "noMatches": "当前监督筛选器下没有匹配的任务。",
+      "title": "人工跟进队列"
+    },
     "targetTokens": "目标令牌",
+    "targetMetaLine": "智能体 {agentId} • 目标 {targetId}",
     "targetsCompleted": "已完成目标",
+    "targetsCompletedLine": "{completed}/{total} 个目标已完成",
+    "taskMetaLine": "{taskType} • {taskId}",
     "title": "任务编排",
     "tokenTargetedDelivery": "令牌定向交付",
     "tokenTrust": "令牌信任度",
@@ -1033,6 +1254,7 @@
       "createFirst": "从此控制台注册第一个远程智能体档案及其主访问令牌。",
       "noAgents": "还没有远程智能体",
       "noTokens": "此远程智能体还没有活跃的访问令牌。",
+      "riskBadge": "{tier} 风险",
       "riskTier": "风险等级"
     },
     "description": "为远程智能体注册接入档案并签发访问令牌，让外部机器和项目外 agent 能够获取项目信息、发布交付物并参与协作流程。",
@@ -1049,20 +1271,29 @@
       "agentName": "远程智能体名称",
       "agentNamePlaceholder": "deploy-bot",
       "allowedTaskTypes": "允许的任务类型",
+      "allowedTaskTypesHelper": "使用逗号分隔。若留空，则在策略 UI 完善前保持开放白名单。",
       "allowedTaskTypesPlaceholder": "config_sync, account_read",
       "displayName": "显示名称",
       "displayNamePlaceholder": "Staging worker token",
       "expiresAt": "过期时间",
       "labels": "标签",
+      "labelsHelper": "使用逗号分隔的 key=value 标签。",
       "labelsPlaceholder": "environment=staging, pool=blue",
       "scopes": "权限范围",
+      "scopesHelper": "使用逗号分隔的权限标签。",
       "scopesPlaceholder": "runtime"
+    },
+    "labels": {
+      "id": "ID"
     },
     "metrics": {
       "activeAgents": "远程智能体",
       "activeTokens": "活跃访问令牌",
       "averageTrust": "平均信任分",
-      "tokensWithFeedback": "有反馈的令牌"
+      "averageTrustHint": "反馈",
+      "tokensWithFeedback": "有反馈的令牌",
+      "tokensWithFeedbackHint": "已审核",
+      "totalHint": "总计 {count}"
     },
     "riskTiers": {
       "critical": "严重",
@@ -1081,6 +1312,7 @@
       "lastFeedback": "最后反馈",
       "lastUsed": "最后使用",
       "oneTimeReveal": "一次性展示",
+      "prefix": "前缀",
       "successRate": "成功率",
       "successfulRuns": "成功运行",
       "trustScore": "信任分数"

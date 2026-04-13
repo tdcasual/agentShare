@@ -33,9 +33,11 @@ export function IdentityPanel({
     <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Identity Space</h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+            {t('spaces.sections.identitySpaceTitle')}
+          </h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-            Active agent roster available to the management control plane.
+            {t('spaces.sections.identitySpaceDescription')}
           </p>
         </div>
         <Badge variant="info">{agents.length}</Badge>
@@ -72,15 +74,18 @@ interface AgentRowProps {
 }
 
 const AgentRow = memo(function AgentRow({ agent, tokens, eventCount, selected, onSelect }: AgentRowProps) {
+  const { t } = useI18n();
   return (
     <div
       role="group"
-      aria-label={`${agent.name} identity`}
+      aria-label={t('spaces.sections.identityAriaLabel', { name: agent.name })}
       className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium text-[var(--kw-text)]">Identity: {agent.name}</p>
+          <p className="font-medium text-[var(--kw-text)]">
+            {t('spaces.sections.identityLabel', { name: agent.name })}
+          </p>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
             {agent.id} · {agent.auth_method}
           </p>
@@ -91,14 +96,14 @@ const AgentRow = memo(function AgentRow({ agent, tokens, eventCount, selected, o
               </Badge>
             ))}
             <Badge variant="secondary">
-              {eventCount} recent event{eventCount === 1 ? '' : 's'}
+              {t('spaces.sections.recentEvents', { count: eventCount })}
             </Badge>
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
           <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
           <Button variant={selected ? 'primary' : 'secondary'} size="sm" onClick={() => onSelect(agent.id)}>
-            Focus {agent.name}
+            {t('spaces.sections.focusIdentity', { name: agent.name })}
           </Button>
         </div>
       </div>

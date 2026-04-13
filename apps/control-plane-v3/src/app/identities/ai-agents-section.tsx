@@ -69,9 +69,11 @@ export function AIAgentsSection({
     <Card variant="feature" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">Agent Workspaces</h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+            {t('identities.sections.agentWorkspacesTitle')}
+          </h2>
           <p className="text-sm text-[var(--kw-text-muted)]">
-            Workspace and runtime records from `/api/openclaw/agents` and `/api/openclaw/sessions`
+            {t('identities.sections.agentWorkspacesDescription')}
           </p>
         </div>
         <Badge variant="agent">{agents.length}</Badge>
@@ -85,7 +87,7 @@ export function AIAgentsSection({
         <ManagementSessionRecoveryNotice message={t('identities.adminRequiredForAgents')} />
       ) : errorMessage ? (
         <SectionError
-          message={`OpenClaw agent data is temporarily unavailable. ${errorMessage}`}
+          message={t('identities.sections.agentDataUnavailable', { message: errorMessage })}
           actionLabel={t('identities.retryAgents')}
           onRetry={onRetry}
           isRefreshing={isRefreshing}
@@ -95,19 +97,19 @@ export function AIAgentsSection({
       ) : filteredAgents.length === 0 ? (
         <EmptyState
           icon={<Bot className="h-6 w-6" />}
-          message={`No OpenClaw agents match "${searchQuery.trim()}".`}
+          message={t('identities.sections.noAgentsMatch', { query: searchQuery.trim() })}
         />
       ) : (
         <div className="space-y-3">
           {sessionsErrorMessage ? (
             <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
-              Session history is temporarily unavailable. {sessionsErrorMessage}
+              {t('identities.sections.sessionHistoryUnavailable', { message: sessionsErrorMessage })}
             </div>
           ) : null}
 
           {eventsErrorMessage ? (
             <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
-              Recent event feed is temporarily unavailable. {eventsErrorMessage}
+              {t('identities.sections.recentEventsUnavailable', { message: eventsErrorMessage })}
             </div>
           ) : null}
 
@@ -172,6 +174,7 @@ function AgentCard({
   children,
   isFocused,
 }: AgentCardProps) {
+  const { t } = useI18n();
   return (
     <div
       data-testid={`agent-card-${agent.id}`}
@@ -188,14 +191,14 @@ function AgentCard({
           <p className="break-all text-sm text-[var(--kw-text-muted)]">{agent.id}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="secondary">
-              {sessions.length} live session{sessions.length === 1 ? '' : 's'}
+              {t('identities.sections.liveSessions', { count: sessions.length })}
             </Badge>
             <Badge variant="secondary">
-              {feedbackCount} recent event{feedbackCount === 1 ? '' : 's'}
+              {t('identities.sections.recentEvents', { count: feedbackCount })}
             </Badge>
           </div>
           <p className="mt-2 text-sm text-[var(--kw-text-muted)]">
-            {agent.model ?? 'default model'} · {agent.thinking_level}
+            {agent.model ?? t('identities.sections.defaultModel')} · {agent.thinking_level}
           </p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
@@ -214,7 +217,9 @@ function AgentCard({
             isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
           }
         >
-          {isExpanded ? `Hide details for ${agent.name}` : `View details for ${agent.name}`}
+          {isExpanded
+            ? t('identities.sections.hideDetails', { name: agent.name })
+            : t('identities.sections.viewDetails', { name: agent.name })}
         </Button>
       </div>
       {children}

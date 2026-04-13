@@ -30,6 +30,15 @@ import { BookOpen, Search, Plus, Tag, RefreshCw, XCircle, Filter } from 'lucide-
 // 常见任务类型
 const TASK_TYPES = ['all', 'code_review', 'deployment', 'analysis', 'documentation', 'testing'];
 
+function getPlaybookTaskTypeLabel(taskType: string, t: (key: string) => string): string {
+  if (taskType === 'all') {
+    return t('common.all');
+  }
+
+  const normalizedTaskType = taskType === 'code_review' ? 'codeReview' : taskType;
+  return t(`playbooks.taskTypes.${normalizedTaskType}`);
+}
+
 const PlaybooksContent = memo(function PlaybooksContent() {
   const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
@@ -262,7 +271,8 @@ const PlaybooksContent = memo(function PlaybooksContent() {
             <span>
               {t('playbooks.totalCount').replace('{count}', String(total))}
               {appliedFilters?.q && ` · ${t('playbooks.searchPrefix')}: "${appliedFilters.q}"`}
-              {appliedFilters?.task_type && ` · ${t('playbooks.typePrefix')}: ${appliedFilters.task_type}`}
+              {appliedFilters?.task_type &&
+                ` · ${t('playbooks.typePrefix')}: ${getPlaybookTaskTypeLabel(appliedFilters.task_type, t)}`}
               {appliedFilters?.tag && ` · ${t('playbooks.tagPrefix')}: ${appliedFilters.tag}`}
             </span>
           </div>
@@ -456,7 +466,7 @@ const TaskTypeFilterButton = memo(function TaskTypeFilterButton({
           : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-text-muted)]'
       }`}
     >
-      {type === 'all' ? t('common.all') : t(`playbooks.taskTypes.${type}`)}
+      {getPlaybookTaskTypeLabel(type, t)}
     </button>
   );
 });

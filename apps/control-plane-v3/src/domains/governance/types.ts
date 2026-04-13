@@ -139,3 +139,18 @@ export function governanceStatusLabel(status: GovernancePublicationStatus) {
       return 'Active';
   }
 }
+
+export function governanceStatusTranslationKey(status: GovernancePublicationStatus) {
+  switch (status) {
+    case 'pending_review':
+      return 'governance.status.pendingReview';
+    case 'approved':
+      return 'governance.status.approved';
+    case 'rejected':
+      return 'governance.status.rejected';
+    case 'expired':
+      return 'governance.status.expired';
+    default:
+      return 'governance.status.active';
+  }
+}

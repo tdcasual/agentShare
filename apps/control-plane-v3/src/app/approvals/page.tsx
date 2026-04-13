@@ -26,7 +26,16 @@ import { ApprovalCard } from '@/domains/approval/components/approval-card';
 import type { ApprovalStatus } from '@/domains/approval/types';
 import { CheckCircle, Clock, XCircle, Filter, RefreshCw } from 'lucide-react';
 
+function getApprovalStatusLabel(
+  status: ApprovalStatus | 'all',
+  t: (key: string) => string
+): string {
+  if (status === 'all') {
+    return t('common.all');
+  }
 
+  return t(`approvals.status.${status}`);
+}
 
 const ApprovalsContent = memo(function ApprovalsContent() {
   const { t } = useI18n();
@@ -171,7 +180,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 {t('approvals.title')}
               </h1>
               <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                {t('approvals.subtitle')}
+                {t('approvals.description')}
               </p>
             </div>
             <Button
@@ -217,7 +226,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.pending}</p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">{t('approvals.pending')}</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">
+                    {getApprovalStatusLabel('pending', t)}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -228,7 +239,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.approved}</p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">{t('approvals.approved')}</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">
+                    {getApprovalStatusLabel('approved', t)}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -239,7 +252,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.rejected}</p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">{t('approvals.rejected')}</p>
+                  <p className="text-sm text-[var(--kw-text-muted)]">
+                    {getApprovalStatusLabel('rejected', t)}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -258,7 +273,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
             />
             <StatusFilterButton
               value="pending"
-              label={t('approvals.pending')}
+              label={getApprovalStatusLabel('pending', t)}
               activeColor="bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]"
               active={statusFilter === 'pending'}
               count={stats.pending}
@@ -266,7 +281,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
             />
             <StatusFilterButton
               value="approved"
-              label={t('approvals.approved')}
+              label={getApprovalStatusLabel('approved', t)}
               activeColor="bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]"
               active={statusFilter === 'approved'}
               count={stats.approved}
@@ -274,7 +289,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
             />
             <StatusFilterButton
               value="rejected"
-              label={t('approvals.rejected')}
+              label={getApprovalStatusLabel('rejected', t)}
               activeColor="bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
               active={statusFilter === 'rejected'}
               count={stats.rejected}
@@ -295,10 +310,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
                   {statusFilter === 'all'
                     ? t('approvals.emptyDescAll')
-                    : t('approvals.emptyDescFiltered').replace('{status}',
-                        statusFilter === 'pending' ? t('approvals.pending')
-                        : statusFilter === 'approved' ? t('approvals.approved')
-                        : t('approvals.rejected')
+                    : t('approvals.emptyDescFiltered').replace(
+                        '{status}',
+                        getApprovalStatusLabel(statusFilter, t)
                       )}
                 </p>
               </Card>
@@ -318,7 +332,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
           {/* 总数提示 */}
           {total > 0 && (
             <p className="text-center text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-              {t('approvals.totalRecords').replace('{total}', String(total))}
+              {t('approvals.totalRecords').replace('{count}', String(total))}
             </p>
           )}
         </div>

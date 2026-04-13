@@ -16,7 +16,10 @@ import {
   Play,
   Lock,
 } from 'lucide-react';
-import { deriveGovernanceStatus, governanceStatusLabel } from '@/domains/governance';
+import {
+  deriveGovernanceStatus,
+  governanceStatusTranslationKey,
+} from '@/domains/governance';
 import { Layout } from '@/interfaces/human/layout';
 import { useReviews, useApproveReview, useRejectReview } from '@/domains/review';
 import { ApiError } from '@/lib/api-client';
@@ -248,87 +251,86 @@ const ReviewsContent = memo(function ReviewsContent() {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              Governance coverage
+              {t('reviews.filters.title')}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              Human reviewers can inspect which submissions came from agents directly, which were
-              token-originated, and which resource lane needs attention first.
+              {t('reviews.filters.description')}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            <Badge variant="agent">{agentSubmittedCount} agent submissions</Badge>
-            <Badge variant="human">{humanSubmittedCount} human submissions</Badge>
-            <Badge variant="secondary">{tokenOriginatedCount} token-originated</Badge>
+            <Badge variant="agent">{t('reviews.filters.agentSubmissions', { count: agentSubmittedCount })}</Badge>
+            <Badge variant="human">{t('reviews.filters.humanSubmissions', { count: humanSubmittedCount })}</Badge>
+            <Badge variant="secondary">{t('reviews.filters.tokenOriginated', { count: tokenOriginatedCount })}</Badge>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                Submission provenance
+                {t('reviews.filters.provenance')}
               </p>
               <div className="flex flex-wrap gap-2">
                 <FilterButton
                   value="all"
                   active={selectedProvenance === 'all'}
                   onSelect={setSelectedProvenance}
-                  label="All submissions"
+                  label={t('reviews.filters.allSubmissions')}
                 />
                 <FilterButton
                   value="agent"
                   active={selectedProvenance === 'agent'}
                   onSelect={setSelectedProvenance}
-                  label="Agent submissions"
+                  label={t('reviews.filters.agentOnly')}
                 />
                 <FilterButton
                   value="human"
                   active={selectedProvenance === 'human'}
                   onSelect={setSelectedProvenance}
-                  label="Human submissions"
+                  label={t('reviews.filters.humanOnly')}
                 />
                 <FilterButton
                   value="token"
                   active={selectedProvenance === 'token'}
                   onSelect={setSelectedProvenance}
-                  label="Token-originated"
+                  label={t('reviews.filters.tokenOnly')}
                 />
               </div>
             </div>
 
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                Resource lane
+                {t('reviews.filters.resourceLane')}
               </p>
               <div className="flex flex-wrap gap-2">
                 <FilterButton
                   value="all"
                   active={selectedKind === 'all'}
                   onSelect={setSelectedKind}
-                  label="All resources"
+                  label={t('reviews.filters.allResources')}
                 />
                 <FilterButton
                   value="task"
                   active={selectedKind === 'task'}
                   onSelect={setSelectedKind}
-                  label="Tasks"
+                  label={t('tasks.title')}
                 />
                 <FilterButton
                   value="capability"
                   active={selectedKind === 'capability'}
                   onSelect={setSelectedKind}
-                  label="Capabilities"
+                  label={t('assets.metrics.capabilities')}
                 />
                 <FilterButton
                   value="secret"
                   active={selectedKind === 'secret'}
                   onSelect={setSelectedKind}
-                  label="Secrets"
+                  label={t('assets.metrics.secrets')}
                 />
                 <FilterButton
                   value="playbook"
                   active={selectedKind === 'playbook'}
                   onSelect={setSelectedKind}
-                  label="Playbooks"
+                  label={t('navigation.playbooks')}
                 />
               </div>
             </div>
@@ -405,7 +407,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       reviewItems.length > 0 &&
       visibleItems.length === 0 ? (
         <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
-          No review items match the current provenance and resource filters.
+          {t('reviews.noMatches')}
         </Card>
       ) : null}
 
@@ -413,13 +415,15 @@ const ReviewsContent = memo(function ReviewsContent() {
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-              Focused review item
+              {t('reviews.focusedItem')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {focusedReviewItem.title}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              Resource {focusedReviewItem.resource_kind}:{focusedReviewItem.resource_id}
+              {t('reviews.item.resourceId', {
+                id: `${focusedReviewItem.resource_kind}:${focusedReviewItem.resource_id}`,
+              })}
             </p>
           </div>
         </Card>
@@ -463,7 +467,7 @@ const ReviewsContent = memo(function ReviewsContent() {
                             : 'success'
                       }
                     >
-                      {governanceStatusLabel(governanceStatus)}
+                      {t(governanceStatusTranslationKey(governanceStatus))}
                     </Badge>
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <ResourceIcon kind={item.resource_kind} />
@@ -478,14 +482,18 @@ const ReviewsContent = memo(function ReviewsContent() {
                       {item.title}
                     </h2>
                     <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                      Resource ID: {item.resource_id}
+                      {t('reviews.item.resourceId', { id: item.resource_id })}
                     </p>
                     <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                      Submitted by {item.created_by_actor_type ?? 'unknown'}:
-                      {item.created_by_actor_id ?? 'unknown'}
+                      {t('reviews.item.submittedByLine', {
+                        actorType: item.created_by_actor_type ?? t('common.unknown'),
+                        actorId: item.created_by_actor_id ?? t('common.unknown'),
+                      })}
                     </p>
                     <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                      Governance state: {governanceStatusLabel(governanceStatus)}
+                      {t('reviews.item.governanceStateLine', {
+                        state: t(governanceStatusTranslationKey(governanceStatus)),
+                      })}
                     </p>
                   </div>
                 </div>

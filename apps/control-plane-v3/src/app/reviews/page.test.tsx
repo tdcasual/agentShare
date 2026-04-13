@@ -2,7 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import ReviewsPage from './page';
+
+const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
 const useManagementSessionGateMock = vi.fn();
@@ -12,7 +15,8 @@ const useRejectReviewMock = vi.fn();
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    locale: 'en',
+    t: translateMessage,
   }),
 }));
 
@@ -103,10 +107,10 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    await user.click(screen.getByRole('button', { name: /reviews.actions.refreshQueue/i }));
+    await user.click(screen.getByRole('button', { name: t('reviews.actions.refreshQueue') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('reviews.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('reviews.sessionExpired'));
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -123,7 +127,7 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('reviews.sessionExpired');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('reviews.sessionExpired'));
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
       'href',
       '/login'
@@ -138,7 +142,7 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('reviews.sessionForbidden');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('reviews.sessionForbidden'));
   });
 
   it('filters the review queue by submission provenance', async () => {
@@ -146,13 +150,17 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    await user.click(screen.getByRole('button', { name: /agent submissions/i }));
+    await user.click(
+      screen.getByRole('button', { name: t('reviews.filters.agentOnly') })
+    );
 
     expect(screen.queryByText('Approve Sync Config')).not.toBeInTheDocument();
     expect(screen.getByText('Publish research.search capability')).toBeInTheDocument();
     expect(screen.getByText('Register OpenAI production key')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /token-originated/i }));
+    await user.click(
+      screen.getByRole('button', { name: t('reviews.filters.tokenOnly') })
+    );
 
     expect(screen.queryByText('Approve Sync Config')).not.toBeInTheDocument();
     expect(screen.getByText('Publish research.search capability')).toBeInTheDocument();
@@ -164,15 +172,23 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    expect(screen.getByText('2 agent submissions')).toBeInTheDocument();
-    expect(screen.getByText('1 token-originated')).toBeInTheDocument();
+    expect(
+      screen.getByText(t('reviews.filters.agentSubmissions', { count: 2 }))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(t('reviews.filters.tokenOriginated', { count: 1 }))
+    ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /capabilities/i }));
+    await user.click(screen.getByRole('button', { name: t('assets.metrics.capabilities') }));
 
     expect(screen.queryByText('Approve Sync Config')).not.toBeInTheDocument();
     expect(screen.getByText('Publish research.search capability')).toBeInTheDocument();
     expect(screen.queryByText('Register OpenAI production key')).not.toBeInTheDocument();
-    expect(screen.getByText('Submitted by agent:bootstrap')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        t('reviews.item.submittedByLine', { actorType: 'agent', actorId: 'bootstrap' })
+      )
+    ).toBeInTheDocument();
     expect(screen.getAllByText('token-bootstrap').length).toBeGreaterThan(0);
   });
 
@@ -181,7 +197,7 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    expect(screen.getByText('Focused review item')).toBeInTheDocument();
+    expect(screen.getByText(t('reviews.focusedItem'))).toBeInTheDocument();
     expect(screen.queryByText('Approve Sync Config')).not.toBeInTheDocument();
     expect(screen.getByTestId('review-card-capability-capability-1')).toHaveAttribute(
       'data-focus-state',
@@ -224,7 +240,7 @@ describe('reviews page', () => {
 
     expect(screen.getByText('Approved market capability')).toBeInTheDocument();
     expect(screen.getByText('Rejected market secret')).toBeInTheDocument();
-    expect(screen.getByText('Approved by human review')).toBeInTheDocument();
-    expect(screen.getByText('Rejected by human review')).toBeInTheDocument();
+    expect(screen.getByText(t('governance.status.approved'))).toBeInTheDocument();
+    expect(screen.getByText(t('governance.status.rejected'))).toBeInTheDocument();
   });
 });

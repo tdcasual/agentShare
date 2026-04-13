@@ -363,7 +363,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.quickActions')}</h3>
+            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.quickActions.title')}</h3>
             <div className="space-y-3">
               <ActionButton
                 href="/tasks"
@@ -432,7 +432,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                 <span className="font-medium">{t('hub.enabled')}</span>
               </div>
               <div className="flex justify-between text-[var(--kw-green-text)]">
-                <span>{t('hub.tasksToday')}</span>
+                <span>{t('hub.stats.tasksToday')}</span>
                 <span className="font-medium">{tasksToday}</span>
               </div>
             </div>

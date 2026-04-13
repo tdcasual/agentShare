@@ -99,18 +99,20 @@ export function AgentManagementCard({
         <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
-              Recent Session
+              {t('identities.sections.recentSessionTitle')}
             </h3>
             <Badge variant="info">{sessionCount}</Badge>
           </div>
 
           {sessionErrorMessage ? (
             <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-              Session history unavailable. {sessionErrorMessage}
+              {t('identities.sections.sessionHistoryUnavailable', {
+                message: sessionErrorMessage,
+              })}
             </p>
           ) : recentSession === null ? (
             <p className="text-sm text-[var(--kw-text-muted)]">
-              No management-visible sessions recorded for this agent yet.
+              {t('identities.sections.noRecentSessions')}
             </p>
           ) : (
             <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]">
@@ -123,7 +125,9 @@ export function AgentManagementCard({
                 {recentSession.subject ? ` · ${recentSession.subject}` : ''}
               </p>
               <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                Updated {formatSnapshotTimestamp(recentSession.updated_at)}
+                {t('identities.sections.updatedAt', {
+                  value: formatSnapshotTimestamp(recentSession.updated_at),
+                })}
               </p>
             </div>
           )}
@@ -132,7 +136,7 @@ export function AgentManagementCard({
         <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
-              Workspace Files
+              {t('identities.sections.workspaceFilesTitle')}
             </h3>
             <Badge variant="secondary">{files.length}</Badge>
           </div>
@@ -169,17 +173,21 @@ export function AgentManagementCard({
         <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
-              Recent Events
+              {t('identities.sections.recentEventsTitle')}
             </h3>
             <Badge variant="secondary">{events.length}</Badge>
           </div>
 
           {eventsErrorMessage ? (
             <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-              Event feed unavailable. {eventsErrorMessage}
+              {t('identities.sections.recentEventsUnavailable', {
+                message: eventsErrorMessage,
+              })}
             </p>
           ) : events.length === 0 ? (
-            <p className="text-sm text-[var(--kw-text-muted)]">No recent agent events yet.</p>
+            <p className="text-sm text-[var(--kw-text-muted)]">
+              {t('identities.sections.noRecentEvents')}
+            </p>
           ) : (
             <div className="space-y-2">
               {events.slice(0, 3).map((event) => (
@@ -209,7 +217,7 @@ export function AgentManagementCard({
             leftIcon={!isDeleting ? <Trash2 className="h-4 w-4" /> : undefined}
             className="border-[var(--kw-error)] text-[var(--kw-error)] hover:border-[var(--kw-error)] hover:bg-[var(--kw-rose-surface)]"
           >
-            Delete {agent.name}
+            {t('identities.sections.deleteAgent', { name: agent.name })}
           </Button>
         </div>
       ) : null}

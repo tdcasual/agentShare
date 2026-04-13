@@ -36,6 +36,7 @@
   },
   "assets": {
     "allTypes": "All Types",
+    "focusedAsset": "Focused asset",
     "capabilities": {
       "access": "Capability Access",
       "accessPolicy": "Visibility",
@@ -63,8 +64,10 @@
       "riskLevelHigh": "high",
       "riskLevelLow": "low",
       "riskLevelMedium": "medium",
+      "scopedAccess": "Scoped access",
       "selectSecret": "Select a secret",
       "selectSecretError": "Select a secret first.",
+      "summaryLine": "Secret {secretId} · {allowedMode} · risk {riskLevel}",
       "title": "Capabilities",
       "tokenAccess": "Visibility",
       "tokenRequiredError": "Pick at least one token when using specific token visibility.",
@@ -76,7 +79,10 @@
       "selectLabelKey": "Select a token label key",
       "noLabelsAvailable": "Current tokens have no labels, so label-based restriction is unavailable.",
       "selectLabelKeyFirst": "Select a label key first, then check allowed values.",
-      "createFailed": "Failed to create capability"
+      "createFailed": "Failed to create capability",
+      "accessPolicyAgent": "Agent: {items}",
+      "accessPolicyLabel": "Label: {key} = {values}",
+      "accessPolicyToken": "Token: {items}"
     },
     "capabilitiesHiddenDesc": "Switch resource lane back to Capabilities or All resources to review capability inventory.",
     "capabilitiesHiddenTitle": "Capabilities hidden by current filter",
@@ -88,6 +94,18 @@
       "refreshFailed": "Failed to refresh governance assets"
     },
     "filter": "Filter",
+    "governance": {
+      "activeAssets": "{count} active assets",
+      "allResources": "All resources",
+      "allStates": "All states",
+      "description": "Review what agents are trying to publish, what has already gone live, and which resource lane needs human attention next.",
+      "pendingReview": "Pending Review",
+      "pendingReviewItems": "{count} pending review items",
+      "publicationState": "Publication state",
+      "resourceLane": "Resource lane",
+      "title": "Governance inventory"
+    },
+    "governanceStateLine": "Governance state: {state}",
     "loading": "Loading secrets, capabilities, and token mappings...",
     "metrics": {
       "activeTokens": "Active tokens",
@@ -197,6 +215,7 @@
     "approved": "Approved",
     "back": "Back",
     "cancel": "Cancel",
+    "cancelled": "Cancelled",
     "close": "Close",
     "closeLanguageMenu": "Close language menu",
     "closeModal": "Close modal",
@@ -234,6 +253,7 @@
     "serviceUnavailableDescription": "Unable to connect to the backend service. Please check your connection and try again.",
     "share": "Share",
     "submit": "Submit",
+    "settings": "Settings",
     "switchLanguage": "Switch language",
     "total": "total",
     "totalAccounts": "{count} total accounts",
@@ -251,6 +271,7 @@
     "preparingPage": "Preparing page...",
     "unexpectedErrorTitle": "Something went wrong",
     "unexpectedErrorDescription": "An unexpected error occurred. Please try again or contact support.",
+    "unknown": "Unknown",
     "unknownError": "Unknown error",
     "skipToContent": "Skip to main content",
     "refreshPage": "Refresh page",
@@ -301,6 +322,15 @@
     "goHome": "Go Home",
     "reload": "Reload Page",
     "title": "Oops! Something went wrong"
+  },
+  "governance": {
+    "status": {
+      "active": "Active",
+      "approved": "Approved by human review",
+      "expired": "Expired",
+      "pendingReview": "Awaiting human review",
+      "rejected": "Rejected by human review"
+    }
   },
   "errors": {
     "alreadyAuthenticated": "Already authenticated",
@@ -460,12 +490,64 @@
     "of": "of",
     "ownersHint": "governance and account custody",
     "pauseFailed": "Failed to pause dream run",
+    "page": {
+      "activeOperatorHint": "{count} active operators on duty",
+      "awaitingFirstSessionHint": "{count} awaiting first runtime session",
+      "coverageDescription": "This route now reads persisted management accounts plus OpenClaw workspaces and session telemetry from the backend. Humans supervise governance while agents expose runtime posture through sessions, workspace files, and recent events.",
+      "coverageTitle": "OpenClaw coverage",
+      "description": "Review persisted human operators and in-project OpenClaw-native agents. Remote-access tokens for external machines remain on the dedicated Tokens page.",
+      "filteredSnapshotDescription": "Showing {humanCount} human operators and {agentCount} workspace runtimes that match the current query. Metrics above still reflect the full backend snapshot.",
+      "humansDescription": "Human operators supervise policy, approvals, and account hygiene across the control plane.",
+      "liveSnapshotDescription": "Humans and workspace runtimes are now rendered from persisted backend data, including {count} agents with recent feedback visibility.",
+      "missingWorkspaceHint": "{count} missing workspace metadata",
+      "ownerCount": "{count} owners",
+      "refreshSnapshot": "Refresh Snapshot",
+      "reviewSpaces": "Review Spaces",
+      "runtimeDescription": "Agents now surface workspace roots, session history, sandbox posture, and tool policy instead of linked token state.",
+      "runtimeTitle": "OpenClaw runtime identities",
+      "title": "Identity Management"
+    },
     "refreshFailed": "Failed to refresh identity data",
     "reloadAgents": "Sign in again to reload OpenClaw agents.",
     "reloadHumans": "Sign in again to reload human operators.",
     "resumeFailed": "Failed to resume dream run",
     "retryAgents": "Retry OpenClaw data",
     "retryHumans": "Retry human operators",
+    "sections": {
+      "agentDataUnavailable": "OpenClaw agent data is temporarily unavailable. {message}",
+      "agentWorkspacesDescription": "Workspace and runtime records from `/api/openclaw/agents` and `/api/openclaw/sessions`.",
+      "agentWorkspacesTitle": "Agent Workspaces",
+      "defaultModel": "default model",
+      "deleteAgent": "Delete {name}",
+      "dreamModeSummary": "{steps} steps · {followUps} follow-up{suffix} · max context {maxContext}",
+      "dreamModeTitle": "Dream mode",
+      "dreamModeToggles": "Task proposal {proposalState} · memory write {memoryState}",
+      "dreamRunDetail": "Dream run detail",
+      "dreamRunSteps": "{consumed}/{budget} steps",
+      "hideDetails": "Hide details for {name}",
+      "humanOperatorsDescription": "Persisted admin accounts from `/api/admin-accounts`.",
+      "humanOperatorsTitle": "Human Operators",
+      "humanOperatorsUnavailable": "Human operator data is temporarily unavailable. {message}",
+      "liveSessions": "{count} live sessions",
+      "manageInSettings": "Manage in Settings",
+      "noAgentsMatch": "No OpenClaw agents match \"{query}\".",
+      "noDreamRuns": "No dream runs recorded yet.",
+      "noHumanOperatorsMatch": "No human operators match \"{query}\".",
+      "noRecentEvents": "No recent agent events yet.",
+      "noRecentSessions": "No management-visible sessions recorded for this agent yet.",
+      "recentEvents": "{count} recent events",
+      "recentEventsUnavailable": "Recent event feed is temporarily unavailable. {message}",
+      "recentEventsTitle": "Recent Events",
+      "recentDreamRunsTitle": "Recent Dream Runs",
+      "recentSessionTitle": "Recent Session",
+      "pauseDreamRun": "Pause dream run",
+      "resumeDreamRun": "Resume dream run",
+      "sessionHistoryUnavailable": "Session history is temporarily unavailable. {message}",
+      "updatedAt": "Updated {value}",
+      "viewRunDetail": "View run detail",
+      "workspaceFilesTitle": "Workspace Files",
+      "viewDetails": "View details for {name}"
+    },
     "searchPlaceholder": "Search identities by name, sandbox mode, workspace path, or id",
     "sessionExpired": "Your management session has expired. Sign in again to keep working with live identity data.",
     "sessionForbidden": "You do not have permission to access some identity data. Use an admin session to manage the full OpenClaw identity surface.",
@@ -489,6 +571,8 @@
     "values": {
       "disabled": "Disabled",
       "enabled": "Enabled",
+      "off": "off",
+      "on": "on",
       "neverSignedIn": "Never signed in"
     },
     "workspaceFilesUnavailable": "Workspace files unavailable."
@@ -578,6 +662,25 @@
     "tagline": "Agent Marketplace",
     "title": "Asset Marketplace",
     "version": "Version"
+  },
+  "notifications": {
+    "buttonAriaLabelWithUnread": "{label}, {count} unread",
+    "emptyDescription": "We will surface agent feedback and system alerts here.",
+    "emptyTitle": "No activity yet",
+    "errors": {
+      "loadFailed": "Failed to load activity",
+      "markAllReadFailed": "Failed to mark notifications as read. Please try again."
+    },
+    "loading": "Loading activity...",
+    "markAllRead": "Mark all read",
+    "notification": "Notification",
+    "openInbox": "Open inbox",
+    "title": "Notifications",
+    "unavailableDescription": "This environment does not yet publish an events feed.",
+    "unavailableLabel": "Notifications unavailable",
+    "unavailableTitle": "Notifications are unavailable",
+    "unreadCount": "{count} unread",
+    "unreadLabel": "Unread"
   },
   "metadata": {
     "appName": "Control Plane V3",
@@ -699,9 +802,26 @@
       "loadFailed": "Failed to load reviews",
       "updateFailed": "Failed to update review item"
     },
+    "filters": {
+      "agentOnly": "Agent submissions",
+      "agentSubmissions": "{count} agent submissions",
+      "allResources": "All resources",
+      "allSubmissions": "All submissions",
+      "description": "Human reviewers can inspect which submissions came from agents directly, which were token-originated, and which resource lane needs attention first.",
+      "humanOnly": "Human submissions",
+      "humanSubmissions": "{count} human submissions",
+      "provenance": "Submission provenance",
+      "resourceLane": "Resource lane",
+      "title": "Governance coverage",
+      "tokenOnly": "Token-originated",
+      "tokenOriginated": "{count} token-originated"
+    },
     "item": {
       "createdDirectly": "Created directly by human",
+      "governanceStateLine": "Governance state: {state}",
       "lastReview": "Last review",
+      "resourceId": "Resource ID: {id}",
+      "submittedByLine": "Submitted by {actorType}: {actorId}",
       "submittedBy": "Submitted by",
       "tokenProvenance": "Token provenance"
     },
@@ -712,7 +832,9 @@
       "secretsCapabilities": "Secrets + capabilities",
       "tasksQueued": "Tasks queued"
     },
+    "focusedItem": "Focused review item",
     "onlyPending": "Only pending runtime submissions appear here",
+    "noMatches": "No review items match the current provenance and resource filters.",
     "refreshFailed": "Failed to refresh reviews",
     "reviewer": "Reviewer",
     "sessionExpired": "Your management session has expired. Sign in again to keep reviewing live queue items.",
@@ -751,7 +873,8 @@
       "pending": "Pending",
       "running": "Running",
       "completed": "Completed",
-      "failed": "Failed"
+      "failed": "Failed",
+      "cancelled": "Cancelled"
     },
     "emptyTitle": "No runs yet",
     "emptyDescAll": "No tasks have been executed yet",
@@ -848,6 +971,14 @@
     "addAttachment": "Add attachment",
     "createSpace": "Create Space",
     "createSpaceDescription": "Create a new collaboration space",
+    "createModal": {
+      "creating": "Creating...",
+      "nameLabel": "Space name",
+      "namePlaceholder": "Enter a space name",
+      "summaryLabel": "Description",
+      "summaryPlaceholder": "Briefly describe what this space is for...",
+      "title": "Create Space"
+    },
     "demoMessages": {
       "agent1": "I've analyzed the current environment. Here are my recommendations:",
       "human1": "Hey everyone! Let's discuss the deployment strategy for today.",
@@ -875,24 +1006,92 @@
     "governanceEmptyAll": "No review items are visible right now.",
     "governanceEmptyPending": "No submissions are waiting for governance review.",
     "governanceEmptyRejected": "No rejected submissions are visible right now.",
+    "focusedContext": {
+      "eventSummary": "Event summary: {summary}",
+      "persistedSpace": "Persisted space: {name}",
+      "title": "Focused workspace context"
+    },
+    "hero": {
+      "badge": "Operations Space",
+      "description": "This space aggregates the current operating picture across agent feedback, governance review, identities, and published market inventory so human supervisors can coordinate from one backend-backed surface.",
+      "metrics": {
+        "activeAgents": "Active agents",
+        "pendingReviews": "Pending reviews",
+        "recentEvents": "Recent events"
+      },
+      "title": "Live collaboration workspace for humans and agents."
+    },
     "invite": "Invite",
     "loadingAgentRoster": "Loading agent roster...",
     "loadingEventActivity": "Loading event activity...",
     "loadingGovernanceQueue": "Loading governance queue...",
     "loadingSpaces": "Loading persisted spaces...",
     "members": "members",
+    "memberManager": {
+      "addMember": "Add member",
+      "adding": "Adding...",
+      "empty": "No members yet.",
+      "manageTitle": "Member management",
+      "memberIdLabel": "Member ID",
+      "memberIdPlaceholderAgent": "Enter agent ID",
+      "memberIdPlaceholderHuman": "Enter user ID",
+      "memberType": "Member type",
+      "readOnlyTitle": "Members",
+      "roleLabel": "Role",
+      "roles": {
+        "admin": "Admin",
+        "operator": "Operator",
+        "viewer": "Viewer"
+      },
+      "submit": "Add"
+    },
+    "memberTypes": {
+      "agent": "Agent",
+      "human": "Human"
+    },
     "messageInput": "Message input",
     "messagePlaceholder": "Message @DeployBot or the group...",
+    "marketInventory": {
+      "assetsCount": "{count} assets",
+      "description": "Published assets and skills currently visible to the agent ecosystem.",
+      "skillsCount": "{count} skills",
+      "title": "Market Inventory"
+    },
     "noAgentActivity": "No agent activity has landed in the workspace yet.",
     "noAgents": "No agents are registered yet.",
     "noSpaces": "No persisted spaces are available yet.",
     "noTimelineEntries": "No timeline entries yet.",
     "nothingPublishedYet": "Nothing published yet.",
+    "notices": {
+      "addedMember": "Added {memberType} {memberId} to the workspace.",
+      "approvedReview": "Approved {title}.",
+      "createdWorkspace": "Created workspace {name}.",
+      "rejectedReview": "Rejected {title}."
+    },
     "pendingReviews": "Pending reviews",
     "publishedAssets": "Published assets",
     "publishedSkills": "Published skills",
     "recentEvents": "Recent events",
     "searchPlaceholder": "Search spaces...",
+    "sections": {
+      "agentLabel": "Agent {name}",
+      "allActivity": "All activity",
+      "allAgents": "All agents",
+      "completed": "Completed",
+      "failed": "Failed",
+      "focusIdentity": "Focus {name}",
+      "identityAriaLabel": "{name} identity",
+      "identityLabel": "Identity: {name}",
+      "identitySpaceDescription": "Active agent roster available to the management control plane.",
+      "identitySpaceTitle": "Identity Space",
+      "operationsSpaceDescription": "Recent agent feedback and runtime activity flowing through the inbox event stream.",
+      "operationsSpaceTitle": "Operations Space",
+      "persistedSpacesDescription": "API-backed operational containers with explicit members and timeline history.",
+      "persistedSpacesTitle": "Persisted spaces",
+      "recentEvents": "{count} recent events",
+      "showActivityFor": "Show activity for {id}",
+      "spaceAriaLabel": "{name} space"
+    },
     "selectSpace": "Select a Space",
     "selectSpaceDescription": "Choose a space from the list to start collaborating",
     "sendMessage": "Send message",
@@ -931,6 +1130,8 @@
     "claimedBy": "Claimed by agent",
     "claimedNotCompleted": "Claimed, not completed",
     "completed": "completed",
+    "completedCount": "{completed}/{total} completed",
+    "createdByLine": "{taskType} • created by {actorType}:{actorId}",
     "description": "Publish work to specific remote access tokens, watch completion per token, and close the loop with feedback for off-project agents.",
     "directHumanPublish": "Direct human publish",
     "empty": {
@@ -949,6 +1150,11 @@
     "feedbackCount": "Feedback count",
     "feedbackFor": "Feedback for",
     "feedbackSummary": "Feedback summary",
+    "feedbackSummaryLine": "{count} reviews • avg {average}",
+    "focusedTask": {
+      "description": "{count} targeted access tokens linked to this remote-access task.",
+      "title": "Focused task"
+    },
     "form": {
       "broadcast": "Broadcast",
       "broadcastDesc": "Snapshot all active remote access tokens at publish time.",
@@ -1006,8 +1212,23 @@
     "saveFeedback": "Save feedback",
     "sessionExpired": "Your management session has expired. Sign in again to keep working with live task data.",
     "sessionForbidden": "You do not have permission to access some task management data. Sign in with an admin session to view the full task surface.",
+    "supervision": {
+      "completedTargetsAwaitingFeedback": "{count} completed targets awaiting feedback",
+      "description": "Track which remote-token-targeted runs are still in flight and which completed targets still need explicit feedback from a human supervisor for remote agent supervision.",
+      "filters": {
+        "all": "All tasks",
+        "inFlight": "In flight",
+        "needsFeedback": "Needs feedback"
+      },
+      "inFlightTasks": "{count} in-flight tasks",
+      "noMatches": "No tasks match the current supervision filter.",
+      "title": "Human follow-up queue"
+    },
     "targetTokens": "Target tokens",
+    "targetMetaLine": "Agent {agentId} • target {targetId}",
     "targetsCompleted": "targets completed",
+    "targetsCompletedLine": "{completed}/{total} targets completed",
+    "taskMetaLine": "{taskType} • {taskId}",
     "title": "Task orchestration",
     "tokenTargetedDelivery": "Token-targeted delivery",
     "tokenTrust": "Token trust",
@@ -1033,6 +1254,7 @@
       "createFirst": "Register the first remote agent profile and its primary access token from this console.",
       "noAgents": "No remote agents yet",
       "noTokens": "No active access tokens for this remote agent yet.",
+      "riskBadge": "{tier} risk",
       "riskTier": "Risk tier"
     },
     "description": "Register remote agents and mint access tokens so external machines and off-project agents can retrieve project information, publish deliverables, and participate in collaboration flows.",
@@ -1049,20 +1271,29 @@
       "agentName": "Remote agent name",
       "agentNamePlaceholder": "deploy-bot",
       "allowedTaskTypes": "Allowed task types",
+      "allowedTaskTypesHelper": "Comma-separated. Leave blank to keep the allowlist open until policy UI expands.",
       "allowedTaskTypesPlaceholder": "config_sync, account_read",
       "displayName": "Display name",
       "displayNamePlaceholder": "Staging worker token",
       "expiresAt": "Expires at",
       "labels": "Labels",
+      "labelsHelper": "Comma-separated key=value labels.",
       "labelsPlaceholder": "environment=staging, pool=blue",
       "scopes": "Scopes",
+      "scopesHelper": "Comma-separated scope labels.",
       "scopesPlaceholder": "runtime"
+    },
+    "labels": {
+      "id": "ID"
     },
     "metrics": {
       "activeAgents": "Remote agents",
       "activeTokens": "Active access tokens",
       "averageTrust": "Average trust",
-      "tokensWithFeedback": "Tokens with feedback"
+      "averageTrustHint": "feedback",
+      "tokensWithFeedback": "Tokens with feedback",
+      "tokensWithFeedbackHint": "reviewed",
+      "totalHint": "{count} total"
     },
     "riskTiers": {
       "critical": "critical",
@@ -1081,6 +1312,7 @@
       "lastFeedback": "Last feedback",
       "lastUsed": "Last used",
       "oneTimeReveal": "One-time reveal",
+      "prefix": "Prefix",
       "successRate": "Success rate",
       "successfulRuns": "Successful runs",
       "trustScore": "Trust score"

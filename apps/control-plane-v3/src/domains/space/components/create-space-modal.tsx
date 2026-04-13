@@ -9,6 +9,7 @@ import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
 import { Globe, X } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 
 interface CreateSpaceModalProps {
   onClose: () => void;
@@ -17,6 +18,7 @@ interface CreateSpaceModalProps {
 }
 
 export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceModalProps) {
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [summary, setSummary] = useState('');
   const idPrefix = useId();
@@ -38,7 +40,9 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-purple-text)] text-white">
                 <Globe className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-bold text-[var(--kw-text)]">创建空间</h2>
+              <h2 className="text-xl font-bold text-[var(--kw-text)]">
+                {t('spaces.createModal.title')}
+              </h2>
             </div>
             <Button
               type="button"
@@ -55,13 +59,13 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
           <div className="space-y-4">
             <div>
               <label htmlFor={nameId} className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
-                空间名称 <span className="text-[var(--kw-error)]">*</span>
+                {t('spaces.createModal.nameLabel')} <span className="text-[var(--kw-error)]">*</span>
               </label>
               <Input
                 id={nameId}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="输入空间名称"
+                placeholder={t('spaces.createModal.namePlaceholder')}
                 required
                 maxLength={50}
               />
@@ -69,12 +73,14 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
             </div>
 
             <div>
-              <label htmlFor={summaryId} className="mb-1 block text-sm font-medium text-[var(--kw-text)]">描述</label>
+              <label htmlFor={summaryId} className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
+                {t('spaces.createModal.summaryLabel')}
+              </label>
               <textarea
                 id={summaryId}
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-                placeholder="简要描述这个空间的用途..."
+                placeholder={t('spaces.createModal.summaryPlaceholder')}
                 rows={3}
                 maxLength={200}
                 className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-surface-alt)]"
@@ -92,7 +98,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
               disabled={isCreating}
               className="flex-1"
             >
-              取消
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -100,7 +106,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
               disabled={isCreating || !name.trim()}
               className="flex-1"
             >
-              {isCreating ? '创建中...' : '创建空间'}
+              {isCreating ? t('spaces.createModal.creating') : t('spaces.createSpace')}
             </Button>
           </div>
         </form>

@@ -2,7 +2,10 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import SpacesPage from './page';
+
+const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
 const useEventsMock = vi.fn();
@@ -20,6 +23,13 @@ const approveReviewMock = vi.fn();
 const rejectReviewMock = vi.fn();
 const createSpaceMock = vi.fn();
 const addSpaceMemberMock = vi.fn();
+
+vi.mock('@/components/i18n-provider', () => ({
+  useI18n: () => ({
+    locale: 'en',
+    t: translateMessage,
+  }),
+}));
 
 vi.mock('@/components/route-guard', () => ({
   ManagementRouteGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -249,9 +259,11 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
-    const operationsFeed = screen.getByRole('region', { name: /common.operationsFeed/i });
+    const operationsFeed = screen.getByRole('region', { name: t('common.operationsFeed') });
 
-    await user.click(screen.getByRole('button', { name: /show activity for bootstrap/i }));
+    await user.click(
+      screen.getByRole('button', { name: t('spaces.sections.showActivityFor', { id: 'bootstrap' }) })
+    );
 
     expect(
       within(operationsFeed).getByText('Bootstrap Credential completed Sync Config')
@@ -264,7 +276,11 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.approve$/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: t('spaces.governance.approve', { title: 'agent.market.capability' }),
+      })
+    );
 
     await waitFor(() => {
       expect(approveReviewMock).toHaveBeenCalledWith('capability', 'capability-1');
@@ -275,9 +291,9 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
-    const operationsFeed = screen.getByRole('region', { name: /common.operationsFeed/i });
+    const operationsFeed = screen.getByRole('region', { name: t('common.operationsFeed') });
 
-    await user.click(screen.getByRole('button', { name: /failed/i }));
+    await user.click(screen.getByRole('button', { name: t('spaces.sections.failed') }));
 
     expect(within(operationsFeed).getByText('Analyzer failed Risk Scan')).toBeInTheDocument();
     expect(
@@ -290,7 +306,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /spaces.governance.rejectedReview/i }));
+    await user.click(screen.getByRole('button', { name: t('spaces.governance.rejectedReview') }));
 
     expect(screen.getByText('rejected.market.secret')).toBeInTheDocument();
     expect(screen.queryByText('agent.market.capability')).not.toBeInTheDocument();
@@ -301,7 +317,11 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.reject$/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: t('spaces.governance.reject', { title: 'agent.market.capability' }),
+      })
+    );
 
     await waitFor(() => {
       expect(rejectReviewMock).toHaveBeenCalledWith('capability', 'capability-1', { reason: '' });
@@ -313,10 +333,16 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.approve$/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: t('spaces.governance.approve', { title: 'agent.market.capability' }),
+      })
+    );
 
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent('Approved agent.market.capability');
+      expect(screen.getByRole('status')).toHaveTextContent(
+        t('spaces.notices.approvedReview', { title: 'agent.market.capability' })
+      );
     });
   });
 
@@ -326,7 +352,11 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.reject$/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: t('spaces.governance.reject', { title: 'agent.market.capability' }),
+      })
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Review backend unavailable');
@@ -339,10 +369,14 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /^spaces\.governance\.approve$/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: t('spaces.governance.approve', { title: 'agent.market.capability' }),
+      })
+    );
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('spaces.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('spaces.sessionExpired'));
     });
 
     expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
@@ -355,12 +389,16 @@ describe('spaces page', () => {
     render(<SpacesPage />);
 
     const bootstrapIdentity = screen.getByRole('group', {
-      name: /bootstrap credential identity/i,
+      name: t('spaces.sections.identityAriaLabel', { name: 'Bootstrap Credential' }),
     });
-    const analyzerIdentity = screen.getByRole('group', { name: /analyzer agent identity/i });
+    const analyzerIdentity = screen.getByRole('group', {
+      name: t('spaces.sections.identityAriaLabel', { name: 'Analyzer Agent' }),
+    });
 
     expect(within(bootstrapIdentity).getByText('Bootstrap Primary')).toBeInTheDocument();
-    expect(within(bootstrapIdentity).getByText('1 recent event')).toBeInTheDocument();
+    expect(
+      within(bootstrapIdentity).getByText(t('spaces.sections.recentEvents', { count: 1 }))
+    ).toBeInTheDocument();
     expect(within(analyzerIdentity).getByText('Analyzer Worker')).toBeInTheDocument();
   });
 
@@ -368,9 +406,13 @@ describe('spaces page', () => {
     const user = userEvent.setup();
 
     render(<SpacesPage />);
-    const operationsFeed = screen.getByRole('region', { name: /common.operationsFeed/i });
+    const operationsFeed = screen.getByRole('region', { name: t('common.operationsFeed') });
 
-    await user.click(screen.getByRole('button', { name: /focus bootstrap credential/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: t('spaces.sections.focusIdentity', { name: 'Bootstrap Credential' }),
+      })
+    );
 
     expect(
       within(operationsFeed).getByText('Bootstrap Credential completed Sync Config')
@@ -383,7 +425,7 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    expect(screen.getByText('Focused workspace context')).toBeInTheDocument();
+    expect(screen.getByText(t('spaces.focusedContext.title'))).toBeInTheDocument();
     expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
     expect(
       screen.getAllByText('Bootstrap Credential completed Sync Config').length
@@ -394,7 +436,7 @@ describe('spaces page', () => {
   it('renders persisted space records with members and timeline summaries', () => {
     render(<SpacesPage />);
 
-    expect(screen.getByText('Persisted spaces')).toBeInTheDocument();
+    expect(screen.getByText(t('spaces.sections.persistedSpacesTitle'))).toBeInTheDocument();
     expect(screen.getByText('Ops Triage')).toBeInTheDocument();
     expect(screen.getByText('Coordinate review and runtime follow-up')).toBeInTheDocument();
     // MemberManager displays member_id.slice(-8) - 'bootstrap' → 'ootstrap'
@@ -409,13 +451,16 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /创建空间/i }));
-    await user.type(screen.getByPlaceholderText(/输入空间名称/i), 'Incident Response');
+    await user.click(screen.getByRole('button', { name: t('spaces.createSpace') }));
     await user.type(
-      screen.getByPlaceholderText(/简要描述这个空间的用途/i),
+      screen.getByPlaceholderText(t('spaces.createModal.namePlaceholder')),
+      'Incident Response'
+    );
+    await user.type(
+      screen.getByPlaceholderText(t('spaces.createModal.summaryPlaceholder')),
       'Coordinate responders during live incidents.'
     );
-    await user.click(screen.getAllByRole('button', { name: /创建空间/i })[1]);
+    await user.click(screen.getAllByRole('button', { name: t('spaces.createSpace') })[1]);
 
     await waitFor(() => {
       expect(createSpaceMock).toHaveBeenCalledWith({
@@ -431,12 +476,15 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /创建空间/i }));
-    await user.type(screen.getByPlaceholderText(/输入空间名称/i), 'Incident Response');
-    await user.click(screen.getAllByRole('button', { name: /创建空间/i })[1]);
+    await user.click(screen.getByRole('button', { name: t('spaces.createSpace') }));
+    await user.type(
+      screen.getByPlaceholderText(t('spaces.createModal.namePlaceholder')),
+      'Incident Response'
+    );
+    await user.click(screen.getAllByRole('button', { name: t('spaces.createSpace') })[1]);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('spaces.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('spaces.sessionExpired'));
     });
   });
 
@@ -445,9 +493,12 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /添加成员/i }));
-    await user.type(screen.getByPlaceholderText(/输入智能体ID/i), 'agent-77');
-    await user.click(screen.getByRole('button', { name: /^添加$/i }));
+    await user.click(screen.getByRole('button', { name: t('spaces.memberManager.addMember') }));
+    await user.type(
+      screen.getByPlaceholderText(t('spaces.memberManager.memberIdPlaceholderAgent')),
+      'agent-77'
+    );
+    await user.click(screen.getByRole('button', { name: t('spaces.memberManager.submit') }));
 
     await waitFor(() => {
       expect(addSpaceMemberMock).toHaveBeenCalledWith({
@@ -464,12 +515,15 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    await user.click(screen.getByRole('button', { name: /添加成员/i }));
-    await user.type(screen.getByPlaceholderText(/输入智能体ID/i), 'agent-77');
-    await user.click(screen.getByRole('button', { name: /^添加$/i }));
+    await user.click(screen.getByRole('button', { name: t('spaces.memberManager.addMember') }));
+    await user.type(
+      screen.getByPlaceholderText(t('spaces.memberManager.memberIdPlaceholderAgent')),
+      'agent-77'
+    );
+    await user.click(screen.getByRole('button', { name: t('spaces.memberManager.submit') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('spaces.sessionForbidden');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('spaces.sessionForbidden'));
     });
   });
 
@@ -485,13 +539,13 @@ describe('spaces page', () => {
 
     render(<SpacesPage />);
 
-    expect(screen.getByText('Persisted spaces')).toBeInTheDocument();
+    expect(screen.getByText(t('spaces.sections.persistedSpacesTitle'))).toBeInTheDocument();
     expect(screen.queryByText('Operations Space')).not.toBeInTheDocument();
     expect(screen.queryByText('Governance Space')).not.toBeInTheDocument();
     expect(screen.queryByText('Identity Space')).not.toBeInTheDocument();
     expect(screen.queryByText('Market Inventory')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /创建空间/i })).not.toBeInTheDocument();
-    expect(screen.queryByText('成员管理')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: t('spaces.createSpace') })).not.toBeInTheDocument();
+    expect(screen.queryByText(t('spaces.memberManager.manageTitle'))).not.toBeInTheDocument();
   });
 
   it('shows a forbidden-specific message when workspace data returns 403', () => {
@@ -507,6 +561,6 @@ describe('spaces page', () => {
     const alerts = screen.getAllByRole('alert');
 
     expect(alerts).toHaveLength(1);
-    expect(alerts[0]).toHaveTextContent('spaces.sessionForbidden');
+    expect(alerts[0]).toHaveTextContent(t('spaces.sessionForbidden'));
   });
 });

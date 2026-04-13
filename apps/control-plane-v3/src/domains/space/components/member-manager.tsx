@@ -11,6 +11,7 @@ import { Input } from '@/shared/ui-primitives/input';
 import { Badge } from '@/shared/ui-primitives/badge';
 import type { SpaceMember } from '../types';
 import { Users, Plus, User, Bot } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 
 interface MemberManagerProps {
   members: SpaceMember[];
@@ -23,18 +24,13 @@ interface MemberManagerProps {
   canManage?: boolean;
 }
 
-const ROLE_OPTIONS = [
-  { value: 'viewer', label: '观察者' },
-  { value: 'operator', label: '操作员' },
-  { value: 'admin', label: '管理员' },
-];
-
 export function MemberManager({
   members,
   onAddMember,
   isAdding,
   canManage = true,
 }: MemberManagerProps) {
+  const { locale, t } = useI18n();
   const [showAddForm, setShowAddForm] = useState(false);
   const [memberType, setMemberType] = useState<'agent' | 'human'>('agent');
   const [memberId, setMemberId] = useState('');
@@ -51,12 +47,18 @@ export function MemberManager({
   };
 
   const formatDate = (dateStr: string) => {
-    return new Intl.DateTimeFormat('zh-CN', {
+    return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     }).format(new Date(dateStr));
   };
+
+  const roleOptions = [
+    { value: 'viewer', label: t('spaces.memberManager.roles.viewer') },
+    { value: 'operator', label: t('spaces.memberManager.roles.operator') },
+    { value: 'admin', label: t('spaces.memberManager.roles.admin') },
+  ];
 
   return (
     <Card variant="default" className="p-4">
@@ -64,7 +66,11 @@ export function MemberManager({
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-[var(--kw-primary-500)]" />
-          <h3 className="font-semibold text-[var(--kw-text)]">{canManage ? '成员管理' : '成员'}</h3>
+          <h3 className="font-semibold text-[var(--kw-text)]">
+            {canManage
+              ? t('spaces.memberManager.manageTitle')
+              : t('spaces.memberManager.readOnlyTitle')}
+          </h3>
           <Badge variant="secondary">{members.length}</Badge>
         </div>
         {canManage ? (
@@ -74,7 +80,7 @@ export function MemberManager({
             onClick={() => setShowAddForm(!showAddForm)}
             leftIcon={<Plus className="h-4 w-4" />}
           >
-            添加成员
+            {t('spaces.memberManager.addMember')}
           </Button>
         ) : null}
       </div>
@@ -88,7 +94,7 @@ export function MemberManager({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
-                成员类型
+                {t('spaces.memberManager.memberType')}
               </label>
               <div className="flex gap-2">
                 <button
@@ -101,7 +107,7 @@ export function MemberManager({
                   }`}
                 >
                   <User className="h-4 w-4" />
-                  人类
+                  {t('spaces.memberTypes.human')}
                 </button>
                 <button
                   type="button"
@@ -113,13 +119,13 @@ export function MemberManager({
                   }`}
                 >
                   <Bot className="h-4 w-4" />
-                  智能体
+                  {t('spaces.memberTypes.agent')}
                 </button>
               </div>
             </div>
             <div>
               <label htmlFor={roleId} className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
-                角色
+                {t('spaces.memberManager.roleLabel')}
               </label>
               <select
                 id={roleId}
@@ -127,7 +133,7 @@ export function MemberManager({
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full rounded-lg border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
               >
-                {ROLE_OPTIONS.map((opt) => (
+                {roleOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -137,13 +143,17 @@ export function MemberManager({
           </div>
           <div>
             <label htmlFor={memberIdInputId} className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
-              成员ID
+              {t('spaces.memberManager.memberIdLabel')}
             </label>
             <Input
               id={memberIdInputId}
               value={memberId}
               onChange={(e) => setMemberId(e.target.value)}
-              placeholder={`输入${memberType === 'human' ? '用户' : '智能体'}ID`}
+              placeholder={
+                memberType === 'human'
+                  ? t('spaces.memberManager.memberIdPlaceholderHuman')
+                  : t('spaces.memberManager.memberIdPlaceholderAgent')
+              }
               required
             />
           </div>
@@ -156,7 +166,7 @@ export function MemberManager({
               disabled={isAdding}
               className="flex-1"
             >
-              取消
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -165,7 +175,7 @@ export function MemberManager({
               disabled={isAdding || !memberId.trim()}
               className="flex-1"
             >
-              {isAdding ? '添加中...' : '添加'}
+              {isAdding ? t('spaces.memberManager.adding') : t('spaces.memberManager.submit')}
             </Button>
           </div>
         </form>
@@ -174,7 +184,9 @@ export function MemberManager({
       {/* 成员列表 */}
       <div className="space-y-2">
         {members.length === 0 ? (
-          <p className="py-4 text-center text-sm text-[var(--kw-text-muted)]">暂无成员</p>
+          <p className="py-4 text-center text-sm text-[var(--kw-text-muted)]">
+            {t('spaces.memberManager.empty')}
+          </p>
         ) : (
           members.map((member) => (
             <div
@@ -194,7 +206,10 @@ export function MemberManager({
                     {member.member_id.slice(-8)}
                   </p>
                   <p className="text-xs text-[var(--kw-text-muted)]">
-                    {member.member_type === 'human' ? '人类' : '智能体'} ·{' '}
+                    {member.member_type === 'human'
+                      ? t('spaces.memberTypes.human')
+                      : t('spaces.memberTypes.agent')}{' '}
+                    ·{' '}
                     {formatDate(member.created_at)}
                   </p>
                 </div>
