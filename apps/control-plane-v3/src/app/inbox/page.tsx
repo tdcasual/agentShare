@@ -138,7 +138,7 @@ const InboxContent = memo(function InboxContent() {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/10 p-4 text-[var(--kw-error)]">
+        <div className="bg-[var(--kw-rose-surface)]/10 flex items-center gap-2 rounded-xl border border-[var(--kw-rose-surface)] p-4 text-[var(--kw-error)]">
           <AlertCircle className="h-5 w-5" />
           <p>{error instanceof Error ? error.message : t('inbox.loadFailed')}</p>
         </div>
@@ -170,51 +170,52 @@ const InboxContent = memo(function InboxContent() {
 
       <div className="space-y-4">
         {events.map((event) => (
-            <Card
-              key={event.id}
-              data-testid={`inbox-event-${event.id}`}
-              data-focus-state={event.id === selectedEventId ? 'focused' : 'default'}
-              className={cn(
-                'transition-shadow hover:shadow-sm',
-                !event.read_at && 'border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]'
-              )}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <CardTitle className="text-base font-medium">{event.summary}</CardTitle>
-                  <span className="text-xs text-[var(--kw-text-muted)]">
-                    {formatRelativeTime(event.created_at, t, locale)}
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--kw-text-muted)]">
-                  <Badge variant={severityVariantMap[event.severity ?? ''] ?? 'info'}>
-                    {event.event_type.replace(/[_-]/g, ' ')}
-                  </Badge>
-                  <span>
-                    {t('inbox.actor')}: {event.actor_type} {event.actor_id}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  {event.details ?? t('inbox.noContext')}
-                </p>
-                <div className="mt-4 grid gap-2 text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  <span>
-                    {t('inbox.subject')}: {event.subject_type} {event.subject_id}
-                  </span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <EventActionButtons
-                  event={event}
-                  t={t}
-                  onActionNavigate={handleActionNavigate}
-                  onMarkRead={handleMarkRead}
-                />
-              </CardFooter>
-            </Card>
-          ))}
+          <Card
+            key={event.id}
+            data-testid={`inbox-event-${event.id}`}
+            data-focus-state={event.id === selectedEventId ? 'focused' : 'default'}
+            className={cn(
+              'transition-shadow hover:shadow-sm',
+              !event.read_at &&
+                'border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]'
+            )}
+          >
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <CardTitle className="text-base font-medium">{event.summary}</CardTitle>
+                <span className="text-xs text-[var(--kw-text-muted)]">
+                  {formatRelativeTime(event.created_at, t, locale)}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--kw-text-muted)]">
+                <Badge variant={severityVariantMap[event.severity ?? ''] ?? 'info'}>
+                  {event.event_type.replace(/[_-]/g, ' ')}
+                </Badge>
+                <span>
+                  {t('inbox.actor')}: {event.actor_type} {event.actor_id}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                {event.details ?? t('inbox.noContext')}
+              </p>
+              <div className="mt-4 grid gap-2 text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                <span>
+                  {t('inbox.subject')}: {event.subject_type} {event.subject_id}
+                </span>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <EventActionButtons
+                event={event}
+                t={t}
+                onActionNavigate={handleActionNavigate}
+                onMarkRead={handleMarkRead}
+              />
+            </CardFooter>
+          </Card>
+        ))}
       </div>
     </div>
   );

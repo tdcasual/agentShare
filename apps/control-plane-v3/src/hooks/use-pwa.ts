@@ -117,7 +117,9 @@ export function usePWA(): PWAState {
 
   // 监听 Service Worker 更新
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) {return undefined;}
+    if (!('serviceWorker' in navigator)) {
+      return undefined;
+    }
 
     const handleControllerChange = () => {
       logger.pwa.info('Service worker controller changed');
@@ -128,9 +130,13 @@ export function usePWA(): PWAState {
     const stateChangeHandlers = new Map<ServiceWorker, EventListener>();
 
     const handleUpdateFound = () => {
-      if (!registration) {return;}
+      if (!registration) {
+        return;
+      }
       const newWorker = registration.installing;
-      if (!newWorker) {return;}
+      if (!newWorker) {
+        return;
+      }
 
       const onStateChange = () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
@@ -175,16 +181,18 @@ export function usePWA(): PWAState {
 
     let cleanup: (() => void) | undefined;
     let cancelled = false;
-    setup().then((cleanupFn) => {
-      if (!cancelled) {
-        cleanup = cleanupFn;
-      } else {
-        // Component unmounted before setup completed — clean up immediately
-        cleanupFn?.();
-      }
-    }).catch((error) => {
-      logger.pwa.error('Failed to setup service worker update listener', error);
-    });
+    setup()
+      .then((cleanupFn) => {
+        if (!cancelled) {
+          cleanup = cleanupFn;
+        } else {
+          // Component unmounted before setup completed — clean up immediately
+          cleanupFn?.();
+        }
+      })
+      .catch((error) => {
+        logger.pwa.error('Failed to setup service worker update listener', error);
+      });
 
     return () => {
       cancelled = true;

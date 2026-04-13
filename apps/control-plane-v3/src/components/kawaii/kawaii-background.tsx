@@ -54,7 +54,7 @@ export const KawaiiBackground = memo(function KawaiiBackground() {
         className={`absolute inset-0 transition-colors duration-500 ${
           isDark
             ? 'from-[var(--kw-dark-bg)]/90 via-[var(--kw-dark-surface)]/80 to-[var(--kw-dark-bg)]/90 bg-gradient-to-br'
-            : 'bg-gradient-to-br from-[var(--kw-primary-50)]/80 via-[var(--kw-lavender)]/60 to-[var(--kw-sky-surface)]/80'
+            : 'from-[var(--kw-primary-50)]/80 via-[var(--kw-lavender)]/60 to-[var(--kw-sky-surface)]/80 bg-gradient-to-br'
         }`}
       />
 

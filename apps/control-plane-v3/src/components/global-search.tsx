@@ -235,11 +235,7 @@ const ResultRow = memo(function ResultRow({
   onNavigate: (result: SearchResultItem) => void;
 }) {
   return (
-    <SearchResultButton
-      result={result}
-      selected={selected}
-      onSelect={() => onNavigate(result)}
-    />
+    <SearchResultButton result={result} selected={selected} onSelect={() => onNavigate(result)} />
   );
 });
 

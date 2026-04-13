@@ -35,7 +35,9 @@ export function GovernancePanel({
     <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">{t('spaces.governance.title')}</h2>
+          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+            {t('spaces.governance.title')}
+          </h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
             {t('spaces.governance.description')}
           </p>
@@ -119,9 +121,7 @@ const GovernanceReviewItem = memo(function GovernanceReviewItem({
   const isApproving = actionKey === `approve:${item.resource_kind}:${item.resource_id}`;
 
   return (
-    <div
-      className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
-    >
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-medium text-[var(--kw-text)]">{item.title}</p>

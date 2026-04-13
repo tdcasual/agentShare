@@ -7,7 +7,8 @@ const cardVariants = {
   default:
     'bg-white/90 dark:bg-[var(--kw-dark-surface)]/90 backdrop-blur-sm border border-[var(--kw-border)]/50',
   elevated: 'bg-white shadow-medium shadow-[var(--kw-primary-100)]/50 dark:shadow-black/20',
-  glass: 'bg-white/70 dark:bg-[var(--kw-dark-surface)]/70 backdrop-blur-md border border-white/60 dark:border-[var(--kw-dark-border)]/60',
+  glass:
+    'bg-white/70 dark:bg-[var(--kw-dark-surface)]/70 backdrop-blur-md border border-white/60 dark:border-[var(--kw-dark-border)]/60',
   gradient:
     'bg-gradient-to-br from-[var(--kw-primary-50)]/80 via-[var(--kw-surface)]/90 to-[var(--kw-purple-surface)]/80 border border-[var(--kw-border)]/30 dark:from-[var(--kw-dark-surface)]/80 dark:via-[var(--kw-dark-bg)]/90 dark:to-[var(--kw-dark-surface-alt)]/80 dark:border-[var(--kw-dark-border)]/30',
   feature:
@@ -49,20 +50,48 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         event.preventDefault();
         const syntheticClick = new Proxy(event, {
           get(target, prop) {
-            if (prop === 'button') { return 0; }
-            if (prop === 'buttons') { return 0; }
-            if (prop === 'clientX') { return 0; }
-            if (prop === 'clientY') { return 0; }
-            if (prop === 'movementX') { return 0; }
-            if (prop === 'movementY') { return 0; }
-            if (prop === 'offsetX') { return 0; }
-            if (prop === 'offsetY') { return 0; }
-            if (prop === 'pageX') { return 0; }
-            if (prop === 'pageY') { return 0; }
-            if (prop === 'relatedTarget') { return null; }
-            if (prop === 'screenX') { return 0; }
-            if (prop === 'screenY') { return 0; }
-            if (prop === 'type') { return 'click'; }
+            if (prop === 'button') {
+              return 0;
+            }
+            if (prop === 'buttons') {
+              return 0;
+            }
+            if (prop === 'clientX') {
+              return 0;
+            }
+            if (prop === 'clientY') {
+              return 0;
+            }
+            if (prop === 'movementX') {
+              return 0;
+            }
+            if (prop === 'movementY') {
+              return 0;
+            }
+            if (prop === 'offsetX') {
+              return 0;
+            }
+            if (prop === 'offsetY') {
+              return 0;
+            }
+            if (prop === 'pageX') {
+              return 0;
+            }
+            if (prop === 'pageY') {
+              return 0;
+            }
+            if (prop === 'relatedTarget') {
+              return null;
+            }
+            if (prop === 'screenX') {
+              return 0;
+            }
+            if (prop === 'screenY') {
+              return 0;
+            }
+            if (prop === 'type') {
+              return 'click';
+            }
             return (target as unknown as Record<string | symbol, unknown>)[prop as string];
           },
         }) as unknown as React.MouseEvent<HTMLDivElement>;

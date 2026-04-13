@@ -135,7 +135,7 @@ function IdentitiesContent() {
           <div className="flex flex-wrap gap-2 pt-2">
             <Link
               href="/demo"
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-amber-text)] bg-[var(--kw-amber-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-amber-text)] transition-colors hover:bg-[var(--kw-warning)]/30 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/40 dark:text-[var(--kw-warning)] dark:hover:bg-[var(--kw-dark-amber-surface)]/60"
+              className="hover:bg-[var(--kw-warning)]/30 dark:bg-[var(--kw-dark-amber-surface)]/40 dark:hover:bg-[var(--kw-dark-amber-surface)]/60 inline-flex items-center gap-2 rounded-full border border-[var(--kw-amber-text)] bg-[var(--kw-amber-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-amber-text)] transition-colors dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Sandbox Directory

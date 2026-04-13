@@ -93,7 +93,10 @@ export default function SetupPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
       {/* Floating decorations */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <span aria-hidden="true" className="absolute left-[8%] top-16 animate-float text-4xl opacity-10 dark:opacity-5">
+        <span
+          aria-hidden="true"
+          className="absolute left-[8%] top-16 animate-float text-4xl opacity-10 dark:opacity-5"
+        >
           🌟
         </span>
         <span
@@ -144,7 +147,9 @@ export default function SetupPage() {
         >
           ✨
         </div>
-        <div className="absolute -bottom-3 -left-3 text-2xl opacity-60" aria-hidden="true">🌸</div>
+        <div className="absolute -bottom-3 -left-3 text-2xl opacity-60" aria-hidden="true">
+          🌸
+        </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left side - Info */}

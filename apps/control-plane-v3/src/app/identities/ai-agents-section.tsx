@@ -103,7 +103,9 @@ export function AIAgentsSection({
         <div className="space-y-3">
           {sessionsErrorMessage ? (
             <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
-              {t('identities.sections.sessionHistoryUnavailable', { message: sessionsErrorMessage })}
+              {t('identities.sections.sessionHistoryUnavailable', {
+                message: sessionsErrorMessage,
+              })}
             </div>
           ) : null}
 

@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,8 +5,9 @@
 :root {
   /* Fonts */
   --font-sans:
-    'Nunito', 'Quicksand', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Quicksand', 'Nunito', 'PingFang SC', sans-serif;
+    var(--font-nunito), var(--font-quicksand), 'PingFang SC', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  --font-display: var(--font-quicksand), var(--font-nunito), 'PingFang SC', sans-serif;
 
   /* Light Mode - Kawaii Theme Variables */
   --kw-primary-50: #fff0f5;

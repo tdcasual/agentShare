@@ -155,7 +155,9 @@ const RunsContent = memo(function RunsContent() {
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
             <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('runs.loadFailed')}</h2>
-            <p className="mb-4 text-[var(--kw-text-muted)]">{error instanceof Error ? error.message : String(error)}</p>
+            <p className="mb-4 text-[var(--kw-text-muted)]">
+              {error instanceof Error ? error.message : String(error)}
+            </p>
             <Button variant="kawaii" onClick={() => refresh()}>
               {t('common.retry')}
             </Button>
@@ -283,14 +285,17 @@ const RunsContent = memo(function RunsContent() {
                   {t('runs.emptyTitle')}
                 </h3>
                 <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                  {selectedStatus === 'all'
-                    ? t('runs.emptyDescAll')
-                    : t('runs.emptyDescFiltered')}
+                  {selectedStatus === 'all' ? t('runs.emptyDescAll') : t('runs.emptyDescFiltered')}
                 </p>
               </Card>
             ) : (
               filteredRuns.map((run) => (
-                <RunCard key={run.id} run={run} statusLabels={statusLabels} onSelect={setSelectedRun} />
+                <RunCard
+                  key={run.id}
+                  run={run}
+                  statusLabels={statusLabels}
+                  onSelect={setSelectedRun}
+                />
               ))
             )}
           </div>
@@ -342,11 +347,7 @@ const StatusFilterButton = memo(function StatusFilterButton({
   onSelect,
 }: StatusFilterButtonProps) {
   return (
-    <Button
-      variant={active ? 'kawaii' : 'outline'}
-      size="sm"
-      onClick={() => onSelect(status)}
-    >
+    <Button variant={active ? 'kawaii' : 'outline'} size="sm" onClick={() => onSelect(status)}>
       {label}
     </Button>
   );
@@ -417,7 +418,10 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <Card variant="kawaii" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden">
+      <Card
+        variant="kawaii"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden"
+      >
         <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
             <div

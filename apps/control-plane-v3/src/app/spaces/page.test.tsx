@@ -262,7 +262,9 @@ describe('spaces page', () => {
     const operationsFeed = screen.getByRole('region', { name: t('common.operationsFeed') });
 
     await user.click(
-      screen.getByRole('button', { name: t('spaces.sections.showActivityFor', { id: 'bootstrap' }) })
+      screen.getByRole('button', {
+        name: t('spaces.sections.showActivityFor', { id: 'bootstrap' }),
+      })
     );
 
     expect(

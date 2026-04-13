@@ -25,13 +25,15 @@ This guide covers the app team's single-host production baseline only. Managed d
 
 1. Push images through `.github/workflows/docker-images.yml`.
 2. Trigger `.github/workflows/deploy.yml` or let the successful `main` image workflow start it.
-3. The deploy workflow uploads the production assets, writes `.env.production`, validates compose, pulls images, runs `alembic upgrade head`, restarts the stack, and runs smoke checks.
-4. The smoke script accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` as the public entrypoint override when operators need to match existing environment naming.
+3. The deploy workflow uploads the production assets, writes `.env.production`, validates compose, pulls images, restarts the stack, and runs smoke checks.
+4. The API container applies `alembic upgrade head` during startup through `apps/api/docker-entrypoint.sh`, so production schema changes still ship as explicit Alembic migrations even though the deploy workflow does not invoke Alembic directly.
+5. The smoke script accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` as the public entrypoint override when operators need to match existing environment naming.
 
 ## Database Migrations
 
 - Treat Alembic as the schema authority for the API database.
-- Run `alembic upgrade head` from `apps/api` before starting the API in CI, staging, or production.
+- Run `alembic upgrade head` from `apps/api` before starting the API in CI.
+- In production compose deployments, the API container runs `alembic upgrade head` on startup before `uvicorn`.
 - Do not rely on API startup to backfill legacy columns; schema changes must ship as migrations.
 
 ## DNS, TLS, and Metrics

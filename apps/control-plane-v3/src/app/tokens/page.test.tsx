@@ -162,7 +162,10 @@ describe('tokens page', () => {
     render(<TokensPage />);
 
     await user.click(screen.getAllByRole('button', { name: t('tokens.actions.createAgent') })[0]);
-    await user.type(screen.getByPlaceholderText(t('tokens.form.agentNamePlaceholder')), 'Deploy Bot');
+    await user.type(
+      screen.getByPlaceholderText(t('tokens.form.agentNamePlaceholder')),
+      'Deploy Bot'
+    );
     await user.click(screen.getAllByRole('button', { name: t('tokens.actions.createAgent') })[1]);
 
     await waitFor(() => {
@@ -218,7 +221,9 @@ describe('tokens page', () => {
     expect(
       screen.getByText(t('tokens.badge.needsFeedback', { count: 1, suffix: '', verbSuffix: 's' }))
     ).toBeInTheDocument();
-    expect(screen.getByText(t('tokens.badge.lowTrust', { count: 1, suffix: '' }))).toBeInTheDocument();
+    expect(
+      screen.getByText(t('tokens.badge.lowTrust', { count: 1, suffix: '' }))
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: t('tokens.filters.needsFeedback') }));
 

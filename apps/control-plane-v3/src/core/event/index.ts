@@ -18,14 +18,12 @@ export class EventBusImpl implements EventBus {
           if (result instanceof Promise) {
             result.catch((err) => {
               if (process.env.NODE_ENV === 'development') {
-                 
                 console.error(`Error in event handler for ${event}:`, err);
               }
             });
           }
         } catch (err) {
           if (process.env.NODE_ENV === 'development') {
-             
             console.error(`Error in event handler for ${event}:`, err);
           }
         }
@@ -44,7 +42,6 @@ export class EventBusImpl implements EventBus {
           handler(payload);
         } catch (err) {
           if (process.env.NODE_ENV === 'development') {
-
             console.error(`Error in once handler for ${event}:`, err);
           }
         }

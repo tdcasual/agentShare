@@ -32,6 +32,4 @@ export const FilterButton = memo(function FilterButton<T extends string>({
       {label}
     </Button>
   );
-}) as <T extends string>(
-  props: FilterButtonProps<T>,
-) => React.JSX.Element;
+}) as <T extends string>(props: FilterButtonProps<T>) => React.JSX.Element;

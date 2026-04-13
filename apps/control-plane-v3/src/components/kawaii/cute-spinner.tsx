@@ -17,13 +17,25 @@ const sizeMap = {
 export function CuteSpinner({ size = 'md', className }: CuteSpinnerProps) {
   return (
     <div className={cn('flex items-center gap-1', className)}>
-      <span className={cn('animate-float', sizeMap[size])} style={{ animationDelay: '0s' }} aria-hidden="true">
+      <span
+        className={cn('animate-float', sizeMap[size])}
+        style={{ animationDelay: '0s' }}
+        aria-hidden="true"
+      >
         🌸
       </span>
-      <span className={cn('animate-float', sizeMap[size])} style={{ animationDelay: '0.15s' }} aria-hidden="true">
+      <span
+        className={cn('animate-float', sizeMap[size])}
+        style={{ animationDelay: '0.15s' }}
+        aria-hidden="true"
+      >
         🌸
       </span>
-      <span className={cn('animate-float', sizeMap[size])} style={{ animationDelay: '0.3s' }} aria-hidden="true">
+      <span
+        className={cn('animate-float', sizeMap[size])}
+        style={{ animationDelay: '0.3s' }}
+        aria-hidden="true"
+      >
         🌸
       </span>
     </div>

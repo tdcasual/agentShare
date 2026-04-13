@@ -4,9 +4,7 @@ import { memo, useCallback } from 'react';
 import { ClipboardList, MessageSquarePlus, Plus, RefreshCw, Target } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useCreateTask, useCreateTaskTargetFeedback } from '@/domains/task';
-import {
-  ManagementPageAlerts,
-} from '@/lib/management-session-recovery';
+import { ManagementPageAlerts } from '@/lib/management-session-recovery';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
@@ -52,7 +50,7 @@ const TasksContent = memo(function TasksContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <Target className="h-4 w-4" />
             {page.t('tasks.tokenTargetedDelivery')}
           </div>
@@ -222,10 +220,7 @@ const TasksContent = memo(function TasksContent() {
       </div>
 
       <CreateTaskModal form={form} allTokens={page.allTokens} />
-      <TaskDetailModal
-        page={page}
-        form={form}
-      />
+      <TaskDetailModal page={page} form={form} />
       <FeedbackModal form={form} />
     </div>
   );
@@ -299,7 +294,7 @@ function TaskCard({
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-2 rounded-3xl border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-3">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-3xl border border-[var(--kw-border)] bg-white/80 px-4 py-3">
           <p className="text-xs uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             {t('tasks.feedbackSummary')}
           </p>
@@ -391,7 +386,7 @@ function CreateTaskModal({
             </label>
             <select
               id="task-priority"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white dark:bg-[var(--kw-dark-bg)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
               value={form.taskForm.priority}
               onChange={(event) =>
                 form.setTaskForm((current) => ({ ...current, priority: event.target.value }))
@@ -724,7 +719,7 @@ function FeedbackModal({ form }: { form: ReturnType<typeof useTasksForm> }) {
             </label>
             <select
               id="feedback-score"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white dark:bg-[var(--kw-dark-bg)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
               value={form.feedbackForm.score}
               onChange={(event) =>
                 form.setFeedbackForm((current) => ({ ...current, score: event.target.value }))
@@ -798,14 +793,15 @@ function TokenCheckbox({
   }, [onToggle, token.id]);
 
   return (
-    <label className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white dark:bg-[var(--kw-dark-bg)] px-4 py-3">
+    <label className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white px-4 py-3 dark:bg-[var(--kw-dark-bg)]">
       <input type="checkbox" className="mt-1" checked={checked} onChange={handleChange} />
       <div>
         <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
           {token.displayName}
         </p>
         <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {token.id} • {token.agentId} • {t('tasks.form.trust') || 'trust'} {(token.trustScore ?? 0).toFixed(2)}
+          {token.id} • {token.agentId} • {t('tasks.form.trust') || 'trust'}{' '}
+          {(token.trustScore ?? 0).toFixed(2)}
         </p>
       </div>
     </label>
@@ -837,7 +833,7 @@ function FeedbackButton({
 
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-[var(--kw-dark-bg)] px-4 py-3">
+    <div className="rounded-2xl bg-white px-4 py-3 dark:bg-[var(--kw-dark-bg)]">
       <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>

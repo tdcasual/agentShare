@@ -124,7 +124,10 @@ export function MemberManager({
               </div>
             </div>
             <div>
-              <label htmlFor={roleId} className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
+              <label
+                htmlFor={roleId}
+                className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]"
+              >
                 {t('spaces.memberManager.roleLabel')}
               </label>
               <select
@@ -142,7 +145,10 @@ export function MemberManager({
             </div>
           </div>
           <div>
-            <label htmlFor={memberIdInputId} className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]">
+            <label
+              htmlFor={memberIdInputId}
+              className="mb-1 block text-xs font-medium text-[var(--kw-text-muted)]"
+            >
               {t('spaces.memberManager.memberIdLabel')}
             </label>
             <Input
@@ -209,8 +215,7 @@ export function MemberManager({
                     {member.member_type === 'human'
                       ? t('spaces.memberTypes.human')
                       : t('spaces.memberTypes.agent')}{' '}
-                    ·{' '}
-                    {formatDate(member.created_at)}
+                    · {formatDate(member.created_at)}
                   </p>
                 </div>
               </div>

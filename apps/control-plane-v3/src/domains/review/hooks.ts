@@ -33,19 +33,25 @@ export function useReviews(options?: SWRConfiguration) {
 // ============================================
 
 export function useApproveReview() {
-  return useCallback(async (resourceKind: string, resourceId: string, payload?: ApproveReviewInput) => {
-    const result = await api.approveReview(resourceKind, resourceId, payload);
-    await Promise.all([mutate('/api/reviews'), mutate('/api/catalog')]);
-    return result;
-  }, []);
+  return useCallback(
+    async (resourceKind: string, resourceId: string, payload?: ApproveReviewInput) => {
+      const result = await api.approveReview(resourceKind, resourceId, payload);
+      await Promise.all([mutate('/api/reviews'), mutate('/api/catalog')]);
+      return result;
+    },
+    []
+  );
 }
 
 export function useRejectReview() {
-  return useCallback(async (resourceKind: string, resourceId: string, payload: RejectReviewInput) => {
-    const result = await api.rejectReview(resourceKind, resourceId, payload);
-    await mutate('/api/reviews');
-    return result;
-  }, []);
+  return useCallback(
+    async (resourceKind: string, resourceId: string, payload: RejectReviewInput) => {
+      const result = await api.rejectReview(resourceKind, resourceId, payload);
+      await mutate('/api/reviews');
+      return result;
+    },
+    []
+  );
 }
 
 // ============================================

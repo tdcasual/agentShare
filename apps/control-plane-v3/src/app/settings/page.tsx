@@ -166,7 +166,7 @@ const SettingsContent = memo(function SettingsContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <ShieldCheck className="h-4 w-4" />
             {t('settings.inviteOnlyAccess')}
           </div>
@@ -323,7 +323,7 @@ const SettingsContent = memo(function SettingsContent() {
               </label>
               <select
                 id="role-select"
-                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white dark:bg-[var(--kw-dark-bg)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]"
+                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
                 value={inviteForm.role}
                 onChange={(event) =>
                   setInviteForm((current) => ({
@@ -338,7 +338,7 @@ const SettingsContent = memo(function SettingsContent() {
               </select>
             </div>
 
-            <div className="rounded-2xl border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('settings.inviteNotice')}
             </div>
 
@@ -350,7 +350,7 @@ const SettingsContent = memo(function SettingsContent() {
 
         <Card variant="feature" className="space-y-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
+            <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
               <UserCog className="h-4 w-4" />
               {t('settings.currentSession')}
             </div>
@@ -392,7 +392,7 @@ const SettingsContent = memo(function SettingsContent() {
             />
           </div>
 
-          <div className="rounded-3xl border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 p-5">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]">
                 <ShieldCheck className="h-5 w-5" />
@@ -444,7 +444,7 @@ const SettingsContent = memo(function SettingsContent() {
 
       <Card variant="kawaii" className="space-y-5">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
             <Users className="h-4 w-4" />
             {t('settings.invitedAccounts')}
           </div>
@@ -480,8 +480,6 @@ const SettingsContent = memo(function SettingsContent() {
   );
 });
 
-
-
 function AccountRow({
   account,
   isCurrentUser,
@@ -514,7 +512,11 @@ function AccountRow({
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant={
-                account.role === 'owner' ? 'primary' : account.role === 'admin' ? 'secondary' : 'default'
+                account.role === 'owner'
+                  ? 'primary'
+                  : account.role === 'admin'
+                    ? 'secondary'
+                    : 'default'
               }
             >
               {account.role}
@@ -545,11 +547,17 @@ function AccountRow({
         <SessionStat label={t('settings.accountId')} value={account.id} monospace />
         <SessionStat
           label={t('settings.lastLogin')}
-          value={account.last_login_at ? new Date(account.last_login_at).toLocaleString(locale) : t('settings.never')}
+          value={
+            account.last_login_at
+              ? new Date(account.last_login_at).toLocaleString(locale)
+              : t('settings.never')
+          }
         />
         <SessionStat
           label={t('settings.availability')}
-          value={account.status === 'active' ? t('settings.canLogin') : t('settings.accessDisabled')}
+          value={
+            account.status === 'active' ? t('settings.canLogin') : t('settings.accessDisabled')
+          }
         />
       </div>
     </Card>
@@ -566,7 +574,7 @@ function SessionStat({
   monospace?: boolean;
 }) {
   return (
-    <div className="rounded-2xl bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 px-4 py-3">
+    <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl bg-white/80 px-4 py-3">
       <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>

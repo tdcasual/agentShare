@@ -63,7 +63,9 @@ export function ForbiddenState({
         </div>
 
         {/* 标题 */}
-        <h1 className="mb-3 text-2xl font-bold text-[var(--kw-text)]">{title ?? t('forbiddenState.title')}</h1>
+        <h1 className="mb-3 text-2xl font-bold text-[var(--kw-text)]">
+          {title ?? t('forbiddenState.title')}
+        </h1>
 
         {/* 描述 */}
         <p className="mb-6 text-[var(--kw-text-muted)]">
@@ -75,7 +77,8 @@ export function ForbiddenState({
         {/* 角色对比 */}
         <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <div className="rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]">
-            {t('forbiddenState.currentRole')}: {role ? ROLE_LABELS[role] : t('forbiddenState.notLoggedIn')}
+            {t('forbiddenState.currentRole')}:{' '}
+            {role ? ROLE_LABELS[role] : t('forbiddenState.notLoggedIn')}
           </div>
           <span className="text-[var(--kw-text-muted)]">→</span>
           <div className="dark:bg-[var(--kw-dark-purple-surface)]/30 rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]">
@@ -104,7 +107,9 @@ export function ForbiddenState({
         </div>
 
         {/* 帮助链接 */}
-        <p className="mt-6 text-xs text-[var(--kw-text-muted)]">{t('forbiddenState.contactAdmin')}</p>
+        <p className="mt-6 text-xs text-[var(--kw-text-muted)]">
+          {t('forbiddenState.contactAdmin')}
+        </p>
       </Card>
     </div>
   );

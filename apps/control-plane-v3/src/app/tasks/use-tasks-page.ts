@@ -100,7 +100,8 @@ export function useTasksPage() {
   const metrics = useMemo(() => {
     const totalTargets = taskViews.reduce((total, item) => total + item.targets.length, 0);
     const completedTargets = taskViews.reduce(
-      (total, item) => total + item.targets.filter((target) => target.status === 'completed').length,
+      (total, item) =>
+        total + item.targets.filter((target) => target.status === 'completed').length,
       0
     );
     const totalFeedback = Object.values(feedbackByTargetId).reduce(
@@ -110,8 +111,9 @@ export function useTasksPage() {
     const completedTargetsAwaitingFeedback = taskViews.reduce(
       (total, item) =>
         total +
-        item.targets.filter((target) => target.status === 'completed' && target.feedback.length === 0)
-          .length,
+        item.targets.filter(
+          (target) => target.status === 'completed' && target.feedback.length === 0
+        ).length,
       0
     );
     const inFlightTasksCount = taskViews.filter((item) =>

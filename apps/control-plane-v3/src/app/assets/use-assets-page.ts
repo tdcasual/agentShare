@@ -60,8 +60,12 @@ export function useAssetsPage() {
   const [selectedResourceFilter, setSelectedResourceFilter] = useState<
     'all' | 'secrets' | 'capabilities'
   >(() => {
-    if (focus.resourceKind === 'secret') {return 'secrets';}
-    if (focus.resourceKind === 'capability') {return 'capabilities';}
+    if (focus.resourceKind === 'secret') {
+      return 'secrets';
+    }
+    if (focus.resourceKind === 'capability') {
+      return 'capabilities';
+    }
     return 'all';
   });
 
@@ -84,7 +88,10 @@ export function useAssetsPage() {
   );
 
   const tokenNameById = useMemo(
-    () => Object.fromEntries(allTokens.map((token) => [token.id, `${token.label} · ${token.agentName}`])),
+    () =>
+      Object.fromEntries(
+        allTokens.map((token) => [token.id, `${token.label} · ${token.agentName}`])
+      ),
     [allTokens]
   );
 
@@ -97,7 +104,9 @@ export function useAssetsPage() {
     const valuesByKey = new Map<string, Set<string>>();
     for (const token of allTokens) {
       for (const [key, value] of Object.entries(token.labels)) {
-        if (!value) {continue;}
+        if (!value) {
+          continue;
+        }
         const bucket = valuesByKey.get(key) ?? new Set<string>();
         bucket.add(value);
         valuesByKey.set(key, bucket);
@@ -108,12 +117,15 @@ export function useAssetsPage() {
     ) as Record<string, string[]>;
   }, [allTokens]);
 
-  const loading = gateLoading || tokensLoading || secretsQuery.isLoading || capabilitiesQuery.isLoading;
+  const loading =
+    gateLoading || tokensLoading || secretsQuery.isLoading || capabilitiesQuery.isLoading;
 
   const combinedError =
     gateError ??
     error ??
-    (tokensError instanceof Error && !isUnauthorizedError(tokensError) ? tokensError.message : null) ??
+    (tokensError instanceof Error && !isUnauthorizedError(tokensError)
+      ? tokensError.message
+      : null) ??
     (secretsQuery.error instanceof Error && !isUnauthorizedError(secretsQuery.error)
       ? secretsQuery.error.message
       : null) ??
@@ -128,9 +140,11 @@ export function useAssetsPage() {
     const activeTokens = allTokens.filter((token) => token.status === 'active').length;
     const pendingReviewItems =
       secrets.filter((secret) => deriveGovernanceStatus(secret) === 'pending_review').length +
-      capabilities.filter((capability) => deriveGovernanceStatus(capability) === 'pending_review').length;
+      capabilities.filter((capability) => deriveGovernanceStatus(capability) === 'pending_review')
+        .length;
     const activeAssets =
-      secrets.filter((secret) => isGovernanceInventoryActive(deriveGovernanceStatus(secret))).length +
+      secrets.filter((secret) => isGovernanceInventoryActive(deriveGovernanceStatus(secret)))
+        .length +
       capabilities.filter((capability) =>
         isGovernanceInventoryActive(deriveGovernanceStatus(capability))
       ).length;
@@ -145,11 +159,16 @@ export function useAssetsPage() {
   const visibleSecrets = useMemo(() => {
     return secrets.filter((secret) => {
       const governanceStatus = deriveGovernanceStatus(secret);
-      if (selectedResourceFilter === 'capabilities') {return false;}
+      if (selectedResourceFilter === 'capabilities') {
+        return false;
+      }
       if (selectedPublicationFilter === 'pending_review' && governanceStatus !== 'pending_review') {
         return false;
       }
-      if (selectedPublicationFilter === 'active' && !isGovernanceInventoryActive(governanceStatus)) {
+      if (
+        selectedPublicationFilter === 'active' &&
+        !isGovernanceInventoryActive(governanceStatus)
+      ) {
         return false;
       }
       return true;
@@ -159,11 +178,16 @@ export function useAssetsPage() {
   const visibleCapabilities = useMemo(() => {
     return capabilities.filter((capability) => {
       const governanceStatus = deriveGovernanceStatus(capability);
-      if (selectedResourceFilter === 'secrets') {return false;}
+      if (selectedResourceFilter === 'secrets') {
+        return false;
+      }
       if (selectedPublicationFilter === 'pending_review' && governanceStatus !== 'pending_review') {
         return false;
       }
-      if (selectedPublicationFilter === 'active' && !isGovernanceInventoryActive(governanceStatus)) {
+      if (
+        selectedPublicationFilter === 'active' &&
+        !isGovernanceInventoryActive(governanceStatus)
+      ) {
         return false;
       }
       return true;
@@ -171,7 +195,8 @@ export function useAssetsPage() {
   }, [capabilities, selectedResourceFilter, selectedPublicationFilter]);
 
   const focusedSecret =
-    secrets.find((secret) => focus.resourceKind === 'secret' && secret.id === focus.resourceId) ?? null;
+    secrets.find((secret) => focus.resourceKind === 'secret' && secret.id === focus.resourceId) ??
+    null;
   const focusedCapability =
     capabilities.find(
       (capability) => focus.resourceKind === 'capability' && capability.id === focus.resourceId
@@ -187,7 +212,9 @@ export function useAssetsPage() {
     try {
       await Promise.all([secretsQuery.mutate(), capabilitiesQuery.mutate(), mutateTokens()]);
     } catch (refreshFailure) {
-      if (consumeUnauthorized(refreshFailure)) {return;}
+      if (consumeUnauthorized(refreshFailure)) {
+        return;
+      }
       setRefreshError(
         refreshFailure instanceof Error ? refreshFailure.message : t('assets.errors.refreshFailed')
       );

@@ -325,7 +325,8 @@ const TokensContent = memo(function TokensContent() {
                 {revealedSecret.label}
               </h2>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {t('tokens.token.prefix')}: <span className="font-mono">{revealedSecret.prefix}</span>
+                {t('tokens.token.prefix')}:{' '}
+                <span className="font-mono">{revealedSecret.prefix}</span>
               </p>
             </div>
             <Button variant="secondary" onClick={() => copySecret(revealedSecret.apiKey)}>
@@ -444,7 +445,9 @@ const TokensContent = memo(function TokensContent() {
       {/* Loading */}
       {gateLoading || isLoading ? (
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <span className="animate-spin" aria-hidden="true">🌸</span>
+          <span className="animate-spin" aria-hidden="true">
+            🌸
+          </span>
           {t('tokens.loadingAgents')}
         </Card>
       ) : null}
@@ -502,7 +505,9 @@ const TokensContent = memo(function TokensContent() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="agent">{t('tokens.agent.riskBadge', { tier: agent.risk_tier })}</Badge>
+                    <Badge variant="agent">
+                      {t('tokens.agent.riskBadge', { tier: agent.risk_tier })}
+                    </Badge>
                     <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
                       {agent.status}
                     </Badge>
@@ -800,8 +805,6 @@ const TokensContent = memo(function TokensContent() {
   );
 });
 
-
-
 interface MintTokenButtonProps {
   agentId: string;
   onMint: (agentId: string) => void;
@@ -832,7 +835,12 @@ const RevokeTokenButton = memo(function RevokeTokenButton({
 }: RevokeTokenButtonProps) {
   const { t } = useI18n();
   return (
-    <Button variant="ghost" size="sm" onClick={() => onRevoke(tokenId, agentId)} disabled={disabled}>
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => onRevoke(tokenId, agentId)}
+      disabled={disabled}
+    >
       {t('tokens.actions.revoke')}
     </Button>
   );

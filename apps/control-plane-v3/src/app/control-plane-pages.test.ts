@@ -47,7 +47,7 @@ describe('Control Plane Pages', () => {
     expect(source).toMatch(/useOpenClawSessions/);
     expect(source).toMatch(/useManagementPageSessionRecovery|useManagementSessionGate/);
     expect(source).not.toMatch(/managed through the runtime system/);
-    expect(source).toMatch(/OpenClaw coverage/);
+    expect(source).toMatch(/identities\.page\.coverageTitle/);
   });
 
   it('global search is wired to backend grouped search instead of mock suggestions', async () => {

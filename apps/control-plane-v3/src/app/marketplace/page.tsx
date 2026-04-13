@@ -438,8 +438,6 @@ const MarketplaceContent = memo(function MarketplaceContent() {
   );
 });
 
-
-
 function SectionNotice({ tone, message }: { tone: 'default' | 'error'; message: string }) {
   return (
     <div

@@ -132,10 +132,7 @@ export function useTasksForm({
       clearAllAuthErrors();
 
       try {
-        const parsedInput = parseJsonObject(
-          taskForm.input_json,
-          t('tasks.errors.invalidPayload')
-        );
+        const parsedInput = parseJsonObject(taskForm.input_json, t('tasks.errors.invalidPayload'));
         if (taskForm.target_mode === 'explicit_tokens' && taskForm.target_token_ids.length === 0) {
           throw new Error(t('tasks.errors.noTargetTokens'));
         }
@@ -174,7 +171,9 @@ export function useTasksForm({
   const handleSubmitFeedback = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!feedbackTarget) {return;}
+      if (!feedbackTarget) {
+        return;
+      }
 
       setSubmittingFeedback(true);
       setFeedbackFormError(null);

@@ -21,7 +21,9 @@ export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
       </div>
 
       {runs.length === 0 ? (
-        <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.sections.noDreamRuns')}</p>
+        <p className="text-sm text-[var(--kw-text-muted)]">
+          {t('identities.sections.noDreamRuns')}
+        </p>
       ) : (
         <div className="space-y-2">
           {runs.slice(0, 3).map((run) => (

@@ -20,7 +20,13 @@ describe('filter toggle accessibility', () => {
   });
 
   it('marketplace, tasks, reviews, assets, and settings use shared FilterButton', async () => {
-    const pages = ['marketplace/page.tsx', 'tasks/page.tsx', 'reviews/page.tsx', 'assets/page.tsx', 'settings/page.tsx'];
+    const pages = [
+      'marketplace/page.tsx',
+      'tasks/page.tsx',
+      'reviews/page.tsx',
+      'assets/page.tsx',
+      'settings/page.tsx',
+    ];
     const sources = await Promise.all(pages.map((p) => readSource(p)));
 
     for (let i = 0; i < pages.length; i++) {

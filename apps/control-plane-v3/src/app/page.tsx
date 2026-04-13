@@ -363,7 +363,9 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
         <div className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.quickActions.title')}</h3>
+            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">
+              {t('hub.quickActions.title')}
+            </h3>
             <div className="space-y-3">
               <ActionButton
                 href="/tasks"

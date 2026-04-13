@@ -150,17 +150,13 @@ describe('reviews page', () => {
 
     render(<ReviewsPage />);
 
-    await user.click(
-      screen.getByRole('button', { name: t('reviews.filters.agentOnly') })
-    );
+    await user.click(screen.getByRole('button', { name: t('reviews.filters.agentOnly') }));
 
     expect(screen.queryByText('Approve Sync Config')).not.toBeInTheDocument();
     expect(screen.getByText('Publish research.search capability')).toBeInTheDocument();
     expect(screen.getByText('Register OpenAI production key')).toBeInTheDocument();
 
-    await user.click(
-      screen.getByRole('button', { name: t('reviews.filters.tokenOnly') })
-    );
+    await user.click(screen.getByRole('button', { name: t('reviews.filters.tokenOnly') }));
 
     expect(screen.queryByText('Approve Sync Config')).not.toBeInTheDocument();
     expect(screen.getByText('Publish research.search capability')).toBeInTheDocument();

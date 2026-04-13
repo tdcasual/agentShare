@@ -50,7 +50,8 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 className={cn(
                   'border-3 h-16 w-16 rounded-full object-cover shadow-soft',
                   isHuman ? 'border-[var(--kw-human-accent)]' : 'border-[var(--kw-agent-accent)]',
-                  identity.presence === 'online' && 'shadow-[var(--kw-agent-accent)]/30 shadow-medium'
+                  identity.presence === 'online' &&
+                    'shadow-[var(--kw-agent-accent)]/30 shadow-medium'
                 )}
               />
               {/* Presence indicator with pulse */}
@@ -65,7 +66,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
               {/* Type badge */}
               <span
                 className={cn(
-                  'absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[var(--kw-surface)] dark:border-[var(--kw-dark-surface)] text-xs shadow-soft',
+                  'absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[var(--kw-surface)] text-xs shadow-soft dark:border-[var(--kw-dark-surface)]',
                   isHuman
                     ? 'bg-[var(--kw-sky)] text-white'
                     : 'bg-[var(--kw-agent-accent)] text-white'

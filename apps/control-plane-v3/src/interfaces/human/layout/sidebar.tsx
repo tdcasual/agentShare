@@ -213,7 +213,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
         {!collapsed && (
           <div className="ml-3 overflow-hidden">
-            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">{t('sidebar.appName')}</h1>
+            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">
+              {t('sidebar.appName')}
+            </h1>
             <p className="text-xs text-[var(--kw-text-muted)]">{t('sidebar.appTagline')}</p>
           </div>
         )}

@@ -60,32 +60,32 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
               'animate-slide-up'
             )}
           >
-              {locales.map((l) => (
-                <button
-                  type="button"
-                  key={l}
-                  onClick={() => handleLocaleChange(l)}
+            {locales.map((l) => (
+              <button
+                type="button"
+                key={l}
+                onClick={() => handleLocaleChange(l)}
+                className={cn(
+                  'flex w-full items-center gap-2 px-3 py-2.5 text-left',
+                  'transition-colors duration-200',
+                  'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+                  locale === l &&
+                    'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
+                )}
+              >
+                <span className="text-base">{localeFlags[l]}</span>
+                <span
                   className={cn(
-                    'flex w-full items-center gap-2 px-3 py-2.5 text-left',
-                    'transition-colors duration-200',
-                    'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
-                    locale === l &&
-                      'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
+                    'text-sm font-medium',
+                    locale === l
+                      ? 'text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]'
+                      : 'text-[var(--kw-text)]'
                   )}
                 >
-                  <span className="text-base">{localeFlags[l]}</span>
-                  <span
-                    className={cn(
-                      'text-sm font-medium',
-                      locale === l
-                        ? 'text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]'
-                        : 'text-[var(--kw-text)]'
-                    )}
-                  >
-                    {localeLabels[l]}
-                  </span>
-                </button>
-              ))}
+                  {localeLabels[l]}
+                </span>
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -127,32 +127,32 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
             'animate-slide-up'
           )}
         >
-            {locales.map((l) => (
-              <button
-                type="button"
-                key={l}
-                onClick={() => handleLocaleChange(l)}
+          {locales.map((l) => (
+            <button
+              type="button"
+              key={l}
+              onClick={() => handleLocaleChange(l)}
+              className={cn(
+                'flex w-full items-center gap-3 px-4 py-3 text-left',
+                'transition-colors duration-200',
+                'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+                locale === l &&
+                  'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
+              )}
+            >
+              <span className="text-lg">{localeFlags[l]}</span>
+              <span
                 className={cn(
-                  'flex w-full items-center gap-3 px-4 py-3 text-left',
-                  'transition-colors duration-200',
-                  'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
-                  locale === l &&
-                    'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
+                  'text-sm font-medium',
+                  locale === l
+                    ? 'text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]'
+                    : 'text-[var(--kw-text)]'
                 )}
               >
-                <span className="text-lg">{localeFlags[l]}</span>
-                <span
-                  className={cn(
-                    'text-sm font-medium',
-                    locale === l
-                      ? 'text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]'
-                      : 'text-[var(--kw-text)]'
-                  )}
-                >
-                  {localeLabels[l]}
-                </span>
-              </button>
-            ))}
+                {localeLabels[l]}
+              </span>
+            </button>
+          ))}
         </div>
       )}
     </div>

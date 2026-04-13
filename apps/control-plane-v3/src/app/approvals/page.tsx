@@ -137,7 +137,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('approvals.loadFailed')}</h2>
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
+              {t('approvals.loadFailed')}
+            </h2>
             <p className="mb-4 text-[var(--kw-text-muted)]">
               {error instanceof Error ? error.message : t('common.unknownError')}
             </p>

@@ -394,7 +394,9 @@ function SecretCard({
   return (
     <Card
       data-testid={`secret-card-${secret.id}`}
-      data-focus-state={focus.resourceKind === 'secret' && focus.resourceId === secret.id ? 'focused' : 'default'}
+      data-focus-state={
+        focus.resourceKind === 'secret' && focus.resourceId === secret.id ? 'focused' : 'default'
+      }
       className={cn(
         'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-5',
         focus.resourceKind === 'secret' && focus.resourceId === secret.id
@@ -422,8 +424,14 @@ function SecretCard({
         </Badge>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <InfoBlock label={t('assets.secrets.providerScopes')} value={secret.provider_scopes.join(', ') || t('common.notSpecified')} />
-        <InfoBlock label={t('assets.secrets.resourceSelector')} value={secret.resource_selector || t('common.notSpecified')} />
+        <InfoBlock
+          label={t('assets.secrets.providerScopes')}
+          value={secret.provider_scopes.join(', ') || t('common.notSpecified')}
+        />
+        <InfoBlock
+          label={t('assets.secrets.resourceSelector')}
+          value={secret.resource_selector || t('common.notSpecified')}
+        />
       </div>
     </Card>
   );
@@ -514,7 +522,9 @@ function CapabilityCard({
     <Card
       data-testid={`capability-card-${capability.id}`}
       data-focus-state={
-        focus.resourceKind === 'capability' && focus.resourceId === capability.id ? 'focused' : 'default'
+        focus.resourceKind === 'capability' && focus.resourceId === capability.id
+          ? 'focused'
+          : 'default'
       }
       className={cn(
         'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-5',
@@ -553,12 +563,18 @@ function CapabilityCard({
         </div>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <InfoBlock label={t('assets.capabilities.requiredProvider')} value={capability.required_provider || t('common.notSpecified')} />
+        <InfoBlock
+          label={t('assets.capabilities.requiredProvider')}
+          value={capability.required_provider || t('common.notSpecified')}
+        />
         <InfoBlock
           label={t('assets.capabilities.requiredScopes')}
           value={capability.required_provider_scopes.join(', ') || t('common.notSpecified')}
         />
-        <InfoBlock label={t('assets.capabilities.leaseTTL')} value={`${capability.lease_ttl_seconds}s`} />
+        <InfoBlock
+          label={t('assets.capabilities.leaseTTL')}
+          value={`${capability.lease_ttl_seconds}s`}
+        />
         <InfoBlock
           label={t('assets.capabilities.tokenAccess')}
           value={formatAccessPolicy(capability, tokenNameById, agentNameById, t)}
@@ -634,7 +650,10 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
             label={form.t('assets.secrets.resourceSelector')}
             value={form.secretForm.resource_selector}
             onChange={(event) =>
-              form.setSecretForm((current) => ({ ...current, resource_selector: event.target.value }))
+              form.setSecretForm((current) => ({
+                ...current,
+                resource_selector: event.target.value,
+              }))
             }
             placeholder={form.t('assets.secrets.resourceSelectorPlaceholder')}
           />
@@ -710,7 +729,10 @@ function CapabilityModal({
               className={selectClassName}
               value={form.capabilityForm.risk_level}
               onChange={(event) =>
-                form.setCapabilityForm((current) => ({ ...current, risk_level: event.target.value }))
+                form.setCapabilityForm((current) => ({
+                  ...current,
+                  risk_level: event.target.value,
+                }))
               }
             >
               <option value="low">{form.t('assets.capabilities.riskLevelLow')}</option>
@@ -730,11 +752,16 @@ function CapabilityModal({
               className={selectClassName}
               value={form.capabilityForm.allowed_mode}
               onChange={(event) =>
-                form.setCapabilityForm((current) => ({ ...current, allowed_mode: event.target.value }))
+                form.setCapabilityForm((current) => ({
+                  ...current,
+                  allowed_mode: event.target.value,
+                }))
               }
             >
               <option value="proxy_only">{form.t('assets.capabilities.modeProxyOnly')}</option>
-              <option value="proxy_or_lease">{form.t('assets.capabilities.modeProxyOrLease')}</option>
+              <option value="proxy_or_lease">
+                {form.t('assets.capabilities.modeProxyOrLease')}
+              </option>
             </select>
           </div>
           <Input
@@ -1084,9 +1111,15 @@ function policyButtonClass(active: boolean) {
 }
 
 function statusVariant(status: string) {
-  if (status === 'active' || status === 'approved') {return 'success' as const;}
-  if (status === 'pending_review') {return 'warning' as const;}
-  if (status === 'rejected') {return 'error' as const;}
+  if (status === 'active' || status === 'approved') {
+    return 'success' as const;
+  }
+  if (status === 'pending_review') {
+    return 'warning' as const;
+  }
+  if (status === 'rejected') {
+    return 'error' as const;
+  }
   return 'secondary' as const;
 }
 
@@ -1096,18 +1129,24 @@ function formatAccessPolicy(
   agentNameById: Record<string, string>,
   t: (key: string, values?: Record<string, string | number>) => string
 ) {
-  if (capability.access_policy.mode === 'all_tokens') {return t('assets.capabilities.allTokens');}
+  if (capability.access_policy.mode === 'all_tokens') {
+    return t('assets.capabilities.allTokens');
+  }
 
   return capability.access_policy.selectors
     .map((selector) => {
       if (selector.kind === 'token') {
         return t('assets.capabilities.accessPolicyToken', {
-          items: (selector.ids ?? []).map((tokenId) => tokenNameById[tokenId] ?? tokenId).join(', '),
+          items: (selector.ids ?? [])
+            .map((tokenId) => tokenNameById[tokenId] ?? tokenId)
+            .join(', '),
         });
       }
       if (selector.kind === 'agent') {
         return t('assets.capabilities.accessPolicyAgent', {
-          items: (selector.ids ?? []).map((agentId) => agentNameById[agentId] ?? agentId).join(', '),
+          items: (selector.ids ?? [])
+            .map((agentId) => agentNameById[agentId] ?? agentId)
+            .join(', '),
         });
       }
       return t('assets.capabilities.accessPolicyLabel', {

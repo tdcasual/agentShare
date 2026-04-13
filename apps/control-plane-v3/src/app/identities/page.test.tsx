@@ -306,7 +306,10 @@ describe('identities page', () => {
     expect(screen.getByText('Alice Operator')).toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
 
-    await user.type(screen.getByRole('searchbox', { name: t('common.searchIdentities') }), 'read-only');
+    await user.type(
+      screen.getByRole('searchbox', { name: t('common.searchIdentities') }),
+      'read-only'
+    );
 
     expect(screen.queryByText('Alice Operator')).not.toBeInTheDocument();
     expect(screen.getByText('Analyzer Agent')).toBeInTheDocument();
@@ -527,7 +530,9 @@ describe('identities page', () => {
     render(<IdentitiesPage />);
 
     expect(screen.getByText(t('identities.focusedIdentity'))).toBeInTheDocument();
-    expect(screen.getByText(`${t('identities.agentType.openclaw')} · bootstrap`)).toBeInTheDocument();
+    expect(
+      screen.getByText(`${t('identities.agentType.openclaw')} · bootstrap`)
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
         name: t('identities.sections.hideDetails', { name: 'Bootstrap Credential' }),

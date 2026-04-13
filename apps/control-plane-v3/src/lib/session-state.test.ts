@@ -78,14 +78,18 @@ describe('session-state', () => {
     });
 
     it('returns anonymous on 401', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(new (await import('./api-client')).ApiError(401, 'Unauthorized'));
+      vi.mocked(apiFetch).mockRejectedValue(
+        new (await import('./api-client')).ApiError(401, 'Unauthorized')
+      );
 
       const result = await resolveSession();
       expect(result.state).toBe('anonymous');
     });
 
     it('returns forbidden on 403', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(new (await import('./api-client')).ApiError(403, 'Forbidden'));
+      vi.mocked(apiFetch).mockRejectedValue(
+        new (await import('./api-client')).ApiError(403, 'Forbidden')
+      );
 
       const result = await resolveSession();
       expect(result.state).toBe('forbidden');
@@ -115,14 +119,18 @@ describe('session-state', () => {
     });
 
     it('returns anonymous on 401', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(new (await import('./api-client')).ApiError(401, 'Nope'));
+      vi.mocked(apiFetch).mockRejectedValue(
+        new (await import('./api-client')).ApiError(401, 'Nope')
+      );
 
       const result = await login('a@b.com', 'pw');
       expect(result.state).toBe('anonymous');
     });
 
     it('throws on 500', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(new (await import('./api-client')).ApiError(500, 'Oops'));
+      vi.mocked(apiFetch).mockRejectedValue(
+        new (await import('./api-client')).ApiError(500, 'Oops')
+      );
       await expect(login('a@b.com', 'pw')).rejects.toThrow();
     });
   });

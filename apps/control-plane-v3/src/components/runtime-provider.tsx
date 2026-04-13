@@ -62,7 +62,9 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
         <div className="w-full max-w-md rounded-3xl border border-[var(--kw-border)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
-          <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('runtime.initFailedTitle')}</h1>
+          <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
+            {t('runtime.initFailedTitle')}
+          </h1>
           <p className="text-[var(--kw-text-muted)]">{error.message}</p>
         </div>
       </div>

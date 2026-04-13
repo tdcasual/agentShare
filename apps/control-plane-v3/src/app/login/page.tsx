@@ -74,28 +74,35 @@ export default function LoginPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
       {/* Floating decorations */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <span aria-hidden="true" className="absolute left-[10%] top-20 animate-float text-4xl opacity-10 dark:opacity-5">
+        <span
+          aria-hidden="true"
+          className="absolute left-[10%] top-20 animate-float text-4xl opacity-10 dark:opacity-5"
+        >
           🌸
         </span>
-        <span aria-hidden="true"
+        <span
+          aria-hidden="true"
           className="absolute right-[15%] top-40 animate-float text-3xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '1s' }}
         >
           ✨
         </span>
-        <span aria-hidden="true"
+        <span
+          aria-hidden="true"
           className="absolute bottom-32 left-[20%] animate-float text-5xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '2s' }}
         >
           💕
         </span>
-        <span aria-hidden="true"
+        <span
+          aria-hidden="true"
           className="absolute left-[70%] top-60 animate-float text-3xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '0.5s' }}
         >
           🌟
         </span>
-        <span aria-hidden="true"
+        <span
+          aria-hidden="true"
           className="absolute bottom-20 right-[25%] animate-float text-4xl opacity-10 dark:opacity-5"
           style={{ animationDelay: '1.5s' }}
         >

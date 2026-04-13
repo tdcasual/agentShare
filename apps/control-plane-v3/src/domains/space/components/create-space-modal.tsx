@@ -58,8 +58,12 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
           {/* 表单 */}
           <div className="space-y-4">
             <div>
-              <label htmlFor={nameId} className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
-                {t('spaces.createModal.nameLabel')} <span className="text-[var(--kw-error)]">*</span>
+              <label
+                htmlFor={nameId}
+                className="mb-1 block text-sm font-medium text-[var(--kw-text)]"
+              >
+                {t('spaces.createModal.nameLabel')}{' '}
+                <span className="text-[var(--kw-error)]">*</span>
               </label>
               <Input
                 id={nameId}
@@ -73,7 +77,10 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
             </div>
 
             <div>
-              <label htmlFor={summaryId} className="mb-1 block text-sm font-medium text-[var(--kw-text)]">
+              <label
+                htmlFor={summaryId}
+                className="mb-1 block text-sm font-medium text-[var(--kw-text)]"
+              >
                 {t('spaces.createModal.summaryLabel')}
               </label>
               <textarea

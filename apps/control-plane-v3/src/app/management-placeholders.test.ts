@@ -18,9 +18,9 @@ describe('management placeholders', () => {
     expect(source).toMatch(/useAdminAccounts/);
     expect(source).toMatch(/useOpenClawAgents/);
     expect(source).toMatch(/useOpenClawSessions/);
-    expect(source).toMatch(/OpenClaw-native agents/);
+    expect(source).toMatch(/useI18n/);
     expect(source).not.toMatch(/managed through the runtime system/);
-    expect(source).toMatch(/OpenClaw coverage/);
+    expect(source).toMatch(/identities\.page\.coverageTitle/);
     expect(source).not.toMatch(/\/demo\/identities/);
   });
 
@@ -30,7 +30,8 @@ describe('management placeholders', () => {
     expect(source).toMatch(/useEvents/);
     expect(source).toMatch(/useReviews/);
     expect(source).toMatch(/useAgentsWithTokens/);
-    expect(source).toMatch(/Operations Space/);
+    expect(source).toMatch(/useI18n/);
+    expect(source).toMatch(/spaces\.hero\.title/);
     expect(source).not.toMatch(/not yet backed by a production API/);
   });
 

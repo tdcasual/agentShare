@@ -53,7 +53,9 @@ export default function OfflinePage() {
           <div className="flex items-start gap-3">
             <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]" />
             <div>
-              <p className="font-medium text-[var(--kw-text)]">{t('offline.availableFeaturesTitle')}</p>
+              <p className="font-medium text-[var(--kw-text)]">
+                {t('offline.availableFeaturesTitle')}
+              </p>
               <ul className="mt-1 space-y-1 text-sm text-[var(--kw-text-muted)]">
                 <li>• {t('offline.cachedPages')}</li>
                 <li>• {t('offline.localData')}</li>
@@ -87,7 +89,9 @@ export default function OfflinePage() {
         )}
 
         {/* 底部信息 */}
-        <p className="text-xs text-[var(--kw-text-muted)]">Control Plane V3 · {t('common.offline')}</p>
+        <p className="text-xs text-[var(--kw-text-muted)]">
+          Control Plane V3 · {t('common.offline')}
+        </p>
       </Card>
     </div>
   );

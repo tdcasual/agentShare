@@ -124,7 +124,11 @@ export class IdentityRegistryImpl implements IdentityRegistry {
         identity.presence = status;
       }
 
-      this.runtime.event.emit('identity:presence:changed', { identityId, status, previousStatus: prevStatus ?? 'offline' });
+      this.runtime.event.emit('identity:presence:changed', {
+        identityId,
+        status,
+        previousStatus: prevStatus ?? 'offline',
+      });
     }
   }
 
@@ -184,7 +188,10 @@ export class IdentityRegistryImpl implements IdentityRegistry {
 
   onPresenceChanged(handler: (identityId: string, presence: PresenceStatus) => void): Disposable {
     return this.runtime.event.on('identity:presence:changed', (payload: unknown) => {
-      const { identityId, status: presence } = payload as { identityId: string; status: PresenceStatus };
+      const { identityId, status: presence } = payload as {
+        identityId: string;
+        status: PresenceStatus;
+      };
       handler(identityId, presence);
     });
   }

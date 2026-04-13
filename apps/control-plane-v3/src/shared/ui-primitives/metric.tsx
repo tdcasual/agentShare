@@ -9,13 +9,7 @@ export interface MetricCardProps {
   variant?: 'default' | 'review' | 'marketplace' | 'space' | 'identity' | 'asset';
 }
 
-export function MetricCard({
-  label,
-  value,
-  icon,
-  hint,
-  variant = 'default',
-}: MetricCardProps) {
+export function MetricCard({ label, value, icon, hint, variant = 'default' }: MetricCardProps) {
   switch (variant) {
     case 'review':
       return (
@@ -52,9 +46,7 @@ export function MetricCard({
             {icon}
             <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
           </div>
-          <p className="mt-3 text-3xl font-semibold text-[var(--kw-text)]">
-            {value}
-          </p>
+          <p className="mt-3 text-3xl font-semibold text-[var(--kw-text)]">{value}</p>
         </div>
       );
 

@@ -73,7 +73,13 @@ interface AgentRowProps {
   onSelect: (agentId: string) => void;
 }
 
-const AgentRow = memo(function AgentRow({ agent, tokens, eventCount, selected, onSelect }: AgentRowProps) {
+const AgentRow = memo(function AgentRow({
+  agent,
+  tokens,
+  eventCount,
+  selected,
+  onSelect,
+}: AgentRowProps) {
   const { t } = useI18n();
   return (
     <div
@@ -102,7 +108,11 @@ const AgentRow = memo(function AgentRow({ agent, tokens, eventCount, selected, o
         </div>
         <div className="flex flex-col items-end gap-2">
           <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
-          <Button variant={selected ? 'primary' : 'secondary'} size="sm" onClick={() => onSelect(agent.id)}>
+          <Button
+            variant={selected ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => onSelect(agent.id)}
+          >
             {t('spaces.sections.focusIdentity', { name: agent.name })}
           </Button>
         </div>

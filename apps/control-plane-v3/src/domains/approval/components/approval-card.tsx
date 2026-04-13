@@ -131,7 +131,8 @@ export function ApprovalCard({
         {/* Capability 信息 */}
         <div className="mb-3">
           <p className="text-sm text-[var(--kw-text-muted)]">
-            {t('approvals.capability')}: <span className="font-medium">{approval.capabilityId}</span>
+            {t('approvals.capability')}:{' '}
+            <span className="font-medium">{approval.capabilityId}</span>
           </p>
           <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
             {t('approvals.task')}: {approval.taskId}
@@ -158,7 +159,8 @@ export function ApprovalCard({
         {approval.policyReason && (
           <div className="bg-[var(--kw-sky-surface)]/50 dark:bg-[var(--kw-dark-info-surface)]/10 mb-3 rounded-xl p-3">
             <p className="text-sm text-[var(--kw-text-muted)]">
-              <span className="font-medium">{t('approvals.policyReason')}:</span> {approval.policyReason}
+              <span className="font-medium">{t('approvals.policyReason')}:</span>{' '}
+              {approval.policyReason}
             </p>
             {approval.policySource && (
               <p className="mt-1 text-xs text-[var(--kw-text-muted)]">

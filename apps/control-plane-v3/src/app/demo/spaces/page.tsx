@@ -69,7 +69,7 @@ export default function DemoSpacesPage() {
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             href="/demo"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-amber-text)] bg-[var(--kw-amber-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-amber-text)] transition-colors hover:bg-[var(--kw-warning)]/30 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]/40 dark:text-[var(--kw-warning)] dark:hover:bg-[var(--kw-dark-amber-surface)]/60"
+            className="hover:bg-[var(--kw-warning)]/30 dark:bg-[var(--kw-dark-amber-surface)]/40 dark:hover:bg-[var(--kw-dark-amber-surface)]/60 inline-flex items-center gap-2 rounded-full border border-[var(--kw-amber-text)] bg-[var(--kw-amber-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-amber-text)] transition-colors dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Sandbox Directory
@@ -91,11 +91,17 @@ export default function DemoSpacesPage() {
             <h2 className="font-semibold text-[var(--kw-text)]">Spaces</h2>
           </div>
           <div className="p-2">
-            <button type="button" className="flex w-full items-center gap-2 rounded-xl bg-[var(--kw-primary-50)] px-3 py-2 text-left text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded-xl bg-[var(--kw-primary-50)] px-3 py-2 text-left text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]"
+            >
               <Hash className="h-4 w-4" />
               <span className="font-medium">general</span>
             </button>
-            <button type="button" className="dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)]">
+            <button
+              type="button"
+              className="dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[var(--kw-text-muted)] hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)]"
+            >
               <Hash className="h-4 w-4" />
               <span>random</span>
             </button>

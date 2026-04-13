@@ -106,7 +106,10 @@ describe('playbooks page', () => {
     render(<PlaybooksPage />);
 
     await user.click(screen.getByRole('button', { name: /common.new/i }));
-    await user.type(screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'), 'Incident Triage');
+    await user.type(
+      screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'),
+      'Incident Triage'
+    );
     await user.type(
       screen.getByPlaceholderText('playbooks.form.tagsPlaceholder'),
       'incident,backend'
@@ -134,7 +137,10 @@ describe('playbooks page', () => {
     render(<PlaybooksPage />);
 
     await user.click(screen.getByRole('button', { name: /common.new/i }));
-    await user.type(screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'), 'Incident Triage');
+    await user.type(
+      screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'),
+      'Incident Triage'
+    );
     await user.type(
       screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
       'Inspect alerts, confirm scope, and notify responders.'
@@ -153,7 +159,10 @@ describe('playbooks page', () => {
     render(<PlaybooksPage />);
 
     await user.click(screen.getByRole('button', { name: /common.new/i }));
-    await user.type(screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'), 'Incident Triage');
+    await user.type(
+      screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'),
+      'Incident Triage'
+    );
     await user.type(
       screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
       'Inspect alerts, confirm scope, and notify responders.'

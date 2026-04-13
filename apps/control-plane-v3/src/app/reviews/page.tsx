@@ -16,10 +16,7 @@ import {
   Play,
   Lock,
 } from 'lucide-react';
-import {
-  deriveGovernanceStatus,
-  governanceStatusTranslationKey,
-} from '@/domains/governance';
+import { deriveGovernanceStatus, governanceStatusTranslationKey } from '@/domains/governance';
 import { Layout } from '@/interfaces/human/layout';
 import { useReviews, useApproveReview, useRejectReview } from '@/domains/review';
 import { ApiError } from '@/lib/api-client';
@@ -180,7 +177,9 @@ const ReviewsContent = memo(function ReviewsContent() {
           setError(decisionError.detail);
         } else {
           setError(
-            decisionError instanceof Error ? decisionError.message : t('reviews.errors.updateFailed')
+            decisionError instanceof Error
+              ? decisionError.message
+              : t('reviews.errors.updateFailed')
           );
         }
       } finally {
@@ -259,9 +258,15 @@ const ReviewsContent = memo(function ReviewsContent() {
           </div>
 
           <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            <Badge variant="agent">{t('reviews.filters.agentSubmissions', { count: agentSubmittedCount })}</Badge>
-            <Badge variant="human">{t('reviews.filters.humanSubmissions', { count: humanSubmittedCount })}</Badge>
-            <Badge variant="secondary">{t('reviews.filters.tokenOriginated', { count: tokenOriginatedCount })}</Badge>
+            <Badge variant="agent">
+              {t('reviews.filters.agentSubmissions', { count: agentSubmittedCount })}
+            </Badge>
+            <Badge variant="human">
+              {t('reviews.filters.humanSubmissions', { count: humanSubmittedCount })}
+            </Badge>
+            <Badge variant="secondary">
+              {t('reviews.filters.tokenOriginated', { count: tokenOriginatedCount })}
+            </Badge>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -559,8 +564,6 @@ const ReviewsContent = memo(function ReviewsContent() {
     </div>
   );
 });
-
-
 
 function ResourceIcon({ kind }: { kind: string }) {
   switch (kind) {

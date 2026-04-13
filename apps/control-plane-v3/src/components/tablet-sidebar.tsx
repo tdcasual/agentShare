@@ -30,8 +30,16 @@ function useNavItems(): NavItem[] {
       { icon: <LayoutDashboard className="h-5 w-5" />, label: t('navigation.hub'), href: '/' },
       { icon: <KeyRound className="h-5 w-5" />, label: t('navigation.tokens'), href: '/tokens' },
       { icon: <CheckSquare className="h-5 w-5" />, label: t('navigation.tasks'), href: '/tasks' },
-      { icon: <ShieldCheck className="h-5 w-5" />, label: t('navigation.reviews'), href: '/reviews' },
-      { icon: <Settings className="h-5 w-5" />, label: t('navigation.settings'), href: '/settings' },
+      {
+        icon: <ShieldCheck className="h-5 w-5" />,
+        label: t('navigation.reviews'),
+        href: '/reviews',
+      },
+      {
+        icon: <Settings className="h-5 w-5" />,
+        label: t('navigation.settings'),
+        href: '/settings',
+      },
     ],
     [t]
   );

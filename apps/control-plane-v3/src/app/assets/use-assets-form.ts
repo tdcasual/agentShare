@@ -8,7 +8,11 @@ import type { useCreateSecret, useCreateCapability } from '@/domains/governance'
 type CreateSecretFn = ReturnType<typeof useCreateSecret>;
 type CreateCapabilityFn = ReturnType<typeof useCreateCapability>;
 
-export type AccessComposerMode = 'all_tokens' | 'specific_tokens' | 'specific_agents' | 'token_label';
+export type AccessComposerMode =
+  | 'all_tokens'
+  | 'specific_tokens'
+  | 'specific_agents'
+  | 'token_label';
 
 export interface SecretFormState {
   display_name: string;
@@ -60,9 +64,7 @@ function buildCapabilityAccessPolicy(form: CapabilityFormState) {
   }
   return {
     mode: 'selectors' as const,
-    selectors: [
-      { kind: 'token_label' as const, key: form.label_key, values: form.label_values },
-    ],
+    selectors: [{ kind: 'token_label' as const, key: form.label_key, values: form.label_values }],
   };
 }
 
@@ -200,10 +202,22 @@ export function useAssetsForm({
     setCapabilityForm((current) => ({
       ...current,
       access_mode: mode,
-      token_ids: mode === 'all_tokens' || mode === 'specific_agents' || mode === 'token_label' ? [] : current.token_ids,
-      agent_ids: mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'token_label' ? [] : current.agent_ids,
-      label_key: mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'specific_agents' ? '' : current.label_key,
-      label_values: mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'specific_agents' ? [] : current.label_values,
+      token_ids:
+        mode === 'all_tokens' || mode === 'specific_agents' || mode === 'token_label'
+          ? []
+          : current.token_ids,
+      agent_ids:
+        mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'token_label'
+          ? []
+          : current.agent_ids,
+      label_key:
+        mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'specific_agents'
+          ? ''
+          : current.label_key,
+      label_values:
+        mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'specific_agents'
+          ? []
+          : current.label_values,
     }));
   }, []);
 
@@ -242,7 +256,9 @@ export function useAssetsForm({
         setShowSecretModal(false);
         onSecretCreated?.();
       } catch (submitError) {
-        if (consumeUnauthorized(submitError)) {return;}
+        if (consumeUnauthorized(submitError)) {
+          return;
+        }
         if (submitError instanceof ApiError) {
           setError(submitError.detail);
         } else {
@@ -264,11 +280,17 @@ export function useAssetsForm({
         setError(t('assets.capabilities.selectSecretError'));
         return;
       }
-      if (capabilityForm.access_mode === 'specific_tokens' && capabilityForm.token_ids.length === 0) {
+      if (
+        capabilityForm.access_mode === 'specific_tokens' &&
+        capabilityForm.token_ids.length === 0
+      ) {
         setError(t('assets.capabilities.tokenRequiredError'));
         return;
       }
-      if (capabilityForm.access_mode === 'specific_agents' && capabilityForm.agent_ids.length === 0) {
+      if (
+        capabilityForm.access_mode === 'specific_agents' &&
+        capabilityForm.agent_ids.length === 0
+      ) {
         setError(t('assets.capabilities.agentRequiredError'));
         return;
       }
@@ -292,7 +314,9 @@ export function useAssetsForm({
           allowed_mode: capabilityForm.allowed_mode,
           lease_ttl_seconds: Number(capabilityForm.lease_ttl_seconds) || 60,
           required_provider: capabilityForm.required_provider.trim() || null,
-          required_provider_scopes: parseCommaSeparatedList(capabilityForm.required_provider_scopes),
+          required_provider_scopes: parseCommaSeparatedList(
+            capabilityForm.required_provider_scopes
+          ),
           access_policy: buildCapabilityAccessPolicy(capabilityForm),
         });
         setCapabilityForm((current) => ({
@@ -312,19 +336,30 @@ export function useAssetsForm({
         setShowCapabilityModal(false);
         onCapabilityCreated?.();
       } catch (submitError) {
-        if (consumeUnauthorized(submitError)) {return;}
+        if (consumeUnauthorized(submitError)) {
+          return;
+        }
         if (submitError instanceof ApiError) {
           setError(submitError.detail);
         } else {
           setError(
-            submitError instanceof Error ? submitError.message : t('assets.capabilities.createFailed')
+            submitError instanceof Error
+              ? submitError.message
+              : t('assets.capabilities.createFailed')
           );
         }
       } finally {
         setSubmittingCapability(false);
       }
     },
-    [createCapability, consumeUnauthorized, clearAllAuthErrors, onCapabilityCreated, t, capabilityForm]
+    [
+      createCapability,
+      consumeUnauthorized,
+      clearAllAuthErrors,
+      onCapabilityCreated,
+      t,
+      capabilityForm,
+    ]
   );
 
   return {

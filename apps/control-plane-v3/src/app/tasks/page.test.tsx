@@ -216,9 +216,7 @@ describe('tasks page', () => {
 
     render(<TasksPage />);
 
-    await user.click(
-      screen.getByRole('button', { name: t('tasks.supervision.filters.inFlight') })
-    );
+    await user.click(screen.getByRole('button', { name: t('tasks.supervision.filters.inFlight') }));
 
     expect(screen.getByText('Sync Config')).toBeInTheDocument();
     expect(screen.queryByText('Run Risk Scan')).not.toBeInTheDocument();
@@ -241,8 +239,14 @@ describe('tasks page', () => {
     render(<TasksPage />);
 
     await user.click(screen.getByRole('button', { name: t('tasks.publishTask') }));
-    await user.type(screen.getByPlaceholderText(t('tasks.form.titlePlaceholder')), 'Ship config sync');
-    await user.type(screen.getByPlaceholderText(t('tasks.form.taskTypePlaceholder')), 'config_sync');
+    await user.type(
+      screen.getByPlaceholderText(t('tasks.form.titlePlaceholder')),
+      'Ship config sync'
+    );
+    await user.type(
+      screen.getByPlaceholderText(t('tasks.form.taskTypePlaceholder')),
+      'config_sync'
+    );
     await user.click(screen.getAllByRole('checkbox')[0]);
     await user.click(screen.getAllByRole('button', { name: t('tasks.publishTask') })[1]);
 

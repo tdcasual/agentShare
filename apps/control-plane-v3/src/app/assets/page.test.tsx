@@ -253,9 +253,7 @@ describe('assets page', () => {
     expect(
       screen.getByText(t('assets.governance.pendingReviewItems', { count: 2 }))
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(t('assets.governance.activeAssets', { count: 2 }))
-    ).toBeInTheDocument();
+    expect(screen.getByText(t('assets.governance.activeAssets', { count: 2 }))).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: t('assets.governance.pendingReview') }));
 

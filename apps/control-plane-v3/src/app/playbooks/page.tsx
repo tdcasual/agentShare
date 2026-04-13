@@ -130,7 +130,9 @@ const PlaybooksContent = memo(function PlaybooksContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('playbooks.loadFailed')}</h2>
+            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
+              {t('playbooks.loadFailed')}
+            </h2>
             <p className="mb-4 text-[var(--kw-text-muted)]">
               {error instanceof Error ? error.message : t('common.unknownError')}
             </p>
@@ -237,7 +239,9 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               {/* 任务类型筛选 */}
               <div className="flex flex-wrap items-center gap-2">
                 <Filter className="h-4 w-4 text-[var(--kw-text-muted)]" />
-                <span className="text-sm text-[var(--kw-text-muted)]">{t('playbooks.typeFilter')}</span>
+                <span className="text-sm text-[var(--kw-text-muted)]">
+                  {t('playbooks.typeFilter')}
+                </span>
                 {TASK_TYPES.map((type) => (
                   <TaskTypeFilterButton
                     key={type}
@@ -252,7 +256,9 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               {allTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                   <Tag className="h-4 w-4 text-[var(--kw-text-muted)]" />
-                  <span className="text-sm text-[var(--kw-text-muted)]">{t('playbooks.tagFilter')}</span>
+                  <span className="text-sm text-[var(--kw-text-muted)]">
+                    {t('playbooks.tagFilter')}
+                  </span>
                   {allTags.map((tag) => (
                     <TagFilterButton
                       key={tag}
@@ -362,7 +368,10 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </h2>
 
           <div>
-            <label htmlFor={titleId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+            <label
+              htmlFor={titleId}
+              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+            >
               {t('tasks.form.title')}
             </label>
             <Input
@@ -375,7 +384,10 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </div>
 
           <div>
-            <label htmlFor={taskTypeId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+            <label
+              htmlFor={taskTypeId}
+              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+            >
               {t('tasks.form.taskType')}
             </label>
             <select
@@ -393,7 +405,10 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </div>
 
           <div>
-            <label htmlFor={tagsId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+            <label
+              htmlFor={tagsId}
+              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+            >
               {t('playbooks.modal.tagsLabel')}
             </label>
             <Input
@@ -405,7 +420,10 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </div>
 
           <div>
-            <label htmlFor={bodyId} className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]">
+            <label
+              htmlFor={bodyId}
+              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+            >
               {t('playbooks.modal.bodyLabel')}
             </label>
             <textarea
@@ -477,7 +495,11 @@ interface TagFilterButtonProps {
   onToggle: (tag: string) => void;
 }
 
-const TagFilterButton = memo(function TagFilterButton({ tag, selected, onToggle }: TagFilterButtonProps) {
+const TagFilterButton = memo(function TagFilterButton({
+  tag,
+  selected,
+  onToggle,
+}: TagFilterButtonProps) {
   return (
     <button
       type="button"

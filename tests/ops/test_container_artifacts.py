@@ -35,7 +35,9 @@ def test_api_dockerfile_exposes_runtime_contract() -> None:
     dockerfile = (ROOT / "apps/api/Dockerfile").read_text()
     entrypoint = (ROOT / "apps/api/docker-entrypoint.sh").read_text()
     assert "FROM python:3.12-slim" in dockerfile
-    assert "pip install --no-cache-dir ./apps/api" in dockerfile
+    assert "requirements.lock" in dockerfile
+    assert "pip install --no-cache-dir -r apps/api/requirements.lock" in dockerfile
+    assert "pip install --no-cache-dir --no-deps ./apps/api" in dockerfile
     assert "COPY apps/api/docker-entrypoint.sh" in dockerfile
     assert "ENTRYPOINT" in dockerfile
     assert 'EXPOSE 8000' in dockerfile
@@ -44,13 +46,24 @@ def test_api_dockerfile_exposes_runtime_contract() -> None:
     assert 'exec "$@"' in entrypoint
 
 
+def test_api_runtime_lockfile_exists() -> None:
+    lockfile = ROOT / "apps/api/requirements.lock"
+    assert lockfile.exists()
+    contents = lockfile.read_text()
+    assert "fastapi==" in contents
+    assert "sqlalchemy==" in contents.lower()
+    assert "uvicorn==" in contents
+
+
 def test_web_dockerfile_builds_next_app() -> None:
     dockerfile = (ROOT / "apps/control-plane-v3/Dockerfile").read_text()
     assert "FROM node:22-bookworm-slim AS deps" in dockerfile
     assert "npm ci" in dockerfile
     assert "npm run build" in dockerfile
+    assert ".next/standalone" in dockerfile
+    assert ".next/static" in dockerfile
     assert "EXPOSE 3000" in dockerfile
-    assert 'npm", "run", "start"' in dockerfile
+    assert 'CMD ["node", "server.js"]' in dockerfile
 
 
 def test_compose_defines_complete_stack() -> None:
@@ -91,6 +104,7 @@ def test_docker_workflow_builds_both_images_with_ghcr() -> None:
 
 def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
     workflow = (ROOT / ".github/workflows/deploy.yml").read_text()
+    entrypoint = (ROOT / "apps/api/docker-entrypoint.sh").read_text()
     assert "workflow_dispatch" in workflow
     assert "workflow_run" in workflow
     assert 'workflows: ["Docker Images"]' in workflow
@@ -98,13 +112,13 @@ def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
     assert "appleboy/ssh-action" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml config" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in workflow
-    assert "alembic upgrade head" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans" in workflow
     assert ".env.production" in workflow
     assert "DEPLOY_ENV_FILE" in workflow
     assert "smoke-test.sh" in workflow
     assert "cat > .env.production" in workflow
     assert "if [ ! -f .env.production ]" not in workflow
+    assert "alembic upgrade head" in entrypoint
 
 
 def test_prod_compose_uses_published_images() -> None:
@@ -191,6 +205,16 @@ def test_readme_documents_compose_and_image_pipeline() -> None:
     assert "smoke" in readme.lower()
 
 
+def test_web_uses_self_hosted_next_fonts_instead_of_runtime_google_css_import() -> None:
+    layout = (ROOT / "apps/control-plane-v3/src/app/layout.tsx").read_text()
+    globals_css = (ROOT / "apps/control-plane-v3/src/app/globals.css").read_text()
+
+    assert "next/font/google" in layout
+    assert "Nunito" in layout
+    assert "Quicksand" in layout
+    assert "fonts.googleapis.com" not in globals_css
+
+
 def test_prod_compose_includes_caddy_and_excludes_openbao() -> None:
     compose = (ROOT / "docker-compose.prod.yml").read_text()
     assert "caddy:" in compose
@@ -243,9 +267,13 @@ def test_security_docs_explain_fail_fast_production_secrets_and_secure_cookies()
 def test_ci_and_deployment_docs_reference_migration_step() -> None:
     ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
     deployment_guide = (ROOT / "docs/guides/production-deployment.md").read_text().lower()
+    entrypoint = (ROOT / "apps/api/docker-entrypoint.sh").read_text().lower()
 
     assert "alembic upgrade head" in ci_workflow
     assert "alembic upgrade head" in deployment_guide
+    assert "startup" in deployment_guide
+    assert "docker-entrypoint.sh" in deployment_guide
+    assert "alembic upgrade head" in entrypoint
 
 
 def test_repo_quality_floor_is_documented_and_enforced() -> None:

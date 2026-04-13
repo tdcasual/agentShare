@@ -143,156 +143,156 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
           aria-label={t('createMenu.ariaLabel')}
           className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
-            {/* 头部搜索 */}
-            <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-semibold text-[var(--kw-text)]">{t('createMenu.title')}</h3>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-lg p-1 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
-                  aria-label={t('createMenu.closeAriaLabel')}
-                >
-                  <X className="h-4 w-4" />
-                </button>
+          {/* 头部搜索 */}
+          <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-semibold text-[var(--kw-text)]">{t('createMenu.title')}</h3>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="rounded-lg p-1 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
+                aria-label={t('createMenu.closeAriaLabel')}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setIsOpen(false);
+                  }
+                }}
+                placeholder={t('createMenu.searchPlaceholder')}
+                aria-label={t('createMenu.searchAriaLabel')}
+                className="focus:ring-[var(--kw-primary-300)]/20 dark:focus:border-[var(--kw-dark-primary)]/50 dark:focus:ring-[var(--kw-dark-primary)]/20 w-full rounded-lg border border-transparent bg-[var(--kw-surface-alt)] py-2 pl-9 pr-3 text-sm text-[var(--kw-text)] transition-colors transition-shadow placeholder:text-[var(--kw-text-muted)] focus:border-[var(--kw-primary-300)] focus:ring-2 dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:placeholder:text-[var(--kw-dark-text-muted)]"
+              />
+              <Plus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--kw-text-muted)]" />
+            </div>
+          </div>
+
+          {/* 操作列表 */}
+          <div className="max-h-80 overflow-y-auto py-2">
+            {/* Identities */}
+            {identityActions.length > 0 && (
+              <div className="mb-2 px-2">
+                <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
+                  {t('createMenu.sections.identity')}
+                </p>
+                {identityActions.map((action) => (
+                  <button
+                    type="button"
+                    key={action.id}
+                    role="menuitem"
+                    onClick={() => handleAction(action.href)}
+                    className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] transition-colors group-hover:bg-[var(--kw-primary-200)] dark:bg-[var(--kw-dark-purple-accent-surface)] dark:text-[var(--kw-dark-primary)] dark:group-hover:bg-[var(--kw-dark-surface-alt)]">
+                      {action.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{action.label}</p>
+                      <p className="truncate text-xs text-[var(--kw-text-muted)]">
+                        {action.description}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[var(--kw-text-muted)] opacity-0 transition-opacity group-hover:opacity-100 dark:text-[var(--kw-dark-text-muted)]" />
+                  </button>
+                ))}
               </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                      setIsOpen(false);
-                    }
-                  }}
-                  placeholder={t('createMenu.searchPlaceholder')}
-                  aria-label={t('createMenu.searchAriaLabel')}
-                  className="focus:ring-[var(--kw-primary-300)]/20 dark:focus:border-[var(--kw-dark-primary)]/50 dark:focus:ring-[var(--kw-dark-primary)]/20 w-full rounded-lg border border-transparent bg-[var(--kw-surface-alt)] py-2 pl-9 pr-3 text-sm text-[var(--kw-text)] transition-colors transition-shadow placeholder:text-[var(--kw-text-muted)] focus:border-[var(--kw-primary-300)] focus:ring-2 dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:placeholder:text-[var(--kw-dark-text-muted)]"
-                />
-                <Plus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--kw-text-muted)]" />
+            )}
+
+            {/* Resources */}
+            {resourceActions.length > 0 && (
+              <div className="mb-2 px-2">
+                <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
+                  {t('createMenu.sections.resource')}
+                </p>
+                {resourceActions.map((action) => (
+                  <button
+                    type="button"
+                    key={action.id}
+                    role="menuitem"
+                    onClick={() => handleAction(action.href)}
+                    className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] transition-colors group-hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-purple-accent-surface)] dark:text-[var(--kw-dark-primary)] dark:group-hover:bg-[var(--kw-dark-surface-alt)]">
+                      {action.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{action.label}</p>
+                      <p className="truncate text-xs text-[var(--kw-text-muted)]">
+                        {action.description}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[var(--kw-text-muted)] opacity-0 transition-opacity group-hover:opacity-100 dark:text-[var(--kw-dark-text-muted)]" />
+                  </button>
+                ))}
               </div>
-            </div>
+            )}
 
-            {/* 操作列表 */}
-            <div className="max-h-80 overflow-y-auto py-2">
-              {/* Identities */}
-              {identityActions.length > 0 && (
-                <div className="mb-2 px-2">
-                  <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
-                    {t('createMenu.sections.identity')}
-                  </p>
-                  {identityActions.map((action) => (
-                    <button
-                      type="button"
-                      key={action.id}
-                      role="menuitem"
-                      onClick={() => handleAction(action.href)}
-                      className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
+            {/* System */}
+            {systemActions.length > 0 && (
+              <div className="px-2">
+                <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
+                  {t('createMenu.sections.system')}
+                </p>
+                {systemActions.map((action) => (
+                  <button
+                    type="button"
+                    key={action.id}
+                    role="menuitem"
+                    onClick={() => handleAction(action.href)}
+                    className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] transition-colors group-hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-text-muted)] dark:group-hover:bg-[var(--kw-dark-surface-alt)]">
+                      {action.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{action.label}</p>
+                      <p className="truncate text-xs text-[var(--kw-text-muted)]">
+                        {action.description}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[var(--kw-text-muted)] opacity-0 transition-opacity group-hover:opacity-100 dark:text-[var(--kw-dark-text-muted)]" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 无结果 */}
+            {filteredActions.length === 0 && (
+              <div className="px-4 py-8 text-center">
+                <p className="text-sm text-[var(--kw-text-muted)]">{t('createMenu.noResults')}</p>
+                <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
+                  {t('createMenu.noResultsHint')}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 底部提示 */}
+          <div className="border-t border-[var(--kw-border)] bg-[var(--kw-surface-alt)] px-4 py-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]">
+            <p className="text-xs text-[var(--kw-text-muted)]">
+              {t('createMenu.closeHint')
+                .split('<0>')
+                .map((part, i) =>
+                  i === 1 ? (
+                    <kbd
+                      key={i}
+                      className="rounded border border-[var(--kw-border)] bg-white px-1.5 py-0.5 font-mono dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] transition-colors group-hover:bg-[var(--kw-primary-200)] dark:bg-[var(--kw-dark-purple-accent-surface)] dark:text-[var(--kw-dark-primary)] dark:group-hover:bg-[var(--kw-dark-surface-alt)]">
-                        {action.icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{action.label}</p>
-                        <p className="truncate text-xs text-[var(--kw-text-muted)]">
-                          {action.description}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-[var(--kw-text-muted)] opacity-0 transition-opacity group-hover:opacity-100 dark:text-[var(--kw-dark-text-muted)]" />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Resources */}
-              {resourceActions.length > 0 && (
-                <div className="mb-2 px-2">
-                  <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
-                    {t('createMenu.sections.resource')}
-                  </p>
-                  {resourceActions.map((action) => (
-                    <button
-                      type="button"
-                      key={action.id}
-                      role="menuitem"
-                      onClick={() => handleAction(action.href)}
-                      className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
-                    >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] transition-colors group-hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-purple-accent-surface)] dark:text-[var(--kw-dark-primary)] dark:group-hover:bg-[var(--kw-dark-surface-alt)]">
-                        {action.icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{action.label}</p>
-                        <p className="truncate text-xs text-[var(--kw-text-muted)]">
-                          {action.description}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-[var(--kw-text-muted)] opacity-0 transition-opacity group-hover:opacity-100 dark:text-[var(--kw-dark-text-muted)]" />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* System */}
-              {systemActions.length > 0 && (
-                <div className="px-2">
-                  <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
-                    {t('createMenu.sections.system')}
-                  </p>
-                  {systemActions.map((action) => (
-                    <button
-                      type="button"
-                      key={action.id}
-                      role="menuitem"
-                      onClick={() => handleAction(action.href)}
-                      className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
-                    >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--kw-surface-alt)] text-[var(--kw-text-muted)] transition-colors group-hover:bg-[var(--kw-border)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-text-muted)] dark:group-hover:bg-[var(--kw-dark-surface-alt)]">
-                        {action.icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{action.label}</p>
-                        <p className="truncate text-xs text-[var(--kw-text-muted)]">
-                          {action.description}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-[var(--kw-text-muted)] opacity-0 transition-opacity group-hover:opacity-100 dark:text-[var(--kw-dark-text-muted)]" />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* 无结果 */}
-              {filteredActions.length === 0 && (
-                <div className="px-4 py-8 text-center">
-                  <p className="text-sm text-[var(--kw-text-muted)]">{t('createMenu.noResults')}</p>
-                  <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
-                    {t('createMenu.noResultsHint')}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* 底部提示 */}
-            <div className="border-t border-[var(--kw-border)] bg-[var(--kw-surface-alt)] px-4 py-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]">
-              <p className="text-xs text-[var(--kw-text-muted)]">
-                {t('createMenu.closeHint')
-                  .split('<0>')
-                  .map((part, i) =>
-                    i === 1 ? (
-                      <kbd
-                        key={i}
-                        className="rounded border border-[var(--kw-border)] bg-white px-1.5 py-0.5 font-mono dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-                      >
-                        {part.split('</0>')[0]}
-                      </kbd>
-                    ) : (
-                      part.split('</0>')[0]
-                    )
-                  )}
-              </p>
-            </div>
+                      {part.split('</0>')[0]}
+                    </kbd>
+                  ) : (
+                    part.split('</0>')[0]
+                  )
+                )}
+            </p>
+          </div>
         </div>
       )}
     </div>

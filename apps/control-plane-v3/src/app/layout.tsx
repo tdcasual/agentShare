@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Nunito, Quicksand } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
 import { RuntimeProvider } from '@/components/runtime-provider';
@@ -10,6 +11,20 @@ import { PWAInstallPrompt } from '@/components/pwa/pwa-install-prompt';
 import { PWAUpdatePrompt, PWAOfflineIndicator } from '@/components/pwa/pwa-update-prompt';
 
 import './globals.css';
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-nunito',
+  display: 'swap',
+});
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-quicksand',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Control Plane V3 - 双生宇宙',
@@ -54,7 +69,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="antialiased">
+      <body className={`${nunito.variable} ${quicksand.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
