@@ -273,7 +273,7 @@ export default function SetupPage() {
               )}
             </div>
 
-            <Button className="w-full" loading={isSubmitting} shimmer>
+            <Button type="submit" className="w-full" loading={isSubmitting} shimmer>
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <span className="animate-spin">🌸</span>
