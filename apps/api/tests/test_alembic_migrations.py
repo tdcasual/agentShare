@@ -132,6 +132,20 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
         engine.dispose()
 
 
+def test_build_alembic_config_falls_back_to_repo_apps_api_when_package_relative_ini_is_missing(
+    monkeypatch, tmp_path
+) -> None:
+    missing_ini_path = tmp_path / "site-packages" / "alembic.ini"
+    monkeypatch.setattr(db_module, "ALEMBIC_INI_PATH", missing_ini_path)
+    monkeypatch.chdir(ROOT)
+
+    config = db_module._build_alembic_config("sqlite:///./agent_share.db")
+
+    assert config.config_file_name == str(ROOT / "apps/api/alembic.ini")
+    assert config.get_main_option("script_location") == str(ROOT / "apps/api/alembic")
+    assert config.get_main_option("prepend_sys_path") == str(ROOT / "apps/api")
+
+
 def test_migrate_db_recovers_default_local_sqlite_when_revision_history_is_missing(
     monkeypatch, tmp_path
 ) -> None:

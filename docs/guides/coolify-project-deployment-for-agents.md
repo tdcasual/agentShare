@@ -77,6 +77,8 @@ In Coolify, create one Docker Compose project for this repository and use these 
    - `AGENT_CONTROL_PLANE_API_URL=http://api:8000`
    - `RUN_DB_MIGRATIONS_ON_STARTUP=true`
 
+For the default same-stack Postgres path, leave `DATABASE_URL` unset unless you intentionally want the API to connect to a different database host. The compose file derives a matching URL from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`.
+
 ## Deploy Sequence
 
 After the project is configured, the agent should deploy and verify in this order:

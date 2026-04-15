@@ -246,6 +246,8 @@ Minimum expectations:
 
 ## Troubleshooting
 
+Before chasing application code, check whether the failure is one of the known deployment-environment issues below. They have been more common than actual app regressions.
+
 ### API cannot start
 
 Check:
@@ -293,6 +295,9 @@ Check:
 - `MANAGEMENT_SESSION_SECURE`
 - public domain and HTTPS configuration in Coolify
 - whether `APP_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL` match the real public URL
+- whether `POSTGRES_PASSWORD` and the password embedded in `DATABASE_URL` still match exactly
+
+If the API container fails during `alembic upgrade head` with `password authentication failed for user "postgres"`, the usual cause is environment drift: `POSTGRES_PASSWORD` was rotated but `DATABASE_URL` still points at the old password.
 
 ## Related Documents
 

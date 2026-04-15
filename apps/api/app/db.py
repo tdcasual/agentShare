@@ -1,3 +1,4 @@
+import os
 from collections.abc import Generator
 from pathlib import Path
 
@@ -40,8 +41,41 @@ def init_db(target_engine: Engine | None = None) -> None:
     Base.metadata.create_all(bind=engine_to_use)
 
 
+def _iter_alembic_root_candidates() -> Generator[Path, None, None]:
+    explicit_root = os.environ.get("AGENT_SHARE_ALEMBIC_ROOT")
+    seen: set[Path] = set()
+
+    for candidate in (
+        Path(explicit_root).expanduser() if explicit_root else None,
+        ALEMBIC_INI_PATH.parent,
+        Path.cwd().resolve(),
+        (Path.cwd() / "apps/api").resolve(),
+        Path("/srv/agentShare/apps/api"),
+    ):
+        if candidate is None:
+            continue
+        resolved = candidate.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        yield resolved
+
+
+def _resolve_alembic_root() -> Path:
+    for candidate in _iter_alembic_root_candidates():
+        if (candidate / "alembic.ini").exists() and (candidate / "alembic").is_dir():
+            return candidate
+
+    raise FileNotFoundError(
+        "Could not locate Alembic configuration. Set AGENT_SHARE_ALEMBIC_ROOT or run from the repository root."
+    )
+
+
 def _build_alembic_config(database_url: str) -> Config:
-    config = Config(str(ALEMBIC_INI_PATH))
+    alembic_root = _resolve_alembic_root()
+    config = Config(str(alembic_root / "alembic.ini"))
+    config.set_main_option("script_location", str(alembic_root / "alembic"))
+    config.set_main_option("prepend_sys_path", str(alembic_root))
     config.set_main_option("sqlalchemy.url", database_url)
     return config
 

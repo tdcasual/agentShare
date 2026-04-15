@@ -106,8 +106,8 @@ def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
     workflow = (ROOT / ".github/workflows/deploy.yml").read_text()
     entrypoint = (ROOT / "apps/api/docker-entrypoint.sh").read_text()
     assert "workflow_dispatch" in workflow
-    assert "workflow_run" in workflow
-    assert 'workflows: ["Docker Images"]' in workflow
+    assert "workflow_run" not in workflow
+    assert 'workflows: ["Docker Images"]' not in workflow
     assert "appleboy/scp-action" in workflow
     assert "appleboy/ssh-action" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml config" in workflow
@@ -162,7 +162,7 @@ def test_coolify_env_template_documents_single_stack_defaults() -> None:
     env_example = (ROOT / "ops/compose/coolify.env.example").read_text()
     assert "APP_ENV=production" in env_example
     assert "PUBLIC_HOST=agentshare.example.com" in env_example
-    assert "DATABASE_URL=postgresql://postgres:replace-with-strong-password@postgres:5432/agent_share" in env_example
+    assert "leave DATABASE_URL unset" in env_example
     assert "REDIS_URL=redis://redis:6379/0" in env_example
     assert "OPENBAO_ADDR=http://openbao:8200" in env_example
     assert "OPENBAO_TOKEN_FILE=/openbao/bootstrap/root-token" in env_example
@@ -197,6 +197,7 @@ def test_readme_documents_compose_and_image_pipeline() -> None:
     assert "DEPLOY_ENV_FILE" in readme
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in readme
     assert "workflow_dispatch" in readme
+    assert "manual only" in readme.lower()
     assert "rollback" in readme.lower()
     assert "external secret backend" in readme.lower()
     assert "backup" in readme.lower()

@@ -134,8 +134,9 @@ This repository now includes `.github/workflows/deploy.yml` for single-host depl
 
 Deployment triggers:
 
-- `workflow_run`: automatically deploys `latest` after the `Docker Images` workflow succeeds on `main`
-- `workflow_dispatch`: lets you redeploy or pin any explicit image tag, including a release tag or SHA tag
+- `workflow_dispatch`: manual only; redeploy or pin any explicit image tag, including a release tag or SHA tag
+
+Automatic deployment from the image-publishing workflow is intentionally disabled in this repository at the moment. Build/push can stay automated, but production rollout now requires an explicit manual trigger.
 
 The workflow uploads:
 
@@ -170,6 +171,15 @@ Configure these repository or environment secrets before enabling the deploy wor
 - `DEPLOY_ENV_FILE`
 
 `DEPLOY_ENV_FILE` should contain the full contents of the production `.env.production` file. The deploy workflow refreshes `.env.production` on every deployment so secret rotation, host changes, and other runtime config updates are actually applied.
+
+### Known deployment failure modes
+
+Two deployment problems have already shown up often enough to treat them as first-line checks:
+
+- If the GitHub Actions deploy run fails in `Copy deployment assets to server` with `can't connect without a private SSH key or password`, the workflow did not receive a usable SSH credential. Check `DEPLOY_SSH_KEY` first, then confirm `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, and the selected GitHub Environment.
+- If the application stack reaches API startup but `alembic upgrade head` fails with `password authentication failed for user "postgres"`, treat it as environment drift first. The usual cause is that `POSTGRES_PASSWORD` changed while `DATABASE_URL` still contains the old password.
+
+For the default same-stack Coolify path, prefer leaving `DATABASE_URL` unset and letting Compose derive it from the `POSTGRES_*` variables. That removes one common source of password mismatch.
 
 ### Server prerequisites
 

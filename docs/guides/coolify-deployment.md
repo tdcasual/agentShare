@@ -34,6 +34,8 @@ Optional but commonly needed:
 
 Keep `OPENBAO_ADDR=http://openbao:8200` and `OPENBAO_TOKEN_FILE=/openbao/bootstrap/root-token` so the API talks to the same-stack OpenBao instance over the private compose network and reads the generated root token from the shared bootstrap volume.
 
+For the default same-stack Postgres setup, prefer leaving `DATABASE_URL` unset. `docker-compose.coolify.yml` already derives it from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`, which avoids password drift between two separate environment values.
+
 ## Deploy In Coolify
 
 1. Create a new Docker Compose application in Coolify from this repository.

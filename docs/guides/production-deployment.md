@@ -24,10 +24,12 @@ This guide covers the app team's single-host production baseline only. Managed d
 ## Release Flow
 
 1. Push images through `.github/workflows/docker-images.yml`.
-2. Trigger `.github/workflows/deploy.yml` or let the successful `main` image workflow start it.
+2. Trigger `.github/workflows/deploy.yml` manually when you actually want to roll out an image.
 3. The deploy workflow uploads the production assets, writes `.env.production`, validates compose, pulls images, restarts the stack, and runs smoke checks.
 4. The API container applies `alembic upgrade head` during startup through `apps/api/docker-entrypoint.sh`, so production schema changes still ship as explicit Alembic migrations even though the deploy workflow does not invoke Alembic directly.
 5. The smoke script accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` as the public entrypoint override when operators need to match existing environment naming.
+
+This repository currently keeps image publishing automated, but disables automatic production rollout. That reduces accidental deployments while operators are still validating environment parity and database credentials.
 
 ## Database Migrations
 
@@ -35,6 +37,12 @@ This guide covers the app team's single-host production baseline only. Managed d
 - Run `alembic upgrade head` from `apps/api` before starting the API in CI.
 - In production compose deployments, the API container runs `alembic upgrade head` on startup before `uvicorn`.
 - Do not rely on API startup to backfill legacy columns; schema changes must ship as migrations.
+
+## Known Deployment Problems
+
+- GitHub Actions deploy failures that stop at `Copy deployment assets to server` are usually SSH secret failures, not image or app failures. If the log shows `can't connect without a private SSH key or password`, verify `DEPLOY_SSH_KEY` first and then the rest of the deploy connection secrets plus the selected GitHub Environment.
+- API startup failures that stop during `alembic upgrade head` with `password authentication failed for user "postgres"` usually mean database credential drift in the deployment environment. Check whether `POSTGRES_PASSWORD` and the password embedded in `DATABASE_URL` still match exactly.
+- For the default same-stack Coolify deployment, the safer posture is to leave `DATABASE_URL` unset and let `docker-compose.coolify.yml` derive it from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`.
 
 ## DNS, TLS, and Metrics
 

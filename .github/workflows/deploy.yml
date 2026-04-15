@@ -11,10 +11,6 @@ on:
         description: GitHub environment name for this deployment
         required: false
         default: production
-  workflow_run:
-    workflows: ["Docker Images"]
-    types:
-      - completed
 
 permissions:
   contents: read
@@ -26,13 +22,8 @@ concurrency:
 
 jobs:
   deploy:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
+    environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
       - name: Check out repository
