@@ -2,8 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import PlaybooksPage from './page';
 
+const t = translateMessage;
 const useManagementSessionGateMock = vi.fn();
 const usePlaybooksMock = vi.fn();
 const useCreatePlaybookMock = vi.fn();
@@ -19,7 +21,7 @@ vi.mock('@/interfaces/human/layout', () => ({
 }));
 
 vi.mock('@/components/i18n-provider', () => ({
-  useI18n: () => ({ t: (key: string) => key }),
+  useI18n: () => ({ locale: 'en', t: translateMessage }),
 }));
 
 vi.mock('@/lib/session', () => ({
@@ -70,8 +72,12 @@ describe('playbooks page', () => {
   it('renders the playbooks page with backend playbook data', () => {
     render(<PlaybooksPage />);
 
-    expect(screen.getByRole('heading', { name: /playbooks.title/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: t('playbooks.title') })).toBeInTheDocument();
     expect(screen.getByText(/Deploy Edge Worker/i)).toBeInTheDocument();
+    expect(screen.getByText(t('tasks.publication.active'))).toBeInTheDocument();
+    expect(screen.getAllByText(t('playbooks.taskTypes.deployment')).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^deployment$/)).not.toBeInTheDocument();
   });
 
   it('shows a forbidden-specific state when playbook queries return forbidden', () => {
@@ -86,7 +92,7 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionForbidden');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('playbooks.sessionForbidden'));
   });
 
   it('opens a playbook detail view from the list', async () => {
@@ -96,8 +102,14 @@ describe('playbooks page', () => {
 
     await user.click(screen.getByText('Deploy Edge Worker'));
 
-    expect(screen.getByText(/发布状态: active/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /关闭/i })).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('common.copy') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('common.close') })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: t('common.closeModal') })).toHaveLength(2);
+    expect(screen.getByText(t('playbooks.detail.taskTypeLabel'), { exact: false })).toBeInTheDocument();
+    expect(
+      screen.getByText(t('playbooks.detail.publicationStatusLabel'), { exact: false })
+    ).toBeInTheDocument();
   });
 
   it('submits a new playbook from the create modal', async () => {
@@ -105,20 +117,20 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /common.new/i }));
+    await user.click(screen.getByRole('button', { name: t('common.new') }));
     await user.type(
-      screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'),
+      screen.getByPlaceholderText(t('playbooks.modal.titlePlaceholder')),
       'Incident Triage'
     );
     await user.type(
-      screen.getByPlaceholderText('playbooks.form.tagsPlaceholder'),
+      screen.getByPlaceholderText(t('playbooks.form.tagsPlaceholder')),
       'incident,backend'
     );
     await user.type(
-      screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
+      screen.getByPlaceholderText(t('playbooks.modal.bodyPlaceholder')),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: /^common.create$/i }));
+    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') }));
 
     await waitFor(() => {
       expect(createPlaybookMock).toHaveBeenCalledWith({
@@ -136,16 +148,16 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /common.new/i }));
+    await user.click(screen.getByRole('button', { name: t('common.new') }));
     await user.type(
-      screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'),
+      screen.getByPlaceholderText(t('playbooks.modal.titlePlaceholder')),
       'Incident Triage'
     );
     await user.type(
-      screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
+      screen.getByPlaceholderText(t('playbooks.modal.bodyPlaceholder')),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: /^common.create$/i }));
+    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Playbook service unavailable');
@@ -158,22 +170,22 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /common.new/i }));
+    await user.click(screen.getByRole('button', { name: t('common.new') }));
     await user.type(
-      screen.getByPlaceholderText('playbooks.modal.titlePlaceholder'),
+      screen.getByPlaceholderText(t('playbooks.modal.titlePlaceholder')),
       'Incident Triage'
     );
     await user.type(
-      screen.getByPlaceholderText('playbooks.modal.bodyPlaceholder'),
+      screen.getByPlaceholderText(t('playbooks.modal.bodyPlaceholder')),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: /^common.create$/i }));
+    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('playbooks.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -185,10 +197,10 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
+    await user.click(screen.getByRole('button', { name: t('common.refresh') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('playbooks.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('playbooks.sessionExpired'));
     });
   });
 
@@ -198,7 +210,7 @@ describe('playbooks page', () => {
 
     render(<PlaybooksPage />);
 
-    await user.click(screen.getByRole('button', { name: /common.refresh/i }));
+    await user.click(screen.getByRole('button', { name: t('common.refresh') }));
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Playbook refresh unavailable');

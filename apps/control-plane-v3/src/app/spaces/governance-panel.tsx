@@ -7,6 +7,7 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
+import { deriveGovernanceStatus, governanceStatusTranslationKey } from '@/domains/governance';
 import { SectionNotice } from './components';
 import type { ReviewItem } from '@/domains/review';
 import { useI18n } from '@/components/i18n-provider';
@@ -119,6 +120,7 @@ const GovernanceReviewItem = memo(function GovernanceReviewItem({
   const { t } = useI18n();
   const isRejecting = actionKey === `reject:${item.resource_kind}:${item.resource_id}`;
   const isApproving = actionKey === `approve:${item.resource_kind}:${item.resource_id}`;
+  const governanceStatus = deriveGovernanceStatus(item);
 
   return (
     <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
@@ -151,7 +153,7 @@ const GovernanceReviewItem = memo(function GovernanceReviewItem({
             </Button>
           </div>
         ) : (
-          <Badge variant="secondary">{item.publication_status}</Badge>
+          <Badge variant="secondary">{t(governanceStatusTranslationKey(governanceStatus))}</Badge>
         )}
       </div>
     </div>

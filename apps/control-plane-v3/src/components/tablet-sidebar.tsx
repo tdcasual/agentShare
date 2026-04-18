@@ -4,12 +4,22 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useDeviceType } from '@/hooks/use-device-type';
+import { useRole } from '@/hooks/use-role';
+import { getDefaultManagementRoute, hasRequiredRole, type ManagementRole } from '@/lib/role-system';
 import {
   LayoutDashboard,
+  Inbox,
+  BookOpen,
+  PlayCircle,
+  Globe,
+  Users,
+  Package,
   Settings,
   KeyRound,
   CheckSquare,
+  Gavel,
   ShieldCheck,
+  Sparkles,
   ChevronLeft,
   Menu,
 } from 'lucide-react';
@@ -23,30 +33,117 @@ interface NavItem {
   badge?: number;
 }
 
-function useNavItems(): NavItem[] {
+interface NavItemDefinition {
+  href: string;
+  labelKey: string;
+  icon: React.ReactNode;
+  badge?: number;
+  requiredRole: ManagementRole;
+}
+
+const TABLET_NAV_ITEMS: NavItemDefinition[] = [
+  {
+    href: '/',
+    labelKey: 'navigation.hub',
+    icon: <LayoutDashboard className="h-5 w-5" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/inbox',
+    labelKey: 'navigation.inbox',
+    icon: <Inbox className="h-5 w-5" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/reviews',
+    labelKey: 'navigation.reviews',
+    icon: <ShieldCheck className="h-5 w-5" />,
+    requiredRole: 'operator',
+  },
+  {
+    href: '/approvals',
+    labelKey: 'navigation.approvals',
+    icon: <Gavel className="h-5 w-5" />,
+    requiredRole: 'operator',
+  },
+  {
+    href: '/marketplace',
+    labelKey: 'navigation.marketplace',
+    icon: <Sparkles className="h-5 w-5" />,
+    requiredRole: 'operator',
+  },
+  {
+    href: '/playbooks',
+    labelKey: 'navigation.playbooks',
+    icon: <BookOpen className="h-5 w-5" />,
+    requiredRole: 'viewer',
+  },
+  {
+    href: '/runs',
+    labelKey: 'navigation.runs',
+    icon: <PlayCircle className="h-5 w-5" />,
+    requiredRole: 'viewer',
+  },
+  {
+    href: '/spaces',
+    labelKey: 'navigation.spaces',
+    icon: <Globe className="h-5 w-5" />,
+    requiredRole: 'viewer',
+  },
+  {
+    href: '/identities',
+    labelKey: 'navigation.identities',
+    icon: <Users className="h-5 w-5" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/assets',
+    labelKey: 'navigation.assets',
+    icon: <Package className="h-5 w-5" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/tokens',
+    labelKey: 'navigation.tokens',
+    icon: <KeyRound className="h-5 w-5" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/tasks',
+    labelKey: 'navigation.tasks',
+    icon: <CheckSquare className="h-5 w-5" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/settings',
+    labelKey: 'navigation.settings',
+    icon: <Settings className="h-5 w-5" />,
+    requiredRole: 'admin',
+  },
+];
+
+function useNavItems(role: ManagementRole | null): NavItem[] {
   const { t } = useI18n();
   return useMemo(
-    () => [
-      { icon: <LayoutDashboard className="h-5 w-5" />, label: t('navigation.hub'), href: '/' },
-      { icon: <KeyRound className="h-5 w-5" />, label: t('navigation.tokens'), href: '/tokens' },
-      { icon: <CheckSquare className="h-5 w-5" />, label: t('navigation.tasks'), href: '/tasks' },
-      {
-        icon: <ShieldCheck className="h-5 w-5" />,
-        label: t('navigation.reviews'),
-        href: '/reviews',
-      },
-      {
-        icon: <Settings className="h-5 w-5" />,
-        label: t('navigation.settings'),
-        href: '/settings',
-      },
-    ],
-    [t]
+    () =>
+      TABLET_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map((item) => ({
+        icon: item.icon,
+        label: t(item.labelKey),
+        href: item.href,
+        badge: item.badge,
+      })),
+    [role, t]
   );
 }
 
-export function getTabletShellNavTargets() {
-  return ['/', '/tokens', '/tasks', '/reviews', '/settings'];
+export function getTabletShellNavTargets(role: ManagementRole | null = 'admin') {
+  return TABLET_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map(
+    (item) => item.href
+  );
+}
+
+export function getTabletShellHomeTarget(role: ManagementRole | null = 'admin') {
+  return getDefaultManagementRoute(role);
 }
 
 /**
@@ -60,10 +157,12 @@ export function getTabletShellNavTargets() {
  */
 export function TabletSidebar() {
   const { t } = useI18n();
+  const { role } = useRole();
   const device = useDeviceType();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
-  const navItems = useNavItems();
+  const navItems = useNavItems(role);
+  const homeTarget = getTabletShellHomeTarget(role);
   const toggleSidebar = useCallback(() => {
     setIsCollapsed((prev) => !prev);
   }, []);
@@ -90,7 +189,7 @@ export function TabletSidebar() {
       <div className="flex h-16 items-center justify-between border-b border-[var(--kw-border)] px-4 dark:border-[var(--kw-dark-border)]">
         {(!isCollapsed || device.isTabletLandscape) && (
           <Link
-            href="/"
+            href={homeTarget}
             className="flex items-center gap-2 text-lg font-bold text-[var(--kw-primary-500)]"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-sm font-bold text-white">

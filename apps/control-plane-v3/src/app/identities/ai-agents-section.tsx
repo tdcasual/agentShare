@@ -12,6 +12,7 @@ import { AgentManagementCard } from './agent-management-card';
 import type { OpenClawAgent, OpenClawDreamRun, OpenClawSession } from '@/domains/identity';
 import type { Event } from '@/domains/event';
 import { useI18n } from '@/components/i18n-provider';
+import { translateAgentStatus } from '@/lib/enum-labels';
 
 export interface AIAgentsSectionProps {
   agents: OpenClawAgent[];
@@ -206,7 +207,9 @@ function AgentCard({
         <div className="flex flex-wrap justify-end gap-2">
           <Badge variant="agent">{agent.sandbox_mode}</Badge>
           <Badge variant="info">{agent.auth_method}</Badge>
-          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
+            {translateAgentStatus(t, agent.status)}
+          </Badge>
         </div>
       </div>
       <div className="mt-4 flex justify-end">

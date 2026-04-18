@@ -13,7 +13,6 @@
 import { useState } from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
-import { SkipLink } from '@/components/skip-link';
 import { MobileNav } from '@/components/mobile-nav';
 import { TabletSidebar } from '@/components/tablet-sidebar';
 import { useDeviceType } from '@/hooks/use-device-type';
@@ -23,6 +22,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui-primitives/button';
 import type { Identity } from '@/shared/types';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -83,7 +83,6 @@ export function Layout({ children }: LayoutProps) {
           device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
         )}
       >
-        <SkipLink />
         <Header currentIdentity={currentIdentity} onlineIdentities={onlineIdentities} />
 
         <main
@@ -114,11 +113,13 @@ export function Layout({ children }: LayoutProps) {
  * 之前散落在各处的加载 UI 现在统一在这里
  */
 function LoadingScreen() {
+  const { t } = useI18n();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
-        <p className="text-[var(--kw-text-muted)]">Initializing Dual Cosmos...</p>
+        <p className="text-[var(--kw-text-muted)]">{t('common.preparingPage')}</p>
       </div>
     </div>
   );
@@ -130,6 +131,8 @@ function LoadingScreen() {
  * 提供重试机制，提升用户体验
  */
 function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  const { t } = useI18n();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       <div className="w-full max-w-md rounded-3xl border border-[var(--kw-border)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
@@ -137,13 +140,15 @@ function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) 
           <AlertCircle className="h-8 w-8 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
         </div>
 
-        <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">Failed to initialize</h1>
+        <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
+          {t('common.unexpectedErrorTitle')}
+        </h1>
 
         <p className="mb-6 text-[var(--kw-text-muted)]">
-          {error.message || 'Something went wrong while loading the application.'}
+          {error.message || t('common.unexpectedErrorDescription')}
         </p>
 
-        <Button onClick={onRetry}>Try Again</Button>
+        <Button onClick={onRetry}>{t('common.retry')}</Button>
       </div>
     </div>
   );

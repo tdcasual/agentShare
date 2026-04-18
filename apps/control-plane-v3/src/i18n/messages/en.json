@@ -189,6 +189,7 @@
       "bootstrapKeyPlaceholder": "changeme-bootstrap-key",
       "createAccount": "Create Owner Account",
       "creating": "Creating",
+      "description": "Use the bootstrap credential once to create the founding owner account and unlock the management login flow.",
       "displayName": "Display Name",
       "displayNamePlaceholder": "Founding Owner",
       "failedToBootstrap": "Failed to bootstrap owner",
@@ -231,6 +232,7 @@
     "human": "Human",
     "inactive": "Inactive",
     "initializing": "Initializing Control Plane...",
+    "entryStateLoadFailed": "Failed to resolve the application entry state.",
     "loading": "Loading...",
     "loadingEllipsis": "Loading...",
     "more": "More",
@@ -437,6 +439,8 @@
     "accountsUnavailable": "accounts unavailable",
     "adminRequiredForAgents": "An admin session is required to manage OpenClaw identities.",
     "adminRequiredForHumans": "An admin session is required to manage human operators.",
+    "gridView": "Grid view",
+    "listView": "List view",
     "agentType": {
       "human": "Human operator",
       "openclaw": "OpenClaw agent"
@@ -519,6 +523,10 @@
       "agentWorkspacesTitle": "Agent Workspaces",
       "defaultModel": "default model",
       "deleteAgent": "Delete {name}",
+      "dreamRunStatus": {
+        "paused": "Paused",
+        "stopped": "Stopped"
+      },
       "dreamModeSummary": "{steps} steps · {followUps} follow-up{suffix} · max context {maxContext}",
       "dreamModeTitle": "Dream mode",
       "dreamModeToggles": "Task proposal {proposalState} · memory write {memoryState}",
@@ -734,6 +742,10 @@
     "form": {
       "tagsPlaceholder": "e.g. urgent, frontend, react"
     },
+    "detail": {
+      "taskTypeLabel": "Task Type",
+      "publicationStatusLabel": "Publication Status"
+    },
     "refreshFailed": "Failed to refresh playbooks",
     "sessionExpired": "Your management session has expired. Sign in again to browse playbooks.",
     "sessionForbidden": "You do not have permission to view playbooks. Use a management session with the required permission to continue.",
@@ -936,9 +948,14 @@
     "profile": "Profile",
     "role": "Role",
     "roles": {
-      "admin": "admin",
-      "operator": "operator",
-      "viewer": "viewer"
+      "admin": "Admin",
+      "owner": "Owner",
+      "operator": "Operator",
+      "viewer": "Viewer"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "rosterAdmins": "Admins",
     "rosterAll": "All accounts",
@@ -956,6 +973,8 @@
       "dark": "Dark",
       "light": "Light",
       "system": "System",
+      "switchToDark": "Switch to dark mode",
+      "switchToLight": "Switch to light mode",
       "title": "Theme"
     },
     "title": "Management Settings"
@@ -1041,6 +1060,7 @@
       "roles": {
         "admin": "Admin",
         "operator": "Operator",
+        "participant": "Participant",
         "viewer": "Viewer"
       },
       "submit": "Add"
@@ -1206,6 +1226,12 @@
     },
     "publishTask": "Publish Task",
     "publishTaskDescription": "Choose the concrete remote access tokens that should receive this work.",
+    "publication": {
+      "active": "Active",
+      "archived": "Archived",
+      "draft": "Draft",
+      "paused": "Paused"
+    },
     "publishingContext": "Publishing context",
     "reviews": "reviews",
     "runResult": "Run result",
@@ -1223,6 +1249,14 @@
       "inFlightTasks": "{count} in-flight tasks",
       "noMatches": "No tasks match the current supervision filter.",
       "title": "Human follow-up queue"
+    },
+    "status": {
+      "cancelled": "Cancelled",
+      "claimed": "Claimed",
+      "completed": "Completed",
+      "failed": "Failed",
+      "pending": "Pending",
+      "running": "Running"
     },
     "targetTokens": "Target tokens",
     "targetMetaLine": "Agent {agentId} • target {targetId}",
@@ -1303,6 +1337,9 @@
     },
     "sessionExpired": "Your management session has expired. Sign in again to keep working with live remote access data.",
     "sessionForbidden": "You do not have permission to manage remote agents and access tokens. Use an admin management session to continue.",
+    "status": {
+      "revoked": "Revoked"
+    },
     "subtitle": "Remote access for external agents",
     "title": "Remote Agent Access",
     "token": {

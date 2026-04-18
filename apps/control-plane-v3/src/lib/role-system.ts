@@ -81,6 +81,8 @@ export const ROUTE_ROLES: Record<string, ManagementRole> = {
   '/settings': 'admin',
 };
 
+const DEFAULT_MANAGEMENT_ROUTE_PRIORITY = ['/', '/reviews', '/playbooks', '/runs', '/spaces'] as const;
+
 /**
  * 获取路由所需角色
  */
@@ -98,6 +100,17 @@ export function getRequiredRoleForPath(path: string): ManagementRole | null {
   }
 
   return null;
+}
+
+export function getDefaultManagementRoute(role: ManagementRole | null | undefined): string {
+  for (const path of DEFAULT_MANAGEMENT_ROUTE_PRIORITY) {
+    const requiredRole = getRequiredRoleForPath(path);
+    if (!requiredRole || hasRequiredRole(role, requiredRole)) {
+      return path;
+    }
+  }
+
+  return '/';
 }
 
 /**

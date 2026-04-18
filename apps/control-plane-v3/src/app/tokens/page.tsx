@@ -32,6 +32,7 @@ import { MetricCard } from '@/shared/ui-primitives/metric';
 import { Input } from '@/shared/ui-primitives/input';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { StatDisplay } from '@/shared/ui-primitives/stat-display';
+import { translateAccountRole, translateAgentStatus, translateTokenStatus } from '@/lib/enum-labels';
 
 export default function TokensPage() {
   return (
@@ -426,7 +427,7 @@ const TokensContent = memo(function TokensContent() {
             {session?.email ?? t('common.loading')}
           </span>
           <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
-          <span>{session?.role ?? t('common.loading')}</span>
+          <span>{session?.role ? translateAccountRole(t, session.role) : t('common.loading')}</span>
         </div>
       </Card>
 
@@ -509,7 +510,7 @@ const TokensContent = memo(function TokensContent() {
                       {t('tokens.agent.riskBadge', { tier: agent.risk_tier })}
                     </Badge>
                     <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
-                      {agent.status}
+                      {translateAgentStatus(t, agent.status)}
                     </Badge>
                     <Badge variant="default">{agent.auth_method}</Badge>
                   </div>
@@ -545,7 +546,7 @@ const TokensContent = memo(function TokensContent() {
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge variant={token.status === 'active' ? 'success' : 'error'}>
-                              {token.status}
+                              {translateTokenStatus(t, token.status)}
                             </Badge>
                             <Badge variant="primary">{token.displayName}</Badge>
                           </div>

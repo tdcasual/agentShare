@@ -90,7 +90,10 @@ export default function SetupPage() {
   ];
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
+    <main
+      id="main-content"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
+    >
       {/* Floating decorations */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <span
@@ -289,6 +292,6 @@ export default function SetupPage() {
           </form>
         </div>
       </Card>
-    </div>
+    </main>
   );
 }

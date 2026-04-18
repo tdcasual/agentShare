@@ -21,6 +21,7 @@ import {
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
+import { Modal } from '@/shared/ui-primitives/modal';
 import { usePlaybooks, useCreatePlaybook } from '@/domains/playbook/hooks';
 import { PlaybookCard } from '@/domains/playbook/components/playbook-card';
 import { PlaybookDetail } from '@/domains/playbook/components/playbook-detail';
@@ -360,9 +361,8 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
   };
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <Card variant="kawaii" className="w-full max-w-lg">
-        <form onSubmit={handleSubmit} className="space-y-4 p-6">
+    <Modal isOpen onClose={onClose} size="md">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
             {t('playbooks.modal.title')}
           </h2>
@@ -457,8 +457,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
             </Button>
           </div>
         </form>
-      </Card>
-    </div>
+    </Modal>
   );
 }
 

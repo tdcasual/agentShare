@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
 import { LockKeyhole, Mail, Sparkles, Heart } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
+import { getDefaultManagementRoute } from '@/lib/role-system';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
@@ -57,8 +58,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await api.login(form);
-      router.push('/tokens');
+      const session = await api.login(form);
+      router.push(getDefaultManagementRoute(session.role));
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
@@ -71,7 +72,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
+    <main
+      id="main-content"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
+    >
       {/* Floating decorations */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <span
@@ -215,6 +219,6 @@ export default function LoginPage() {
           </div>
         </div>
       </Card>
-    </div>
+    </main>
   );
 }

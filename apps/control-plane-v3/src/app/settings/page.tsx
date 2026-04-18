@@ -332,9 +332,9 @@ const SettingsContent = memo(function SettingsContent() {
                   }))
                 }
               >
-                <option value="viewer">{t('settings.roles.viewer')}</option>
-                <option value="operator">{t('settings.roles.operator')}</option>
-                <option value="admin">{t('settings.roles.admin')}</option>
+                <option value="viewer">{translateAccountRole(t, 'viewer')}</option>
+                <option value="operator">{translateAccountRole(t, 'operator')}</option>
+                <option value="admin">{translateAccountRole(t, 'admin')}</option>
               </select>
             </div>
 
@@ -369,7 +369,10 @@ const SettingsContent = memo(function SettingsContent() {
               label={t('settings.signedInAs')}
               value={session?.email ?? t('common.loading')}
             />
-            <SessionStat label={t('settings.role')} value={session?.role ?? t('common.loading')} />
+            <SessionStat
+              label={t('settings.role')}
+              value={session?.role ? translateAccountRole(t, session.role) : t('common.loading')}
+            />
             <SessionStat
               label={t('settings.sessionId')}
               value={session?.session_id ?? t('common.loading')}
@@ -519,10 +522,10 @@ function AccountRow({
                     : 'default'
               }
             >
-              {account.role}
+              {translateAccountRole(t, account.role)}
             </Badge>
             <Badge variant={account.status === 'active' ? 'success' : 'warning'}>
-              {account.status}
+              {translateAccountStatus(t, account.status)}
             </Badge>
             {isCurrentUser ? <Badge variant="info">{t('settings.currentSession')}</Badge> : null}
           </div>
@@ -562,6 +565,28 @@ function AccountRow({
       </div>
     </Card>
   );
+}
+
+function translateAccountRole(t: (key: string) => string, role: string) {
+  switch (role) {
+    case 'owner':
+    case 'admin':
+    case 'operator':
+    case 'viewer':
+      return t(`settings.roles.${role}`);
+    default:
+      return role;
+  }
+}
+
+function translateAccountStatus(t: (key: string) => string, status: string) {
+  switch (status) {
+    case 'active':
+    case 'inactive':
+      return t(`settings.status.${status}`);
+    default:
+      return status;
+  }
 }
 
 function SessionStat({

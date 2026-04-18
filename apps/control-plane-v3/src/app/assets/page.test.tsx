@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
@@ -69,6 +69,7 @@ describe('assets page', () => {
         {
           id: 'agent-1',
           name: 'Bootstrap Credential',
+          status: 'active',
         },
       ],
       tokensByAgent: {
@@ -184,7 +185,7 @@ describe('assets page', () => {
     render(<AssetsPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent(t('assets.sessionExpired'));
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -218,7 +219,7 @@ describe('assets page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('assets.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -239,7 +240,7 @@ describe('assets page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('assets.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -299,5 +300,25 @@ describe('assets page', () => {
       'data-focus-state',
       'focused'
     );
+  });
+
+  it('localizes operator and selector status labels instead of rendering raw enums', async () => {
+    const user = userEvent.setup();
+
+    render(<AssetsPage />);
+
+    expect(screen.getByText(t('settings.roles.owner'))).toBeInTheDocument();
+    expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: t('assets.newCapability') }));
+
+    const dialog = screen.getByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: t('assets.capabilities.specificTokens') }));
+    expect(within(dialog).getByText('Bootstrap Credential · Active')).toBeInTheDocument();
+    expect(within(dialog).queryByText(/· active$/)).not.toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole('button', { name: t('assets.capabilities.specificAgents') }));
+    expect(within(dialog).getByText('agent-1 · Active')).toBeInTheDocument();
+    expect(within(dialog).queryByText(/· active$/)).not.toBeInTheDocument();
   });
 });

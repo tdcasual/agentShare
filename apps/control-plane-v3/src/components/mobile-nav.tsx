@@ -6,35 +6,68 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 import { useIsMobile } from '@/hooks/use-device-type';
+import { useRole } from '@/hooks/use-role';
+import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
 import {
   LayoutDashboard,
+  Inbox,
+  BookOpen,
+  PlayCircle,
   Users,
+  Package,
   Globe,
   CheckSquare,
+  Gavel,
   ShieldCheck,
   Sparkles,
   KeyRound,
   Settings,
 } from 'lucide-react';
 
-const getNavItems = (t: (key: string) => string) => [
-  { href: '/', label: t('navigation.hub'), icon: LayoutDashboard },
-  { href: '/identities', label: t('navigation.identities'), icon: Users },
-  { href: '/spaces', label: t('navigation.spaces'), icon: Globe },
-  { href: '/tokens', label: t('navigation.tokens'), icon: KeyRound },
-  { href: '/tasks', label: t('navigation.tasks'), icon: CheckSquare },
-  { href: '/reviews', label: t('navigation.reviews'), icon: ShieldCheck },
+interface NavItemDefinition {
+  href: string;
+  labelKey: string;
+  icon: typeof LayoutDashboard;
+  requiredRole: ManagementRole;
+}
+
+const MOBILE_NAV_ITEMS: NavItemDefinition[] = [
+  { href: '/', labelKey: 'navigation.hub', icon: LayoutDashboard, requiredRole: 'admin' },
+  { href: '/inbox', labelKey: 'navigation.inbox', icon: Inbox, requiredRole: 'admin' },
+  { href: '/reviews', labelKey: 'navigation.reviews', icon: ShieldCheck, requiredRole: 'operator' },
+  { href: '/approvals', labelKey: 'navigation.approvals', icon: Gavel, requiredRole: 'operator' },
+  { href: '/marketplace', labelKey: 'navigation.marketplace', icon: Sparkles, requiredRole: 'operator' },
+  { href: '/playbooks', labelKey: 'navigation.playbooks', icon: BookOpen, requiredRole: 'viewer' },
+  { href: '/runs', labelKey: 'navigation.runs', icon: PlayCircle, requiredRole: 'viewer' },
+  { href: '/spaces', labelKey: 'navigation.spaces', icon: Globe, requiredRole: 'viewer' },
+  { href: '/identities', labelKey: 'navigation.identities', icon: Users, requiredRole: 'admin' },
+  { href: '/assets', labelKey: 'navigation.assets', icon: Package, requiredRole: 'admin' },
+  { href: '/tokens', labelKey: 'navigation.tokens', icon: KeyRound, requiredRole: 'admin' },
+  { href: '/tasks', labelKey: 'navigation.tasks', icon: CheckSquare, requiredRole: 'admin' },
 ];
 
-export function getMobileShellNavTargets() {
-  return ['/', '/identities', '/spaces', '/tokens', '/tasks', '/reviews', '/settings'];
+export function getMobileShellNavTargets(role: ManagementRole | null = 'admin') {
+  return MOBILE_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map(
+    (item) => item.href
+  );
+}
+
+export function shouldRenderMobileNavMoreButton(role: ManagementRole | null = 'admin') {
+  return getMobileShellNavTargets(role).length > 4 || hasRequiredRole(role, 'admin');
 }
 
 export function MobileNav() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { role } = useRole();
   const isMobile = useIsMobile();
-  const navItems = getNavItems(t);
+  const navItems = MOBILE_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map(
+    (item) => ({
+      href: item.href,
+      label: t(item.labelKey),
+      icon: item.icon,
+    })
+  );
   const [showMore, setShowMore] = React.useState(false);
 
   // 仅在移动端显示
@@ -43,8 +76,10 @@ export function MobileNav() {
   }
 
   // 只显示前4个主要导航项，其他放入"更多"
-  const mainItems = navItems.slice(0, 4);
-  const moreItems = navItems.slice(4);
+  const showMoreButton = shouldRenderMobileNavMoreButton(role);
+  const primarySlotCount = showMoreButton ? 4 : navItems.length;
+  const mainItems = navItems.slice(0, primarySlotCount);
+  const moreItems = navItems.slice(primarySlotCount);
 
   return (
     <>
@@ -73,28 +108,29 @@ export function MobileNav() {
             );
           })}
 
-          {/* More button */}
-          <button
-            onClick={() => setShowMore(!showMore)}
-            aria-expanded={showMore}
-            aria-haspopup="menu"
-            aria-label={t('common.more') || 'More'}
-            type="button"
-            className={cn(
-              'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-colors transition-transform duration-200',
-              showMore
-                ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
-                : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
-            )}
-          >
-            <Sparkles className="h-5 w-5" />
-            <span className="text-[10px] font-medium">{t('common.more') || '更多'}</span>
-          </button>
+          {showMoreButton ? (
+            <button
+              onClick={() => setShowMore(!showMore)}
+              aria-expanded={showMore}
+              aria-haspopup="dialog"
+              aria-label={t('common.more') || 'More'}
+              type="button"
+              className={cn(
+                'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-colors transition-transform duration-200',
+                showMore
+                  ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
+                  : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
+              )}
+            >
+              <Sparkles className="h-5 w-5" />
+              <span className="text-[10px] font-medium">{t('common.more') || '更多'}</span>
+            </button>
+          ) : null}
         </div>
       </nav>
 
       {/* More Menu Overlay */}
-      {showMore && (
+      {showMoreButton && showMore && (
         <>
           <button
             className="fixed inset-0 z-dropdown bg-black/20 dark:bg-black/40"
@@ -102,7 +138,11 @@ export function MobileNav() {
             type="button"
             onClick={() => setShowMore(false)}
           />
-          <div className="fixed bottom-20 left-4 right-4 z-dropdown animate-slide-up rounded-3xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <div
+            role="dialog"
+            aria-label={t('common.more') || 'More'}
+            className="fixed bottom-20 left-4 right-4 z-dropdown animate-slide-up rounded-3xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+          >
             <div className="space-y-1 p-4">
               {moreItems.map((item) => {
                 const Icon = item.icon;
@@ -128,14 +168,16 @@ export function MobileNav() {
 
               <hr className="my-2 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />
 
-              <Link
-                href="/settings"
-                onClick={() => setShowMore(false)}
-                className="hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex items-center gap-3 rounded-2xl px-4 py-3 text-[var(--kw-text)] transition-colors duration-200 dark:text-[var(--kw-dark-text)]"
-              >
-                <Settings className="h-5 w-5" />
-                <span className="font-medium">{t('navigation.settings')}</span>
-              </Link>
+              {hasRequiredRole(role, 'admin') && (
+                <Link
+                  href="/settings"
+                  onClick={() => setShowMore(false)}
+                  className="hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex items-center gap-3 rounded-2xl px-4 py-3 text-[var(--kw-text)] transition-colors duration-200 dark:text-[var(--kw-dark-text)]"
+                >
+                  <Settings className="h-5 w-5" />
+                  <span className="font-medium">{t('navigation.settings')}</span>
+                </Link>
+              )}
             </div>
           </div>
         </>

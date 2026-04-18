@@ -1,7 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import HubPage from './page';
 
+const t = translateMessage;
 const replaceMock = vi.fn();
 const resolveAppEntryStateMock = vi.fn();
 const useEventsMock = vi.fn();
@@ -27,7 +29,8 @@ vi.mock('../interfaces/human/layout', () => ({
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    locale: 'en',
+    t: translateMessage,
   }),
 }));
 
@@ -172,6 +175,10 @@ describe('hub page', () => {
     expect(screen.getByText('Bootstrap Primary')).toBeInTheDocument();
     expect(screen.getByText('agent.market.capability')).toBeInTheDocument();
     expect(screen.getByText('Bootstrap Credential completed Sync Config')).toBeInTheDocument();
-    expect(screen.getByText('hub.snapshotDataSource')).toBeInTheDocument();
+    expect(screen.getByText(t('hub.snapshotDataSource'))).toBeInTheDocument();
+    expect(screen.getAllByText(/^Owner$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Active$/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
   });
 });

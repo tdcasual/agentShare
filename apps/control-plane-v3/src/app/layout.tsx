@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { cookies } from 'next/headers';
 import { Nunito, Quicksand } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
@@ -9,6 +10,9 @@ import { KawaiiBackground } from '@/components/kawaii/kawaii-background';
 import { ServiceWorkerRegister } from '@/components/service-worker-register';
 import { PWAInstallPrompt } from '@/components/pwa/pwa-install-prompt';
 import { PWAUpdatePrompt, PWAOfflineIndicator } from '@/components/pwa/pwa-update-prompt';
+import { defaultLocale, locales, type Locale } from '@/i18n/config';
+import zhCN from '@/i18n/messages/zh-CN.json';
+import en from '@/i18n/messages/en.json';
 
 import './globals.css';
 
@@ -26,35 +30,6 @@ const quicksand = Quicksand({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'Control Plane V3 - 双生宇宙',
-  description: '人类与智能体共享的控制平面，支持离线使用',
-  manifest: '/manifest.json',
-  icons: {
-    icon: [
-      { url: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png' },
-      { url: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png' },
-      { url: '/icons/icon-128x128.png', sizes: '128x128', type: 'image/png' },
-      { url: '/icons/icon-144x144.png', sizes: '144x144', type: 'image/png' },
-      { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
-      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
-      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
-    ],
-    apple: [{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' }],
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Control Plane',
-    startupImage: [{ url: '/icons/icon-512x512.png', media: '(device-width: 768px)' }],
-  },
-  applicationName: 'Control Plane V3',
-  authors: [{ name: 'Agent Control Plane Team' }],
-  generator: 'Next.js',
-  keywords: ['PWA', 'control plane', 'agents', 'management', 'offline'],
-};
-
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -66,9 +41,67 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const rootLayoutMessages: Record<
+  Locale,
+  {
+    common: { skipToContent: string };
+    metadata: { appName: string; description: string; title: string };
+  }
+> = {
+  'zh-CN': zhCN,
+  en,
+};
+
+function resolveLayoutLocale(cookieLocale: string | undefined): Locale {
+  return locales.includes(cookieLocale as Locale) ? (cookieLocale as Locale) : defaultLocale;
+}
+
+function getSkipLinkLabel(locale: Locale): string {
+  return rootLayoutMessages[locale].common.skipToContent;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const locale = resolveLayoutLocale(cookieStore.get('app-locale')?.value);
+  const localizedMetadata = rootLayoutMessages[locale].metadata;
+
+  return {
+    title: localizedMetadata.title,
+    description: localizedMetadata.description,
+    manifest: '/manifest.json',
+    icons: {
+      icon: [
+        { url: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png' },
+        { url: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png' },
+        { url: '/icons/icon-128x128.png', sizes: '128x128', type: 'image/png' },
+        { url: '/icons/icon-144x144.png', sizes: '144x144', type: 'image/png' },
+        { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+        { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
+        { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      ],
+      apple: [{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' }],
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: localizedMetadata.appName,
+      startupImage: [{ url: '/icons/icon-512x512.png', media: '(device-width: 768px)' }],
+    },
+    applicationName: localizedMetadata.appName,
+    authors: [{ name: 'Agent Control Plane Team' }],
+    generator: 'Next.js',
+    keywords: ['PWA', 'control plane', 'agents', 'management', 'offline'],
+  };
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const locale = resolveLayoutLocale(cookieStore.get('app-locale')?.value);
+  const skipLinkLabel = getSkipLinkLabel(locale);
+
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${nunito.variable} ${quicksand.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
@@ -76,7 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange={false}
         >
-          <I18nProvider>
+          <I18nProvider initialLocale={locale}>
             <RuntimeProvider>
               <ErrorBoundary>
                 <RouteGuardWrapper>
@@ -85,9 +118,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     href="#main-content"
                     className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-[var(--kw-primary-500)] focus:px-4 focus:py-2 focus:text-white"
                   >
-                    跳转到主要内容
+                    {skipLinkLabel}
                   </a>
-                  <main id="main-content">{children}</main>
+                  {children}
                   <ServiceWorkerRegister />
                   <PWAInstallPrompt />
                   <PWAUpdatePrompt />

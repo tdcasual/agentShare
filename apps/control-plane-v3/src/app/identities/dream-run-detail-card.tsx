@@ -4,6 +4,7 @@ import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { useI18n } from '@/components/i18n-provider';
+import { translateDreamRunStatus } from '@/lib/enum-labels';
 import { formatSnapshotTimestamp } from './components';
 
 export interface DreamRunDetailCardProps {
@@ -47,7 +48,9 @@ export function DreamRunDetailCard({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={run.status === 'active' ? 'info' : 'secondary'}>{run.status}</Badge>
+          <Badge variant={run.status === 'active' ? 'info' : 'secondary'}>
+            {translateDreamRunStatus(t, run.status)}
+          </Badge>
           {canControl && run.status === 'active' ? (
             <Button
               variant="secondary"

@@ -260,6 +260,10 @@ describe('openclaw migration characterization on identities page', () => {
     expect(screen.getByText(t('identities.metrics.agentsWithSessions'))).toBeInTheDocument();
     expect(screen.getByText(t('identities.metrics.workspaceReadyAgents'))).toBeInTheDocument();
     expect(screen.getByText(t('identities.sections.dreamModeTitle'))).toBeInTheDocument();
+    expect(screen.getAllByText(/^Owner$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Active$/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /manage tokens/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /create agent/i })).not.toBeInTheDocument();
   });

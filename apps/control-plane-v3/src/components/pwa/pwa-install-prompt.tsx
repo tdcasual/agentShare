@@ -30,12 +30,17 @@ export function PWAInstallPrompt({
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    // 检查是否已经忽略过
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (dismissed) {
-      setIsDismissed(true);
-      return;
+      const expiry = parseInt(dismissed, 10);
+      if (Number.isFinite(expiry) && Date.now() <= expiry) {
+        setIsDismissed(true);
+        return;
+      }
+      localStorage.removeItem(STORAGE_KEY);
     }
+
+    setIsDismissed(false);
 
     // 增加访问计数
     const visits = parseInt(localStorage.getItem(VISIT_KEY) || '0', 10);
@@ -67,18 +72,6 @@ export function PWAInstallPrompt({
     await install();
     setIsVisible(false);
   };
-
-  // 检查是否过期
-  useEffect(() => {
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (dismissed) {
-      const expiry = parseInt(dismissed, 10);
-      if (Date.now() > expiry) {
-        localStorage.removeItem(STORAGE_KEY);
-        setIsDismissed(false);
-      }
-    }
-  }, []);
 
   if (!isVisible || isDismissed || !isInstallable || isInstalled) {
     return null;

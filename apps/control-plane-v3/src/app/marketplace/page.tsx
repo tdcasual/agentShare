@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState, memo } from 'react';
+import { useMemo, useState, memo, type ReactNode } from 'react';
 import { ArrowRight, Boxes, Bot, ShieldCheck, Sparkles, Store, Wrench } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useCatalog } from '@/domains/catalog';
 import { useReviews } from '@/domains/review';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import { deriveGovernanceStatus, governanceStatusTranslationKey } from '@/domains/governance';
+import { useManagementSessionGate } from '@/lib/session';
 import {
   ManagementForbiddenAlert,
   ManagementSessionExpiredAlert,
@@ -21,8 +22,41 @@ import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 import { MetricCard } from '@/shared/ui-primitives/metric';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
+import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
 
 type MarketplaceFilter = 'all' | 'pending' | 'active' | 'rejected';
+
+const QUICK_LINKS: Array<{
+  href: string;
+  labelKey: string;
+  icon: ReactNode;
+  requiredRole: ManagementRole;
+}> = [
+  {
+    href: '/reviews',
+    labelKey: 'marketplace.quickLinkReviews',
+    icon: <ShieldCheck className="h-4 w-4" />,
+    requiredRole: 'operator',
+  },
+  {
+    href: '/assets',
+    labelKey: 'marketplace.quickLinkAssets',
+    icon: <Boxes className="h-4 w-4" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/identities',
+    labelKey: 'marketplace.quickLinkIdentities',
+    icon: <Bot className="h-4 w-4" />,
+    requiredRole: 'admin',
+  },
+  {
+    href: '/inbox',
+    labelKey: 'marketplace.quickLinkInbox',
+    icon: <ArrowRight className="h-4 w-4" />,
+    requiredRole: 'admin',
+  },
+];
 
 export default function MarketplacePage() {
   return (
@@ -34,6 +68,7 @@ export default function MarketplacePage() {
 
 const MarketplaceContent = memo(function MarketplaceContent() {
   const { t } = useI18n();
+  const { session } = useManagementSessionGate({ redirectOnMissingSession: false });
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   const [selectedFilter, setSelectedFilter] = useState<MarketplaceFilter>('all');
@@ -122,6 +157,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
     selectedFilter === 'rejected' ? rejectedAgentSubmissions : pendingAgentSubmissions;
   const showReviewPanel = selectedFilter !== 'active';
   const showPublishedPanel = selectedFilter !== 'rejected' && selectedFilter !== 'pending';
+  const quickLinks = QUICK_LINKS.filter((link) => hasRequiredRole(session?.role, link.requiredRole));
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -406,33 +442,21 @@ const MarketplaceContent = memo(function MarketplaceContent() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <QuickLink
-                href="/reviews"
-                label={t('marketplace.quickLinkReviews')}
-                icon={<ShieldCheck className="h-4 w-4" />}
-              />
-              <QuickLink
-                href="/assets"
-                label={t('marketplace.quickLinkAssets')}
-                icon={<Boxes className="h-4 w-4" />}
-              />
-              <QuickLink
-                href="/identities"
-                label={t('marketplace.quickLinkIdentities')}
-                icon={<Bot className="h-4 w-4" />}
-              />
-              <QuickLink
-                href="/inbox"
-                label={t('marketplace.quickLinkInbox')}
-                icon={<ArrowRight className="h-4 w-4" />}
-              />
+              {quickLinks.map((link) => (
+                <QuickLink
+                  key={link.href}
+                  href={link.href}
+                  label={t(link.labelKey)}
+                  icon={link.icon}
+                />
+              ))}
             </div>
           </Card>
         </div>
       </div>
 
-      {gateError && !shouldShowForbidden ? (
-        <ManagementSessionExpiredAlert message={gateError} />
+      {gateError && !shouldShowSessionExpired && !shouldShowForbidden ? (
+        <SectionNotice tone="error" message={gateError} />
       ) : null}
     </div>
   );

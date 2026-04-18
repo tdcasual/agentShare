@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ApiError } from '@/lib/api-client';
+import { useI18n } from '@/components/i18n-provider';
 import { useManagementSessionGate } from '@/lib/session';
 import { cn } from '@/lib/utils';
 import { Card } from '@/shared/ui-primitives/card';
@@ -71,6 +72,8 @@ export function ManagementSessionExpiredAlert({
   message: string;
   className?: string;
 }) {
+  const { t } = useI18n();
+
   return (
     <Card
       role="alert"
@@ -87,7 +90,7 @@ export function ManagementSessionExpiredAlert({
           href="/login"
           className="dark:hover:bg-[var(--kw-dark-error-surface)]/20 inline-flex items-center justify-center gap-2 rounded-full border border-[var(--kw-error)] bg-white px-4 py-2 text-sm font-semibold text-[var(--kw-rose-text)] transition-colors hover:bg-[var(--kw-rose-surface)] dark:border-[var(--kw-dark-error-surface)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-error)]"
         >
-          Return to Login
+          {t('auth.logout.continueToLogin')}
         </Link>
       </div>
     </Card>

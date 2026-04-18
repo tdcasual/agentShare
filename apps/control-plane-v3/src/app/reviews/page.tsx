@@ -25,6 +25,7 @@ import {
   ManagementPageAlerts,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
+import { translateAccountRole } from '@/lib/enum-labels';
 import type { ReviewQueueItem } from '@/domains/review';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
@@ -346,7 +347,9 @@ const ReviewsContent = memo(function ReviewsContent() {
       {/* Session Info */}
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <Badge variant="primary">{session?.role ?? t('reviews.reviewer')}</Badge>
+          <Badge variant="primary">
+            {session?.role ? translateAccountRole(t, session.role) : t('reviews.reviewer')}
+          </Badge>
           <span className="dark:text-[var(--kw-dark-text)]">
             {session?.email ?? t('common.loading')}
           </span>

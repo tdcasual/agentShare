@@ -1,5 +1,6 @@
 import { Badge } from '@/shared/ui-primitives/badge';
 import { useI18n } from '@/components/i18n-provider';
+import { translateDreamRunStatus } from '@/lib/enum-labels';
 import { formatSnapshotTimestamp } from './components';
 import type { OpenClawDreamRun } from '@/domains/identity';
 
@@ -33,7 +34,9 @@ export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
             >
               <div className="flex items-start justify-between gap-3">
                 <p className="font-medium text-[var(--kw-text)]">{run.objective}</p>
-                <Badge variant={run.status === 'active' ? 'info' : 'secondary'}>{run.status}</Badge>
+                <Badge variant={run.status === 'active' ? 'info' : 'secondary'}>
+                  {translateDreamRunStatus(t, run.status)}
+                </Badge>
               </div>
               <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
                 {t('identities.sections.dreamRunSteps', {

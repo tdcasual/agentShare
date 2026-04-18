@@ -22,6 +22,11 @@ import {
   KeyRound,
   ShieldCheck,
 } from 'lucide-react';
+import {
+  translateAccountRole,
+  translateAccountStatus,
+  translateAgentStatus,
+} from '@/lib/enum-labels';
 import { cn } from '@/lib/utils';
 
 const UsersIcon = <Users className="h-6 w-6 text-[var(--kw-sky-text)]" />;
@@ -153,7 +158,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             {t('hub.welcome')} {t('hub.dualCosmos')}
           </h1>
           <p className="text-[var(--kw-text-muted)]">
-            {t('hub.signedInAs')} {email} {t('hub.withRole')} {role} {t('hub.access')}
+            {t('hub.signedInAs')} {email} {t('hub.withRole')} {translateAccountRole(t, role)}{' '}
+            {t('hub.access')}
           </p>
         </div>
         <Link href="/tokens">
@@ -245,7 +251,10 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                           </p>
                         </div>
                         <Badge variant={account.status === 'active' ? 'success' : 'warning'}>
-                          {account.role}
+                          {translateAccountRole(t, account.role)}
+                        </Badge>
+                        <Badge variant={account.status === 'active' ? 'success' : 'warning'}>
+                          {translateAccountStatus(t, account.status)}
                         </Badge>
                       </div>
                     </div>
@@ -281,7 +290,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                         <div className="flex gap-2">
                           <Badge variant="agent">{agent.risk_tier}</Badge>
                           <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
-                            {agent.status}
+                            {translateAgentStatus(t, agent.status)}
                           </Badge>
                         </div>
                       </div>

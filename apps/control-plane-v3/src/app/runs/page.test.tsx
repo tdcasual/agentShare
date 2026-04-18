@@ -101,9 +101,12 @@ describe('runs page', () => {
 
     await user.click(screen.getByText(/runs.labels.runId #87654321/i));
 
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('runs.detailTitle')).toBeInTheDocument();
     expect(screen.getByText(/Run finished successfully/i)).toBeInTheDocument();
     expect(screen.getByText(/runs.info.taskId/i)).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'common.closeModal' }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'common.close' })).toBeInTheDocument();
   });
 
   it('shows a relogin recovery state when refreshing runs hits an expired session', async () => {

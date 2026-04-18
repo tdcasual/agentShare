@@ -4,11 +4,17 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 type Theme = 'light' | 'dark' | 'system';
 
+function getThemeLabelKey(theme: Theme) {
+  return `settings.theme.${theme}` as const;
+}
+
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
+  const { t } = useI18n();
   const [mounted, setMounted] = useState(false);
 
   // 避免 hydration mismatch
@@ -31,9 +37,13 @@ export function ThemeToggle({ className }: { className?: string }) {
   }
 
   const themes: { value: Theme; icon: React.ReactNode; label: string }[] = [
-    { value: 'light', icon: <Sun className="h-4 w-4" />, label: '浅色' },
-    { value: 'dark', icon: <Moon className="h-4 w-4" />, label: '深色' },
-    { value: 'system', icon: <Monitor className="h-4 w-4" />, label: '跟随系统' },
+    { value: 'light', icon: <Sun className="h-4 w-4" />, label: t(getThemeLabelKey('light')) },
+    { value: 'dark', icon: <Moon className="h-4 w-4" />, label: t(getThemeLabelKey('dark')) },
+    {
+      value: 'system',
+      icon: <Monitor className="h-4 w-4" />,
+      label: t(getThemeLabelKey('system')),
+    },
   ];
 
   return (
@@ -75,6 +85,7 @@ export function ThemeToggle({ className }: { className?: string }) {
 // 简化的主题切换按钮（只在 light/dark 之间切换）
 export function SimpleThemeToggle({ className }: { className?: string }) {
   const { setTheme, resolvedTheme } = useTheme();
+  const { t } = useI18n();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -109,8 +120,10 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         'transition-colors duration-300',
         className
       )}
-      aria-label={isDark ? '切换到浅色模式' : '切换到深色模式'}
-      title={isDark ? '切换到浅色模式' : '切换到深色模式'}
+      aria-label={
+        isDark ? t('settings.theme.switchToLight') : t('settings.theme.switchToDark')
+      }
+      title={isDark ? t('settings.theme.switchToLight') : t('settings.theme.switchToDark')}
     >
       <span
         className={cn(

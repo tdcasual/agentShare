@@ -35,6 +35,13 @@ describe('route-policy', () => {
     });
   });
 
+  it('does not hardcode authenticated users on auth routes back to the admin hub', () => {
+    expect(isRouteAllowed('/login', 'authenticated')).toEqual({
+      allowed: false,
+      reason: '已认证',
+    });
+  });
+
   it('blocks anonymous access to approvals', () => {
     expect(getRoutePolicy('/approvals')).toBeDefined();
     expect(isRouteAllowed('/approvals', 'anonymous')).toEqual({

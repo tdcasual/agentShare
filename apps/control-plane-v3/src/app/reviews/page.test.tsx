@@ -113,7 +113,7 @@ describe('reviews page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('reviews.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -128,7 +128,7 @@ describe('reviews page', () => {
     render(<ReviewsPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent(t('reviews.sessionExpired'));
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -238,5 +238,12 @@ describe('reviews page', () => {
     expect(screen.getByText('Rejected market secret')).toBeInTheDocument();
     expect(screen.getByText(t('governance.status.approved'))).toBeInTheDocument();
     expect(screen.getByText(t('governance.status.rejected'))).toBeInTheDocument();
+  });
+
+  it('localizes the reviewer role badge instead of leaking the raw enum', () => {
+    render(<ReviewsPage />);
+
+    expect(screen.getByText(t('settings.roles.owner'))).toBeInTheDocument();
+    expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
   });
 });

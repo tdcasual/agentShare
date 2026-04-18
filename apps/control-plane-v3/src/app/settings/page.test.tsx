@@ -2,8 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
+import { translateMessage } from '@/test-utils/i18n-mock';
 import SettingsPage from './page';
 
+const t = translateMessage;
 const useRouterMock = vi.fn();
 const useManagementSessionGateMock = vi.fn();
 const useAdminAccountsMock = vi.fn();
@@ -17,7 +19,8 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    locale: 'en',
+    t: translateMessage,
   }),
 }));
 
@@ -103,8 +106,8 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('settings.sessionExpired');
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('alert')).toHaveTextContent(t('settings.sessionExpired'));
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -118,7 +121,7 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('settings.sessionForbidden');
+    expect(screen.getByRole('alert')).toHaveTextContent(t('settings.sessionForbidden'));
   });
 
   it('shows a relogin recovery state when inviting an operator hits an expired session', async () => {
@@ -130,18 +133,18 @@ describe('settings page', () => {
     render(<SettingsPage />);
 
     await user.type(
-      screen.getByPlaceholderText('settings.emailPlaceholder'),
+      screen.getByPlaceholderText(t('settings.emailPlaceholder')),
       'operator@example.com'
     );
-    await user.type(screen.getByPlaceholderText(/settings.displayNamePlaceholder/i), 'Operator');
-    await user.type(screen.getByPlaceholderText(/settings.passwordPlaceholder/i), 'password-123');
-    await user.click(screen.getByRole('button', { name: /^settings.inviteAccount$/i }));
+    await user.type(screen.getByPlaceholderText(t('settings.displayNamePlaceholder')), 'Operator');
+    await user.type(screen.getByPlaceholderText(t('settings.passwordPlaceholder')), 'password-123');
+    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('settings.inviteAccount')}$`, 'i') }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('settings.sessionExpired');
+      expect(screen.getByRole('alert')).toHaveTextContent(t('settings.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -152,14 +155,14 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByText('1 settings.ownerAccounts')).toBeInTheDocument();
-    expect(screen.getByText('2 settings.activeOperators')).toBeInTheDocument();
+    expect(screen.getByText(`1 ${t('settings.ownerAccounts')}`)).toBeInTheDocument();
+    expect(screen.getByText(`2 ${t('settings.activeOperators')}`)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /settings.rosterOperators/i }));
+    await user.click(screen.getByRole('button', { name: t('settings.rosterOperators') }));
 
-    expect(screen.queryByText('Owner')).not.toBeInTheDocument();
-    expect(screen.getByText('Operator')).toBeInTheDocument();
-    expect(screen.queryByText('Viewer')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Owner' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Operator' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Viewer' })).not.toBeInTheDocument();
   });
 
   it('filters the roster to accounts needing human follow-up', async () => {
@@ -167,10 +170,24 @@ describe('settings page', () => {
 
     render(<SettingsPage />);
 
-    await user.click(screen.getByRole('button', { name: /settings.rosterInactive/i }));
+    await user.click(screen.getByRole('button', { name: t('settings.rosterInactive') }));
 
-    expect(screen.queryByText('Owner')).not.toBeInTheDocument();
-    expect(screen.queryByText('Operator')).not.toBeInTheDocument();
-    expect(screen.getByText('Viewer')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Owner' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Operator' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Viewer' })).toBeInTheDocument();
+  });
+
+  it('renders localized role and status badges in the management roster', () => {
+    render(<SettingsPage />);
+
+    expect(screen.getAllByText(t('settings.roles.owner')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(t('settings.roles.operator')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(t('settings.roles.viewer')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(t('settings.status.active')).length).toBeGreaterThan(0);
+    expect(screen.getByText(t('settings.status.inactive'))).toBeInTheDocument();
+    expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^operator$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^viewer$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^inactive$/)).not.toBeInTheDocument();
   });
 });

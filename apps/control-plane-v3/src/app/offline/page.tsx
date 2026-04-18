@@ -35,7 +35,10 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <main
+      id="main-content"
+      className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]"
+    >
       <Card variant="feature" className="w-full max-w-md space-y-6 p-8 text-center">
         {/* 图标 */}
         <div className="dark:bg-[var(--kw-dark-amber-surface)]/30 mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-amber-surface)]">
@@ -93,6 +96,6 @@ export default function OfflinePage() {
           Control Plane V3 · {t('common.offline')}
         </p>
       </Card>
-    </div>
+    </main>
   );
 }

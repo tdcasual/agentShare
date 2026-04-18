@@ -17,6 +17,7 @@ import {
   ManagementSessionExpiredAlert,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
+import { Modal } from '@/shared/ui-primitives/modal';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Badge } from '@/shared/ui-primitives/badge';
@@ -417,11 +418,8 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
   const statusLabel = t(`runs.stats.${run.status}`);
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <Card
-        variant="kawaii"
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden"
-      >
+    <Modal isOpen onClose={onClose} size="lg" showCloseButton={false}>
+      <div className="flex max-h-[90vh] flex-col overflow-hidden">
         <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
             <div
@@ -436,7 +434,7 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
               <p className="text-sm text-[var(--kw-text-muted)]">{run.id}</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label={t('common.closeModal')}>
             <XCircle className="h-5 w-5" />
           </Button>
         </div>
@@ -487,8 +485,8 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
             {t('common.close')}
           </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </Modal>
   );
 }
 

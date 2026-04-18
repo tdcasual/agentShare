@@ -10,7 +10,7 @@
 import { useEffect } from 'react';
 import { useManagementSessionGate } from '@/lib/session';
 import { useRoleStore } from '@/store/role-store';
-import type { ManagementRole } from '@/lib/role-system';
+import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
 
 interface UseRoleReturn {
   /** 当前角色 */
@@ -43,11 +43,7 @@ export function useRole(): UseRoleReturn {
   const {
     role: storedRole,
     setRole,
-    hasRole: checkRole,
-    isViewer: checkViewer,
-    isOperator: checkOperator,
-    isAdmin: checkAdmin,
-    isOwner: checkOwner,
+    clearRole,
   } = useRoleStore();
 
   // 同步session中的role到store
@@ -65,17 +61,24 @@ export function useRole(): UseRoleReturn {
     }
   }, [session?.role, storedRole, setRole]);
 
-  // 使用session中的role（优先）或store中的role
-  const role = (session?.role as ManagementRole | undefined) ?? storedRole ?? null;
+  useEffect(() => {
+    if (!isLoading && !session?.role && storedRole) {
+      clearRole();
+    }
+  }, [clearRole, isLoading, session?.role, storedRole]);
+
+  // 会话加载期间不暴露持久化角色，避免短暂渲染上一个账号的导航权限。
+  const role = isLoading ? null : ((session?.role as ManagementRole | undefined) ?? storedRole ?? null);
+  const hasRole = (required: ManagementRole) => !isLoading && hasRequiredRole(role, required);
 
   return {
     role: role as ManagementRole | null,
     isLoading,
-    isViewer: checkViewer(),
-    isOperator: checkOperator(),
-    isAdmin: checkAdmin(),
-    isOwner: checkOwner(),
-    hasRole: checkRole,
+    isViewer: hasRole('viewer'),
+    isOperator: hasRole('operator'),
+    isAdmin: hasRole('admin'),
+    isOwner: hasRole('owner'),
+    hasRole,
     refresh: refreshSession,
   };
 }

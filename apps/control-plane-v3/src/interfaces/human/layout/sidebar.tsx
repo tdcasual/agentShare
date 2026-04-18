@@ -67,7 +67,6 @@ function useAllNavItems(): NavItem[] {
         href: '/tasks',
         labelKey: t('navigation.tasks'),
         icon: <CheckSquare className="h-5 w-5" />,
-        badge: 3,
         requiredRole: 'admin',
       },
       {

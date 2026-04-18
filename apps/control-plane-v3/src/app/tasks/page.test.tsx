@@ -162,7 +162,7 @@ describe('tasks page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -177,7 +177,7 @@ describe('tasks page', () => {
     render(<TasksPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -232,6 +232,22 @@ describe('tasks page', () => {
     expect(screen.getByTestId('task-card-task-1')).toHaveAttribute('data-focus-state', 'default');
   });
 
+  it('renders localized task and target status labels instead of raw enums', async () => {
+    const user = userEvent.setup();
+
+    render(<TasksPage />);
+
+    expect(screen.getByText(t('tasks.status.pending'))).toBeInTheDocument();
+    expect(screen.getAllByText(t('tasks.publication.active')).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^pending$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByText('Run Risk Scan'));
+
+    expect(screen.getAllByText(t('tasks.status.completed')).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^completed$/)).not.toBeInTheDocument();
+  });
+
   it('shows a relogin recovery state when publish task hits an expired session', async () => {
     const user = userEvent.setup();
     createTaskActionMock.mockRejectedValueOnce(new ApiError(401, 'Missing management session'));
@@ -254,7 +270,7 @@ describe('tasks page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -278,7 +294,7 @@ describe('tasks page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('tasks.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );

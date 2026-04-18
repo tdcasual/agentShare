@@ -7,6 +7,8 @@
 'use client';
 
 import { Card } from '@/shared/ui-primitives/card';
+import { useI18n } from '@/components/i18n-provider';
+import { translatePlaybookTaskType, translatePublicationStatus } from '@/lib/enum-labels';
 
 import type { Playbook } from '../types';
 import { BookOpen, Tag, Shield } from 'lucide-react';
@@ -31,6 +33,7 @@ const tagColors: Record<string, string> = {
 };
 
 export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
+  const { t } = useI18n();
   // 截断正文预览
   const bodyPreview =
     playbook.body.length > 120 ? playbook.body.slice(0, 120) + '...' : playbook.body;
@@ -49,7 +52,9 @@ export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="line-clamp-1 font-semibold text-[var(--kw-text)]">{playbook.title}</h3>
-          <p className="text-xs text-[var(--kw-text-muted)]">{playbook.taskType}</p>
+          <p className="text-xs text-[var(--kw-text-muted)]">
+            {translatePlaybookTaskType(t, playbook.taskType)}
+          </p>
         </div>
       </div>
 
@@ -80,11 +85,13 @@ export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
       <div className="border-[var(--kw-border)]/50 flex items-center justify-between border-t pt-3 text-xs text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-text-muted)]">
         <div className="flex items-center gap-1">
           <Shield className="h-3 w-3" />
-          <span className="max-w-[min(100px,25vw)] truncate">{playbook.publicationStatus}</span>
+          <span className="max-w-[min(100px,25vw)] truncate">
+            {translatePublicationStatus(t, playbook.publicationStatus)}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <BookOpen className="h-3 w-3" />
-          <span>{playbook.taskType}</span>
+          <span>{translatePlaybookTaskType(t, playbook.taskType)}</span>
         </div>
       </div>
     </Card>

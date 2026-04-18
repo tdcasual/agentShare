@@ -10,6 +10,7 @@ import { SectionNotice } from './components';
 import type { Agent } from '@/domains/identity';
 import type { AgentToken } from '@/domains/task/types';
 import { useI18n } from '@/components/i18n-provider';
+import { translateAgentStatus } from '@/lib/enum-labels';
 
 export interface IdentityPanelProps {
   agents: Agent[];
@@ -107,7 +108,9 @@ const AgentRow = memo(function AgentRow({
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>{agent.status}</Badge>
+          <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
+            {translateAgentStatus(t, agent.status)}
+          </Badge>
           <Button
             variant={selected ? 'primary' : 'secondary'}
             size="sm"

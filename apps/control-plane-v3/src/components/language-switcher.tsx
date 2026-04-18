@@ -37,6 +37,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label={t('common.switchLanguage')}
           className={cn(
             'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
             'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)] bg-white/80 dark:border-[var(--kw-dark-border)]',

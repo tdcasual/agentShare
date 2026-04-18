@@ -10,6 +10,7 @@ import { MemberManager } from '@/domains/space/components/member-manager';
 import { SectionNotice } from './components';
 import type { Space } from '@/domains/space';
 import { useI18n } from '@/components/i18n-provider';
+import { translateSpaceStatus } from '@/lib/enum-labels';
 
 export interface SpacesListProps {
   spaces: Space[];
@@ -80,7 +81,7 @@ export function SpacesList({
                   <p className="font-medium text-[var(--kw-text)]">{space.name}</p>
                   <p className="mt-1 text-sm text-[var(--kw-text-muted)]">{space.summary}</p>
                 </div>
-                <Badge variant="secondary">{space.status}</Badge>
+                <Badge variant="secondary">{translateSpaceStatus(t, space.status)}</Badge>
               </div>
 
               <div className="mt-3">

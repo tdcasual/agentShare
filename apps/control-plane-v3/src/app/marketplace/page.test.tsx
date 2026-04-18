@@ -189,4 +189,38 @@ describe('marketplace page', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('marketplace.forbiddenMessage');
   });
+
+  it('filters quick links down to operator-allowed destinations', () => {
+    useManagementSessionGateMock.mockReturnValue({
+      session: {
+        email: 'operator@example.com',
+        role: 'operator',
+      },
+      loading: false,
+      error: null,
+    });
+
+    render(<MarketplacePage />);
+
+    expect(screen.getByRole('link', { name: /marketplace\.quickLinkReviews/i })).toHaveAttribute(
+      'href',
+      '/reviews'
+    );
+    expect(screen.queryByRole('link', { name: /marketplace\.quickLinkAssets/i })).toBeNull();
+    expect(screen.queryByRole('link', { name: /marketplace\.quickLinkIdentities/i })).toBeNull();
+    expect(screen.queryByRole('link', { name: /marketplace\.quickLinkInbox/i })).toBeNull();
+  });
+
+  it('shows a generic inline error when the session gate fails for non-auth reasons', () => {
+    useManagementSessionGateMock.mockReturnValue({
+      session: null,
+      loading: false,
+      error: 'Backend unavailable',
+    });
+
+    render(<MarketplacePage />);
+
+    expect(screen.getByText('Backend unavailable')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /auth\.logout\.continueToLogin/i })).toBeNull();
+  });
 });

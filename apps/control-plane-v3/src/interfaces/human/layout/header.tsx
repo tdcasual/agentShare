@@ -33,6 +33,7 @@ import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { cn } from '@/lib/utils';
 import type { Identity } from '@/domains/identity/types';
 import { useI18n } from '@/components/i18n-provider';
+import { hasRequiredRole, isValidRole, type ManagementRole } from '@/lib/role-system';
 
 interface HeaderProps {
   currentIdentity: Identity | null;
@@ -45,14 +46,23 @@ const USER_MENU_ACTIONS = {
   logout: '/logout',
 } as const;
 
-export function getUserMenuTargets() {
-  return [USER_MENU_ACTIONS.profile, USER_MENU_ACTIONS.settings, USER_MENU_ACTIONS.logout];
+export function getUserMenuTargets(role: ManagementRole | null = 'admin') {
+  if (hasRequiredRole(role, 'admin')) {
+    return [USER_MENU_ACTIONS.profile, USER_MENU_ACTIONS.settings, USER_MENU_ACTIONS.logout];
+  }
+
+  return [USER_MENU_ACTIONS.logout];
 }
 
 export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   const { t } = useI18n();
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const rawManagementRole = currentIdentity?.session?.managementRole;
+  const managementRole: ManagementRole | null = isValidRole(rawManagementRole ?? '')
+    ? (rawManagementRole as ManagementRole)
+    : null;
+  const showAdminControls = hasRequiredRole(managementRole, 'admin');
 
   useEffect(() => {
     if (!showUserMenu) {
@@ -119,25 +129,29 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
         {/* Create Button - 使用真实功能的 CreateMenu */}
         <CreateMenu variant="primary" size="sm" />
 
-        {/* Notifications - 使用真实数据绑定的 Notifications 组件 */}
-        <Notifications />
+        {showAdminControls && (
+          <>
+            {/* Notifications - 使用真实数据绑定的 Notifications 组件 */}
+            <Notifications />
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => {
-              router.push('/inbox');
-              setShowUserMenu(false);
-            }}
-            aria-label={t('navigation.inbox')}
-            className={cn(
-              'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
-              'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)] dark:hover:text-[var(--kw-dark-primary)]'
-            )}
-          >
-            <MessageSquare className="h-5 w-5" aria-hidden="true" />
-          </button>
-        </div>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  router.push('/inbox');
+                  setShowUserMenu(false);
+                }}
+                aria-label={t('navigation.inbox')}
+                className={cn(
+                  'relative rounded-full p-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2',
+                  'text-[var(--kw-text-muted)] hover:bg-[var(--kw-primary-50)] hover:text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)] dark:hover:text-[var(--kw-dark-primary)]'
+                )}
+              >
+                <MessageSquare className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+          </>
+        )}
 
         {/* User Menu */}
         {currentIdentity && (
@@ -190,25 +204,29 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                     </p>
                   </div>
                   <div className="p-2">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => router.push(USER_MENU_ACTIONS.profile)}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
-                    >
-                      <User className="h-4 w-4" aria-hidden="true" />
-                      <span>{t('common.profile')}</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => router.push(USER_MENU_ACTIONS.settings)}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
-                    >
-                      <Settings className="h-4 w-4" aria-hidden="true" />
-                      <span>{t('common.settings')}</span>
-                    </button>
-                    <hr className="my-2 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />
+                    {showAdminControls && (
+                      <>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => router.push(USER_MENU_ACTIONS.profile)}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
+                        >
+                          <User className="h-4 w-4" aria-hidden="true" />
+                          <span>{t('common.profile')}</span>
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => router.push(USER_MENU_ACTIONS.settings)}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] focus-visible:ring-offset-2 dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
+                        >
+                          <Settings className="h-4 w-4" aria-hidden="true" />
+                          <span>{t('common.settings')}</span>
+                        </button>
+                        <hr className="my-2 border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]" />
+                      </>
+                    )}
                     <button
                       type="button"
                       role="menuitem"

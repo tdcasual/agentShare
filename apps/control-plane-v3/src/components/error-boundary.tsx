@@ -11,6 +11,8 @@ import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { useI18n } from '@/components/i18n-provider';
+import { useRole } from '@/hooks/use-role';
+import { getDefaultManagementRoute, type ManagementRole } from '@/lib/role-system';
 import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -21,9 +23,17 @@ interface Props {
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
+interface ErrorBoundaryInnerProps extends Props {
+  homeTarget: string;
+}
+
 interface State {
   hasError: boolean;
   error?: Error;
+}
+
+export function getErrorBoundaryHomeTarget(role: ManagementRole | null | undefined): string {
+  return getDefaultManagementRoute(role);
 }
 
 function ErrorFallback({
@@ -85,7 +95,7 @@ function ErrorFallback({
   );
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, State> {
   state: State = { hasError: false };
 
   static getDerivedStateFromError(error: Error): State {
@@ -106,7 +116,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = this.props.homeTarget;
   };
 
   render() {
@@ -127,4 +137,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return this.props.children;
   }
+}
+
+export function ErrorBoundary(props: Props) {
+  const { role } = useRole();
+
+  return <ErrorBoundaryInner {...props} homeTarget={getErrorBoundaryHomeTarget(role)} />;
 }

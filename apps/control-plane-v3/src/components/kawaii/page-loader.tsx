@@ -6,6 +6,7 @@
 
 'use client';
 
+import { cn } from '@/lib/utils';
 import { CuteSpinner } from './cute-spinner';
 
 interface PageLoaderProps {
@@ -22,12 +23,15 @@ export function PageLoader({
   fullScreen = false,
   minHeight = '60vh',
 }: PageLoaderProps) {
-  const containerClasses = fullScreen
-    ? 'min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]'
-    : `min-h-[${minHeight}]`;
-
   return (
-    <div className={`flex items-center justify-center ${containerClasses}`}>
+    <div
+      className={cn(
+        'flex items-center justify-center',
+        fullScreen &&
+          'min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]'
+      )}
+      style={fullScreen ? undefined : { minHeight }}
+    >
       <div className="flex flex-col items-center gap-4">
         <CuteSpinner size={fullScreen ? 'lg' : 'md'} />
         <p className="animate-pulse text-[var(--kw-text-muted)]">{message}</p>

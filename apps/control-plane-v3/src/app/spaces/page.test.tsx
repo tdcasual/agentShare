@@ -61,10 +61,14 @@ vi.mock('@/domains/identity', () => ({
   useAgentsWithTokens: () => useAgentsWithTokensMock(),
 }));
 
-vi.mock('@/domains/governance', () => ({
-  useSecrets: () => useSecretsMock(),
-  useCapabilities: () => useCapabilitiesMock(),
-}));
+vi.mock('@/domains/governance', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/domains/governance')>();
+  return {
+    ...actual,
+    useSecrets: () => useSecretsMock(),
+    useCapabilities: () => useCapabilitiesMock(),
+  };
+});
 
 vi.mock('@/domains/space', () => ({
   useSpaces: (...args: unknown[]) => useSpacesMock(...args),
@@ -311,6 +315,8 @@ describe('spaces page', () => {
     await user.click(screen.getByRole('button', { name: t('spaces.governance.rejectedReview') }));
 
     expect(screen.getByText('rejected.market.secret')).toBeInTheDocument();
+    expect(screen.getByText(t('governance.status.rejected'))).toBeInTheDocument();
+    expect(screen.queryByText(/^rejected$/i)).not.toBeInTheDocument();
     expect(screen.queryByText('agent.market.capability')).not.toBeInTheDocument();
   });
 
@@ -381,7 +387,7 @@ describe('spaces page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('spaces.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -441,8 +447,12 @@ describe('spaces page', () => {
     expect(screen.getByText(t('spaces.sections.persistedSpacesTitle'))).toBeInTheDocument();
     expect(screen.getByText('Ops Triage')).toBeInTheDocument();
     expect(screen.getByText('Coordinate review and runtime follow-up')).toBeInTheDocument();
+    expect(screen.getAllByText(t('common.active')).length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
     // MemberManager displays member_id.slice(-8) - 'bootstrap' → 'ootstrap'
     expect(screen.getByText('ootstrap')).toBeInTheDocument();
+    expect(screen.getByText(t('spaces.memberManager.roles.participant'))).toBeInTheDocument();
+    expect(screen.queryByText(/^participant$/)).not.toBeInTheDocument();
     expect(
       screen.getAllByText('Bootstrap Credential completed Sync Config').length
     ).toBeGreaterThan(0);
@@ -454,6 +464,8 @@ describe('spaces page', () => {
     render(<SpacesPage />);
 
     await user.click(screen.getByRole('button', { name: t('spaces.createSpace') }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: t('common.closeModal') }).length).toBeGreaterThan(0);
     await user.type(
       screen.getByPlaceholderText(t('spaces.createModal.namePlaceholder')),
       'Incident Response'

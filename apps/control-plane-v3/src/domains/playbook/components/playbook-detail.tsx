@@ -6,9 +6,11 @@
 
 'use client';
 
-import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Badge } from '@/shared/ui-primitives/badge';
+import { Modal } from '@/shared/ui-primitives/modal';
+import { useI18n } from '@/components/i18n-provider';
+import { translatePlaybookTaskType, translatePublicationStatus } from '@/lib/enum-labels';
 import type { Playbook } from '../types';
 import { BookOpen, Tag, Shield, X, Copy, CheckCircle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
@@ -19,6 +21,7 @@ interface PlaybookDetailProps {
 }
 
 export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -44,11 +47,8 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <Card
-        variant="kawaii"
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden"
-      >
+    <Modal isOpen onClose={onClose} size="lg" showCloseButton={false}>
+      <div className="flex max-h-[90vh] flex-col overflow-hidden">
         {/* 头部 */}
         <div className="flex items-start justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
@@ -60,7 +60,13 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
               <p className="text-sm text-[var(--kw-text-muted)]">{playbook.taskType}</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="rounded-full"
+            aria-label={t('common.closeModal')}
+          >
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -90,7 +96,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
                   copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />
                 }
               >
-                {copied ? '已复制' : '复制'}
+                {copied ? t('common.copied') : t('common.copy')}
               </Button>
             </div>
             <div className="bg-[var(--kw-primary-50)]/50 rounded-xl p-4 dark:bg-[var(--kw-dark-bg)]">
@@ -104,11 +110,17 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2 text-[var(--kw-text-muted)]">
               <BookOpen className="h-4 w-4" />
-              <span>任务类型: {playbook.taskType}</span>
+              <span>
+                {t('playbooks.detail.taskTypeLabel')}:{' '}
+                {translatePlaybookTaskType(t, playbook.taskType)}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-[var(--kw-text-muted)]">
               <Shield className="h-4 w-4" />
-              <span>发布状态: {playbook.publicationStatus}</span>
+              <span>
+                {t('playbooks.detail.publicationStatusLabel')}:{' '}
+                {translatePublicationStatus(t, playbook.publicationStatus)}
+              </span>
             </div>
           </div>
         </div>
@@ -116,10 +128,10 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
         {/* 底部 */}
         <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <Button variant="outline" onClick={onClose}>
-            关闭
+            {t('common.close')}
           </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </Modal>
   );
 }

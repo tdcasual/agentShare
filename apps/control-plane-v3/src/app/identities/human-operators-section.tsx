@@ -21,6 +21,7 @@ import {
 } from './components';
 import type { AdminAccountSummary } from '@/domains/identity';
 import { useI18n } from '@/components/i18n-provider';
+import { translateAccountRole, translateAccountStatus } from '@/lib/enum-labels';
 
 export interface HumanOperatorsSectionProps {
   accounts: AdminAccountSummary[];
@@ -133,9 +134,9 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
           <p className="break-all text-sm text-[var(--kw-text-muted)]">{account.email}</p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
-          <Badge variant="human">{account.role}</Badge>
+          <Badge variant="human">{translateAccountRole(t, account.role)}</Badge>
           <Badge variant={account.status === 'active' ? 'success' : 'warning'}>
-            {account.status}
+            {translateAccountStatus(t, account.status)}
           </Badge>
         </div>
       </div>
@@ -160,7 +161,7 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
             items={[
               [t('identities.labels.accountId'), account.id],
               [t('identities.labels.email'), account.email],
-              [t('identities.labels.role'), account.role],
+              [t('identities.labels.role'), translateAccountRole(t, account.role)],
               [
                 t('identities.labels.lastLogin'),
                 formatOptionalTimestamp(

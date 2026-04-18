@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Plus, User, Key, Box, Users, Settings, X, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,8 @@ import { Button } from '@/shared/ui-primitives/button';
 import { useI18n } from '@/components/i18n-provider';
 import { useMemo } from 'react';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
+import { useRole } from '@/hooks/use-role';
+import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
 
 interface CreateAction {
   id: string;
@@ -22,6 +24,7 @@ interface CreateAction {
   icon: React.ReactNode;
   href: string;
   section: 'identity' | 'resource' | 'system';
+  requiredRole: ManagementRole;
 }
 
 interface CreateMenuProps {
@@ -38,6 +41,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
     icon: <User className="h-4 w-4" />,
     href: '/tokens',
     section: 'identity',
+    requiredRole: 'admin',
   },
   {
     id: 'create-human',
@@ -46,6 +50,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
     icon: <Users className="h-4 w-4" />,
     href: '/settings',
     section: 'identity',
+    requiredRole: 'admin',
   },
   // Resource
   {
@@ -55,6 +60,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
     icon: <Key className="h-4 w-4" />,
     href: '/tokens',
     section: 'resource',
+    requiredRole: 'admin',
   },
   {
     id: 'create-space',
@@ -63,6 +69,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
     icon: <Box className="h-4 w-4" />,
     href: '/spaces',
     section: 'resource',
+    requiredRole: 'operator',
   },
   // System
   {
@@ -72,19 +79,24 @@ export const CREATE_ACTIONS: CreateAction[] = [
     icon: <Settings className="h-4 w-4" />,
     href: '/settings',
     section: 'system',
+    requiredRole: 'admin',
   },
 ];
 
-export function getCreateActionTargets() {
-  return CREATE_ACTIONS.map((action) => action.href);
+export function getCreateActionTargets(role: ManagementRole | null = 'admin') {
+  return CREATE_ACTIONS.filter((action) => hasRequiredRole(role, action.requiredRole)).map(
+    (action) => action.href
+  );
 }
 
 export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps) {
   const { t } = useI18n();
   const router = useRouter();
+  const { role, isLoading } = useRole();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dialogId = useId();
 
   const { containerRef } = useFocusTrap({
     isActive: isOpen,
@@ -94,12 +106,12 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
 
   const actions = useMemo(
     () =>
-      CREATE_ACTIONS.map((action) => ({
+      CREATE_ACTIONS.filter((action) => hasRequiredRole(role, action.requiredRole)).map((action) => ({
         ...action,
         label: t(action.labelKey),
         description: t(action.descriptionKey),
       })),
-    [t]
+    [role, t]
   );
 
   // 过滤操作
@@ -119,6 +131,10 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
     setSearchQuery('');
   };
 
+  if (isLoading || actions.length === 0) {
+    return null;
+  }
+
   return (
     <div className="relative">
       {/* 创建按钮 */}
@@ -128,7 +144,8 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
         size={size}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
+        aria-controls={isOpen ? dialogId : undefined}
         aria-label={t('createMenu.ariaLabel')}
       >
         <Plus className={cn('h-4 w-4', size === 'sm' ? 'mr-1' : 'mr-2')} aria-hidden="true" />
@@ -139,7 +156,9 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
       {isOpen && (
         <div
           ref={containerRef}
-          role="menu"
+          id={dialogId}
+          role="dialog"
+          aria-modal="false"
           aria-label={t('createMenu.ariaLabel')}
           className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
@@ -186,7 +205,6 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                   <button
                     type="button"
                     key={action.id}
-                    role="menuitem"
                     onClick={() => handleAction(action.href)}
                     className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
                   >
@@ -215,7 +233,6 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                   <button
                     type="button"
                     key={action.id}
-                    role="menuitem"
                     onClick={() => handleAction(action.href)}
                     className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
                   >
@@ -244,7 +261,6 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                   <button
                     type="button"
                     key={action.id}
-                    role="menuitem"
                     onClick={() => handleAction(action.href)}
                     className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-primary-50)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-border)]"
                   >

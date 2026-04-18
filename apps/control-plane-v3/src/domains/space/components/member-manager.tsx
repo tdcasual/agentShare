@@ -12,6 +12,7 @@ import { Badge } from '@/shared/ui-primitives/badge';
 import type { SpaceMember } from '../types';
 import { Users, Plus, User, Bot } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
+import { translateSpaceMemberRole } from '@/lib/enum-labels';
 
 interface MemberManagerProps {
   members: SpaceMember[];
@@ -219,7 +220,7 @@ export function MemberManager({
                   </p>
                 </div>
               </div>
-              <Badge variant="secondary">{member.role}</Badge>
+              <Badge variant="secondary">{translateSpaceMemberRole(t, member.role)}</Badge>
             </div>
           ))
         )}

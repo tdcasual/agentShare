@@ -14,23 +14,32 @@ export type AppEntryState =
   | { kind: 'unavailable'; error: string; bootstrap?: BootstrapStatus; status?: number };
 
 function syncGlobalSession(entryState: AppEntryState) {
+  const lastLoadedAt = Date.now();
+
   if (entryState.kind === 'authenticated_ready') {
     setGlobalSession({
       state: 'authenticated',
       email: entryState.session.email,
       role: entryState.session.role,
       sessionId: entryState.session.session_id,
-      lastLoadedAt: Date.now(),
+      lastLoadedAt,
     });
     return;
   }
 
-  if (entryState.kind === 'login_required') {
+  if (entryState.kind === 'unavailable') {
     setGlobalSession({
-      state: 'anonymous',
-      lastLoadedAt: Date.now(),
+      state: 'unavailable',
+      error: entryState.error,
+      lastLoadedAt,
     });
+    return;
   }
+
+  setGlobalSession({
+    state: 'anonymous',
+    lastLoadedAt,
+  });
 }
 
 export async function resolveAppEntryState(): Promise<AppEntryState> {
@@ -72,11 +81,13 @@ export function useManagementSessionGate(options: ManagementSessionGateOptions =
         }
 
         if (nextState.kind === 'bootstrap_required') {
+          setSession(null);
           router.replace('/setup');
           return;
         }
 
         if (nextState.kind === 'login_required') {
+          setSession(null);
           if (redirectOnMissingSession) {
             router.replace('/login');
           } else {
@@ -86,6 +97,7 @@ export function useManagementSessionGate(options: ManagementSessionGateOptions =
         }
 
         if (nextState.kind === 'unavailable') {
+          setSession(null);
           setError(nextState.error);
           return;
         }
@@ -93,6 +105,7 @@ export function useManagementSessionGate(options: ManagementSessionGateOptions =
         setSession(nextState.session);
       } catch (loadError) {
         if (!cancelled) {
+          setSession(null);
           setError(
             loadError instanceof Error ? loadError.message : 'Failed to load management session'
           );

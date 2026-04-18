@@ -40,6 +40,7 @@ import type {
   OpenClawSession,
 } from '@/domains/identity';
 import { useI18n } from '@/components/i18n-provider';
+import { translateAccountRole } from '@/lib/enum-labels';
 
 const EMPTY_ADMIN_ACCOUNTS: AdminAccountSummary[] = [];
 const EMPTY_OPENCLAW_AGENTS: OpenClawAgent[] = [];
@@ -338,7 +339,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
                 {session?.email ?? t('common.loading')}
               </span>
               <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
-              <span>{session?.role ?? '...'}</span>
+              <span>{session?.role ? translateAccountRole(t, session.role) : '...'}</span>
             </div>
           </Card>
           <div className="flex flex-wrap gap-2">

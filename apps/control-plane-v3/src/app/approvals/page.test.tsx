@@ -149,7 +149,7 @@ describe('approvals page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('approvals.sessionExpired');
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'auth.logout.continueToLogin' })).toHaveAttribute(
       'href',
       '/login'
     );

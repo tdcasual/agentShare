@@ -63,7 +63,6 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     requiredSession: null,
     dataSource: 'backend',
     unauthorizedBehavior: 'redirect',
-    redirectTo: '/',
   },
   {
     path: '/logout',
@@ -245,7 +244,7 @@ export function isRouteAllowed(
   // 认证路由特殊处理
   if (policy.mode === 'auth') {
     if (sessionState === 'authenticated') {
-      return { allowed: false, redirect: '/', reason: '已认证' };
+      return { allowed: false, reason: '已认证' };
     }
     return { allowed: true };
   }

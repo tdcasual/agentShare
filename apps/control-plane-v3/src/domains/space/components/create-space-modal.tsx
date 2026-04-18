@@ -5,9 +5,9 @@
 'use client';
 
 import { useId, useState } from 'react';
-import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
+import { Modal } from '@/shared/ui-primitives/modal';
 import { Globe, X } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -31,9 +31,8 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
   };
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <Card variant="kawaii" className="w-full max-w-md">
-        <form onSubmit={handleSubmit} className="space-y-4 p-6">
+    <Modal isOpen onClose={onClose} size="md" showCloseButton={false}>
+      <form onSubmit={handleSubmit} className="space-y-4">
           {/* 头部 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -50,6 +49,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
               size="sm"
               onClick={onClose}
               className="rounded-full"
+              aria-label={t('common.closeModal')}
             >
               <X className="h-5 w-5" />
             </Button>
@@ -116,8 +116,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
               {isCreating ? t('spaces.createModal.creating') : t('spaces.createSpace')}
             </Button>
           </div>
-        </form>
-      </Card>
-    </div>
+      </form>
+    </Modal>
   );
 }

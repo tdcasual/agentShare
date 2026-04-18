@@ -13,7 +13,7 @@ import { Button } from '@/shared/ui-primitives/button';
 
 import { useI18n } from '@/components/i18n-provider';
 import { useRole } from '@/hooks/use-role';
-import { ROLE_LABELS, type ManagementRole } from '@/lib/role-system';
+import { getDefaultManagementRoute, type ManagementRole } from '@/lib/role-system';
 import { Lock, ArrowLeft, Home } from 'lucide-react';
 
 interface ForbiddenStateProps {
@@ -27,6 +27,10 @@ interface ForbiddenStateProps {
   title?: string;
 }
 
+function getRoleLabel(t: (key: string) => string, role: ManagementRole) {
+  return t(`settings.roles.${role}`);
+}
+
 export function ForbiddenState({
   requiredRole,
   resourceName,
@@ -36,6 +40,7 @@ export function ForbiddenState({
   const router = useRouter();
   const { t } = useI18n();
   const { role, isLoading } = useRole();
+  const homeTarget = getDefaultManagementRoute(role);
 
   if (isLoading) {
     return (
@@ -78,11 +83,11 @@ export function ForbiddenState({
         <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <div className="rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]">
             {t('forbiddenState.currentRole')}:{' '}
-            {role ? ROLE_LABELS[role] : t('forbiddenState.notLoggedIn')}
+            {role ? getRoleLabel(t, role) : t('forbiddenState.notLoggedIn')}
           </div>
           <span className="text-[var(--kw-text-muted)]">→</span>
           <div className="dark:bg-[var(--kw-dark-purple-surface)]/30 rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]">
-            {t('forbiddenState.requiredRole')}: {ROLE_LABELS[requiredRole]}
+            {t('forbiddenState.requiredRole')}: {getRoleLabel(t, requiredRole)}
           </div>
         </div>
 
@@ -90,7 +95,7 @@ export function ForbiddenState({
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Button
             variant="kawaii"
-            onClick={() => router.push('/')}
+            onClick={() => router.push(homeTarget)}
             leftIcon={<Home className="h-4 w-4" />}
           >
             {t('common.backToHome')}

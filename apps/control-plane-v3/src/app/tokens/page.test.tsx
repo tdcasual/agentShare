@@ -120,7 +120,7 @@ describe('tokens page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('tokens.sessionExpired'));
     });
 
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -135,7 +135,7 @@ describe('tokens page', () => {
     render(<TokensPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent(t('tokens.sessionExpired'));
-    expect(screen.getByRole('link', { name: /return to login/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
     );
@@ -252,5 +252,14 @@ describe('tokens page', () => {
     expect(
       screen.queryByText(/Creating an agent automatically mints its primary token/i)
     ).not.toBeInTheDocument();
+  });
+
+  it('localizes session, agent, and token status labels instead of leaking raw enums', () => {
+    render(<TokensPage />);
+
+    expect(screen.getByText(t('settings.roles.owner'))).toBeInTheDocument();
+    expect(screen.getAllByText(t('common.active')).length).toBeGreaterThanOrEqual(3);
+    expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
   });
 });

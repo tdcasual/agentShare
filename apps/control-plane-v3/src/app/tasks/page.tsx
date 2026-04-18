@@ -13,6 +13,7 @@ import { Input, Textarea } from '@/shared/ui-primitives/input';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
 import { MetricCard } from '@/shared/ui-primitives/metric';
+import { translatePublicationStatus, translateTaskStatus } from '@/lib/enum-labels';
 import { useTasksPage, type TaskView } from './use-tasks-page';
 import { useTasksForm } from './use-tasks-form';
 
@@ -274,10 +275,10 @@ function TaskCard({
                     : 'info'
               }
             >
-              {task.status}
+              {translateTaskStatus(t, task.status)}
             </Badge>
             <Badge variant={task.publicationStatus === 'active' ? 'primary' : 'warning'}>
-              {task.publicationStatus}
+              {translatePublicationStatus(t, task.publicationStatus)}
             </Badge>
           </div>
           <div>
@@ -559,10 +560,10 @@ function TaskDetailModal({
                     : 'info'
               }
             >
-              {task.task.status}
+              {translateTaskStatus(page.t, task.task.status)}
             </Badge>
             <Badge variant={task.task.publicationStatus === 'active' ? 'primary' : 'warning'}>
-              {task.task.publicationStatus}
+              {translatePublicationStatus(page.t, task.task.publicationStatus)}
             </Badge>
           </div>
 
@@ -617,7 +618,9 @@ function TaskDetailModal({
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={targetStatusVariant(target.status)}>{target.status}</Badge>
+                        <Badge variant={targetStatusVariant(target.status)}>
+                          {translateTaskStatus(page.t, target.status)}
+                        </Badge>
                         <Badge variant="secondary">
                           {target.token?.displayName ?? target.tokenId}
                         </Badge>

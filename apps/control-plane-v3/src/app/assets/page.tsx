@@ -2,6 +2,7 @@
 
 import { memo, useCallback } from 'react';
 import { Cpu, KeyRound, LockKeyhole, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 import { Layout } from '@/interfaces/human/layout';
 import {
   ManagementForbiddenAlert,
@@ -24,6 +25,7 @@ import { Input } from '@/shared/ui-primitives/input';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
 import { cn } from '@/lib/utils';
+import { translateAccountRole, translateAgentStatus, translateTokenStatus } from '@/lib/enum-labels';
 import { useAssetsPage } from './use-assets-page';
 import { useAssetsForm } from './use-assets-form';
 
@@ -231,7 +233,7 @@ function OperatorCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
           {page.session?.email ?? page.t('common.loading')}
         </span>
         <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
-        <span>{page.session?.role ?? '...'}</span>
+        <span>{page.session?.role ? translateAccountRole(page.t, page.session.role) : '...'}</span>
         <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
         <span>{page.t('assets.policyNote')}</span>
       </div>
@@ -1015,6 +1017,7 @@ function CapabilityTokenCheckbox({
   checked: boolean;
   onToggle: (id: string) => void;
 }) {
+  const { t } = useI18n();
   const handleChange = useCallback(() => {
     onToggle(token.id);
   }, [onToggle, token.id]);
@@ -1030,7 +1033,7 @@ function CapabilityTokenCheckbox({
       <span className="space-y-1">
         <span className="block font-medium">{token.label}</span>
         <span className="block text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {token.agentName} · {token.status}
+          {token.agentName} · {translateTokenStatus(t, token.status)}
         </span>
       </span>
     </label>
@@ -1046,6 +1049,7 @@ function CapabilityAgentCheckbox({
   checked: boolean;
   onToggle: (id: string) => void;
 }) {
+  const { t } = useI18n();
   const handleChange = useCallback(() => {
     onToggle(agent.id);
   }, [onToggle, agent.id]);
@@ -1061,7 +1065,7 @@ function CapabilityAgentCheckbox({
       <span className="space-y-1">
         <span className="block font-medium">{agent.name}</span>
         <span className="block text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {agent.id} · {agent.status}
+          {agent.id} · {translateAgentStatus(t, agent.status)}
         </span>
       </span>
     </label>

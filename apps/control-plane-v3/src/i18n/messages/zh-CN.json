@@ -189,6 +189,7 @@
       "bootstrapKeyPlaceholder": "changeme-bootstrap-key",
       "createAccount": "创建所有者账户",
       "creating": "创建中",
+      "description": "使用引导凭证完成一次性初始化，创建创始所有者账户并解锁管理登录流程。",
       "displayName": "显示名称",
       "displayNamePlaceholder": "创始所有者",
       "failedToBootstrap": "引导所有者失败",
@@ -231,6 +232,7 @@
     "human": "人类",
     "inactive": "非活跃",
     "initializing": "正在初始化控制平面...",
+    "entryStateLoadFailed": "无法解析应用入口状态。",
     "loading": "加载中...",
     "loadingEllipsis": "加载中...",
     "more": "更多",
@@ -437,6 +439,8 @@
     "accountsUnavailable": "账户不可用",
     "adminRequiredForAgents": "需要管理员会话才能管理 OpenClaw 身份。",
     "adminRequiredForHumans": "需要管理员会话才能管理人类操作员。",
+    "gridView": "网格视图",
+    "listView": "列表视图",
     "agentType": {
       "human": "人类操作员",
       "openclaw": "OpenClaw 智能体"
@@ -519,6 +523,10 @@
       "agentWorkspacesTitle": "智能体工作区",
       "defaultModel": "默认模型",
       "deleteAgent": "删除 {name}",
+      "dreamRunStatus": {
+        "paused": "已暂停",
+        "stopped": "已停止"
+      },
       "dreamModeSummary": "{steps} 步 · {followUps} 个后续任务 · 最大上下文 {maxContext}",
       "dreamModeTitle": "Dream 模式",
       "dreamModeToggles": "任务提议 {proposalState} · 内存写入 {memoryState}",
@@ -734,6 +742,10 @@
     "form": {
       "tagsPlaceholder": "例如：urgent, frontend, react"
     },
+    "detail": {
+      "taskTypeLabel": "任务类型",
+      "publicationStatusLabel": "发布状态"
+    },
     "refreshFailed": "刷新手册失败",
     "sessionExpired": "您的管理会话已过期。请重新登录以浏览手册。",
     "sessionForbidden": "您没有权限查看手册。请使用具有所需权限的管理会话继续。",
@@ -937,8 +949,13 @@
     "role": "角色",
     "roles": {
       "admin": "管理员",
+      "owner": "所有者",
       "operator": "操作员",
       "viewer": "观察者"
+    },
+    "status": {
+      "active": "活跃",
+      "inactive": "非活跃"
     },
     "rosterAdmins": "管理员",
     "rosterAll": "全部账户",
@@ -956,6 +973,8 @@
       "dark": "深色",
       "light": "浅色",
       "system": "跟随系统",
+      "switchToDark": "切换到深色模式",
+      "switchToLight": "切换到浅色模式",
       "title": "主题"
     },
     "title": "管理设置"
@@ -1041,6 +1060,7 @@
       "roles": {
         "admin": "管理员",
         "operator": "操作员",
+        "participant": "参与者",
         "viewer": "观察者"
       },
       "submit": "添加"
@@ -1206,6 +1226,12 @@
     },
     "publishTask": "发布任务",
     "publishTaskDescription": "选择应接收此工作的具体远程访问令牌。",
+    "publication": {
+      "active": "活跃",
+      "archived": "已归档",
+      "draft": "草稿",
+      "paused": "已暂停"
+    },
     "publishingContext": "发布上下文",
     "reviews": "审核",
     "runResult": "运行结果",
@@ -1223,6 +1249,14 @@
       "inFlightTasks": "{count} 个进行中的任务",
       "noMatches": "当前监督筛选器下没有匹配的任务。",
       "title": "人工跟进队列"
+    },
+    "status": {
+      "cancelled": "已取消",
+      "claimed": "已认领",
+      "completed": "已完成",
+      "failed": "失败",
+      "pending": "待处理",
+      "running": "运行中"
     },
     "targetTokens": "目标令牌",
     "targetMetaLine": "智能体 {agentId} • 目标 {targetId}",
@@ -1303,6 +1337,9 @@
     },
     "sessionExpired": "您的管理会话已过期。请重新登录以继续使用实时远程接入数据。",
     "sessionForbidden": "您没有权限管理远程智能体和访问令牌。请使用管理员会话继续。",
+    "status": {
+      "revoked": "已撤销"
+    },
     "subtitle": "供外部智能体使用的远程接入",
     "title": "远程智能体接入",
     "token": {

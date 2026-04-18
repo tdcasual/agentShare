@@ -97,7 +97,9 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
       </div>
 
       {/* 主要内容 */}
-      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <main id="main-content" className="mx-auto max-w-7xl px-4 py-6">
+        {children}
+      </main>
     </div>
   );
 }

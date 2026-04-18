@@ -9,8 +9,10 @@ import { getRoutePolicy, isRouteAllowed } from '@/lib/route-policy';
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 
 describe('shell route integrity', () => {
-  it('does not point create-menu actions to missing routes', () => {
-    expect(getCreateActionTargets()).toEqual([
+  it('retargets create-menu actions to routes allowed for each role', () => {
+    expect(getCreateActionTargets('viewer')).toEqual([]);
+    expect(getCreateActionTargets('operator')).toEqual(['/spaces']);
+    expect(getCreateActionTargets('admin')).toEqual([
       '/tokens',
       '/settings',
       '/tokens',
@@ -20,7 +22,8 @@ describe('shell route integrity', () => {
   });
 
   it('retargets user menu actions to existing routes', () => {
-    expect(getUserMenuTargets()).toEqual(['/settings', '/settings', '/logout']);
+    expect(getUserMenuTargets('admin')).toEqual(['/settings', '/settings', '/logout']);
+    expect(getUserMenuTargets('viewer')).toEqual(['/logout']);
   });
 
   it('allows logout as a functional auth transition route', () => {

@@ -2,6 +2,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, api } from '@/lib/api';
+import enMessages from '@/i18n/messages/en.json';
+import zhMessages from '@/i18n/messages/zh-CN.json';
 import SetupPage from './page';
 
 const pushMock = vi.fn();
@@ -122,5 +124,10 @@ describe('setup page', () => {
     });
 
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it('ships a localized setup description in both locales', () => {
+    expect(enMessages.auth.setup.description).toBeTruthy();
+    expect(zhMessages.auth.setup.description).toBeTruthy();
   });
 });

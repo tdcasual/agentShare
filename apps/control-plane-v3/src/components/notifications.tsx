@@ -122,9 +122,7 @@ export function Notifications({ className }: NotificationsProps) {
 
   const handleEventClick = useCallback(
     async (event: Notification) => {
-      if (!event.read_at) {
-        await markOneRead(event.id);
-      }
+      const markReadPromise = event.read_at ? null : markOneRead(event.id).catch(() => undefined);
 
       if (event.action_url) {
         if (event.action_url.startsWith('/')) {
@@ -132,6 +130,11 @@ export function Notifications({ className }: NotificationsProps) {
         } else {
           window.open(event.action_url, '_blank', 'noopener,noreferrer');
         }
+        return;
+      }
+
+      if (markReadPromise) {
+        await markReadPromise;
       }
     },
     [markOneRead, router]
@@ -147,7 +150,7 @@ export function Notifications({ className }: NotificationsProps) {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-label={
           unreadCount > 0
             ? t('notifications.buttonAriaLabelWithUnread', { label: hubLabel, count: unreadCount })
@@ -171,7 +174,7 @@ export function Notifications({ className }: NotificationsProps) {
       {isOpen && (
         <div
           ref={containerRef}
-          role="menu"
+          role="dialog"
           aria-label={hubLabel}
           className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl sm:w-96 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
@@ -282,7 +285,6 @@ export function Notifications({ className }: NotificationsProps) {
                     <button
                       type="button"
                       key={notification.id}
-                      role="menuitem"
                       aria-label={`${unread ? `${t('notifications.unreadLabel')} ` : ''}${
                         notification.summary || t('notifications.notification')
                       }`}

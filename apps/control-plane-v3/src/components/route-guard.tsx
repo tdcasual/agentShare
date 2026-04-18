@@ -13,6 +13,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { isRouteAllowed } from '@/lib/route-policy';
 import { resolveAppEntryState, useManagementSessionGate } from '@/lib/session';
 import {
+  getDefaultManagementRoute,
   getRequiredRoleForPath,
   hasRequiredRole,
   type ManagementRole,
@@ -54,7 +55,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
         if (!cancelled) {
           setEntryState({
             kind: 'unavailable',
-            error: '无法解析应用入口状态',
+            error: t('common.entryStateLoadFailed'),
           });
         }
       }
@@ -64,7 +65,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname, t]);
 
   // 根据入口状态和当前路径决定行为
   useEffect(() => {
@@ -88,17 +89,18 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     const sessionState = entryState.kind === 'authenticated_ready' ? 'authenticated' : 'anonymous';
 
+    // 认证就绪后的默认重定向
+    if (entryState.kind === 'authenticated_ready' && pathname === '/login') {
+      const userRole = isValidRole(entryState.session.role) ? entryState.session.role : null;
+      router.replace(getDefaultManagementRoute(userRole));
+      return;
+    }
+
     // 检查路由访问权限（基础认证）
     const allowed = isRouteAllowed(pathname, sessionState);
 
     if (!allowed.allowed && allowed.redirect) {
       router.replace(allowed.redirect);
-      return;
-    }
-
-    // 认证就绪后的默认重定向
-    if (entryState.kind === 'authenticated_ready' && pathname === '/login') {
-      router.replace('/');
       return;
     }
 

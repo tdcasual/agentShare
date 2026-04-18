@@ -140,7 +140,7 @@ const InboxContent = memo(function InboxContent() {
       {error && (
         <div className="bg-[var(--kw-rose-surface)]/10 flex items-center gap-2 rounded-xl border border-[var(--kw-rose-surface)] p-4 text-[var(--kw-error)]">
           <AlertCircle className="h-5 w-5" />
-          <p>{error instanceof Error ? error.message : t('inbox.loadFailed')}</p>
+          <p>{error instanceof Error ? error.message : t('inbox.loadError')}</p>
         </div>
       )}
 
