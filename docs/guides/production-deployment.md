@@ -41,15 +41,15 @@ This repository currently keeps image publishing automated, but disables automat
 ## Known Deployment Problems
 
 - GitHub Actions deploy failures that stop at `Copy deployment assets to server` are usually SSH secret failures, not image or app failures. If the log shows `can't connect without a private SSH key or password`, verify `DEPLOY_SSH_KEY` first and then the rest of the deploy connection secrets plus the selected GitHub Environment.
-- API startup failures that stop during `alembic upgrade head` with `password authentication failed for user "postgres"` usually mean database credential drift in the deployment environment. Check whether `POSTGRES_PASSWORD` and the password embedded in `DATABASE_URL` still match exactly.
-- For the default same-stack Coolify deployment, the safer posture is to leave `DATABASE_URL` unset and let `docker-compose.coolify.yml` derive it from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`.
+- API startup failures that stop during `alembic upgrade head` with `password authentication failed for user "postgres"` usually mean database credential drift in the deployment environment. First check whether an explicit `DATABASE_URL` override still matches the intended database host and current `POSTGRES_*` values.
+- For the default same-stack deployment paths, the safer posture is to leave `DATABASE_URL` unset and let Compose derive it from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`.
 
 ## DNS, TLS, and Metrics
 
 - Point `PUBLIC_HOST` at the production server before the first deploy.
 - Caddy terminates TLS automatically using `ACME_EMAIL`.
-- Caddy is the public ingress for the production stack, but `/metrics` stays limited to host-local or private-network callers so raw Prometheus data is not exposed on the public internet.
-- The deploy smoke checks still verify `/metrics` through Caddy from the deployment host itself.
+- Caddy is the public ingress for the production stack, but `/metrics` now requires an admin-or-owner management session in addition to staying on host-local or private-network paths so raw Prometheus data is not exposed on the public internet.
+- The deploy smoke checks still verify `/metrics` through Caddy from the deployment host itself after authenticating with an admin management session.
 - Do not publish Postgres or Redis directly.
 - Keep the Caddy security headers in `ops/caddy/Caddyfile` enabled unless you have a replacement control upstream.
 - Review `.github/workflows/security.yml` before each release window if recent image security scan failures occurred.

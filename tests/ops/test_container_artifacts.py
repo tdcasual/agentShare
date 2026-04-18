@@ -92,6 +92,16 @@ def test_dev_compose_openbao_healthcheck_uses_ipv4_loopback() -> None:
     assert "http://localhost:8200/v1/sys/health" not in compose
 
 
+def test_dev_compose_binds_exposed_services_to_loopback_only() -> None:
+    compose = (ROOT / "docker-compose.yml").read_text()
+
+    assert 'APP_ENV: ${APP_ENV:-development}' in compose
+    assert '127.0.0.1:8200:8200' in compose
+    assert '127.0.0.1:${POSTGRES_PORT:-5432}:5432' in compose
+    assert '127.0.0.1:${REDIS_PORT:-6379}:6379' in compose
+    assert '127.0.0.1:${API_PORT:-8000}:8000' in compose
+
+
 def test_docker_workflow_builds_both_images_with_ghcr() -> None:
     workflow = (ROOT / ".github/workflows/docker-images.yml").read_text()
     assert "docker/login-action" in workflow
@@ -128,6 +138,10 @@ def test_prod_compose_uses_published_images() -> None:
     assert "\n  caddy:\n" in compose
     assert "restart: unless-stopped" in compose
     assert "MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}" in compose
+    assert (
+        "DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}"
+        in compose
+    )
 
 
 def test_coolify_compose_uses_local_builds_and_same_stack_openbao() -> None:
@@ -144,7 +158,10 @@ def test_coolify_compose_uses_local_builds_and_same_stack_openbao() -> None:
     assert "dockerfile: apps/control-plane-v3/Dockerfile" in compose
     assert "APP_ENV: ${APP_ENV:-production}" in compose
     assert "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}" in compose
-    assert "DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}" in compose
+    assert (
+        "DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}"
+        in compose
+    )
     assert "OPENBAO_ADDR: ${OPENBAO_ADDR:-http://openbao:8200}" in compose
     assert "OPENBAO_TOKEN_FILE: ${OPENBAO_TOKEN_FILE:-/openbao/bootstrap/root-token}" in compose
     assert "BOOTSTRAP_OWNER_KEY: ${BOOTSTRAP_OWNER_KEY:?BOOTSTRAP_OWNER_KEY is required}" in compose
@@ -156,6 +173,8 @@ def test_coolify_compose_uses_local_builds_and_same_stack_openbao() -> None:
     assert "DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}" in compose
     assert "depends_on:\n      openbao:" in compose
     assert "caddy:" not in compose
+    assert '${API_BIND_HOST:-127.0.0.1}:${API_PORT:-8000}:8000' in compose
+    assert '${WEB_BIND_HOST:-127.0.0.1}:${WEB_PORT:-3000}:3000' in compose
 
 
 def test_coolify_env_template_documents_single_stack_defaults() -> None:
@@ -167,6 +186,8 @@ def test_coolify_env_template_documents_single_stack_defaults() -> None:
     assert "OPENBAO_ADDR=http://openbao:8200" in env_example
     assert "OPENBAO_TOKEN_FILE=/openbao/bootstrap/root-token" in env_example
     assert "NEXT_PUBLIC_API_BASE_URL=https://agentshare.example.com" in env_example
+    assert "API_BIND_HOST=127.0.0.1" in env_example
+    assert "WEB_BIND_HOST=127.0.0.1" in env_example
     assert "AGENT_CONTROL_PLANE_API_URL=http://api:8000" in env_example
     assert "OPENAI_API_KEY=" in env_example
 
@@ -174,6 +195,7 @@ def test_coolify_env_template_documents_single_stack_defaults() -> None:
 def test_production_env_template_includes_runtime_placeholders() -> None:
     env_example = (ROOT / "ops/compose/prod.env.example").read_text()
     assert "DATABASE_URL=" in env_example
+    assert "leave DATABASE_URL unset" in env_example
     assert "BOOTSTRAP_OWNER_KEY=" in env_example
     assert "MANAGEMENT_SESSION_SECRET=" in env_example
     assert "NEXT_PUBLIC_API_BASE_URL=" in env_example
@@ -182,6 +204,13 @@ def test_production_env_template_includes_runtime_placeholders() -> None:
     assert "SECRET_BACKEND_URL=" in env_example
     assert "SECRET_BACKEND_TOKEN=" in env_example
     assert "APP_BASE_URL=" in env_example
+
+
+def test_root_production_env_template_matches_single_source_database_guidance() -> None:
+    env_example = (ROOT / ".env.production.example").read_text()
+    assert "DATABASE_URL=" in env_example
+    assert "leave DATABASE_URL unset" in env_example
+    assert "POSTGRES_PASSWORD=replace-with-strong-password" in env_example
 
 
 def test_readme_documents_compose_and_image_pipeline() -> None:

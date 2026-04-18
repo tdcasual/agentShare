@@ -23,11 +23,15 @@ def test_postgres_backup_uses_pg_dump() -> None:
     assert "pg_dump" in script
     assert "docker compose" in script
     assert "BACKUP_DIR" in script
+    assert "POSTGRES_DB" in script
+    assert "DATABASE_URL" not in script
 
 
 def test_postgres_restore_documents_safe_restore_order() -> None:
     script = (ROOT / "scripts/ops/restore-postgres.sh").read_text()
     assert "psql" in script or "pg_restore" in script
+    assert "docker compose" in script
+    assert "POSTGRES_DB" in script
     assert "Stop API writes" in script
     assert "restore" in script.lower()
 
@@ -35,6 +39,8 @@ def test_postgres_restore_documents_safe_restore_order() -> None:
 def test_redis_backup_script_captures_persistent_state() -> None:
     script = (ROOT / "scripts/ops/backup-redis.sh").read_text()
     assert "redis-cli" in script
+    assert "docker compose" in script
+    assert "REDIS_SERVICE" in script
     assert "tar" in script or "rdb" in script.lower()
 
 

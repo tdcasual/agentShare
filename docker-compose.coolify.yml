@@ -55,12 +55,12 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_BIND_HOST:-127.0.0.1}:${API_PORT:-8000}:8000"
     volumes:
       - openbao-bootstrap:/openbao/bootstrap:ro
     environment:
       APP_ENV: ${APP_ENV:-production}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       SECRET_BACKEND: ${SECRET_BACKEND:-openbao}
       OPENBAO_ADDR: ${OPENBAO_ADDR:-http://openbao:8200}
@@ -94,7 +94,7 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "${WEB_BIND_HOST:-127.0.0.1}:${WEB_PORT:-3000}:3000"
     environment:
       AGENT_CONTROL_PLANE_API_URL: ${AGENT_CONTROL_PLANE_API_URL:-http://api:8000}
       MANAGEMENT_SESSION_COOKIE_NAME: ${MANAGEMENT_SESSION_COOKIE_NAME:-management_session}

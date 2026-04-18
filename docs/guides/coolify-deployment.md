@@ -36,6 +36,8 @@ Keep `OPENBAO_ADDR=http://openbao:8200` and `OPENBAO_TOKEN_FILE=/openbao/bootstr
 
 For the default same-stack Postgres setup, prefer leaving `DATABASE_URL` unset. `docker-compose.coolify.yml` already derives it from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`, which avoids password drift between two separate environment values.
 
+By default the compose file now binds `api` and `web` to `127.0.0.1` on the host. That keeps the raw service ports off the public interface while Coolify handles ingress. Only override `API_BIND_HOST` or `WEB_BIND_HOST` to `0.0.0.0` if you intentionally want direct host-port exposure.
+
 ## Deploy In Coolify
 
 1. Create a new Docker Compose application in Coolify from this repository.

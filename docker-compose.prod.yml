@@ -50,7 +50,7 @@ services:
         condition: service_healthy
     environment:
       APP_ENV: ${APP_ENV:-production}
-      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}
       REDIS_URL: ${REDIS_URL:?REDIS_URL is required}
       SECRET_BACKEND: ${SECRET_BACKEND:-openbao}
       OPENBAO_ADDR: ${SECRET_BACKEND_URL:?SECRET_BACKEND_URL is required}

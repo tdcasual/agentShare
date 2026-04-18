@@ -61,6 +61,10 @@ Keep these defaults unless you know you need different wiring:
 - `OPENBAO_MOUNT=secret`
 - `OPENBAO_PREFIX=agent-share`
 - `REDIS_URL=redis://redis:6379/0`
+- `API_BIND_HOST=127.0.0.1`
+- `WEB_BIND_HOST=127.0.0.1`
+
+Those bind-host defaults keep the raw `api` and `web` ports on loopback so Coolify can front them without also publishing them directly on the server's public interface. Only switch either bind host to `0.0.0.0` if you intentionally want direct host-port exposure.
 
 ## Preparation Checklist
 
@@ -295,9 +299,9 @@ Check:
 - `MANAGEMENT_SESSION_SECURE`
 - public domain and HTTPS configuration in Coolify
 - whether `APP_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL` match the real public URL
-- whether `POSTGRES_PASSWORD` and the password embedded in `DATABASE_URL` still match exactly
+- whether an explicit `DATABASE_URL` override still matches the intended database host and current `POSTGRES_*` values
 
-If the API container fails during `alembic upgrade head` with `password authentication failed for user "postgres"`, the usual cause is environment drift: `POSTGRES_PASSWORD` was rotated but `DATABASE_URL` still points at the old password.
+If the API container fails during `alembic upgrade head` with `password authentication failed for user "postgres"`, the usual cause is environment drift: `POSTGRES_PASSWORD` was rotated or the database host changed while `DATABASE_URL` still points at stale credentials.
 
 ## Related Documents
 

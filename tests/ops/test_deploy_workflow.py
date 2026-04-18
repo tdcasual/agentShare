@@ -14,6 +14,8 @@ def test_deploy_workflow_validates_remote_stack_and_runs_smoke_checks() -> None:
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans" in workflow
+    assert 'ACP_ADMIN_EMAIL="${{ secrets.ACP_ADMIN_EMAIL }}"' in workflow
+    assert 'ACP_ADMIN_PASSWORD="${{ secrets.ACP_ADMIN_PASSWORD }}"' in workflow
     assert "./scripts/ops/smoke-test.sh" in workflow
 
 

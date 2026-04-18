@@ -9,7 +9,7 @@ services:
     cap_add:
       - IPC_LOCK
     ports:
-      - "8200:8200"
+      - "127.0.0.1:8200:8200"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8200/v1/sys/health"]
       interval: 5s
@@ -23,7 +23,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -36,7 +36,7 @@ services:
     image: redis:7
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -50,8 +50,9 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "127.0.0.1:${API_PORT:-8000}:8000"
     environment:
+      APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/agent_share}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       SECRET_BACKEND: ${SECRET_BACKEND:-openbao}
@@ -86,7 +87,7 @@ services:
       context: .
       dockerfile: apps/control-plane-v3/Dockerfile
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
     environment:
       AGENT_CONTROL_PLANE_API_URL: ${AGENT_CONTROL_PLANE_API_URL:-http://api:8000}
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}

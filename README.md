@@ -152,10 +152,10 @@ Then the remote host runs:
 ```bash
 docker compose --env-file .env.production -f docker-compose.prod.yml pull
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
-APP_BASE_URL=https://agentshare.example.com PUBLIC_HOST=agentshare.example.com ./scripts/ops/smoke-test.sh
+ACP_ADMIN_EMAIL=owner@example.com ACP_ADMIN_PASSWORD=replace-with-owner-password APP_BASE_URL=https://agentshare.example.com PUBLIC_HOST=agentshare.example.com ./scripts/ops/smoke-test.sh
 ```
 
-`scripts/ops/smoke-test.sh` accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` for the public entrypoint, so teams can keep the smoke configuration aligned with their deployment env naming.
+`scripts/ops/smoke-test.sh` accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` for the public entrypoint, so teams can keep the smoke configuration aligned with their deployment env naming. The authenticated `/metrics` probe now also requires either an existing `ACP_COOKIE_JAR` or login credentials in `ACP_ADMIN_EMAIL` / `ACP_ADMIN_PASSWORD`.
 
 ### Required GitHub secrets
 
@@ -169,6 +169,8 @@ Configure these repository or environment secrets before enabling the deploy wor
 - `GHCR_USERNAME`
 - `GHCR_TOKEN`
 - `DEPLOY_ENV_FILE`
+- `ACP_ADMIN_EMAIL`
+- `ACP_ADMIN_PASSWORD`
 
 `DEPLOY_ENV_FILE` should contain the full contents of the production `.env.production` file. The deploy workflow refreshes `.env.production` on every deployment so secret rotation, host changes, and other runtime config updates are actually applied.
 
@@ -177,9 +179,9 @@ Configure these repository or environment secrets before enabling the deploy wor
 Two deployment problems have already shown up often enough to treat them as first-line checks:
 
 - If the GitHub Actions deploy run fails in `Copy deployment assets to server` with `can't connect without a private SSH key or password`, the workflow did not receive a usable SSH credential. Check `DEPLOY_SSH_KEY` first, then confirm `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PORT`, and the selected GitHub Environment.
-- If the application stack reaches API startup but `alembic upgrade head` fails with `password authentication failed for user "postgres"`, treat it as environment drift first. The usual cause is that `POSTGRES_PASSWORD` changed while `DATABASE_URL` still contains the old password.
+- If the application stack reaches API startup but `alembic upgrade head` fails with `password authentication failed for user "postgres"`, treat it as environment drift first. The usual cause is an explicit `DATABASE_URL` override pointing at stale credentials or a different host than the current `POSTGRES_*` settings.
 
-For the default same-stack Coolify path, prefer leaving `DATABASE_URL` unset and letting Compose derive it from the `POSTGRES_*` variables. That removes one common source of password mismatch.
+For the default same-stack Compose paths, prefer leaving `DATABASE_URL` unset and letting Compose derive it from the `POSTGRES_*` variables. That removes one common source of password mismatch.
 
 ### Server prerequisites
 
