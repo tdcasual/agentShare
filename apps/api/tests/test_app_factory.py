@@ -6,6 +6,7 @@ from app.config import Settings
 from app.factory import create_app
 from app.routes import register_routes
 from app.runtime import build_runtime
+from conftest import _run_alembic_upgrade
 
 
 def test_create_app_registers_core_routes():
@@ -44,6 +45,26 @@ def test_create_app_runs_bootstrap_initializer_once(monkeypatch, tmp_path):
     assert len(calls) == 1
 
 
+def test_create_app_startup_does_not_run_db_migrations(monkeypatch, tmp_path):
+    migrate_calls: list[str] = []
+
+    def fake_migrate_db(database_url: str) -> None:
+        migrate_calls.append(database_url)
+
+    monkeypatch.setattr("app.factory.db_module.migrate_db", fake_migrate_db)
+    monkeypatch.setattr("app.factory.ensure_bootstrap_credential", lambda settings, session_factory: None)
+    monkeypatch.setattr("app.factory.seed_demo_fixture_data", lambda settings, session_factory: None)
+
+    app = create_app(Settings(
+        app_env="development",
+        database_url="postgresql://postgres:postgres@db.example.com:5432/agent_share",
+    ))
+    with TestClient(app):
+        pass
+
+    assert migrate_calls == []
+
+
 def test_create_app_attaches_runtime_settings(tmp_path):
     db_path = tmp_path / "runtime.db"
     app = create_app(Settings(database_url=f"sqlite:///{db_path}"))
@@ -55,6 +76,7 @@ def test_create_app_attaches_runtime_settings(tmp_path):
 
 def test_create_app_uses_runtime_engine_for_bootstrap_routes(tmp_path):
     db_path = tmp_path / "bootstrap-runtime.db"
+    _run_alembic_upgrade(f"sqlite:///{db_path}")
     app = create_app(Settings(database_url=f"sqlite:///{db_path}", management_session_secret="session-secret"))
 
     with TestClient(app) as client:

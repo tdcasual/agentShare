@@ -257,7 +257,10 @@ def test_build_runtime_enables_pool_tuning_for_non_sqlite(monkeypatch):
 
     monkeypatch.setattr("app.runtime.create_engine", fake_create_engine)
 
-    runtime = build_runtime(Settings(database_url="postgresql://user:pass@db.example.com:5432/app"))
+    runtime = build_runtime(Settings(
+        app_env="development",
+        database_url="postgresql://user:pass@db.example.com:5432/app",
+    ))
 
     assert runtime.engine is fake_engine
     assert captured["url"] == "postgresql://user:pass@db.example.com:5432/app"

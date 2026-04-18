@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.orm.space_timeline_entry import SpaceTimelineEntryModel
@@ -74,13 +75,24 @@ def _append_timeline_entry(
     if existing is not None:
         return existing
 
-    return repo.create_timeline_entry(
-        SpaceTimelineEntryModel(
-            id=new_resource_id("space-entry"),
+    try:
+        return repo.create_timeline_entry(
+            SpaceTimelineEntryModel(
+                id=new_resource_id("space-entry"),
+                space_id=space_id,
+                entry_type=entry_type,
+                subject_type=subject_type,
+                subject_id=subject_id,
+                summary=summary,
+            )
+        )
+    except IntegrityError:
+        existing = repo.find_timeline_entry(
             space_id=space_id,
             entry_type=entry_type,
             subject_type=subject_type,
             subject_id=subject_id,
-            summary=summary,
         )
-    )
+        if existing is not None:
+            return existing
+        raise

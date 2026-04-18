@@ -10,6 +10,7 @@ def build_runtime_principal(
     *,
     agent: OpenClawAgentModel,
     session: OpenClawSessionModel,
+    session_key: str | None = None,
 ) -> AgentIdentity:
     return AgentIdentity(
         id=agent.id,
@@ -26,7 +27,7 @@ def build_runtime_principal(
         allowed_task_types=agent.allowed_task_types or [],
         risk_tier=agent.risk_tier,
         session_id=session.id,
-        session_key=session.session_key,
+        session_key=session_key,
         workspace_root=agent.workspace_root,
         agent_dir=agent.agent_dir,
         sandbox_mode=agent.sandbox_mode,

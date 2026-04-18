@@ -10,15 +10,32 @@ from app.services.approval_service import approve_request, require_runtime_appro
 from app.services.idempotency import IdempotencyMiddleware
 from app.services.policy_service import PolicyContext
 from app.services.redis_client import get_redis
-from conftest import TEST_AGENT_KEY, bootstrap_owner_account, login_management_account
+from conftest import BOOTSTRAP_OWNER_KEY, TEST_AGENT_KEY, bootstrap_owner_account, login_management_account
 
 
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def test_metrics_endpoint_requires_admin_session(client) -> None:
+    response = client.get("/metrics")
+
+    assert response.status_code == 401
+
+
+def test_metrics_endpoint_forbids_operator_session(management_client_for_role) -> None:
+    with management_client_for_role("operator") as operator_client:
+        response = operator_client.get("/metrics")
+
+    assert response.status_code == 403
+
+
 def test_metrics_endpoint_exposes_prometheus_text(client) -> None:
     client.get("/healthz")
     client.get("/does-not-exist")
+    bootstrap_owner_account(client)
+    login_response = login_management_account(client)
+    assert login_response.status_code == 200, login_response.text
+
     response = client.get("/metrics")
 
     assert response.status_code == 200
@@ -41,6 +58,9 @@ def test_metrics_endpoint_exposes_prometheus_text(client) -> None:
 def test_metrics_expose_request_dimensions(client) -> None:
     client.get("/healthz")
     client.get("/does-not-exist")
+    bootstrap_owner_account(client)
+    login_response = login_management_account(client)
+    assert login_response.status_code == 200, login_response.text
 
     response = client.get("/metrics")
 
@@ -63,6 +83,7 @@ def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client,
     failed_login = login_management_account(client, password="wrong-password")
     successful_login = login_management_account(client)
     logout = client.post("/api/session/logout")
+    relogin = login_management_account(client)
     claim = client.post(
         "/api/tasks/task-observed/claim",
         headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
@@ -101,9 +122,10 @@ def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client,
     assert failed_login.status_code == 401
     assert successful_login.status_code == 200
     assert logout.status_code == 200
+    assert relogin.status_code == 200
     assert claim.status_code == 200
     assert complete.status_code == 200
-    assert "agent_control_plane_management_session_logins_total 1" in metrics.text
+    assert "agent_control_plane_management_session_logins_total 2" in metrics.text
     assert "agent_control_plane_management_session_login_failures_total 1" in metrics.text
     assert "agent_control_plane_management_session_logouts_total 1" in metrics.text
     assert "agent_control_plane_task_claims_total 1" in metrics.text
@@ -116,9 +138,13 @@ def test_metrics_endpoint_respects_runtime_settings(tmp_path) -> None:
     app = create_app(Settings(
         database_url=f"sqlite:///{tmp_path / 'metrics.db'}",
         metrics_enabled=False,
+        bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
     ))
 
     with TestClient(app) as client:
+        bootstrap_owner_account(client)
+        login_response = login_management_account(client)
+        assert login_response.status_code == 200, login_response.text
         response = client.get("/metrics")
 
     assert response.status_code == 404

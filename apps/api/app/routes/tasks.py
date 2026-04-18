@@ -121,8 +121,16 @@ def complete_task_target_route(
     payload: TaskComplete,
     agent: AgentIdentity = Depends(require_agent),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
-    target = complete_task_target(session, target_id, agent, payload.result_summary, payload.output_payload)
+    target = complete_task_target(
+        session,
+        target_id,
+        agent,
+        payload.result_summary,
+        payload.output_payload,
+        settings=settings,
+    )
     record_event(
         session,
         event_type="task_completed",
@@ -176,8 +184,16 @@ def complete_task_route(
     payload: TaskComplete,
     agent: AgentIdentity = Depends(require_agent),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
-    task = complete_task(session, task_id, agent, payload.result_summary, payload.output_payload)
+    task = complete_task(
+        session,
+        task_id,
+        agent,
+        payload.result_summary,
+        payload.output_payload,
+        settings=settings,
+    )
     record_event(
         session,
         event_type="task_completed",

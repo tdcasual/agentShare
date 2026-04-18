@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import ensure_task_type_allowed
 from app.config import Settings
-from app.errors import DomainError
+from app.errors import ConflictError, DomainError
 from app.models.agent import AgentIdentity
 from app.schemas.tasks import TaskCreate
 from app.services.gateway import issue_lease, proxy_invoke
@@ -282,49 +282,55 @@ def execute_tool(
             try:
                 ensure_followup_task_allowed(session, run_id=parsed.run_id, agent=agent)
                 ensure_task_type_allowed(agent, parsed.task_type)
-                task = create_task(
-                    session,
-                    TaskCreate(
-                        title=parsed.title,
-                        task_type=parsed.task_type,
-                        input=parsed.input,
-                        required_capability_ids=parsed.required_capability_ids,
-                        playbook_ids=parsed.playbook_ids,
-                        lease_allowed=parsed.lease_allowed,
-                        approval_mode=parsed.approval_mode,
-                    ),
-                    actor=type(
-                        "DreamActor",
-                        (),
-                        {
-                            "actor_type": "agent",
-                            "id": agent.id,
-                            "token_id": agent.token_id,
-                        },
-                    )(),
-                )
-                return {
-                    "task": task,
-                    "dream": register_followup_task(
+                with session.begin_nested():
+                    task = create_task(
+                        session,
+                        TaskCreate(
+                            title=parsed.title,
+                            task_type=parsed.task_type,
+                            input=parsed.input,
+                            required_capability_ids=parsed.required_capability_ids,
+                            playbook_ids=parsed.playbook_ids,
+                            lease_allowed=parsed.lease_allowed,
+                            approval_mode=parsed.approval_mode,
+                        ),
+                        actor=type(
+                            "DreamActor",
+                            (),
+                            {
+                                "actor_type": "agent",
+                                "id": agent.id,
+                                "token_id": agent.token_id,
+                            },
+                        )(),
+                    )
+                    dream = register_followup_task(
                         session,
                         run_id=parsed.run_id,
                         agent=agent,
                         created_task_id=task["id"],
-                    ),
+                    )
+                return {
+                    "task": task,
+                    "dream": dream,
                 }
             except DomainError as exc:
-                stop_reason = (
-                    "budget_exhausted"
-                    if exc.detail == "Dream run follow-up task budget exhausted"
-                    else "task_proposal_disallowed"
+                should_stop_run = not isinstance(exc, ConflictError) or (
+                    exc.detail == "Dream run follow-up task budget exhausted"
                 )
-                stop_dream_run_with_event(
-                    session,
-                    run_id=parsed.run_id,
-                    agent=agent,
-                    stop_reason=stop_reason,
-                    detail=exc.detail,
-                )
+                if should_stop_run:
+                    stop_reason = (
+                        "budget_exhausted"
+                        if exc.detail == "Dream run follow-up task budget exhausted"
+                        else "task_proposal_disallowed"
+                    )
+                    stop_dream_run_with_event(
+                        session,
+                        run_id=parsed.run_id,
+                        agent=agent,
+                        stop_reason=stop_reason,
+                        detail=exc.detail,
+                    )
                 _raise_tool_error_from_domain_error(exc)
             except PermissionError as exc:
                 stop_dream_run_with_event(

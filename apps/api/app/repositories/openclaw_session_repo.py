@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.orm.openclaw_session import OpenClawSessionModel
+from app.services.openclaw_session_key_service import hash_openclaw_session_key
 
 
 class OpenClawSessionRepository:
@@ -20,7 +21,7 @@ class OpenClawSessionRepository:
     def find_by_session_key(self, session_key: str) -> OpenClawSessionModel | None:
         return (
             self.session.query(OpenClawSessionModel)
-            .filter(OpenClawSessionModel.session_key == session_key)
+            .filter(OpenClawSessionModel.session_key == hash_openclaw_session_key(session_key))
             .first()
         )
 

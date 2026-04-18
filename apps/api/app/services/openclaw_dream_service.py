@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import AuthorizationError, ConflictError, NotFoundError
@@ -124,6 +125,20 @@ def get_dream_run(
     return model
 
 
+def get_dream_run_for_update(
+    session: Session,
+    run_id: str,
+    *,
+    agent: AgentIdentity | None = None,
+) -> OpenClawDreamRunModel:
+    model = OpenClawDreamRunRepository(session).get_for_update(run_id)
+    if model is None:
+        raise NotFoundError("Dream run not found")
+    if agent is not None and model.agent_id != agent.id:
+        raise AuthorizationError("Dream run does not belong to this agent")
+    return model
+
+
 def record_dream_step(
     session: Session,
     *,
@@ -138,7 +153,11 @@ def record_dream_step(
 ) -> dict:
     run_repo = OpenClawDreamRunRepository(session)
     step_repo = OpenClawDreamStepRepository(session)
-    run = get_dream_run(session, run_id, agent=agent)
+    run = run_repo.get_for_update(run_id)
+    if run is None:
+        raise NotFoundError("Dream run not found")
+    if run.agent_id != agent.id:
+        raise AuthorizationError("Dream run does not belong to this agent")
     if run.status != "active":
         raise ConflictError("Dream run is not active")
     ensure_step_budget_remaining(consumed_steps=run.consumed_steps, step_budget=run.step_budget)
@@ -154,7 +173,10 @@ def record_dream_step(
         token_usage=token_usage,
         created_task_id=created_task_id,
     )
-    step_repo.create(step)
+    try:
+        step_repo.create(step)
+    except IntegrityError as exc:
+        raise ConflictError("Dream run step is already being recorded") from exc
     run.consumed_steps = next_index
     if next_index >= run.step_budget:
         run.status = "stopped"
@@ -174,7 +196,7 @@ def stop_dream_run(
     stop_reason: str,
 ) -> dict:
     repo = OpenClawDreamRunRepository(session)
-    run = get_dream_run(session, run_id, agent=agent)
+    run = get_dream_run_for_update(session, run_id, agent=agent)
     run.status = "stopped"
     run.stop_reason = stop_reason
     repo.update(run)
@@ -190,7 +212,7 @@ def stop_dream_run_with_event(
     detail: str,
 ) -> dict:
     repo = OpenClawDreamRunRepository(session)
-    run = get_dream_run(session, run_id, agent=agent)
+    run = get_dream_run_for_update(session, run_id, agent=agent)
     if run.status == "active":
         run.status = "stopped"
         run.stop_reason = stop_reason
@@ -224,7 +246,7 @@ def pause_dream_run(
     reason: str,
 ) -> dict:
     repo = OpenClawDreamRunRepository(session)
-    run = get_dream_run(session, run_id)
+    run = get_dream_run_for_update(session, run_id)
     if run.status != "active":
         raise ConflictError("Dream run is not active")
     run.status = "paused"
@@ -239,7 +261,7 @@ def resume_dream_run(
     run_id: str,
 ) -> dict:
     repo = OpenClawDreamRunRepository(session)
-    run = get_dream_run(session, run_id)
+    run = get_dream_run_for_update(session, run_id)
     if run.status != "paused":
         raise ConflictError("Dream run is not paused")
     if run.consumed_steps >= run.step_budget:
@@ -259,12 +281,16 @@ def register_followup_task(
 ) -> dict:
     run_repo = OpenClawDreamRunRepository(session)
     step_repo = OpenClawDreamStepRepository(session)
-    run = ensure_followup_task_allowed(session, run_id=run_id, agent=agent)
+    run = run_repo.get_for_update(run_id)
+    if run is None:
+        raise NotFoundError("Dream run not found")
+    _ensure_followup_task_allowed_for_run(run, agent=agent)
     run.created_followup_tasks += 1
+    next_index = run.consumed_steps + 1
     step = OpenClawDreamStepModel(
         id=new_resource_id("dream-step"),
         run_id=run.id,
-        step_index=run.consumed_steps + 1,
+        step_index=next_index,
         step_type="propose_task",
         status="completed",
         input_payload={},
@@ -272,9 +298,12 @@ def register_followup_task(
         token_usage={},
         created_task_id=created_task_id,
     )
-    step_repo.create(step)
-    run.consumed_steps += 1
-    if run.consumed_steps >= run.step_budget:
+    try:
+        step_repo.create(step)
+    except IntegrityError as exc:
+        raise ConflictError("Dream run step is already being recorded") from exc
+    run.consumed_steps = next_index
+    if next_index >= run.step_budget:
         run.status = "stopped"
         run.stop_reason = "budget_exhausted"
     run_repo.update(run)
@@ -291,6 +320,15 @@ def ensure_followup_task_allowed(
     agent: AgentIdentity,
 ) -> OpenClawDreamRunModel:
     run = get_dream_run(session, run_id, agent=agent)
+    _ensure_followup_task_allowed_for_run(run, agent=agent)
+    return run
+
+
+def _ensure_followup_task_allowed_for_run(
+    run: OpenClawDreamRunModel,
+    *,
+    agent: AgentIdentity,
+) -> None:
     if run.status != "active":
         raise ConflictError("Dream run is not active")
     policy = ensure_followup_tasks_allowed(agent)
@@ -299,4 +337,3 @@ def ensure_followup_task_allowed(
         max_followup_tasks=policy["max_followup_tasks"],
     )
     ensure_step_budget_remaining(consumed_steps=run.consumed_steps, step_budget=run.step_budget)
-    return run

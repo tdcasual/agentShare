@@ -27,6 +27,7 @@ from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepositor
 from app.repositories.openclaw_memory_repo import OpenClawMemoryRepository
 from app.repositories.openclaw_session_repo import OpenClawSessionRepository
 from app.repositories.task_repo import TaskRepository
+from app.services.openclaw_session_key_service import hash_openclaw_session_key
 
 
 @pytest.fixture
@@ -134,7 +135,7 @@ def test_openclaw_session_repo_lists_sessions_for_agent(db_session: Session):
         OpenClawSessionModel(
             id="session-1",
             agent_id="openclaw-agent-3",
-            session_key="session-key-1",
+            session_key=hash_openclaw_session_key("session-key-1"),
             display_name="Primary Session",
             channel="chat",
         )
@@ -143,7 +144,7 @@ def test_openclaw_session_repo_lists_sessions_for_agent(db_session: Session):
     listed = repo.list_for_agent("openclaw-agent-3")
 
     assert len(listed) == 1
-    assert listed[0].session_key == "session-key-1"
+    assert repo.find_by_session_key("session-key-1") is not None
 
 
 def test_openclaw_dream_run_repo_filters_by_agent_and_status(db_session: Session):
@@ -162,7 +163,7 @@ def test_openclaw_dream_run_repo_filters_by_agent_and_status(db_session: Session
         OpenClawSessionModel(
             id="dream-session-1",
             agent_id="openclaw-agent-5",
-            session_key="dream-session-key-1",
+            session_key=hash_openclaw_session_key("dream-session-key-1"),
             display_name="Dream Session",
             channel="chat",
         )
@@ -201,7 +202,7 @@ def test_openclaw_dream_step_repo_records_step_types_and_indexes(db_session: Ses
         OpenClawSessionModel(
             id="dream-session-2",
             agent_id="openclaw-agent-6",
-            session_key="dream-session-key-2",
+            session_key=hash_openclaw_session_key("dream-session-key-2"),
             display_name="Dream Step Session",
             channel="chat",
         )

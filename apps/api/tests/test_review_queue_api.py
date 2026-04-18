@@ -138,3 +138,29 @@ def test_review_decision_transport_uses_review_reason_fields(client, management_
     assert payload["review_reason"] == "Transport shape approved"
     assert "status" not in payload
     assert "reviewed_by" not in payload
+
+
+def test_review_decision_returns_409_when_same_resource_is_already_being_decided(
+    client, management_client, monkeypatch
+):
+    playbook = client.post(
+        "/api/playbooks",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "title": "Locked review playbook",
+            "task_type": "prompt_run",
+            "body": "Review lock me",
+            "tags": ["review"],
+        },
+    )
+    assert playbook.status_code == 202, playbook.text
+
+    monkeypatch.setattr("app.services.review_service.acquire_lock", lambda *args, **kwargs: False)
+
+    blocked = management_client.post(
+        f"/api/reviews/playbook/{playbook.json()['id']}/approve",
+        json={},
+    )
+
+    assert blocked.status_code == 409, blocked.text
+    assert blocked.json()["detail"] == "Review decision is being processed by another operator"

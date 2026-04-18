@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from urllib.parse import urlencode
 
+from app.config import ManagementRole
+from app.services.policy_service import MANAGEMENT_ROLE_LEVELS
 
 GENERIC_MANAGEMENT_ROUTES = {
     "/assets",
@@ -11,6 +13,16 @@ GENERIC_MANAGEMENT_ROUTES = {
     "/reviews",
     "/spaces",
     "/tasks",
+}
+
+GENERIC_MANAGEMENT_ROUTE_MINIMUM_ROLES: dict[str, ManagementRole] = {
+    "/assets": "admin",
+    "/identities": "admin",
+    "/inbox": "admin",
+    "/marketplace": "operator",
+    "/reviews": "operator",
+    "/spaces": "viewer",
+    "/tasks": "admin",
 }
 
 
@@ -29,6 +41,18 @@ def _is_generic_management_href(href: str) -> bool:
         return False
     path = href.split("?", 1)[0]
     return path in GENERIC_MANAGEMENT_ROUTES
+
+
+def is_management_href_allowed(role: ManagementRole, href: str) -> bool:
+    if not href.startswith("/"):
+        return True
+
+    path = href.split("?", 1)[0]
+    minimum_role = GENERIC_MANAGEMENT_ROUTE_MINIMUM_ROLES.get(path)
+    if minimum_role is None:
+        return True
+
+    return MANAGEMENT_ROLE_LEVELS[role] >= MANAGEMENT_ROLE_LEVELS[minimum_role]
 
 
 def build_identity_href(*, agent_id: str | None = None, admin_id: str | None = None) -> str:

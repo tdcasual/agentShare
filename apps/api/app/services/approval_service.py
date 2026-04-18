@@ -6,6 +6,7 @@ from time import time_ns
 from typing import Literal
 from uuid import uuid4
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.orm.approval_request import ApprovalRequestModel
@@ -74,6 +75,8 @@ def require_runtime_approval(
     task_id: str,
     capability_id: str,
     agent_id: str,
+    token_id: str | None = None,
+    task_target_id: str | None = None,
     action_type: str,
     task_approval_mode: str,
     capability_approval_mode: str,
@@ -99,35 +102,36 @@ def require_runtime_approval(
         )
 
     repo = ApprovalRequestRepository(session)
-    latest = repo.get_latest_for_scope(
+    approval_scope = _approval_scope(
         task_id=task_id,
         capability_id=capability_id,
         agent_id=agent_id,
+        token_id=token_id,
+        task_target_id=task_target_id,
         action_type=action_type,
     )
+    latest = _get_latest_request(
+        repo=repo,
+        session=session,
+        **approval_scope,
+    )
     if latest is None:
-        return _create_pending_request(
+        return _create_pending_request_with_dedupe(
+            session=session,
             repo=repo,
-            task_id=task_id,
-            capability_id=capability_id,
-            agent_id=agent_id,
-            action_type=action_type,
+            **approval_scope,
             policy_reason=outcome.reason,
             policy_source=outcome.source,
         )
-
-    latest = expire_request_if_needed(session=session, approval=latest)
     if latest.status == "approved":
         return None
     if latest.status == "pending":
         return latest
 
-    return _create_pending_request(
+    return _create_pending_request_with_dedupe(
+        session=session,
         repo=repo,
-        task_id=task_id,
-        capability_id=capability_id,
-        agent_id=agent_id,
-        action_type=action_type,
+        **approval_scope,
         policy_reason=outcome.reason,
         policy_source=outcome.source,
     )
@@ -260,6 +264,8 @@ def _create_pending_request(
     task_id: str,
     capability_id: str,
     agent_id: str,
+    token_id: str,
+    task_target_id: str,
     action_type: str,
     policy_reason: str,
     policy_source: str,
@@ -269,6 +275,8 @@ def _create_pending_request(
         task_id=task_id,
         capability_id=capability_id,
         agent_id=agent_id,
+        token_id=token_id,
+        task_target_id=task_target_id,
         action_type=action_type,
         status="pending",
         reason="Awaiting manual approval",
@@ -287,6 +295,90 @@ def _create_pending_request(
         "requested_by": created.requested_by,
     })
     return created
+
+
+def _get_latest_request(
+    *,
+    repo: ApprovalRequestRepository,
+    session: Session,
+    task_id: str,
+    capability_id: str,
+    agent_id: str,
+    token_id: str,
+    task_target_id: str,
+    action_type: str,
+) -> ApprovalRequestModel | None:
+    latest = repo.get_latest_for_scope(
+        task_id=task_id,
+        capability_id=capability_id,
+        agent_id=agent_id,
+        token_id=token_id,
+        task_target_id=task_target_id,
+        action_type=action_type,
+    )
+    if latest is None:
+        return None
+
+    return expire_request_if_needed(session=session, approval=latest)
+
+
+def _create_pending_request_with_dedupe(
+    *,
+    session: Session,
+    repo: ApprovalRequestRepository,
+    task_id: str,
+    capability_id: str,
+    agent_id: str,
+    token_id: str,
+    task_target_id: str,
+    action_type: str,
+    policy_reason: str,
+    policy_source: str,
+) -> ApprovalRequestModel:
+    try:
+        with session.begin_nested():
+            return _create_pending_request(
+                repo=repo,
+                task_id=task_id,
+                capability_id=capability_id,
+                agent_id=agent_id,
+                token_id=token_id,
+                task_target_id=task_target_id,
+                action_type=action_type,
+                policy_reason=policy_reason,
+                policy_source=policy_source,
+            )
+    except IntegrityError:
+        latest = repo.get_latest_for_scope(
+            task_id=task_id,
+            capability_id=capability_id,
+            agent_id=agent_id,
+            token_id=token_id,
+            task_target_id=task_target_id,
+            action_type=action_type,
+        )
+        if latest is not None and latest.status == "pending":
+            return latest
+        raise
+
+
+def _approval_scope(
+    *,
+    task_id: str,
+    capability_id: str,
+    agent_id: str,
+    token_id: str | None,
+    task_target_id: str | None,
+    action_type: str,
+) -> dict[str, str]:
+    return {
+        "task_id": task_id,
+        "capability_id": capability_id,
+        "agent_id": agent_id,
+        "token_id": token_id or "",
+        "task_target_id": task_target_id or "",
+        "action_type": action_type,
+    }
 
 
 def _coerce_context(context: PolicyContext | dict | None, action_type: str) -> PolicyContext:

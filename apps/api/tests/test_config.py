@@ -21,6 +21,20 @@ def test_settings_read_bootstrap_owner_key_from_new_env_only(monkeypatch):
     assert settings.bootstrap_owner_key != "legacy-agent-bootstrap-xyz"
 
 
+def test_deployment_like_settings_require_explicit_app_env():
+    with pytest.raises(ValueError, match="APP_ENV"):
+        Settings(database_url="postgresql://postgres:postgres@db.example.com:5432/agent_share")
+
+
+def test_explicit_development_allows_local_postgres_stack():
+    settings = Settings(
+        app_env="development",
+        database_url="postgresql://postgres:postgres@db.example.com:5432/agent_share",
+    )
+
+    assert settings.app_env == "development"
+
+
 def test_production_settings_reject_default_bootstrap_owner_key():
     with pytest.raises(ValueError, match="bootstrap"):
         Settings(

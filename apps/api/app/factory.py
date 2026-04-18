@@ -9,6 +9,7 @@ from time import monotonic
 from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from app import db as db_module
@@ -56,6 +57,10 @@ def ensure_bootstrap_credential(settings: Settings, session_factory: Callable[[]
             session.commit()
     finally:
         session.close()
+
+
+def _uses_embedded_sqlite(database_url: str) -> bool:
+    return make_url(database_url).get_backend_name() == "sqlite"
 
 
 def add_request_logging_middleware(app: FastAPI) -> None:
@@ -184,7 +189,10 @@ def create_app(
         settings = app_instance.state.settings
 
         validate_secret_backend_settings(settings)
-        db_module.migrate_db(settings.database_url)
+        # Ephemeral SQLite app starts do not go through the container entrypoint,
+        # so they still need an in-process migration step before bootstrap seeding.
+        if _uses_embedded_sqlite(settings.database_url):
+            db_module.migrate_db(settings.database_url)
         ensure_bootstrap_credential(settings, app_instance.state.runtime.session_factory)
         seed_demo_fixture_data(settings, app_instance.state.runtime.session_factory)
         yield

@@ -22,6 +22,7 @@ from app.services.pending_secret_service import (
 )
 from app.services.catalog_service import ensure_catalog_release
 from app.services.identifiers import new_resource_id
+from app.services.redis_client import acquire_lock, release_lock
 from app.services.secret_backend import get_secret_backend_for_ref
 from app.services.space_service import project_review_decision_to_spaces
 
@@ -36,6 +37,23 @@ REVIEWABLE_MODELS: dict[str, type] = {
     "playbook": PlaybookModel,
     "task": TaskModel,
 }
+
+
+def acquire_review_lock(
+    *,
+    resource_kind: str,
+    resource_id: str,
+    settings: Settings | None = None,
+) -> tuple[str, str]:
+    lock_key = f"review:{resource_kind}:{resource_id}:decision"
+    lock_token = acquire_lock(lock_key, ttl_seconds=30, settings=settings)
+    if not lock_token:
+        raise ConflictError("Review decision is being processed by another operator")
+    return lock_key, lock_token
+
+
+def release_review_lock(lock_key: str, lock_token: str, *, settings: Settings | None = None) -> None:
+    release_lock(lock_key, lock_token, settings=settings)
 
 
 def publication_status_for_actor(actor_type: str) -> str:

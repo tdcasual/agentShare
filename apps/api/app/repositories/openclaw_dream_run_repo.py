@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.orm.openclaw_dream_run import OpenClawDreamRunModel
@@ -16,6 +17,14 @@ class OpenClawDreamRunRepository:
 
     def get(self, run_id: str) -> OpenClawDreamRunModel | None:
         return self.session.get(OpenClawDreamRunModel, run_id)
+
+    def get_for_update(self, run_id: str) -> OpenClawDreamRunModel | None:
+        statement = (
+            select(OpenClawDreamRunModel)
+            .where(OpenClawDreamRunModel.id == run_id)
+            .with_for_update()
+        )
+        return self.session.execute(statement).scalar_one_or_none()
 
     def list_filtered(
         self,

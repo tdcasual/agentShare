@@ -19,6 +19,7 @@ from app.repositories.system_setting_repo import SystemSettingRepository
 from app.repositories.task_repo import TaskRepository
 from app.services.admin_account_service import create_admin_account
 from app.services.bootstrap_service import BOOTSTRAP_INITIALIZED_KEY, create_first_owner, is_bootstrap_initialized
+from app.services.secret_scope_service import build_secret_scope
 
 DEMO_OWNER_EMAIL = "owner@example.com"
 DEMO_OWNER_PASSWORD = "correct horse battery staple"
@@ -158,7 +159,12 @@ def _ensure_demo_secret(
         id=secret_id,
         display_name=display_name,
         kind="api_token",
-        scope={"demo": True},
+        scope=build_secret_scope(
+            provider=provider,
+            environment="production",
+            provider_scopes=["responses.read"],
+            resource_selector="project:market-demo",
+        ),
         provider=provider,
         environment="production",
         provider_scopes=["responses.read"],

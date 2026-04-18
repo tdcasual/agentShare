@@ -4,6 +4,7 @@ from uuid import UUID
 
 import pytest
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from app.repositories.approval_repo import ApprovalRequestRepository
 from app.services.approval_service import (
@@ -67,6 +68,69 @@ def test_require_runtime_approval_creates_and_reuses_pending_request(db_session)
     assert reused is not None
     assert reused.id == created.id
     assert len(ApprovalRequestRepository(db_session).list_all()) == 1
+
+
+def test_require_runtime_approval_scopes_requests_by_token_and_task_target(db_session):
+    first = require_runtime_approval(
+        session=db_session,
+        task_id="task-scope",
+        capability_id="capability-scope",
+        agent_id="agent-scope",
+        token_id="token-a",
+        task_target_id="target-a",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    second = require_runtime_approval(
+        session=db_session,
+        task_id="task-scope",
+        capability_id="capability-scope",
+        agent_id="agent-scope",
+        token_id="token-b",
+        task_target_id="target-b",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+
+    assert first is not None
+    assert second is not None
+    assert second.id != first.id
+    assert len(ApprovalRequestRepository(db_session).list_all()) == 2
+
+
+def test_require_runtime_approval_reuses_pending_request_after_unique_conflict(
+    db_session, monkeypatch
+):
+    created = require_runtime_approval(
+        session=db_session,
+        task_id="task-conflict",
+        capability_id="capability-conflict",
+        agent_id="agent-conflict",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    assert created is not None
+
+    def fake_create(_self, _model):
+        raise IntegrityError("insert", {}, Exception("duplicate pending approval"))
+
+    monkeypatch.setattr(ApprovalRequestRepository, "create", fake_create)
+
+    reused = require_runtime_approval(
+        session=db_session,
+        task_id="task-conflict",
+        capability_id="capability-conflict",
+        agent_id="agent-conflict",
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+
+    assert reused is not None
+    assert reused.id == created.id
 
 
 def test_approve_and_reject_update_status_and_metadata(db_session):

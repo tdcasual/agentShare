@@ -17,6 +17,7 @@ from app.services.pending_secret_service import (
     stage_secret_material,
 )
 from app.services.secret_backend import get_secret_backend
+from app.services.secret_scope_service import build_secret_scope
 from app.services.review_service import publication_status_for_actor
 
 router = APIRouter(prefix="/api/secrets")
@@ -60,7 +61,12 @@ def create_secret(
             id=secret_id,
             display_name=payload.display_name,
             kind=payload.kind,
-            scope=payload.metadata,
+            scope=build_secret_scope(
+                provider=payload.provider,
+                environment=payload.environment,
+                provider_scopes=payload.provider_scopes,
+                resource_selector=payload.resource_selector,
+            ),
             provider=payload.provider,
             environment=payload.environment,
             provider_scopes=payload.provider_scopes,
@@ -123,17 +129,17 @@ def _to_secret_response(model: SecretModel) -> dict:
         "id": model.id,
         "display_name": model.display_name,
         "kind": model.kind,
-        "scope": {
-            "provider": model.provider,
-            "environment": model.environment,
-            "provider_scopes": model.provider_scopes or [],
-            "resource_selector": model.resource_selector,
-        },
+        "scope": build_secret_scope(
+            provider=model.provider,
+            environment=model.environment,
+            provider_scopes=model.provider_scopes,
+            resource_selector=model.resource_selector,
+        ),
         "provider": model.provider,
         "environment": model.environment,
         "provider_scopes": model.provider_scopes or [],
         "resource_selector": model.resource_selector,
-        "metadata": model.metadata_json or model.scope or {},
+        "metadata": model.metadata_json if model.metadata_json is not None else (model.scope or {}),
         "backend_ref": model.backend_ref,
         "publication_status": model.publication_status,
         "created_by_actor_type": model.created_by_actor_type,

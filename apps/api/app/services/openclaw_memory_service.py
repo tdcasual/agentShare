@@ -6,6 +6,7 @@ from app.models.agent import AgentIdentity
 from app.orm.openclaw_memory_note import OpenClawMemoryNoteModel
 from app.repositories.openclaw_memory_repo import OpenClawMemoryRepository
 from app.services.identifiers import new_resource_id
+from app.services.openclaw_dream_service import get_dream_run
 from app.services.openclaw_dream_policy_service import ensure_memory_write_allowed
 
 
@@ -36,6 +37,9 @@ def create_memory_note(
     run_id: str | None = None,
 ) -> dict:
     ensure_memory_write_allowed(agent)
+    if run_id is not None:
+        get_dream_run(session, run_id, agent=agent)
+
     model = OpenClawMemoryNoteModel(
         id=new_resource_id("memory"),
         agent_id=agent.id,

@@ -12,7 +12,9 @@ from app.orm.approval_request import ApprovalRequestModel
 from app.orm.run import RunModel
 from app.orm.task import TaskModel
 from app.orm.task_target import TaskTargetModel
+from app.repositories.agent_repo import AgentRepository
 from app.repositories.agent_token_repo import AgentTokenRepository
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.run_repo import RunRepository
 from app.repositories.task_repo import TaskRepository
@@ -27,6 +29,7 @@ from app.services.review_service import publication_status_for_actor
 def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
     if actor is None:
         actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
+    _ensure_actor_can_submit_task(session, payload, actor=actor)
     _ensure_playbooks_exist(session, payload.playbook_ids)
     repo = TaskRepository(session)
     task_id = new_resource_id("task")
@@ -103,7 +106,8 @@ def claim_task(
         if target_repo.list_by_task(task_id):
             raise AuthorizationError("Task is not assigned to this token")
     lock_key = f"task:{task_id}:claim"
-    if not acquire_lock(lock_key, ttl_seconds=10, settings=settings):
+    lock_token = acquire_lock(lock_key, ttl_seconds=10, settings=settings)
+    if not lock_token:
         raise ConflictError("Task claim is being processed by another agent")
     try:
         repo = TaskRepository(session)
@@ -124,7 +128,7 @@ def claim_task(
         record_task_claim()
         return _task_to_dict(task)
     finally:
-        release_lock(lock_key, settings=settings)
+        release_lock(lock_key, lock_token, settings=settings)
 
 
 def complete_task(
@@ -133,39 +137,60 @@ def complete_task(
     agent: AgentIdentity,
     result_summary: str,
     output_payload: dict,
+    settings: Settings | None = None,
 ) -> dict:
     if agent.token_id:
         target = TaskTargetRepository(session).find_by_task_and_token(task_id, agent.token_id)
         if target is not None:
-            completed = complete_task_target(session, target.id, agent, result_summary, output_payload)
+            completed = complete_task_target(
+                session,
+                target.id,
+                agent,
+                result_summary,
+                output_payload,
+                settings=settings,
+            )
             task = TaskRepository(session).get(task_id)
             return _task_response_for_target_transition(task, completed)
+    lock_key = f"task:{task_id}:complete"
+    lock_token = acquire_lock(lock_key, ttl_seconds=10, settings=settings)
+    if not lock_token:
+        raise ConflictError("Task completion is being processed by another agent")
     task_repo = TaskRepository(session)
     run_repo = RunRepository(session)
-    task = task_repo.get(task_id)
-    if task is None:
-        raise NotFoundError("Task not found")
-    if task.status != "claimed":
-        raise ConflictError("Task is not claimed")
-    if task.claimed_by != agent.id:
-        raise AuthorizationError("Task is not claimed by this agent")
-    task.status = "completed"
-    task_repo.update(task)
-    _expire_task_approvals(session, task_id)
-    run_id = new_resource_id("run")
-    run = RunModel(
-        id=run_id,
-        task_id=task_id,
-        agent_id=agent.id,
-        token_id=agent.token_id,
-        task_target_id=None,
-        status="completed",
-        result_summary=result_summary,
-        output_payload=output_payload,
-    )
-    run_repo.create(run)
-    record_task_completion()
-    return _task_to_dict(task)
+    try:
+        task = task_repo.get(task_id)
+        if task is None:
+            raise NotFoundError("Task not found")
+        if task.status != "claimed":
+            raise ConflictError("Task is not claimed")
+        if task.claimed_by != agent.id:
+            raise AuthorizationError("Task is not claimed by this agent")
+        task.status = "completed"
+        task_repo.update(task)
+        _expire_task_approvals(
+            session,
+            task_id,
+            agent_id=agent.id,
+            token_id=agent.token_id,
+            task_target_id=None,
+        )
+        run_id = new_resource_id("run")
+        run = RunModel(
+            id=run_id,
+            task_id=task_id,
+            agent_id=agent.id,
+            token_id=agent.token_id,
+            task_target_id=None,
+            status="completed",
+            result_summary=result_summary,
+            output_payload=output_payload,
+        )
+        run_repo.create(run)
+        record_task_completion()
+        return _task_to_dict(task)
+    finally:
+        release_lock(lock_key, lock_token, settings=settings)
 
 
 def claim_task_target(
@@ -175,7 +200,8 @@ def claim_task_target(
     settings: Settings | None = None,
 ) -> dict:
     lock_key = f"task-target:{target_id}:claim"
-    if not acquire_lock(lock_key, ttl_seconds=10, settings=settings):
+    lock_token = acquire_lock(lock_key, ttl_seconds=10, settings=settings)
+    if not lock_token:
         raise ConflictError("Task claim is being processed by another agent")
     try:
         if not agent.token_id:
@@ -211,7 +237,7 @@ def claim_task_target(
         record_task_claim()
         return _task_target_to_dict(target, task)
     finally:
-        release_lock(lock_key, settings=settings)
+        release_lock(lock_key, lock_token, settings=settings)
 
 
 def complete_task_target(
@@ -220,51 +246,65 @@ def complete_task_target(
     agent: AgentIdentity,
     result_summary: str,
     output_payload: dict,
+    settings: Settings | None = None,
 ) -> dict:
     if not agent.token_id:
         raise AuthorizationError("Remote access token is required")
 
+    lock_key = f"task-target:{target_id}:complete"
+    lock_token = acquire_lock(lock_key, ttl_seconds=10, settings=settings)
+    if not lock_token:
+        raise ConflictError("Task completion is being processed by another agent")
+
     target_repo = TaskTargetRepository(session)
     task_repo = TaskRepository(session)
     run_repo = RunRepository(session)
+    try:
+        target = target_repo.get(target_id)
+        if target is None:
+            raise NotFoundError("Task target not found")
+        if target.target_token_id != agent.token_id:
+            raise AuthorizationError("Task target is not assigned to this token")
+        if target.status != "claimed":
+            raise ConflictError("Task target is not claimed")
+        if target.claimed_by_token_id != agent.token_id:
+            raise AuthorizationError("Task target is not claimed by this token")
 
-    target = target_repo.get(target_id)
-    if target is None:
-        raise NotFoundError("Task target not found")
-    if target.target_token_id != agent.token_id:
-        raise AuthorizationError("Task target is not assigned to this token")
-    if target.status != "claimed":
-        raise ConflictError("Task target is not claimed")
-    if target.claimed_by_token_id != agent.token_id:
-        raise AuthorizationError("Task target is not claimed by this token")
+        task = task_repo.get(target.task_id)
+        if task is None:
+            raise NotFoundError("Task not found")
 
-    task = task_repo.get(target.task_id)
-    if task is None:
-        raise NotFoundError("Task not found")
+        target.status = "completed"
+        target.completed_at = datetime.now(timezone.utc)
+        _expire_task_approvals(
+            session,
+            task.id,
+            agent_id=agent.id,
+            token_id=agent.token_id,
+            task_target_id=target.id,
+        )
+        run_id = new_resource_id("run")
+        run = RunModel(
+            id=run_id,
+            task_id=task.id,
+            agent_id=agent.id,
+            token_id=agent.token_id,
+            task_target_id=target.id,
+            status="completed",
+            result_summary=result_summary,
+            output_payload=output_payload,
+        )
+        run_repo.create(run)
+        target.last_run_id = run.id
+        target_repo.update(target)
 
-    target.status = "completed"
-    target.completed_at = datetime.now(timezone.utc)
-    _expire_task_approvals(session, task.id)
-    run_id = new_resource_id("run")
-    run = RunModel(
-        id=run_id,
-        task_id=task.id,
-        agent_id=agent.id,
-        token_id=agent.token_id,
-        task_target_id=target.id,
-        status="completed",
-        result_summary=result_summary,
-        output_payload=output_payload,
-    )
-    run_repo.create(run)
-    target.last_run_id = run.id
-    target_repo.update(target)
-
-    sibling_targets = target_repo.list_by_task(task.id)
-    _sync_task_state_from_targets(task, sibling_targets)
-    task_repo.update(task)
-    record_task_completion()
-    return _task_target_to_dict(target, task)
+        sibling_targets = target_repo.list_by_task(task.id)
+        _sync_task_state_from_targets(task, sibling_targets)
+        task_repo.update(task)
+        record_task_completion()
+        return _task_target_to_dict(target, task)
+    finally:
+        release_lock(lock_key, lock_token, settings=settings)
 
 
 def _task_to_dict(model: TaskModel, *, targets: list[TaskTargetModel] | None = None) -> dict:
@@ -350,10 +390,20 @@ def _ensure_playbooks_exist(session: Session, playbook_ids: list[str]) -> None:
         raise BadRequestError(f"Unknown playbook reference: {joined}")
 
 
-def _expire_task_approvals(session: Session, task_id: str) -> None:
+def _expire_task_approvals(
+    session: Session,
+    task_id: str,
+    *,
+    agent_id: str,
+    token_id: str | None,
+    task_target_id: str | None,
+) -> None:
     approvals = (
         session.query(ApprovalRequestModel)
         .filter(ApprovalRequestModel.task_id == task_id)
+        .filter(ApprovalRequestModel.agent_id == agent_id)
+        .filter(ApprovalRequestModel.token_id == (token_id or ""))
+        .filter(ApprovalRequestModel.task_target_id == (task_target_id or ""))
         .filter(ApprovalRequestModel.status.in_(["pending", "approved"]))
         .all()
     )
@@ -399,3 +449,43 @@ def _resolve_target_token_ids(session: Session, payload: TaskCreate) -> list[str
         return token_ids
 
     return [token.id for token in AgentTokenRepository(session).list_active()]
+
+
+def _ensure_actor_can_submit_task(session: Session, payload: TaskCreate, *, actor) -> None:
+    if getattr(actor, "actor_type", None) != "agent":
+        return
+
+    agent_model = AgentRepository(session).get(actor.id)
+    if agent_model is None:
+        agent_model = OpenClawAgentRepository(session).get(actor.id)
+    if agent_model is None or agent_model.status != "active":
+        raise AuthorizationError("Agent is not active")
+
+    try:
+        ensure_task_type_allowed(
+            AgentIdentity(
+                id=agent_model.id,
+                name=agent_model.name,
+                issuer=getattr(agent_model, "issuer", "openclaw"),
+                auth_method=getattr(agent_model, "auth_method", "openclaw_session"),
+                status=agent_model.status,
+                token_id=getattr(actor, "token_id", None),
+                allowed_task_types=agent_model.allowed_task_types or [],
+                allowed_capability_ids=agent_model.allowed_capability_ids or [],
+                risk_tier=agent_model.risk_tier,
+            ),
+            payload.task_type,
+        )
+    except PermissionError as exc:
+        raise AuthorizationError(str(exc)) from exc
+
+    if payload.target_mode != "explicit_tokens":
+        return
+
+    token_repo = AgentTokenRepository(session)
+    for token_id in payload.target_token_ids:
+        token = token_repo.get(token_id)
+        if token is None or token.status != "active":
+            raise BadRequestError(f"Unknown target token: {token_id}")
+        if token.agent_id != actor.id:
+            raise AuthorizationError("Runtime agents may only target their own active tokens")

@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 
+from app.auth import ManagementIdentity, require_admin_management_session
 from app.config import Settings
 from app.dependencies import get_settings
 from app.observability import snapshot_metrics
@@ -17,7 +18,10 @@ router = APIRouter(tags=["Observability"])
     description="Minimal Prometheus-compatible metrics for production scraping.",
     response_class=PlainTextResponse,
 )
-def metrics(settings: Settings = Depends(get_settings)) -> PlainTextResponse:
+def metrics(
+    settings: Settings = Depends(get_settings),
+    _: ManagementIdentity = Depends(require_admin_management_session),
+) -> PlainTextResponse:
     if not settings.metrics_enabled:
         return PlainTextResponse("", status_code=404)
 

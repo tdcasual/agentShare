@@ -288,9 +288,10 @@ def test_lease_uses_runtime_settings_for_coordination_lock(client, management_cl
     def fake_acquire_lock(key: str, ttl_seconds: int, settings):
         del ttl_seconds
         captured.append((key, settings.redis_url))
-        return True
+        return "lock-token"
 
-    def fake_release_lock(key: str, settings):
+    def fake_release_lock(key: str, lock_token: str, settings):
+        assert lock_token == "lock-token"
         captured.append((key, settings.redis_url))
 
     monkeypatch.setattr("app.services.gateway.acquire_lock", fake_acquire_lock, raising=False)

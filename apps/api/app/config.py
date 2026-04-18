@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 
 from pydantic import AliasChoices, Field, model_validator
@@ -51,6 +52,11 @@ class Settings(BaseSettings):
             with open(self.openbao_token_file, "r", encoding="utf-8") as token_file:
                 self.openbao_token = token_file.read().strip() or None
 
+        if self._requires_explicit_app_env():
+            raise ValueError(
+                "APP_ENV must be set explicitly for non-local deployments instead of relying on the development default."
+            )
+
         if self.secret_backend == "memory" and self.is_production_like():
             raise ValueError("APP_ENV staging/production does not allow SECRET_BACKEND=memory.")
 
@@ -79,3 +85,13 @@ class Settings(BaseSettings):
 
     def is_production_like(self) -> bool:
         return self.app_env in {"staging", "production"}
+
+    def _requires_explicit_app_env(self) -> bool:
+        if self.is_production_like():
+            return False
+        if "app_env" in self.model_fields_set:
+            return False
+        if os.getenv("APP_ENV") is not None:
+            return False
+
+        return not self.database_url.startswith("sqlite")

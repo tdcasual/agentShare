@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from uuid import uuid4
 
 import redis
 
@@ -27,17 +28,23 @@ def get_redis(settings: Settings | None = None) -> redis.Redis:
     return _redis_clients[current_settings.redis_url]
 
 
-def acquire_lock(key: str, ttl_seconds: int = 30, settings: Settings | None = None) -> bool:
+def acquire_lock(
+    key: str,
+    ttl_seconds: int = 30,
+    settings: Settings | None = None,
+) -> str | None:
     """Try to acquire a distributed lock.
 
-    Returns True when the lock is acquired or when development mode deliberately
-    falls back to local-only coordination. Returns False when another holder
+    Returns an owner token when the lock is acquired or when development mode deliberately
+    falls back to local-only coordination. Returns None when another holder
     already owns the lock. Raises ServiceUnavailableError in production-like
     environments if Redis coordination is unavailable.
     """
+    lock_token = uuid4().hex
     try:
         r = get_redis(settings)
-        return bool(r.set(key, "1", nx=True, ex=ttl_seconds))
+        acquired = bool(r.set(key, lock_token, nx=True, ex=ttl_seconds))
+        return lock_token if acquired else None
     except (redis.RedisError, RuntimeError) as exc:
         current_settings = settings or Settings()
         if current_settings.is_production_like():
@@ -51,14 +58,24 @@ def acquire_lock(key: str, ttl_seconds: int = 30, settings: Settings | None = No
             "Redis unavailable while acquiring lock; allowing deliberate local fallback",
             extra={"key": key, "app_env": current_settings.app_env},
         )
-        return True
+        return lock_token
 
 
-def release_lock(key: str, settings: Settings | None = None) -> None:
+def release_lock(key: str, lock_token: str, settings: Settings | None = None) -> None:
     """Release a distributed lock."""
     try:
         r = get_redis(settings)
-        r.delete(key)
+        r.eval(
+            """
+            if redis.call('get', KEYS[1]) == ARGV[1] then
+                return redis.call('del', KEYS[1])
+            end
+            return 0
+            """,
+            1,
+            key,
+            lock_token,
+        )
     except (redis.RedisError, RuntimeError):
         current_settings = settings or Settings()
         logger.warning(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.config import ManagementRole
 from app.repositories.catalog_release_repo import CatalogReleaseRepository
 from app.repositories.agent_repo import AgentRepository
 from app.repositories.capability_repo import CapabilityRepository
@@ -12,10 +13,11 @@ from app.services.control_plane_links import (
     build_identity_href,
     build_marketplace_href,
     build_task_href,
+    is_management_href_allowed,
 )
 
 
-def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> dict:
+def search_control_plane(session, query: str, *, role: ManagementRole, limit_per_group: int = 5) -> dict:
     normalized_query = query.strip()
     if not normalized_query:
         return {
@@ -123,12 +125,16 @@ def search_control_plane(session, query: str, *, limit_per_group: int = 5) -> di
     ]
 
     return {
-        "identities": agent_matches,
-        "tasks": task_matches,
-        "assets": asset_matches,
-        "skills": skill_matches,
-        "events": event_matches,
+        "identities": _filter_visible_search_items(agent_matches, role=role),
+        "tasks": _filter_visible_search_items(task_matches, role=role),
+        "assets": _filter_visible_search_items(asset_matches, role=role),
+        "skills": _filter_visible_search_items(skill_matches, role=role),
+        "events": _filter_visible_search_items(event_matches, role=role),
     }
+
+
+def _filter_visible_search_items(items: list[dict], *, role: ManagementRole) -> list[dict]:
+    return [item for item in items if is_management_href_allowed(role, item["href"])]
 
 
 def _build_resource_href(

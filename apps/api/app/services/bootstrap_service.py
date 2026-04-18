@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import ConflictError
@@ -35,6 +36,14 @@ def create_first_owner(
     if account_repo.get_by_email(email) is not None:
         raise ConflictError("Account email already exists")
 
+    try:
+        SystemSettingRepository(session).set_json(
+            BOOTSTRAP_INITIALIZED_KEY,
+            {"initialized": True},
+        )
+    except IntegrityError as exc:
+        raise ConflictError("Owner bootstrap is already complete") from exc
+
     account = HumanAccountModel(
         id=new_resource_id("human"),
         email=email,
@@ -44,8 +53,4 @@ def create_first_owner(
         password_hash=hash_password(password),
     )
     account_repo.create(account)
-    SystemSettingRepository(session).set_json(
-        BOOTSTRAP_INITIALIZED_KEY,
-        {"initialized": True},
-    )
     return account

@@ -33,6 +33,61 @@ def test_create_secret_returns_reference_only(management_client):
     assert body["backend_ref"] == f"memory:{body['id']}"
 
 
+def test_create_secret_persists_structured_scope_in_database(management_client, db_session):
+    response = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+            "environment": "production",
+            "provider_scopes": ["responses.read"],
+            "resource_selector": "project:agent-share",
+            "metadata": {"owner": "ml-platform"},
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+
+    stored = db_session.get(SecretModel, body["id"])
+    assert stored is not None
+    assert stored.scope == {
+        "provider": "openai",
+        "environment": "production",
+        "provider_scopes": ["responses.read"],
+        "resource_selector": "project:agent-share",
+    }
+    assert stored.metadata_json == {"owner": "ml-platform"}
+    assert body["scope"] == stored.scope
+
+
+def test_create_secret_with_empty_metadata_keeps_metadata_empty(management_client):
+    response = management_client.post(
+        "/api/secrets",
+        json={
+            "display_name": "OpenAI prod key",
+            "kind": "api_token",
+            "value": "sk-live-example",
+            "provider": "openai",
+            "environment": "production",
+            "provider_scopes": ["responses.read"],
+            "resource_selector": "project:agent-share",
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["metadata"] == {}
+    assert body["scope"] == {
+        "provider": "openai",
+        "environment": "production",
+        "provider_scopes": ["responses.read"],
+        "resource_selector": "project:agent-share",
+    }
+
+
 def test_create_secret_rejects_legacy_scope_shape(management_client):
     response = management_client.post(
         "/api/secrets",

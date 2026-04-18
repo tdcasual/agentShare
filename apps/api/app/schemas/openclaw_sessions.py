@@ -22,7 +22,6 @@ class OpenClawSessionCreate(BaseModel):
 class OpenClawSessionSummary(BaseModel):
     id: str
     agent_id: str
-    session_key: str
     display_name: str
     channel: str
     subject: str | None = None
@@ -35,3 +34,7 @@ class OpenClawSessionSummary(BaseModel):
 
 class OpenClawSessionListResponse(BaseModel):
     items: list[OpenClawSessionSummary] = Field(default_factory=list)
+
+
+class OpenClawSessionCreateResponse(OpenClawSessionSummary):
+    session_key: str

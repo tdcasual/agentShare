@@ -32,10 +32,11 @@ def test_management_can_create_and_list_openclaw_sessions(management_client):
     listing = management_client.get("/api/openclaw/sessions")
     assert listing.status_code == 200, listing.text
     assert any(item["id"] == created.json()["id"] for item in listing.json()["items"])
+    assert all("session_key" not in item for item in listing.json()["items"])
 
     detail = management_client.get(f"/api/openclaw/sessions/{created.json()['id']}")
     assert detail.status_code == 200, detail.text
-    assert detail.json()["session_key"] == "sess_workspace_agent_primary"
+    assert "session_key" not in detail.json()
 
 
 def test_openclaw_session_key_can_authenticate_runtime_routes(client, management_client):
@@ -95,7 +96,47 @@ def test_management_can_list_sessions_for_one_openclaw_agent(management_client):
     listing = management_client.get(f"/api/openclaw/agents/{primary_agent['id']}/sessions")
     assert listing.status_code == 200, listing.text
     assert [item["agent_id"] for item in listing.json()["items"]] == [primary_agent["id"]]
-    assert [item["session_key"] for item in listing.json()["items"]] == ["sess_primary_agent_only"]
+    assert all("session_key" not in item for item in listing.json()["items"])
+
+
+def test_openclaw_agent_sessions_return_not_found_for_unknown_agent(management_client):
+    listing = management_client.get("/api/openclaw/agents/openclaw-agent-missing/sessions")
+    assert listing.status_code == 404, listing.text
+
+    created = management_client.post(
+        "/api/openclaw/agents/openclaw-agent-missing/sessions",
+        json={
+            "session_key": "sess_missing_agent",
+            "display_name": "Missing Agent Session",
+            "channel": "chat",
+        },
+    )
+    assert created.status_code == 404, created.text
+
+
+def test_duplicate_openclaw_session_key_returns_conflict(management_client):
+    agent = _create_openclaw_agent(management_client)
+
+    first = management_client.post(
+        f"/api/openclaw/agents/{agent['id']}/sessions",
+        json={
+            "session_key": "sess_duplicate_key",
+            "display_name": "Primary Session",
+            "channel": "chat",
+        },
+    )
+    assert first.status_code == 201, first.text
+
+    duplicate = management_client.post(
+        f"/api/openclaw/agents/{agent['id']}/sessions",
+        json={
+            "session_key": "sess_duplicate_key",
+            "display_name": "Duplicate Session",
+            "channel": "chat",
+        },
+    )
+    assert duplicate.status_code == 409, duplicate.text
+    assert duplicate.json()["detail"] == "OpenClaw session key already exists"
 
 
 def test_openclaw_session_key_does_not_act_as_remote_access_token_for_targeted_routes(

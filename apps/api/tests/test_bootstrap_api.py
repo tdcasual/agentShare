@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 
 from app.config import Settings
 from app.factory import create_app
@@ -69,3 +70,25 @@ def test_setup_owner_rejects_short_password(tmp_path) -> None:
         response = client.post("/api/bootstrap/setup-owner", json=payload)
 
     assert response.status_code == 422
+
+
+def test_setup_owner_returns_conflict_when_bootstrap_claim_collides(tmp_path, monkeypatch) -> None:
+    payload = {
+        "bootstrap_key": BOOTSTRAP_KEY,
+        "email": "owner@example.com",
+        "display_name": "Founding Owner",
+        "password": "correct horse battery staple",
+    }
+
+    def collide(*args, **kwargs):
+        del args
+        del kwargs
+        raise IntegrityError("insert into system_settings", {"key": "bootstrap.initialized"}, Exception("duplicate key"))
+
+    monkeypatch.setattr("app.services.bootstrap_service.SystemSettingRepository.set_json", collide)
+
+    with make_client(tmp_path) as client:
+        response = client.post("/api/bootstrap/setup-owner", json=payload)
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Owner bootstrap is already complete"

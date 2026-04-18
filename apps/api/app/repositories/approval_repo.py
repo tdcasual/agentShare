@@ -33,6 +33,8 @@ class ApprovalRequestRepository:
         task_id: str,
         capability_id: str,
         agent_id: str,
+        token_id: str,
+        task_target_id: str,
         action_type: str,
     ) -> ApprovalRequestModel | None:
         return (
@@ -41,6 +43,8 @@ class ApprovalRequestRepository:
             .filter(ApprovalRequestModel.task_id == task_id)
             .filter(ApprovalRequestModel.capability_id == capability_id)
             .filter(ApprovalRequestModel.agent_id == agent_id)
+            .filter(ApprovalRequestModel.token_id == token_id)
+            .filter(ApprovalRequestModel.task_target_id == task_target_id)
             .filter(ApprovalRequestModel.action_type == action_type)
             .order_by(ApprovalRequestModel.created_at.desc())
             .first()

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import IntegrityError
+
 from app.services.event_service import record_event
+from app.services.space_service import _append_timeline_entry
 
 
 def _create_space_with_agent_member(management_client, agent_id: str = "test-agent") -> str:
@@ -118,3 +121,30 @@ def test_record_event_projects_once_per_matching_space(db_session, management_cl
         if item["entry_type"] == "task_completed" and item["subject_id"] == "task-dedup"
     ]
     assert len(matching) == 1
+
+
+def test_append_timeline_entry_reuses_existing_row_after_unique_conflict():
+    existing = object()
+
+    class FakeRepo:
+        def find_timeline_entry(self, **kwargs):
+            if getattr(self, "created_once", False):
+                return existing
+            return None
+
+        def create_timeline_entry(self, model):
+            self.created_once = True
+            raise IntegrityError("insert", {}, Exception("duplicate timeline row"))
+
+    repo = FakeRepo()
+
+    created = _append_timeline_entry(
+        repo,
+        space_id="space-1",
+        entry_type="task_completed",
+        subject_type="task",
+        subject_id="task-1",
+        summary="done",
+    )
+
+    assert created is existing

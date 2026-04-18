@@ -17,6 +17,7 @@ from app.schemas.openclaw_agents import (
 )
 from app.services.audit_service import write_audit_event
 from app.services.identifiers import new_resource_id
+from app.services.openclaw_agent_cleanup_service import delete_openclaw_agent_with_children
 
 from .openclaw_agent_files import router as openclaw_agent_files_router
 from .openclaw_sessions import agent_sessions_router
@@ -149,8 +150,7 @@ def delete_openclaw_agent(
     manager: ManagementIdentity = Depends(require_management_action("agents:delete")),
     session: Session = Depends(get_db),
 ) -> dict:
-    repo = OpenClawAgentRepository(session)
-    if not repo.delete(agent_id):
+    if not delete_openclaw_agent_with_children(session, agent_id):
         raise NotFoundError("OpenClaw agent not found")
     write_audit_event(session, "openclaw_agent_deleted", {"actor_id": manager.id, "agent_id": agent_id})
     return {"id": agent_id, "status": "deleted"}

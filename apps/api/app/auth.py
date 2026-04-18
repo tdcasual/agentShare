@@ -63,7 +63,11 @@ def resolve_agent_from_api_key(api_key: str, session: Session) -> AgentIdentity 
     if openclaw_session is not None:
         openclaw_agent = OpenClawAgentRepository(session).get(openclaw_session.agent_id)
         if openclaw_agent is not None and openclaw_agent.status == "active":
-            return build_runtime_principal(agent=openclaw_agent, session=openclaw_session)
+            return build_runtime_principal(
+                agent=openclaw_agent,
+                session=openclaw_session,
+                session_key=api_key,
+            )
 
     key_hash = hash_token(api_key)
     token_repo = AgentTokenRepository(session)

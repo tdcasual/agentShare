@@ -1,4 +1,6 @@
 from conftest import TEST_SETTINGS
+from app.repositories.approval_repo import ApprovalRequestRepository
+from app.services.approval_service import approve_request, require_runtime_approval
 
 from app.errors import ServiceUnavailableError
 
@@ -33,9 +35,10 @@ def test_agent_claim_uses_runtime_settings_for_redis_lock(client, management_cli
 
     def fake_acquire_lock(key: str, ttl_seconds: int, settings):
         captured.append(settings.redis_url)
-        return True
+        return "lock-token"
 
-    def fake_release_lock(key: str, settings):
+    def fake_release_lock(key: str, lock_token: str, settings):
+        assert lock_token == "lock-token"
         captured.append(settings.redis_url)
 
     monkeypatch.setattr("app.services.task_service.acquire_lock", fake_acquire_lock)
@@ -160,6 +163,97 @@ def test_agent_can_complete_claimed_task(client, management_client):
     assert response.json()["status"] == "completed"
 
 
+def test_agent_complete_uses_runtime_settings_for_redis_lock(client, management_client, monkeypatch):
+    captured: list[str] = []
+
+    def fake_acquire_lock(key: str, ttl_seconds: int, settings):
+        captured.append(settings.redis_url)
+        return "lock-token"
+
+    def fake_release_lock(key: str, lock_token: str, settings):
+        assert lock_token == "lock-token"
+        captured.append(settings.redis_url)
+
+    monkeypatch.setattr("app.services.task_service.acquire_lock", fake_acquire_lock)
+    monkeypatch.setattr("app.services.task_service.release_lock", fake_release_lock)
+
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Runtime lock complete",
+            "task_type": "config_sync",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    claimed = client.post(
+        f"/api/tasks/{created.json()['id']}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    assert claimed.status_code == 200, claimed.text
+    captured.clear()
+
+    response = client.post(
+        f"/api/tasks/{created.json()['id']}/complete",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"result_summary": "done", "output_payload": {"ok": True}},
+    )
+
+    assert response.status_code == 200
+    assert captured == [TEST_SETTINGS.redis_url, TEST_SETTINGS.redis_url]
+
+
+def test_task_target_complete_uses_runtime_settings_for_redis_lock(
+    client, management_client, monkeypatch
+):
+    captured: list[str] = []
+
+    def fake_acquire_lock(key: str, ttl_seconds: int, settings):
+        captured.append(settings.redis_url)
+        return "lock-token"
+
+    def fake_release_lock(key: str, lock_token: str, settings):
+        assert lock_token == "lock-token"
+        captured.append(settings.redis_url)
+
+    monkeypatch.setattr("app.services.task_service.acquire_lock", fake_acquire_lock)
+    monkeypatch.setattr("app.services.task_service.release_lock", fake_release_lock)
+
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Target runtime lock complete",
+            "task_type": "account_read",
+            "target_token_ids": ["token-test-agent"],
+            "target_mode": "explicit_tokens",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    assigned = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    assert assigned.status_code == 200, assigned.text
+    target_id = assigned.json()["items"][0]["id"]
+
+    claimed = client.post(
+        f"/api/task-targets/{target_id}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    assert claimed.status_code == 200, claimed.text
+    captured.clear()
+
+    response = client.post(
+        f"/api/task-targets/{target_id}/complete",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"result_summary": "done", "output_payload": {"ok": True}},
+    )
+
+    assert response.status_code == 200
+    assert captured == [TEST_SETTINGS.redis_url, TEST_SETTINGS.redis_url]
+
+
 def test_management_task_listing_supports_limit_and_offset(management_client):
     for idx in range(3):
         created = management_client.post(
@@ -253,14 +347,8 @@ def test_runtime_created_task_starts_pending_review(client):
 
 
 def test_runtime_pending_review_task_materializes_explicit_targets_only_after_approval(client, management_client):
-    created_agent = management_client.post(
-        "/api/agents",
-        json={"name": "Deferred Target Agent", "risk_tier": "medium"},
-    )
-    assert created_agent.status_code == 201, created_agent.text
-
     minted = management_client.post(
-        f"/api/agents/{created_agent.json()['id']}/tokens",
+        "/api/agents/test-agent/tokens",
         json={"display_name": "Deferred target token"},
     )
     assert minted.status_code == 201, minted.text
@@ -657,3 +745,221 @@ def test_multi_target_task_clears_parent_claimed_by_when_multiple_agents_claim_i
 
     assert task["status"] == "claimed"
     assert task["claimed_by"] is None
+
+
+def test_target_completion_only_expires_approvals_for_the_completing_agent(
+    client, management_client, db_session
+):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Parallel Approval Agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    minted = management_client.post(
+        f"/api/agents/{created_agent.json()['id']}/tokens",
+        json={"display_name": "Parallel approval token"},
+    )
+    assert minted.status_code == 201, minted.text
+
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Parallel approval task",
+            "task_type": "account_read",
+            "target_token_ids": ["token-test-agent", minted.json()["id"]],
+            "target_mode": "explicit_tokens",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    first_assigned = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    second_assigned = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": f"Bearer {minted.json()['api_key']}"},
+    )
+    assert first_assigned.status_code == 200, first_assigned.text
+    assert second_assigned.status_code == 200, second_assigned.text
+
+    first_target_id = first_assigned.json()["items"][0]["id"]
+    second_target_id = second_assigned.json()["items"][0]["id"]
+
+    assert client.post(
+        f"/api/task-targets/{first_target_id}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    ).status_code == 200
+    assert client.post(
+        f"/api/task-targets/{second_target_id}/claim",
+        headers={"Authorization": f"Bearer {minted.json()['api_key']}"},
+    ).status_code == 200
+
+    first_pending = require_runtime_approval(
+        session=db_session,
+        task_id=created.json()["id"],
+        capability_id="capability-first",
+        agent_id="test-agent",
+        token_id="token-test-agent",
+        task_target_id=first_target_id,
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    second_pending = require_runtime_approval(
+        session=db_session,
+        task_id=created.json()["id"],
+        capability_id="capability-second",
+        agent_id=created_agent.json()["id"],
+        token_id=minted.json()["id"],
+        task_target_id=second_target_id,
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    approve_request(session=db_session, approval_id=first_pending.id, decided_by="management")
+    approve_request(session=db_session, approval_id=second_pending.id, decided_by="management")
+
+    response = client.post(
+        f"/api/task-targets/{first_target_id}/complete",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"result_summary": "done", "output_payload": {"ok": True}},
+    )
+
+    assert response.status_code == 200, response.text
+
+    repo = ApprovalRequestRepository(db_session)
+    assert repo.get(first_pending.id).status == "expired"
+    assert repo.get(second_pending.id).status == "approved"
+
+
+def test_target_completion_only_expires_approvals_for_the_completing_token_scope(
+    client, management_client, db_session
+):
+    minted = management_client.post(
+        "/api/agents/test-agent/tokens",
+        json={"display_name": "Second test-agent token"},
+    )
+    assert minted.status_code == 201, minted.text
+
+    created = management_client.post(
+        "/api/tasks",
+        json={
+            "title": "Same agent multi-token approval task",
+            "task_type": "account_read",
+            "target_token_ids": ["token-test-agent", minted.json()["id"]],
+            "target_mode": "explicit_tokens",
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    first_assigned = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": "Bearer agent-test-token"},
+    )
+    second_assigned = client.get(
+        "/api/tasks/assigned",
+        headers={"Authorization": f"Bearer {minted.json()['api_key']}"},
+    )
+    assert first_assigned.status_code == 200, first_assigned.text
+    assert second_assigned.status_code == 200, second_assigned.text
+
+    first_target_id = first_assigned.json()["items"][0]["id"]
+    second_target_id = second_assigned.json()["items"][0]["id"]
+
+    assert client.post(
+        f"/api/task-targets/{first_target_id}/claim",
+        headers={"Authorization": "Bearer agent-test-token"},
+    ).status_code == 200
+    assert client.post(
+        f"/api/task-targets/{second_target_id}/claim",
+        headers={"Authorization": f"Bearer {minted.json()['api_key']}"},
+    ).status_code == 200
+
+    first_pending = require_runtime_approval(
+        session=db_session,
+        task_id=created.json()["id"],
+        capability_id="capability-shared-agent-first",
+        agent_id="test-agent",
+        token_id="token-test-agent",
+        task_target_id=first_target_id,
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    second_pending = require_runtime_approval(
+        session=db_session,
+        task_id=created.json()["id"],
+        capability_id="capability-shared-agent-second",
+        agent_id="test-agent",
+        token_id=minted.json()["id"],
+        task_target_id=second_target_id,
+        action_type="invoke",
+        task_approval_mode="manual",
+        capability_approval_mode="auto",
+    )
+    approve_request(session=db_session, approval_id=first_pending.id, decided_by="management")
+    approve_request(session=db_session, approval_id=second_pending.id, decided_by="management")
+
+    response = client.post(
+        f"/api/task-targets/{first_target_id}/complete",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={"result_summary": "done", "output_payload": {"ok": True}},
+    )
+
+    assert response.status_code == 200, response.text
+
+    repo = ApprovalRequestRepository(db_session)
+    assert repo.get(first_pending.id).status == "expired"
+    assert repo.get(second_pending.id).status == "approved"
+
+
+def test_runtime_task_submission_rejects_disallowed_task_type(client, management_client):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={
+            "name": "Restricted submitter",
+            "risk_tier": "medium",
+            "allowed_task_types": ["account_read"],
+        },
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    response = client.post(
+        "/api/tasks",
+        headers={"Authorization": f"Bearer {created_agent.json()['api_key']}"},
+        json={
+            "title": "Disallowed runtime task",
+            "task_type": "prompt_run",
+        },
+    )
+
+    assert response.status_code == 403
+
+
+def test_runtime_task_submission_rejects_foreign_target_tokens(client, management_client):
+    created_agent = management_client.post(
+        "/api/agents",
+        json={"name": "Foreign target agent", "risk_tier": "medium"},
+    )
+    assert created_agent.status_code == 201, created_agent.text
+
+    minted = management_client.post(
+        f"/api/agents/{created_agent.json()['id']}/tokens",
+        json={"display_name": "Foreign target token"},
+    )
+    assert minted.status_code == 201, minted.text
+
+    response = client.post(
+        "/api/tasks",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "title": "Cross-agent runtime task",
+            "task_type": "account_read",
+            "target_mode": "explicit_tokens",
+            "target_token_ids": [minted.json()["id"]],
+        },
+    )
+
+    assert response.status_code == 403

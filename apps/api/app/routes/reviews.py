@@ -16,7 +16,13 @@ from app.schemas.review_queue import (
 )
 from app.services.audit_service import write_audit_event
 from app.services.secret_backend import get_secret_backend_for_ref
-from app.services.review_service import approve_review, list_pending_reviews, reject_review
+from app.services.review_service import (
+    acquire_review_lock,
+    approve_review,
+    list_pending_reviews,
+    reject_review,
+    release_review_lock,
+)
 
 router = APIRouter(prefix="/api/reviews")
 logger = logging.getLogger(__name__)
@@ -58,6 +64,11 @@ def approve_review_route(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     reviewed: dict | None = None
+    lock_key, lock_token = acquire_review_lock(
+        resource_kind=resource_kind,
+        resource_id=resource_id,
+        settings=settings,
+    )
     try:
         reviewed = approve_review(
             session,
@@ -88,6 +99,8 @@ def approve_review_route(
                     extra={"resource_id": resource_id},
                 )
         raise
+    finally:
+        release_review_lock(lock_key, lock_token, settings=settings)
     return reviewed
 
 
@@ -104,19 +117,32 @@ def reject_review_route(
     payload: ReviewDecisionRequest,
     manager: ManagementIdentity = Depends(require_management_action("reviews:decide")),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
-    reviewed = reject_review(
-        session,
+    lock_key, lock_token = acquire_review_lock(
         resource_kind=resource_kind,
         resource_id=resource_id,
-        reviewer_id=manager.id,
-        reason=payload.reason,
+        settings=settings,
     )
-    write_audit_event(session, "review_rejected", {
-        "resource_kind": resource_kind,
-        "resource_id": resource_id,
-        "actor_type": manager.actor_type,
-        "actor_id": manager.id,
-        "reason": (payload.reason or "").strip(),
-    })
-    return reviewed
+    try:
+        reviewed = reject_review(
+            session,
+            resource_kind=resource_kind,
+            resource_id=resource_id,
+            reviewer_id=manager.id,
+            reason=payload.reason,
+        )
+        write_audit_event(session, "review_rejected", {
+            "resource_kind": resource_kind,
+            "resource_id": resource_id,
+            "actor_type": manager.actor_type,
+            "actor_id": manager.id,
+            "reason": (payload.reason or "").strip(),
+        })
+        session.commit()
+        return reviewed
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        release_review_lock(lock_key, lock_token, settings=settings)

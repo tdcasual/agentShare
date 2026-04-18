@@ -16,19 +16,31 @@ def fake_redis(monkeypatch):
 
 
 def test_acquire_lock_succeeds():
-    assert acquire_lock("task:task-1:claim", ttl_seconds=10) is True
+    assert acquire_lock("task:task-1:claim", ttl_seconds=10)
 
 
 def test_acquire_lock_fails_when_held():
-    assert acquire_lock("task:task-1:claim", ttl_seconds=10) is True
-    assert acquire_lock("task:task-1:claim", ttl_seconds=10) is False
+    assert acquire_lock("task:task-1:claim", ttl_seconds=10)
+    assert acquire_lock("task:task-1:claim", ttl_seconds=10) is None
 
 
 def test_release_lock():
-    acquire_lock("task:task-1:claim", ttl_seconds=10)
-    release_lock("task:task-1:claim")
+    lock_token = acquire_lock("task:task-1:claim", ttl_seconds=10)
+    assert lock_token
+    release_lock("task:task-1:claim", lock_token)
     # After release, can acquire again
-    assert acquire_lock("task:task-1:claim", ttl_seconds=10) is True
+    assert acquire_lock("task:task-1:claim", ttl_seconds=10)
+
+
+def test_release_lock_does_not_delete_a_newer_holder(fake_redis):
+    first_token = acquire_lock("task:task-1:claim", ttl_seconds=10)
+    assert first_token
+
+    fake_redis.set("task:task-1:claim", "second-token", ex=10)
+
+    release_lock("task:task-1:claim", first_token)
+
+    assert fake_redis.get("task:task-1:claim") == "second-token"
 
 
 def test_acquire_lock_allows_development_fallback_when_redis_unavailable(monkeypatch, caplog):
@@ -41,7 +53,7 @@ def test_acquire_lock_allows_development_fallback_when_redis_unavailable(monkeyp
     with caplog.at_level("WARNING"):
         acquired = acquire_lock("task:task-1:claim", ttl_seconds=10, settings=settings)
 
-    assert acquired is True
+    assert acquired
     assert "local fallback" in caplog.text.lower()
 
 

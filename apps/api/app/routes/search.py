@@ -24,5 +24,4 @@ def search_route(
     manager: ManagementIdentity = Depends(require_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
-    del manager
-    return search_control_plane(session, q, limit_per_group=limit_per_group)
+    return search_control_plane(session, q, role=manager.role, limit_per_group=limit_per_group)

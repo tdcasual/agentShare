@@ -7,7 +7,7 @@ from sqlalchemy import inspect, text
 from app.repositories.agent_repo import AgentRepository
 
 
-CURRENT_ALEMBIC_HEAD = "20260408_01"
+CURRENT_ALEMBIC_HEAD = "20260415_02"
 
 
 def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
@@ -221,5 +221,11 @@ def test_app_startup_can_seed_demo_fixture_data(monkeypatch, tmp_path):
         assert pending_capability is not None
         assert pending_capability.secret_id == pending_secret.id
         assert pending_capability.required_provider == pending_secret.provider
+        assert pending_secret.scope == {
+            "provider": pending_secret.provider,
+            "environment": pending_secret.environment,
+            "provider_scopes": pending_secret.provider_scopes,
+            "resource_selector": pending_secret.resource_selector,
+        }
     finally:
         session.close()

@@ -175,6 +175,7 @@ def _authorize_capability_use(
     task = TaskRepository(session).get(task_id)
     if task is None:
         raise KeyError(f"Task {task_id} not found")
+    target = None
     if agent.token_id:
         target = TaskTargetRepository(session).find_by_task_and_token(task_id, agent.token_id)
         if target is None or target.status != "claimed" or target.claimed_by_token_id != agent.token_id:
@@ -206,6 +207,8 @@ def _authorize_capability_use(
         task_id=task.id,
         capability_id=capability_id,
         agent_id=agent.id,
+        token_id=agent.token_id,
+        task_target_id=target.id if target is not None else None,
         action_type=action_type,
         task_approval_mode=task.approval_mode,
         capability_approval_mode=capability["approval_mode"],
@@ -242,10 +245,11 @@ def _coordination_lock(
     settings: Settings | None = None,
 ):
     lock_key = f"task:{task_id}:capability:{capability_id}:{action}"
-    if not acquire_lock(lock_key, ttl_seconds=COORDINATION_LOCK_TTL_SECONDS, settings=settings):
+    lock_token = acquire_lock(lock_key, ttl_seconds=COORDINATION_LOCK_TTL_SECONDS, settings=settings)
+    if not lock_token:
         raise ConflictError(f"Capability {action} is already in progress for this task")
 
     try:
         yield
     finally:
-        release_lock(lock_key, settings=settings)
+        release_lock(lock_key, lock_token, settings=settings)

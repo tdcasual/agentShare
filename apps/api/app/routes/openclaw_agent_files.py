@@ -5,12 +5,19 @@ from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_management_action
 from app.db import get_db
+from app.errors import NotFoundError
 from app.orm.openclaw_agent_file import OpenClawAgentFileModel
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.openclaw_agent_file_repo import OpenClawAgentFileRepository
 from app.schemas.openclaw_agents import OpenClawAgentFileUpdate
 from app.services.audit_service import write_audit_event
 
 router = APIRouter()
+
+
+def _require_openclaw_agent(agent_id: str, session: Session) -> None:
+    if OpenClawAgentRepository(session).get(agent_id) is None:
+        raise NotFoundError("OpenClaw agent not found")
 
 
 @router.get(
@@ -24,6 +31,7 @@ def list_openclaw_agent_files(
     manager: ManagementIdentity = Depends(require_management_action("agents:list")),
     session: Session = Depends(get_db),
 ) -> dict:
+    _require_openclaw_agent(agent_id, session)
     repo = OpenClawAgentFileRepository(session)
     items = [
         {"agent_id": model.agent_id, "file_name": model.file_name, "content": model.content}
@@ -46,6 +54,7 @@ def upsert_openclaw_agent_file(
     manager: ManagementIdentity = Depends(require_management_action("agents:create")),
     session: Session = Depends(get_db),
 ) -> dict:
+    _require_openclaw_agent(agent_id, session)
     repo = OpenClawAgentFileRepository(session)
     model = repo.upsert(
         OpenClawAgentFileModel(

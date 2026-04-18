@@ -13,7 +13,7 @@ from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CURRENT_ALEMBIC_HEAD = "20260408_01"
+CURRENT_ALEMBIC_HEAD = "20260415_02"
 
 
 def _run_alembic_upgrade(database_url: str, revision: str) -> None:
@@ -43,6 +43,8 @@ def test_alembic_versions_directory_contains_current_baseline_and_openclaw_follo
         "20260405_01_clean_baseline.py",
         "20260407_01_openclaw_native_agents.py",
         "20260408_01_controlled_dream_mode.py",
+        "20260415_01_harden_runtime_approvals_and_sessions.py",
+        "20260415_02_scope_runtime_approvals.py",
     ]
 
 

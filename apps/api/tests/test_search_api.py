@@ -111,6 +111,75 @@ def test_grouped_search_returns_openclaw_agents_as_identities(management_client)
     assert match["href"] == f"/identities?agentId={created_agent.json()['id']}"
 
 
+def test_grouped_search_hides_admin_only_hits_from_operator_sessions(
+    management_client_for_role,
+    db_session,
+):
+    with management_client_for_role("admin") as admin_client:
+        created_agent = admin_client.post(
+            "/api/agents",
+            json={"name": "Restricted Signal Agent", "risk_tier": "medium"},
+        )
+        assert created_agent.status_code == 201, created_agent.text
+
+        created_task = admin_client.post(
+            "/api/tasks",
+            json={
+                "title": "Restricted Signal Task",
+                "task_type": "account_read",
+            },
+        )
+        assert created_task.status_code == 201, created_task.text
+
+        created_secret = admin_client.post(
+            "/api/secrets",
+            json={
+                "display_name": "Restricted Signal Secret",
+                "kind": "api_token",
+                "value": "restricted-signal-secret",
+                "provider": "openai",
+                "environment": "production",
+                "provider_scopes": ["responses.read"],
+                "resource_selector": "project:restricted-signal",
+            },
+        )
+        assert created_secret.status_code == 201, created_secret.text
+
+        created_capability = admin_client.post(
+            "/api/capabilities",
+            json={
+                "name": "restricted.signal.skill",
+                "secret_id": created_secret.json()["id"],
+                "risk_level": "low",
+                "required_provider": "openai",
+            },
+        )
+        assert created_capability.status_code == 201, created_capability.text
+
+        record_event(
+            db_session,
+            event_type="task_completed",
+            actor_type="agent",
+            actor_id="test-agent",
+            subject_type="task",
+            subject_id=created_task.json()["id"],
+            summary="Restricted signal event",
+        )
+        db_session.commit()
+
+    with management_client_for_role("operator") as operator_client:
+        response = operator_client.get("/api/search", params={"q": "restricted signal"})
+
+    assert response.status_code == 200, response.text
+    assert response.json() == {
+        "identities": [],
+        "tasks": [],
+        "assets": [],
+        "skills": [],
+        "events": [],
+    }
+
+
 def test_grouped_search_links_agent_published_assets_into_marketplace_context(client, management_client):
     secret = client.post(
         "/api/secrets",
@@ -142,6 +211,51 @@ def test_grouped_search_links_agent_published_assets_into_marketplace_context(cl
     ).status_code == 200
 
     response = management_client.get("/api/search", params={"q": "market"})
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    secret_match = next(item for item in payload["assets"] if item["id"] == secret.json()["id"])
+    capability_match = next(item for item in payload["skills"] if item["id"] == capability.json()["id"])
+    assert secret_match["href"] == f"/marketplace?resourceKind=secret&resourceId={secret.json()['id']}"
+    assert capability_match["href"] == f"/marketplace?resourceKind=capability&resourceId={capability.json()['id']}"
+
+
+def test_grouped_search_keeps_marketplace_hits_visible_to_operator_sessions(
+    client,
+    management_client,
+    management_client_for_role,
+):
+    secret = client.post(
+        "/api/secrets",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "display_name": "Operator Market Search Secret",
+            "kind": "api_token",
+            "value": "operator-market-search-secret",
+            "provider": "openai",
+        },
+    )
+    assert secret.status_code == 202, secret.text
+
+    capability = client.post(
+        "/api/capabilities",
+        headers={"Authorization": "Bearer agent-test-token"},
+        json={
+            "name": "operator.market.search.capability",
+            "secret_id": secret.json()["id"],
+            "risk_level": "low",
+        },
+    )
+    assert capability.status_code == 202, capability.text
+
+    assert management_client.post(f"/api/reviews/secret/{secret.json()['id']}/approve", json={}).status_code == 200
+    assert management_client.post(
+        f"/api/reviews/capability/{capability.json()['id']}/approve",
+        json={},
+    ).status_code == 200
+
+    with management_client_for_role("operator") as operator_client:
+        response = operator_client.get("/api/search", params={"q": "market"})
 
     assert response.status_code == 200, response.text
     payload = response.json()
