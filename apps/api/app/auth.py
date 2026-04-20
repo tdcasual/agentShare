@@ -10,10 +10,16 @@ from app.config import ManagementRole, Settings
 from app.db import get_db
 from app.dependencies import get_settings
 from app.models.agent import AgentIdentity
+from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.agent_repo import AgentRepository
 from app.repositories.agent_token_repo import AgentTokenRepository
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.openclaw_session_repo import OpenClawSessionRepository
+from app.services.access_token_service import (
+    hash_access_token,
+    is_access_token_active,
+    touch_access_token,
+)
 from app.services.agent_token_service import (
     hash_token,
     is_token_active,
@@ -72,28 +78,47 @@ def resolve_agent_from_api_key(api_key: str, session: Session) -> AgentIdentity 
     key_hash = hash_token(api_key)
     token_repo = AgentTokenRepository(session)
     token_model = token_repo.find_by_token_hash(key_hash)
-    if token_model is None:
+    if token_model is not None:
+        agent_model = AgentRepository(session).get(token_model.agent_id)
+        if agent_model is None or agent_model.status != "active" or not is_token_active(token_model):
+            return None
+
+        touch_agent_token(session, token_model)
+        return AgentIdentity(
+            id=agent_model.id,
+            name=agent_model.name,
+            issuer=agent_model.issuer,
+            auth_method=agent_model.auth_method,
+            status=agent_model.status,
+            token_id=token_model.id,
+            token_prefix=token_model.token_prefix,
+            expires_at=token_model.expires_at,
+            scopes=token_model.scopes or [],
+            labels=token_model.labels or {},
+            allowed_capability_ids=agent_model.allowed_capability_ids or [],
+            allowed_task_types=agent_model.allowed_task_types or [],
+            risk_tier=agent_model.risk_tier,
+        )
+
+    access_token = AccessTokenRepository(session).find_by_token_hash(hash_access_token(api_key))
+    if access_token is None or not is_access_token_active(access_token):
         return None
 
-    agent_model = AgentRepository(session).get(token_model.agent_id)
-    if agent_model is None or agent_model.status != "active" or not is_token_active(token_model):
-        return None
-
-    touch_agent_token(session, token_model)
+    touch_access_token(session, access_token)
     return AgentIdentity(
-        id=agent_model.id,
-        name=agent_model.name,
-        issuer=agent_model.issuer,
-        auth_method=agent_model.auth_method,
-        status=agent_model.status,
-        token_id=token_model.id,
-        token_prefix=token_model.token_prefix,
-        expires_at=token_model.expires_at,
-        scopes=token_model.scopes or [],
-        labels=token_model.labels or {},
-        allowed_capability_ids=agent_model.allowed_capability_ids or [],
-        allowed_task_types=agent_model.allowed_task_types or [],
-        risk_tier=agent_model.risk_tier,
+        id=access_token.subject_id,
+        name=access_token.display_name,
+        issuer=access_token.subject_type,
+        auth_method="access_token",
+        status=access_token.status,
+        token_id=access_token.id,
+        token_prefix=access_token.token_prefix,
+        expires_at=access_token.expires_at,
+        scopes=access_token.scopes or [],
+        labels=access_token.labels or {},
+        allowed_capability_ids=[],
+        allowed_task_types=[],
+        risk_tier="medium",
     )
 
 

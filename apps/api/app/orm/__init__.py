@@ -2,6 +2,7 @@ from app.orm.base import Base
 from app.orm.secret import SecretModel
 from app.orm.capability import CapabilityModel
 from app.orm.catalog_release import CatalogReleaseModel
+from app.orm.access_token import AccessTokenModel
 from app.orm.agent import AgentIdentityModel
 from app.orm.agent_token import AgentTokenModel
 from app.orm.task import TaskModel
@@ -32,6 +33,7 @@ __all__ = [
     "SecretModel",
     "CapabilityModel",
     "CatalogReleaseModel",
+    "AccessTokenModel",
     "AgentIdentityModel",
     "AgentTokenModel",
     "TaskModel",

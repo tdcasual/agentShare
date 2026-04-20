@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.errors import ConflictError, NotFoundError
 from app.orm.token_feedback import TokenFeedbackModel
-from app.repositories.agent_token_repo import AgentTokenRepository
+from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.task_target_repo import TaskTargetRepository
 from app.repositories.token_feedback_repo import TokenFeedbackRepository
 from app.services.identifiers import new_resource_id
@@ -29,9 +29,9 @@ def create_token_feedback(
     if TokenFeedbackRepository(session).get_by_task_target(task_target_id) is not None:
         raise ConflictError("Feedback already exists for this task target")
 
-    token = AgentTokenRepository(session).get(target.target_token_id)
+    token = AccessTokenRepository(session).get(target.target_token_id)
     if token is None:
-        raise NotFoundError("Agent token not found")
+        raise NotFoundError("Access token not found")
 
     model = TokenFeedbackModel(
         id=new_resource_id("feedback"),
@@ -81,12 +81,12 @@ def serialize_token_feedback(model: TokenFeedbackModel) -> dict:
 
 
 def _recompute_token_aggregates(session: Session, token_id: str) -> None:
-    token_repo = AgentTokenRepository(session)
+    token_repo = AccessTokenRepository(session)
     feedback_repo = TokenFeedbackRepository(session)
     target_repo = TaskTargetRepository(session)
     token = token_repo.get(token_id)
     if token is None:
-        raise NotFoundError("Agent token not found")
+        raise NotFoundError("Access token not found")
 
     feedback = feedback_repo.list_by_token(token_id)
     completed_targets = [

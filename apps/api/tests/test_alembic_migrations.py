@@ -13,7 +13,7 @@ from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CURRENT_ALEMBIC_HEAD = "20260415_02"
+CURRENT_ALEMBIC_HEAD = "20260419_01"
 
 
 def _run_alembic_upgrade(database_url: str, revision: str) -> None:
@@ -45,6 +45,7 @@ def test_alembic_versions_directory_contains_current_baseline_and_openclaw_follo
         "20260408_01_controlled_dream_mode.py",
         "20260415_01_harden_runtime_approvals_and_sessions.py",
         "20260415_02_scope_runtime_approvals.py",
+        "20260419_01_access_tokens.py",
     ]
 
 
@@ -84,6 +85,7 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
             "space_members",
             "space_timeline_entries",
             "catalog_releases",
+            "access_tokens",
             "token_feedback",
         }.issubset(set(inspector.get_table_names()))
 

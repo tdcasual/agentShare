@@ -1,10 +1,14 @@
+from conftest import TEST_ACCESS_TOKEN_ID, TEST_ACCESS_TOKEN_KEY
+from app.orm.access_token import AccessTokenModel
+
+
 def _create_completed_target(client, management_client) -> tuple[str, str]:
     created = management_client.post(
         "/api/tasks",
         json={
             "title": "Feedback target",
             "task_type": "account_read",
-            "target_token_ids": ["token-test-agent"],
+            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
             "target_mode": "explicit_tokens",
         },
     )
@@ -12,20 +16,20 @@ def _create_completed_target(client, management_client) -> tuple[str, str]:
 
     assigned = client.get(
         "/api/tasks/assigned",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
     )
     assert assigned.status_code == 200, assigned.text
     target_id = assigned.json()["items"][0]["id"]
 
     claimed = client.post(
         f"/api/task-targets/{target_id}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
     )
     assert claimed.status_code == 200, claimed.text
 
     completed = client.post(
         f"/api/task-targets/{target_id}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json={"result_summary": "done", "output_payload": {"ok": True}},
     )
     assert completed.status_code == 200, completed.text
@@ -42,12 +46,12 @@ def test_feedback_is_linked_to_token_target_and_run(client, management_client):
 
     assert feedback.status_code == 201, feedback.text
     payload = feedback.json()
-    assert payload["token_id"] == "token-test-agent"
+    assert payload["token_id"] == TEST_ACCESS_TOKEN_ID
     assert payload["task_target_id"] == target_id
     assert payload["run_id"] == run_id
 
 
-def test_feedback_rolls_up_to_token_metrics(client, management_client):
+def test_feedback_rolls_up_to_token_metrics(client, management_client, db_session):
     target_id, _ = _create_completed_target(client, management_client)
 
     created = management_client.post(
@@ -56,14 +60,13 @@ def test_feedback_rolls_up_to_token_metrics(client, management_client):
     )
     assert created.status_code == 201, created.text
 
-    tokens = management_client.get("/api/agents/test-agent/tokens")
-    assert tokens.status_code == 200, tokens.text
-    token = next(item for item in tokens.json()["items"] if item["id"] == "token-test-agent")
-    assert token["completed_runs"] == 1
-    assert token["successful_runs"] == 1
-    assert token["success_rate"] == 1.0
-    assert token["last_feedback_at"] is not None
-    assert token["trust_score"] == 1.0
+    token = db_session.get(AccessTokenModel, TEST_ACCESS_TOKEN_ID)
+    assert token is not None
+    assert token.completed_runs == 1
+    assert token.successful_runs == 1
+    assert token.success_rate == 1.0
+    assert token.last_feedback_at is not None
+    assert token.trust_score == 1.0
 
 
 def test_feedback_creation_emits_event(client, management_client):
@@ -109,14 +112,14 @@ def test_bulk_feedback_listing_groups_records_by_token(client, management_client
     response = management_client.get(
         "/api/token-feedback/bulk",
         params=[
-            ("token_id", "token-test-agent"),
+            ("token_id", TEST_ACCESS_TOKEN_ID),
             ("token_id", "token-missing"),
         ],
     )
 
     assert response.status_code == 200, response.text
     payload = response.json()["items_by_token"]
-    assert [item["id"] for item in payload["token-test-agent"]] == [created.json()["id"]]
+    assert [item["id"] for item in payload[TEST_ACCESS_TOKEN_ID]] == [created.json()["id"]]
     assert payload["token-missing"] == []
 
 
@@ -130,11 +133,11 @@ def test_bulk_feedback_listing_transport_uses_snake_case_fields(client, manageme
 
     response = management_client.get(
         "/api/token-feedback/bulk",
-        params=[("token_id", "token-test-agent")],
+        params=[("token_id", TEST_ACCESS_TOKEN_ID)],
     )
 
     assert response.status_code == 200, response.text
-    item = response.json()["items_by_token"]["token-test-agent"][0]
+    item = response.json()["items_by_token"][TEST_ACCESS_TOKEN_ID][0]
     assert "token_id" in item
     assert "task_target_id" in item
     assert "created_at" in item

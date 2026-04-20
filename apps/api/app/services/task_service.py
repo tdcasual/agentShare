@@ -12,8 +12,8 @@ from app.orm.approval_request import ApprovalRequestModel
 from app.orm.run import RunModel
 from app.orm.task import TaskModel
 from app.orm.task_target import TaskTargetModel
+from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.agent_repo import AgentRepository
-from app.repositories.agent_token_repo import AgentTokenRepository
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.run_repo import RunRepository
@@ -59,7 +59,7 @@ def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
 
 def list_tasks(session: Session, *, actor=None, limit: int = 100, offset: int = 0) -> list[dict]:
     target_repo = TaskTargetRepository(session)
-    if getattr(actor, "token_id", None):
+    if _uses_access_token_assignments(actor):
         items: list[dict] = []
         for target in target_repo.list_assigned(actor.token_id):
             if target.status != "pending":
@@ -77,7 +77,7 @@ def list_tasks(session: Session, *, actor=None, limit: int = 100, offset: int = 
 
 
 def list_assigned_task_targets(session: Session, agent: AgentIdentity) -> list[dict]:
-    if not agent.token_id:
+    if not agent.token_id or not _uses_access_token_assignments(agent):
         return []
     task_repo = TaskRepository(session)
     target_repo = TaskTargetRepository(session)
@@ -96,7 +96,7 @@ def claim_task(
     agent: AgentIdentity,
     settings: Settings | None = None,
 ) -> dict:
-    if agent.token_id:
+    if _uses_access_token_assignments(agent):
         target_repo = TaskTargetRepository(session)
         target = target_repo.find_by_task_and_token(task_id, agent.token_id)
         if target is not None:
@@ -114,6 +114,8 @@ def claim_task(
         task = repo.get(task_id)
         if task is None:
             raise NotFoundError("Task not found")
+        if not _uses_access_token_assignments(agent) and task.target_mode == "explicit_tokens":
+            raise AuthorizationError("Task is not assigned to this token")
         if task.publication_status != "active":
             raise ConflictError("Task is not claimable")
         if task.status != "pending":
@@ -139,7 +141,7 @@ def complete_task(
     output_payload: dict,
     settings: Settings | None = None,
 ) -> dict:
-    if agent.token_id:
+    if _uses_access_token_assignments(agent):
         target = TaskTargetRepository(session).find_by_task_and_token(task_id, agent.token_id)
         if target is not None:
             completed = complete_task_target(
@@ -439,7 +441,7 @@ def _resolve_target_token_ids(session: Session, payload: TaskCreate) -> list[str
     if payload.target_mode == "explicit_tokens" or payload.target_token_ids:
         if payload.target_mode == "explicit_tokens" and not payload.target_token_ids:
             raise BadRequestError("Explicit token targeting requires target_token_ids")
-        repo = AgentTokenRepository(session)
+        repo = AccessTokenRepository(session)
         token_ids: list[str] = []
         for token_id in payload.target_token_ids:
             token = repo.get(token_id)
@@ -448,7 +450,7 @@ def _resolve_target_token_ids(session: Session, payload: TaskCreate) -> list[str
             token_ids.append(token_id)
         return token_ids
 
-    return [token.id for token in AgentTokenRepository(session).list_active()]
+    return [token.id for token in AccessTokenRepository(session).list_active()]
 
 
 def _ensure_actor_can_submit_task(session: Session, payload: TaskCreate, *, actor) -> None:
@@ -482,10 +484,14 @@ def _ensure_actor_can_submit_task(session: Session, payload: TaskCreate, *, acto
     if payload.target_mode != "explicit_tokens":
         return
 
-    token_repo = AgentTokenRepository(session)
+    token_repo = AccessTokenRepository(session)
     for token_id in payload.target_token_ids:
         token = token_repo.get(token_id)
         if token is None or token.status != "active":
             raise BadRequestError(f"Unknown target token: {token_id}")
-        if token.agent_id != actor.id:
+        if token.subject_id != actor.id:
             raise AuthorizationError("Runtime agents may only target their own active tokens")
+
+
+def _uses_access_token_assignments(actor) -> bool:
+    return getattr(actor, "auth_method", None) == "access_token" and bool(getattr(actor, "token_id", None))

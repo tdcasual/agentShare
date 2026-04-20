@@ -14,11 +14,13 @@ from app.config import Settings
 from app.db import get_db
 from app.factory import create_app
 from app.orm import Base  # noqa: F401 — import triggers all model registration
+from app.orm.access_token import AccessTokenModel
 from app.orm.agent import AgentIdentityModel
 from app.orm.agent_token import AgentTokenModel
 from app.repositories.agent_repo import AgentRepository
 from app.runtime import AppRuntime
 from app.observability import reset_metrics
+from app.services.access_token_service import hash_access_token, mint_access_token
 from app.services.agent_token_service import hash_token
 from app.services.secret_backend import InMemorySecretBackend
 
@@ -26,6 +28,8 @@ ROOT = Path(__file__).resolve().parents[3]
 API_ROOT = ROOT / "apps/api"
 
 TEST_AGENT_KEY = "agent-test-token"
+TEST_ACCESS_TOKEN_ID = "access-token-test-agent"
+TEST_ACCESS_TOKEN_KEY = "access-test-token"
 BOOTSTRAP_OWNER_KEY = "bootstrap-test-token"
 OWNER_EMAIL = "owner@example.com"
 OWNER_PASSWORD = "correct horse battery staple"
@@ -138,6 +142,20 @@ def seeded_app(db_session, test_engine, test_session_factory, test_settings):
         scopes=[],
         labels={},
     ))
+    db_session.add(AccessTokenModel(
+        id=TEST_ACCESS_TOKEN_ID,
+        display_name="Test access token",
+        token_hash=hash_access_token(TEST_ACCESS_TOKEN_KEY),
+        token_prefix=TEST_ACCESS_TOKEN_KEY[:10],
+        status="active",
+        subject_type="agent",
+        subject_id="test-agent",
+        issued_by_actor_type="system",
+        issued_by_actor_id="test-fixture",
+        scopes=["runtime"],
+        labels={},
+        policy={},
+    ))
     db_session.commit()
 
     def _override_get_db():
@@ -156,6 +174,42 @@ def seeded_app(db_session, test_engine, test_session_factory, test_settings):
 def client(seeded_app):
     with TestClient(seeded_app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def mint_standalone_access_token(db_session):
+    def _mint(
+        *,
+        subject_type: str = "agent",
+        subject_id: str = "test-agent",
+        display_name: str = "Test access token",
+        scopes: list[str] | None = None,
+        labels: dict[str, str] | None = None,
+        policy: dict | None = None,
+        issued_by_actor_type: str = "system",
+        issued_by_actor_id: str = "test-fixture",
+    ) -> dict:
+        token, raw_token = mint_access_token(
+            db_session,
+            subject_type=subject_type,
+            subject_id=subject_id,
+            display_name=display_name,
+            issued_by_actor_type=issued_by_actor_type,
+            issued_by_actor_id=issued_by_actor_id,
+            scopes=scopes or ["runtime"],
+            labels=labels or {},
+            policy=policy or {},
+        )
+        db_session.commit()
+        return {
+            "id": token.id,
+            "api_key": raw_token,
+            "display_name": token.display_name,
+            "subject_type": token.subject_type,
+            "subject_id": token.subject_id,
+        }
+
+    return _mint
 
 
 def bootstrap_owner_account(client: TestClient) -> dict:

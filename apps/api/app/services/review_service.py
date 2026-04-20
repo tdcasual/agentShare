@@ -14,7 +14,7 @@ from app.orm.playbook import PlaybookModel
 from app.orm.secret import SecretModel
 from app.orm.task import TaskModel
 from app.orm.task_target import TaskTargetModel
-from app.repositories.agent_token_repo import AgentTokenRepository
+from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.task_target_repo import TaskTargetRepository
 from app.services.pending_secret_service import (
     discard_pending_secret_material,
@@ -198,7 +198,7 @@ def _materialize_reviewed_task_targets(session: Session, task: TaskModel) -> Non
         return
 
     token_ids: list[str]
-    token_repo = AgentTokenRepository(session)
+    token_repo = AccessTokenRepository(session)
     if task.target_mode == "explicit_tokens":
         token_ids = []
         for token_id in task.target_token_ids or []:
