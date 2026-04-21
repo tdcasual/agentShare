@@ -28,7 +28,7 @@ def serialize_memory_note(model: OpenClawMemoryNoteModel) -> dict:
 def create_memory_note(
     session: Session,
     *,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     scope: str,
     kind: str,
     importance: str,
@@ -58,7 +58,7 @@ def create_memory_note(
 def search_memory_notes(
     session: Session,
     *,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     scope: str | None = None,
     tag: str | None = None,
     query: str | None = None,

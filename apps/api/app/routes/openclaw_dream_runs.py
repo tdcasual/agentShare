@@ -44,7 +44,7 @@ router = APIRouter(prefix="/api/openclaw/dream-runs")
 )
 def create_openclaw_dream_run(
     payload: OpenClawDreamRunCreate,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
 ) -> dict:
     run = start_dream_run(
@@ -101,7 +101,7 @@ def get_openclaw_dream_run(
 def create_openclaw_dream_step(
     run_id: str,
     payload: OpenClawDreamStepCreate,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
 ) -> dict:
     response = record_dream_step(
@@ -129,7 +129,7 @@ def create_openclaw_dream_step(
 def stop_openclaw_dream_run(
     run_id: str,
     payload: OpenClawDreamRunStop,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
 ) -> dict:
     response = stop_dream_run(session, run_id=run_id, agent=agent, stop_reason=payload.stop_reason)

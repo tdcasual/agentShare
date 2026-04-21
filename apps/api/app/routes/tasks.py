@@ -80,7 +80,7 @@ def list_tasks_route(
     description="Return only task targets addressed to the authenticated standalone access token. OpenClaw session-backed runtimes without a token binding will not receive explicit-token assignments here.",
 )
 def list_assigned_tasks_route(
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
 ) -> dict:
     return {"items": list_assigned_task_targets(session, agent)}
@@ -95,7 +95,7 @@ def list_assigned_tasks_route(
 )
 def claim_task_target_route(
     target_id: str,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -119,7 +119,7 @@ def claim_task_target_route(
 def complete_task_target_route(
     target_id: str,
     payload: TaskComplete,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -164,7 +164,7 @@ def complete_task_target_route(
 )
 def claim_task_route(
     task_id: str,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -182,7 +182,7 @@ def claim_task_route(
 def complete_task_route(
     task_id: str,
     payload: TaskComplete,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:

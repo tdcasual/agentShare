@@ -90,7 +90,7 @@ def _tool_error(status_code: int, detail: Any) -> dict[str, Any]:
 @router.post("/mcp", tags=["Agent Runtime"], summary="Call MCP tools", description="MCP-compatible JSON-RPC endpoint for agent runtime and knowledge operations.")
 def mcp_endpoint(
     payload: McpRequest,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict[str, Any]:

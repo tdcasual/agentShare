@@ -31,21 +31,21 @@ def normalize_dream_policy(policy: dict | None) -> dict:
     return normalized
 
 
-def ensure_dream_mode_enabled(agent: AgentIdentity) -> dict:
+def ensure_dream_mode_enabled(agent: RuntimePrincipal) -> dict:
     policy = normalize_dream_policy(agent.dream_policy)
     if not policy["enabled"]:
         raise AuthorizationError("Dream mode is disabled for this agent")
     return policy
 
 
-def ensure_followup_tasks_allowed(agent: AgentIdentity) -> dict:
+def ensure_followup_tasks_allowed(agent: RuntimePrincipal) -> dict:
     policy = ensure_dream_mode_enabled(agent)
     if not policy["allow_task_proposal"]:
         raise AuthorizationError("Dream mode task proposals are disabled for this agent")
     return policy
 
 
-def ensure_memory_write_allowed(agent: AgentIdentity) -> dict:
+def ensure_memory_write_allowed(agent: RuntimePrincipal) -> dict:
     policy = ensure_dream_mode_enabled(agent)
     if not policy["allow_memory_write"]:
         raise AuthorizationError("Dream mode memory writes are disabled for this agent")

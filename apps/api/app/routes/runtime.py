@@ -14,5 +14,5 @@ router = APIRouter(prefix="/api/runtime")
     summary="Inspect the current runtime principal",
     description="Authenticate with a session key or access token and return the normalized runtime principal.",
 )
-def get_current_runtime_principal(agent: AgentIdentity = Depends(require_agent)) -> dict:
+def get_current_runtime_principal(agent: RuntimePrincipal = Depends(require_agent)) -> dict:
     return agent.model_dump()

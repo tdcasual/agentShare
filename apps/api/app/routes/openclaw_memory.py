@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api/openclaw/memory")
     description="Search explicit dream memory notes visible to the authenticated OpenClaw runtime.",
 )
 def list_openclaw_memory_notes(
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
     scope: str | None = Query(default=None),
     tag: str | None = Query(default=None),
@@ -44,7 +44,7 @@ def list_openclaw_memory_notes(
 )
 def create_openclaw_memory_note(
     payload: OpenClawMemoryNoteCreate,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
 ) -> dict:
     note = create_memory_note(

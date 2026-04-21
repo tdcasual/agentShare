@@ -161,7 +161,7 @@ def execute_tool(
     name: str,
     arguments: dict[str, Any],
     session: Session,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     settings: Settings,
 ) -> Any:
     canonical_name = canonical_tool_name(name)

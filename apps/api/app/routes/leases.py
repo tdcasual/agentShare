@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/capabilities")
 def issue_lease_route(
     capability_id: str,
     payload: LeaseRequest,
-    agent: AgentIdentity = Depends(require_agent),
+    agent: RuntimePrincipal = Depends(require_agent),
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:

@@ -75,7 +75,7 @@ def list_tasks(session: Session, *, actor=None, limit: int = 100, offset: int = 
     ]
 
 
-def list_assigned_task_targets(session: Session, agent: AgentIdentity) -> list[dict]:
+def list_assigned_task_targets(session: Session, agent: RuntimePrincipal) -> list[dict]:
     if not agent.token_id or not _uses_access_token_assignments(agent):
         return []
     task_repo = TaskRepository(session)
@@ -92,7 +92,7 @@ def list_assigned_task_targets(session: Session, agent: AgentIdentity) -> list[d
 def claim_task(
     session: Session,
     task_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     settings: Settings | None = None,
 ) -> dict:
     if _uses_access_token_assignments(agent):
@@ -135,7 +135,7 @@ def claim_task(
 def complete_task(
     session: Session,
     task_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     result_summary: str,
     output_payload: dict,
     settings: Settings | None = None,
@@ -197,7 +197,7 @@ def complete_task(
 def claim_task_target(
     session: Session,
     target_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     settings: Settings | None = None,
 ) -> dict:
     lock_key = f"task-target:{target_id}:claim"
@@ -244,7 +244,7 @@ def claim_task_target(
 def complete_task_target(
     session: Session,
     target_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     result_summary: str,
     output_payload: dict,
     settings: Settings | None = None,

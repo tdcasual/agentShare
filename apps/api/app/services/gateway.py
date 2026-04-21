@@ -42,7 +42,7 @@ def proxy_invoke(
     capability_id: str,
     task_id: str,
     parameters: dict[str, Any],
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     settings: Settings | None = None,
 ) -> dict:
     with _coordination_lock(
@@ -125,7 +125,7 @@ def issue_lease(
     capability_id: str,
     task_id: str,
     purpose: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     settings: Settings | None = None,
 ) -> dict:
     with _coordination_lock(
@@ -165,7 +165,7 @@ def _authorize_capability_use(
     session: Session,
     capability_id: str,
     task_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     require_lease: bool,
 ) -> tuple[dict, Any, Any]:
     capability = get_capability(session, capability_id, require_active=True)
@@ -231,7 +231,7 @@ def _authorize_capability_use(
     return capability, task, secret_record
 
 
-def _uses_access_token_target(agent: AgentIdentity) -> bool:
+def _uses_access_token_target(agent: RuntimePrincipal) -> bool:
     return agent.auth_method == "access_token" and agent.token_id is not None
 
 

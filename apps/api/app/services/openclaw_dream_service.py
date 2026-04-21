@@ -56,7 +56,7 @@ def serialize_dream_step(model: OpenClawDreamStepModel) -> dict:
 def start_dream_run(
     session: Session,
     *,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     objective: str,
     task_id: str | None = None,
     step_budget: int | None = None,
@@ -89,7 +89,7 @@ def start_dream_run(
 def list_dream_runs(
     session: Session,
     *,
-    agent: AgentIdentity | None = None,
+    agent: RuntimePrincipal | None = None,
     status: str | None = None,
 ) -> list[dict]:
     repo = OpenClawDreamRunRepository(session)
@@ -101,7 +101,7 @@ def get_dream_run_detail(
     session: Session,
     run_id: str,
     *,
-    agent: AgentIdentity | None = None,
+    agent: RuntimePrincipal | None = None,
 ) -> dict:
     run = get_dream_run(session, run_id, agent=agent)
     steps = OpenClawDreamStepRepository(session).list_for_run(run.id)
@@ -115,7 +115,7 @@ def get_dream_run(
     session: Session,
     run_id: str,
     *,
-    agent: AgentIdentity | None = None,
+    agent: RuntimePrincipal | None = None,
 ) -> OpenClawDreamRunModel:
     model = OpenClawDreamRunRepository(session).get(run_id)
     if model is None:
@@ -129,7 +129,7 @@ def get_dream_run_for_update(
     session: Session,
     run_id: str,
     *,
-    agent: AgentIdentity | None = None,
+    agent: RuntimePrincipal | None = None,
 ) -> OpenClawDreamRunModel:
     model = OpenClawDreamRunRepository(session).get_for_update(run_id)
     if model is None:
@@ -143,7 +143,7 @@ def record_dream_step(
     session: Session,
     *,
     run_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     step_type: str,
     status: str,
     input_payload: dict,
@@ -192,7 +192,7 @@ def stop_dream_run(
     session: Session,
     *,
     run_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     stop_reason: str,
 ) -> dict:
     repo = OpenClawDreamRunRepository(session)
@@ -207,7 +207,7 @@ def stop_dream_run_with_event(
     session: Session,
     *,
     run_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     stop_reason: str,
     detail: str,
 ) -> dict:
@@ -276,7 +276,7 @@ def register_followup_task(
     session: Session,
     *,
     run_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
     created_task_id: str,
 ) -> dict:
     run_repo = OpenClawDreamRunRepository(session)
@@ -317,7 +317,7 @@ def ensure_followup_task_allowed(
     session: Session,
     *,
     run_id: str,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
 ) -> OpenClawDreamRunModel:
     run = get_dream_run(session, run_id, agent=agent)
     _ensure_followup_task_allowed_for_run(run, agent=agent)
@@ -327,7 +327,7 @@ def ensure_followup_task_allowed(
 def _ensure_followup_task_allowed_for_run(
     run: OpenClawDreamRunModel,
     *,
-    agent: AgentIdentity,
+    agent: RuntimePrincipal,
 ) -> None:
     if run.status != "active":
         raise ConflictError("Dream run is not active")
