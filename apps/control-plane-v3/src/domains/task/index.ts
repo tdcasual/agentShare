@@ -20,10 +20,10 @@ export type {
   TaskTargetView,
   Run,
   RunStatus,
-  TokenFeedback,
+  AccessTokenFeedback,
   FeedbackVerdict,
   CreateFeedbackInput,
-  AgentToken,
+  AccessToken,
   TaskEvents,
   TaskQuery,
 } from './types';
@@ -35,8 +35,8 @@ export {
   createTask,
   getRuns,
   createTaskTargetFeedback,
-  getTokenFeedback,
-  getTokenFeedbackBulk,
+  getAccessTokenFeedback,
+  getAccessTokenFeedbackBulk,
 } from './api';
 
 // Dashboard hooks
@@ -50,7 +50,7 @@ export {
   // Runs
   useRuns,
   // Feedback
-  useTokenFeedback,
+  useAccessTokenFeedback,
   useCreateTaskTargetFeedback,
   // Manual mutations
   refreshTasks,

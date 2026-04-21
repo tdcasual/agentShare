@@ -199,12 +199,12 @@ def _materialize_reviewed_task_targets(session: Session, task: TaskModel) -> Non
 
     token_ids: list[str]
     token_repo = AccessTokenRepository(session)
-    if task.target_mode == "explicit_tokens":
+    if task.target_mode == "explicit_access_tokens":
         token_ids = []
-        for token_id in task.target_token_ids or []:
+        for token_id in task.target_access_token_ids or []:
             token = token_repo.get(token_id)
             if token is None or token.status != "active":
-                raise ConflictError(f"Task target token is no longer active: {token_id}")
+                raise ConflictError(f"Task target access token is no longer active: {token_id}")
             token_ids.append(token_id)
     else:
         token_ids = [token.id for token in token_repo.list_active()]
@@ -214,9 +214,9 @@ def _materialize_reviewed_task_targets(session: Session, task: TaskModel) -> Non
             repo.create(TaskTargetModel(
                 id=new_resource_id("target"),
                 task_id=task.id,
-                target_token_id=token_id,
+                target_access_token_id=token_id,
                 status="pending",
             ))
         except IntegrityError:
-            if repo.find_by_task_and_token(task.id, token_id) is None:
+            if repo.find_by_task_and_access_token(task.id, token_id) is None:
                 raise

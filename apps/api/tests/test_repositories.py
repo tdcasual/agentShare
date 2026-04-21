@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, sessionmaker
 import app.repositories as repositories
 from app.orm.base import Base
 from app.orm.secret import SecretModel
-from app.orm.agent import AgentIdentityModel
+from app.orm.access_token import AccessTokenModel
 from app.orm.audit_event import AuditEventModel
 from app.orm.event import EventModel
 from app.orm.openclaw_agent import OpenClawAgentModel
@@ -17,7 +17,7 @@ from app.orm.openclaw_session import OpenClawSessionModel
 from app.orm.openclaw_tool_binding import OpenClawToolBindingModel
 from app.orm.task import TaskModel
 from app.repositories.secret_repo import SecretRepository
-from app.repositories.agent_repo import AgentRepository
+from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.audit_repo import AuditEventRepository
 from app.repositories.event_repo import EventRepository
 from app.repositories.openclaw_agent_file_repo import OpenClawAgentFileRepository
@@ -62,18 +62,22 @@ def test_secret_repo_list(db_session: Session):
     assert len(repo.list_all()) == 2
 
 
-# --- AgentRepository ---
+# --- AccessTokenRepository ---
 
-def test_agent_repo_find_bootstrap_by_api_key_hash(db_session: Session):
-    repo = AgentRepository(db_session)
-    repo.create(AgentIdentityModel(
-        id="bootstrap", name="Bootstrap", api_key_hash="hash123",
-        allowed_capability_ids=[], allowed_task_types=[], risk_tier="medium",
+def test_access_token_repo_find_by_token_hash(db_session: Session):
+    from app.services.access_token_service import hash_access_token
+    repo = AccessTokenRepository(db_session)
+    db_session.add(AccessTokenModel(
+        id="at-1", display_name="Test Token", token_hash=hash_access_token("test-key"),
+        token_prefix="test-key-.", status="active", subject_type="automation",
+        subject_id="ci-runner", issued_by_actor_type="human", issued_by_actor_id="owner",
+        scopes=["runtime"], labels={}, policy={},
     ))
-    found = repo.find_bootstrap_by_api_key_hash("hash123")
+    db_session.flush()
+    found = repo.find_by_token_hash(hash_access_token("test-key"))
     assert found is not None
-    assert found.name == "Bootstrap"
-    assert repo.find_bootstrap_by_api_key_hash("wrong") is None
+    assert found.display_name == "Test Token"
+    assert repo.find_by_token_hash(hash_access_token("wrong")) is None
 
 
 def test_openclaw_agent_repo_create_and_list(db_session: Session):
@@ -328,7 +332,7 @@ def test_audit_repo_create_auto_id(db_session: Session):
 
 
 def test_repositories_package_exports_current_repository_facade():
-    assert hasattr(repositories, "AgentTokenRepository")
+    assert hasattr(repositories, "AccessTokenRepository")
     assert hasattr(repositories, "CatalogReleaseRepository")
     assert hasattr(repositories, "EventRepository")
     assert hasattr(repositories, "ManagementSessionRepository")
@@ -339,7 +343,7 @@ def test_repositories_package_exports_current_repository_facade():
     assert hasattr(repositories, "OpenClawMemoryRepository")
     assert hasattr(repositories, "OpenClawSessionRepository")
     assert hasattr(repositories, "PendingSecretMaterialRepository")
-    assert hasattr(repositories, "TokenFeedbackRepository")
+    assert hasattr(repositories, "AccessTokenFeedbackRepository")
     assert hasattr(repositories, "SpaceRepository")
     assert hasattr(repositories, "TaskTargetRepository")
 

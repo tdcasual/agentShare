@@ -4,11 +4,11 @@
  * 包含：
  * - Task 实体
  * - Run 实体
- * - Token 相关类型
+ * - Access token 相关类型
  * - Task 领域事件
  */
 
-import type { IdentityReference, AgentToken } from '../shared-types';
+import type { IdentityReference, AccessToken } from '../shared-types';
 
 // ============================================
 // 基础类型
@@ -17,7 +17,7 @@ import type { IdentityReference, AgentToken } from '../shared-types';
 export type TaskStatus = 'pending' | 'claimed' | 'completed' | 'failed' | 'cancelled';
 export type TaskPriority = 'low' | 'normal' | 'high' | 'critical';
 export type PublicationStatus = 'draft' | 'active' | 'paused' | 'archived';
-export type TaskTargetMode = 'explicit_tokens' | 'broadcast';
+export type TaskTargetMode = 'explicit_access_tokens' | 'broadcast';
 export type RunStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 export type FeedbackVerdict = 'accepted' | 'rejected' | 'needs_improvement';
 
@@ -31,7 +31,7 @@ export interface TaskInput {
 
 export interface TaskTarget {
   readonly id: string;
-  readonly tokenId: string;
+  readonly accessTokenId: string;
   readonly status: RunStatus;
 }
 
@@ -50,7 +50,7 @@ export interface TaskTransport {
   readonly target_mode?: TaskTargetMode;
   readonly input?: TaskInput;
   readonly target_ids?: string[];
-  readonly target_token_ids?: string[];
+  readonly target_access_token_ids?: string[];
   readonly required_capability_ids?: string[];
   readonly playbook_ids?: string[];
   readonly lease_allowed?: boolean;
@@ -66,7 +66,7 @@ export interface RunTransport {
   readonly id: string;
   readonly task_id: string;
   readonly agent_id?: string | null;
-  readonly token_id?: string | null;
+  readonly access_token_id?: string | null;
   readonly task_target_id?: string | null;
   readonly status: RunStatus;
   readonly result_summary?: string | null;
@@ -76,9 +76,9 @@ export interface RunTransport {
   readonly lease_events?: unknown;
 }
 
-export interface TokenFeedbackTransport {
+export interface AccessTokenFeedbackTransport {
   readonly id: string;
-  readonly token_id: string;
+  readonly access_token_id: string;
   readonly task_target_id: string;
   readonly run_id?: string | null;
   readonly source?: string | null;
@@ -90,8 +90,8 @@ export interface TokenFeedbackTransport {
   readonly created_at?: string | null;
 }
 
-export type { AgentTokenTransport, AgentToken } from '../shared-types';
-export { normalizeAgentToken } from '../shared-types';
+export type { AccessTokenTransport, AccessToken } from '../shared-types';
+export { normalizeAccessToken } from '../shared-types';
 
 // ============================================
 // 实体: Task
@@ -108,14 +108,14 @@ export interface Task {
   readonly targetMode: TaskTargetMode;
   readonly input: TaskInput;
   readonly targetIds: string[];
-  readonly targetTokenIds: string[];
+  readonly targetAccessTokenIds: string[];
   readonly requiredCapabilityIds: string[];
   readonly playbookIds: string[];
   readonly leaseAllowed: boolean;
   readonly approvalMode?: string | null;
   readonly approvalRules: Array<Record<string, unknown>>;
   readonly createdBy: IdentityReference;
-  readonly createdViaTokenId?: string | null;
+  readonly createdViaAccessTokenId?: string | null;
   readonly claimedBy?: string;
 }
 
@@ -127,7 +127,7 @@ export interface Run {
   readonly id: string;
   readonly taskId: string;
   readonly agentId?: string;
-  readonly tokenId?: string;
+  readonly accessTokenId?: string;
   readonly taskTargetId?: string;
   readonly status: RunStatus;
   readonly resultSummary?: string;
@@ -138,12 +138,12 @@ export interface Run {
 }
 
 // ============================================
-// 实体: Token Feedback
+// 实体: Access Token Feedback
 // ============================================
 
-export interface TokenFeedback {
+export interface AccessTokenFeedback {
   readonly id: string;
-  readonly tokenId: string;
+  readonly accessTokenId: string;
   readonly taskTargetId: string;
   readonly runId?: string;
   readonly source?: string;
@@ -185,7 +185,7 @@ export interface TaskEvents {
     readonly run: Run;
   };
   'feedback:created': {
-    readonly feedback: TokenFeedback;
+    readonly feedback: AccessTokenFeedback;
   };
 }
 
@@ -200,7 +200,7 @@ export interface CreateTaskInput {
   readonly priority: TaskPriority;
   readonly input: TaskInput;
   readonly targetMode: TaskTargetMode;
-  readonly targetTokenIds: string[];
+  readonly targetAccessTokenIds: string[];
 }
 
 export interface CreateFeedbackInput {
@@ -219,10 +219,10 @@ export interface TaskWithTargets extends Task {
 
 export interface TaskTargetView {
   readonly targetId: string;
-  readonly tokenId: string;
-  readonly token: AgentToken | null;
+  readonly accessTokenId: string;
+  readonly accessToken: AccessToken | null;
   readonly run: Run | null;
-  readonly feedback: TokenFeedback[];
+  readonly feedback: AccessTokenFeedback[];
   readonly status: RunStatus;
 }
 
@@ -263,17 +263,17 @@ export function normalizeTask(dto: TaskTransport): Task {
     priority: dto.priority ?? 'normal',
     status: dto.status ?? 'pending',
     publicationStatus: dto.publication_status ?? 'draft',
-    targetMode: dto.target_mode ?? 'explicit_tokens',
+    targetMode: dto.target_mode ?? 'explicit_access_tokens',
     input: dto.input ?? {},
     targetIds: dto.target_ids ?? [],
-    targetTokenIds: dto.target_token_ids ?? [],
+    targetAccessTokenIds: dto.target_access_token_ids ?? [],
     requiredCapabilityIds: dto.required_capability_ids ?? [],
     playbookIds: dto.playbook_ids ?? [],
     leaseAllowed: dto.lease_allowed ?? false,
     approvalMode: dto.approval_mode,
     approvalRules: dto.approval_rules ?? [],
     createdBy: normalizeIdentityReference(dto.created_by_actor_type, dto.created_by_actor_id),
-    createdViaTokenId: dto.created_via_token_id,
+    createdViaAccessTokenId: dto.created_via_token_id,
     claimedBy: dto.claimed_by ?? undefined,
   };
 }
@@ -283,7 +283,7 @@ export function normalizeRun(dto: RunTransport): Run {
     id: dto.id,
     taskId: dto.task_id,
     agentId: dto.agent_id ?? undefined,
-    tokenId: dto.token_id ?? undefined,
+    accessTokenId: dto.access_token_id ?? undefined,
     taskTargetId: dto.task_target_id ?? undefined,
     status: dto.status,
     resultSummary: dto.result_summary ?? undefined,
@@ -294,10 +294,12 @@ export function normalizeRun(dto: RunTransport): Run {
   };
 }
 
-export function normalizeTokenFeedback(dto: TokenFeedbackTransport): TokenFeedback {
+export function normalizeAccessTokenFeedback(
+  dto: AccessTokenFeedbackTransport
+): AccessTokenFeedback {
   return {
     id: dto.id,
-    tokenId: dto.token_id,
+    accessTokenId: dto.access_token_id,
     taskTargetId: dto.task_target_id,
     runId: dto.run_id ?? undefined,
     source: dto.source ?? undefined,

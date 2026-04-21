@@ -40,7 +40,7 @@ export const swrConfig: SWRConfiguration = {
 export const fetcher = async <T>(url: string): Promise<T> => {
   // 根据 URL 映射到对应的 API 方法
   const methodMap: Record<string, () => Promise<T>> = {
-    '/api/agents': () => api.getAgents() as Promise<T>,
+    '/api/access-tokens': () => api.getAccessTokens() as Promise<T>,
     '/api/tasks': () => api.getTasks() as Promise<T>,
     '/api/runs': () => api.getRuns() as Promise<T>,
   };
@@ -60,12 +60,8 @@ export const fetcherWithParams = async <T, P extends Record<string, unknown>>(
   url: string,
   params: P
 ): Promise<T> => {
-  if (url === '/api/agent-tokens' && 'agentId' in params) {
-    return api.getAgentTokens(params.agentId as string) as Promise<T>;
-  }
-
-  if (url === '/api/token-feedback' && 'tokenId' in params) {
-    return api.getTokenFeedback(params.tokenId as string) as Promise<T>;
+  if (url === '/api/access-token-feedback' && 'accessTokenId' in params) {
+    return api.getAccessTokenFeedback(params.accessTokenId as string) as Promise<T>;
   }
 
   throw new Error(`Unknown API endpoint: ${url}`);

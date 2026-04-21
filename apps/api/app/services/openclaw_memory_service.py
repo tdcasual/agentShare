@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.orm.openclaw_memory_note import OpenClawMemoryNoteModel
 from app.repositories.openclaw_memory_repo import OpenClawMemoryRepository
 from app.services.identifiers import new_resource_id

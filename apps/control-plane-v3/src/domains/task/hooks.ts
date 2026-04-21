@@ -10,8 +10,8 @@ import useSWR, { SWRConfiguration, mutate } from 'swr';
 import { useCallback } from 'react';
 import { swrConfig, pollingConfig } from '@/lib/swr-config';
 import * as api from './api';
-import type { Task, Run, TokenFeedback, TaskPriority, TaskTargetMode } from './types';
-import type { TaskCreateInput, TokenFeedbackCreateInput } from '@/lib/api-client';
+import type { Task, Run, AccessTokenFeedback, TaskPriority, TaskTargetMode } from './types';
+import type { TaskCreateInput, AccessTokenFeedbackCreateInput } from '@/lib/api-client';
 import { TASK_DASHBOARD_FEEDBACK_KEY, TASK_DASHBOARD_TOKENS_KEY } from './hooks-dashboard';
 
 // ============================================
@@ -38,17 +38,17 @@ export function useCreateTask() {
       priority: (taskData.priority as TaskPriority) ?? 'normal',
       status: 'pending',
       publicationStatus: 'draft',
-      targetMode: (taskData.target_mode as TaskTargetMode) ?? 'explicit_tokens',
+      targetMode: (taskData.target_mode as TaskTargetMode) ?? 'explicit_access_tokens',
       input: taskData.input ?? {},
       targetIds: [],
-      targetTokenIds: taskData.target_token_ids ?? [],
+      targetAccessTokenIds: taskData.target_access_token_ids ?? [],
       requiredCapabilityIds: taskData.required_capability_ids ?? [],
       playbookIds: taskData.playbook_ids ?? [],
       leaseAllowed: taskData.lease_allowed ?? false,
       approvalMode: taskData.approval_mode ?? null,
       approvalRules: taskData.approval_rules ?? [],
       createdBy: { id: 'current-user', type: 'human', name: 'Current User' },
-      createdViaTokenId: null,
+      createdViaAccessTokenId: null,
       claimedBy: undefined,
     };
 
@@ -86,10 +86,10 @@ export function useRuns(options?: SWRConfiguration) {
 // Feedback
 // ============================================
 
-export function useTokenFeedback(tokenId: string | null, options?: SWRConfiguration) {
-  return useSWR<{ items: TokenFeedback[] }>(
-    tokenId ? `/api/agent-tokens/${tokenId}/feedback` : null,
-    () => (tokenId ? api.getTokenFeedback(tokenId) : { items: [] }),
+export function useAccessTokenFeedback(accessTokenId: string | null, options?: SWRConfiguration) {
+  return useSWR<{ items: AccessTokenFeedback[] }>(
+    accessTokenId ? `/api/access-tokens/${accessTokenId}/feedback` : null,
+    () => (accessTokenId ? api.getAccessTokenFeedback(accessTokenId) : { items: [] }),
     {
       ...swrConfig,
       ...options,
@@ -98,7 +98,7 @@ export function useTokenFeedback(tokenId: string | null, options?: SWRConfigurat
 }
 
 export function useCreateTaskTargetFeedback() {
-  return useCallback(async (targetId: string, payload: TokenFeedbackCreateInput) => {
+  return useCallback(async (targetId: string, payload: AccessTokenFeedbackCreateInput) => {
     const result = await api.createTaskTargetFeedback(targetId, payload);
     // 刷新相关缓存
     await mutate('/api/tasks');

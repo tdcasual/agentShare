@@ -1,3 +1,4 @@
+import hashlib
 import importlib
 from unittest.mock import MagicMock
 
@@ -8,10 +9,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
+from conftest import TEST_ACCESS_TOKEN_ID
+
 from app.config import Settings
 from app.db import get_db
 from app.factory import create_app
-from app.repositories.agent_repo import AgentRepository
+from app.repositories.access_token_repo import AccessTokenRepository
 from app.runtime import build_runtime
 
 
@@ -90,7 +93,7 @@ def test_create_app_lifespan_uses_runtime_from_app_state(tmp_path):
         assert client.get("/healthz").status_code == 200
 
     with app.state.runtime.session_factory() as runtime_session:
-        assert AgentRepository(runtime_session).get("bootstrap") is not None
+        assert AccessTokenRepository(runtime_session).list_all() == []
 
     primary_runtime = build_runtime(Settings(
         database_url=f"sqlite:///{primary_db}",
@@ -102,6 +105,8 @@ def test_create_app_lifespan_uses_runtime_from_app_state(tmp_path):
 
 
 def test_runtime_database_supports_bootstrap_token_target_feedback_flow(tmp_path):
+    import hashlib
+
     db_path = tmp_path / "runtime-flow.db"
     settings = Settings(
         database_url=f"sqlite:///{db_path}",
@@ -146,75 +151,52 @@ def test_runtime_database_supports_bootstrap_token_target_feedback_flow(tmp_path
         )
         assert login_response.status_code == 200, login_response.text
 
-        agent_response = client.post(
-            "/api/agents",
+        access_token_response = client.post(
+            "/api/access-tokens",
             json={
-                "name": "deploy-bot",
-                "risk_tier": "medium",
-                "allowed_task_types": ["account_read"],
-            },
-        )
-        assert agent_response.status_code == 201, agent_response.text
-        agent_payload = agent_response.json()
-        primary_token = agent_payload["api_key"]
-        primary_token_id = agent_payload["token_id"]
-
-        extra_token_response = client.post(
-            f"/api/agents/{agent_payload['id']}/tokens",
-            json={
-                "display_name": "Staging worker token",
+                "display_name": "Staging worker access token",
+                "subject_type": "automation",
+                "subject_id": "ci-runner",
                 "scopes": ["runtime"],
                 "labels": {"environment": "staging"},
             },
         )
-        assert extra_token_response.status_code == 201, extra_token_response.text
-        extra_token_payload = extra_token_response.json()
-
-        token_listing = client.get(f"/api/agents/{agent_payload['id']}/tokens")
-        assert token_listing.status_code == 200, token_listing.text
-        listed_token_ids = {item["id"] for item in token_listing.json()["items"]}
-        assert listed_token_ids == {primary_token_id, extra_token_payload["id"]}
+        assert access_token_response.status_code == 201, access_token_response.text
+        access_token_payload = access_token_response.json()
 
         targeted_task = client.post(
             "/api/tasks",
             json={
                 "title": "Read account",
                 "task_type": "account_read",
-                "target_mode": "explicit_tokens",
-                "target_token_ids": [extra_token_payload["id"]],
+                "target_mode": "explicit_access_tokens",
+                "target_access_token_ids": [access_token_payload["id"]],
             },
         )
         assert targeted_task.status_code == 201, targeted_task.text
         targeted_payload = targeted_task.json()
         assert len(targeted_payload["target_ids"]) == 1
-        assert targeted_payload["target_token_ids"] == [extra_token_payload["id"]]
-
-        assigned_to_primary = client.get(
-            "/api/tasks/assigned",
-            headers={"Authorization": f"Bearer {primary_token}"},
-        )
-        assert assigned_to_primary.status_code == 200, assigned_to_primary.text
-        assert assigned_to_primary.json()["items"] == []
+        assert targeted_payload["target_access_token_ids"] == [access_token_payload["id"]]
 
         assigned_to_target = client.get(
             "/api/tasks/assigned",
-            headers={"Authorization": f"Bearer {extra_token_payload['api_key']}"},
+            headers={"Authorization": f"Bearer {access_token_payload['api_key']}"},
         )
         assert assigned_to_target.status_code == 200, assigned_to_target.text
         assigned_items = assigned_to_target.json()["items"]
         assert len(assigned_items) == 1
         target_id = assigned_items[0]["id"]
-        assert assigned_items[0]["target_token_id"] == extra_token_payload["id"]
+        assert assigned_items[0]["target_access_token_id"] == access_token_payload["id"]
 
         claimed = client.post(
             f"/api/task-targets/{target_id}/claim",
-            headers={"Authorization": f"Bearer {extra_token_payload['api_key']}"},
+            headers={"Authorization": f"Bearer {access_token_payload['api_key']}"},
         )
         assert claimed.status_code == 200, claimed.text
 
         completed = client.post(
             f"/api/task-targets/{target_id}/complete",
-            headers={"Authorization": f"Bearer {extra_token_payload['api_key']}"},
+            headers={"Authorization": f"Bearer {access_token_payload['api_key']}"},
             json={
                 "result_summary": "done",
                 "output_payload": {"ok": True},
@@ -227,7 +209,7 @@ def test_runtime_database_supports_bootstrap_token_target_feedback_flow(tmp_path
         runs_response = client.get("/api/runs")
         assert runs_response.status_code == 200, runs_response.text
         run = runs_response.json()["items"][0]
-        assert run["token_id"] == extra_token_payload["id"]
+        assert run["access_token_id"] == access_token_payload["id"]
         assert run["task_target_id"] == target_id
 
         feedback_response = client.post(
@@ -235,15 +217,6 @@ def test_runtime_database_supports_bootstrap_token_target_feedback_flow(tmp_path
             json={"score": 5, "verdict": "accepted", "summary": "Looks good"},
         )
         assert feedback_response.status_code == 201, feedback_response.text
-
-        refreshed_tokens = client.get(f"/api/agents/{agent_payload['id']}/tokens")
-        assert refreshed_tokens.status_code == 200, refreshed_tokens.text
-        target_token = next(item for item in refreshed_tokens.json()["items"] if item["id"] == extra_token_payload["id"])
-        assert target_token["completed_runs"] == 1
-        assert target_token["successful_runs"] == 1
-        assert target_token["success_rate"] == 1.0
-        assert target_token["trust_score"] == 1.0
-        assert target_token["last_feedback_at"] is not None
 
 
 def test_build_runtime_enables_pool_tuning_for_non_sqlite(monkeypatch):

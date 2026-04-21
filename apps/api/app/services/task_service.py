@@ -7,13 +7,12 @@ from sqlalchemy.orm import Session
 from app.auth import ensure_task_type_allowed
 from app.config import Settings
 from app.errors import AuthorizationError, BadRequestError, ConflictError, NotFoundError
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.run import RunModel
 from app.orm.task import TaskModel
 from app.orm.task_target import TaskTargetModel
 from app.repositories.access_token_repo import AccessTokenRepository
-from app.repositories.agent_repo import AgentRepository
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.playbook_repo import PlaybookRepository
 from app.repositories.run_repo import RunRepository
@@ -45,7 +44,7 @@ def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
         approval_rules=[rule.model_dump() for rule in payload.approval_rules],
         priority=payload.priority,
         target_mode=payload.target_mode,
-        target_token_ids=payload.target_token_ids,
+        target_access_token_ids=payload.target_access_token_ids,
         created_by=actor.actor_type,
         created_by_actor_type=actor.actor_type,
         created_by_actor_id=actor.id,
@@ -98,7 +97,7 @@ def claim_task(
 ) -> dict:
     if _uses_access_token_assignments(agent):
         target_repo = TaskTargetRepository(session)
-        target = target_repo.find_by_task_and_token(task_id, agent.token_id)
+        target = target_repo.find_by_task_and_access_token(task_id, agent.token_id)
         if target is not None:
             claimed = claim_task_target(session, target.id, agent, settings=settings)
             task = TaskRepository(session).get(task_id)
@@ -114,7 +113,7 @@ def claim_task(
         task = repo.get(task_id)
         if task is None:
             raise NotFoundError("Task not found")
-        if not _uses_access_token_assignments(agent) and task.target_mode == "explicit_tokens":
+        if not _uses_access_token_assignments(agent) and task.target_mode == "explicit_access_tokens":
             raise AuthorizationError("Task is not assigned to this token")
         if task.publication_status != "active":
             raise ConflictError("Task is not claimable")
@@ -142,7 +141,7 @@ def complete_task(
     settings: Settings | None = None,
 ) -> dict:
     if _uses_access_token_assignments(agent):
-        target = TaskTargetRepository(session).find_by_task_and_token(task_id, agent.token_id)
+        target = TaskTargetRepository(session).find_by_task_and_access_token(task_id, agent.token_id)
         if target is not None:
             completed = complete_task_target(
                 session,
@@ -182,7 +181,7 @@ def complete_task(
             id=run_id,
             task_id=task_id,
             agent_id=agent.id,
-            token_id=agent.token_id,
+            access_token_id=agent.token_id,
             task_target_id=None,
             status="completed",
             result_summary=result_summary,
@@ -212,7 +211,7 @@ def claim_task_target(
         target = target_repo.get(target_id)
         if target is None:
             raise NotFoundError("Task target not found")
-        if target.target_token_id != agent.token_id:
+        if target.target_access_token_id != agent.token_id:
             raise AuthorizationError("Task target is not assigned to this token")
         if target.status != "pending":
             raise ConflictError("Task target is not claimable")
@@ -229,7 +228,7 @@ def claim_task_target(
             raise AuthorizationError(str(exc)) from exc
 
         target.status = "claimed"
-        target.claimed_by_token_id = agent.token_id
+        target.claimed_by_access_token_id = agent.token_id
         target.claimed_by_agent_id = agent.id
         target.claimed_at = datetime.now(timezone.utc)
         target_repo.update(target)
@@ -265,11 +264,11 @@ def complete_task_target(
         target = target_repo.get(target_id)
         if target is None:
             raise NotFoundError("Task target not found")
-        if target.target_token_id != agent.token_id:
+        if target.target_access_token_id != agent.token_id:
             raise AuthorizationError("Task target is not assigned to this token")
         if target.status != "claimed":
             raise ConflictError("Task target is not claimed")
-        if target.claimed_by_token_id != agent.token_id:
+        if target.claimed_by_access_token_id != agent.token_id:
             raise AuthorizationError("Task target is not claimed by this token")
 
         task = task_repo.get(target.task_id)
@@ -290,7 +289,7 @@ def complete_task_target(
             id=run_id,
             task_id=task.id,
             agent_id=agent.id,
-            token_id=agent.token_id,
+            access_token_id=agent.token_id,
             task_target_id=target.id,
             status="completed",
             result_summary=result_summary,
@@ -331,7 +330,7 @@ def _task_to_dict(model: TaskModel, *, targets: list[TaskTargetModel] | None = N
         "publication_status": model.publication_status,
         "claimed_by": model.claimed_by,
         "target_ids": [target.id for target in target_rows],
-        "target_token_ids": [target.target_token_id for target in target_rows] or (model.target_token_ids or []),
+        "target_access_token_ids": [target.target_access_token_id for target in target_rows] or (model.target_access_token_ids or []),
     }
 
 
@@ -341,9 +340,9 @@ def _task_target_to_dict(target: TaskTargetModel, task: TaskModel) -> dict:
         "task_id": task.id,
         "title": task.title,
         "task_type": task.task_type,
-        "target_token_id": target.target_token_id,
+        "target_access_token_id": target.target_access_token_id,
         "status": target.status,
-        "claimed_by_token_id": target.claimed_by_token_id,
+        "claimed_by_access_token_id": target.claimed_by_access_token_id,
         "claimed_by_agent_id": target.claimed_by_agent_id,
         "claimed_at": target.claimed_at,
         "completed_at": target.completed_at,
@@ -424,73 +423,72 @@ def _create_task_targets(
     task: TaskModel,
     payload: TaskCreate,
 ) -> list[TaskTargetModel]:
-    token_ids = _resolve_target_token_ids(session, payload)
+    token_ids = _resolve_target_access_token_ids(session, payload)
     repo = TaskTargetRepository(session)
     created: list[TaskTargetModel] = []
     for token_id in token_ids:
         created.append(repo.create(TaskTargetModel(
             id=new_resource_id("target"),
             task_id=task.id,
-            target_token_id=token_id,
+            target_access_token_id=token_id,
             status="pending",
         )))
     return created
 
 
-def _resolve_target_token_ids(session: Session, payload: TaskCreate) -> list[str]:
-    if payload.target_mode == "explicit_tokens" or payload.target_token_ids:
-        if payload.target_mode == "explicit_tokens" and not payload.target_token_ids:
-            raise BadRequestError("Explicit token targeting requires target_token_ids")
+def _resolve_target_access_token_ids(session: Session, payload: TaskCreate) -> list[str]:
+    if payload.target_mode == "explicit_access_tokens" or payload.target_access_token_ids:
+        if payload.target_mode == "explicit_access_tokens" and not payload.target_access_token_ids:
+            raise BadRequestError("Explicit access token targeting requires target_access_token_ids")
         repo = AccessTokenRepository(session)
-        token_ids: list[str] = []
-        for token_id in payload.target_token_ids:
-            token = repo.get(token_id)
+        access_token_ids: list[str] = []
+        for access_token_id in payload.target_access_token_ids:
+            token = repo.get(access_token_id)
             if token is None or token.status != "active":
-                raise BadRequestError(f"Unknown target token: {token_id}")
-            token_ids.append(token_id)
-        return token_ids
+                raise BadRequestError(f"Unknown target access token: {access_token_id}")
+            access_token_ids.append(access_token_id)
+        return access_token_ids
 
     return [token.id for token in AccessTokenRepository(session).list_active()]
 
 
 def _ensure_actor_can_submit_task(session: Session, payload: TaskCreate, *, actor) -> None:
-    if getattr(actor, "actor_type", None) != "agent":
+    if getattr(actor, "actor_type", None) == "human":
         return
 
-    agent_model = AgentRepository(session).get(actor.id)
-    if agent_model is None:
+    if getattr(actor, "actor_type", None) == "openclaw_agent":
         agent_model = OpenClawAgentRepository(session).get(actor.id)
-    if agent_model is None or agent_model.status != "active":
-        raise AuthorizationError("Agent is not active")
+        if agent_model is None or agent_model.status != "active":
+            raise AuthorizationError("Agent is not active")
 
-    try:
-        ensure_task_type_allowed(
-            AgentIdentity(
-                id=agent_model.id,
-                name=agent_model.name,
-                issuer=getattr(agent_model, "issuer", "openclaw"),
-                auth_method=getattr(agent_model, "auth_method", "openclaw_session"),
-                status=agent_model.status,
-                token_id=getattr(actor, "token_id", None),
-                allowed_task_types=agent_model.allowed_task_types or [],
-                allowed_capability_ids=agent_model.allowed_capability_ids or [],
-                risk_tier=agent_model.risk_tier,
-            ),
-            payload.task_type,
-        )
-    except PermissionError as exc:
-        raise AuthorizationError(str(exc)) from exc
+        try:
+            ensure_task_type_allowed(
+                RuntimePrincipal(
+                    id=agent_model.id,
+                    name=agent_model.name,
+                    issuer="openclaw",
+                    auth_method=agent_model.auth_method,
+                    status=agent_model.status,
+                    token_id=getattr(actor, "token_id", None),
+                    allowed_task_types=agent_model.allowed_task_types or [],
+                    allowed_capability_ids=agent_model.allowed_capability_ids or [],
+                    risk_tier=agent_model.risk_tier,
+                ),
+                payload.task_type,
+            )
+        except PermissionError as exc:
+            raise AuthorizationError(str(exc)) from exc
 
-    if payload.target_mode != "explicit_tokens":
+    if payload.target_mode != "explicit_access_tokens":
         return
 
     token_repo = AccessTokenRepository(session)
-    for token_id in payload.target_token_ids:
-        token = token_repo.get(token_id)
+    for access_token_id in payload.target_access_token_ids:
+        token = token_repo.get(access_token_id)
         if token is None or token.status != "active":
-            raise BadRequestError(f"Unknown target token: {token_id}")
+            raise BadRequestError(f"Unknown target access token: {access_token_id}")
         if token.subject_id != actor.id:
-            raise AuthorizationError("Runtime agents may only target their own active tokens")
+            raise AuthorizationError("Runtime agents may only target their own active access tokens")
 
 
 def _uses_access_token_assignments(actor) -> bool:

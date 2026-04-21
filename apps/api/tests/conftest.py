@@ -15,21 +15,17 @@ from app.db import get_db
 from app.factory import create_app
 from app.orm import Base  # noqa: F401 — import triggers all model registration
 from app.orm.access_token import AccessTokenModel
-from app.orm.agent import AgentIdentityModel
-from app.orm.agent_token import AgentTokenModel
-from app.repositories.agent_repo import AgentRepository
+from app.orm.openclaw_agent import OpenClawAgentModel
 from app.runtime import AppRuntime
 from app.observability import reset_metrics
 from app.services.access_token_service import hash_access_token, mint_access_token
-from app.services.agent_token_service import hash_token
 from app.services.secret_backend import InMemorySecretBackend
 
 ROOT = Path(__file__).resolve().parents[3]
 API_ROOT = ROOT / "apps/api"
 
-TEST_AGENT_KEY = "agent-test-token"
+TEST_AGENT_KEY = TEST_ACCESS_TOKEN_KEY = "access-test-token"
 TEST_ACCESS_TOKEN_ID = "access-token-test-agent"
-TEST_ACCESS_TOKEN_KEY = "access-test-token"
 BOOTSTRAP_OWNER_KEY = "bootstrap-test-token"
 OWNER_EMAIL = "owner@example.com"
 OWNER_PASSWORD = "correct horse battery staple"
@@ -119,28 +115,22 @@ def reset_observability_metrics():
 def seeded_app(db_session, test_engine, test_session_factory, test_settings):
     app = _build_test_app(test_engine, test_session_factory, test_settings)
 
-    # Seed a test agent for auth
-    repo = AgentRepository(db_session)
-    repo.create(AgentIdentityModel(
+    db_session.add(OpenClawAgentModel(
         id="test-agent",
         name="Test Agent",
-        api_key_hash=None,
         status="active",
+        auth_method="openclaw_session",
+        workspace_root="/tmp/test-agent",
+        agent_dir=".openclaw/agents/test-agent",
+        model="gpt-5.4",
+        thinking_level="balanced",
+        sandbox_mode="workspace-write",
+        tools_policy={},
+        skills_policy={},
+        dream_policy={},
         allowed_capability_ids=[],
         allowed_task_types=["config_sync", "account_read", "prompt_run"],
         risk_tier="medium",
-    ))
-    db_session.add(AgentTokenModel(
-        id="token-test-agent",
-        agent_id="test-agent",
-        display_name="Test agent token",
-        token_hash=hash_token(TEST_AGENT_KEY),
-        token_prefix=TEST_AGENT_KEY[:10],
-        status="active",
-        issued_by_actor_type="system",
-        issued_by_actor_id="test-fixture",
-        scopes=[],
-        labels={},
     ))
     db_session.add(AccessTokenModel(
         id=TEST_ACCESS_TOKEN_ID,

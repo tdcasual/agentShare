@@ -33,9 +33,9 @@ export type {
   TaskTargetMode,
   Run,
   RunStatus,
-  TokenFeedback,
+  AccessTokenFeedback,
   FeedbackVerdict,
-  AgentToken,
+  AccessToken,
   TaskInput,
   TaskTarget,
   TaskEvents,
@@ -98,17 +98,17 @@ export type AgentIdentity = import('@/domains/identity/types').Identity;
 // 任务相关别名
 export type TaskSummary = import('@/domains/task/types').Task;
 export type RunSummary = import('@/domains/task/types').Run;
-export type TokenFeedbackSummary = import('@/domains/task/types').TokenFeedback;
-export type AgentTokenSummary = import('@/domains/task/types').AgentToken;
+export type AccessTokenFeedbackSummary = import('@/domains/task/types').AccessTokenFeedback;
+export type AccessTokenSummary = import('@/domains/task/types').AccessToken;
 
 // 输入类型别名 — NOTE: These alias the domain types (camelCase, typed unions).
 // The API client in @/lib/api-client exports separate types with snake_case fields.
 // Consumers importing from @/lib/api-client get the correct API-layer types.
 export type TaskCreateInput = import('@/domains/task/types').CreateTaskInput;
-export type TokenFeedbackCreateInput = import('@/domains/task/types').CreateFeedbackInput;
+export type AccessTokenFeedbackCreateInput = import('@/domains/task/types').CreateFeedbackInput;
 
 // 其他共享类型
-export type AgentSummary = import('@/domains/identity/types').Agent;
+export type AgentSummary = import('@/domains/identity/types').OpenClawAgent;
 
 export type AdminAccountSummary = import('@/domains/identity/types').AdminAccountSummary;
 

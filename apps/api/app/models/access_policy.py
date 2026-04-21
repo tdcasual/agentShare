@@ -5,8 +5,8 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_serializer, model_validator
 
 
-CapabilityAccessPolicyMode = Literal["all_tokens", "selectors"]
-CapabilityAccessSelectorKind = Literal["token", "agent", "token_label"]
+CapabilityAccessPolicyMode = Literal["all_access_tokens", "selectors"]
+CapabilityAccessSelectorKind = Literal["access_token", "access_token_label"]
 
 
 class CapabilityAccessSelector(BaseModel):
@@ -17,43 +17,43 @@ class CapabilityAccessSelector(BaseModel):
 
     @model_validator(mode="after")
     def normalize(self) -> "CapabilityAccessSelector":
-        if self.kind in {"token", "agent"}:
+        if self.kind == "access_token":
             self.key = None
             self.values = []
             self.ids = list(dict.fromkeys(self.ids))
             if not self.ids:
-                raise ValueError(f"{self.kind} selectors require ids")
+                raise ValueError("access_token selectors require ids")
             return self
 
         self.ids = []
         self.values = list(dict.fromkeys(self.values))
         if not self.key:
-            raise ValueError("token_label selectors require key")
+            raise ValueError("access_token_label selectors require key")
         if not self.values:
-            raise ValueError("token_label selectors require values")
+            raise ValueError("access_token_label selectors require values")
         return self
 
     @model_serializer(mode="plain")
     def serialize(self) -> dict:
-        if self.kind in {"token", "agent"}:
+        if self.kind == "access_token":
             return {
                 "kind": self.kind,
                 "ids": self.ids,
             }
         return {
-            "kind": "token_label",
+            "kind": "access_token_label",
             "key": self.key,
             "values": self.values,
         }
 
 
 class CapabilityAccessPolicy(BaseModel):
-    mode: CapabilityAccessPolicyMode = Field(default="all_tokens")
+    mode: CapabilityAccessPolicyMode = Field(default="all_access_tokens")
     selectors: list[CapabilityAccessSelector] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def normalize(self) -> "CapabilityAccessPolicy":
-        if self.mode == "all_tokens":
+        if self.mode == "all_access_tokens":
             self.selectors = []
             return self
 
@@ -63,8 +63,8 @@ class CapabilityAccessPolicy(BaseModel):
 
     @model_serializer(mode="plain")
     def serialize(self) -> dict:
-        if self.mode == "all_tokens":
-            return {"mode": "all_tokens", "selectors": []}
+        if self.mode == "all_access_tokens":
+            return {"mode": "all_access_tokens", "selectors": []}
         return {
             "mode": "selectors",
             "selectors": [selector.serialize() for selector in self.selectors],

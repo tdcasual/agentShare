@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class RuntimePrincipal(BaseModel):
+    actor_type: str = "openclaw_agent"
     id: str
     name: str
     issuer: str
@@ -13,6 +14,8 @@ class RuntimePrincipal(BaseModel):
     status: str = "active"
     token_id: str | None = None
     token_prefix: str | None = None
+    subject_type: str | None = None
+    subject_id: str | None = None
     expires_at: datetime | None = None
     scopes: list[str] = Field(default_factory=list)
     labels: dict[str, str] = Field(default_factory=dict)

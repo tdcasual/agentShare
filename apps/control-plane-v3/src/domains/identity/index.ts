@@ -10,7 +10,6 @@
 // Types
 export type {
   Identity,
-  Agent,
   IdentityType,
   IdentityStatus,
   PresenceStatus,
@@ -43,8 +42,8 @@ export type {
   OpenClawDreamStep,
 } from './types';
 
-// Re-export AgentToken from task domain for convenience
-export type { AgentToken } from '@/domains/task/types';
+// Re-export AccessToken from task domain for convenience
+export type { AccessToken } from '@/domains/task/types';
 
 // API
 export {
@@ -54,9 +53,6 @@ export {
   login,
   logout,
   getSession,
-  getAgents,
-  createAgent,
-  deleteAgent,
   getOpenClawAgents,
   getOpenClawAgent,
   createOpenClawAgent,
@@ -71,10 +67,9 @@ export {
   getAdminAccounts,
   createAdminAccount,
   disableAdminAccount,
-  getAgentTokens,
-  getAgentTokensBulk,
-  createAgentToken,
-  revokeAgentToken,
+  getAccessTokens,
+  createAccessToken,
+  revokeAccessToken,
 } from './api';
 
 // Hooks
@@ -85,10 +80,6 @@ export {
   useSession,
   useLogin,
   useLogout,
-  // Agents
-  useAgents,
-  useCreateAgent,
-  useDeleteAgent,
   useOpenClawAgents,
   useCreateOpenClawAgent,
   useUpdateOpenClawAgent,
@@ -103,24 +94,20 @@ export {
   useAdminAccounts,
   useCreateAdminAccount,
   useDisableAdminAccount,
-  // Agent Tokens
-  useAgentTokens,
-  useCreateAgentToken,
-  useRevokeAgentToken,
-  // Bulk Operations
-  useAgentsWithTokens,
+  useAccessTokens,
+  useCreateAccessToken,
+  useRevokeAccessToken,
   // Manual mutations
   refreshSession,
-  refreshAgents,
   refreshOpenClawAgents,
   refreshAdminAccounts,
-  refreshAgentsWithTokens,
+  refreshAccessTokens,
   refreshOpenClawSessions,
   refreshOpenClawDreamRuns,
   // Prefetch
-  prefetchAgents,
   prefetchSession,
   prefetchOpenClawAgents,
   prefetchOpenClawSessions,
   prefetchOpenClawDreamRuns,
+  prefetchAccessTokens,
 } from './hooks';

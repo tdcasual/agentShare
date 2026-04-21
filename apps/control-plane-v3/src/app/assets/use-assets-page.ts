@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useAgentsWithTokens } from '@/domains/identity';
+import { useAccessTokens, useOpenClawAgents } from '@/domains/identity';
 import {
   deriveGovernanceStatus,
   isGovernanceInventoryActive,
@@ -30,13 +30,8 @@ export function useAssetsPage() {
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
 
-  const {
-    agents,
-    tokensByAgent,
-    isLoading: tokensLoading,
-    error: tokensError,
-    mutate: mutateTokens,
-  } = useAgentsWithTokens();
+  const openClawAgentsQuery = useOpenClawAgents();
+  const accessTokensQuery = useAccessTokens();
 
   const secretsQuery = useSecrets();
   const capabilitiesQuery = useCapabilities();
@@ -49,7 +44,12 @@ export function useAssetsPage() {
     shouldShowSessionExpired,
     clearAllAuthErrors,
     consumeUnauthorized,
-  } = useManagementPageSessionRecovery([tokensError, secretsQuery.error, capabilitiesQuery.error]);
+  } = useManagementPageSessionRecovery([
+    openClawAgentsQuery.error,
+    accessTokensQuery.error,
+    secretsQuery.error,
+    capabilitiesQuery.error,
+  ]);
 
   const [error, setError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
@@ -69,22 +69,26 @@ export function useAssetsPage() {
     return 'all';
   });
 
+  const agents = useMemo(() => openClawAgentsQuery.data?.items ?? [], [openClawAgentsQuery.data]);
   const secrets = useMemo(() => secretsQuery.data?.items ?? [], [secretsQuery.data]);
   const capabilities = useMemo(() => capabilitiesQuery.data?.items ?? [], [capabilitiesQuery.data]);
 
   const allTokens = useMemo<FlattenedToken[]>(
-    () =>
-      agents.flatMap((agent) =>
-        (tokensByAgent[agent.id] ?? []).map((token) => ({
-          id: token.id,
-          label: token.displayName ?? token.id,
-          agentId: agent.id,
-          agentName: agent.name,
-          status: token.status,
-          labels: token.labels ?? {},
-        }))
-      ),
-    [agents, tokensByAgent]
+    () => {
+      const agentNameById = Object.fromEntries(agents.map((agent) => [agent.id, agent.name]));
+      return (accessTokensQuery.data?.items ?? []).map((token) => ({
+        id: token.id,
+        label: token.displayName ?? token.id,
+        agentId: token.subjectType === 'openclaw_agent' ? token.subjectId : token.id,
+        agentName:
+          token.subjectType === 'openclaw_agent'
+            ? (agentNameById[token.subjectId] ?? token.subjectId)
+            : `${token.subjectType}:${token.subjectId}`,
+        status: token.status,
+        labels: token.labels ?? {},
+      }));
+    },
+    [agents, accessTokensQuery.data]
   );
 
   const tokenNameById = useMemo(
@@ -93,11 +97,6 @@ export function useAssetsPage() {
         allTokens.map((token) => [token.id, `${token.label} · ${token.agentName}`])
       ),
     [allTokens]
-  );
-
-  const agentNameById = useMemo(
-    () => Object.fromEntries(agents.map((agent) => [agent.id, agent.name])),
-    [agents]
   );
 
   const tokenLabelOptions = useMemo(() => {
@@ -118,13 +117,20 @@ export function useAssetsPage() {
   }, [allTokens]);
 
   const loading =
-    gateLoading || tokensLoading || secretsQuery.isLoading || capabilitiesQuery.isLoading;
+    gateLoading ||
+    openClawAgentsQuery.isLoading ||
+    accessTokensQuery.isLoading ||
+    secretsQuery.isLoading ||
+    capabilitiesQuery.isLoading;
 
   const combinedError =
     gateError ??
     error ??
-    (tokensError instanceof Error && !isUnauthorizedError(tokensError)
-      ? tokensError.message
+    (openClawAgentsQuery.error instanceof Error && !isUnauthorizedError(openClawAgentsQuery.error)
+      ? openClawAgentsQuery.error.message
+      : null) ??
+    (accessTokensQuery.error instanceof Error && !isUnauthorizedError(accessTokensQuery.error)
+      ? accessTokensQuery.error.message
       : null) ??
     (secretsQuery.error instanceof Error && !isUnauthorizedError(secretsQuery.error)
       ? secretsQuery.error.message
@@ -210,7 +216,12 @@ export function useAssetsPage() {
     clearAllAuthErrors();
 
     try {
-      await Promise.all([secretsQuery.mutate(), capabilitiesQuery.mutate(), mutateTokens()]);
+      await Promise.all([
+        secretsQuery.mutate(),
+        capabilitiesQuery.mutate(),
+        openClawAgentsQuery.mutate(),
+        accessTokensQuery.mutate(),
+      ]);
     } catch (refreshFailure) {
       if (consumeUnauthorized(refreshFailure)) {
         return;
@@ -221,7 +232,15 @@ export function useAssetsPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [secretsQuery, capabilitiesQuery, mutateTokens, clearAllAuthErrors, consumeUnauthorized, t]);
+  }, [
+    secretsQuery,
+    capabilitiesQuery,
+    openClawAgentsQuery,
+    accessTokensQuery,
+    clearAllAuthErrors,
+    consumeUnauthorized,
+    t,
+  ]);
 
   return {
     t,
@@ -231,7 +250,6 @@ export function useAssetsPage() {
     capabilities,
     allTokens,
     tokenNameById,
-    agentNameById,
     tokenLabelOptions,
     loading,
     gateLoading,

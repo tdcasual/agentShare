@@ -10,9 +10,9 @@ class TaskTargetResponse(BaseModel):
     task_id: str
     title: str
     task_type: str
-    target_token_id: str
+    target_access_token_id: str
     status: str
-    claimed_by_token_id: str | None = None
+    claimed_by_access_token_id: str | None = None
     claimed_by_agent_id: str | None = None
     claimed_at: datetime | None = None
     completed_at: datetime | None = None

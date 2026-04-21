@@ -38,10 +38,11 @@ export type {
   AgentCreateResponse,
   AdminAccountCreateInput,
   LoginInput,
-  AgentTokenCreateInput,
-  AgentTokenCreateResponse,
+  AccessTokenCreateInput,
+  AccessTokenCreateResponse,
   TaskCreateInput,
   TokenFeedbackCreateInput,
+  AccessTokenFeedbackCreateInput,
 } from './api-client';
 
 // ============================================

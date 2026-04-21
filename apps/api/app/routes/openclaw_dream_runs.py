@@ -9,7 +9,7 @@ from app.auth import (
     require_management_action,
 )
 from app.db import get_db
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.schemas.openclaw_dream_runs import (
     OpenClawDreamRunCreate,
     OpenClawDreamRunDetail,

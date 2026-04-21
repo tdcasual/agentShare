@@ -40,11 +40,11 @@
 
 ```
 前端代码
-    ↓ apiFetch('/agents')
+    ↓ apiFetch('/openclaw/agents')
 实际请求
-    ↓ GET /api/agents
+    ↓ GET /api/openclaw/agents
 Next.js Proxy (/api/[...path])
-    ↓ GET http://backend:8000/agents
+    ↓ GET http://backend:8000/openclaw/agents
 后端服务
 ```
 
@@ -54,7 +54,7 @@ Next.js Proxy (/api/[...path])
 
 | SWR Key | API 调用 | 实际请求 |
 |---------|---------|---------|
-| `/api/agents` | `api.getAgents()` → `/agents` | `/api/agents` |
+| `/api/openclaw/agents` | `identityApi.getOpenClawAgents()` → `/openclaw/agents` | `/api/openclaw/agents` |
 | `/api/assets` | `api.getAssets()` → `/assets` | `/api/assets` |
 | `/api/session/me` | `api.getSession()` → `/session/me` | `/api/session/me` |
 

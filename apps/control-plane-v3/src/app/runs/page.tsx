@@ -388,9 +388,9 @@ const RunCard = memo(function RunCard({ run, statusLabels, onSelect }: RunCardPr
             <span>
               {t('runs.labels.taskId')}: {run.taskId.slice(-8)}
             </span>
-            {run.tokenId && (
+            {run.accessTokenId && (
               <span>
-                {t('runs.labels.tokenId')}: {run.tokenId.slice(-8)}
+                {t('runs.labels.tokenId')}: {run.accessTokenId.slice(-8)}
               </span>
             )}
             {run.agentId && (
@@ -444,7 +444,7 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
             <InfoItem label={t('runs.info.status')} value={statusLabel} />
             <InfoItem label={t('runs.info.taskId')} value={run.taskId} />
             <InfoItem label={t('runs.info.agentId')} value={run.agentId ?? '-'} />
-            <InfoItem label={t('runs.info.tokenId')} value={run.tokenId ?? '-'} />
+            <InfoItem label={t('runs.info.tokenId')} value={run.accessTokenId ?? '-'} />
             <InfoItem label={t('runs.info.targetId')} value={run.taskTargetId ?? '-'} />
           </div>
 

@@ -18,7 +18,7 @@ CATALOG_RESOURCE_KINDS = {"secret", "capability"}
 def ensure_catalog_release(session: Session, *, resource_kind: str, model: Any) -> CatalogReleaseModel | None:
     if resource_kind not in CATALOG_RESOURCE_KINDS:
         return None
-    if getattr(model, "created_by_actor_type", None) != "agent":
+    if getattr(model, "created_by_actor_type", None) == "human":
         return None
 
     repo = CatalogReleaseRepository(session)

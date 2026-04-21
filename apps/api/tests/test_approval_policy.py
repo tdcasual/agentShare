@@ -18,7 +18,7 @@ from app.services.approval_service import (
 )
 from app.schemas.tasks import TaskCreate
 from app.services.task_service import claim_task, complete_task, create_task
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 
 
 def test_approval_required_only_when_task_or_capability_manual():
@@ -506,7 +506,7 @@ def test_approval_service_rejects_invalid_state_transitions(db_session):
 
 
 def test_task_completion_expires_pending_and_approved_requests(db_session):
-    agent = AgentIdentity(
+    agent = RuntimePrincipal(
         id="agent-expire",
         name="Agent Expire",
         issuer="test",

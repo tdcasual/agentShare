@@ -7,12 +7,12 @@ import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { SectionNotice, formatTimestamp } from './components';
 import type { Event } from '@/domains/event';
-import type { Agent } from '@/domains/identity';
+import type { OpenClawAgent } from '@/domains/identity';
 import { useI18n } from '@/components/i18n-provider';
 
 export interface OperationsFeedProps {
   events: Event[];
-  agents: Agent[];
+  agents: OpenClawAgent[];
   isLoading: boolean;
   selectedAgentId: string | null;
   selectedEventType: 'all' | 'completed' | 'failed';

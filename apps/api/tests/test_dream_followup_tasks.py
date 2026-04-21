@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.errors import ConflictError
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.orm.openclaw_dream_run import OpenClawDreamRunModel
 from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepository
 from app.services.openclaw_dream_service import register_followup_task
@@ -275,7 +275,7 @@ def test_register_followup_task_translates_duplicate_step_writes_to_conflict(
     )
     db_session.commit()
 
-    agent = AgentIdentity(
+    agent = RuntimePrincipal(
         id="openclaw-agent-followup-race",
         name="Dream Agent",
         issuer="openclaw",

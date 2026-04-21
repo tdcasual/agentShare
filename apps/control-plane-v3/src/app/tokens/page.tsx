@@ -1,26 +1,11 @@
 'use client';
 
-import { FormEvent, useMemo, useState, memo, useCallback } from 'react';
+import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useMemo, useState } from 'react';
+import { Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Star } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
-import {
-  Bot,
-  Clock3,
-  Copy,
-  KeyRound,
-  Plus,
-  RefreshCw,
-  ShieldCheck,
-  Sparkles,
-  Star,
-} from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
-import {
-  useAgentsWithTokens,
-  useCreateAgent,
-  useCreateAgentToken,
-  useRevokeAgentToken,
-} from '@/domains/identity';
-import { ApiError, type AgentCreateInput, type AgentTokenCreateInput } from '@/lib/api-client';
+import { useAccessTokens, useCreateAccessToken, useRevokeAccessToken } from '@/domains/identity';
+import { ApiError, type AccessTokenCreateInput } from '@/lib/api-client';
 import {
   ManagementPageAlerts,
   useManagementPageSessionRecovery,
@@ -32,7 +17,7 @@ import { MetricCard } from '@/shared/ui-primitives/metric';
 import { Input } from '@/shared/ui-primitives/input';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { StatDisplay } from '@/shared/ui-primitives/stat-display';
-import { translateAccountRole, translateAgentStatus, translateTokenStatus } from '@/lib/enum-labels';
+import { translateAccountRole, translateTokenStatus } from '@/lib/enum-labels';
 
 export default function TokensPage() {
   return (
@@ -46,14 +31,7 @@ const TOKENS_POLLING_CONFIG = { refreshInterval: 10_000 };
 
 const TokensContent = memo(function TokensContent() {
   const { locale, t } = useI18n();
-  // 使用新的 SWR hooks 替代手动 useEffect
-  const {
-    agents,
-    tokensByAgent,
-    isLoading,
-    error: dataError,
-    mutate,
-  } = useAgentsWithTokens(TOKENS_POLLING_CONFIG);
+  const { data, isLoading, error: dataError, mutate } = useAccessTokens(TOKENS_POLLING_CONFIG);
   const {
     session,
     loading: gateLoading,
@@ -64,74 +42,68 @@ const TokensContent = memo(function TokensContent() {
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(dataError);
 
-  const createAgent = useCreateAgent();
-  const createAgentToken = useCreateAgentToken();
-  const revokeAgentToken = useRevokeAgentToken();
+  const createAccessToken = useCreateAccessToken();
+  const revokeAccessToken = useRevokeAccessToken();
 
-  // 本地 UI 状态
   const [error, setError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showCreateAgentModal, setShowCreateAgentModal] = useState(false);
   const [showCreateTokenModal, setShowCreateTokenModal] = useState(false);
-  const [issuingAgentId, setIssuingAgentId] = useState<string | null>(null);
   const [selectedHealthFilter, setSelectedHealthFilter] = useState<
     'all' | 'needs_feedback' | 'low_trust'
   >('all');
-  const [createAgentForm, setCreateAgentForm] = useState({
-    name: '',
-    risk_tier: 'medium',
-    allowed_task_types: 'config_sync, account_read',
-  });
-  const [createTokenForm, setCreateTokenForm] = useState({
-    display_name: '',
-    scopes: 'runtime',
-    labels: '',
-    expires_at: '',
-  });
   const [submitting, setSubmitting] = useState(false);
   const [revealedSecret, setRevealedSecret] = useState<{
     label: string;
     prefix: string;
     apiKey: string;
   } | null>(null);
+  const [createTokenForm, setCreateTokenForm] = useState({
+    display_name: '',
+    subject_type: 'automation',
+    subject_id: '',
+    scopes: 'runtime',
+    labels: '',
+    expires_at: '',
+  });
 
-  const allTokens = useMemo(
-    () => agents.flatMap((agent) => tokensByAgent[agent.id] ?? []),
-    [agents, tokensByAgent]
-  );
-  const activeAgents = useMemo(
-    () => agents.filter((agent) => agent.status === 'active').length,
-    [agents]
-  );
+  const accessTokens = data?.items ?? [];
   const activeTokens = useMemo(
-    () => allTokens.filter((token) => token.status === 'active').length,
-    [allTokens]
+    () => accessTokens.filter((token) => token.status === 'active').length,
+    [accessTokens]
   );
   const averageTrust = useMemo(
     () =>
-      allTokens.length > 0
-        ? allTokens.reduce((total, token) => total + (token.trustScore ?? 0), 0) / allTokens.length
+      accessTokens.length > 0
+        ? accessTokens.reduce((total, token) => total + (token.trustScore ?? 0), 0) /
+          accessTokens.length
         : 0,
-    [allTokens]
+    [accessTokens]
   );
   const tokensWithFeedback = useMemo(
-    () => allTokens.filter((token) => token.lastFeedbackAt).length,
-    [allTokens]
+    () => accessTokens.filter((token) => token.lastFeedbackAt).length,
+    [accessTokens]
   );
   const tokensNeedingFeedback = useMemo(
-    () => allTokens.filter((token) => !token.lastFeedbackAt).length,
-    [allTokens]
+    () => accessTokens.filter((token) => !token.lastFeedbackAt).length,
+    [accessTokens]
   );
   const lowTrustTokens = useMemo(
-    () => allTokens.filter((token) => (token.trustScore ?? 0) < 0.6).length,
-    [allTokens]
+    () => accessTokens.filter((token) => (token.trustScore ?? 0) < 0.6).length,
+    [accessTokens]
   );
 
-  const handleMintToken = useCallback((agentId: string) => {
-    setIssuingAgentId(agentId);
-    setShowCreateTokenModal(true);
-  }, []);
+  const visibleTokens = useMemo(() => {
+    return accessTokens.filter((token) => {
+      if (selectedHealthFilter === 'needs_feedback') {
+        return !token.lastFeedbackAt;
+      }
+      if (selectedHealthFilter === 'low_trust') {
+        return (token.trustScore ?? 0) < 0.6;
+      }
+      return true;
+    });
+  }, [accessTokens, selectedHealthFilter]);
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -153,70 +125,24 @@ const TokensContent = memo(function TokensContent() {
     }
   }
 
-  async function handleCreateAgent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    clearAllAuthErrors();
-
-    try {
-      const payload: AgentCreateInput = {
-        name: createAgentForm.name.trim(),
-        risk_tier: createAgentForm.risk_tier,
-        allowed_task_types: parseCommaSeparatedList(createAgentForm.allowed_task_types),
-      };
-      const created = await createAgent(payload);
-      setRevealedSecret({
-        label: t('tokens.secretLabel').replace('{name}', created.name),
-        prefix: created.token_prefix,
-        apiKey: created.api_key ?? '',
-      });
-      setCreateAgentForm({
-        name: '',
-        risk_tier: 'medium',
-        allowed_task_types: 'config_sync, account_read',
-      });
-      setShowCreateAgentModal(false);
-    } catch (submitError) {
-      if (consumeUnauthorized(submitError)) {
-        return;
-      }
-
-      if (submitError instanceof ApiError) {
-        setError(submitError.detail);
-      } else {
-        setError(
-          submitError instanceof Error
-            ? submitError.message
-            : t('tokens.errors.registerAgentFailed')
-        );
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   async function handleCreateToken(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!issuingAgentId) {
-      setError(t('tokens.errors.noAgentSelected'));
-      return;
-    }
-
     setSubmitting(true);
     setError(null);
     clearAllAuthErrors();
 
     try {
-      const payload: AgentTokenCreateInput = {
+      const payload: AccessTokenCreateInput = {
         display_name: createTokenForm.display_name.trim(),
+        subject_type: createTokenForm.subject_type.trim() || 'automation',
+        subject_id: createTokenForm.subject_id.trim(),
         scopes: parseCommaSeparatedList(createTokenForm.scopes),
         labels: parseLabels(createTokenForm.labels),
         expires_at: createTokenForm.expires_at
           ? new Date(createTokenForm.expires_at).toISOString()
           : null,
       };
-      const created = await createAgentToken(issuingAgentId, payload);
+      const created = await createAccessToken(payload);
       setRevealedSecret({
         label: created.display_name,
         prefix: created.token_prefix,
@@ -224,6 +150,8 @@ const TokensContent = memo(function TokensContent() {
       });
       setCreateTokenForm({
         display_name: '',
+        subject_type: 'automation',
+        subject_id: '',
         scopes: 'runtime',
         labels: '',
         expires_at: '',
@@ -237,9 +165,7 @@ const TokensContent = memo(function TokensContent() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(
-          submitError instanceof Error ? submitError.message : t('tokens.errors.mintTokenFailed')
-        );
+        setError(submitError instanceof Error ? submitError.message : t('tokens.errors.mintTokenFailed'));
       }
     } finally {
       setSubmitting(false);
@@ -247,12 +173,12 @@ const TokensContent = memo(function TokensContent() {
   }
 
   const handleRevokeToken = useCallback(
-    async (tokenId: string, agentId: string) => {
+    async (tokenId: string) => {
       setError(null);
       clearAllAuthErrors();
 
       try {
-        await revokeAgentToken(tokenId, agentId);
+        await revokeAccessToken(tokenId);
       } catch (revokeError) {
         if (consumeUnauthorized(revokeError)) {
           return;
@@ -262,39 +188,28 @@ const TokensContent = memo(function TokensContent() {
           setError(revokeError.detail);
         } else {
           setError(
-            revokeError instanceof Error
-              ? revokeError.message
-              : t('tokens.errors.revokeTokenFailed')
+            revokeError instanceof Error ? revokeError.message : t('tokens.errors.revokeTokenFailed')
           );
         }
       }
     },
-    [clearAllAuthErrors, consumeUnauthorized, revokeAgentToken, t]
+    [clearAllAuthErrors, consumeUnauthorized, revokeAccessToken, t]
   );
-
-  async function copySecret(secret: string) {
-    try {
-      await navigator.clipboard.writeText(secret);
-    } catch {
-      setError(t('tokens.errors.clipboardBlocked'));
-    }
-  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface)]/80">
             <ShieldCheck className="h-4 w-4" />
-            {t('tokens.subtitle')}
+            {t('tokens.remoteAccessSupervision')}
           </div>
           <div>
             <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('tokens.title')}
             </h1>
             <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('tokens.description')}
+              {t('tokens.remoteAccessSupervisionDesc')}
             </p>
           </div>
         </div>
@@ -304,68 +219,37 @@ const TokensContent = memo(function TokensContent() {
             <RefreshCw className="mr-2 h-4 w-4" />
             {t('tokens.actions.refresh')}
           </Button>
-          <Button onClick={() => setShowCreateAgentModal(true)}>
+          <Button onClick={() => setShowCreateTokenModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            {t('tokens.actions.createAgent')}
+            {t('tokens.actions.issueAccessToken')}
           </Button>
         </div>
       </div>
 
-      {/* Revealed Secret */}
-      {revealedSecret ? (
-        <Card
-          variant="feature"
-          className="space-y-4 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
-        >
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-1">
-              <p className="text-sm uppercase tracking-[0.3em] text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]">
-                🌸 {t('tokens.token.oneTimeReveal')}
-              </p>
-              <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {revealedSecret.label}
-              </h2>
-              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {t('tokens.token.prefix')}:{' '}
-                <span className="font-mono">{revealedSecret.prefix}</span>
-              </p>
-            </div>
-            <Button variant="secondary" onClick={() => copySecret(revealedSecret.apiKey)}>
-              <Copy className="mr-2 h-4 w-4" />
-              {t('tokens.token.copyToken')}
-            </Button>
-          </div>
-          <div className="break-all rounded-2xl border border-[var(--kw-border)] bg-white/90 p-4 font-mono text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]">
-            {revealedSecret.apiKey}
-          </div>
-        </Card>
-      ) : null}
-
-      {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label={t('tokens.metrics.activeAgents')}
-          value={activeAgents.toString()}
-          hint={t('tokens.metrics.totalHint', { count: agents.length })}
-        />
         <MetricCard
           label={t('tokens.metrics.activeTokens')}
           value={activeTokens.toString()}
-          hint={t('tokens.metrics.totalHint', { count: allTokens.length })}
+          hint={t('tokens.hints.activeTokens')}
+        />
+        <MetricCard
+          label={t('tokens.metrics.feedbackCoverage')}
+          value={tokensWithFeedback.toString()}
+          hint={t('tokens.hints.feedbackCoverage')}
+        />
+        <MetricCard
+          label={t('tokens.metrics.needsFeedback')}
+          value={tokensNeedingFeedback.toString()}
+          hint={t('tokens.hints.needsFeedback')}
         />
         <MetricCard
           label={t('tokens.metrics.averageTrust')}
-          value={formatDecimal(averageTrust)}
-          hint={t('tokens.metrics.averageTrustHint')}
-        />
-        <MetricCard
-          label={t('tokens.metrics.tokensWithFeedback')}
-          value={tokensWithFeedback.toString()}
-          hint={t('tokens.metrics.tokensWithFeedbackHint')}
+          value={averageTrust.toFixed(2)}
+          hint={t('tokens.hints.averageTrust')}
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -378,56 +262,40 @@ const TokensContent = memo(function TokensContent() {
 
           <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             <Badge variant="secondary">
-              {t('tokens.badge.needsFeedback')
-                .replace('{count}', String(tokensNeedingFeedback))
-                .replace('{suffix}', tokensNeedingFeedback === 1 ? '' : 's')
-                .replace('{verbSuffix}', tokensNeedingFeedback === 1 ? 's' : '')}
+              {t('tokens.badge.needsFeedback', {
+                count: tokensNeedingFeedback,
+                suffix: tokensNeedingFeedback === 1 ? '' : 's',
+                verbSuffix: tokensNeedingFeedback === 1 ? '' : 's',
+              })}
             </Badge>
-            <Badge variant="warning">
-              {t('tokens.badge.lowTrust')
-                .replace('{count}', String(lowTrustTokens))
-                .replace('{suffix}', lowTrustTokens === 1 ? '' : 's')}
+            <Badge variant="info">
+              {t('tokens.badge.lowTrust', {
+                count: lowTrustTokens,
+                suffix: lowTrustTokens === 1 ? '' : 's',
+              })}
             </Badge>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedHealthFilter === 'all' ? 'primary' : 'secondary'}
-              size="sm"
+            <FilterButton
+              active={selectedHealthFilter === 'all'}
               aria-pressed={selectedHealthFilter === 'all'}
+              label={t('tokens.filters.all')}
               onClick={() => setSelectedHealthFilter('all')}
-            >
-              {t('tokens.filters.allTokens')}
-            </Button>
-            <Button
-              variant={selectedHealthFilter === 'needs_feedback' ? 'primary' : 'secondary'}
-              size="sm"
+            />
+            <FilterButton
+              active={selectedHealthFilter === 'needs_feedback'}
               aria-pressed={selectedHealthFilter === 'needs_feedback'}
+              label={t('tokens.filters.needsFeedback')}
               onClick={() => setSelectedHealthFilter('needs_feedback')}
-            >
-              {t('tokens.filters.needsFeedback')}
-            </Button>
-            <Button
-              variant={selectedHealthFilter === 'low_trust' ? 'primary' : 'secondary'}
-              size="sm"
+            />
+            <FilterButton
+              active={selectedHealthFilter === 'low_trust'}
               aria-pressed={selectedHealthFilter === 'low_trust'}
+              label={t('tokens.filters.lowTrust')}
               onClick={() => setSelectedHealthFilter('low_trust')}
-            >
-              {t('tokens.filters.lowTrust')}
-            </Button>
+            />
           </div>
-        </div>
-      </Card>
-
-      {/* Session Info */}
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <Badge variant="primary">{t('tokens.operator')}</Badge>
-          <span className="dark:text-[var(--kw-dark-text)]">
-            {session?.email ?? t('common.loading')}
-          </span>
-          <span className="text-[var(--kw-border)] dark:text-[var(--kw-dark-border)]">•</span>
-          <span>{session?.role ? translateAccountRole(t, session.role) : t('common.loading')}</span>
         </div>
       </Card>
 
@@ -440,458 +308,304 @@ const TokensContent = memo(function TokensContent() {
         dataError={dataError}
         sessionExpiredMessage={t('tokens.sessionExpired')}
         forbiddenMessage={t('tokens.sessionForbidden')}
-        dataErrorMessage={t('tokens.errors.loadDataFailed')}
+        dataErrorMessage={t('tokens.errors.loadFailed')}
       />
 
-      {/* Loading */}
       {gateLoading || isLoading ? (
-        <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <span className="animate-spin" aria-hidden="true">
-            🌸
-          </span>
-          {t('tokens.loadingAgents')}
+        <Card className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          {t('tokens.loading')}
         </Card>
       ) : null}
 
-      {/* Empty State */}
-      {!gateLoading && !isLoading && agents.length === 0 ? (
-        <Card
-          variant="kawaii"
-          className="space-y-4 text-center dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
-        >
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
-            <Bot className="h-8 w-8" />
+      {!gateLoading && !isLoading && accessTokens.length === 0 ? (
+        <Card variant="feature" className="space-y-3 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)]">
+            <KeyRound className="h-7 w-7" />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              {t('tokens.agent.noAgents')}
+              {t('tokens.empty.title')}
             </h2>
-            <p className="mx-auto max-w-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('tokens.agent.createFirst')}
+            <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('tokens.empty.description')}
             </p>
           </div>
-          <div className="flex justify-center">
-            <Button onClick={() => setShowCreateAgentModal(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              {t('tokens.actions.createAgent')}
-            </Button>
-          </div>
         </Card>
       ) : null}
 
-      {/* Agents List */}
-      <div className="grid gap-5">
-        {agents.map((agent) => {
-          const tokens = (tokensByAgent[agent.id] ?? []).filter((token) => {
-            if (selectedHealthFilter === 'needs_feedback') {
-              return !token.lastFeedbackAt;
-            }
-            if (selectedHealthFilter === 'low_trust') {
-              return (token.trustScore ?? 0) < 0.6;
-            }
-            return true;
-          });
-
-          if (selectedHealthFilter !== 'all' && tokens.length === 0) {
-            return null;
-          }
-
-          return (
-            <Card
-              key={agent.id}
-              variant="kawaii"
-              className="space-y-5 dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
-            >
-              {/* Agent Header */}
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="agent">
-                      {t('tokens.agent.riskBadge', { tier: agent.risk_tier })}
-                    </Badge>
-                    <Badge variant={agent.status === 'active' ? 'success' : 'warning'}>
-                      {translateAgentStatus(t, agent.status)}
-                    </Badge>
-                    <Badge variant="default">{agent.auth_method}</Badge>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                      {agent.name}
-                    </h2>
-                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                      {t('tokens.labels.id')}: {agent.id}
-                    </p>
-                  </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {visibleTokens.map((token) => (
+          <Card
+            key={token.id}
+            className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={token.status === 'active' ? 'success' : 'warning'}>
+                    {translateTokenStatus(t, token.status)}
+                  </Badge>
+                  <Badge variant="secondary">{token.subjectType}</Badge>
                 </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <MintTokenButton agentId={agent.id} onMint={handleMintToken} />
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                    {token.displayName}
+                  </h2>
+                  <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                    {token.subjectId}
+                  </p>
                 </div>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={token.status !== 'active'}
+                onClick={() => handleRevokeToken(token.id)}
+              >
+                {t('tokens.actions.revoke')}
+              </Button>
+            </div>
 
-              {/* Tokens Grid */}
-              <div className="grid gap-4 xl:grid-cols-2" role="list">
-                {tokens.length === 0 ? (
-                  <Card className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-bg)]/40 border border-dashed border-[var(--kw-primary-200)] py-8 text-center text-[var(--kw-text-muted)] xl:col-span-2 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
-                    <span className="mr-2 text-2xl">🌸</span>
-                    {t('tokens.agent.noTokens')}
-                  </Card>
-                ) : (
-                  tokens.map((token) => (
-                    <Card
-                      key={token.id}
-                      className="dark:bg-[var(--kw-dark-bg)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]"
-                    >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant={token.status === 'active' ? 'success' : 'error'}>
-                              {translateTokenStatus(t, token.status)}
-                            </Badge>
-                            <Badge variant="primary">{token.displayName}</Badge>
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                              {token.tokenPrefix}
-                            </h3>
-                            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                              {t('tokens.labels.id')}: {token.id}
-                            </p>
-                          </div>
-                        </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              <StatDisplay
+                icon={<Star className="h-4 w-4" />}
+                label={t('tokens.metrics.averageTrust')}
+                value={(token.trustScore ?? 0).toFixed(2)}
+              />
+              <StatDisplay
+                icon={<KeyRound className="h-4 w-4" />}
+                label={t('tokens.metrics.feedbackCoverage')}
+                value={(token.completedRuns ?? 0).toString()}
+              />
+              <StatDisplay
+                icon={<ShieldCheck className="h-4 w-4" />}
+                label={t('tokens.metrics.activeTokens')}
+                value={token.lastFeedbackAt ? t('common.active') : t('tokens.noFeedback')}
+              />
+            </div>
 
-                        <RevokeTokenButton
-                          tokenId={token.id}
-                          agentId={agent.id}
-                          disabled={token.status !== 'active'}
-                          onRevoke={handleRevokeToken}
-                        />
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <StatDisplay
-                          icon={
-                            <Clock3 className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
-                          }
-                          label={t('tokens.token.lastUsed')}
-                          value={formatDateTime(
-                            token.lastUsedAt ?? null,
-                            t('tokens.values.notYet'),
-                            locale
-                          )}
-                        />
-                        <StatDisplay
-                          icon={
-                            <Sparkles className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
-                          }
-                          label={t('tokens.token.lastFeedback')}
-                          value={formatDateTime(
-                            token.lastFeedbackAt ?? null,
-                            t('tokens.values.notYet'),
-                            locale
-                          )}
-                        />
-                        <StatDisplay
-                          icon={
-                            <ShieldCheck className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
-                          }
-                          label={t('tokens.token.successRate')}
-                          value={`${Math.round((token.successRate ?? 0) * 100)}%`}
-                        />
-                        <StatDisplay
-                          icon={
-                            <Star className="h-4 w-4 text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-primary)]" />
-                          }
-                          label={t('tokens.token.trustScore')}
-                          value={formatDecimal(token.trustScore ?? 0)}
-                        />
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {((token.scopes?.length ?? 0) > 0 ? token.scopes : ['runtime']).map(
-                          (scope: string) => (
-                            <Badge key={scope} variant="secondary" className="text-xs">
-                              {scope}
-                            </Badge>
-                          )
-                        )}
-                        {Object.entries(token.labels ?? {}).map(([key, value]) => (
-                          <Badge key={`${key}:${value}`} variant="default" className="text-xs">
-                            {key}={value as string}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <MiniStat
-                          label={t('tokens.token.completedRuns')}
-                          value={(token.completedRuns ?? 0).toString()}
-                        />
-                        <MiniStat
-                          label={t('tokens.token.successfulRuns')}
-                          value={(token.successfulRuns ?? 0).toString()}
-                        />
-                        <MiniStat
-                          label={t('tokens.token.issuer')}
-                          value={token.issuedByActorId ?? '-'}
-                        />
-                      </div>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </Card>
-          );
-        })}
+            <div className="space-y-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              <p>{t('tokens.labels.tokenPrefix')}: {token.tokenPrefix}</p>
+              <p>{t('tokens.labels.scopes')}: {token.scopes.join(', ') || t('tokens.none')}</p>
+              <p>{t('tokens.labels.lastUsedAt')}: {token.lastUsedAt ?? t('tokens.neverUsed')}</p>
+              <p>{t('tokens.labels.issuedBy')}: {token.issuedByActorId ?? t('tokens.unknownIssuer')}</p>
+            </div>
+          </Card>
+        ))}
       </div>
 
-      {/* Create Agent Modal */}
-      <Modal
-        isOpen={showCreateAgentModal}
-        onClose={() => setShowCreateAgentModal(false)}
-        title={t('tokens.actions.createAgent')}
-        description={t('tokens.createAgentModalDesc')}
-      >
-        <form className="space-y-4" onSubmit={handleCreateAgent}>
-          <Input
-            label={t('tokens.form.agentName')}
-            value={createAgentForm.name}
-            onChange={(event) =>
-              setCreateAgentForm((current) => ({ ...current, name: event.target.value }))
-            }
-            placeholder={t('tokens.form.agentNamePlaceholder')}
-            required
-            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-          />
-          <div>
-            <label
-              htmlFor="agent-risk-tier"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-            >
-              {t('tokens.riskTier')}
-            </label>
-            <select
-              id="agent-risk-tier"
-              className="dark:focus:ring-[var(--kw-dark-primary)]/10 w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)]"
-              value={createAgentForm.risk_tier}
-              onChange={(event) =>
-                setCreateAgentForm((current) => ({ ...current, risk_tier: event.target.value }))
-              }
-            >
-              <option value="low">{t('tokens.riskTiers.low')}</option>
-              <option value="medium">{t('tokens.riskTiers.medium')}</option>
-              <option value="high">{t('tokens.riskTiers.high')}</option>
-              <option value="critical">{t('tokens.riskTiers.critical')}</option>
-            </select>
-          </div>
-          <Input
-            label={t('tokens.form.allowedTaskTypes')}
-            value={createAgentForm.allowed_task_types}
-            onChange={(event) =>
-              setCreateAgentForm((current) => ({
-                ...current,
-                allowed_task_types: event.target.value,
-              }))
-            }
-            placeholder={t('tokens.form.allowedTaskTypesPlaceholder')}
-            helper={t('tokens.form.allowedTaskTypesHelper')}
-            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-          />
-
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setShowCreateAgentModal(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" loading={submitting}>
-              {submitting ? (
-                <span className="mr-2 animate-spin">🌸</span>
-              ) : (
-                <Plus className="mr-2 h-4 w-4" />
-              )}
-              {t('tokens.actions.createAgent')}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Create Token Modal */}
-      <Modal
+      <CreateAccessTokenModal
+        form={createTokenForm}
+        locale={locale}
+        error={error}
         isOpen={showCreateTokenModal}
         onClose={() => setShowCreateTokenModal(false)}
-        title={t('tokens.actions.mintToken')}
-        description={t('tokens.createTokenModalDesc')}
+        onSubmit={handleCreateToken}
+        onChange={setCreateTokenForm}
+        submitting={submitting}
+        t={t}
+      />
+
+      <Modal
+        isOpen={revealedSecret !== null}
+        onClose={() => setRevealedSecret(null)}
+        title={t('tokens.secretModal.title')}
+        description={revealedSecret?.label}
       >
-        <form className="space-y-4" onSubmit={handleCreateToken}>
-          <div>
-            <label
-              htmlFor="token-agent-select"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+        {revealedSecret ? (
+          <div className="space-y-4">
+            <Card className="space-y-3 bg-[var(--kw-primary-50)]/40">
+              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                {revealedSecret.prefix}
+              </p>
+              <p className="break-all font-mono text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                {revealedSecret.apiKey}
+              </p>
+            </Card>
+            <Button
+              variant="secondary"
+              onClick={() => navigator.clipboard.writeText(revealedSecret.apiKey)}
             >
-              {t('tokens.remoteAgent')}
-            </label>
-            <select
-              id="token-agent-select"
-              className="dark:focus:ring-[var(--kw-dark-primary)]/10 w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)] dark:focus:border-[var(--kw-dark-primary)]"
-              value={issuingAgentId ?? ''}
-              onChange={(event) => setIssuingAgentId(event.target.value)}
-              required
-            >
-              <option value="" disabled>
-                {t('tokens.selectRemoteAgent')}
-              </option>
-              {agents.map((agent) => (
-                <option key={agent.id} value={agent.id}>
-                  {agent.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <Input
-            label={t('tokens.form.displayName')}
-            value={createTokenForm.display_name}
-            onChange={(event) =>
-              setCreateTokenForm((current) => ({ ...current, display_name: event.target.value }))
-            }
-            placeholder={t('tokens.form.displayNamePlaceholder')}
-            required
-            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-          />
-          <Input
-            label={t('tokens.form.scopes')}
-            value={createTokenForm.scopes}
-            onChange={(event) =>
-              setCreateTokenForm((current) => ({ ...current, scopes: event.target.value }))
-            }
-            placeholder={t('tokens.form.scopesPlaceholder')}
-            helper={t('tokens.form.scopesHelper')}
-            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-          />
-          <Input
-            label={t('tokens.form.labels')}
-            value={createTokenForm.labels}
-            onChange={(event) =>
-              setCreateTokenForm((current) => ({ ...current, labels: event.target.value }))
-            }
-            placeholder={t('tokens.form.labelsPlaceholder')}
-            helper={t('tokens.form.labelsHelper')}
-            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-          />
-          <Input
-            label={t('tokens.form.expiresAt')}
-            type="datetime-local"
-            value={createTokenForm.expires_at}
-            onChange={(event) =>
-              setCreateTokenForm((current) => ({ ...current, expires_at: event.target.value }))
-            }
-            className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-          />
-
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setShowCreateTokenModal(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" loading={submitting}>
-              {submitting ? (
-                <span className="mr-2 animate-spin">🌸</span>
-              ) : (
-                <KeyRound className="mr-2 h-4 w-4" />
-              )}
-              {t('tokens.actions.mintToken')}
+              <Copy className="mr-2 h-4 w-4" />
+              {t('tokens.actions.copySecret')}
             </Button>
           </div>
-        </form>
+        ) : null}
       </Modal>
+
+      {session ? (
+        <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          <Star className="h-4 w-4" />
+          {translateAccountRole(t, session.role)}
+        </div>
+      ) : null}
     </div>
   );
 });
 
-interface MintTokenButtonProps {
-  agentId: string;
-  onMint: (agentId: string) => void;
-}
-
-const MintTokenButton = memo(function MintTokenButton({ agentId, onMint }: MintTokenButtonProps) {
-  const { t } = useI18n();
+function CreateAccessTokenModal({
+  form,
+  locale,
+  error,
+  isOpen,
+  onClose,
+  onSubmit,
+  onChange,
+  submitting,
+  t,
+}: {
+  form: {
+    display_name: string;
+    subject_type: string;
+    subject_id: string;
+    scopes: string;
+    labels: string;
+    expires_at: string;
+  };
+  locale: string;
+  error: string | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onChange: Dispatch<
+    SetStateAction<{
+      display_name: string;
+      subject_type: string;
+      subject_id: string;
+      scopes: string;
+      labels: string;
+      expires_at: string;
+    }>
+  >;
+  submitting: boolean;
+  t: (key: string) => string;
+}) {
   return (
-    <Button variant="secondary" onClick={() => onMint(agentId)}>
-      <KeyRound className="mr-2 h-4 w-4" />
-      {t('tokens.actions.mintToken')}
-    </Button>
-  );
-});
-
-interface RevokeTokenButtonProps {
-  tokenId: string;
-  agentId: string;
-  disabled: boolean;
-  onRevoke: (tokenId: string, agentId: string) => void;
-}
-
-const RevokeTokenButton = memo(function RevokeTokenButton({
-  tokenId,
-  agentId,
-  disabled,
-  onRevoke,
-}: RevokeTokenButtonProps) {
-  const { t } = useI18n();
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => onRevoke(tokenId, agentId)}
-      disabled={disabled}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('tokens.actions.issueAccessToken')}
+      description={t('tokens.form.issueDescription')}
+      size="lg"
     >
-      {t('tokens.actions.revoke')}
-    </Button>
-  );
-});
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-[var(--kw-surface-alt)] px-4 py-3 dark:bg-[var(--kw-dark-bg)]">
-      <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {label}
-      </p>
-      <p className="mt-2 break-all text-sm font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {value}
-      </p>
-    </div>
+      <form className="space-y-4" onSubmit={onSubmit}>
+        <Input
+          label={t('tokens.form.displayName')}
+          value={form.display_name}
+          onChange={(event) =>
+            onChange((current) => ({ ...current, display_name: event.target.value }))
+          }
+          placeholder={t('tokens.form.displayNamePlaceholder')}
+          required
+        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Input
+            label={t('tokens.form.subjectType')}
+            value={form.subject_type}
+            onChange={(event) =>
+              onChange((current) => ({ ...current, subject_type: event.target.value }))
+            }
+            placeholder="automation"
+            required
+          />
+          <Input
+            label={t('tokens.form.subjectId')}
+            value={form.subject_id}
+            onChange={(event) =>
+              onChange((current) => ({ ...current, subject_id: event.target.value }))
+            }
+            placeholder={t('tokens.form.subjectIdPlaceholder')}
+            required
+          />
+        </div>
+        <Input
+          label={t('tokens.form.scopes')}
+          value={form.scopes}
+          onChange={(event) => onChange((current) => ({ ...current, scopes: event.target.value }))}
+          placeholder="runtime"
+        />
+        <Input
+          label={t('tokens.form.labels')}
+          value={form.labels}
+          onChange={(event) => onChange((current) => ({ ...current, labels: event.target.value }))}
+          placeholder={t('tokens.form.labelsPlaceholder')}
+        />
+        <Input
+          type="datetime-local"
+          label={t('tokens.form.expiresAt')}
+          value={form.expires_at}
+          onChange={(event) =>
+            onChange((current) => ({ ...current, expires_at: event.target.value }))
+          }
+          lang={locale}
+        />
+        {error ? (
+          <div
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
+          >
+            {error}
+          </div>
+        ) : null}
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button type="submit" loading={submitting}>
+            {t('tokens.actions.issueAccessToken')}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
-function parseCommaSeparatedList(value: string) {
-  return value
+function FilterButton({
+  active,
+  'aria-pressed': ariaPressed,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  'aria-pressed'?: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={ariaPressed ?? active}
+      className={`rounded-full border px-3 py-1.5 text-sm transition ${
+        active
+          ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)] text-[var(--kw-primary-700)]'
+          : 'border-[var(--kw-border)] bg-white text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function parseCommaSeparatedList(raw: string): string[] {
+  return raw
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
-function parseLabels(value: string) {
-  if (!value.trim()) {
-    return {};
-  }
-
-  return Object.fromEntries(
-    value
-      .split(',')
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .map((entry) => {
-        const [key, ...rest] = entry.split('=');
-        return [key.trim(), rest.join('=').trim()];
-      })
-      .filter(([key, labelValue]) => key && labelValue)
-  );
-}
-
-function formatDateTime(value: string | null, notYetLabel: string, locale: string) {
-  if (!value) {
-    return notYetLabel;
-  }
-  return new Date(value).toLocaleString(locale);
-}
-
-function formatDecimal(value: number) {
-  return value.toFixed(2);
+function parseLabels(raw: string): Record<string, string> {
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .reduce<Record<string, string>>((labels, item) => {
+      const [key, value] = item.split(':').map((part) => part.trim());
+      if (key && value) {
+        labels[key] = value;
+      }
+      return labels;
+    }, {});
 }

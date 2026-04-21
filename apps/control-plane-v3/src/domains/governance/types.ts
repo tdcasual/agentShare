@@ -1,5 +1,5 @@
-export type CapabilityAccessPolicyMode = 'all_tokens' | 'selectors';
-export type CapabilityAccessSelectorKind = 'token' | 'agent' | 'token_label';
+export type CapabilityAccessPolicyMode = 'all_access_tokens' | 'selectors';
+export type CapabilityAccessSelectorKind = 'access_token' | 'access_token_label';
 export type GovernancePublicationStatus =
   | 'pending_review'
   | 'approved'

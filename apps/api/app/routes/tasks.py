@@ -10,7 +10,7 @@ from app.auth import (
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.schemas.task_targets import TaskTargetListResponse, TaskTargetResponse
 from app.schemas.tasks import TaskComplete, TaskCreate
 from app.services.audit_service import actor_payload, write_audit_event

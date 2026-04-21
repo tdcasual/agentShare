@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Layout } from '../interfaces/human/layout';
 import { useEvents, type Event } from '@/domains/event';
-import { useAdminAccounts, useAgentsWithTokens } from '@/domains/identity';
+import { useAccessTokens, useAdminAccounts, useOpenClawAgents } from '@/domains/identity';
 import { useReviews } from '@/domains/review';
 import { Card } from '../shared/ui-primitives/card';
 import { Button } from '../shared/ui-primitives/button';
@@ -124,20 +124,29 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   const { locale, t } = useI18n();
   const { events } = useEvents();
   const adminAccountsQuery = useAdminAccounts();
-  const agentsWithTokensQuery = useAgentsWithTokens();
+  const openClawAgentsQuery = useOpenClawAgents();
+  const accessTokensQuery = useAccessTokens();
   const reviewsQuery = useReviews();
 
   const adminAccounts = adminAccountsQuery.data?.items;
-  const agents = agentsWithTokensQuery.agents;
-  const tokensByAgent = agentsWithTokensQuery.tokensByAgent;
+  const agents = openClawAgentsQuery.data?.items ?? [];
+  const accessTokens = accessTokensQuery.data?.items ?? [];
+  const accessTokensByAgentId = useMemo(
+    () =>
+      accessTokens.reduce<Record<string, typeof accessTokens>>((groups, token) => {
+        if (token.subjectType !== 'openclaw_agent') {
+          return groups;
+        }
+        groups[token.subjectId] = [...(groups[token.subjectId] ?? []), token];
+        return groups;
+      }, {}),
+    [accessTokens]
+  );
   const adminAccountList = adminAccounts ?? [];
   const pendingReviews = (reviewsQuery.data?.items ?? []).filter(
     (item) => item.publication_status === 'pending_review'
   );
-  const totalTokens = Object.values(tokensByAgent).reduce(
-    (count, tokens) => count + tokens.length,
-    0
-  );
+  const totalTokens = accessTokens.length;
   const tasksToday = events.filter(
     (event) => isToday(event.created_at) && event.subject_type === 'task'
   ).length;
@@ -295,12 +304,12 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                         </div>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {(tokensByAgent[agent.id] ?? []).map((token) => (
+                        {(accessTokensByAgentId[agent.id] ?? []).map((token) => (
                           <Badge key={token.id} variant="info">
                             {token.displayName}
                           </Badge>
                         ))}
-                        {(tokensByAgent[agent.id] ?? []).length === 0 ? (
+                        {(accessTokensByAgentId[agent.id] ?? []).length === 0 ? (
                           <span className="text-xs text-[var(--kw-text-muted)]">
                             {t('hub.noTokens')}
                           </span>

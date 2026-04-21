@@ -1,4 +1,4 @@
-# Admin Bootstrap, Agent Server Access, And Remote Credential Operations
+# Admin Bootstrap, Agent Server Access, And Access Token Operations
 
 This guide describes the management access model introduced for the control plane:
 
@@ -6,7 +6,7 @@ This guide describes the management access model introduced for the control plan
 - public registration closes immediately after bootstrap;
 - daily human management uses persisted email/password accounts and short-lived session cookies;
 - in-project OpenClaw runtimes authenticate with management-created session keys;
-- external or off-project runtimes can authenticate with managed remote credentials that can be minted, revoked, targeted, reviewed, and scored.
+- external or off-project runtimes authenticate with standalone access tokens that can be minted, revoked, targeted, reviewed, and scored.
 
 Read this guide with `docs/guides/agent-server-first.md`.
 
@@ -23,9 +23,9 @@ There are now three distinct access paths into the agent server:
   - each OpenClaw agent can have one or more sessions under `POST /api/openclaw/agents/{agent_id}/sessions`
   - internal runtime execution uses `Authorization: Bearer <session_key>`
 - External remote-runtime access:
-  - remote agent profiles are created with `POST /api/agents`
-  - each remote agent can have one or more managed remote-access tokens under `POST /api/agents/{agent_id}/tokens`
-  - remote task execution continues to use `Authorization: Bearer <token>`
+  - standalone access tokens are created with `POST /api/access-tokens`
+  - remote task execution uses `Authorization: Bearer <access_token>`
+  - tokens can be revoked with `POST /api/access-tokens/{token_id}/revoke`
 
 After bootstrap finishes, no public self-registration path remains.
 
@@ -77,8 +77,8 @@ The response sets a `management_session` cookie. Reuse that cookie for managemen
 - `POST /api/admin-accounts`
 - `GET /api/openclaw/agents`
 - `POST /api/openclaw/agents`
-- `GET /api/agents`
-- `POST /api/agents`
+- `GET /api/access-tokens`
+- `POST /api/access-tokens`
 - `GET /api/reviews`
 
 New human accounts are invite-only:
@@ -156,36 +156,41 @@ Useful management routes:
 - `GET /api/openclaw/agents/{agent_id}/files`
 - `PUT /api/openclaw/agents/{agent_id}/files/{file_name}`
 
-## External Remote Runtime Credentials
+## Standalone Access Tokens
 
-Creating a remote agent profile also creates its primary remote-access credential:
+Create a standalone remote-access credential:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/agents \
+curl -X POST http://127.0.0.1:8000/api/access-tokens \
   -H 'Content-Type: application/json' \
   -H 'Cookie: management_session=...' \
   -d '{
-    "name": "deploy-bot",
-    "risk_tier": "medium",
-    "allowed_task_types": ["config_sync", "account_read"]
+    "display_name": "CI build runner",
+    "subject_type": "automation",
+    "subject_id": "github-actions",
+    "scopes": ["runtime"],
+    "labels": {"env": "staging"}
   }'
 ```
 
 The response includes:
 
 - `id`
-- `name`
-- `api_key` for the newly minted primary token
-- `token_id`
+- `display_name`
+- `api_key` for the newly minted access token
 - `token_prefix`
+- `subject_type`
+- `subject_id`
+- `scopes`
+- `labels`
 
-Mint additional managed credentials per remote agent:
+Manage access tokens:
 
-- `GET /api/agents/{agent_id}/tokens`
-- `POST /api/agents/{agent_id}/tokens`
-- `POST /api/agent-tokens/{token_id}/revoke`
+- `GET /api/access-tokens`
+- `POST /api/access-tokens`
+- `POST /api/access-tokens/{token_id}/revoke`
 
-These remote credentials keep server-side remote-access aggregates:
+These access tokens keep server-side remote-access aggregates:
 
 - `completed_runs`
 - `successful_runs`
@@ -214,13 +219,13 @@ Each review item keeps provenance fields such as:
 
 - `created_by_actor_type`
 - `created_by_actor_id`
-- `created_via_token_id`
+- `created_by_actor_id`
 - `reviewed_by_actor_id`
 - `reviewed_at`
 
 ## Remote Runtime Task Targeting And Feedback
 
-Tasks can target remote runtime credentials explicitly:
+Tasks can target access tokens explicitly:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/tasks \
@@ -229,8 +234,8 @@ curl -X POST http://127.0.0.1:8000/api/tasks \
   -d '{
     "title": "Sync provider config",
     "task_type": "config_sync",
-    "target_mode": "explicit_tokens",
-    "target_token_ids": ["token-123"]
+    "target_mode": "explicit_access_tokens",
+    "target_access_token_ids": ["access-token-123"]
   }'
 ```
 
@@ -242,23 +247,23 @@ Relevant routes:
 - `POST /api/task-targets/{target_id}/complete`
 - `GET /api/runs`
 
-Recorded run data now links executions back to both the remote access token and the concrete task target:
+Recorded run data now links executions back to both the access token and the concrete task target:
 
-- `token_id`
+- `access_token_id`
 - `task_target_id`
 
 Human operators can leave feedback on completed task targets:
 
 - `POST /api/task-targets/{task_target_id}/feedback`
-- `GET /api/agent-tokens/{token_id}/feedback`
+- `GET /api/access-tokens/{token_id}/feedback`
 
 Feedback records then roll up into token-level trust metrics.
 
-These token-targeted task routes are for external remote runtimes. The primary in-project runtime path remains the OpenClaw-style `session_key`, which is tracked through the OpenClaw session inventory.
+These access-token-targeted task routes are for external remote runtimes. The primary in-project runtime path remains the OpenClaw-style `session_key`, which is tracked through the OpenClaw session inventory.
 
 ## Recommended Local Verification
 
-After changing bootstrap, OpenClaw runtime, or remote-token workflows, run:
+After changing bootstrap, OpenClaw runtime, or access token workflows, run:
 
 ```bash
 PYTHONPATH=apps/api .venv/bin/pytest apps/api/tests -q

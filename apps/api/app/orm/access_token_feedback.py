@@ -4,14 +4,14 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.orm.base import Base, TimestampMixin
 
 
-class TokenFeedbackModel(Base, TimestampMixin):
-    __tablename__ = "token_feedback"
+class AccessTokenFeedbackModel(Base, TimestampMixin):
+    __tablename__ = "access_token_feedback"
     __table_args__ = (
-        UniqueConstraint("task_target_id", name="uq_token_feedback_task_target_id"),
+        UniqueConstraint("task_target_id", name="uq_access_token_feedback_task_target_id"),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    token_id: Mapped[str] = mapped_column(String, nullable=False)
+    access_token_id: Mapped[str] = mapped_column(String, nullable=False)
     task_target_id: Mapped[str] = mapped_column(String, nullable=False)
     run_id: Mapped[str] = mapped_column(String, nullable=False)
     source: Mapped[str] = mapped_column(String, default="human_review")

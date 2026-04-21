@@ -53,7 +53,7 @@ export function compareRoles(userRole: ManagementRole, requiredRole: ManagementR
  * 定义每个路由所需的最低角色
  *
  * 与后端 API 权限对齐：
- * - /api/events, /api/admin-accounts, /api/agents => admin
+ * - /api/events, /api/admin-accounts, /api/openclaw/agents, /api/access-tokens => admin
  * - /api/playbooks, /api/runs => any management session
  * - /api/tasks => public (GET), operator+ (POST)
  * - /api/reviews, /api/approvals => operator

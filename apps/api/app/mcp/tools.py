@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.auth import ensure_task_type_allowed
 from app.config import Settings
 from app.errors import ConflictError, DomainError
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.schemas.tasks import TaskCreate
 from app.services.gateway import issue_lease, proxy_invoke
 from app.services.openclaw_dream_service import (
@@ -21,7 +21,6 @@ from app.services.openclaw_dream_service import (
 )
 from app.services.openclaw_memory_service import create_memory_note, search_memory_notes
 from app.services.openclaw_tool_catalog_service import (
-    OPENCLAW_TOOL_CATALOG,
     canonical_tool_name,
 )
 from app.services.playbook_service import search_playbooks
@@ -152,7 +151,6 @@ def list_tool_definitions() -> list[dict[str, Any]]:
             "name": name,
             "description": TOOL_DESCRIPTIONS[name],
             "inputSchema": model.model_json_schema(),
-            "legacyName": OPENCLAW_TOOL_CATALOG[name]["legacy_name"],
         }
         for name, model in TOOL_MODELS.items()
     ]

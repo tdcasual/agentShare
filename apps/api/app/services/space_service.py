@@ -18,7 +18,7 @@ def project_actor_activity_to_spaces(
     subject_id: str,
     summary: str,
 ) -> None:
-    if actor_type != "agent":
+    if actor_type == "human":
         return
 
     repo = SpaceRepository(session)
@@ -43,7 +43,7 @@ def project_review_decision_to_spaces(
     subject_id: str,
     summary: str,
 ) -> None:
-    if created_by_actor_type != "agent" or not created_by_actor_id:
+    if created_by_actor_type == "human" or not created_by_actor_id:
         return
 
     project_actor_activity_to_spaces(

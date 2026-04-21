@@ -139,9 +139,9 @@ def test_agent_created_secret_exposes_marketplace_provenance(management_client, 
     assert listing.status_code == 200, listing.text
     item = listing.json()["items"][0]
     assert item["display_name"] == "Agent market secret"
-    assert item["created_by_actor_type"] == "agent"
+    assert item["created_by_actor_type"] == "access_token"
     assert item["created_by_actor_id"] == "test-agent"
-    assert item["created_via_token_id"] == "token-test-agent"
+    assert item["created_via_token_id"] == "access-token-test-agent"
 
 
 def test_create_secret_uses_runtime_settings_for_secret_backend(monkeypatch, tmp_path):
@@ -204,9 +204,9 @@ def test_runtime_created_secret_starts_pending_review_and_tracks_token_provenanc
     events = AuditEventRepository(db_session).list_all()
     created_events = [event for event in events if event.event_type == "secret_created"]
     assert created_events
-    assert created_events[-1].payload["actor_type"] == "agent"
+    assert created_events[-1].payload["actor_type"] == "access_token"
     assert created_events[-1].payload["actor_id"] == "test-agent"
-    assert created_events[-1].payload["via_token_id"] == "token-test-agent"
+    assert created_events[-1].payload["via_token_id"] == "access-token-test-agent"
     assert body["backend_ref"] == f"pending://{body['id']}"
     assert InMemorySecretBackend._store == {}
     assert db_session.get(PendingSecretMaterialModel, body["id"]) is not None

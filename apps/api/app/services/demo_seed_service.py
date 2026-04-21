@@ -5,15 +5,15 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.orm.agent import AgentIdentityModel
 from app.orm.capability import CapabilityModel
 from app.orm.event import EventModel
+from app.orm.openclaw_agent import OpenClawAgentModel
 from app.orm.secret import SecretModel
 from app.orm.task import TaskModel
-from app.repositories.agent_repo import AgentRepository
 from app.repositories.capability_repo import CapabilityRepository
 from app.repositories.event_repo import EventRepository
 from app.repositories.human_account_repo import HumanAccountRepository
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.system_setting_repo import SystemSettingRepository
 from app.repositories.task_repo import TaskRepository
@@ -44,7 +44,7 @@ def seed_demo_fixture_data(settings: Settings, session_factory) -> None:
     session = session_factory()
     try:
         owner = _ensure_demo_owner(session)
-        _ensure_demo_agent(session)
+        _ensure_demo_openclaw_agent(session)
         _ensure_demo_secret(
             session,
             secret_id=DEMO_SECRET_ACTIVE_ID,
@@ -123,17 +123,25 @@ def _ensure_demo_owner(session: Session):
     return owner
 
 
-def _ensure_demo_agent(session: Session) -> AgentIdentityModel:
-    repo = AgentRepository(session)
+def _ensure_demo_openclaw_agent(session: Session) -> OpenClawAgentModel:
+    repo = OpenClawAgentRepository(session)
     existing = repo.get(DEMO_AGENT_ID)
     if existing is not None:
         return existing
 
-    return repo.create(AgentIdentityModel(
+    return repo.create(OpenClawAgentModel(
         id=DEMO_AGENT_ID,
         name=DEMO_AGENT_NAME,
-        api_key_hash=None,
         status="active",
+        auth_method="openclaw_session",
+        workspace_root="/demo/openclaw",
+        agent_dir=".openclaw/agents/market-maker",
+        model="gpt-5.4",
+        thinking_level="balanced",
+        sandbox_mode="workspace-write",
+        tools_policy={},
+        skills_policy={},
+        dream_policy={},
         allowed_capability_ids=[],
         allowed_task_types=["account_read", "prompt_run"],
         risk_tier="medium",
@@ -171,8 +179,8 @@ def _ensure_demo_secret(
         resource_selector="project:market-demo",
         metadata_json={"demo": True, "surface": "marketplace"},
         backend_ref=f"demo://{secret_id}",
-        created_by="agent",
-        created_by_actor_type="agent",
+        created_by="openclaw_agent",
+        created_by_actor_type="openclaw_agent",
         created_by_actor_id=DEMO_AGENT_ID,
         created_via_token_id=None,
         publication_status=publication_status,
@@ -207,13 +215,13 @@ def _ensure_demo_capability(
         approval_mode="manual",
         approval_rules=[],
         allowed_audience=["management"],
-        access_policy={"mode": "all_tokens", "selectors": []},
+        access_policy={"mode": "all_access_tokens", "selectors": []},
         required_provider=required_provider,
         required_provider_scopes=["responses.read"],
         allowed_environments=["production"],
         adapter_type="generic_http",
         adapter_config={"demo": True},
-        created_by_actor_type="agent",
+        created_by_actor_type="openclaw_agent",
         created_by_actor_id=DEMO_AGENT_ID,
         created_via_token_id=None,
         publication_status=publication_status,
@@ -257,7 +265,7 @@ def _ensure_demo_review_event(session: Session) -> EventModel:
     return repo.create(EventModel(
         id=DEMO_EVENT_REVIEW_ID,
         event_type="agent_submission_pending_review",
-        actor_type="agent",
+        actor_type="openclaw_agent",
         actor_id=DEMO_AGENT_ID,
         subject_type="review",
         subject_id=DEMO_CAPABILITY_PENDING_ID,
@@ -281,7 +289,7 @@ def _ensure_demo_feedback_event(session: Session) -> EventModel:
     return repo.create(EventModel(
         id=DEMO_EVENT_FEEDBACK_ID,
         event_type="agent_feedback_received",
-        actor_type="agent",
+        actor_type="openclaw_agent",
         actor_id=DEMO_AGENT_ID,
         subject_type="agent",
         subject_id=DEMO_AGENT_ID,

@@ -126,25 +126,36 @@ export interface LoginInput {
   password: string;
 }
 
-export interface AgentTokenCreateInput {
+export interface AccessTokenCreateInput {
   display_name: string;
+  subject_type?: string;
+  subject_id: string;
   scopes?: string[];
   labels?: Record<string, string>;
+  policy?: Record<string, unknown>;
   expires_at?: string | null;
 }
 
-export interface AgentTokenCreateResponse {
+export interface AccessTokenCreateResponse {
   id: string;
-  agent_id: string;
   display_name: string;
   token_prefix: string;
-  api_key: string;
-  trust_score: number;
   status: string;
+  subject_type: string;
+  subject_id: string;
   scopes?: string[];
   labels?: Record<string, string>;
-  expires_at?: string;
-  last_used_at?: string;
+  policy?: Record<string, unknown>;
+  trust_score: number;
+  expires_at?: string | null;
+  issued_by_actor_type?: string;
+  issued_by_actor_id?: string;
+  last_used_at?: string | null;
+  last_feedback_at?: string | null;
+  completed_runs?: number;
+  successful_runs?: number;
+  success_rate?: number;
+  api_key?: string;
 }
 
 export interface TaskCreateInput {
@@ -157,11 +168,17 @@ export interface TaskCreateInput {
   approval_mode?: 'auto' | 'manual';
   approval_rules?: Array<Record<string, unknown>>;
   priority?: string;
-  target_token_ids?: string[];
-  target_mode?: 'explicit_tokens' | 'broadcast';
+  target_access_token_ids?: string[];
+  target_mode?: 'explicit_access_tokens' | 'broadcast';
 }
 
 export interface TokenFeedbackCreateInput {
+  score: number;
+  verdict: string;
+  summary: string;
+}
+
+export interface AccessTokenFeedbackCreateInput {
   score: number;
   verdict: string;
   summary: string;

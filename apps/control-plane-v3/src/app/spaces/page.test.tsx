@@ -10,7 +10,8 @@ const t = translateMessage;
 let mockSearchParams = new URLSearchParams();
 const useEventsMock = vi.fn();
 const useReviewsMock = vi.fn();
-const useAgentsWithTokensMock = vi.fn();
+const useOpenClawAgentsMock = vi.fn();
+const useAccessTokensMock = vi.fn();
 const useSecretsMock = vi.fn();
 const useCapabilitiesMock = vi.fn();
 const useManagementSessionGateMock = vi.fn();
@@ -58,7 +59,8 @@ vi.mock('@/domains/review', () => ({
 }));
 
 vi.mock('@/domains/identity', () => ({
-  useAgentsWithTokens: () => useAgentsWithTokensMock(),
+  useOpenClawAgents: () => useOpenClawAgentsMock(),
+  useAccessTokens: () => useAccessTokensMock(),
 }));
 
 vi.mock('@/domains/governance', async (importOriginal) => {
@@ -145,52 +147,94 @@ describe('spaces page', () => {
       error: null,
     });
 
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [
-        {
-          id: 'bootstrap',
-          name: 'Bootstrap Credential',
-          risk_tier: 'high',
-          auth_method: 'api_key',
-          status: 'active',
-          created_at: '2026-03-31T00:00:00.000Z',
-          updated_at: '2026-03-31T00:00:00.000Z',
-        },
-        {
-          id: 'analyzer',
-          name: 'Analyzer Agent',
-          risk_tier: 'medium',
-          auth_method: 'oauth',
-          status: 'active',
-          created_at: '2026-03-31T00:00:00.000Z',
-          updated_at: '2026-03-31T00:00:00.000Z',
-        },
-      ],
-      tokensByAgent: {
-        bootstrap: [
+    useOpenClawAgentsMock.mockReturnValue({
+      data: {
+        items: [
           {
-            id: 'token-bootstrap',
-            displayName: 'Bootstrap Primary',
+            id: 'bootstrap',
+            name: 'Bootstrap Credential',
+            risk_tier: 'high',
+            auth_method: 'openclaw_session',
             status: 'active',
-            trustScore: 0.92,
-            scopes: [],
-            labels: {},
+            workspace_root: '/srv/openclaw/bootstrap',
+            agent_dir: '.openclaw/agents/bootstrap',
+            model: 'gpt-5',
+            thinking_level: 'high',
+            sandbox_mode: 'workspace-write',
+            dream_policy: {
+              enabled: true,
+              max_steps_per_run: 4,
+              max_followup_tasks: 1,
+              allow_task_proposal: true,
+              allow_memory_write: true,
+              max_context_tokens: 4096,
+            },
+            tools_policy: {},
+            skills_policy: {},
+            allowed_task_types: [],
+            allowed_capability_ids: [],
           },
-        ],
-        analyzer: [
           {
-            id: 'token-analyzer',
-            displayName: 'Analyzer Worker',
+            id: 'analyzer',
+            name: 'Analyzer Agent',
+            risk_tier: 'medium',
+            auth_method: 'openclaw_session',
             status: 'active',
-            trustScore: 0.81,
-            scopes: [],
-            labels: {},
+            workspace_root: '/srv/openclaw/analyzer',
+            agent_dir: '.openclaw/agents/analyzer',
+            model: 'gpt-5-mini',
+            thinking_level: 'balanced',
+            sandbox_mode: 'read-only',
+            dream_policy: {
+              enabled: false,
+              max_steps_per_run: 3,
+              max_followup_tasks: 0,
+              allow_task_proposal: false,
+              allow_memory_write: false,
+              max_context_tokens: 2048,
+            },
+            tools_policy: {},
+            skills_policy: {},
+            allowed_task_types: [],
+            allowed_capability_ids: [],
           },
         ],
       },
       isLoading: false,
       error: null,
-      mutate: vi.fn(),
+    });
+
+    useAccessTokensMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'token-bootstrap',
+            displayName: 'Bootstrap Primary',
+            tokenPrefix: 'cp_tok_123',
+            subjectType: 'openclaw_agent',
+            subjectId: 'bootstrap',
+            status: 'active',
+            trustScore: 0.92,
+            scopes: [],
+            labels: {},
+            policy: {},
+          },
+          {
+            id: 'token-analyzer',
+            displayName: 'Analyzer Worker',
+            tokenPrefix: 'cp_tok_456',
+            subjectType: 'openclaw_agent',
+            subjectId: 'analyzer',
+            status: 'active',
+            trustScore: 0.81,
+            scopes: [],
+            labels: {},
+            policy: {},
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
     });
 
     useSecretsMock.mockReturnValue({

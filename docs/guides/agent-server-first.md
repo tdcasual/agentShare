@@ -47,8 +47,8 @@ This path is the default mental model for the project.
 
 This is the compatibility and remote-connectivity model.
 
-- management creates a remote agent profile
-- the server can mint one or more managed remote-access tokens for that remote runtime
+- management creates standalone access tokens for external remote runtimes
+- the server can mint one or more managed standalone access tokens for remote callers
 - those tokens let an external machine, external agent host, or off-project runtime call the same governed server surfaces
 
 Important: the token is only the **credential**.

@@ -1,13 +1,10 @@
-import hashlib
 import importlib
 
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect, text
 
-from app.repositories.agent_repo import AgentRepository
 
-
-CURRENT_ALEMBIC_HEAD = "20260415_02"
+CURRENT_ALEMBIC_HEAD = "20260419_04"
 
 
 def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
@@ -21,8 +18,6 @@ def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
 
     inspector = inspect(db_module.engine)
     assert {
-        "agents",
-        "agent_tokens",
         "human_accounts",
         "management_sessions",
         "openclaw_agents",
@@ -39,7 +34,7 @@ def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
         "tasks",
         "task_targets",
         "runs",
-        "token_feedback",
+        "access_token_feedback",
         "playbooks",
         "audit_events",
         "approval_requests",
@@ -74,7 +69,7 @@ def test_app_startup_runs_current_baseline_only(monkeypatch, tmp_path):
     assert migrated_revision == CURRENT_ALEMBIC_HEAD
 
 
-def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
+def test_app_startup_uses_bootstrap_owner_key_without_seeding_legacy_agent_rows(monkeypatch, tmp_path):
     db_path = tmp_path / "startup-seed.db"
     bootstrap_key = "bootstrap-key-xyz"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
@@ -87,44 +82,27 @@ def test_app_startup_seeds_bootstrap_agent(monkeypatch, tmp_path):
     main_module = importlib.reload(main_module)
 
     with TestClient(main_module.app) as client:
-        assert client.get("/healthz").status_code == 200
+        first = client.post(
+            "/api/bootstrap/setup-owner",
+            json={
+                "bootstrap_key": bootstrap_key,
+                "email": "owner@example.com",
+                "display_name": "Founding Owner",
+                "password": "correct horse battery staple",
+            },
+        )
+        second = client.post(
+            "/api/bootstrap/setup-owner",
+            json={
+                "bootstrap_key": "wrong-bootstrap-key",
+                "email": "owner2@example.com",
+                "display_name": "Founding Owner Two",
+                "password": "correct horse battery staple",
+            },
+        )
 
-    session = db_module.SessionLocal()
-    try:
-        model = AgentRepository(session).get("bootstrap")
-        assert model is not None
-        assert model.api_key_hash == hashlib.sha256(bootstrap_key.encode()).hexdigest()
-    finally:
-        session.close()
-
-
-def test_app_startup_refreshes_bootstrap_agent_hash_when_config_changes(monkeypatch, tmp_path):
-    db_path = tmp_path / "startup-bootstrap-refresh.db"
-    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", "old-bootstrap-key")
-
-    from app import db as db_module
-    from app import main as main_module
-
-    db_module = importlib.reload(db_module)
-    main_module = importlib.reload(main_module)
-
-    with TestClient(main_module.app) as client:
-        assert client.get("/healthz").status_code == 200
-
-    monkeypatch.setenv("BOOTSTRAP_OWNER_KEY", "new-bootstrap-key")
-    main_module = importlib.reload(main_module)
-
-    with TestClient(main_module.app) as client:
-        assert client.get("/healthz").status_code == 200
-
-    session = db_module.SessionLocal()
-    try:
-        model = AgentRepository(session).get("bootstrap")
-        assert model is not None
-        assert model.api_key_hash == hashlib.sha256("new-bootstrap-key".encode()).hexdigest()
-    finally:
-        session.close()
+    assert first.status_code == 201
+    assert second.status_code == 401
 
 
 def test_app_startup_bootstrap_route_initializes_once(monkeypatch, tmp_path):

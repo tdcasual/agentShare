@@ -20,8 +20,9 @@ def test_create_app_registers_core_routes():
     assert "/api/session/login" in route_paths
     assert "/api/session/logout" in route_paths
     assert "/api/admin-accounts" in route_paths
-    assert "/api/agents/{agent_id}/tokens" in route_paths
-    assert "/api/agent-tokens/{token_id}/revoke" in route_paths
+    assert "/api/access-tokens" in route_paths
+    assert "/api/access-tokens/{token_id}/revoke" in route_paths
+    assert "/api/openclaw/agents" in route_paths
     assert "/api/intake-catalog" in route_paths
     assert "/api/reviews" in route_paths
     assert "/api/task-targets/{target_id}/claim" in route_paths
@@ -29,14 +30,14 @@ def test_create_app_registers_core_routes():
     assert "/api/task-targets/{task_target_id}/feedback" in route_paths
 
 
-def test_create_app_runs_bootstrap_initializer_once(monkeypatch, tmp_path):
+def test_create_app_runs_demo_seed_once(monkeypatch, tmp_path):
     calls: list[Settings] = []
     db_path = tmp_path / "factory-bootstrap.db"
 
-    def fake_initializer(settings: Settings, session_factory) -> None:
+    def fake_seed(settings: Settings, session_factory) -> None:
         calls.append(settings)
 
-    monkeypatch.setattr("app.factory.ensure_bootstrap_credential", fake_initializer)
+    monkeypatch.setattr("app.factory.seed_demo_fixture_data", fake_seed)
 
     app = create_app(Settings(database_url=f"sqlite:///{db_path}"))
     with TestClient(app):
@@ -52,7 +53,6 @@ def test_create_app_startup_does_not_run_db_migrations(monkeypatch, tmp_path):
         migrate_calls.append(database_url)
 
     monkeypatch.setattr("app.factory.db_module.migrate_db", fake_migrate_db)
-    monkeypatch.setattr("app.factory.ensure_bootstrap_credential", lambda settings, session_factory: None)
     monkeypatch.setattr("app.factory.seed_demo_fixture_data", lambda settings, session_factory: None)
 
     app = create_app(Settings(

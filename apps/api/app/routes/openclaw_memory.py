@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import require_agent
 from app.db import get_db
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.schemas.openclaw_memory import (
     OpenClawMemoryNoteCreate,
     OpenClawMemoryNoteListResponse,

@@ -321,11 +321,11 @@ function TaskCard({
 
       <div className="space-y-3">
         <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {t('tasks.targetTokens')}
+          {t('tasks.targetAccessTokens')}
         </p>
         <div className="flex flex-wrap gap-2">
           {targets.length === 0 ? (
-            <Badge variant="default">{t('tasks.noTokenTargets')}</Badge>
+            <Badge variant="default">{t('tasks.noAccessTokenTargets')}</Badge>
           ) : (
             targets.map((target) => (
               <Badge
@@ -333,7 +333,7 @@ function TaskCard({
                 variant={targetStatusVariant(target.status)}
                 className="text-xs"
               >
-                {target.token?.displayName ?? target.tokenId}
+                {target.accessToken?.displayName ?? target.accessTokenId}
               </Badge>
             ))
           )}
@@ -348,7 +348,7 @@ function CreateTaskModal({
   allTokens,
 }: {
   form: ReturnType<typeof useTasksForm>;
-  allTokens: { id: string; displayName: string; agentId: string; trustScore?: number }[];
+  allTokens: { id: string; displayName: string; subjectId: string; trustScore?: number }[];
 }) {
   return (
     <Modal
@@ -422,10 +422,10 @@ function CreateTaskModal({
           <div className="grid gap-3 md:grid-cols-2">
             <button
               type="button"
-              onClick={() => form.setTargetMode('explicit_tokens')}
-              aria-pressed={form.taskForm.target_mode === 'explicit_tokens'}
+              onClick={() => form.setTargetMode('explicit_access_tokens')}
+              aria-pressed={form.taskForm.target_mode === 'explicit_access_tokens'}
               className={`rounded-2xl border p-4 text-left transition-colors ${
-                form.taskForm.target_mode === 'explicit_tokens'
+                form.taskForm.target_mode === 'explicit_access_tokens'
                   ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
                   : 'border-[var(--kw-border)] bg-white dark:bg-[var(--kw-dark-bg)]'
               }`}
@@ -457,14 +457,14 @@ function CreateTaskModal({
           </div>
         </div>
 
-        {form.taskForm.target_mode === 'explicit_tokens' ? (
+        {form.taskForm.target_mode === 'explicit_access_tokens' ? (
           <div className="space-y-3">
             <div>
               <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {form.t('tasks.form.targetTokens')}
+                {form.t('tasks.form.targetAccessTokens')}
               </p>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {form.t('tasks.form.targetTokensDescription')}
+                {form.t('tasks.form.targetAccessTokensDescription')}
               </p>
             </div>
             <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-[var(--kw-border)] p-4">
@@ -477,7 +477,7 @@ function CreateTaskModal({
                   <TokenCheckbox
                     key={token.id}
                     token={token}
-                    checked={form.taskForm.target_token_ids.includes(token.id)}
+                    checked={form.taskForm.target_access_token_ids.includes(token.id)}
                     onToggle={form.toggleTargetToken}
                     t={form.t}
                   />
@@ -526,7 +526,7 @@ function TaskDetailModal({
         taskId: task!.task.id,
         taskTitle: task!.task.title,
         targetId: target.targetId,
-        tokenLabel: target.token?.displayName ?? target.tokenId,
+        accessTokenLabel: target.accessToken?.displayName ?? target.accessTokenId,
       });
     },
     [form, task]
@@ -587,7 +587,7 @@ function TaskDetailModal({
                 </p>
                 <p>
                   {page.t('tasks.viaToken')}:{' '}
-                  {task.task.createdViaTokenId ?? page.t('tasks.directHumanPublish')}
+                  {task.task.createdViaAccessTokenId ?? page.t('tasks.directHumanPublish')}
                 </p>
                 <p>
                   {page.t('tasks.claimedBy')}: {task.task.claimedBy ?? page.t('tasks.notClaimed')}
@@ -622,16 +622,16 @@ function TaskDetailModal({
                           {translateTaskStatus(page.t, target.status)}
                         </Badge>
                         <Badge variant="secondary">
-                          {target.token?.displayName ?? target.tokenId}
+                          {target.accessToken?.displayName ?? target.accessTokenId}
                         </Badge>
                       </div>
                       <div>
                         <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                          {target.token?.tokenPrefix ?? target.tokenId}
+                          {target.accessToken?.tokenPrefix ?? target.accessTokenId}
                         </p>
                         <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                           {page.t('tasks.targetMetaLine', {
-                            agentId: target.token?.agentId ?? page.t('tasks.unknown'),
+                            agentId: target.accessToken?.subjectId ?? page.t('tasks.unknown'),
                             targetId: target.targetId,
                           })}
                         </p>
@@ -659,8 +659,8 @@ function TaskDetailModal({
                     <DetailStat
                       label={page.t('tasks.tokenTrust')}
                       value={
-                        target.token
-                          ? (target.token.trustScore ?? 0).toFixed(2)
+                        target.accessToken
+                          ? (target.accessToken.trustScore ?? 0).toFixed(2)
                           : page.t('tasks.unknown')
                       }
                     />
@@ -702,7 +702,7 @@ function FeedbackModal({ form }: { form: ReturnType<typeof useTasksForm> }) {
       onClose={form.closeFeedbackModal}
       title={
         form.feedbackTarget
-          ? `${form.t('tasks.feedbackFor')} ${form.feedbackTarget.tokenLabel}`
+          ? `${form.t('tasks.feedbackFor')} ${form.feedbackTarget.accessTokenLabel}`
           : form.t('tasks.feedback')
       }
       description={
@@ -786,7 +786,7 @@ function TokenCheckbox({
   onToggle,
   t,
 }: {
-  token: { id: string; displayName: string; agentId: string; trustScore?: number };
+  token: { id: string; displayName: string; subjectId: string; trustScore?: number };
   checked: boolean;
   onToggle: (id: string) => void;
   t: (key: string) => string;
@@ -803,7 +803,7 @@ function TokenCheckbox({
           {token.displayName}
         </p>
         <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {token.id} • {token.agentId} • {t('tasks.form.trust') || 'trust'}{' '}
+          {token.id} • {token.subjectId} • {t('tasks.form.trust') || 'trust'}{' '}
           {(token.trustScore ?? 0).toFixed(2)}
         </p>
       </div>

@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import AuthorizationError, ConflictError, NotFoundError
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.orm.openclaw_dream_run import OpenClawDreamRunModel
 from app.orm.openclaw_dream_step import OpenClawDreamStepModel
 from app.repositories.openclaw_dream_run_repo import OpenClawDreamRunRepository

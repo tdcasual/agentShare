@@ -19,14 +19,16 @@ export interface IdentityReference {
 // Task/Token 共享
 // ============================================
 
-export interface AgentTokenTransport {
+export interface AccessTokenTransport {
   readonly id: string;
-  readonly agent_id: string;
   readonly display_name: string;
   readonly token_prefix: string;
   readonly status: string;
+  readonly subject_type: string;
+  readonly subject_id: string;
   readonly scopes?: string[];
   readonly labels?: Record<string, string>;
+  readonly policy?: Record<string, unknown>;
   readonly expires_at?: string | null;
   readonly issued_by_actor_type?: string | null;
   readonly issued_by_actor_id?: string | null;
@@ -38,15 +40,17 @@ export interface AgentTokenTransport {
   readonly trust_score?: number | null;
 }
 
-export interface AgentToken {
+export interface AccessToken {
   readonly id: string;
-  readonly agentId: string;
   readonly displayName: string;
   readonly tokenPrefix: string;
+  readonly subjectType: string;
+  readonly subjectId: string;
   readonly trustScore?: number;
   readonly status: string;
   readonly scopes: string[];
   readonly labels: Record<string, string>;
+  readonly policy: Record<string, unknown>;
   readonly expiresAt?: string;
   readonly issuedByActorType?: string;
   readonly issuedByActorId?: string;
@@ -57,16 +61,18 @@ export interface AgentToken {
   readonly successfulRuns?: number;
 }
 
-export function normalizeAgentToken(dto: AgentTokenTransport): AgentToken {
+export function normalizeAccessToken(dto: AccessTokenTransport): AccessToken {
   return {
     id: dto.id,
-    agentId: dto.agent_id,
     displayName: dto.display_name,
     tokenPrefix: dto.token_prefix,
+    subjectType: dto.subject_type,
+    subjectId: dto.subject_id,
     trustScore: dto.trust_score ?? undefined,
     status: dto.status,
     scopes: dto.scopes ?? [],
     labels: dto.labels ?? {},
+    policy: dto.policy ?? {},
     expiresAt: dto.expires_at ?? undefined,
     issuedByActorType: dto.issued_by_actor_type ?? undefined,
     issuedByActorId: dto.issued_by_actor_id ?? undefined,

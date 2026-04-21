@@ -8,8 +8,8 @@ def _create_completed_target(client, management_client) -> tuple[str, str]:
         json={
             "title": "Feedback target",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -46,7 +46,7 @@ def test_feedback_is_linked_to_token_target_and_run(client, management_client):
 
     assert feedback.status_code == 201, feedback.text
     payload = feedback.json()
-    assert payload["token_id"] == TEST_ACCESS_TOKEN_ID
+    assert payload["access_token_id"] == TEST_ACCESS_TOKEN_ID
     assert payload["task_target_id"] == target_id
     assert payload["run_id"] == run_id
 
@@ -82,7 +82,25 @@ def test_feedback_creation_emits_event(client, management_client):
     events = management_client.get("/api/events")
 
     assert events.status_code == 200, events.text
-    assert any(item["event_type"] == "task_feedback_posted" for item in events.json()["items"])
+    assert any(
+        item["event_type"] == "task_feedback_posted"
+        and item["metadata"]["access_token_id"] == TEST_ACCESS_TOKEN_ID
+        for item in events.json()["items"]
+    )
+
+
+def test_feedback_can_be_listed_from_access_token_route(client, management_client):
+    target_id, _ = _create_completed_target(client, management_client)
+    created = management_client.post(
+        f"/api/task-targets/{target_id}/feedback",
+        json={"score": 5, "verdict": "accepted", "summary": "Looks good"},
+    )
+    assert created.status_code == 201, created.text
+
+    listed = management_client.get(f"/api/access-tokens/{TEST_ACCESS_TOKEN_ID}/feedback")
+
+    assert listed.status_code == 200, listed.text
+    assert [item["id"] for item in listed.json()["items"]] == [created.json()["id"]]
 
 
 def test_feedback_cannot_be_created_twice_for_the_same_target(client, management_client):
@@ -110,15 +128,15 @@ def test_bulk_feedback_listing_groups_records_by_token(client, management_client
     assert created.status_code == 201, created.text
 
     response = management_client.get(
-        "/api/token-feedback/bulk",
+        "/api/access-token-feedback/bulk",
         params=[
-            ("token_id", TEST_ACCESS_TOKEN_ID),
-            ("token_id", "token-missing"),
+            ("access_token_id", TEST_ACCESS_TOKEN_ID),
+            ("access_token_id", "token-missing"),
         ],
     )
 
     assert response.status_code == 200, response.text
-    payload = response.json()["items_by_token"]
+    payload = response.json()["items_by_access_token"]
     assert [item["id"] for item in payload[TEST_ACCESS_TOKEN_ID]] == [created.json()["id"]]
     assert payload["token-missing"] == []
 
@@ -132,15 +150,16 @@ def test_bulk_feedback_listing_transport_uses_snake_case_fields(client, manageme
     assert created.status_code == 201, created.text
 
     response = management_client.get(
-        "/api/token-feedback/bulk",
-        params=[("token_id", TEST_ACCESS_TOKEN_ID)],
+        "/api/access-token-feedback/bulk",
+        params=[("access_token_id", TEST_ACCESS_TOKEN_ID)],
     )
 
     assert response.status_code == 200, response.text
-    item = response.json()["items_by_token"][TEST_ACCESS_TOKEN_ID][0]
-    assert "token_id" in item
+    item = response.json()["items_by_access_token"][TEST_ACCESS_TOKEN_ID][0]
+    assert "access_token_id" in item
     assert "task_target_id" in item
     assert "created_at" in item
-    assert "tokenId" not in item
+    assert "accessTokenId" not in item
+    assert "token_id" not in item
     assert "taskTargetId" not in item
     assert "createdAt" not in item

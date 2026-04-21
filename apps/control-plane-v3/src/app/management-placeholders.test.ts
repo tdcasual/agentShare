@@ -29,7 +29,8 @@ describe('management placeholders', () => {
 
     expect(source).toMatch(/useEvents/);
     expect(source).toMatch(/useReviews/);
-    expect(source).toMatch(/useAgentsWithTokens/);
+    expect(source).toMatch(/useOpenClawAgents/);
+    expect(source).toMatch(/useAccessTokens/);
     expect(source).toMatch(/useI18n/);
     expect(source).toMatch(/spaces\.hero\.title/);
     expect(source).not.toMatch(/not yet backed by a production API/);

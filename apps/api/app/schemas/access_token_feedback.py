@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class TokenFeedbackCreate(BaseModel):
+class AccessTokenFeedbackCreate(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "score": 5,
@@ -19,9 +19,9 @@ class TokenFeedbackCreate(BaseModel):
     summary: str = ""
 
 
-class TokenFeedbackResponse(BaseModel):
+class AccessTokenFeedbackResponse(BaseModel):
     id: str
-    token_id: str
+    access_token_id: str
     task_target_id: str
     run_id: str
     source: str
@@ -33,9 +33,9 @@ class TokenFeedbackResponse(BaseModel):
     created_at: datetime
 
 
-class TokenFeedbackListResponse(BaseModel):
-    items: list[TokenFeedbackResponse] = Field(default_factory=list)
+class AccessTokenFeedbackListResponse(BaseModel):
+    items: list[AccessTokenFeedbackResponse] = Field(default_factory=list)
 
 
-class TokenFeedbackBulkListResponse(BaseModel):
-    items_by_token: dict[str, list[TokenFeedbackResponse]] = Field(default_factory=dict)
+class AccessTokenFeedbackBulkListResponse(BaseModel):
+    items_by_access_token: dict[str, list[AccessTokenFeedbackResponse]] = Field(default_factory=dict)

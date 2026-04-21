@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.errors import ConflictError
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.orm.openclaw_dream_run import OpenClawDreamRunModel
 from app.repositories.openclaw_dream_run_repo import OpenClawDreamRunRepository
 from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepository
@@ -316,7 +316,7 @@ def test_record_dream_step_translates_duplicate_step_races_into_conflicts(db_ses
     )
     db_session.commit()
 
-    agent = AgentIdentity(
+    agent = RuntimePrincipal(
         id="openclaw-agent-race",
         name="Dream Agent",
         issuer="openclaw",
@@ -361,7 +361,7 @@ def test_stop_dream_run_reads_the_run_with_a_lock(db_session, monkeypatch):
     )
     db_session.commit()
 
-    agent = AgentIdentity(
+    agent = RuntimePrincipal(
         id="openclaw-agent-stop-lock",
         name="Dream Agent",
         issuer="openclaw",
@@ -452,7 +452,7 @@ def test_stop_dream_run_with_event_reads_the_run_with_a_lock(db_session, monkeyp
     )
     db_session.commit()
 
-    agent = AgentIdentity(
+    agent = RuntimePrincipal(
         id="openclaw-agent-stop-event-lock",
         name="Dream Agent",
         issuer="openclaw",

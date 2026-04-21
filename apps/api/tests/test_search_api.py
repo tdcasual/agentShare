@@ -1,3 +1,5 @@
+from conftest import TEST_ACCESS_TOKEN_ID, TEST_ACCESS_TOKEN_KEY
+
 from app.services.event_service import record_event
 
 
@@ -16,8 +18,14 @@ def test_grouped_search_returns_expected_top_level_groups(management_client):
 
 def test_grouped_search_returns_matching_identities_tasks_assets_and_events(management_client, db_session):
     created_agent = management_client.post(
-        "/api/agents",
-        json={"name": "Signal Agent", "risk_tier": "medium"},
+        "/api/openclaw/agents",
+        json={
+            "name": "Signal Agent",
+            "workspace_root": "/srv/openclaw/signal-agent",
+            "agent_dir": ".openclaw/agents/signal-agent",
+            "model": "gpt-5.4",
+            "sandbox_mode": "workspace-write",
+        },
     )
     assert created_agent.status_code == 201, created_agent.text
 
@@ -26,8 +34,8 @@ def test_grouped_search_returns_matching_identities_tasks_assets_and_events(mana
         json={
             "title": "Signal Task",
             "task_type": "account_read",
-            "target_token_ids": ["token-test-agent"],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created_task.status_code == 201, created_task.text
@@ -60,7 +68,7 @@ def test_grouped_search_returns_matching_identities_tasks_assets_and_events(mana
     record_event(
         db_session,
         event_type="task_completed",
-        actor_type="agent",
+        actor_type="openclaw_agent",
         actor_id="test-agent",
         subject_type="task",
         subject_id=created_task.json()["id"],
@@ -117,8 +125,14 @@ def test_grouped_search_hides_admin_only_hits_from_operator_sessions(
 ):
     with management_client_for_role("admin") as admin_client:
         created_agent = admin_client.post(
-            "/api/agents",
-            json={"name": "Restricted Signal Agent", "risk_tier": "medium"},
+            "/api/openclaw/agents",
+            json={
+                "name": "Restricted Signal Agent",
+                "workspace_root": "/srv/openclaw/restricted-signal-agent",
+                "agent_dir": ".openclaw/agents/restricted-signal-agent",
+                "model": "gpt-5.4",
+                "sandbox_mode": "workspace-write",
+            },
         )
         assert created_agent.status_code == 201, created_agent.text
 
@@ -159,7 +173,7 @@ def test_grouped_search_hides_admin_only_hits_from_operator_sessions(
         record_event(
             db_session,
             event_type="task_completed",
-            actor_type="agent",
+            actor_type="openclaw_agent",
             actor_id="test-agent",
             subject_type="task",
             subject_id=created_task.json()["id"],
@@ -183,7 +197,7 @@ def test_grouped_search_hides_admin_only_hits_from_operator_sessions(
 def test_grouped_search_links_agent_published_assets_into_marketplace_context(client, management_client):
     secret = client.post(
         "/api/secrets",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json={
             "display_name": "Market Search Secret",
             "kind": "api_token",
@@ -195,7 +209,7 @@ def test_grouped_search_links_agent_published_assets_into_marketplace_context(cl
 
     capability = client.post(
         "/api/capabilities",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json={
             "name": "market.search.capability",
             "secret_id": secret.json()["id"],
@@ -227,7 +241,7 @@ def test_grouped_search_keeps_marketplace_hits_visible_to_operator_sessions(
 ):
     secret = client.post(
         "/api/secrets",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json={
             "display_name": "Operator Market Search Secret",
             "kind": "api_token",
@@ -239,7 +253,7 @@ def test_grouped_search_keeps_marketplace_hits_visible_to_operator_sessions(
 
     capability = client.post(
         "/api/capabilities",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json={
             "name": "operator.market.search.capability",
             "secret_id": secret.json()["id"],
@@ -268,8 +282,14 @@ def test_grouped_search_keeps_marketplace_hits_visible_to_operator_sessions(
 def test_grouped_search_supports_limit_per_group(management_client):
     for idx in range(2):
         created = management_client.post(
-            "/api/agents",
-            json={"name": f"Signal limit agent {idx}", "risk_tier": "medium"},
+            "/api/openclaw/agents",
+            json={
+                "name": f"Signal limit agent {idx}",
+                "workspace_root": f"/srv/openclaw/signal-limit-agent-{idx}",
+                "agent_dir": f".openclaw/agents/signal-limit-agent-{idx}",
+                "model": "gpt-5.4",
+                "sandbox_mode": "workspace-write",
+            },
         )
         assert created.status_code == 201, created.text
 
@@ -285,8 +305,14 @@ def test_grouped_search_uses_targeted_repository_queries_instead_of_list_all(
     monkeypatch,
 ):
     created_agent = management_client.post(
-        "/api/agents",
-        json={"name": "Targeted Signal Agent", "risk_tier": "medium"},
+        "/api/openclaw/agents",
+        json={
+            "name": "Targeted Signal Agent",
+            "workspace_root": "/srv/openclaw/targeted-signal-agent",
+            "agent_dir": ".openclaw/agents/targeted-signal-agent",
+            "model": "gpt-5.4",
+            "sandbox_mode": "workspace-write",
+        },
     )
     assert created_agent.status_code == 201, created_agent.text
 
@@ -324,7 +350,7 @@ def test_grouped_search_uses_targeted_repository_queries_instead_of_list_all(
     record_event(
         db_session,
         event_type="task_completed",
-        actor_type="agent",
+        actor_type="openclaw_agent",
         actor_id="test-agent",
         subject_type="task",
         subject_id=created_task.json()["id"],
@@ -336,7 +362,6 @@ def test_grouped_search_uses_targeted_repository_queries_instead_of_list_all(
         del args, kwargs
         raise AssertionError("search should not call list_all/list_recent fallbacks")
 
-    monkeypatch.setattr("app.repositories.agent_repo.AgentRepository.list_all", fail_list_all)
     monkeypatch.setattr("app.repositories.openclaw_agent_repo.OpenClawAgentRepository.list_all", fail_list_all)
     monkeypatch.setattr("app.repositories.task_repo.TaskRepository.list_all", fail_list_all)
     monkeypatch.setattr("app.repositories.secret_repo.SecretRepository.list_all", fail_list_all)

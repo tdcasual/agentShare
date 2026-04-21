@@ -7,16 +7,12 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
-from app.orm.agent import AgentIdentityModel
-from app.orm.agent_token import AgentTokenModel
-from app.repositories.agent_repo import AgentRepository
-from app.services.agent_token_service import hash_token
+from app.services.access_token_service import hash_access_token, mint_access_token
 
 
 BOOTSTRAP_OWNER_KEY = "bootstrap-test-token"
 OWNER_EMAIL = "owner@example.com"
 OWNER_PASSWORD = "correct horse battery staple"
-ROLE_TEST_AGENT_KEY = "role-test-agent-key"
 
 
 @contextmanager
@@ -33,30 +29,17 @@ def management_client_for_role(tmp_path: Path, role: str, *, database_name: str 
     with TestClient(app) as client:
         session = app.state.runtime.session_factory()
         try:
-            repo = AgentRepository(session)
-            if repo.get("role-test-agent") is None:
-                repo.create(AgentIdentityModel(
-                    id="role-test-agent",
-                    name="Role Test Agent",
-                    api_key_hash=None,
-                    status="active",
-                    allowed_capability_ids=[],
-                    allowed_task_types=["prompt_run", "config_sync", "account_read"],
-                    risk_tier="medium",
-                ))
-                session.add(AgentTokenModel(
-                    id="token-role-test-agent",
-                    agent_id="role-test-agent",
-                    display_name="Role Test Agent Token",
-                    token_hash=hash_token(ROLE_TEST_AGENT_KEY),
-                    token_prefix=ROLE_TEST_AGENT_KEY[:10],
-                    status="active",
-                    issued_by_actor_type="system",
-                    issued_by_actor_id="test-fixture",
-                    scopes=[],
-                    labels={},
-                ))
-                session.commit()
+            token, raw_key = mint_access_token(
+                session,
+                display_name="Role Test Access Token",
+                subject_type="automation",
+                subject_id="role-test-agent",
+                scopes=["runtime"],
+                labels={},
+                issued_by_actor_type="system",
+                issued_by_actor_id="test-fixture",
+            )
+            session.commit()
         finally:
             session.close()
 
@@ -112,17 +95,17 @@ def test_viewer_cannot_access_operator_or_admin_routes(tmp_path: Path) -> None:
                 "metadata": {},
             },
         )
-        agents = client.get("/api/agents")
+        tokens = client.get("/api/access-tokens")
 
     assert approvals.status_code == 403
     assert approvals.json()["detail"] == "operator role required"
     assert secrets.status_code == 403
     assert secrets.json()["detail"] == "admin role required"
-    assert agents.status_code == 403
-    assert agents.json()["detail"] == "admin role required"
+    assert tokens.status_code == 403
+    assert tokens.json()["detail"] == "admin role required"
 
 
-def test_operator_can_review_approvals_but_cannot_manage_secrets_or_agents(tmp_path: Path) -> None:
+def test_operator_can_review_approvals_but_cannot_manage_secrets_or_tokens(tmp_path: Path) -> None:
     with management_client_for_role(tmp_path, "operator") as client:
         approvals = client.get("/api/approvals")
         secrets = client.post(
@@ -135,13 +118,13 @@ def test_operator_can_review_approvals_but_cannot_manage_secrets_or_agents(tmp_p
                 "metadata": {},
             },
         )
-        agents = client.post(
-            "/api/agents",
+        tokens = client.post(
+            "/api/access-tokens",
             json={
-                "name": "Operator Agent",
-                "risk_tier": "medium",
-                "allowed_capability_ids": [],
-                "allowed_task_types": [],
+                "display_name": "Operator token",
+                "subject_type": "automation",
+                "subject_id": "op-runner",
+                "scopes": ["runtime"],
             },
         )
 
@@ -149,8 +132,8 @@ def test_operator_can_review_approvals_but_cannot_manage_secrets_or_agents(tmp_p
     assert approvals.json() == {"items": []}
     assert secrets.status_code == 403
     assert secrets.json()["detail"] == "admin role required"
-    assert agents.status_code == 403
-    assert agents.json()["detail"] == "admin role required"
+    assert tokens.status_code == 403
+    assert tokens.json()["detail"] == "admin role required"
 
 
 def test_viewer_cannot_create_playbooks(tmp_path: Path) -> None:
@@ -168,7 +151,7 @@ def test_viewer_cannot_create_playbooks(tmp_path: Path) -> None:
     assert response.json()["detail"] == "operator role required"
 
 
-def test_admin_can_manage_secrets_and_agents_but_cannot_delete_agents(tmp_path: Path) -> None:
+def test_admin_can_manage_secrets_and_tokens_but_cannot_delete_openclaw_agents(tmp_path: Path) -> None:
     with management_client_for_role(tmp_path, "admin") as client:
         secret = client.post(
             "/api/secrets",
@@ -180,41 +163,20 @@ def test_admin_can_manage_secrets_and_agents_but_cannot_delete_agents(tmp_path: 
                 "metadata": {},
             },
         )
-        created_agent = client.post(
-            "/api/agents",
+        created_token = client.post(
+            "/api/access-tokens",
             json={
-                "name": "Managed Agent",
-                "risk_tier": "medium",
-                "allowed_capability_ids": [],
-                "allowed_task_types": [],
+                "display_name": "Admin access token",
+                "subject_type": "automation",
+                "subject_id": "admin-runner",
+                "scopes": ["runtime"],
             },
         )
-        agents = client.get("/api/agents")
-        delete_attempt = client.delete(f"/api/agents/{created_agent.json()['id']}")
+        tokens = client.get("/api/access-tokens")
 
     assert secret.status_code == 201
-    assert created_agent.status_code == 201
-    assert agents.status_code == 200
-    assert delete_attempt.status_code == 403
-    assert delete_attempt.json()["detail"] == "owner role required"
-
-
-def test_owner_can_delete_agents(tmp_path: Path) -> None:
-    with management_client_for_role(tmp_path, "owner") as client:
-        created_agent = client.post(
-            "/api/agents",
-            json={
-                "name": "Delete Me",
-                "risk_tier": "medium",
-                "allowed_capability_ids": [],
-                "allowed_task_types": [],
-            },
-        )
-        deleted = client.delete(f"/api/agents/{created_agent.json()['id']}")
-
-    assert created_agent.status_code == 201
-    assert deleted.status_code == 200
-    assert deleted.json()["status"] == "deleted"
+    assert created_token.status_code == 201
+    assert tokens.status_code == 200
 
 
 def test_non_admin_roles_cannot_create_capabilities_but_can_still_list_them(tmp_path: Path) -> None:
@@ -289,22 +251,10 @@ def test_viewer_cannot_create_tasks_or_admin_accounts(tmp_path: Path) -> None:
     assert account_creation.json()["detail"] == "admin role required"
 
 
-def test_operator_can_review_runtime_submissions_and_create_tasks_but_cannot_create_admin_accounts(tmp_path: Path) -> None:
+def test_operator_can_create_tasks_but_cannot_create_admin_accounts(tmp_path: Path) -> None:
     shared_database = "operator-actions.db"
 
     with management_client_for_role(tmp_path, "operator", database_name=shared_database) as client:
-        runtime_task = client.post(
-            "/api/tasks",
-            headers={"Authorization": f"Bearer {ROLE_TEST_AGENT_KEY}"},
-            json={
-                "title": "Runtime queued task",
-                "task_type": "prompt_run",
-                "input": {"prompt": "review me"},
-            },
-        )
-        assert runtime_task.status_code == 202, runtime_task.text
-
-        listing = client.get("/api/reviews")
         task_creation = client.post(
             "/api/tasks",
             json={
@@ -322,40 +272,29 @@ def test_operator_can_review_runtime_submissions_and_create_tasks_but_cannot_cre
                 "role": "viewer",
             },
         )
-        approval = client.post(f"/api/reviews/task/{runtime_task.json()['id']}/approve", json={})
 
-    assert listing.status_code == 200
-    assert runtime_task.json()["id"] in {item["resource_id"] for item in listing.json()["items"]}
     assert task_creation.status_code == 201
     assert task_creation.json()["publication_status"] == "active"
     assert account_creation.status_code == 403
     assert account_creation.json()["detail"] == "admin role required"
-    assert approval.status_code == 200
-    assert approval.json()["publication_status"] == "active"
 
 
 def test_admin_can_manage_tokens_but_cannot_disable_owner(tmp_path: Path) -> None:
     shared_database = "admin-token-actions.db"
 
     with management_client_for_role(tmp_path, "admin", database_name=shared_database) as client:
-        created_agent = client.post(
-            "/api/agents",
+        created_token = client.post(
+            "/api/access-tokens",
             json={
-                "name": "Token Managed Agent",
-                "risk_tier": "medium",
-                "allowed_capability_ids": [],
-                "allowed_task_types": [],
+                "display_name": "Token managed",
+                "subject_type": "automation",
+                "subject_id": "admin-runner",
+                "scopes": ["runtime"],
             },
         )
-        assert created_agent.status_code == 201, created_agent.text
+        assert created_token.status_code == 201, created_token.text
 
-        minted = client.post(
-            f"/api/agents/{created_agent.json()['id']}/tokens",
-            json={"display_name": "Secondary token"},
-        )
-        assert minted.status_code == 201, minted.text
-
-        revoked = client.post(f"/api/agent-tokens/{minted.json()['id']}/revoke")
+        revoked = client.post(f"/api/access-tokens/{created_token.json()['id']}/revoke")
         assert revoked.status_code == 200, revoked.text
 
         accounts = client.get("/api/admin-accounts")

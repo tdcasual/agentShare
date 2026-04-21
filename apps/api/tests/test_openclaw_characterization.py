@@ -27,28 +27,28 @@ def test_openclaw_migration_keeps_runtime_identity_task_flow_and_playbook_search
     assert created_task.status_code == 201, created_task.text
 
     identity_response = client.get(
-        "/api/agents/me",
-        headers={"Authorization": "Bearer agent-test-token"},
+        "/api/runtime/me",
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert identity_response.status_code == 200, identity_response.text
 
     task_list_response = client.get(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert task_list_response.status_code == 200, task_list_response.text
     assert any(item["id"] == created_task.json()["id"] for item in task_list_response.json()["items"])
 
     claim_response = client.post(
         f"/api/tasks/{created_task.json()['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert claim_response.status_code == 200, claim_response.text
     assert claim_response.json()["status"] == "claimed"
 
     complete_response = client.post(
         f"/api/tasks/{created_task.json()['id']}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"result_summary": "done", "output_payload": {"ok": True}},
     )
     assert complete_response.status_code == 200, complete_response.text
@@ -56,20 +56,26 @@ def test_openclaw_migration_keeps_runtime_identity_task_flow_and_playbook_search
 
     playbook_search_response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "jsonrpc": "2.0",
             "id": 1,
             "method": "tools/call",
             "params": {
-                "name": "search_playbooks",
+                "name": "playbooks.search",
                 "arguments": {"task_type": "config_sync", "q": "sync"},
             },
         },
     )
     assert playbook_search_response.status_code == 200, playbook_search_response.text
-    payload = playbook_search_response.json()["result"]["structuredContent"]
-    assert payload["items"][0]["title"] == "Runtime Config Sync"
+    result = playbook_search_response.json()["result"]
+    payload = result.get("structuredContent") or result.get("content", [{}])[0].get("text", {})
+    if isinstance(payload, str):
+        import json
+        payload = json.loads(payload)
+    items = payload.get("items", payload.get("results", []))
+    assert len(items) > 0, f"No playbook search results. Payload keys: {list(payload.keys())}, payload: {payload}"
+    assert items[0]["title"] == "Runtime Config Sync"
 
 
 @patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
@@ -119,13 +125,13 @@ def test_openclaw_migration_keeps_capability_policy_and_approval_gates(
 
     claim_response = client.post(
         f"/api/tasks/{task.json()['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert claim_response.status_code == 200, claim_response.text
 
     invoke_response = client.post(
         f"/api/capabilities/{capability.json()['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task.json()["id"], "parameters": {"prompt": "hello"}},
     )
 

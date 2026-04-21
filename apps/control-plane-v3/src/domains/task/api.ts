@@ -4,17 +4,17 @@
  * 负责：
  * - Task CRUD
  * - Run 管理
- * - Token Feedback
+ * - Access token feedback
  */
 
-import { apiFetch, TaskCreateInput, TokenFeedbackCreateInput } from '@/lib/api-client';
+import { apiFetch, TaskCreateInput, AccessTokenFeedbackCreateInput } from '@/lib/api-client';
 import {
+  normalizeAccessTokenFeedback,
   normalizeRun,
   normalizeTask,
-  normalizeTokenFeedback,
   type RunTransport,
   type TaskTransport,
-  type TokenFeedbackTransport,
+  type AccessTokenFeedbackTransport,
 } from './types';
 
 // ============================================
@@ -48,31 +48,33 @@ export function getRuns() {
 // Feedback
 // ============================================
 
-export function createTaskTargetFeedback(targetId: string, payload: TokenFeedbackCreateInput) {
-  return apiFetch<TokenFeedbackTransport>(`/task-targets/${targetId}/feedback`, {
+export function createTaskTargetFeedback(targetId: string, payload: AccessTokenFeedbackCreateInput) {
+  return apiFetch<AccessTokenFeedbackTransport>(`/task-targets/${targetId}/feedback`, {
     method: 'POST',
     body: JSON.stringify(payload),
-  }).then(normalizeTokenFeedback);
+  }).then(normalizeAccessTokenFeedback);
 }
 
-export function getTokenFeedback(tokenId: string) {
-  return apiFetch<{ items: TokenFeedbackTransport[] }>(`/agent-tokens/${tokenId}/feedback`).then(
+export function getAccessTokenFeedback(accessTokenId: string) {
+  return apiFetch<{ items: AccessTokenFeedbackTransport[] }>(
+    `/access-tokens/${accessTokenId}/feedback`
+  ).then(
     ({ items }) => ({
-      items: items.map(normalizeTokenFeedback),
+      items: items.map(normalizeAccessTokenFeedback),
     })
   );
 }
 
-export function getTokenFeedbackBulk(tokenIds: string[]) {
+export function getAccessTokenFeedbackBulk(accessTokenIds: string[]) {
   const params = new URLSearchParams();
-  tokenIds.forEach((tokenId) => params.append('token_id', tokenId));
-  return apiFetch<{ items_by_token: Record<string, TokenFeedbackTransport[]> }>(
-    `/token-feedback/bulk?${params.toString()}`
-  ).then(({ items_by_token }) => ({
-    items_by_token: Object.fromEntries(
-      Object.entries(items_by_token).map(([tokenId, items]) => [
-        tokenId,
-        items.map(normalizeTokenFeedback),
+  accessTokenIds.forEach((accessTokenId) => params.append('access_token_id', accessTokenId));
+  return apiFetch<{ items_by_access_token: Record<string, AccessTokenFeedbackTransport[]> }>(
+    `/access-token-feedback/bulk?${params.toString()}`
+  ).then(({ items_by_access_token }) => ({
+    items_by_access_token: Object.fromEntries(
+      Object.entries(items_by_access_token).map(([accessTokenId, items]) => [
+        accessTokenId,
+        items.map(normalizeAccessTokenFeedback),
       ])
     ),
   }));
@@ -90,6 +92,6 @@ export const taskApi = {
   getRuns,
   // Feedback
   createTaskTargetFeedback,
-  getTokenFeedback,
-  getTokenFeedbackBulk,
+  getAccessTokenFeedback,
+  getAccessTokenFeedbackBulk,
 };

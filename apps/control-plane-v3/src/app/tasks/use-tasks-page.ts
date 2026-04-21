@@ -6,14 +6,14 @@ import { useTaskDashboard } from '@/domains/task';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import { useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import { useI18n } from '@/components/i18n-provider';
-import type { Task, AgentToken, Run, TokenFeedback } from '@/domains/task';
+import type { Task, AccessToken, Run, AccessTokenFeedback } from '@/domains/task';
 
 export interface TaskTargetView {
   targetId: string;
-  tokenId: string;
-  token: AgentToken | null;
+  accessTokenId: string;
+  accessToken: AccessToken | null;
   run: Run | null;
-  feedback: TokenFeedback[];
+  feedback: AccessTokenFeedback[];
   status: 'pending' | 'claimed' | 'completed';
 }
 
@@ -24,18 +24,18 @@ export interface TaskView {
 
 function buildTaskTargets(
   task: Task,
-  tokensById: Record<string, AgentToken>,
+  tokensById: Record<string, AccessToken>,
   runs: Run[],
-  feedbackByTargetId: Record<string, TokenFeedback[]>
+  feedbackByTargetId: Record<string, AccessTokenFeedback[]>
 ): TaskTargetView[] {
-  const targetTokenIds = task.targetTokenIds;
+  const targetAccessTokenIds = task.targetAccessTokenIds ?? [];
 
-  return targetTokenIds.map((tokenId: string, index: number) => {
-    const targetId = task.targetIds[index] ?? tokenId;
-    const token = tokensById[tokenId] ?? null;
+  return targetAccessTokenIds.map((accessTokenId: string, index: number) => {
+    const targetId = (task.targetIds ?? [])[index] ?? accessTokenId;
+    const accessToken = tokensById[accessTokenId] ?? null;
     const run =
       runs.find((item) => item.taskId === task.id && item.taskTargetId === targetId) ??
-      runs.find((item) => item.taskId === task.id && item.tokenId === tokenId) ??
+      runs.find((item) => item.taskId === task.id && item.accessTokenId === accessTokenId) ??
       null;
 
     let status: TaskTargetView['status'] = 'pending';
@@ -47,8 +47,8 @@ function buildTaskTargets(
 
     return {
       targetId,
-      tokenId,
-      token,
+      accessTokenId,
+      accessToken,
       run,
       feedback: feedbackByTargetId[targetId] ?? [],
       status,

@@ -2,7 +2,7 @@
  * Task Dashboard Hooks
  *
  * 复杂的复合查询 hook，用于任务页面
- * 整合 Tasks、Runs、Tokens、Feedback
+ * 整合 Tasks、Runs、Access Tokens、Feedback
  */
 
 'use client';
@@ -12,7 +12,7 @@ import useSWR, { SWRConfiguration } from 'swr';
 import { pollingConfig } from '@/lib/swr-config';
 import * as taskApi from './api';
 import * as identityApi from '../identity/api';
-import type { Task, Run, AgentToken, TokenFeedback, TaskTargetView } from './types';
+import type { Task, Run, AccessToken, AccessTokenFeedback, TaskTargetView } from './types';
 
 export const TASK_DASHBOARD_TOKENS_KEY = 'bulk:task-dashboard-tokens';
 export const TASK_DASHBOARD_FEEDBACK_KEY = 'bulk:task-dashboard-feedback';
@@ -28,7 +28,7 @@ export interface TaskView {
  * 包含：
  * - 所有 Tasks
  * - 所有 Runs
- * - 所有 Agent Tokens
+ * - 所有 Access Tokens
  * - 相关 Token Feedback
  */
 export function useTaskDashboard(options?: SWRConfiguration) {
@@ -43,18 +43,16 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     ...options,
   });
 
-  const agentsQuery = useSWR<{ items: { id: string }[] }>(
-    '/api/agents',
-    () => identityApi.getAgents(),
+  const accessTokensQuery = useSWR<{ items: AccessToken[] }>(
+    '/api/access-tokens',
+    () => identityApi.getAccessTokens(),
     { ...pollingConfig, ...options }
   );
 
-  const agentIds = agentsQuery.data?.items.map((a) => a.id) ?? [];
-  const tokensQuery = useSWR<Record<string, AgentToken>>(
-    agentIds.length > 0 ? [TASK_DASHBOARD_TOKENS_KEY, ...agentIds] : null,
+  const tokensQuery = useSWR<Record<string, AccessToken>>(
+    accessTokensQuery.data?.items.length ? [TASK_DASHBOARD_TOKENS_KEY] : null,
     async () => {
-      const grouped = (await identityApi.getAgentTokensBulk(agentIds)).items_by_agent;
-      const allTokens = Object.values(grouped).flat();
+      const allTokens = (await identityApi.getAccessTokens()).items;
       return Object.fromEntries(allTokens.map((token) => [token.id, token]));
     },
     { ...pollingConfig, ...options, revalidateOnFocus: false }
@@ -63,20 +61,21 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const tokensById = tokensQuery.data;
 
   const tasks = tasksQuery.data?.items;
-  const targetTokenIds = useMemo(() => {
+  const targetAccessTokenIds = useMemo(() => {
     const ids = new Set<string>();
     (tasks ?? []).forEach((task) => {
-      task.targetTokenIds.forEach((id) => ids.add(id));
+      task.targetAccessTokenIds.forEach((id) => ids.add(id));
     });
     return Array.from(ids);
   }, [tasks]);
 
-  const feedbackQuery = useSWR<Record<string, TokenFeedback[]>>(
-    targetTokenIds.length > 0 ? [TASK_DASHBOARD_FEEDBACK_KEY, ...targetTokenIds] : null,
+  const feedbackQuery = useSWR<Record<string, AccessTokenFeedback[]>>(
+    targetAccessTokenIds.length > 0 ? [TASK_DASHBOARD_FEEDBACK_KEY, ...targetAccessTokenIds] : null,
     async () => {
-      const grouped = (await taskApi.getTokenFeedbackBulk(targetTokenIds)).items_by_token;
+      const grouped =
+        (await taskApi.getAccessTokenFeedbackBulk(targetAccessTokenIds)).items_by_access_token;
       const allFeedback = Object.values(grouped).flat();
-      return allFeedback.reduce<Record<string, TokenFeedback[]>>((acc, item) => {
+      return allFeedback.reduce<Record<string, AccessTokenFeedback[]>>((acc, item) => {
         const key = item.taskTargetId;
         acc[key] = [...(acc[key] ?? []), item];
         return acc;
@@ -111,14 +110,14 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const isLoading =
     tasksQuery.isLoading ||
     runsQuery.isLoading ||
-    agentsQuery.isLoading ||
-    (agentIds.length > 0 && tokensQuery.isLoading) ||
-    (targetTokenIds.length > 0 && feedbackQuery.isLoading);
+    accessTokensQuery.isLoading ||
+    (Boolean(accessTokensQuery.data?.items.length) && tokensQuery.isLoading) ||
+    (targetAccessTokenIds.length > 0 && feedbackQuery.isLoading);
 
   const error =
     tasksQuery.error ||
     runsQuery.error ||
-    agentsQuery.error ||
+    accessTokensQuery.error ||
     tokensQuery.error ||
     feedbackQuery.error;
 
@@ -126,7 +125,7 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     await Promise.all([
       tasksQuery.mutate(),
       runsQuery.mutate(),
-      agentsQuery.mutate(),
+      accessTokensQuery.mutate(),
       tokensQuery.mutate(),
       feedbackQuery.mutate(),
     ]);
@@ -163,22 +162,22 @@ function normalizeRunStatus(status: string | undefined): TaskTargetView['status'
 
 function buildTaskTargets(
   task: Task,
-  tokensById: Record<string, AgentToken>,
+  tokensById: Record<string, AccessToken>,
   runsByTaskTarget: Map<string, Run>,
-  feedbackByTargetId: Record<string, TokenFeedback[]>
+  feedbackByTargetId: Record<string, AccessTokenFeedback[]>
 ): TaskTargetView[] {
-  const targetTokenIds = task.targetTokenIds;
+  const targetAccessTokenIds = task.targetAccessTokenIds;
 
-  return targetTokenIds.map((tokenId, index) => {
-    const targetId = task.targetIds[index] ?? tokenId;
-    const token = tokensById[tokenId] ?? null;
+  return targetAccessTokenIds.map((accessTokenId, index) => {
+    const targetId = task.targetIds[index] ?? accessTokenId;
+    const accessToken = tokensById[accessTokenId] ?? null;
     const run = runsByTaskTarget.get(buildTaskTargetRunKey(task.id, targetId)) ?? null;
     const feedback = feedbackByTargetId[targetId] ?? [];
 
     return {
       targetId,
-      tokenId,
-      token,
+      accessTokenId,
+      accessToken,
       run,
       feedback,
       status: normalizeRunStatus(run?.status),

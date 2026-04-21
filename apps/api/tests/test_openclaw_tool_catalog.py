@@ -1,3 +1,6 @@
+from conftest import TEST_ACCESS_TOKEN_KEY
+
+
 def _mcp_request(method: str, params: dict | None = None, request_id: int = 1) -> dict:
     payload = {"jsonrpc": "2.0", "id": request_id, "method": method}
     if params is not None:
@@ -8,12 +11,13 @@ def _mcp_request(method: str, params: dict | None = None, request_id: int = 1) -
 def test_openclaw_tool_catalog_lists_namespaced_business_tools(client):
     response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request("tools/list"),
     )
 
     assert response.status_code == 200, response.text
-    tool_names = {tool["name"] for tool in response.json()["result"]["tools"]}
+    tools = response.json()["result"]["tools"]
+    tool_names = {tool["name"] for tool in tools}
     assert {
         "tasks.list",
         "tasks.claim",
@@ -28,6 +32,7 @@ def test_openclaw_tool_catalog_lists_namespaced_business_tools(client):
         "dream.memory.write",
         "dream.tasks.propose_followup",
     }.issubset(tool_names)
+    assert all("legacyName" not in tool for tool in tools)
 
 
 def test_openclaw_tool_catalog_supports_namespaced_tool_invocation(client, management_client):
@@ -41,7 +46,7 @@ def test_openclaw_tool_catalog_supports_namespaced_tool_invocation(client, manag
 
     claim_response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request(
             "tools/call",
             {"name": "tasks.claim", "arguments": {"task_id": task["id"]}},

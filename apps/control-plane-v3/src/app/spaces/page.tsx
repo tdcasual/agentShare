@@ -15,7 +15,7 @@ import { useSearchParams } from 'next/navigation';
 import { ManagementRouteGuard } from '@/components/route-guard';
 import { useEvents } from '@/domains/event';
 import { useCapabilities, useSecrets } from '@/domains/governance';
-import { useAgentsWithTokens } from '@/domains/identity';
+import { useAccessTokens, useOpenClawAgents, type AccessToken } from '@/domains/identity';
 import { useApproveReview, useRejectReview, useReviews } from '@/domains/review';
 import { useSpaces, useCreateSpace, useAddSpaceMember } from '@/domains/space';
 import { CreateSpaceModal } from '@/domains/space/components/create-space-modal';
@@ -69,7 +69,8 @@ function SpacesContent() {
   const reviewsQuery = useReviews({ isPaused: () => !canViewAdminPanels });
   const approveReview = useApproveReview();
   const rejectReview = useRejectReview();
-  const agentsQuery = useAgentsWithTokens({ isPaused: () => !canViewAdminPanels });
+  const agentsQuery = useOpenClawAgents({ isPaused: () => !canViewAdminPanels });
+  const accessTokensQuery = useAccessTokens({ isPaused: () => !canViewAdminPanels });
   const spacesQuery = useSpaces({ agentId: focus.agentId ?? null });
   const secretsQuery = useSecrets({ isPaused: () => !canViewAdminPanels });
   const capabilitiesQuery = useCapabilities({ isPaused: () => !canViewAdminPanels });
@@ -83,6 +84,7 @@ function SpacesContent() {
     eventsQuery.error,
     reviewsQuery.error,
     agentsQuery.error,
+    accessTokensQuery.error,
     spacesQuery.error,
     secretsQuery.error,
     capabilitiesQuery.error,
@@ -90,8 +92,21 @@ function SpacesContent() {
 
   const events = eventsQuery.events;
   const reviewItems = reviewsQuery.data?.items;
-  const agents = agentsQuery.agents;
-  const tokensByAgent = agentsQuery.tokensByAgent;
+  const agents = agentsQuery.data?.items ?? [];
+  const accessTokensByAgentId = useMemo(
+    () =>
+      (accessTokensQuery.data?.items ?? []).reduce<Record<string, AccessToken[]>>(
+        (groups, token) => {
+          if (token.subjectType !== 'openclaw_agent') {
+            return groups;
+          }
+          groups[token.subjectId] = [...(groups[token.subjectId] ?? []), token];
+          return groups;
+        },
+        {}
+      ),
+    [accessTokensQuery.data]
+  );
   const secrets = secretsQuery.data?.items ?? [];
   const capabilities = capabilitiesQuery.data?.items ?? [];
   const reviewItemList = useMemo(() => reviewItems ?? [], [reviewItems]);
@@ -377,9 +392,9 @@ function SpacesContent() {
             {/* Identity Panel */}
             <IdentityPanel
               agents={agents}
-              tokensByAgent={tokensByAgent}
+              accessTokensByAgentId={accessTokensByAgentId}
               eventCounts={agentEventCounts}
-              isLoading={agentsQuery.isLoading}
+              isLoading={agentsQuery.isLoading || accessTokensQuery.isLoading}
               selectedAgentId={selectedAgentId}
               onSelectAgent={setSelectedAgentId}
             />

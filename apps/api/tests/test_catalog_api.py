@@ -4,7 +4,7 @@ from app.orm.catalog_release import CatalogReleaseModel
 def test_catalog_lists_agent_published_secret_and_capability(client, management_client):
     secret = client.post(
         "/api/secrets",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "display_name": "Catalog Secret",
             "kind": "api_token",
@@ -16,7 +16,7 @@ def test_catalog_lists_agent_published_secret_and_capability(client, management_
 
     capability = client.post(
         "/api/capabilities",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "name": "catalog.capability",
             "secret_id": secret.json()["id"],
@@ -64,7 +64,7 @@ def test_catalog_lists_agent_published_secret_and_capability(client, management_
 def test_catalog_does_not_synthesize_published_items_without_release_records(client, management_client, db_session):
     secret = client.post(
         "/api/secrets",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "display_name": "Release-backed Secret",
             "kind": "api_token",
@@ -89,7 +89,7 @@ def test_catalog_does_not_synthesize_published_items_without_release_records(cli
 def test_catalog_can_return_release_history_for_a_resource(client, management_client, db_session):
     secret = client.post(
         "/api/secrets",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "display_name": "Versioned Secret",
             "kind": "api_token",
@@ -136,7 +136,7 @@ def test_catalog_can_return_release_history_for_a_resource(client, management_cl
 def test_catalog_can_filter_latest_items_by_resource_kind_and_release_status(client, management_client, db_session):
     secret = client.post(
         "/api/secrets",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "display_name": "Filter Secret",
             "kind": "api_token",
@@ -148,7 +148,7 @@ def test_catalog_can_filter_latest_items_by_resource_kind_and_release_status(cli
 
     capability = client.post(
         "/api/capabilities",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "name": "filter.capability",
             "secret_id": secret.json()["id"],

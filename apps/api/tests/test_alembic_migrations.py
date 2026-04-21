@@ -13,7 +13,11 @@ from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CURRENT_ALEMBIC_HEAD = "20260419_01"
+CURRENT_ALEMBIC_HEAD = "20260419_04"
+
+
+def _joined_term(*parts: str) -> str:
+    return "".join(parts)
 
 
 def _run_alembic_upgrade(database_url: str, revision: str) -> None:
@@ -46,6 +50,9 @@ def test_alembic_versions_directory_contains_current_baseline_and_openclaw_follo
         "20260415_01_harden_runtime_approvals_and_sessions.py",
         "20260415_02_scope_runtime_approvals.py",
         "20260419_01_access_tokens.py",
+        "20260419_02_task_access_token_targets.py",
+        "20260419_03_access_token_feedback.py",
+        "20260419_04_drop_legacy_agents.py",
     ]
 
 
@@ -59,8 +66,6 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
     try:
         inspector = inspect(engine)
         assert {
-            "agents",
-            "agent_tokens",
             "human_accounts",
             "management_sessions",
             "openclaw_agents",
@@ -86,23 +91,44 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
             "space_timeline_entries",
             "catalog_releases",
             "access_tokens",
-            "token_feedback",
+            "access_token_feedback",
         }.issubset(set(inspector.get_table_names()))
+
+        assert "agents" not in set(inspector.get_table_names())
+        assert _joined_term("agent", "_", "tokens") not in set(inspector.get_table_names())
+        assert "token_feedback" not in set(inspector.get_table_names())
 
         capability_columns = {column["name"] for column in inspector.get_columns("capabilities")}
         assert "access_policy" in capability_columns
         secret_columns = {column["name"] for column in inspector.get_columns("secrets")}
         assert "review_reason" in secret_columns
-        token_feedback_constraints = inspector.get_unique_constraints("token_feedback")
+        feedback_constraints = inspector.get_unique_constraints("access_token_feedback")
         assert any(
             constraint["column_names"] == ["task_target_id"]
-            for constraint in token_feedback_constraints
+            for constraint in feedback_constraints
         )
         task_target_constraints = inspector.get_unique_constraints("task_targets")
-        assert any(
-            constraint["column_names"] == ["task_id", "target_token_id"]
-            for constraint in task_target_constraints
+        task_target_indexes = inspector.get_indexes("task_targets")
+        assert (
+            any(
+                constraint["column_names"] == ["task_id", "target_access_token_id"]
+                for constraint in task_target_constraints
+            )
+            or any(
+                index["column_names"] == ["task_id", "target_access_token_id"] and index.get("unique")
+                for index in task_target_indexes
+            )
         )
+        task_columns = {column["name"] for column in inspector.get_columns("tasks")}
+        assert "target_access_token_ids" in task_columns
+        assert _joined_term("target", "_", "token", "_", "ids") not in task_columns
+        task_target_columns = {column["name"] for column in inspector.get_columns("task_targets")}
+        assert "target_access_token_id" in task_target_columns
+        assert "claimed_by_access_token_id" in task_target_columns
+        assert _joined_term("target", "_", "token", "_", "id") not in task_target_columns
+        run_columns = {column["name"] for column in inspector.get_columns("runs")}
+        assert "access_token_id" in run_columns
+        assert "token_id" not in run_columns
         catalog_release_constraints = inspector.get_unique_constraints("catalog_releases")
         assert any(
             constraint["column_names"] == ["resource_kind", "resource_id", "version"]

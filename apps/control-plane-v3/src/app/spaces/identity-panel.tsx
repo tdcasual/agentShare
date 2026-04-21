@@ -7,14 +7,13 @@ import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { SectionNotice } from './components';
-import type { Agent } from '@/domains/identity';
-import type { AgentToken } from '@/domains/task/types';
+import type { AccessToken, OpenClawAgent } from '@/domains/identity';
 import { useI18n } from '@/components/i18n-provider';
 import { translateAgentStatus } from '@/lib/enum-labels';
 
 export interface IdentityPanelProps {
-  agents: Agent[];
-  tokensByAgent: Record<string, AgentToken[]>;
+  agents: OpenClawAgent[];
+  accessTokensByAgentId: Record<string, AccessToken[]>;
   eventCounts: Record<string, number>;
   isLoading: boolean;
   selectedAgentId: string | null;
@@ -23,7 +22,7 @@ export interface IdentityPanelProps {
 
 export function IdentityPanel({
   agents,
-  tokensByAgent,
+  accessTokensByAgentId,
   eventCounts,
   isLoading,
   selectedAgentId,
@@ -54,7 +53,7 @@ export function IdentityPanel({
             <AgentRow
               key={agent.id}
               agent={agent}
-              tokens={tokensByAgent[agent.id] ?? []}
+              accessTokens={accessTokensByAgentId[agent.id] ?? []}
               eventCount={eventCounts[agent.id] ?? 0}
               selected={selectedAgentId === agent.id}
               onSelect={onSelectAgent}
@@ -67,8 +66,8 @@ export function IdentityPanel({
 }
 
 interface AgentRowProps {
-  agent: Agent;
-  tokens: AgentToken[];
+  agent: OpenClawAgent;
+  accessTokens: AccessToken[];
   eventCount: number;
   selected: boolean;
   onSelect: (agentId: string) => void;
@@ -76,7 +75,7 @@ interface AgentRowProps {
 
 const AgentRow = memo(function AgentRow({
   agent,
-  tokens,
+  accessTokens,
   eventCount,
   selected,
   onSelect,
@@ -97,7 +96,7 @@ const AgentRow = memo(function AgentRow({
             {agent.id} · {agent.auth_method}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {tokens.map((token) => (
+            {accessTokens.map((token) => (
               <Badge key={token.id} variant="secondary">
                 {token.displayName ?? token.id}
               </Badge>

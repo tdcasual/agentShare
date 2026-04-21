@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.auth import ensure_capability_allowed
 from app.config import Settings
 from app.errors import ConflictError
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.observability import record_capability_invoke
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
@@ -171,14 +171,16 @@ def _authorize_capability_use(
     capability = get_capability(session, capability_id, require_active=True)
     ensure_capability_allowed(agent, capability_id)
     ensure_runtime_access_allowed(capability.get("access_policy"), agent)
+    uses_access_token_target = _uses_access_token_target(agent)
+    runtime_access_token_id = agent.token_id if uses_access_token_target else None
 
     task = TaskRepository(session).get(task_id)
     if task is None:
         raise KeyError(f"Task {task_id} not found")
     target = None
-    if agent.token_id:
-        target = TaskTargetRepository(session).find_by_task_and_token(task_id, agent.token_id)
-        if target is None or target.status != "claimed" or target.claimed_by_token_id != agent.token_id:
+    if uses_access_token_target:
+        target = TaskTargetRepository(session).find_by_task_and_access_token(task_id, agent.token_id)
+        if target is None or target.status != "claimed" or target.claimed_by_access_token_id != agent.token_id:
             raise PermissionError("Task is not claimed by this token")
     else:
         if task.claimed_by != agent.id:
@@ -207,7 +209,7 @@ def _authorize_capability_use(
         task_id=task.id,
         capability_id=capability_id,
         agent_id=agent.id,
-        token_id=agent.token_id,
+        token_id=runtime_access_token_id,
         task_target_id=target.id if target is not None else None,
         action_type=action_type,
         task_approval_mode=task.approval_mode,
@@ -227,6 +229,10 @@ def _authorize_capability_use(
         raise ApprovalRequiredError(approval, action_type)
 
     return capability, task, secret_record
+
+
+def _uses_access_token_target(agent: AgentIdentity) -> bool:
+    return agent.auth_method == "access_token" and agent.token_id is not None
 
 
 def _write_audit_event_best_effort(session: Session, event_type: str, payload: dict[str, Any]) -> None:

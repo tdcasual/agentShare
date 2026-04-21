@@ -1,7 +1,7 @@
 def test_review_queue_can_approve_and_reject_agent_created_assets(client, management_client):
     playbook = client.post(
         "/api/playbooks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Queued playbook",
             "task_type": "prompt_run",
@@ -13,7 +13,7 @@ def test_review_queue_can_approve_and_reject_agent_created_assets(client, manage
 
     task = client.post(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Queued task",
             "task_type": "prompt_run",
@@ -47,7 +47,7 @@ def test_review_queue_can_approve_and_reject_agent_created_assets(client, manage
 def test_review_decision_returns_operator_reason(client, management_client):
     playbook = client.post(
         "/api/playbooks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Review reason playbook",
             "task_type": "prompt_run",
@@ -67,7 +67,7 @@ def test_review_decision_returns_operator_reason(client, management_client):
 
     task = client.post(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Review reason task",
             "task_type": "prompt_run",
@@ -88,7 +88,7 @@ def test_review_decision_returns_operator_reason(client, management_client):
 def test_review_queue_transport_uses_runtime_review_fields(client, management_client):
     task = client.post(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Queued review transport task",
             "task_type": "prompt_run",
@@ -103,9 +103,9 @@ def test_review_queue_transport_uses_runtime_review_fields(client, management_cl
     item = next(entry for entry in listing.json()["items"] if entry["resource_id"] == task.json()["id"])
     assert item["resource_kind"] == "task"
     assert item["publication_status"] == "pending_review"
-    assert item["created_by_actor_type"] == "agent"
+    assert item["created_by_actor_type"] == "access_token"
     assert item["created_by_actor_id"] == "test-agent"
-    assert item["created_via_token_id"] == "token-test-agent"
+    assert item["created_via_token_id"] == "access-token-test-agent"
     assert "submitted_by" not in item
     assert "submitted_at" not in item
     assert "status" not in item
@@ -115,7 +115,7 @@ def test_review_queue_transport_uses_runtime_review_fields(client, management_cl
 def test_review_decision_transport_uses_review_reason_fields(client, management_client):
     playbook = client.post(
         "/api/playbooks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Review transport playbook",
             "task_type": "prompt_run",
@@ -145,7 +145,7 @@ def test_review_decision_returns_409_when_same_resource_is_already_being_decided
 ):
     playbook = client.post(
         "/api/playbooks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Locked review playbook",
             "task_type": "prompt_run",

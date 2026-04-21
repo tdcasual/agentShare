@@ -8,7 +8,8 @@ const replaceMock = vi.fn();
 const resolveAppEntryStateMock = vi.fn();
 const useEventsMock = vi.fn();
 const useAdminAccountsMock = vi.fn();
-const useAgentsWithTokensMock = vi.fn();
+const useOpenClawAgentsMock = vi.fn();
+const useAccessTokensMock = vi.fn();
 const useReviewsMock = vi.fn();
 
 vi.mock('next/link', () => ({
@@ -44,7 +45,8 @@ vi.mock('@/domains/event', () => ({
 
 vi.mock('@/domains/identity', () => ({
   useAdminAccounts: () => useAdminAccountsMock(),
-  useAgentsWithTokens: () => useAgentsWithTokensMock(),
+  useOpenClawAgents: () => useOpenClawAgentsMock(),
+  useAccessTokens: () => useAccessTokensMock(),
 }));
 
 vi.mock('@/domains/review', () => ({
@@ -108,41 +110,70 @@ describe('hub page', () => {
       error: null,
     });
 
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [
-        {
-          id: 'bootstrap',
-          name: 'Bootstrap Credential',
-          risk_tier: 'high',
-          auth_method: 'api_key',
-          status: 'active',
-          created_at: '2026-03-31T00:00:00.000Z',
-          updated_at: '2026-03-31T00:00:00.000Z',
-        },
-      ],
-      tokensByAgent: {
-        bootstrap: [
+    useOpenClawAgentsMock.mockReturnValue({
+      data: {
+        items: [
           {
-            id: 'token-1',
-            displayName: 'Bootstrap Primary',
+            id: 'bootstrap',
+            name: 'Bootstrap Credential',
+            risk_tier: 'high',
+            auth_method: 'openclaw_session',
             status: 'active',
-            trustScore: 0.94,
-            scopes: [],
-            labels: {},
-          },
-          {
-            id: 'token-2',
-            displayName: 'Bootstrap Backup',
-            status: 'active',
-            trustScore: 0.88,
-            scopes: [],
-            labels: {},
+            workspace_root: '/srv/openclaw/bootstrap',
+            agent_dir: '.openclaw/agents/bootstrap',
+            model: 'gpt-5',
+            thinking_level: 'high',
+            sandbox_mode: 'workspace-write',
+            dream_policy: {
+              enabled: true,
+              max_steps_per_run: 4,
+              max_followup_tasks: 1,
+              allow_task_proposal: true,
+              allow_memory_write: true,
+              max_context_tokens: 4096,
+            },
+            tools_policy: {},
+            skills_policy: {},
+            allowed_task_types: [],
+            allowed_capability_ids: [],
           },
         ],
       },
       isLoading: false,
       error: null,
-      mutate: vi.fn(),
+    });
+
+    useAccessTokensMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'token-1',
+            displayName: 'Bootstrap Primary',
+            tokenPrefix: 'cp_tok_123',
+            subjectType: 'openclaw_agent',
+            subjectId: 'bootstrap',
+            trustScore: 0.94,
+            status: 'active',
+            scopes: [],
+            labels: {},
+            policy: {},
+          },
+          {
+            id: 'token-2',
+            displayName: 'Bootstrap Backup',
+            tokenPrefix: 'cp_tok_456',
+            subjectType: 'openclaw_agent',
+            subjectId: 'bootstrap',
+            trustScore: 0.88,
+            status: 'active',
+            scopes: [],
+            labels: {},
+            policy: {},
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
     });
 
     useReviewsMock.mockReturnValue({

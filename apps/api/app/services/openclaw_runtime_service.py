@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.orm.openclaw_agent import OpenClawAgentModel
 from app.orm.openclaw_session import OpenClawSessionModel
 from app.services.openclaw_dream_policy_service import normalize_dream_policy
@@ -11,8 +11,9 @@ def build_runtime_principal(
     agent: OpenClawAgentModel,
     session: OpenClawSessionModel,
     session_key: str | None = None,
-) -> AgentIdentity:
-    return AgentIdentity(
+) -> RuntimePrincipal:
+    return RuntimePrincipal(
+        actor_type="openclaw_agent",
         id=agent.id,
         name=agent.name,
         issuer="openclaw",
@@ -20,6 +21,8 @@ def build_runtime_principal(
         status=agent.status,
         token_id=None,
         token_prefix=None,
+        subject_type=None,
+        subject_id=None,
         expires_at=None,
         scopes=["runtime"],
         labels={"channel": session.channel},

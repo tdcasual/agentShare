@@ -28,7 +28,7 @@ class CapabilityCreate(BaseModel):
             ],
             "allowed_audience": ["agent"],
             "access_policy": {
-                "mode": "all_tokens",
+                "mode": "all_access_tokens",
                 "selectors": [],
             },
             "required_provider": "github",
@@ -65,7 +65,7 @@ class CapabilityCreate(BaseModel):
     )
     access_policy: CapabilityAccessPolicy = Field(
         default_factory=CapabilityAccessPolicy,
-        description="Selector-based runtime access policy for this capability. Defaults to all active tokens.",
+        description="Selector-based runtime access policy for this capability. Defaults to all active access tokens.",
     )
     required_provider: str | None = Field(
         default=None,
@@ -108,7 +108,7 @@ class CapabilityResponse(BaseModel):
             ],
             "allowed_audience": ["agent"],
             "access_policy": {
-                "mode": "all_tokens",
+                "mode": "all_access_tokens",
                 "selectors": [],
             },
             "required_provider": "github",

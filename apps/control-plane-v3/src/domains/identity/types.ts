@@ -181,18 +181,6 @@ export interface AdminAccountSummary {
   readonly last_login_at?: string;
 }
 
-/**
- * Agent - 与后端 /api/agents 返回对齐
- * 后端返回: id, name, status, risk_tier, auth_method
- */
-export interface Agent {
-  readonly id: string;
-  readonly name: string;
-  readonly risk_tier: string;
-  readonly auth_method: string;
-  readonly status: string;
-}
-
 export interface OpenClawAgentSummary {
   readonly id: string;
   readonly name: string;

@@ -110,7 +110,7 @@ def test_get_playbook_by_id_returns_404_when_missing(management_client):
 def test_runtime_created_playbook_starts_pending_review(client):
     response = client.post(
         "/api/playbooks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Runtime playbook",
             "task_type": "prompt_run",

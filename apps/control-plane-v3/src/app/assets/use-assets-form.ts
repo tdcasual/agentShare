@@ -9,10 +9,9 @@ type CreateSecretFn = ReturnType<typeof useCreateSecret>;
 type CreateCapabilityFn = ReturnType<typeof useCreateCapability>;
 
 export type AccessComposerMode =
-  | 'all_tokens'
-  | 'specific_tokens'
-  | 'specific_agents'
-  | 'token_label';
+  | 'all_access_tokens'
+  | 'specific_access_tokens'
+  | 'access_token_label';
 
 export interface SecretFormState {
   display_name: string;
@@ -33,8 +32,7 @@ export interface CapabilityFormState {
   required_provider: string;
   required_provider_scopes: string;
   access_mode: AccessComposerMode;
-  token_ids: string[];
-  agent_ids: string[];
+  access_token_ids: string[];
   label_key: string;
   label_values: string[];
 }
@@ -47,24 +45,20 @@ function parseCommaSeparatedList(value: string) {
 }
 
 function buildCapabilityAccessPolicy(form: CapabilityFormState) {
-  if (form.access_mode === 'all_tokens') {
-    return { mode: 'all_tokens' as const, selectors: [] };
+  if (form.access_mode === 'all_access_tokens') {
+    return { mode: 'all_access_tokens' as const, selectors: [] };
   }
-  if (form.access_mode === 'specific_tokens') {
+  if (form.access_mode === 'specific_access_tokens') {
     return {
       mode: 'selectors' as const,
-      selectors: [{ kind: 'token' as const, ids: form.token_ids }],
-    };
-  }
-  if (form.access_mode === 'specific_agents') {
-    return {
-      mode: 'selectors' as const,
-      selectors: [{ kind: 'agent' as const, ids: form.agent_ids }],
+      selectors: [{ kind: 'access_token' as const, ids: form.access_token_ids }],
     };
   }
   return {
     mode: 'selectors' as const,
-    selectors: [{ kind: 'token_label' as const, key: form.label_key, values: form.label_values }],
+    selectors: [
+      { kind: 'access_token_label' as const, key: form.label_key, values: form.label_values },
+    ],
   };
 }
 
@@ -108,9 +102,8 @@ export function useAssetsForm({
     lease_ttl_seconds: '120',
     required_provider: '',
     required_provider_scopes: '',
-    access_mode: 'all_tokens',
-    token_ids: [],
-    agent_ids: [],
+    access_mode: 'all_access_tokens',
+    access_token_ids: [],
     label_key: '',
     label_values: [],
   });
@@ -143,9 +136,8 @@ export function useAssetsForm({
       lease_ttl_seconds: '120',
       required_provider: '',
       required_provider_scopes: '',
-      access_mode: 'all_tokens',
-      token_ids: [],
-      agent_ids: [],
+      access_mode: 'all_access_tokens',
+      access_token_ids: [],
       label_key: '',
       label_values: [],
     }));
@@ -171,21 +163,12 @@ export function useAssetsForm({
     [secrets]
   );
 
-  const toggleCapabilityToken = useCallback((tokenId: string) => {
+  const toggleCapabilityAccessToken = useCallback((tokenId: string) => {
     setCapabilityForm((current) => ({
       ...current,
-      token_ids: current.token_ids.includes(tokenId)
-        ? current.token_ids.filter((item) => item !== tokenId)
-        : [...current.token_ids, tokenId],
-    }));
-  }, []);
-
-  const toggleCapabilityAgent = useCallback((agentId: string) => {
-    setCapabilityForm((current) => ({
-      ...current,
-      agent_ids: current.agent_ids.includes(agentId)
-        ? current.agent_ids.filter((item) => item !== agentId)
-        : [...current.agent_ids, agentId],
+      access_token_ids: current.access_token_ids.includes(tokenId)
+        ? current.access_token_ids.filter((item) => item !== tokenId)
+        : [...current.access_token_ids, tokenId],
     }));
   }, []);
 
@@ -202,20 +185,16 @@ export function useAssetsForm({
     setCapabilityForm((current) => ({
       ...current,
       access_mode: mode,
-      token_ids:
-        mode === 'all_tokens' || mode === 'specific_agents' || mode === 'token_label'
+      access_token_ids:
+        mode === 'all_access_tokens' || mode === 'access_token_label'
           ? []
-          : current.token_ids,
-      agent_ids:
-        mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'token_label'
-          ? []
-          : current.agent_ids,
+          : current.access_token_ids,
       label_key:
-        mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'specific_agents'
+        mode === 'all_access_tokens' || mode === 'specific_access_tokens'
           ? ''
           : current.label_key,
       label_values:
-        mode === 'all_tokens' || mode === 'specific_tokens' || mode === 'specific_agents'
+        mode === 'all_access_tokens' || mode === 'specific_access_tokens'
           ? []
           : current.label_values,
     }));
@@ -281,21 +260,14 @@ export function useAssetsForm({
         return;
       }
       if (
-        capabilityForm.access_mode === 'specific_tokens' &&
-        capabilityForm.token_ids.length === 0
+        capabilityForm.access_mode === 'specific_access_tokens' &&
+        capabilityForm.access_token_ids.length === 0
       ) {
         setError(t('assets.capabilities.tokenRequiredError'));
         return;
       }
       if (
-        capabilityForm.access_mode === 'specific_agents' &&
-        capabilityForm.agent_ids.length === 0
-      ) {
-        setError(t('assets.capabilities.agentRequiredError'));
-        return;
-      }
-      if (
-        capabilityForm.access_mode === 'token_label' &&
+        capabilityForm.access_mode === 'access_token_label' &&
         (!capabilityForm.label_key || capabilityForm.label_values.length === 0)
       ) {
         setError(t('assets.capabilities.labelRequiredError'));
@@ -327,9 +299,8 @@ export function useAssetsForm({
           lease_ttl_seconds: '120',
           required_provider: '',
           required_provider_scopes: '',
-          access_mode: 'all_tokens',
-          token_ids: [],
-          agent_ids: [],
+          access_mode: 'all_access_tokens',
+          access_token_ids: [],
           label_key: '',
           label_values: [],
         }));
@@ -381,8 +352,7 @@ export function useAssetsForm({
     handleCreateSecret,
     handleCreateCapability,
     handleCapabilitySecretChange,
-    toggleCapabilityToken,
-    toggleCapabilityAgent,
+    toggleCapabilityAccessToken,
     toggleCapabilityLabelValue,
     setAccessMode,
   };

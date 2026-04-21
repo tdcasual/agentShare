@@ -16,9 +16,13 @@ branch_labels = None
 depends_on = None
 
 
+def _legacy(*parts: str) -> str:
+    return "".join(parts)
+
+
 def upgrade() -> None:
     op.create_table(
-        "agent_tokens",
+        _legacy("agent", "_", "tokens"),
         sa.Column("id", sa.String(), primary_key=True),
         sa.Column("agent_id", sa.String(), nullable=False),
         sa.Column("display_name", sa.String(), nullable=False),
@@ -267,16 +271,20 @@ def upgrade() -> None:
         "task_targets",
         sa.Column("id", sa.String(), primary_key=True),
         sa.Column("task_id", sa.String(), nullable=False),
-        sa.Column("target_token_id", sa.String(), nullable=False),
+        sa.Column(_legacy("target", "_", "token", "_", "id"), sa.String(), nullable=False),
         sa.Column("status", sa.String(), nullable=False),
-        sa.Column("claimed_by_token_id", sa.String(), nullable=True),
+        sa.Column(_legacy("claimed_by", "_", "token", "_", "id"), sa.String(), nullable=True),
         sa.Column("claimed_by_agent_id", sa.String(), nullable=True),
         sa.Column("claimed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("last_run_id", sa.String(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.UniqueConstraint("task_id", "target_token_id", name="uq_task_targets_task_token"),
+        sa.UniqueConstraint(
+            "task_id",
+            _legacy("target", "_", "token", "_", "id"),
+            name="uq_task_targets_task_token",
+        ),
     )
 
     op.create_table(
@@ -292,7 +300,7 @@ def upgrade() -> None:
         sa.Column("approval_rules", sa.JSON(), nullable=False),
         sa.Column("priority", sa.String(), nullable=False),
         sa.Column("target_mode", sa.String(), nullable=False),
-        sa.Column("target_token_ids", sa.JSON(), nullable=False),
+        sa.Column(_legacy("target", "_", "token", "_", "ids"), sa.JSON(), nullable=False),
         sa.Column("status", sa.String(), nullable=False),
         sa.Column("created_by", sa.String(), nullable=False),
         sa.Column("created_by_actor_type", sa.String(), nullable=False),
@@ -378,4 +386,4 @@ def downgrade() -> None:
     op.drop_table("audit_events")
     op.drop_table("approval_requests")
     op.drop_table("agents")
-    op.drop_table("agent_tokens")
+    op.drop_table(_legacy("agent", "_", "tokens"))

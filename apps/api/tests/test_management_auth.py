@@ -1,8 +1,6 @@
-from app.orm.agent import AgentIdentityModel
-from app.repositories.agent_repo import AgentRepository
 from app.services.session_service import revoke_management_session
 
-from conftest import BOOTSTRAP_OWNER_KEY, TEST_AGENT_KEY
+from conftest import BOOTSTRAP_OWNER_KEY, TEST_ACCESS_TOKEN_KEY
 
 
 def _auth_header(key: str) -> dict[str, str]:
@@ -20,7 +18,7 @@ def test_secret_routes_require_management_session_cookie_or_runtime_agent(client
     missing = client.post("/api/secrets", json=payload)
     assert missing.status_code == 401
 
-    non_bootstrap = client.post("/api/secrets", headers=_auth_header(TEST_AGENT_KEY), json=payload)
+    non_bootstrap = client.post("/api/secrets", headers=_auth_header(TEST_ACCESS_TOKEN_KEY), json=payload)
     assert non_bootstrap.status_code == 202
     assert non_bootstrap.json()["publication_status"] == "pending_review"
 
@@ -43,8 +41,8 @@ def test_management_bootstrap_bearer_no_longer_authorizes(client):
 
 
 def test_bootstrap_bearer_cannot_access_runtime_routes(client):
-    agent_me = client.get(
-        "/api/agents/me",
+    runtime_me = client.get(
+        "/api/runtime/me",
         headers=_auth_header(BOOTSTRAP_OWNER_KEY),
     )
     assigned = client.get(
@@ -52,7 +50,7 @@ def test_bootstrap_bearer_cannot_access_runtime_routes(client):
         headers=_auth_header(BOOTSTRAP_OWNER_KEY),
     )
 
-    assert agent_me.status_code == 401
+    assert runtime_me.status_code == 401
     assert assigned.status_code == 401
 
 
@@ -69,7 +67,7 @@ def test_capability_and_task_creation_allow_runtime_submission_but_keep_manageme
 
     capability = client.post(
         "/api/capabilities",
-        headers=_auth_header(TEST_AGENT_KEY),
+        headers=_auth_header(TEST_ACCESS_TOKEN_KEY),
         json={
             "name": "github.repo.read",
             "secret_id": secret["id"],
@@ -81,7 +79,7 @@ def test_capability_and_task_creation_allow_runtime_submission_but_keep_manageme
 
     task = client.post(
         "/api/tasks",
-        headers=_auth_header(TEST_AGENT_KEY),
+        headers=_auth_header(TEST_ACCESS_TOKEN_KEY),
         json={
             "title": "Fetch repo metadata",
             "task_type": "account_read",
@@ -112,44 +110,19 @@ def test_capability_and_task_creation_allow_runtime_submission_but_keep_manageme
     assert allowed_task.status_code == 201
 
 
-def test_agent_management_routes_require_bootstrap_identity(client, management_client, db_session):
-    repo = AgentRepository(db_session)
-    repo.create(AgentIdentityModel(
-        id="agent-delete",
-        name="Delete Me",
-        api_key_hash=None,
-        status="active",
-        allowed_capability_ids=[],
-        allowed_task_types=[],
-        risk_tier="low",
-    ))
-    db_session.flush()
-
-    list_response = client.get("/api/agents", headers=_auth_header(TEST_AGENT_KEY))
+def test_access_token_routes_require_management_session(client, management_client):
+    list_response = client.get("/api/access-tokens", headers=_auth_header(TEST_ACCESS_TOKEN_KEY))
     assert list_response.status_code == 401
 
     create_response = client.post(
-        "/api/agents",
-        headers=_auth_header(TEST_AGENT_KEY),
-        json={"name": "Blocked Agent", "risk_tier": "low"},
+        "/api/access-tokens",
+        headers=_auth_header(TEST_ACCESS_TOKEN_KEY),
+        json={"display_name": "Blocked token", "subject_type": "automation", "subject_id": "test"},
     )
     assert create_response.status_code == 401
 
-    delete_response = client.delete(
-        "/api/agents/agent-delete",
-        headers=_auth_header(TEST_AGENT_KEY),
-    )
-    assert delete_response.status_code == 401
-
-    allowed = management_client.get("/api/agents")
+    allowed = management_client.get("/api/access-tokens")
     assert allowed.status_code == 200
-
-    creation = management_client.post("/api/agents", json={"name": "New Agent", "risk_tier": "low"})
-    assert creation.status_code == 201
-
-    deletion = management_client.delete("/api/agents/agent-delete")
-    assert deletion.status_code == 403
-    assert deletion.json()["detail"] == "owner role required"
 
 
 def test_revoked_management_session_cookie_no_longer_authorizes_management_routes(management_client, db_session):

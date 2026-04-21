@@ -34,7 +34,7 @@ def test_completed_task_creates_run_record(client, management_client):
     items = response.json()["items"]
     assert len(items) == 1
     assert items[0]["task_id"] == task["id"]
-    assert items[0]["token_id"] == TEST_ACCESS_TOKEN_ID
+    assert items[0]["access_token_id"] == TEST_ACCESS_TOKEN_ID
     assert items[0]["task_target_id"] == target_id
 
 
@@ -52,12 +52,12 @@ def test_runs_listing_supports_limit_and_offset(client, management_client):
         ).json()
         claim = client.post(
             f"/api/tasks/{task['id']}/claim",
-            headers={"Authorization": "Bearer agent-test-token"},
+            headers={"Authorization": "Bearer access-test-token"},
         )
         assert claim.status_code == 200, claim.text
         complete = client.post(
             f"/api/tasks/{task['id']}/complete",
-            headers={"Authorization": "Bearer agent-test-token"},
+            headers={"Authorization": "Bearer access-test-token"},
             json={"result_summary": f"Done {idx}", "output_payload": {"ok": True}},
         )
         assert complete.status_code == 200, complete.text
@@ -88,13 +88,13 @@ def test_runs_listing_transport_uses_snake_case_fields(client, management_client
 
     claim = client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert claim.status_code == 200, claim.text
 
     complete = client.post(
         f"/api/tasks/{task['id']}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"result_summary": "transport", "output_payload": {"ok": True}},
     )
     assert complete.status_code == 200, complete.text
@@ -107,7 +107,7 @@ def test_runs_listing_transport_uses_snake_case_fields(client, management_client
         "id",
         "task_id",
         "agent_id",
-        "token_id",
+        "access_token_id",
         "task_target_id",
         "status",
         "result_summary",

@@ -7,11 +7,10 @@ vi.mock('./api', async (importOriginal) => {
   return {
     ...actual,
     api: {
-      getAgents: vi.fn(),
+      getAccessTokens: vi.fn(),
       getTasks: vi.fn(),
       getRuns: vi.fn(),
-      getAgentTokens: vi.fn(),
-      getTokenFeedback: vi.fn(),
+      getAccessTokenFeedback: vi.fn(),
     },
   };
 });
@@ -55,10 +54,10 @@ describe('swr-config', () => {
   });
 
   describe('fetcher', () => {
-    it('calls getAgents for /api/agents', async () => {
-      vi.mocked(api.getAgents).mockResolvedValue({ items: [] });
-      const result = await fetcher('/api/agents');
-      expect(api.getAgents).toHaveBeenCalled();
+    it('calls getAccessTokens for /api/access-tokens', async () => {
+      vi.mocked(api.getAccessTokens).mockResolvedValue({ items: [] });
+      const result = await fetcher('/api/access-tokens');
+      expect(api.getAccessTokens).toHaveBeenCalled();
       expect(result).toEqual({ items: [] });
     });
 
@@ -80,17 +79,12 @@ describe('swr-config', () => {
   });
 
   describe('fetcherWithParams', () => {
-    it('calls getAgentTokens for /api/agent-tokens', async () => {
-      vi.mocked(api.getAgentTokens).mockResolvedValue({ items: [] });
-      const result = await fetcherWithParams('/api/agent-tokens', { agentId: 'a1' });
-      expect(api.getAgentTokens).toHaveBeenCalledWith('a1');
-      expect(result).toEqual({ items: [] });
-    });
-
-    it('calls getTokenFeedback for /api/token-feedback', async () => {
-      vi.mocked(api.getTokenFeedback).mockResolvedValue({ items: [] });
-      const result = await fetcherWithParams('/api/token-feedback', { tokenId: 't1' });
-      expect(api.getTokenFeedback).toHaveBeenCalledWith('t1');
+    it('calls getAccessTokenFeedback for /api/access-token-feedback', async () => {
+      vi.mocked(api.getAccessTokenFeedback).mockResolvedValue({ items: [] });
+      const result = await fetcherWithParams('/api/access-token-feedback', {
+        accessTokenId: 't1',
+      });
+      expect(api.getAccessTokenFeedback).toHaveBeenCalledWith('t1');
       expect(result).toEqual({ items: [] });
     });
 

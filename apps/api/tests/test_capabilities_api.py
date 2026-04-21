@@ -69,7 +69,7 @@ def test_agent_created_capability_exposes_marketplace_provenance(client, managem
 
     response = client.post(
         "/api/capabilities",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "name": "agent.market.capability",
             "secret_id": secret["id"],
@@ -85,9 +85,9 @@ def test_agent_created_capability_exposes_marketplace_provenance(client, managem
     assert listing.status_code == 200, listing.text
     item = listing.json()["items"][0]
     assert item["name"] == "agent.market.capability"
-    assert item["created_by_actor_type"] == "agent"
+    assert item["created_by_actor_type"] == "access_token"
     assert item["created_by_actor_id"] == "test-agent"
-    assert item["created_via_token_id"] == "token-test-agent"
+    assert item["created_via_token_id"] == "access-token-test-agent"
 
 
 def test_create_capability_persists_adapter_contract(management_client):
@@ -155,7 +155,7 @@ def test_runtime_created_capability_starts_pending_review(client, management_cli
 
     response = client.post(
         "/api/capabilities",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "name": "openai.chat.runtime",
             "secret_id": secret["id"],
@@ -181,7 +181,7 @@ def test_approved_capability_exposes_review_timestamp(management_client, client)
 
     created = client.post(
         "/api/capabilities",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "name": "openai.chat.approved",
             "secret_id": secret["id"],

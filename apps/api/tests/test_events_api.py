@@ -1,3 +1,5 @@
+from conftest import TEST_ACCESS_TOKEN_ID, TEST_ACCESS_TOKEN_KEY
+
 from app.services.event_service import record_event
 
 
@@ -41,28 +43,28 @@ def test_task_target_completion_creates_event(client, management_client):
         json={
             "title": "Inbox event task",
             "task_type": "account_read",
-            "target_token_ids": ["token-test-agent"],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
 
     assigned = client.get(
         "/api/tasks/assigned",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
     )
     assert assigned.status_code == 200, assigned.text
     target_id = assigned.json()["items"][0]["id"]
 
     claimed = client.post(
         f"/api/task-targets/{target_id}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
     )
     assert claimed.status_code == 200, claimed.text
 
     completed = client.post(
         f"/api/task-targets/{target_id}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json={"result_summary": "done", "output_payload": {"ok": True}},
     )
     assert completed.status_code == 200, completed.text

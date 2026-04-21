@@ -5,7 +5,7 @@ from app.auth import require_agent
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.schemas.invoke import LeaseRequest
 from app.services.approval_service import ApprovalRequiredError, PolicyDeniedError
 from app.services.gateway import issue_lease

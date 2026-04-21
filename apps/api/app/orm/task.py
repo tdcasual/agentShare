@@ -20,7 +20,7 @@ class TaskModel(Base, TimestampMixin):
     approval_rules: Mapped[list] = mapped_column(JSON, default=list)
     priority: Mapped[str] = mapped_column(String, default="normal")
     target_mode: Mapped[str] = mapped_column(String, default="broadcast")
-    target_token_ids: Mapped[list] = mapped_column(JSON, default=list)
+    target_access_token_ids: Mapped[list] = mapped_column(JSON, default=list)
     status: Mapped[str] = mapped_column(String, default="pending")
     created_by: Mapped[str] = mapped_column(String, default="human")
     created_by_actor_type: Mapped[str] = mapped_column(String, default="human")

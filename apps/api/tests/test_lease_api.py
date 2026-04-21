@@ -35,12 +35,12 @@ def test_proxy_only_capability_cannot_issue_lease(client, management_client):
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "local sdk call"},
     )
 
@@ -81,12 +81,12 @@ def test_lease_capability_can_issue_short_lived_lease(client, management_client)
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
 
@@ -96,11 +96,15 @@ def test_lease_capability_can_issue_short_lived_lease(client, management_client)
     assert response.json()["secret_value_included"] is False
 
 
-def test_lease_rejects_token_outside_token_selector_access_policy(client, management_client):
-    allowed_token = management_client.post(
-        "/api/agents/test-agent/tokens",
-        json={"display_name": "Lease restricted token"},
-    ).json()
+def test_lease_rejects_token_outside_access_token_selector_access_policy(
+    client,
+    management_client,
+    mint_standalone_access_token,
+):
+    allowed_token = mint_standalone_access_token(
+        display_name="Lease restricted token",
+        subject_id="test-agent",
+    )
     secret = management_client.post(
         "/api/secrets",
         json={
@@ -124,7 +128,7 @@ def test_lease_rejects_token_outside_token_selector_access_policy(client, manage
             "access_policy": {
                 "mode": "selectors",
                 "selectors": [
-                    {"kind": "token", "ids": [allowed_token["id"]]},
+                    {"kind": "access_token", "ids": [allowed_token["id"]]},
                 ],
             },
         },
@@ -140,28 +144,28 @@ def test_lease_rejects_token_outside_token_selector_access_policy(client, manage
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
 
     assert response.status_code == 403
-    assert response.json()["detail"] == "Capability is not accessible to this token"
+    assert response.json()["detail"] == "Capability is not accessible to this access token"
 
 
-def test_lease_allows_agent_selector_matches(client, management_client):
-    agent = management_client.post(
-        "/api/agents",
-        json={
-            "name": "Lease Selector Agent",
-            "risk_tier": "medium",
-            "allowed_task_types": ["account_read"],
-        },
-    ).json()
+def test_lease_allows_access_token_selector_matches(
+    client,
+    management_client,
+    mint_standalone_access_token,
+):
+    runtime_token = mint_standalone_access_token(
+        display_name="Lease selector token",
+        subject_id="test-agent",
+    )
     secret = management_client.post(
         "/api/secrets",
         json={
@@ -185,7 +189,7 @@ def test_lease_allows_agent_selector_matches(client, management_client):
             "access_policy": {
                 "mode": "selectors",
                 "selectors": [
-                    {"kind": "agent", "ids": [agent["id"]]},
+                    {"kind": "access_token", "ids": [runtime_token["id"]]},
                 ],
             },
         },
@@ -201,12 +205,12 @@ def test_lease_allows_agent_selector_matches(client, management_client):
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": f"Bearer {agent['api_key']}"},
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": f"Bearer {agent['api_key']}"},
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
 
@@ -214,19 +218,14 @@ def test_lease_allows_agent_selector_matches(client, management_client):
     assert response.json()["capability_id"] == capability["id"]
 
 
-def test_lease_allows_token_label_selector_matches(client, management_client):
-    agent = management_client.post(
-        "/api/agents",
-        json={
-            "name": "Lease Label Agent",
-            "risk_tier": "medium",
-            "allowed_task_types": ["account_read"],
-        },
-    ).json()
+def test_lease_allows_access_token_label_selector_matches(client, management_client):
     runtime_token = management_client.post(
-        f"/api/agents/{agent['id']}/tokens",
+        "/api/access-tokens",
         json={
             "display_name": "Prod lease token",
+            "subject_type": "automation",
+            "subject_id": "test-agent",
+            "scopes": ["runtime"],
             "labels": {"environment": "prod"},
         },
     ).json()
@@ -253,7 +252,7 @@ def test_lease_allows_token_label_selector_matches(client, management_client):
             "access_policy": {
                 "mode": "selectors",
                 "selectors": [
-                    {"kind": "token_label", "key": "environment", "values": ["prod"]},
+                    {"kind": "access_token_label", "key": "environment", "values": ["prod"]},
                 ],
             },
         },
@@ -330,12 +329,12 @@ def test_lease_uses_runtime_settings_for_coordination_lock(client, management_cl
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
 
@@ -387,12 +386,12 @@ def test_lease_returns_503_when_coordination_is_unavailable(client, management_c
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
 
@@ -434,12 +433,12 @@ def test_lease_requires_manual_approval_returns_409(client, management_client, d
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
 
@@ -508,17 +507,17 @@ def test_same_task_generates_distinct_lease_ids_per_capability(client, managemen
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     first_response = client.post(
         f"/api/capabilities/{first_capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
     second_response = client.post(
         f"/api/capabilities/{second_capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "git cli"},
     )
 

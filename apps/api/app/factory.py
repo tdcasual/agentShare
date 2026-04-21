@@ -1,5 +1,4 @@
 import json
-import hashlib
 import logging
 import uuid
 from collections.abc import Callable, Iterable
@@ -10,14 +9,11 @@ from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session
 
 from app import db as db_module
 from app.config import Settings
 from app.errors import DomainError
 from app.observability import build_request_log_event, record_http_request
-from app.orm.agent import AgentIdentityModel
-from app.repositories.agent_repo import AgentRepository
 from app.runtime import AppRuntime, build_runtime
 from app.routes import register_routes
 from app.services.demo_seed_service import seed_demo_fixture_data
@@ -27,36 +23,6 @@ request_logger = logging.getLogger("app.request")
 startup_logger = logging.getLogger("app.startup")
 AppConfigurer = Callable[[FastAPI, Settings], None]
 RouteRegistrar = Callable[[FastAPI], None]
-
-
-def _hash_key(key: str) -> str:
-    return hashlib.sha256(key.encode()).hexdigest()
-
-
-def ensure_bootstrap_credential(settings: Settings, session_factory: Callable[[], Session]) -> None:
-    session = session_factory()
-    try:
-        repo = AgentRepository(session)
-        existing = repo.get("bootstrap")
-        desired_api_key_hash = _hash_key(settings.bootstrap_owner_key)
-        if existing is None:
-            repo.create(AgentIdentityModel(
-                id="bootstrap",
-                name="Bootstrap Credential",
-                api_key_hash=desired_api_key_hash,
-                status="active",
-                allowed_capability_ids=[],
-                allowed_task_types=[],
-                risk_tier="high",
-            ))
-            session.commit()
-            return
-
-        if existing.api_key_hash != desired_api_key_hash:
-            existing.api_key_hash = desired_api_key_hash
-            session.commit()
-    finally:
-        session.close()
 
 
 def _uses_embedded_sqlite(database_url: str) -> bool:
@@ -193,7 +159,6 @@ def create_app(
         # so they still need an in-process migration step before bootstrap seeding.
         if _uses_embedded_sqlite(settings.database_url):
             db_module.migrate_db(settings.database_url)
-        ensure_bootstrap_credential(settings, app_instance.state.runtime.session_factory)
         seed_demo_fixture_data(settings, app_instance.state.runtime.session_factory)
         yield
 

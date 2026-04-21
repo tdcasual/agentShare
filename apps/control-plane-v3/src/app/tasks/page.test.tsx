@@ -12,7 +12,6 @@ const useManagementSessionGateMock = vi.fn();
 const useTaskDashboardMock = vi.fn();
 const useCreateTaskMock = vi.fn();
 const useCreateTaskTargetFeedbackMock = vi.fn();
-const useAgentsWithTokensMock = vi.fn();
 const createTaskActionMock = vi.fn();
 const createFeedbackActionMock = vi.fn();
 
@@ -29,10 +28,7 @@ vi.mock('@/interfaces/human/layout', () => ({
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
-}));
-
-vi.mock('@/lib/session', () => ({
-  useManagementSessionGate: () => useManagementSessionGateMock(),
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }));
 
 vi.mock('@/domains/task', () => ({
@@ -41,9 +37,26 @@ vi.mock('@/domains/task', () => ({
   useCreateTaskTargetFeedback: () => useCreateTaskTargetFeedbackMock(),
 }));
 
-vi.mock('@/domains/identity', () => ({
-  useAgentsWithTokens: () => useAgentsWithTokensMock(),
+vi.mock('@/lib/session', () => ({
+  useManagementSessionGate: () => useManagementSessionGateMock(),
 }));
+
+vi.mock('@/lib/management-session-recovery', async () => {
+  const actual =
+    await vi.importActual<typeof import('@/lib/management-session-recovery')>(
+      '@/lib/management-session-recovery'
+    );
+
+  return {
+    ...actual,
+    ManagementSessionExpiredAlert: ({ message }: { message: string }) => (
+      <div role="alert">{message}</div>
+    ),
+    ManagementForbiddenAlert: ({ message }: { message: string }) => (
+      <div role="alert">{message}</div>
+    ),
+  };
+});
 
 describe('tasks page', () => {
   beforeEach(() => {
@@ -68,11 +81,11 @@ describe('tasks page', () => {
           priority: 'normal',
           status: 'pending',
           publicationStatus: 'active',
-          targetMode: 'explicit_tokens',
+          targetMode: 'explicit_access_tokens',
           input: {},
           createdBy: { id: 'owner', type: 'human', name: 'Owner' },
           targetIds: ['target-1'],
-          targetTokenIds: ['token-1'],
+          targetAccessTokenIds: ['token-1'],
           requiredCapabilityIds: [],
           playbookIds: [],
           leaseAllowed: false,
@@ -85,11 +98,11 @@ describe('tasks page', () => {
           priority: 'high',
           status: 'completed',
           publicationStatus: 'active',
-          targetMode: 'explicit_tokens',
+          targetMode: 'explicit_access_tokens',
           input: {},
           createdBy: { id: 'owner', type: 'human', name: 'Owner' },
           targetIds: ['target-2'],
-          targetTokenIds: ['token-2'],
+          targetAccessTokenIds: ['token-2'],
           requiredCapabilityIds: [],
           playbookIds: [],
           leaseAllowed: false,
@@ -101,7 +114,7 @@ describe('tasks page', () => {
           id: 'run-2',
           taskId: 'task-2',
           taskTargetId: 'target-2',
-          tokenId: 'token-2',
+          accessTokenId: 'token-2',
           status: 'completed',
           resultSummary: 'Risk scan finished with notes',
         },
@@ -110,20 +123,26 @@ describe('tasks page', () => {
         'token-1': {
           id: 'token-1',
           displayName: 'Primary Token',
-          agentId: 'bootstrap',
+          tokenPrefix: 'cp_tok_123',
+          subjectType: 'automation',
+          subjectId: 'bootstrap-worker',
           trustScore: 0.82,
           status: 'active',
           scopes: [],
           labels: {},
+          policy: {},
         },
         'token-2': {
           id: 'token-2',
           displayName: 'Risk Scan Token',
-          agentId: 'analyzer',
+          tokenPrefix: 'cp_tok_456',
+          subjectType: 'automation',
+          subjectId: 'risk-worker',
           trustScore: 0.55,
           status: 'active',
           scopes: [],
           labels: {},
+          policy: {},
         },
       },
       feedbackByTargetId: {},
@@ -136,13 +155,6 @@ describe('tasks page', () => {
     createFeedbackActionMock.mockResolvedValue({ id: 'feedback-new' });
     useCreateTaskMock.mockReturnValue(createTaskActionMock);
     useCreateTaskTargetFeedbackMock.mockReturnValue(createFeedbackActionMock);
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [],
-      tokensByAgent: {},
-      isLoading: false,
-      error: null,
-      mutate: vi.fn(),
-    });
   });
 
   it('shows a relogin recovery state when refresh hits an expired session', async () => {

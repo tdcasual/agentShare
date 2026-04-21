@@ -42,7 +42,7 @@ def setup_owner(
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    if not authenticate_bootstrap_key(session, payload.bootstrap_key):
+    if not authenticate_bootstrap_key(settings, payload.bootstrap_key):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid bootstrap credential",

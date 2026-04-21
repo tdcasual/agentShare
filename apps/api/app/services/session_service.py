@@ -14,7 +14,6 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.orm.human_account import HumanAccountModel
 from app.orm.management_session import ManagementSessionModel
-from app.repositories.agent_repo import AgentRepository
 from app.repositories.human_account_repo import HumanAccountRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.schemas.sessions import ManagementSessionPayload
@@ -32,10 +31,8 @@ def hash_key(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-def authenticate_bootstrap_key(session: Session, bootstrap_key: str) -> bool:
-    repo = AgentRepository(session)
-    agent = repo.find_bootstrap_by_api_key_hash(hash_key(bootstrap_key))
-    return agent is not None and agent.status == "active"
+def authenticate_bootstrap_key(settings: Settings, bootstrap_key: str) -> bool:
+    return hmac.compare_digest(bootstrap_key, settings.bootstrap_owner_key)
 
 
 def authenticate_management_operator(

@@ -18,7 +18,7 @@ The runtime model described here is the project's primary `agent server first` p
   - `GET /healthz`
   - `/docs` and `/openapi.json`
 - OpenClaw session-authenticated runtime:
-  - `GET /api/agents/me`
+  - `GET /api/runtime/me`
   - `GET /api/tasks`
   - `POST /api/tasks/{task_id}/claim`
   - `POST /api/tasks/{task_id}/complete`
@@ -38,9 +38,9 @@ The runtime model described here is the project's primary `agent server first` p
   - `operator+`:
     `GET /api/approvals`, `POST /api/approvals/{approval_id}/approve`, `POST /api/approvals/{approval_id}/reject`
   - `admin+`:
-    `POST/GET /api/secrets`, `POST /api/capabilities`, `GET/POST /api/agents`, `GET/POST /api/openclaw/agents`, `GET /api/openclaw/sessions`
+    `POST/GET /api/secrets`, `POST /api/capabilities`, `GET/POST /api/access-tokens`, `GET/POST /api/openclaw/agents`, `GET /api/openclaw/sessions`
   - `owner`:
-    `DELETE /api/agents/{agent_id}`, `DELETE /api/openclaw/agents/{agent_id}`
+    `DELETE /api/openclaw/agents/{agent_id}`
 
 ## 1. Start A Management Session
 
@@ -106,7 +106,7 @@ curl -sS \
 ```bash
 curl -sS \
   -H "Authorization: Bearer $ACP_SESSION_KEY" \
-  "$ACP_BASE_URL/api/agents/me"
+  "$ACP_BASE_URL/api/runtime/me"
 ```
 
 Expected: `200 OK`, with agent identity, session metadata, workspace hints, and allowlists.

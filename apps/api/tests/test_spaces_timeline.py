@@ -40,13 +40,13 @@ def test_task_completion_projects_into_space_timeline(client, management_client)
 
     claimed = client.post(
         f"/api/tasks/{task_id}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert claimed.status_code == 200, claimed.text
 
     completed = client.post(
         f"/api/tasks/{task_id}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"result_summary": "Configuration synced", "output_payload": {"ok": True}},
     )
     assert completed.status_code == 200, completed.text
@@ -66,7 +66,7 @@ def test_review_approval_projects_into_space_timeline(client, management_client)
 
     secret = client.post(
         "/api/secrets",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "display_name": "Timeline Secret",
             "kind": "api_token",

@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from app.errors import AuthorizationError, ConflictError, NotFoundError, ServiceUnavailableError
 from app.factory import add_domain_error_handlers
-from app.models.agent import AgentIdentity
+from app.models.runtime_principal import RuntimePrincipal
 from app.orm.task import TaskModel
 from app.repositories.task_repo import TaskRepository
 from app.services.capability_service import get_capability
@@ -12,8 +12,8 @@ from app.services.playbook_service import get_playbook
 from app.services.task_service import claim_task, complete_task
 
 
-def _agent() -> AgentIdentity:
-    return AgentIdentity(
+def _agent() -> RuntimePrincipal:
+    return RuntimePrincipal(
         id="test-agent",
         name="Test Agent",
         issuer="local",

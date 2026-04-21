@@ -24,7 +24,7 @@ def test_agent_can_claim_eligible_task(client, management_client):
 
     response = client.post(
         f"/api/tasks/{created_id}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     assert created_id.startswith("task-")
@@ -58,7 +58,7 @@ def test_agent_claim_uses_runtime_settings_for_redis_lock(client, management_cli
 
     response = client.post(
         f"/api/tasks/{created.json()['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     assert response.status_code == 200
@@ -82,7 +82,7 @@ def test_agent_claim_returns_503_when_coordination_is_unavailable(client, manage
 
     response = client.post(
         f"/api/tasks/{created['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     assert response.status_code == 503
@@ -134,7 +134,7 @@ def test_management_cannot_publish_task_with_missing_playbook_references(managem
 def test_claiming_unknown_task_returns_clean_not_found(client):
     response = client.post(
         "/api/tasks/task-missing/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     assert response.status_code == 404
@@ -154,12 +154,12 @@ def test_agent_can_complete_claimed_task(client, management_client):
     ).json()
     client.post(
         f"/api/tasks/{created['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/tasks/{created['id']}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"result_summary": "Configuration synced", "output_payload": {"ok": True}},
     )
 
@@ -192,14 +192,14 @@ def test_agent_complete_uses_runtime_settings_for_redis_lock(client, management_
 
     claimed = client.post(
         f"/api/tasks/{created.json()['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert claimed.status_code == 200, claimed.text
     captured.clear()
 
     response = client.post(
         f"/api/tasks/{created.json()['id']}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"result_summary": "done", "output_payload": {"ok": True}},
     )
 
@@ -228,8 +228,8 @@ def test_task_target_complete_uses_runtime_settings_for_redis_lock(
         json={
             "title": "Target runtime lock complete",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -288,8 +288,8 @@ def test_task_listing_transport_uses_snake_case_fields(management_client):
         json={
             "title": "Transport task",
             "task_type": "account_read",
-            "target_mode": "explicit_tokens",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
         },
     )
     assert created.status_code == 201, created.text
@@ -300,45 +300,18 @@ def test_task_listing_transport_uses_snake_case_fields(management_client):
     item = next(entry for entry in response.json()["items"] if entry["id"] == created.json()["id"])
     assert item["task_type"] == "account_read"
     assert item["publication_status"] == "active"
-    assert item["target_mode"] == "explicit_tokens"
-    assert item["target_token_ids"] == [TEST_ACCESS_TOKEN_ID]
+    assert item["target_mode"] == "explicit_access_tokens"
+    assert item["target_access_token_ids"] == [TEST_ACCESS_TOKEN_ID]
     assert "taskType" not in item
     assert "publicationStatus" not in item
     assert "targetMode" not in item
     assert "targetTokenIds" not in item
 
 
-def test_agent_cannot_claim_task_type_outside_allowlist(client, management_client):
-    created_agent = management_client.post(
-        "/api/agents",
-        json={
-            "name": "Limited Agent",
-            "risk_tier": "medium",
-            "allowed_task_types": ["account_read"],
-        },
-    )
-    assert created_agent.status_code == 201, created_agent.text
-
-    created = management_client.post(
-        "/api/tasks",
-        json={
-            "title": "Sync provider config",
-            "task_type": "config_sync",
-        },
-    ).json()
-
-    response = client.post(
-        f"/api/tasks/{created['id']}/claim",
-        headers={"Authorization": f"Bearer {created_agent.json()['api_key']}"},
-    )
-
-    assert response.status_code == 403
-
-
 def test_runtime_created_task_starts_pending_review(client):
     response = client.post(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Runtime submitted task",
             "task_type": "prompt_run",
@@ -359,18 +332,18 @@ def test_runtime_pending_review_task_materializes_explicit_targets_only_after_ap
 
     created = client.post(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Deferred targeted review task",
             "task_type": "account_read",
-            "target_mode": "explicit_tokens",
-            "target_token_ids": [minted["id"]],
+            "target_mode": "explicit_access_tokens",
+            "target_access_token_ids": [minted["id"]],
         },
     )
     assert created.status_code == 202, created.text
     assert created.json()["publication_status"] == "pending_review"
     assert created.json()["target_ids"] == []
-    assert created.json()["target_token_ids"] == [minted["id"]]
+    assert created.json()["target_access_token_ids"] == [minted["id"]]
 
     assigned_before = client.get(
         "/api/tasks/assigned",
@@ -400,7 +373,7 @@ def test_runtime_pending_review_broadcast_task_targets_active_tokens_at_approval
 ):
     created = client.post(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Deferred broadcast review task",
             "task_type": "account_read",
@@ -410,7 +383,7 @@ def test_runtime_pending_review_broadcast_task_targets_active_tokens_at_approval
     assert created.status_code == 202, created.text
     assert created.json()["publication_status"] == "pending_review"
     assert created.json()["target_ids"] == []
-    assert created.json()["target_token_ids"] == []
+    assert created.json()["target_access_token_ids"] == []
 
     minted = mint_standalone_access_token(
         display_name="Late join token",
@@ -451,7 +424,7 @@ def test_task_listing_requires_authenticated_actor(client, management_client):
     anonymous = client.get("/api/tasks")
     runtime = client.get(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     management = management_client.get("/api/tasks")
 
@@ -475,8 +448,8 @@ def test_runtime_task_listing_only_returns_claimable_tasks_for_current_token(
         json={
             "title": "Visible to current token",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert visible.status_code == 201, visible.text
@@ -486,8 +459,8 @@ def test_runtime_task_listing_only_returns_claimable_tasks_for_current_token(
         json={
             "title": "Only for other token",
             "task_type": "account_read",
-            "target_token_ids": [minted["id"]],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [minted["id"]],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert hidden.status_code == 201, hidden.text
@@ -497,8 +470,8 @@ def test_runtime_task_listing_only_returns_claimable_tasks_for_current_token(
         json={
             "title": "Already claimed by current token",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert claimed.status_code == 201, claimed.text
@@ -515,7 +488,7 @@ def test_runtime_task_listing_only_returns_claimable_tasks_for_current_token(
 
     assert runtime.status_code == 200, runtime.text
     assert [item["title"] for item in runtime.json()["items"]] == ["Visible to current token"]
-    assert runtime.json()["items"][0]["target_token_ids"] == [TEST_ACCESS_TOKEN_ID]
+    assert runtime.json()["items"][0]["target_access_token_ids"] == [TEST_ACCESS_TOKEN_ID]
 
 
 def test_task_creation_rejects_broadcast_mode_with_explicit_target_tokens(management_client):
@@ -525,7 +498,7 @@ def test_task_creation_rejects_broadcast_mode_with_explicit_target_tokens(manage
             "title": "Conflicting target mode",
             "task_type": "account_read",
             "target_mode": "broadcast",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
         },
     )
 
@@ -547,15 +520,15 @@ def test_untargeted_token_cannot_claim_explicitly_targeted_task(
         json={
             "title": "Explicitly targeted work",
             "task_type": "account_read",
-            "target_token_ids": [minted["id"]],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [minted["id"]],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
 
     response = client.post(
         f"/api/tasks/{created.json()['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     assert response.status_code == 403
@@ -567,8 +540,8 @@ def test_completed_target_cannot_be_completed_twice(client, management_client):
         json={
             "title": "One-shot target",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -611,8 +584,8 @@ def test_completed_target_disappears_from_assigned_queue(client, management_clie
         json={
             "title": "Queue cleanup target",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -651,8 +624,8 @@ def test_duplicate_target_tokens_are_rejected(client, management_client):
         json={
             "title": "Bad explicit targets",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID, TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID, TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
 
@@ -674,8 +647,8 @@ def test_runtime_assigned_queue_only_returns_tasks_for_current_token(
         json={
             "title": "Token-targeted work",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -690,9 +663,9 @@ def test_runtime_assigned_queue_only_returns_tasks_for_current_token(
     )
 
     assert seeded_queue.status_code == 200
-    assert {item["target_token_id"] for item in seeded_queue.json()["items"]} == {TEST_ACCESS_TOKEN_ID}
+    assert {item["target_access_token_id"] for item in seeded_queue.json()["items"]} == {TEST_ACCESS_TOKEN_ID}
     assert minted_queue.status_code == 200
-    assert {item["target_token_id"] for item in minted_queue.json()["items"]} == {minted["id"]}
+    assert {item["target_access_token_id"] for item in minted_queue.json()["items"]} == {minted["id"]}
 
 
 def test_multi_target_task_clears_parent_claimed_by_when_multiple_agents_claim_it(
@@ -710,8 +683,8 @@ def test_multi_target_task_clears_parent_claimed_by_when_multiple_agents_claim_i
         json={
             "title": "Parallel claim task",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -749,8 +722,8 @@ def test_target_completion_only_expires_approvals_for_the_completing_agent(
         json={
             "title": "Parallel approval task",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -820,7 +793,7 @@ def test_target_completion_only_expires_approvals_for_the_completing_token_scope
     client, management_client, db_session, mint_standalone_access_token
 ):
     minted = mint_standalone_access_token(
-        display_name="Second test-agent token",
+        display_name="Second standby credential",
         subject_id="test-agent",
     )
 
@@ -829,8 +802,8 @@ def test_target_completion_only_expires_approvals_for_the_completing_token_scope
         json={
             "title": "Same agent multi-token approval task",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID, minted["id"]],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -896,29 +869,6 @@ def test_target_completion_only_expires_approvals_for_the_completing_token_scope
     assert repo.get(second_pending.id).status == "approved"
 
 
-def test_runtime_task_submission_rejects_disallowed_task_type(client, management_client):
-    created_agent = management_client.post(
-        "/api/agents",
-        json={
-            "name": "Restricted submitter",
-            "risk_tier": "medium",
-            "allowed_task_types": ["account_read"],
-        },
-    )
-    assert created_agent.status_code == 201, created_agent.text
-
-    response = client.post(
-        "/api/tasks",
-        headers={"Authorization": f"Bearer {created_agent.json()['api_key']}"},
-        json={
-            "title": "Disallowed runtime task",
-            "task_type": "prompt_run",
-        },
-    )
-
-    assert response.status_code == 403
-
-
 def test_runtime_task_submission_rejects_foreign_target_tokens(
     client,
     management_client,
@@ -931,12 +881,12 @@ def test_runtime_task_submission_rejects_foreign_target_tokens(
 
     response = client.post(
         "/api/tasks",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={
             "title": "Cross-agent runtime task",
             "task_type": "account_read",
-            "target_mode": "explicit_tokens",
-            "target_token_ids": [minted["id"]],
+            "target_mode": "explicit_access_tokens",
+            "target_access_token_ids": [minted["id"]],
         },
     )
 

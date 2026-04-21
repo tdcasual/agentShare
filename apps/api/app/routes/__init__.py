@@ -3,9 +3,8 @@
 from fastapi import APIRouter, FastAPI
 
 from app.mcp.server import router as mcp_router
-from app.routes.agents import router as agents_router
 from app.routes.admin_accounts import router as admin_accounts_router
-from app.routes.agent_tokens import router as agent_tokens_router
+from app.routes.access_tokens import router as access_tokens_router
 from app.routes.approvals import router as approvals_router
 from app.routes.capabilities import router as capabilities_router
 from app.routes.catalog import router as catalog_router
@@ -20,6 +19,7 @@ from app.routes.openclaw_sessions import router as openclaw_sessions_router
 from app.routes.playbooks import router as playbooks_router
 from app.routes.runs import router as runs_router
 from app.routes.reviews import router as reviews_router
+from app.routes.runtime import router as runtime_router
 from app.routes.secrets import router as secrets_router
 from app.routes.session import router as session_router
 from app.routes.search import router as search_router
@@ -32,13 +32,12 @@ from app.routes.events import router as events_router
 
 def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
     routers: list[APIRouter] = [
-        agents_router,
-        agent_tokens_router,
         openclaw_agents_router,
         openclaw_dream_runs_router,
         openclaw_memory_router,
         openclaw_sessions_router,
         bootstrap_router,
+        runtime_router,
         session_router,
         search_router,
         admin_accounts_router,
@@ -50,6 +49,7 @@ def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
         intake_catalog_router,
         secrets_router,
         capabilities_router,
+        access_tokens_router,
         tasks_router,
         task_targets_router,
         token_feedback_router,

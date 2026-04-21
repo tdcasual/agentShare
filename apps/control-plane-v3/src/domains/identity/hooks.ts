@@ -11,7 +11,6 @@ import { useCallback } from 'react';
 import { swrConfig, staticConfig } from '@/lib/swr-config';
 import * as api from './api';
 import type {
-  Agent,
   BootstrapStatus,
   ManagementSessionSummary,
   AdminAccountSummary,
@@ -21,15 +20,9 @@ import type {
   OpenClawDreamRun,
   OpenClawSession,
 } from './types';
-import type { AgentToken } from '../shared-types';
-import type {
-  AgentCreateInput,
-  AdminAccountCreateInput,
-  LoginInput,
-  AgentTokenCreateInput,
-} from '@/lib/api-client';
-
-const AGENT_TOKENS_BULK_KEY = 'bulk:agent-tokens';
+import type { AccessToken } from '../shared-types';
+import type { AdminAccountCreateInput, LoginInput, AccessTokenCreateInput } from '@/lib/api-client';
+const ACCESS_TOKENS_KEY = '/api/access-tokens';
 
 // ============================================
 // Bootstrap
@@ -65,39 +58,6 @@ export function useLogout() {
   return useCallback(async () => {
     const result = await api.logout();
     await mutate('/api/session/me', null, false);
-    return result;
-  }, []);
-}
-
-// ============================================
-// Agents
-// ============================================
-
-export function useAgents(options?: SWRConfiguration) {
-  return useSWR<{ items: Agent[] }>(
-    options?.isPaused ? null : '/api/agents',
-    () => api.getAgents(),
-    {
-      ...swrConfig,
-      ...options,
-    }
-  );
-}
-
-export function useCreateAgent() {
-  return useCallback(async (payload: AgentCreateInput) => {
-    const result = await api.createAgent(payload);
-    await mutate('/api/agents');
-    return result;
-  }, []);
-}
-
-export function useDeleteAgent() {
-  return useCallback(async (agentId: string) => {
-    const result = await api.deleteAgent(agentId);
-    await mutate('/api/agents');
-    await mutate(`/api/agents/${agentId}/tokens`, { items: [] }, false);
-    await mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
     return result;
   }, []);
 }
@@ -232,15 +192,38 @@ export function useDisableAdminAccount() {
 }
 
 // ============================================
+// Access Tokens
+// ============================================
+
+export function useAccessTokens(options?: SWRConfiguration) {
+  return useSWR<{ items: AccessToken[] }>(ACCESS_TOKENS_KEY, () => api.getAccessTokens(), {
+    ...swrConfig,
+    ...options,
+  });
+}
+
+export function useCreateAccessToken() {
+  return useCallback(async (payload: AccessTokenCreateInput) => {
+    const result = await api.createAccessToken(payload);
+    await mutate(ACCESS_TOKENS_KEY);
+    return result;
+  }, []);
+}
+
+export function useRevokeAccessToken() {
+  return useCallback(async (tokenId: string) => {
+    const result = await api.revokeAccessToken(tokenId);
+    await mutate(ACCESS_TOKENS_KEY);
+    return result;
+  }, []);
+}
+
+// ============================================
 // Manual Mutations
 // ============================================
 
 export function refreshSession() {
   return mutate('/api/session/me');
-}
-
-export function refreshAgents() {
-  return mutate('/api/agents');
 }
 
 export function refreshOpenClawAgents() {
@@ -259,21 +242,13 @@ export function refreshOpenClawDreamRuns() {
   return mutate('/api/openclaw/dream-runs');
 }
 
-export function refreshAgentsWithTokens() {
-  // 刷新 agents 列表
-  return mutate('/api/agents').then(() => {
-    // 刷新 bulk tokens 缓存
-    return mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
-  });
+export function refreshAccessTokens() {
+  return mutate(ACCESS_TOKENS_KEY);
 }
 
 // ============================================
 // Prefetch
 // ============================================
-
-export function prefetchAgents() {
-  return mutate('/api/agents', api.getAgents(), false);
-}
 
 export function prefetchSession() {
   return mutate('/api/session/me', api.getSession(), false);
@@ -291,73 +266,6 @@ export function prefetchOpenClawDreamRuns() {
   return mutate('/api/openclaw/dream-runs', api.getOpenClawDreamRuns(), false);
 }
 
-// ============================================
-// Agent Tokens
-// ============================================
-
-export function useAgentTokens(agentId: string | null, options?: SWRConfiguration) {
-  return useSWR<{ items: AgentToken[] }>(
-    agentId ? `/api/agents/${agentId}/tokens` : null,
-    () => (agentId ? api.getAgentTokens(agentId) : { items: [] }),
-    {
-      ...swrConfig,
-      ...options,
-    }
-  );
-}
-
-export function useCreateAgentToken() {
-  return useCallback(async (agentId: string, payload: AgentTokenCreateInput) => {
-    const result = await api.createAgentToken(agentId, payload);
-    await mutate(`/api/agents/${agentId}/tokens`);
-    await mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
-    return result;
-  }, []);
-}
-
-export function useRevokeAgentToken() {
-  return useCallback(async (tokenId: string, agentId: string) => {
-    const result = await api.revokeAgentToken(tokenId);
-    await mutate(`/api/agents/${agentId}/tokens`);
-    await mutate((key) => Array.isArray(key) && key[0] === AGENT_TOKENS_BULK_KEY);
-    return result;
-  }, []);
-}
-
-// ============================================
-// Bulk Operations
-// ============================================
-
-/**
- * 获取所有 Agent 及其 Tokens
- *
- * 用于 tokens 页面展示完整数据
- */
-export function useAgentsWithTokens(options?: SWRConfiguration) {
-  const agentsQuery = useAgents(options);
-
-  const agentIds = agentsQuery.data?.items.map((a) => a.id) ?? [];
-  const loadAgentTokensBulk = async () => {
-    const response = await api.getAgentTokensBulk(agentIds);
-    return response.items_by_agent;
-  };
-  const tokensQuery = useSWR<Record<string, AgentToken[]>>(
-    options?.isPaused || agentIds.length === 0 ? null : [AGENT_TOKENS_BULK_KEY, ...agentIds],
-    loadAgentTokensBulk,
-    {
-      ...swrConfig,
-      ...options,
-      revalidateOnFocus: false,
-    }
-  );
-
-  return {
-    agents: agentsQuery.data?.items ?? [],
-    tokensByAgent: tokensQuery.data ?? {},
-    isLoading: agentsQuery.isLoading || (agentIds.length > 0 && tokensQuery.isLoading),
-    error: agentsQuery.error ?? tokensQuery.error ?? null,
-    mutate: async () => {
-      await Promise.all([agentsQuery.mutate(), tokensQuery.mutate()]);
-    },
-  };
+export function prefetchAccessTokens() {
+  return mutate(ACCESS_TOKENS_KEY, api.getAccessTokens(), false);
 }

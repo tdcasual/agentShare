@@ -11,14 +11,11 @@ import {
   apiFetch,
   SetupOwnerInput,
   LoginInput,
-  AgentCreateInput,
-  AgentCreateResponse,
   AdminAccountCreateInput,
-  AgentTokenCreateInput,
-  AgentTokenCreateResponse,
+  AccessTokenCreateInput,
+  AccessTokenCreateResponse,
 } from '@/lib/api-client';
 import type {
-  Agent,
   BootstrapStatus,
   ManagementSessionSummary,
   AdminAccountSummary,
@@ -28,7 +25,7 @@ import type {
   OpenClawDreamRun,
   OpenClawSession,
 } from './types';
-import { normalizeAgentToken, type AgentTokenTransport } from '../shared-types';
+import { normalizeAccessToken, type AccessTokenTransport } from '../shared-types';
 
 export interface OpenClawAgentCreateInput {
   name: string;
@@ -85,27 +82,6 @@ export function logout() {
 
 export function getSession() {
   return apiFetch<ManagementSessionSummary>('/session/me');
-}
-
-// ============================================
-// Agents
-// ============================================
-
-export function getAgents() {
-  return apiFetch<{ items: Agent[] }>('/agents');
-}
-
-export function createAgent(payload: AgentCreateInput) {
-  return apiFetch<AgentCreateResponse>('/agents', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-}
-
-export function deleteAgent(agentId: string) {
-  return apiFetch<{ id: string; status: string }>(`/agents/${agentId}`, {
-    method: 'DELETE',
-  });
 }
 
 // ============================================
@@ -193,41 +169,24 @@ export function disableAdminAccount(accountId: string) {
 }
 
 // ============================================
-// Agent Tokens
+// Access Tokens
 // ============================================
 
-export function getAgentTokens(agentId: string) {
-  return apiFetch<{ items: AgentTokenTransport[] }>(`/agents/${agentId}/tokens`).then(
-    ({ items }) => ({
-      items: items.map(normalizeAgentToken),
-    })
-  );
-}
-
-export function getAgentTokensBulk(agentIds: string[]) {
-  const params = new URLSearchParams();
-  agentIds.forEach((agentId) => params.append('agent_id', agentId));
-  return apiFetch<{ items_by_agent: Record<string, AgentTokenTransport[]> }>(
-    `/agent-tokens/bulk?${params.toString()}`
-  ).then(({ items_by_agent }) => ({
-    items_by_agent: Object.fromEntries(
-      Object.entries(items_by_agent).map(([agentId, items]) => [
-        agentId,
-        items.map(normalizeAgentToken),
-      ])
-    ),
+export function getAccessTokens() {
+  return apiFetch<{ items: AccessTokenTransport[] }>('/access-tokens').then(({ items }) => ({
+    items: items.map(normalizeAccessToken),
   }));
 }
 
-export function createAgentToken(agentId: string, payload: AgentTokenCreateInput) {
-  return apiFetch<AgentTokenCreateResponse>(`/agents/${agentId}/tokens`, {
+export function createAccessToken(payload: AccessTokenCreateInput) {
+  return apiFetch<AccessTokenCreateResponse>('/access-tokens', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
-export function revokeAgentToken(tokenId: string) {
-  return apiFetch<{ id: string; status: string }>(`/agent-tokens/${tokenId}/revoke`, {
+export function revokeAccessToken(tokenId: string) {
+  return apiFetch<{ id: string; status: string }>(`/access-tokens/${tokenId}/revoke`, {
     method: 'POST',
     body: JSON.stringify({}),
   });
@@ -245,10 +204,6 @@ export const identityApi = {
   login,
   logout,
   getSession,
-  // Agents
-  getAgents,
-  createAgent,
-  deleteAgent,
   // OpenClaw agents
   getOpenClawAgents,
   getOpenClawAgent,
@@ -265,9 +220,8 @@ export const identityApi = {
   getAdminAccounts,
   createAdminAccount,
   disableAdminAccount,
-  // Agent Tokens
-  getAgentTokens,
-  getAgentTokensBulk,
-  createAgentToken,
-  revokeAgentToken,
+  // Access Tokens
+  getAccessTokens,
+  createAccessToken,
+  revokeAccessToken,
 };

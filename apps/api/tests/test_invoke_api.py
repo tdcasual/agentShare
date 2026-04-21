@@ -45,12 +45,12 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client, management
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -65,17 +65,22 @@ def test_proxy_invocation_returns_sanitized_result(mock_post, client, management
 
 
 @patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
-def test_proxy_invocation_rejects_token_outside_token_selector_access_policy(mock_post, client, management_client):
+def test_proxy_invocation_rejects_token_outside_access_token_selector_access_policy(
+    mock_post,
+    client,
+    management_client,
+    mint_standalone_access_token,
+):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"result": "ok"}
     mock_response.raise_for_status = MagicMock()
     mock_post.return_value = mock_response
 
-    allowed_token = management_client.post(
-        "/api/agents/test-agent/tokens",
-        json={"display_name": "Restricted capability token"},
-    ).json()
+    allowed_token = mint_standalone_access_token(
+        display_name="Restricted capability token",
+        subject_id="test-agent",
+    )
     secret = management_client.post(
         "/api/secrets",
         json={
@@ -97,7 +102,7 @@ def test_proxy_invocation_rejects_token_outside_token_selector_access_policy(moc
             "access_policy": {
                 "mode": "selectors",
                 "selectors": [
-                    {"kind": "token", "ids": [allowed_token["id"]]},
+                    {"kind": "access_token", "ids": [allowed_token["id"]]},
                 ],
             },
         },
@@ -112,35 +117,36 @@ def test_proxy_invocation_rejects_token_outside_token_selector_access_policy(moc
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
     assert response.status_code == 403
-    assert response.json()["detail"] == "Capability is not accessible to this token"
+    assert response.json()["detail"] == "Capability is not accessible to this access token"
 
 
 @patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
-def test_proxy_invocation_allows_agent_selector_matches(mock_post, client, management_client):
+def test_proxy_invocation_allows_access_token_selector_matches(
+    mock_post,
+    client,
+    management_client,
+    mint_standalone_access_token,
+):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"result": "ok"}
     mock_response.raise_for_status = MagicMock()
     mock_post.return_value = mock_response
 
-    agent = management_client.post(
-        "/api/agents",
-        json={
-            "name": "Selector Runtime Agent",
-            "risk_tier": "medium",
-            "allowed_task_types": ["prompt_run"],
-        },
-    ).json()
+    runtime_token = mint_standalone_access_token(
+        display_name="Selector Runtime Token",
+        subject_id="test-agent",
+    )
     secret = management_client.post(
         "/api/secrets",
         json={
@@ -162,7 +168,7 @@ def test_proxy_invocation_allows_agent_selector_matches(mock_post, client, manag
             "access_policy": {
                 "mode": "selectors",
                 "selectors": [
-                    {"kind": "agent", "ids": [agent["id"]]},
+                    {"kind": "access_token", "ids": [runtime_token["id"]]},
                 ],
             },
         },
@@ -177,12 +183,12 @@ def test_proxy_invocation_allows_agent_selector_matches(mock_post, client, manag
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": f"Bearer {agent['api_key']}"},
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": f"Bearer {agent['api_key']}"},
+        headers={"Authorization": f"Bearer {runtime_token['api_key']}"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -191,25 +197,24 @@ def test_proxy_invocation_allows_agent_selector_matches(mock_post, client, manag
 
 
 @patch("app.services.adapters.generic_http.GenericHttpAdapter._request")
-def test_proxy_invocation_allows_token_label_selector_matches(mock_post, client, management_client):
+def test_proxy_invocation_allows_access_token_label_selector_matches(
+    mock_post,
+    client,
+    management_client,
+):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"result": "ok"}
     mock_response.raise_for_status = MagicMock()
     mock_post.return_value = mock_response
 
-    agent = management_client.post(
-        "/api/agents",
-        json={
-            "name": "Label Runtime Agent",
-            "risk_tier": "medium",
-            "allowed_task_types": ["prompt_run"],
-        },
-    ).json()
     runtime_token = management_client.post(
-        f"/api/agents/{agent['id']}/tokens",
+        "/api/access-tokens",
         json={
             "display_name": "Prod runtime token",
+            "subject_type": "automation",
+            "subject_id": "test-agent",
+            "scopes": ["runtime"],
             "labels": {"environment": "prod"},
         },
     ).json()
@@ -234,7 +239,7 @@ def test_proxy_invocation_allows_token_label_selector_matches(mock_post, client,
             "access_policy": {
                 "mode": "selectors",
                 "selectors": [
-                    {"kind": "token_label", "key": "environment", "values": ["prod"]},
+                    {"kind": "access_token_label", "key": "environment", "values": ["prod"]},
                 ],
             },
         },
@@ -311,12 +316,12 @@ def test_proxy_invocation_uses_runtime_settings_for_secret_backend(mock_post, cl
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -380,12 +385,12 @@ def test_proxy_invocation_uses_runtime_settings_for_coordination_lock(
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -446,12 +451,12 @@ def test_proxy_invocation_returns_503_when_coordination_is_unavailable(
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -500,12 +505,12 @@ def test_proxy_invocation_still_returns_success_when_audit_write_fails(mock_post
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -554,12 +559,12 @@ def test_proxy_invocation_requires_manual_approval_returns_409(
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -627,12 +632,12 @@ def test_policy_rule_requires_manual_approval_even_when_approval_modes_are_auto(
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -697,12 +702,12 @@ def test_policy_rule_can_deny_invoke_without_creating_approval(
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -751,12 +756,12 @@ def test_approved_request_past_expiry_is_blocked_again(mock_post, client, manage
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
 
     pending_response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -771,7 +776,7 @@ def test_approved_request_past_expiry_is_blocked_again(mock_post, client, manage
 
     approved_response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
     assert approved_response.status_code == 200
@@ -784,7 +789,7 @@ def test_approved_request_past_expiry_is_blocked_again(mock_post, client, manage
 
     expired_response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -836,18 +841,18 @@ def test_completed_task_cannot_request_new_approval_or_invoke(
     ).json()
     client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     completed = client.post(
         f"/api/tasks/{task['id']}/complete",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"result_summary": "done", "output_payload": {"ok": True}},
     )
     assert completed.status_code == 200
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 

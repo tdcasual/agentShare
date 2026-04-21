@@ -8,10 +8,9 @@ import TokensPage from './page';
 const t = translateMessage;
 
 const useManagementSessionGateMock = vi.fn();
-const useAgentsWithTokensMock = vi.fn();
-const useCreateAgentMock = vi.fn();
-const useCreateAgentTokenMock = vi.fn();
-const useRevokeAgentTokenMock = vi.fn();
+const useAccessTokensMock = vi.fn();
+const useCreateAccessTokenMock = vi.fn();
+const useRevokeAccessTokenMock = vi.fn();
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
@@ -29,11 +28,9 @@ vi.mock('@/lib/session', () => ({
 }));
 
 vi.mock('@/domains/identity', () => ({
-  useAgents: vi.fn(),
-  useAgentsWithTokens: () => useAgentsWithTokensMock(),
-  useCreateAgent: () => useCreateAgentMock(),
-  useCreateAgentToken: () => useCreateAgentTokenMock(),
-  useRevokeAgentToken: () => useRevokeAgentTokenMock(),
+  useAccessTokens: () => useAccessTokensMock(),
+  useCreateAccessToken: () => useCreateAccessTokenMock(),
+  useRevokeAccessToken: () => useRevokeAccessTokenMock(),
 }));
 
 describe('tokens page', () => {
@@ -49,27 +46,21 @@ describe('tokens page', () => {
       error: null,
     });
 
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [
-        {
-          id: 'bootstrap',
-          name: 'Bootstrap Credential',
-          risk_tier: 'high',
-          auth_method: 'api_key',
-          status: 'active',
-        },
-      ],
-      tokensByAgent: {
-        bootstrap: [
+    useAccessTokensMock.mockReturnValue({
+      data: {
+        items: [
           {
             id: 'token-1',
             tokenPrefix: 'cp_tok_123',
             displayName: 'Primary Token',
             status: 'active',
+            subjectType: 'automation',
+            subjectId: 'github-actions',
             trustScore: 0.8,
             successRate: 1,
             scopes: ['runtime'],
             labels: {},
+            policy: {},
             completedRuns: 3,
             successfulRuns: 3,
             issuedByActorId: 'human-owner',
@@ -81,10 +72,13 @@ describe('tokens page', () => {
             tokenPrefix: 'cp_tok_456',
             displayName: 'Risk Scan Token',
             status: 'active',
+            subjectType: 'automation',
+            subjectId: 'risk-worker',
             trustScore: 0.45,
             successRate: 0.5,
             scopes: ['runtime'],
             labels: { pool: 'risk' },
+            policy: {},
             completedRuns: 2,
             successfulRuns: 1,
             issuedByActorId: 'human-owner',
@@ -98,17 +92,16 @@ describe('tokens page', () => {
       mutate: vi.fn().mockResolvedValue(undefined),
     });
 
-    useCreateAgentMock.mockReturnValue(vi.fn());
-    useCreateAgentTokenMock.mockReturnValue(vi.fn());
-    useRevokeAgentTokenMock.mockReturnValue(vi.fn());
+    useCreateAccessTokenMock.mockReturnValue(vi.fn());
+    useRevokeAccessTokenMock.mockReturnValue(vi.fn());
   });
 
   it('shows a relogin recovery state when refresh hits an expired session', async () => {
     const user = userEvent.setup();
     const mutateMock = vi.fn().mockRejectedValue(new ApiError(401, 'Missing management session'));
 
-    useAgentsWithTokensMock.mockReturnValue({
-      ...useAgentsWithTokensMock(),
+    useAccessTokensMock.mockReturnValue({
+      ...useAccessTokensMock(),
       mutate: mutateMock,
     });
 
@@ -127,8 +120,8 @@ describe('tokens page', () => {
   });
 
   it('shows a relogin recovery state when token queries return unauthorized', () => {
-    useAgentsWithTokensMock.mockReturnValue({
-      ...useAgentsWithTokensMock(),
+    useAccessTokensMock.mockReturnValue({
+      ...useAccessTokensMock(),
       error: new ApiError(401, 'Missing management session'),
     });
 
@@ -142,8 +135,8 @@ describe('tokens page', () => {
   });
 
   it('shows a forbidden-specific state when token queries return forbidden', () => {
-    useAgentsWithTokensMock.mockReturnValue({
-      ...useAgentsWithTokensMock(),
+    useAccessTokensMock.mockReturnValue({
+      ...useAccessTokensMock(),
       error: new ApiError(403, 'Forbidden'),
     });
 
@@ -152,40 +145,33 @@ describe('tokens page', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(t('tokens.sessionForbidden'));
   });
 
-  it('shows a relogin recovery state when creating an agent hits an expired session', async () => {
-    const user = userEvent.setup();
-    const createAgentMock = vi
-      .fn()
-      .mockRejectedValue(new ApiError(401, 'Missing management session'));
-    useCreateAgentMock.mockReturnValue(createAgentMock);
-
+  it('renders standalone access tokens without agent grouping', () => {
     render(<TokensPage />);
 
-    await user.click(screen.getAllByRole('button', { name: t('tokens.actions.createAgent') })[0]);
-    await user.type(
-      screen.getByPlaceholderText(t('tokens.form.agentNamePlaceholder')),
-      'Deploy Bot'
-    );
-    await user.click(screen.getAllByRole('button', { name: t('tokens.actions.createAgent') })[1]);
-
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(t('tokens.sessionExpired'));
-    });
+    expect(
+      screen.queryByRole('button', { name: t('tokens.actions.createAgent') })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: t('tokens.actions.issueAccessToken') })
+    ).toBeInTheDocument();
   });
 
   it('shows a forbidden-specific state when minting a token loses permission', async () => {
     const user = userEvent.setup();
     const createTokenMock = vi.fn().mockRejectedValue(new ApiError(403, 'Forbidden'));
-    useCreateAgentTokenMock.mockReturnValue(createTokenMock);
+    useCreateAccessTokenMock.mockReturnValue(createTokenMock);
 
     render(<TokensPage />);
 
-    await user.click(screen.getByRole('button', { name: t('tokens.actions.mintToken') }));
+    await user.click(screen.getByRole('button', { name: t('tokens.actions.issueAccessToken') }));
     await user.type(
       screen.getByPlaceholderText(t('tokens.form.displayNamePlaceholder')),
       'Staging Worker'
     );
-    await user.click(screen.getAllByRole('button', { name: t('tokens.actions.mintToken') })[1]);
+    await user.type(screen.getByPlaceholderText(t('tokens.form.subjectIdPlaceholder')), 'staging-worker');
+    await user.click(
+      screen.getAllByRole('button', { name: t('tokens.actions.issueAccessToken') })[1]
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('tokens.sessionForbidden'));
@@ -194,10 +180,10 @@ describe('tokens page', () => {
 
   it('shows a relogin recovery state when revoking a token hits an expired session', async () => {
     const user = userEvent.setup();
-    const revokeAgentTokenMock = vi
+    const revokeAccessTokenMock = vi
       .fn()
       .mockRejectedValue(new ApiError(401, 'Missing management session'));
-    useRevokeAgentTokenMock.mockReturnValue(revokeAgentTokenMock);
+    useRevokeAccessTokenMock.mockReturnValue(revokeAccessTokenMock);
 
     render(<TokensPage />);
 
@@ -216,10 +202,10 @@ describe('tokens page', () => {
     expect(
       screen.getByRole('heading', { name: t('tokens.remoteAccessSupervision') })
     ).toBeInTheDocument();
-    expect(screen.getByText(t('tokens.remoteAccessSupervisionDesc'))).toBeInTheDocument();
+    expect(screen.getAllByText(t('tokens.remoteAccessSupervisionDesc')).length).toBeGreaterThan(0);
 
     expect(
-      screen.getByText(t('tokens.badge.needsFeedback', { count: 1, suffix: '', verbSuffix: 's' }))
+      screen.getByText(t('tokens.badge.needsFeedback', { count: 1, suffix: '', verbSuffix: '' }))
     ).toBeInTheDocument();
     expect(
       screen.getByText(t('tokens.badge.lowTrust', { count: 1, suffix: '' }))
@@ -248,7 +234,7 @@ describe('tokens page', () => {
     expect(
       screen.getByRole('heading', { name: t('tokens.remoteAccessSupervision') })
     ).toBeInTheDocument();
-    expect(screen.getByText(t('tokens.remoteAccessSupervisionDesc'))).toBeInTheDocument();
+    expect(screen.getAllByText(t('tokens.remoteAccessSupervisionDesc')).length).toBeGreaterThan(0);
     expect(
       screen.queryByText(/Creating an agent automatically mints its primary token/i)
     ).not.toBeInTheDocument();

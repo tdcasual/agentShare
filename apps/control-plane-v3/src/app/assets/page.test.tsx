@@ -9,7 +9,8 @@ const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
 const useManagementSessionGateMock = vi.fn();
-const useAgentsWithTokensMock = vi.fn();
+const useOpenClawAgentsMock = vi.fn();
+const useAccessTokensMock = vi.fn();
 const useSecretsMock = vi.fn();
 const useCapabilitiesMock = vi.fn();
 const useCreateSecretMock = vi.fn();
@@ -35,7 +36,8 @@ vi.mock('@/lib/session', () => ({
 }));
 
 vi.mock('@/domains/identity', () => ({
-  useAgentsWithTokens: () => useAgentsWithTokensMock(),
+  useOpenClawAgents: () => useOpenClawAgentsMock(),
+  useAccessTokens: () => useAccessTokensMock(),
 }));
 
 vi.mock('@/domains/governance', async () => {
@@ -64,21 +66,53 @@ describe('assets page', () => {
       error: null,
     });
 
-    useAgentsWithTokensMock.mockReturnValue({
-      agents: [
-        {
-          id: 'agent-1',
-          name: 'Bootstrap Credential',
-          status: 'active',
-        },
-      ],
-      tokensByAgent: {
-        'agent-1': [
+    useOpenClawAgentsMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'agent-1',
+            name: 'Bootstrap Credential',
+            status: 'active',
+            auth_method: 'openclaw_session',
+            risk_tier: 'high',
+            workspace_root: '/srv/openclaw/bootstrap',
+            agent_dir: '.openclaw/agents/bootstrap',
+            model: 'gpt-5',
+            thinking_level: 'high',
+            sandbox_mode: 'workspace-write',
+            dream_policy: {
+              enabled: true,
+              max_steps_per_run: 4,
+              max_followup_tasks: 1,
+              allow_task_proposal: true,
+              allow_memory_write: true,
+              max_context_tokens: 4096,
+            },
+            tools_policy: {},
+            skills_policy: {},
+            allowed_task_types: [],
+            allowed_capability_ids: [],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+      mutate: vi.fn().mockResolvedValue(undefined),
+    });
+
+    useAccessTokensMock.mockReturnValue({
+      data: {
+        items: [
           {
             id: 'token-1',
-            display_name: 'Primary Token',
+            displayName: 'Primary Token',
+            tokenPrefix: 'cp_tok_123',
+            subjectType: 'openclaw_agent',
+            subjectId: 'agent-1',
             status: 'active',
             labels: {},
+            scopes: [],
+            policy: {},
           },
         ],
       },
@@ -148,7 +182,7 @@ describe('assets page', () => {
             publication_status: 'pending_review',
             access_policy: {
               mode: 'selectors',
-              selectors: [{ kind: 'agent', ids: ['agent-1'] }],
+              selectors: [{ kind: 'access_token', ids: ['token-1'] }],
             },
           },
           {
@@ -162,7 +196,7 @@ describe('assets page', () => {
             required_provider_scopes: ['messages.read'],
             publication_status: 'active',
             access_policy: {
-              mode: 'all_tokens',
+              mode: 'all_access_tokens',
             },
           },
         ],
@@ -313,12 +347,13 @@ describe('assets page', () => {
     await user.click(screen.getByRole('button', { name: t('assets.newCapability') }));
 
     const dialog = screen.getByRole('dialog');
-    await user.click(within(dialog).getByRole('button', { name: t('assets.capabilities.specificTokens') }));
+    await user.click(
+      within(dialog).getByRole('button', { name: t('assets.capabilities.specificTokens') })
+    );
     expect(within(dialog).getByText('Bootstrap Credential · Active')).toBeInTheDocument();
     expect(within(dialog).queryByText(/· active$/)).not.toBeInTheDocument();
-
-    await user.click(within(dialog).getByRole('button', { name: t('assets.capabilities.specificAgents') }));
-    expect(within(dialog).getByText('agent-1 · Active')).toBeInTheDocument();
-    expect(within(dialog).queryByText(/· active$/)).not.toBeInTheDocument();
+    expect(
+      within(dialog).getByRole('button', { name: t('assets.capabilities.byTokenLabel') })
+    ).toBeInTheDocument();
   });
 });

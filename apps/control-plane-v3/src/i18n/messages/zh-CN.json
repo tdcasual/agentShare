@@ -40,8 +40,8 @@
     "capabilities": {
       "access": "能力访问",
       "accessPolicy": "可见范围",
-      "accessPolicyDesc": "选择哪些外部远程接入 token 可以看到此 capability。默认对所有 token 开放，也可以收敛到指定 token、指定 agent 或标签选择器。",
-      "agentRequiredError": "选择指定 agent 时，至少需要勾选一个 agent。",
+      "accessPolicyDesc": "选择哪些远程接入凭证可以看到此 capability。默认对全部访问令牌开放，也可以收敛到指定访问令牌或标签选择器。",
+      "agentRequiredError": "选择主体范围时，至少需要勾选一个主体。",
       "allTokens": "所有 token",
       "allowedMode": "调用模式",
       "bindSecret": "绑定密钥",
@@ -72,15 +72,15 @@
       "tokenAccess": "可见范围",
       "tokenRequiredError": "选择指定 token 时，至少需要勾选一个 token。",
       "specificTokens": "指定 token",
-      "specificAgents": "指定 agent",
+      "specificAgents": "指定主体",
       "byTokenLabel": "按 token 标签",
-      "noAgentsAvailable": "还没有可选 agent，请先创建 agent。",
+      "noAgentsAvailable": "暂时没有可用主体。",
       "labelKey": "标签键",
       "selectLabelKey": "选择一个 token 标签键",
       "noLabelsAvailable": "当前 token 还没有标签，无法按标签限制。",
       "selectLabelKeyFirst": "先选择一个标签键，再勾选允许的值。",
       "createFailed": "创建 capability 失败",
-      "accessPolicyAgent": "智能体：{items}",
+      "accessPolicyAgent": "主体：{items}",
       "accessPolicyLabel": "标签：{key} = {values}",
       "accessPolicyToken": "令牌：{items}"
     },
@@ -1178,14 +1178,16 @@
     "form": {
       "broadcast": "广播",
       "broadcastDesc": "在发布时快照所有活跃的远程访问令牌。",
-      "explicitTokens": "显式令牌",
-      "explicitTokensDesc": "仅发送到选定的远程访问令牌。",
+      "explicitTokens": "显式访问令牌",
+      "explicitTokensDesc": "仅发送到选定的访问令牌。",
       "inputPayload": "输入负载 (JSON)",
       "noTokensAvailable": "暂无可用的受管理远程访问令牌。请先从远程访问页面创建一个。",
       "priority": "优先级",
       "score": "评分",
       "summary": "摘要",
       "summaryPlaceholder": "指出哪些方面做得好、哪些需要改进，以及该令牌是否应被信任处理类似工作。",
+      "targetAccessTokens": "访问令牌",
+      "targetAccessTokensDescription": "选择一个或多个受管理的访问令牌。",
       "targetMode": "目标模式",
       "targetModeDescription": "显式目标让您可以直接按远程令牌查看完成情况。",
       "targetTokens": "目标令牌",
@@ -1214,6 +1216,7 @@
       "publishedTasks": "已发布任务",
       "targetedTokens": "已定向令牌"
     },
+    "noAccessTokenTargets": "无访问令牌目标",
     "noFeedback": "暂无反馈",
     "noTokenTargets": "无目标令牌",
     "notClaimed": "当前未被认领",
@@ -1258,13 +1261,14 @@
       "pending": "待处理",
       "running": "运行中"
     },
+    "targetAccessTokens": "访问令牌",
     "targetTokens": "目标令牌",
     "targetMetaLine": "智能体 {agentId} • 目标 {targetId}",
     "targetsCompleted": "已完成目标",
     "targetsCompletedLine": "{completed}/{total} 个目标已完成",
     "taskMetaLine": "{taskType} • {taskId}",
     "title": "任务编排",
-    "tokenTargetedDelivery": "令牌定向交付",
+    "tokenTargetedDelivery": "访问令牌定向交付",
     "tokenTrust": "令牌信任度",
     "unknown": "未知",
     "viaToken": "通过令牌",
@@ -1279,24 +1283,27 @@
   "tokens": {
     "actions": {
       "createAgent": "注册远程智能体",
+      "copySecret": "复制访问令牌",
+      "issueAccessToken": "签发访问令牌",
       "mintToken": "签发访问令牌",
       "refresh": "刷新",
       "revoke": "撤销"
     },
     "agent": {
       "authMethod": "认证方式",
-      "createFirst": "从此控制台注册第一个远程智能体档案及其主访问令牌。",
-      "noAgents": "还没有远程智能体",
-      "noTokens": "此远程智能体还没有活跃的访问令牌。",
+      "createFirst": "从此控制台签发第一个远程访问令牌。",
+      "noAgents": "还没有远程访问主体",
+      "noTokens": "此远程主体还没有活跃的访问令牌。",
       "riskBadge": "{tier} 风险",
       "riskTier": "风险等级"
     },
-    "description": "为远程智能体注册接入档案并签发访问令牌，让外部机器和项目外 agent 能够获取项目信息、发布交付物并参与协作流程。",
+    "description": "为外部机器和项目外调用方签发独立访问令牌，使其能够获取项目信息、发布交付物并参与协作流程。",
     "errors": {
       "clipboardBlocked": "剪贴板访问被阻止。请手动从展示卡片中复制访问令牌。",
       "loadDataFailed": "加载数据失败",
+      "loadFailed": "加载访问令牌失败",
       "mintTokenFailed": "签发访问令牌失败",
-      "noAgentSelected": "请先选择远程智能体档案再签发令牌",
+      "noAgentSelected": "请先选择远程主体再签发令牌",
       "refreshFailed": "刷新远程接入令牌失败",
       "registerAgentFailed": "注册远程智能体失败",
       "revokeTokenFailed": "撤销访问令牌失败"
@@ -1310,24 +1317,40 @@
       "displayName": "显示名称",
       "displayNamePlaceholder": "Staging worker token",
       "expiresAt": "过期时间",
+      "issueDescription": "供远程调用方使用的独立凭证",
       "labels": "标签",
       "labelsHelper": "使用逗号分隔的 key=value 标签。",
       "labelsPlaceholder": "environment=staging, pool=blue",
       "scopes": "权限范围",
       "scopesHelper": "使用逗号分隔的权限标签。",
-      "scopesPlaceholder": "runtime"
+      "scopesPlaceholder": "runtime",
+      "subjectId": "主体 ID",
+      "subjectIdPlaceholder": "github-actions",
+      "subjectType": "主体类型"
     },
     "labels": {
-      "id": "ID"
+      "id": "ID",
+      "issuedBy": "签发者",
+      "lastUsedAt": "最后使用",
+      "scopes": "权限范围",
+      "tokenPrefix": "令牌前缀"
     },
     "metrics": {
       "activeAgents": "远程智能体",
       "activeTokens": "活跃访问令牌",
       "averageTrust": "平均信任分",
+      "feedbackCoverage": "反馈覆盖",
+      "needsFeedback": "待反馈",
       "averageTrustHint": "反馈",
       "tokensWithFeedback": "有反馈的令牌",
       "tokensWithFeedbackHint": "已审核",
       "totalHint": "总计 {count}"
+    },
+    "hints": {
+      "activeTokens": "当前活跃的远程凭证",
+      "averageTrust": "所有令牌的平均信任分",
+      "feedbackCoverage": "至少有一条反馈记录的令牌",
+      "needsFeedback": "仍等待人工审核的令牌"
     },
     "riskTiers": {
       "critical": "严重",
@@ -1336,12 +1359,12 @@
       "medium": "中"
     },
     "sessionExpired": "您的管理会话已过期。请重新登录以继续使用实时远程接入数据。",
-    "sessionForbidden": "您没有权限管理远程智能体和访问令牌。请使用管理员会话继续。",
+    "sessionForbidden": "您没有权限管理远程访问凭证。请使用管理员会话继续。",
     "status": {
       "revoked": "已撤销"
     },
     "subtitle": "供外部智能体使用的远程接入",
-    "title": "远程智能体接入",
+    "title": "远程访问令牌",
     "token": {
       "completedRuns": "已完成运行",
       "copyToken": "复制访问令牌",
@@ -1357,12 +1380,24 @@
     "values": {
       "notYet": "尚无"
     },
+    "empty": {
+      "title": "尚未签发任何访问令牌",
+      "description": "签发第一个独立访问令牌，开始监管远程调用方。"
+    },
+    "loading": "正在加载访问令牌清单...",
+    "neverUsed": "从未使用",
+    "noFeedback": "暂无反馈",
+    "none": "无",
+    "secretModal": {
+      "title": "新建访问令牌"
+    },
+    "unknownIssuer": "未知签发者",
     "remoteAccessSupervision": "远程访问监管",
     "remoteAccessSupervisionDesc": "当外部机器和项目外智能体使用的访问令牌仍需要反馈或低于信任阈值时，人工操作员可以快速将其隔离。",
     "operator": "操作员",
-    "loadingAgents": "正在加载远程智能体和访问令牌...",
-    "createAgentModalDesc": "注册一个远程智能体配置文件并铸造其第一个访问令牌。",
-    "createTokenModalDesc": "为现有的远程智能体配置文件发行另一个访问令牌。",
+    "loadingAgents": "正在加载远程主体和访问令牌...",
+    "createAgentModalDesc": "注册一个远程主体并签发其第一个访问令牌。",
+    "createTokenModalDesc": "为现有远程主体再签发一个访问令牌。",
     "riskTier": "风险等级",
     "remoteAgent": "远程智能体",
     "selectRemoteAgent": "选择一个远程智能体",

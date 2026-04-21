@@ -4,14 +4,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import ConflictError, NotFoundError
-from app.orm.token_feedback import TokenFeedbackModel
+from app.orm.access_token_feedback import AccessTokenFeedbackModel
+from app.repositories.access_token_feedback_repo import AccessTokenFeedbackRepository
 from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.task_target_repo import TaskTargetRepository
-from app.repositories.token_feedback_repo import TokenFeedbackRepository
 from app.services.identifiers import new_resource_id
 
 
-def create_token_feedback(
+def create_access_token_feedback(
     session: Session,
     *,
     task_target_id: str,
@@ -26,16 +26,16 @@ def create_token_feedback(
         raise NotFoundError("Task target not found")
     if target.status != "completed" or not target.last_run_id:
         raise ConflictError("Task target is not ready for feedback")
-    if TokenFeedbackRepository(session).get_by_task_target(task_target_id) is not None:
+    if AccessTokenFeedbackRepository(session).get_by_task_target(task_target_id) is not None:
         raise ConflictError("Feedback already exists for this task target")
 
-    token = AccessTokenRepository(session).get(target.target_token_id)
+    token = AccessTokenRepository(session).get(target.target_access_token_id)
     if token is None:
         raise NotFoundError("Access token not found")
 
-    model = TokenFeedbackModel(
+    model = AccessTokenFeedbackModel(
         id=new_resource_id("feedback"),
-        token_id=target.target_token_id,
+        access_token_id=target.target_access_token_id,
         task_target_id=task_target_id,
         run_id=target.last_run_id,
         source="human_review",
@@ -46,28 +46,31 @@ def create_token_feedback(
         created_by_actor_id=created_by_actor_id,
     )
     try:
-        TokenFeedbackRepository(session).create(model)
+        AccessTokenFeedbackRepository(session).create(model)
     except IntegrityError as exc:
         raise ConflictError("Feedback already exists for this task target") from exc
-    _recompute_token_aggregates(session, token.id)
-    return serialize_token_feedback(model)
+    _recompute_access_token_aggregates(session, token.id)
+    return serialize_access_token_feedback(model)
 
 
-def list_token_feedback(session: Session, token_id: str) -> list[dict]:
-    return [serialize_token_feedback(model) for model in TokenFeedbackRepository(session).list_by_token(token_id)]
+def list_access_token_feedback(session: Session, token_id: str) -> list[dict]:
+    return [
+        serialize_access_token_feedback(model)
+        for model in AccessTokenFeedbackRepository(session).list_by_access_token(token_id)
+    ]
 
 
-def list_token_feedback_bulk(session: Session, token_ids: list[str]) -> dict[str, list[dict]]:
-    grouped: dict[str, list[dict]] = {token_id: [] for token_id in token_ids}
-    for model in TokenFeedbackRepository(session).list_by_tokens(token_ids):
-        grouped.setdefault(model.token_id, []).append(serialize_token_feedback(model))
+def list_access_token_feedback_bulk(session: Session, access_token_ids: list[str]) -> dict[str, list[dict]]:
+    grouped: dict[str, list[dict]] = {access_token_id: [] for access_token_id in access_token_ids}
+    for model in AccessTokenFeedbackRepository(session).list_by_access_tokens(access_token_ids):
+        grouped.setdefault(model.access_token_id, []).append(serialize_access_token_feedback(model))
     return grouped
 
 
-def serialize_token_feedback(model: TokenFeedbackModel) -> dict:
+def serialize_access_token_feedback(model: AccessTokenFeedbackModel) -> dict:
     return {
         "id": model.id,
-        "token_id": model.token_id,
+        "access_token_id": model.access_token_id,
         "task_target_id": model.task_target_id,
         "run_id": model.run_id,
         "source": model.source,
@@ -80,18 +83,18 @@ def serialize_token_feedback(model: TokenFeedbackModel) -> dict:
     }
 
 
-def _recompute_token_aggregates(session: Session, token_id: str) -> None:
+def _recompute_access_token_aggregates(session: Session, access_token_id: str) -> None:
     token_repo = AccessTokenRepository(session)
-    feedback_repo = TokenFeedbackRepository(session)
+    feedback_repo = AccessTokenFeedbackRepository(session)
     target_repo = TaskTargetRepository(session)
-    token = token_repo.get(token_id)
+    token = token_repo.get(access_token_id)
     if token is None:
         raise NotFoundError("Access token not found")
 
-    feedback = feedback_repo.list_by_token(token_id)
+    feedback = feedback_repo.list_by_access_token(access_token_id)
     completed_targets = [
         target
-        for target in target_repo.list_assigned(token_id)
+        for target in target_repo.list_assigned(access_token_id)
         if target.status == "completed"
     ]
 

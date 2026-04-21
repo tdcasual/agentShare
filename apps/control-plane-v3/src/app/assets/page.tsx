@@ -25,7 +25,7 @@ import { Input } from '@/shared/ui-primitives/input';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
 import { cn } from '@/lib/utils';
-import { translateAccountRole, translateAgentStatus, translateTokenStatus } from '@/lib/enum-labels';
+import { translateAccountRole, translateTokenStatus } from '@/lib/enum-labels';
 import { useAssetsPage } from './use-assets-page';
 import { useAssetsForm } from './use-assets-form';
 
@@ -496,7 +496,6 @@ function CapabilitiesPanel({
               capability={capability}
               focus={page.focus}
               tokenNameById={page.tokenNameById}
-              agentNameById={page.agentNameById}
               t={page.t}
             />
           ))
@@ -510,13 +509,11 @@ function CapabilityCard({
   capability,
   focus,
   tokenNameById,
-  agentNameById,
   t,
 }: {
   capability: GovernedCapability;
   focus: { resourceKind?: string; resourceId?: string };
   tokenNameById: Record<string, string>;
-  agentNameById: Record<string, string>;
   t: (key: string, values?: Record<string, string | number>) => string;
 }) {
   const governanceStatus = deriveGovernanceStatus(capability);
@@ -557,8 +554,12 @@ function CapabilityCard({
           <Badge variant={statusVariant(governanceStatus)}>
             {t(governanceStatusTranslationKey(governanceStatus))}
           </Badge>
-          <Badge variant={capability.access_policy.mode === 'all_tokens' ? 'success' : 'warning'}>
-            {capability.access_policy.mode === 'all_tokens'
+          <Badge
+            variant={
+              capability.access_policy.mode === 'all_access_tokens' ? 'success' : 'warning'
+            }
+          >
+            {capability.access_policy.mode === 'all_access_tokens'
               ? t('assets.capabilities.allTokens')
               : t('assets.capabilities.scopedAccess')}
           </Badge>
@@ -579,7 +580,7 @@ function CapabilityCard({
         />
         <InfoBlock
           label={t('assets.capabilities.tokenAccess')}
-          value={formatAccessPolicy(capability, tokenNameById, agentNameById, t)}
+          value={formatAccessPolicy(capability, tokenNameById, t)}
         />
       </div>
     </Card>
@@ -814,32 +815,26 @@ function CapabilityModal({
 
             <div className="flex flex-wrap gap-3">
               <PolicyButton
-                value="all_tokens"
-                active={form.capabilityForm.access_mode === 'all_tokens'}
+                value="all_access_tokens"
+                active={form.capabilityForm.access_mode === 'all_access_tokens'}
                 onSelect={form.setAccessMode}
                 label={form.t('assets.capabilities.allTokens')}
               />
               <PolicyButton
-                value="specific_tokens"
-                active={form.capabilityForm.access_mode === 'specific_tokens'}
+                value="specific_access_tokens"
+                active={form.capabilityForm.access_mode === 'specific_access_tokens'}
                 onSelect={form.setAccessMode}
                 label={form.t('assets.capabilities.specificTokens')}
               />
               <PolicyButton
-                value="specific_agents"
-                active={form.capabilityForm.access_mode === 'specific_agents'}
-                onSelect={form.setAccessMode}
-                label={form.t('assets.capabilities.specificAgents')}
-              />
-              <PolicyButton
-                value="token_label"
-                active={form.capabilityForm.access_mode === 'token_label'}
+                value="access_token_label"
+                active={form.capabilityForm.access_mode === 'access_token_label'}
                 onSelect={form.setAccessMode}
                 label={form.t('assets.capabilities.byTokenLabel')}
               />
             </div>
 
-            {form.capabilityForm.access_mode === 'specific_tokens' ? (
+            {form.capabilityForm.access_mode === 'specific_access_tokens' ? (
               <div className="grid gap-3 md:grid-cols-2">
                 {page.allTokens.length === 0 ? (
                   <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -850,34 +845,15 @@ function CapabilityModal({
                     <CapabilityTokenCheckbox
                       key={token.id}
                       token={token}
-                      checked={form.capabilityForm.token_ids.includes(token.id)}
-                      onToggle={form.toggleCapabilityToken}
+                      checked={form.capabilityForm.access_token_ids.includes(token.id)}
+                      onToggle={form.toggleCapabilityAccessToken}
                     />
                   ))
                 )}
               </div>
             ) : null}
 
-            {form.capabilityForm.access_mode === 'specific_agents' ? (
-              <div className="grid gap-3 md:grid-cols-2">
-                {page.agents.length === 0 ? (
-                  <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                    {form.t('assets.capabilities.noAgentsAvailable')}
-                  </p>
-                ) : (
-                  page.agents.map((agent) => (
-                    <CapabilityAgentCheckbox
-                      key={agent.id}
-                      agent={agent}
-                      checked={form.capabilityForm.agent_ids.includes(agent.id)}
-                      onToggle={form.toggleCapabilityAgent}
-                    />
-                  ))
-                )}
-              </div>
-            ) : null}
-
-            {form.capabilityForm.access_mode === 'token_label' ? (
+            {form.capabilityForm.access_mode === 'access_token_label' ? (
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label
@@ -1040,38 +1016,6 @@ function CapabilityTokenCheckbox({
   );
 }
 
-function CapabilityAgentCheckbox({
-  agent,
-  checked,
-  onToggle,
-}: {
-  agent: { id: string; name: string; status: string };
-  checked: boolean;
-  onToggle: (id: string) => void;
-}) {
-  const { t } = useI18n();
-  const handleChange = useCallback(() => {
-    onToggle(agent.id);
-  }, [onToggle, agent.id]);
-
-  return (
-    <label className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={handleChange}
-        className="mt-1 h-4 w-4 rounded border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] focus:ring-[var(--kw-primary-400)]"
-      />
-      <span className="space-y-1">
-        <span className="block font-medium">{agent.name}</span>
-        <span className="block text-xs text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {agent.id} · {translateAgentStatus(t, agent.status)}
-        </span>
-      </span>
-    </label>
-  );
-}
-
 function CapabilityLabelCheckbox({
   value,
   labelKey,
@@ -1130,26 +1074,18 @@ function statusVariant(status: string) {
 function formatAccessPolicy(
   capability: GovernedCapability,
   tokenNameById: Record<string, string>,
-  agentNameById: Record<string, string>,
   t: (key: string, values?: Record<string, string | number>) => string
 ) {
-  if (capability.access_policy.mode === 'all_tokens') {
+  if (capability.access_policy.mode === 'all_access_tokens') {
     return t('assets.capabilities.allTokens');
   }
 
   return capability.access_policy.selectors
     .map((selector) => {
-      if (selector.kind === 'token') {
+      if (selector.kind === 'access_token') {
         return t('assets.capabilities.accessPolicyToken', {
           items: (selector.ids ?? [])
             .map((tokenId) => tokenNameById[tokenId] ?? tokenId)
-            .join(', '),
-        });
-      }
-      if (selector.kind === 'agent') {
-        return t('assets.capabilities.accessPolicyAgent', {
-          items: (selector.ids ?? [])
-            .map((agentId) => agentNameById[agentId] ?? agentId)
             .join(', '),
         });
       }

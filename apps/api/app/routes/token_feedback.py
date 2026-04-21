@@ -5,34 +5,38 @@ from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_admin_management_session
 from app.db import get_db
-from app.schemas.token_feedback import (
-    TokenFeedbackBulkListResponse,
-    TokenFeedbackCreate,
-    TokenFeedbackListResponse,
-    TokenFeedbackResponse,
+from app.schemas.access_token_feedback import (
+    AccessTokenFeedbackBulkListResponse,
+    AccessTokenFeedbackCreate,
+    AccessTokenFeedbackListResponse,
+    AccessTokenFeedbackResponse,
 )
 from app.services.audit_service import write_audit_event
 from app.services.event_service import record_event
-from app.services.token_feedback_service import create_token_feedback, list_token_feedback, list_token_feedback_bulk
+from app.services.access_token_feedback_service import (
+    create_access_token_feedback,
+    list_access_token_feedback,
+    list_access_token_feedback_bulk,
+)
 
 router = APIRouter()
 
 
 @router.post(
     "/api/task-targets/{task_target_id}/feedback",
-    response_model=TokenFeedbackResponse,
+    response_model=AccessTokenFeedbackResponse,
     status_code=status.HTTP_201_CREATED,
     tags=["Management"],
     summary="Attach human feedback to a completed task target",
-    description="Record review feedback for a completed remote-token-targeted execution result and roll up token trust aggregates.",
+    description="Record review feedback for a completed access-token-targeted execution result and roll up access token trust aggregates.",
 )
-def create_token_feedback_route(
+def create_access_token_feedback_route(
     task_target_id: str,
-    payload: TokenFeedbackCreate,
+    payload: AccessTokenFeedbackCreate,
     manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
-    feedback = create_token_feedback(
+    feedback = create_access_token_feedback(
         session,
         task_target_id=task_target_id,
         score=payload.score,
@@ -52,15 +56,15 @@ def create_token_feedback_route(
         details=payload.summary,
         action_url="/tasks",
         metadata={
-            "token_id": feedback["token_id"],
+            "access_token_id": feedback["access_token_id"],
             "run_id": feedback["run_id"],
             "score": payload.score,
             "verdict": payload.verdict,
         },
     )
-    write_audit_event(session, "token_feedback_created", {
+    write_audit_event(session, "access_token_feedback_created", {
         "task_target_id": task_target_id,
-        "token_id": feedback["token_id"],
+        "access_token_id": feedback["access_token_id"],
         "run_id": feedback["run_id"],
         "actor_type": manager.actor_type,
         "actor_id": manager.id,
@@ -69,32 +73,32 @@ def create_token_feedback_route(
 
 
 @router.get(
-    "/api/token-feedback/bulk",
-    response_model=TokenFeedbackBulkListResponse,
+    "/api/access-token-feedback/bulk",
+    response_model=AccessTokenFeedbackBulkListResponse,
     tags=["Management"],
-    summary="List feedback in bulk",
-    description="Return feedback records grouped by token id for bulk dashboard views.",
+    summary="List access token feedback in bulk",
+    description="Return feedback records grouped by access token id for bulk dashboard views.",
 )
-def list_token_feedback_bulk_route(
-    token_id: list[str] = Query(default_factory=list),
+def list_access_token_feedback_bulk_route(
+    access_token_id: list[str] = Query(default_factory=list),
     manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     del manager
-    return {"items_by_token": list_token_feedback_bulk(session, token_id)}
+    return {"items_by_access_token": list_access_token_feedback_bulk(session, access_token_id)}
 
 
 @router.get(
-    "/api/agent-tokens/{token_id}/feedback",
-    response_model=TokenFeedbackListResponse,
+    "/api/access-tokens/{token_id}/feedback",
+    response_model=AccessTokenFeedbackListResponse,
     tags=["Management"],
-    summary="List feedback attached to a token",
-    description="Return feedback records associated with a managed remote-access token.",
+    summary="List feedback attached to a standalone access token",
+    description="Return feedback records associated with a managed standalone access token.",
 )
-def list_token_feedback_route(
+def list_access_token_feedback_route(
     token_id: str,
     manager: ManagementIdentity = Depends(require_admin_management_session),
     session: Session = Depends(get_db),
 ) -> dict:
     del manager
-    return {"items": list_token_feedback(session, token_id)}
+    return {"items": list_access_token_feedback(session, token_id)}

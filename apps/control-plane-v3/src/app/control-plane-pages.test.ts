@@ -15,18 +15,16 @@ describe('Control Plane Pages', () => {
   it('tokens page wires the managed token lifecycle', async () => {
     const source = await readRouteSource('tokens/page.tsx');
 
-    // 使用 SWR hooks 替代直接 API 调用
-    expect(source).toMatch(/useAgents/);
-    expect(source).toMatch(/useAgentsWithTokens/);
-    expect(source).toMatch(/useCreateAgentToken/);
-    expect(source).toMatch(/useRevokeAgentToken/);
+    expect(source).toMatch(/useAccessTokens/);
+    expect(source).toMatch(/useCreateAccessToken/);
+    expect(source).toMatch(/useRevokeAccessToken/);
   });
 
   it('tasks page publishes to tokens and records feedback per target', async () => {
     const source = await readRouteSource('tasks/page.tsx');
     const hookSource = await readRouteSource('tasks/use-tasks-page.ts');
 
-    expect(source).toMatch(/target_token_ids/);
+    expect(source).toMatch(/target_access_token_ids/);
     expect(hookSource).toMatch(/buildTaskTargets/);
     expect(source).toMatch(/useCreateTaskTargetFeedback/);
   });
@@ -63,7 +61,8 @@ describe('Control Plane Pages', () => {
 
     expect(source).toMatch(/useEvents/);
     expect(source).toMatch(/useAdminAccounts/);
-    expect(source).toMatch(/useAgentsWithTokens/);
+    expect(source).toMatch(/useOpenClawAgents/);
+    expect(source).toMatch(/useAccessTokens/);
     expect(source).toMatch(/useReviews/);
     expect(source).toMatch(/\/inbox/);
     expect(source).not.toMatch(/IdentityRegistryServiceId/);

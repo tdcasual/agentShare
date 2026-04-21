@@ -12,7 +12,6 @@ import { deriveGovernanceStatus, governanceStatusTranslationKey } from '@/domain
 import { useManagementSessionGate } from '@/lib/session';
 import {
   ManagementForbiddenAlert,
-  ManagementSessionExpiredAlert,
   ManagementSessionRecoveryNotice,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';

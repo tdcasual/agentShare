@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+from conftest import TEST_ACCESS_TOKEN_ID, TEST_ACCESS_TOKEN_KEY
+
 
 def _mcp_request(method: str, params: dict | None = None, request_id: int = 1) -> dict:
     payload = {
@@ -22,7 +24,7 @@ def test_mcp_requires_agent_bearer_auth(client):
 def test_mcp_initialize_and_list_tools(client):
     init_response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request("initialize"),
     )
 
@@ -33,12 +35,13 @@ def test_mcp_initialize_and_list_tools(client):
 
     tools_response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request("tools/list", request_id=2),
     )
 
     assert tools_response.status_code == 200
-    tool_names = {tool["name"] for tool in tools_response.json()["result"]["tools"]}
+    tools = tools_response.json()["result"]["tools"]
+    tool_names = {tool["name"] for tool in tools}
     assert {
         "tasks.list",
         "tasks.claim",
@@ -47,6 +50,7 @@ def test_mcp_initialize_and_list_tools(client):
         "capabilities.invoke",
         "capabilities.request_lease",
     }.issubset(tool_names)
+    assert all("legacyName" not in tool for tool in tools)
 
 
 def test_mcp_claim_complete_and_search_playbooks_tools(client, management_client):
@@ -70,11 +74,11 @@ def test_mcp_claim_complete_and_search_playbooks_tools(client, management_client
 
     search_response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request(
             "tools/call",
             {
-                "name": "search_playbooks",
+                "name": "playbooks.search",
                 "arguments": {"task_type": "config_sync", "q": "repo", "tag": "github"},
             },
             request_id=3,
@@ -88,10 +92,10 @@ def test_mcp_claim_complete_and_search_playbooks_tools(client, management_client
 
     claim_response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request(
             "tools/call",
-            {"name": "claim_task", "arguments": {"task_id": task["id"]}},
+            {"name": "tasks.claim", "arguments": {"task_id": task["id"]}},
             request_id=4,
         ),
     )
@@ -103,11 +107,11 @@ def test_mcp_claim_complete_and_search_playbooks_tools(client, management_client
 
     complete_response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request(
             "tools/call",
             {
-                "name": "complete_task",
+                "name": "tasks.complete",
                 "arguments": {
                     "task_id": task["id"],
                     "result_summary": "Sync complete",
@@ -126,24 +130,35 @@ def test_mcp_claim_complete_and_search_playbooks_tools(client, management_client
 
 def test_mcp_list_tasks_only_returns_tasks_visible_to_current_token(client, management_client):
     created_agent = management_client.post(
-        "/api/agents",
-        json={"name": "Other MCP Agent", "risk_tier": "medium"},
+        "/api/openclaw/agents",
+        json={
+            "name": "Other MCP Agent",
+            "workspace_root": "/srv/openclaw/other-mcp-agent",
+            "agent_dir": ".openclaw/agents/other-mcp-agent",
+            "model": "gpt-5.4",
+            "sandbox_mode": "workspace-write",
+        },
     )
     assert created_agent.status_code == 201, created_agent.text
 
-    minted = management_client.post(
-        f"/api/agents/{created_agent.json()['id']}/tokens",
-        json={"display_name": "Other MCP token"},
+    hidden_access_token = management_client.post(
+        "/api/access-tokens",
+        json={
+            "display_name": "Other MCP access token",
+            "subject_type": "openclaw_agent",
+            "subject_id": created_agent.json()["id"],
+            "scopes": ["runtime"],
+        },
     )
-    assert minted.status_code == 201, minted.text
+    assert hidden_access_token.status_code == 201, hidden_access_token.text
 
     visible = management_client.post(
         "/api/tasks",
         json={
             "title": "Visible MCP task",
             "task_type": "account_read",
-            "target_token_ids": ["token-test-agent"],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert visible.status_code == 201, visible.text
@@ -153,18 +168,18 @@ def test_mcp_list_tasks_only_returns_tasks_visible_to_current_token(client, mana
         json={
             "title": "Hidden MCP task",
             "task_type": "account_read",
-            "target_token_ids": [minted.json()["id"]],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [hidden_access_token.json()["id"]],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert hidden.status_code == 201, hidden.text
 
     response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request(
             "tools/call",
-            {"name": "list_tasks", "arguments": {}},
+            {"name": "tasks.list", "arguments": {}},
             request_id=7,
         ),
     )
@@ -227,17 +242,17 @@ def test_mcp_invoke_capability_returns_policy_block_with_runtime_semantics(
     ).json()
     claim_response = client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
     )
     assert claim_response.status_code == 200
 
     response = client.post(
         "/mcp",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN_KEY}"},
         json=_mcp_request(
             "tools/call",
             {
-                "name": "invoke_capability",
+                "name": "capabilities.invoke",
                 "arguments": {
                     "capability_id": capability["id"],
                     "task_id": task["id"],

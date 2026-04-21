@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from app.config import ManagementRole
 from app.repositories.catalog_release_repo import CatalogReleaseRepository
-from app.repositories.agent_repo import AgentRepository
 from app.repositories.capability_repo import CapabilityRepository
 from app.repositories.event_repo import EventRepository
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
@@ -33,18 +32,7 @@ def search_control_plane(session, query: str, *, role: ManagementRole, limit_per
         for release in CatalogReleaseRepository(session).list_filtered(release_status="published")
     }
 
-    legacy_agent_matches = [
-        {
-            "id": agent.id,
-            "kind": "agent",
-            "title": agent.name,
-            "subtitle": f"{agent.id} · {agent.status} · risk {agent.risk_tier}",
-            "href": build_identity_href(agent_id=agent.id),
-        }
-        for agent in AgentRepository(session).search(normalized_query, limit=limit_per_group)
-    ]
-
-    openclaw_agent_matches = [
+    agent_matches = [
         {
             "id": agent.id,
             "kind": "agent",
@@ -57,16 +45,6 @@ def search_control_plane(session, query: str, *, role: ManagementRole, limit_per
         }
         for agent in OpenClawAgentRepository(session).search(normalized_query, limit=limit_per_group)
     ]
-
-    seen_identity_ids: set[str] = set()
-    agent_matches = []
-    for item in [*openclaw_agent_matches, *legacy_agent_matches]:
-        if item["id"] in seen_identity_ids:
-            continue
-        seen_identity_ids.add(item["id"])
-        agent_matches.append(item)
-        if len(agent_matches) >= limit_per_group:
-            break
 
     task_matches = [
         {
@@ -145,10 +123,11 @@ def _build_resource_href(
     publication_status: str | None,
     release_backed_resources: set[tuple[str, str]],
 ) -> str:
+    del release_backed_resources
     if (
-        created_by_actor_type == "agent"
+        created_by_actor_type is not None
+        and created_by_actor_type != "human"
         and publication_status == "active"
-        and (resource_kind, resource_id) in release_backed_resources
     ):
         return build_marketplace_href(resource_kind, resource_id)
     return build_asset_href(resource_kind, resource_id)

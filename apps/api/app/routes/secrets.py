@@ -48,8 +48,9 @@ def create_secret(
     backend_ref: str | None = None
     external_secret_written = False
     publication_status = publication_status_for_actor(actor.actor_type)
+    is_runtime_actor = actor.actor_type != "human"
     try:
-        if actor.actor_type == "agent":
+        if is_runtime_actor:
             secret_id = new_pending_secret_id()
             backend_ref = build_pending_secret_ref(secret_id)
             stage_secret_material(session, secret_id=secret_id, secret_value=payload.value)
@@ -81,7 +82,7 @@ def create_secret(
         )
         repo = SecretRepository(session)
         repo.create(model)
-        if actor.actor_type == "agent":
+        if is_runtime_actor:
             response.status_code = status.HTTP_202_ACCEPTED
         write_audit_event(session, "secret_created", {
             "secret_id": secret_id,

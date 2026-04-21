@@ -3,11 +3,9 @@ from app.orm.secret import SecretModel
 from app.orm.capability import CapabilityModel
 from app.orm.catalog_release import CatalogReleaseModel
 from app.orm.access_token import AccessTokenModel
-from app.orm.agent import AgentIdentityModel
-from app.orm.agent_token import AgentTokenModel
+from app.orm.access_token_feedback import AccessTokenFeedbackModel
 from app.orm.task import TaskModel
 from app.orm.task_target import TaskTargetModel
-from app.orm.token_feedback import TokenFeedbackModel
 from app.orm.run import RunModel
 from app.orm.playbook import PlaybookModel
 from app.orm.pending_secret_material import PendingSecretMaterialModel
@@ -34,11 +32,9 @@ __all__ = [
     "CapabilityModel",
     "CatalogReleaseModel",
     "AccessTokenModel",
-    "AgentIdentityModel",
-    "AgentTokenModel",
+    "AccessTokenFeedbackModel",
     "TaskModel",
     "TaskTargetModel",
-    "TokenFeedbackModel",
     "RunModel",
     "PlaybookModel",
     "PendingSecretMaterialModel",

@@ -37,7 +37,7 @@ def _create_runnable_capability(management_client, client, *, allowed_mode: str 
     ).json()
     claim_response = client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert claim_response.status_code == 200
     return capability, task
@@ -50,7 +50,7 @@ def test_invoke_fails_closed_when_adapter_request_errors(mock_post, client, mana
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -67,7 +67,7 @@ def test_invoke_returns_bad_gateway_when_secret_backend_read_fails(mock_backend_
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -105,13 +105,13 @@ def test_invoke_returns_internal_error_for_unknown_adapter_type(client, manageme
     ).json()
     claim_response = client.post(
         f"/api/tasks/{task['id']}/claim",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
     )
     assert claim_response.status_code == 200
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -130,7 +130,7 @@ def test_invoke_treats_invalid_upstream_json_as_bad_gateway(mock_post, client, m
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/invoke",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "parameters": {"prompt": "hi"}},
     )
 
@@ -143,7 +143,7 @@ def test_lease_response_explicitly_marks_placeholder_metadata(client, management
 
     response = client.post(
         f"/api/capabilities/{capability['id']}/lease",
-        headers={"Authorization": "Bearer agent-test-token"},
+        headers={"Authorization": "Bearer access-test-token"},
         json={"task_id": task["id"], "purpose": "sdk call"},
     )
 

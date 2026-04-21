@@ -70,3 +70,31 @@ def revoke_access_token(session: Session, token_id: str) -> AccessTokenModel:
     if token is None:
         raise NotFoundError("Access token not found")
     return token
+
+
+def list_access_tokens(session: Session) -> list[AccessTokenModel]:
+    return AccessTokenRepository(session).list_all()
+
+
+def serialize_access_token(model: AccessTokenModel, *, api_key: str | None = None) -> dict:
+    return {
+        "id": model.id,
+        "display_name": model.display_name,
+        "token_prefix": model.token_prefix,
+        "status": model.status,
+        "subject_type": model.subject_type,
+        "subject_id": model.subject_id,
+        "expires_at": model.expires_at,
+        "issued_by_actor_type": model.issued_by_actor_type,
+        "issued_by_actor_id": model.issued_by_actor_id,
+        "last_used_at": model.last_used_at,
+        "scopes": model.scopes or [],
+        "labels": model.labels or {},
+        "policy": model.policy or {},
+        "completed_runs": model.completed_runs,
+        "successful_runs": model.successful_runs,
+        "success_rate": model.success_rate,
+        "last_feedback_at": model.last_feedback_at,
+        "trust_score": model.trust_score,
+        "api_key": api_key,
+    }

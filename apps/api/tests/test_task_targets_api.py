@@ -7,8 +7,8 @@ def test_task_targets_can_be_claimed_and_completed_by_the_assigned_token(client,
         json={
             "title": "Assigned token work",
             "task_type": "account_read",
-            "target_token_ids": [TEST_ACCESS_TOKEN_ID],
-            "target_mode": "explicit_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
+            "target_mode": "explicit_access_tokens",
         },
     )
     assert created.status_code == 201, created.text
@@ -20,7 +20,7 @@ def test_task_targets_can_be_claimed_and_completed_by_the_assigned_token(client,
     assert assigned.status_code == 200, assigned.text
     target = assigned.json()["items"][0]
     assert target["task_id"] == created.json()["id"]
-    assert target["target_token_id"] == TEST_ACCESS_TOKEN_ID
+    assert target["target_access_token_id"] == TEST_ACCESS_TOKEN_ID
 
     claimed = client.post(
         f"/api/task-targets/{target['id']}/claim",
@@ -28,7 +28,7 @@ def test_task_targets_can_be_claimed_and_completed_by_the_assigned_token(client,
     )
     assert claimed.status_code == 200, claimed.text
     assert claimed.json()["status"] == "claimed"
-    assert claimed.json()["claimed_by_token_id"] == TEST_ACCESS_TOKEN_ID
+    assert claimed.json()["claimed_by_access_token_id"] == TEST_ACCESS_TOKEN_ID
 
     completed = client.post(
         f"/api/task-targets/{target['id']}/complete",

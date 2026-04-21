@@ -1,3 +1,5 @@
+from conftest import TEST_ACCESS_TOKEN_ID
+
 def _create_openclaw_agent(management_client):
     response = management_client.post(
         "/api/openclaw/agents",
@@ -52,7 +54,7 @@ def test_openclaw_session_key_can_authenticate_runtime_routes(client, management
     assert session_response.status_code == 201, session_response.text
 
     identity_response = client.get(
-        "/api/agents/me",
+        "/api/runtime/me",
         headers={"Authorization": "Bearer sess_runtime_route_auth"},
     )
 
@@ -159,8 +161,8 @@ def test_openclaw_session_key_does_not_act_as_remote_access_token_for_targeted_r
         json={
             "title": "Remote token only work",
             "task_type": "account_read",
-            "target_mode": "explicit_tokens",
-            "target_token_ids": ["token-test-agent"],
+            "target_mode": "explicit_access_tokens",
+            "target_access_token_ids": [TEST_ACCESS_TOKEN_ID],
         },
     )
     assert targeted_task.status_code == 201, targeted_task.text

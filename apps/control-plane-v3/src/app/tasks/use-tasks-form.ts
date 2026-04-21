@@ -12,15 +12,15 @@ export interface FeedbackTargetState {
   taskId: string;
   taskTitle: string;
   targetId: string;
-  tokenLabel: string;
+  accessTokenLabel: string;
 }
 
 export interface TaskFormState {
   title: string;
   task_type: string;
   priority: string;
-  target_mode: 'explicit_tokens' | 'broadcast';
-  target_token_ids: string[];
+  target_mode: 'explicit_access_tokens' | 'broadcast';
+  target_access_token_ids: string[];
   input_json: string;
 }
 
@@ -55,8 +55,8 @@ export function useTasksForm({
     title: '',
     task_type: 'account_read',
     priority: 'normal',
-    target_mode: 'explicit_tokens',
-    target_token_ids: [],
+    target_mode: 'explicit_access_tokens',
+    target_access_token_ids: [],
     input_json: '{\n  "provider": "github"\n}',
   });
   const [feedbackForm, setFeedbackForm] = useState({
@@ -74,8 +74,8 @@ export function useTasksForm({
       title: '',
       task_type: 'account_read',
       priority: 'normal',
-      target_mode: 'explicit_tokens',
-      target_token_ids: [],
+      target_mode: 'explicit_access_tokens',
+      target_access_token_ids: [],
       input_json: '{\n  "provider": "github"\n}',
     });
     setTaskFormError(null);
@@ -107,20 +107,20 @@ export function useTasksForm({
     setFeedbackTarget(null);
   }, []);
 
-  const toggleTargetToken = useCallback((tokenId: string) => {
+  const toggleTargetToken = useCallback((accessTokenId: string) => {
     setTaskForm((current) => ({
       ...current,
-      target_token_ids: current.target_token_ids.includes(tokenId)
-        ? current.target_token_ids.filter((item) => item !== tokenId)
-        : [...current.target_token_ids, tokenId],
+      target_access_token_ids: current.target_access_token_ids.includes(accessTokenId)
+        ? current.target_access_token_ids.filter((item) => item !== accessTokenId)
+        : [...current.target_access_token_ids, accessTokenId],
     }));
   }, []);
 
-  const setTargetMode = useCallback((mode: 'explicit_tokens' | 'broadcast') => {
+  const setTargetMode = useCallback((mode: 'explicit_access_tokens' | 'broadcast') => {
     setTaskForm((current) => ({
       ...current,
       target_mode: mode,
-      target_token_ids: mode === 'broadcast' ? [] : current.target_token_ids,
+      target_access_token_ids: mode === 'broadcast' ? [] : current.target_access_token_ids,
     }));
   }, []);
 
@@ -133,7 +133,10 @@ export function useTasksForm({
 
       try {
         const parsedInput = parseJsonObject(taskForm.input_json, t('tasks.errors.invalidPayload'));
-        if (taskForm.target_mode === 'explicit_tokens' && taskForm.target_token_ids.length === 0) {
+        if (
+          taskForm.target_mode === 'explicit_access_tokens' &&
+          taskForm.target_access_token_ids.length === 0
+        ) {
           throw new Error(t('tasks.errors.noTargetTokens'));
         }
 
@@ -143,8 +146,10 @@ export function useTasksForm({
           priority: taskForm.priority,
           input: parsedInput,
           target_mode: taskForm.target_mode,
-          target_token_ids:
-            taskForm.target_mode === 'explicit_tokens' ? taskForm.target_token_ids : [],
+          target_access_token_ids:
+            taskForm.target_mode === 'explicit_access_tokens'
+              ? taskForm.target_access_token_ids
+              : [],
         });
 
         resetTaskForm();

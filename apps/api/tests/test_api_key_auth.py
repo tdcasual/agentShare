@@ -1,15 +1,12 @@
-import hashlib
-
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
 
 from app.db import get_db
 from app.main import app
 from app.orm.base import Base
-from app.orm.agent import AgentIdentityModel
-from app.repositories.agent_repo import AgentRepository
+from app.services.access_token_service import mint_access_token
 
 OWNER_EMAIL = "owner@example.com"
 OWNER_PASSWORD = "correct horse battery staple"
@@ -44,10 +41,6 @@ def client(db_session):
     app.dependency_overrides[get_db] = _override
     yield TestClient(app)
     app.dependency_overrides.clear()
-
-
-def _hash_key(key: str) -> str:
-    return hashlib.sha256(key.encode()).hexdigest()
 
 
 def _login_management_session(client, bootstrap_key: str) -> None:
@@ -89,62 +82,47 @@ def _login_management_session(client, bootstrap_key: str) -> None:
 
 
 def test_missing_auth_returns_401(client):
-    resp = client.get("/api/agents/me")
+    resp = client.get("/api/runtime/me")
     assert resp.status_code == 401
 
 
 def test_invalid_key_returns_401(client):
-    resp = client.get("/api/agents/me", headers={"Authorization": "Bearer bad-key"})
+    resp = client.get("/api/runtime/me", headers={"Authorization": "Bearer bad-key"})
     assert resp.status_code == 401
 
 
-def test_legacy_agent_api_key_is_rejected_for_runtime_auth(client, db_session):
-    api_key = "test-api-key-12345"
-    repo = AgentRepository(db_session)
-    repo.create(AgentIdentityModel(
-        id="agent-1", name="Test Bot", api_key_hash=_hash_key(api_key),
-        status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="medium",
-    ))
-    db_session.flush()
-    resp = client.get("/api/agents/me", headers={"Authorization": f"Bearer {api_key}"})
-    assert resp.status_code == 401
-
-
-def test_create_agent_returns_api_key(client, db_session):
-    bootstrap_key = "bootstrap-key-xyz"
-    repo = AgentRepository(db_session)
-    repo.create(AgentIdentityModel(
-        id="bootstrap", name="Bootstrap", api_key_hash=_hash_key(bootstrap_key),
-        status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="high",
-    ))
-    db_session.flush()
-    _login_management_session(client, bootstrap_key)
-    resp = client.post(
-        "/api/agents",
-        json={"name": "New Agent", "risk_tier": "low"},
+def test_access_token_authenticates_runtime_me(client, db_session):
+    token, raw_token = mint_access_token(
+        db_session,
+        display_name="Test runner",
+        subject_type="automation",
+        subject_id="test-runner",
+        scopes=["runtime"],
+        labels={},
+        issued_by_actor_type="human",
+        issued_by_actor_id="owner-test",
     )
-    assert resp.status_code == 201
+    db_session.commit()
+
+    resp = client.get("/api/runtime/me", headers={"Authorization": f"Bearer {raw_token}"})
+    assert resp.status_code == 200
     data = resp.json()
-    assert "api_key" in data
-    assert "token_id" in data
-    assert data["name"] == "New Agent"
+    assert data["auth_method"] == "access_token"
+    assert data["token_id"] == token.id
 
 
-def test_delete_agent_requires_owner_role(client, db_session):
-    bootstrap_key = "bootstrap-key-xyz"
-    repo = AgentRepository(db_session)
-    repo.create(AgentIdentityModel(
-        id="bootstrap", name="Bootstrap", api_key_hash=_hash_key(bootstrap_key),
-        status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="high",
-    ))
-    repo.create(AgentIdentityModel(
-        id="agent-del", name="Deletable", api_key_hash=None,
-        status="active", allowed_capability_ids=[], allowed_task_types=[], risk_tier="low",
-    ))
-    db_session.flush()
-    _login_management_session(client, bootstrap_key)
-    resp = client.delete(
-        "/api/agents/agent-del",
+def test_access_token_without_runtime_scope_is_rejected(client, db_session):
+    token, raw_token = mint_access_token(
+        db_session,
+        display_name="Reports only",
+        subject_type="automation",
+        subject_id="reports-runner",
+        scopes=["reports"],
+        labels={},
+        issued_by_actor_type="human",
+        issued_by_actor_id="owner-test",
     )
+    db_session.commit()
+
+    resp = client.get("/api/runtime/me", headers={"Authorization": f"Bearer {raw_token}"})
     assert resp.status_code == 403
-    assert resp.json()["detail"] == "owner role required"

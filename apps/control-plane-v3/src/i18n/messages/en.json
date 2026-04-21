@@ -40,8 +40,8 @@
     "capabilities": {
       "access": "Capability Access",
       "accessPolicy": "Visibility",
-      "accessPolicyDesc": "Choose which external remote-access tokens can see this capability. Default is all tokens, or narrow it to specific tokens, agents, or token labels.",
-      "agentRequiredError": "When using specific agent visibility, select at least one agent.",
+      "accessPolicyDesc": "Choose which remote-access credentials can see this capability. Default is all access tokens, or narrow it to specific access tokens or token labels.",
+      "agentRequiredError": "When using subject-scoped visibility, select at least one subject.",
       "allTokens": "All tokens",
       "allowedMode": "Invocation mode",
       "bindSecret": "Bind secret",
@@ -72,15 +72,15 @@
       "tokenAccess": "Visibility",
       "tokenRequiredError": "Pick at least one token when using specific token visibility.",
       "specificTokens": "Specific tokens",
-      "specificAgents": "Specific agents",
+      "specificAgents": "Specific subjects",
       "byTokenLabel": "By token label",
-      "noAgentsAvailable": "No agents available yet. Please create an agent first.",
+      "noAgentsAvailable": "No eligible subjects available yet.",
       "labelKey": "Label key",
       "selectLabelKey": "Select a token label key",
       "noLabelsAvailable": "Current tokens have no labels, so label-based restriction is unavailable.",
       "selectLabelKeyFirst": "Select a label key first, then check allowed values.",
       "createFailed": "Failed to create capability",
-      "accessPolicyAgent": "Agent: {items}",
+      "accessPolicyAgent": "Subject: {items}",
       "accessPolicyLabel": "Label: {key} = {values}",
       "accessPolicyToken": "Token: {items}"
     },
@@ -1178,14 +1178,16 @@
     "form": {
       "broadcast": "Broadcast",
       "broadcastDesc": "Snapshot all active remote access tokens at publish time.",
-      "explicitTokens": "Explicit tokens",
-      "explicitTokensDesc": "Send only to chosen remote access tokens.",
+      "explicitTokens": "Explicit access tokens",
+      "explicitTokensDesc": "Send only to chosen access tokens.",
       "inputPayload": "Input payload (JSON)",
       "noTokensAvailable": "No managed remote access tokens available yet. Create one from the Remote Access page first.",
       "priority": "Priority",
       "score": "Score",
       "summary": "Summary",
       "summaryPlaceholder": "Call out what went well, what should change, and whether this token should be trusted with similar work.",
+      "targetAccessTokens": "Access tokens",
+      "targetAccessTokensDescription": "Choose one or more managed access tokens.",
       "targetMode": "Target mode",
       "targetModeDescription": "Explicit targets let you see completion by remote token directly.",
       "targetTokens": "Target tokens",
@@ -1214,6 +1216,7 @@
       "publishedTasks": "Published tasks",
       "targetedTokens": "Targeted tokens"
     },
+    "noAccessTokenTargets": "No access-token targets",
     "noFeedback": "No feedback yet",
     "noTokenTargets": "No token targets",
     "notClaimed": "Not currently claimed",
@@ -1258,13 +1261,14 @@
       "pending": "Pending",
       "running": "Running"
     },
+    "targetAccessTokens": "Access tokens",
     "targetTokens": "Target tokens",
     "targetMetaLine": "Agent {agentId} • target {targetId}",
     "targetsCompleted": "targets completed",
     "targetsCompletedLine": "{completed}/{total} targets completed",
     "taskMetaLine": "{taskType} • {taskId}",
     "title": "Task orchestration",
-    "tokenTargetedDelivery": "Token-targeted delivery",
+    "tokenTargetedDelivery": "Access-token delivery",
     "tokenTrust": "Token trust",
     "unknown": "Unknown",
     "viaToken": "Via token",
@@ -1279,24 +1283,27 @@
   "tokens": {
     "actions": {
       "createAgent": "Register Remote Agent",
+      "copySecret": "Copy Access Token",
+      "issueAccessToken": "Issue Access Token",
       "mintToken": "Mint Access Token",
       "refresh": "Refresh",
       "revoke": "Revoke"
     },
     "agent": {
       "authMethod": "Auth method",
-      "createFirst": "Register the first remote agent profile and its primary access token from this console.",
-      "noAgents": "No remote agents yet",
-      "noTokens": "No active access tokens for this remote agent yet.",
+      "createFirst": "Issue the first remote access token from this console.",
+      "noAgents": "No remote access subjects yet",
+      "noTokens": "No active access tokens for this remote subject yet.",
       "riskBadge": "{tier} risk",
       "riskTier": "Risk tier"
     },
-    "description": "Register remote agents and mint access tokens so external machines and off-project agents can retrieve project information, publish deliverables, and participate in collaboration flows.",
+    "description": "Issue standalone access tokens for external machines and off-project callers so they can retrieve project information, publish deliverables, and participate in collaboration flows.",
     "errors": {
       "clipboardBlocked": "Clipboard access was blocked. Copy the access token manually from the reveal card.",
       "loadDataFailed": "Failed to load data",
+      "loadFailed": "Failed to load access tokens",
       "mintTokenFailed": "Failed to mint access token",
-      "noAgentSelected": "Choose a remote agent profile before minting a token",
+      "noAgentSelected": "Choose a remote subject before minting a token",
       "refreshFailed": "Failed to refresh remote access tokens",
       "registerAgentFailed": "Failed to register remote agent",
       "revokeTokenFailed": "Failed to revoke access token"
@@ -1310,24 +1317,40 @@
       "displayName": "Display name",
       "displayNamePlaceholder": "Staging worker token",
       "expiresAt": "Expires at",
+      "issueDescription": "Standalone credentials for remote callers",
       "labels": "Labels",
       "labelsHelper": "Comma-separated key=value labels.",
       "labelsPlaceholder": "environment=staging, pool=blue",
       "scopes": "Scopes",
       "scopesHelper": "Comma-separated scope labels.",
-      "scopesPlaceholder": "runtime"
+      "scopesPlaceholder": "runtime",
+      "subjectId": "Subject ID",
+      "subjectIdPlaceholder": "github-actions",
+      "subjectType": "Subject type"
     },
     "labels": {
-      "id": "ID"
+      "id": "ID",
+      "issuedBy": "Issued by",
+      "lastUsedAt": "Last used",
+      "scopes": "Scopes",
+      "tokenPrefix": "Token prefix"
     },
     "metrics": {
       "activeAgents": "Remote agents",
       "activeTokens": "Active access tokens",
       "averageTrust": "Average trust",
+      "feedbackCoverage": "Feedback coverage",
+      "needsFeedback": "Needs feedback",
       "averageTrustHint": "feedback",
       "tokensWithFeedback": "Tokens with feedback",
       "tokensWithFeedbackHint": "reviewed",
       "totalHint": "{count} total"
+    },
+    "hints": {
+      "activeTokens": "currently active remote credentials",
+      "averageTrust": "mean trust score across all tokens",
+      "feedbackCoverage": "tokens with at least one feedback record",
+      "needsFeedback": "tokens still waiting on human review"
     },
     "riskTiers": {
       "critical": "critical",
@@ -1336,12 +1359,12 @@
       "medium": "medium"
     },
     "sessionExpired": "Your management session has expired. Sign in again to keep working with live remote access data.",
-    "sessionForbidden": "You do not have permission to manage remote agents and access tokens. Use an admin management session to continue.",
+    "sessionForbidden": "You do not have permission to manage remote access credentials. Use an admin management session to continue.",
     "status": {
       "revoked": "Revoked"
     },
     "subtitle": "Remote access for external agents",
-    "title": "Remote Agent Access",
+    "title": "Remote Access Tokens",
     "token": {
       "completedRuns": "Completed runs",
       "copyToken": "Copy Access Token",
@@ -1357,12 +1380,31 @@
     "values": {
       "notYet": "Not yet"
     },
+    "empty": {
+      "title": "No access tokens issued yet",
+      "description": "Issue the first standalone access token to start supervising remote callers."
+    },
+    "labels": {
+      "id": "ID",
+      "issuedBy": "Issued by",
+      "lastUsedAt": "Last used",
+      "scopes": "Scopes",
+      "tokenPrefix": "Token prefix"
+    },
+    "loading": "Loading access token inventory...",
+    "neverUsed": "Never used",
+    "noFeedback": "No feedback yet",
+    "none": "None",
+    "secretModal": {
+      "title": "New access token"
+    },
+    "unknownIssuer": "Unknown issuer",
     "remoteAccessSupervision": "Remote access supervision",
     "remoteAccessSupervisionDesc": "Human operators can quickly isolate access tokens used by external machines and off-project agents when they still need feedback or fall below the trust threshold.",
     "operator": "Operator",
-    "loadingAgents": "Loading remote agents and access tokens...",
-    "createAgentModalDesc": "Register a remote agent profile and mint its first access token.",
-    "createTokenModalDesc": "Issue another access token for an existing remote agent profile.",
+    "loadingAgents": "Loading remote subjects and access tokens...",
+    "createAgentModalDesc": "Register a remote subject and mint its first access token.",
+    "createTokenModalDesc": "Issue another access token for an existing remote subject.",
     "riskTier": "Risk tier",
     "remoteAgent": "Remote agent",
     "selectRemoteAgent": "Select a remote agent",

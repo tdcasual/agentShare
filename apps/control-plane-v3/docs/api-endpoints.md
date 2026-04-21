@@ -13,11 +13,11 @@
 ### 示例
 ```typescript
 // ✅ 正确
-apiFetch('/agents')           // 实际调用: /api/agents
+apiFetch('/access-tokens')    // 实际调用: /api/access-tokens
 apiFetch('/session/login')    // 实际调用: /api/session/login
 
 // ❌ 错误（会导致双重 /api）
-apiFetch('/api/agents')       // 实际调用: /api/api/agents ❌
+apiFetch('/api/access-tokens') // 实际调用: /api/api/access-tokens ❌
 ```
 
 ---
@@ -31,14 +31,14 @@ apiFetch('/api/agents')       // 实际调用: /api/api/agents ❌
 | Login | `/session/login` | `/api/session/login` |
 | Logout | `/session/logout` | `/api/session/logout` |
 | Get Session | `/session/me` | `/api/session/me` |
-| List Agents | `/agents` | `/api/agents` |
-| Create Agent | `/agents` | `/api/agents` |
+| List OpenClaw Agents | `/openclaw/agents` | `/api/openclaw/agents` |
+| Create OpenClaw Agent | `/openclaw/agents` | `/api/openclaw/agents` |
 | List Admin Accounts | `/admin-accounts` | `/api/admin-accounts` |
 | Create Admin Account | `/admin-accounts` | `/api/admin-accounts` |
 | Disable Admin Account | `/admin-accounts/{id}/disable` | `/api/admin-accounts/{id}/disable` |
-| List Agent Tokens | `/agents/{id}/tokens` | `/api/agents/{id}/tokens` |
-| Create Agent Token | `/agents/{id}/tokens` | `/api/agents/{id}/tokens` |
-| Revoke Agent Token | `/agent-tokens/{id}/revoke` | `/api/agent-tokens/{id}/revoke` |
+| List Access Tokens | `/access-tokens` | `/api/access-tokens` |
+| Create Access Token | `/access-tokens` | `/api/access-tokens` |
+| Revoke Access Token | `/access-tokens/{id}/revoke` | `/api/access-tokens/{id}/revoke` |
 
 ---
 
@@ -63,7 +63,7 @@ apiFetch('/api/agents')       // 实际调用: /api/api/agents ❌
 | Create Task | `/tasks` | `/api/tasks` |
 | List Runs | `/runs` | `/api/runs` |
 | Create Feedback | `/task-targets/{id}/feedback` | `/api/task-targets/{id}/feedback` |
-| Get Token Feedback | `/agent-tokens/{id}/feedback` | `/api/agent-tokens/{id}/feedback` |
+| Create Access Token Feedback | `/task-targets/{id}/feedback` | `/api/task-targets/{id}/feedback` |
 
 ---
 
@@ -98,7 +98,7 @@ apiFetch('/api/agents')       // 实际调用: /api/api/agents ❌
 - `http://localhost:8000/api` + `/session/me` → `http://localhost:8000/api/session/me`
 
 ### 修复双重 /api 前缀问题
-**问题**: `apiFetch('/api/agents')` 会导致 `/api/api/agents`
+**问题**: `apiFetch('/api/access-tokens')` 会导致 `/api/api/access-tokens`
 
 **修复文件**:
 - `src/domains/identity/api.ts`
@@ -126,7 +126,7 @@ apiFetch('/api/agents')       // 实际调用: /api/api/agents ❌
 ## SWR Cache Keys
 
 SWR 使用 `/api/` 前缀作为缓存 key（仅用于缓存，不影响实际 API 调用）:
-- `/api/agents`
+- `/api/access-tokens`
 - `/api/assets`
 - `/api/tasks`
 - `/api/session/me`
