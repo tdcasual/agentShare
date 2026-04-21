@@ -67,7 +67,7 @@ const TokensContent = memo(function TokensContent() {
     expires_at: '',
   });
 
-  const accessTokens = data?.items ?? [];
+  const accessTokens = useMemo(() => data?.items ?? [], [data?.items]);
   const activeTokens = useMemo(
     () => accessTokens.filter((token) => token.status === 'active').length,
     [accessTokens]

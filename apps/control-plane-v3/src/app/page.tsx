@@ -129,8 +129,11 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   const reviewsQuery = useReviews();
 
   const adminAccounts = adminAccountsQuery.data?.items;
-  const agents = openClawAgentsQuery.data?.items ?? [];
-  const accessTokens = accessTokensQuery.data?.items ?? [];
+  const agents = useMemo(() => openClawAgentsQuery.data?.items ?? [], [openClawAgentsQuery.data?.items]);
+  const accessTokens = useMemo(
+    () => accessTokensQuery.data?.items ?? [],
+    [accessTokensQuery.data?.items]
+  );
   const accessTokensByAgentId = useMemo(
     () =>
       accessTokens.reduce<Record<string, typeof accessTokens>>((groups, token) => {
