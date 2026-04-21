@@ -8,18 +8,37 @@ def test_all_tables_created():
     Base.metadata.create_all(engine)
     inspector = inspect(engine)
     table_names = inspector.get_table_names()
-    expected = ["secrets", "capabilities", "agents", "tasks", "runs", "playbooks", "audit_events"]
+    expected = [
+        "secrets",
+        "capabilities",
+        "openclaw_agents",
+        "openclaw_sessions",
+        "access_tokens",
+        "tasks",
+        "runs",
+        "playbooks",
+        "audit_events",
+    ]
     for name in expected:
         assert name in table_names, f"Table {name} not found"
 
 
-def test_agent_model_has_api_key_hash_column():
+def test_runtime_agent_tables_match_openclaw_and_access_token_schema():
     Base.metadata.create_all(engine)
     inspector = inspect(engine)
-    columns = [c["name"] for c in inspector.get_columns("agents")]
-    assert "api_key_hash" in columns
-    assert "name" in columns
-    assert "status" in columns
+    openclaw_agent_columns = [c["name"] for c in inspector.get_columns("openclaw_agents")]
+    assert "name" in openclaw_agent_columns
+    assert "status" in openclaw_agent_columns
+    assert "workspace_root" in openclaw_agent_columns
+
+    openclaw_session_columns = [c["name"] for c in inspector.get_columns("openclaw_sessions")]
+    assert "session_key" in openclaw_session_columns
+    assert "agent_id" in openclaw_session_columns
+
+    access_token_columns = [c["name"] for c in inspector.get_columns("access_tokens")]
+    assert "token_hash" in access_token_columns
+    assert "token_prefix" in access_token_columns
+    assert "subject_id" in access_token_columns
 
 
 def test_capability_model_has_adapter_fields():
