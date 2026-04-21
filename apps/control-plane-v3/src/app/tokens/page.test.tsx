@@ -168,7 +168,10 @@ describe('tokens page', () => {
       screen.getByPlaceholderText(t('tokens.form.displayNamePlaceholder')),
       'Staging Worker'
     );
-    await user.type(screen.getByPlaceholderText(t('tokens.form.subjectIdPlaceholder')), 'staging-worker');
+    await user.type(
+      screen.getByPlaceholderText(t('tokens.form.subjectIdPlaceholder')),
+      'staging-worker'
+    );
     await user.click(
       screen.getAllByRole('button', { name: t('tokens.actions.issueAccessToken') })[1]
     );

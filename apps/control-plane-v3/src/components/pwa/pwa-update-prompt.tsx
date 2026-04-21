@@ -29,7 +29,7 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
     >
       <div className="space-y-4 p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-pink-surface)]">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--kw-primary-50)] dark:bg-[var(--kw-dark-pink-surface)]">
             <RefreshCw className="h-5 w-5 text-[var(--kw-primary-500)]" />
           </div>
           <div className="min-w-0 flex-1">

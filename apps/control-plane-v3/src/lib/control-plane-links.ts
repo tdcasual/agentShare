@@ -1,3 +1,21 @@
+import {
+  LayoutDashboard,
+  Inbox,
+  BookOpen,
+  PlayCircle,
+  Users,
+  Package,
+  Globe,
+  CheckSquare,
+  Gavel,
+  ShieldCheck,
+  Sparkles,
+  KeyRound,
+  Settings,
+} from 'lucide-react';
+import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
+import type { LucideIcon } from 'lucide-react';
+
 type IdentityLinkTarget =
   | { agentId: string; adminId?: never }
   | { adminId: string; agentId?: never };
@@ -105,4 +123,56 @@ export function deriveEventHref({ actionUrl, subjectType, subjectId, metadata }:
   }
 
   return explicitAction ?? '/inbox';
+}
+
+// ============================================
+// Centralized Shell Navigation Schema
+// ============================================
+
+export interface ShellNavItem {
+  href: string;
+  labelKey: string;
+  icon: LucideIcon;
+  requiredRole: ManagementRole;
+  settings?: boolean;
+}
+
+export const SHELL_NAV_ITEMS: ShellNavItem[] = [
+  { href: '/', labelKey: 'navigation.hub', icon: LayoutDashboard, requiredRole: 'admin' },
+  { href: '/inbox', labelKey: 'navigation.inbox', icon: Inbox, requiredRole: 'admin' },
+  { href: '/reviews', labelKey: 'navigation.reviews', icon: ShieldCheck, requiredRole: 'operator' },
+  { href: '/approvals', labelKey: 'navigation.approvals', icon: Gavel, requiredRole: 'operator' },
+  {
+    href: '/marketplace',
+    labelKey: 'navigation.marketplace',
+    icon: Sparkles,
+    requiredRole: 'operator',
+  },
+  { href: '/playbooks', labelKey: 'navigation.playbooks', icon: BookOpen, requiredRole: 'viewer' },
+  { href: '/runs', labelKey: 'navigation.runs', icon: PlayCircle, requiredRole: 'viewer' },
+  { href: '/spaces', labelKey: 'navigation.spaces', icon: Globe, requiredRole: 'viewer' },
+  { href: '/identities', labelKey: 'navigation.identities', icon: Users, requiredRole: 'admin' },
+  { href: '/assets', labelKey: 'navigation.assets', icon: Package, requiredRole: 'admin' },
+  { href: '/tokens', labelKey: 'navigation.tokens', icon: KeyRound, requiredRole: 'admin' },
+  { href: '/tasks', labelKey: 'navigation.tasks', icon: CheckSquare, requiredRole: 'admin' },
+  {
+    href: '/settings',
+    labelKey: 'navigation.settings',
+    icon: Settings,
+    requiredRole: 'admin',
+    settings: true,
+  },
+];
+
+export function getVisibleShellNavItems(
+  role: ManagementRole | null,
+  opts?: { includeSettings?: boolean }
+) {
+  if (!role) {
+    return [];
+  }
+  const includeSettings = opts?.includeSettings ?? true;
+  return SHELL_NAV_ITEMS.filter(
+    (item) => hasRequiredRole(role, item.requiredRole) && (includeSettings || !item.settings)
+  );
 }

@@ -81,7 +81,13 @@ export const ROUTE_ROLES: Record<string, ManagementRole> = {
   '/settings': 'admin',
 };
 
-const DEFAULT_MANAGEMENT_ROUTE_PRIORITY = ['/', '/reviews', '/playbooks', '/runs', '/spaces'] as const;
+const DEFAULT_MANAGEMENT_ROUTE_PRIORITY = [
+  '/',
+  '/reviews',
+  '/playbooks',
+  '/runs',
+  '/spaces',
+] as const;
 
 /**
  * 获取路由所需角色

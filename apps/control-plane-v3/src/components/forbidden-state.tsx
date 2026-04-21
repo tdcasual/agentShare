@@ -1,7 +1,6 @@
 /**
  * Forbidden State - 403禁止访问状态
  *
- * Kawaii风格的403页面组件
  * 显示当前角色和所需角色的对比
  */
 
@@ -46,8 +45,8 @@ export function ForbiddenState({
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex animate-pulse flex-col items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-[var(--kw-primary-200)]" />
-          <div className="h-4 w-32 rounded bg-[var(--kw-primary-200)]" />
+          <div className="h-16 w-16 rounded-full bg-[var(--kw-border)]" />
+          <div className="h-4 w-32 rounded bg-[var(--kw-border)]" />
         </div>
       </div>
     );
@@ -56,15 +55,14 @@ export function ForbiddenState({
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">
       <Card
-        variant="kawaii"
-        decoration
+        variant="default"
         className="w-full max-w-md animate-scale-in text-center"
         role="alert"
         aria-live="polite"
       >
         {/* 图标 */}
-        <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[var(--kw-primary-100)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-pink-surface)] dark:to-[var(--kw-dark-purple-surface)]">
-          <Lock className="h-12 w-12 animate-pulse text-[var(--kw-primary-500)]" />
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-50)] dark:bg-[var(--kw-dark-border)]">
+          <Lock className="h-10 w-10 text-[var(--kw-primary-500)]" />
         </div>
 
         {/* 标题 */}
@@ -81,7 +79,7 @@ export function ForbiddenState({
 
         {/* 角色对比 */}
         <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <div className="rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]">
+          <div className="rounded-full bg-[var(--kw-surface-alt)] px-4 py-2 text-sm text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
             {t('forbiddenState.currentRole')}:{' '}
             {role ? getRoleLabel(t, role) : t('forbiddenState.notLoggedIn')}
           </div>
@@ -94,7 +92,7 @@ export function ForbiddenState({
         {/* 操作按钮 */}
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Button
-            variant="kawaii"
+            variant="primary"
             onClick={() => router.push(homeTarget)}
             leftIcon={<Home className="h-4 w-4" />}
           >

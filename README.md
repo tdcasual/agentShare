@@ -17,6 +17,7 @@ For the architecture framing, see `docs/guides/agent-server-first.md`.
 - Agent-focused Coolify project runbook: `docs/guides/coolify-project-deployment-for-agents.md`
 - Human operator deployment manual: `docs/guides/deployment-manual.md`
 - Coolify deployment summary: `docs/guides/coolify-deployment.md`
+- Frontend architecture and workflow notes: `apps/control-plane-v3/README.md`
 
 ## Docker And Deployment
 
@@ -305,6 +306,15 @@ The primary runtime path is now OpenClaw-native:
 
 For the end-to-end local workflow, use [docs/guides/agent-quickstart.md](docs/guides/agent-quickstart.md).
 For bounded autonomy setup and operator guidance, use [docs/guides/dream-mode-quickstart.md](docs/guides/dream-mode-quickstart.md).
+
+## Frontend Control Plane Notes
+
+`apps/control-plane-v3` currently runs in a deliberate dual-track mode:
+
+- management pages use same-origin `/api/*`, the Next.js proxy layer, SWR domain hooks, and backend-managed session cookies;
+- demo and runtime-facing pages still use the local browser runtime, plugin registry, and identity services for in-browser experiences.
+
+That split is intentional for now. For frontend-specific architecture, local commands, and API conventions, use `apps/control-plane-v3/README.md`.
 
 ### One-Command Demo Stack
 

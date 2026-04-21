@@ -5,26 +5,11 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useDeviceType } from '@/hooks/use-device-type';
 import { useRole } from '@/hooks/use-role';
-import { getDefaultManagementRoute, hasRequiredRole, type ManagementRole } from '@/lib/role-system';
-import {
-  LayoutDashboard,
-  Inbox,
-  BookOpen,
-  PlayCircle,
-  Globe,
-  Users,
-  Package,
-  Settings,
-  KeyRound,
-  CheckSquare,
-  Gavel,
-  ShieldCheck,
-  Sparkles,
-  ChevronLeft,
-  Menu,
-} from 'lucide-react';
+import { getDefaultManagementRoute, type ManagementRole } from '@/lib/role-system';
+import { ChevronLeft, Menu } from 'lucide-react';
 import { useState, useCallback, memo, useMemo } from 'react';
 import { useI18n } from '@/components/i18n-provider';
+import { getVisibleShellNavItems } from '@/lib/control-plane-links';
 
 interface NavItem {
   icon: React.ReactNode;
@@ -33,113 +18,21 @@ interface NavItem {
   badge?: number;
 }
 
-interface NavItemDefinition {
-  href: string;
-  labelKey: string;
-  icon: React.ReactNode;
-  badge?: number;
-  requiredRole: ManagementRole;
-}
-
-const TABLET_NAV_ITEMS: NavItemDefinition[] = [
-  {
-    href: '/',
-    labelKey: 'navigation.hub',
-    icon: <LayoutDashboard className="h-5 w-5" />,
-    requiredRole: 'admin',
-  },
-  {
-    href: '/inbox',
-    labelKey: 'navigation.inbox',
-    icon: <Inbox className="h-5 w-5" />,
-    requiredRole: 'admin',
-  },
-  {
-    href: '/reviews',
-    labelKey: 'navigation.reviews',
-    icon: <ShieldCheck className="h-5 w-5" />,
-    requiredRole: 'operator',
-  },
-  {
-    href: '/approvals',
-    labelKey: 'navigation.approvals',
-    icon: <Gavel className="h-5 w-5" />,
-    requiredRole: 'operator',
-  },
-  {
-    href: '/marketplace',
-    labelKey: 'navigation.marketplace',
-    icon: <Sparkles className="h-5 w-5" />,
-    requiredRole: 'operator',
-  },
-  {
-    href: '/playbooks',
-    labelKey: 'navigation.playbooks',
-    icon: <BookOpen className="h-5 w-5" />,
-    requiredRole: 'viewer',
-  },
-  {
-    href: '/runs',
-    labelKey: 'navigation.runs',
-    icon: <PlayCircle className="h-5 w-5" />,
-    requiredRole: 'viewer',
-  },
-  {
-    href: '/spaces',
-    labelKey: 'navigation.spaces',
-    icon: <Globe className="h-5 w-5" />,
-    requiredRole: 'viewer',
-  },
-  {
-    href: '/identities',
-    labelKey: 'navigation.identities',
-    icon: <Users className="h-5 w-5" />,
-    requiredRole: 'admin',
-  },
-  {
-    href: '/assets',
-    labelKey: 'navigation.assets',
-    icon: <Package className="h-5 w-5" />,
-    requiredRole: 'admin',
-  },
-  {
-    href: '/tokens',
-    labelKey: 'navigation.tokens',
-    icon: <KeyRound className="h-5 w-5" />,
-    requiredRole: 'admin',
-  },
-  {
-    href: '/tasks',
-    labelKey: 'navigation.tasks',
-    icon: <CheckSquare className="h-5 w-5" />,
-    requiredRole: 'admin',
-  },
-  {
-    href: '/settings',
-    labelKey: 'navigation.settings',
-    icon: <Settings className="h-5 w-5" />,
-    requiredRole: 'admin',
-  },
-];
-
 function useNavItems(role: ManagementRole | null): NavItem[] {
   const { t } = useI18n();
   return useMemo(
     () =>
-      TABLET_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map((item) => ({
-        icon: item.icon,
+      getVisibleShellNavItems(role).map((item) => ({
+        icon: <item.icon className="h-5 w-5" />,
         label: t(item.labelKey),
         href: item.href,
-        badge: item.badge,
       })),
     [role, t]
   );
 }
 
 export function getTabletShellNavTargets(role: ManagementRole | null = 'admin') {
-  return TABLET_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map(
-    (item) => item.href
-  );
+  return getVisibleShellNavItems(role).map((item) => item.href);
 }
 
 export function getTabletShellHomeTarget(role: ManagementRole | null = 'admin') {
@@ -192,7 +85,7 @@ export function TabletSidebar() {
             href={homeTarget}
             className="flex items-center gap-2 text-lg font-bold text-[var(--kw-primary-500)]"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-sm font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--kw-primary-500)] text-sm font-bold text-white">
               CP
             </div>
             {!device.isTabletLandscape && <span>{t('tabletSidebar.title')}</span>}
@@ -228,7 +121,7 @@ export function TabletSidebar() {
       {(!isCollapsed || device.isTabletLandscape) && (
         <div className="border-t border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-warning)] text-sm font-bold text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-primary-500)] text-sm font-bold text-white">
               U
             </div>
             {!device.isTabletLandscape && (

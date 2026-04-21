@@ -7,16 +7,16 @@ import { CuteSpinner } from '@/components/kawaii/cute-spinner';
 // Button variants following Kawaii theme - uses CSS custom properties for theming
 const buttonVariants = {
   primary:
-    'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-medium shadow-[var(--kw-primary-300)]/30 hover:shadow-[var(--kw-primary-400)]/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95',
+    'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-medium shadow-[var(--kw-primary-300)]/20 hover:shadow-[var(--kw-primary-400)]/30 active:scale-95',
   secondary:
-    'bg-white border-2 border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-50)] hover:border-[var(--kw-primary-400)] hover:-translate-y-0.5',
-  ghost: 'text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-100)] hover:scale-105',
+    'bg-white border-2 border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-50)] hover:border-[var(--kw-primary-400)]',
+  ghost: 'text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-100)]',
   gradient:
-    'bg-gradient-to-r from-[var(--kw-sky)] to-[var(--kw-mint)] text-white shadow-medium shadow-[var(--kw-mint)]/30 hover:shadow-[var(--kw-sky)]/40 hover:-translate-y-0.5',
+    'bg-gradient-to-r from-[var(--kw-sky)] to-[var(--kw-mint)] text-white shadow-medium shadow-[var(--kw-mint)]/20 active:scale-95',
   outline:
-    'bg-transparent border-2 border-[var(--kw-primary-500)] text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-50)] hover:-translate-y-0.5',
+    'bg-transparent border-2 border-[var(--kw-primary-500)] text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-50)]',
   kawaii:
-    'bg-gradient-to-r from-[var(--kw-primary-400)] via-[var(--kw-primary-500)] to-[var(--kw-primary-400)] text-white shadow-medium shadow-[var(--kw-primary-400)]/40 hover:shadow-[var(--kw-primary-500)]/50 hover:-translate-y-1 active:translate-y-0 bg-[length:200%_100%]',
+    'bg-gradient-to-r from-[var(--kw-primary-400)] via-[var(--kw-primary-500)] to-[var(--kw-primary-400)] text-white shadow-medium shadow-[var(--kw-primary-400)]/30 active:scale-95',
 } as const;
 
 const buttonSizes = {

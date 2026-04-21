@@ -71,7 +71,10 @@ describe('setup page', () => {
       screen.getByPlaceholderText('auth.setup.bootstrapKeyPlaceholder'),
       'changeme-bootstrap-key'
     );
-    await user.type(screen.getByPlaceholderText('auth.setup.emailPlaceholder'), 'owner@example.com');
+    await user.type(
+      screen.getByPlaceholderText('auth.setup.emailPlaceholder'),
+      'owner@example.com'
+    );
     await user.type(
       screen.getByPlaceholderText('auth.setup.displayNamePlaceholder'),
       'Founding Owner'
@@ -104,11 +107,11 @@ describe('setup page', () => {
       expect(api.getBootstrapStatus).toHaveBeenCalled();
     });
 
+    await user.type(screen.getByPlaceholderText('auth.setup.bootstrapKeyPlaceholder'), 'wrong-key');
     await user.type(
-      screen.getByPlaceholderText('auth.setup.bootstrapKeyPlaceholder'),
-      'wrong-key'
+      screen.getByPlaceholderText('auth.setup.emailPlaceholder'),
+      'owner@example.com'
     );
-    await user.type(screen.getByPlaceholderText('auth.setup.emailPlaceholder'), 'owner@example.com');
     await user.type(
       screen.getByPlaceholderText('auth.setup.displayNamePlaceholder'),
       'Founding Owner'

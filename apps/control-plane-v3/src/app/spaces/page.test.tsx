@@ -509,7 +509,9 @@ describe('spaces page', () => {
 
     await user.click(screen.getByRole('button', { name: t('spaces.createSpace') }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: t('common.closeModal') }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: t('common.closeModal') }).length).toBeGreaterThan(
+      0
+    );
     await user.type(
       screen.getByPlaceholderText(t('spaces.createModal.namePlaceholder')),
       'Incident Response'

@@ -87,7 +87,7 @@ export function PWAInstallPrompt({
     >
       <div className="space-y-4 p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-primary-500)]">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-primary-500)]">
             <Smartphone className="h-6 w-6 text-white" />
           </div>
           <div className="min-w-0 flex-1">

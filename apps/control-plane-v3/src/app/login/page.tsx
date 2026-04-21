@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/components/i18n-provider';
-import { LockKeyhole, Mail, Sparkles, Heart } from 'lucide-react';
+import { LockKeyhole, Mail, Sparkles, Loader2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { getDefaultManagementRoute } from '@/lib/role-system';
 import { Card } from '@/shared/ui-primitives/card';
@@ -76,44 +76,6 @@ export default function LoginPage() {
       id="main-content"
       className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
     >
-      {/* Floating decorations */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <span
-          aria-hidden="true"
-          className="absolute left-[10%] top-20 animate-float text-4xl opacity-10 dark:opacity-5"
-        >
-          🌸
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute right-[15%] top-40 animate-float text-3xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '1s' }}
-        >
-          ✨
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute bottom-32 left-[20%] animate-float text-5xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '2s' }}
-        >
-          💕
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute left-[70%] top-60 animate-float text-3xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '0.5s' }}
-        >
-          🌟
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute bottom-20 right-[25%] animate-float text-4xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '1.5s' }}
-        >
-          🎀
-        </span>
-      </div>
-
       {/* Header controls */}
       <div className="fixed right-4 top-4 z-toast flex items-center gap-3">
         <LanguageSwitcher />
@@ -121,26 +83,19 @@ export default function LoginPage() {
       </div>
 
       <Card
-        variant="kawaii"
-        className="relative z-10 w-full max-w-xl dark:border-[var(--kw-dark-border)] dark:bg-gradient-to-br dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+        variant="default"
+        className="relative z-10 w-full max-w-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
       >
-        {/* Decorative elements */}
-        <div
-          className="absolute -right-3 -top-3 animate-float text-2xl"
-          style={{ animationDuration: '2s' }}
-        >
-          🌸
-        </div>
-        <div className="absolute -bottom-2 -left-2 text-xl opacity-50">✨</div>
-
         <div className="space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
-              <Heart className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+              <LockKeyhole className="h-4 w-4" />
               <span className="uppercase tracking-wider">{t('auth.login.subtitle')}</span>
             </div>
-            <h1 className="text-4xl font-bold text-[var(--kw-text)]">{t('auth.login.title')}</h1>
+            <h1 className="text-3xl font-bold text-[var(--kw-text)] sm:text-4xl">
+              {t('auth.login.title')}
+            </h1>
             <p className="mx-auto max-w-sm text-[var(--kw-text-muted)]">
               {t('auth.login.description')}
             </p>
@@ -176,24 +131,24 @@ export default function LoginPage() {
               role="status"
               aria-live="polite"
               aria-atomic="true"
-              className="bg-[var(--kw-primary-50)]/50 dark:bg-[var(--kw-dark-bg)]/50 rounded-2xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]"
+              className="dark:bg-[var(--kw-dark-bg)]/50 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)] px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]"
             >
               {error ? (
                 <span className="text-[var(--kw-error)] dark:text-[var(--kw-error)]">{error}</span>
               ) : checking ? (
                 <span className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 animate-pulse" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   {t('auth.login.checking')}
                 </span>
               ) : (
-                <span>🎀 {t('auth.login.description')}</span>
+                <span>{t('auth.login.description')}</span>
               )}
             </div>
 
-            <Button className="w-full" type="submit" loading={isSubmitting} shimmer>
+            <Button className="w-full" type="submit" loading={isSubmitting}>
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <span className="animate-spin">🌸</span>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   {t('auth.login.signIn')}...
                 </span>
               ) : (
@@ -204,19 +159,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          {/* Footer decoration */}
-          <div className="flex justify-center gap-2 text-2xl opacity-30 dark:opacity-20">
-            <span className="animate-float" style={{ animationDelay: '0s' }}>
-              🌸
-            </span>
-            <span className="animate-float" style={{ animationDelay: '0.2s' }}>
-              ✨
-            </span>
-            <span className="animate-float" style={{ animationDelay: '0.4s' }}>
-              💕
-            </span>
-          </div>
         </div>
       </Card>
     </main>

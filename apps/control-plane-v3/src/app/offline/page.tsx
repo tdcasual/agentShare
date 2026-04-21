@@ -37,9 +37,9 @@ export default function OfflinePage() {
   return (
     <main
       id="main-content"
-      className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]"
+      className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]"
     >
-      <Card variant="feature" className="w-full max-w-md space-y-6 p-8 text-center">
+      <Card variant="default" className="w-full max-w-md space-y-6 p-8 text-center">
         {/* 图标 */}
         <div className="dark:bg-[var(--kw-dark-amber-surface)]/30 mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-amber-surface)]">
           <WifiOff className="h-10 w-10 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
@@ -52,7 +52,7 @@ export default function OfflinePage() {
         </div>
 
         {/* 说明 */}
-        <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-2xl bg-white/50 p-4 text-left">
+        <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-xl bg-white/50 p-4 text-left">
           <div className="flex items-start gap-3">
             <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]" />
             <div>

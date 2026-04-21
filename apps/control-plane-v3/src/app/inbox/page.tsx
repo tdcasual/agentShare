@@ -145,7 +145,11 @@ const InboxContent = memo(function InboxContent() {
       )}
 
       {focusedEvent && (
-        <Card className="border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]">
+        <Card
+          role="region"
+          aria-label={t('inbox.focusedEvent')}
+          className="border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-primary)]"
+        >
           <CardHeader>
             <CardTitle className="text-lg">{t('inbox.focusedEvent')}</CardTitle>
           </CardHeader>

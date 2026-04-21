@@ -37,9 +37,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               'w-full rounded-2xl border-2 bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-[var(--kw-duration-fast)] dark:bg-[var(--kw-dark-surface)]',
               'placeholder:text-[var(--kw-text-muted)]',
-              'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
+              'focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)]',
               error &&
                 'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
+              !error && 'border-[var(--kw-border)]',
               icon && 'pl-12',
               className
             )}
@@ -85,11 +86,12 @@ const Textarea = React.forwardRef<
       <textarea
         id={id}
         className={cn(
-          'w-full resize-none rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-[var(--kw-duration-fast)] dark:bg-[var(--kw-dark-surface)]',
+          'w-full resize-none rounded-2xl border-2 bg-white px-4 py-3 text-base outline-none transition-colors transition-shadow duration-[var(--kw-duration-fast)] dark:bg-[var(--kw-dark-surface)]',
           'placeholder:text-[var(--kw-text-muted)]',
-          'focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)]',
+          'focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)]',
           error &&
             'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
+          !error && 'border-[var(--kw-border)]',
           className
         )}
         ref={ref}

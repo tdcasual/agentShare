@@ -6,12 +6,12 @@ import { useI18n } from '@/components/i18n-provider';
 import {
   ShieldCheck,
   UserRoundPlus,
-  Sparkles,
   Star,
   Heart,
   LockKeyhole,
   Mail,
   User,
+  Loader2,
 } from 'lucide-react';
 import { ApiError, api } from '@/lib/api';
 import { Card } from '@/shared/ui-primitives/card';
@@ -84,9 +84,18 @@ export default function SetupPage() {
   }
 
   const steps = [
-    { icon: '🎀', text: t('auth.setup.step1') },
-    { icon: '✨', text: t('auth.setup.step2') },
-    { icon: '🌸', text: t('auth.setup.step3') },
+    {
+      icon: <Star className="h-4 w-4 text-[var(--kw-primary-500)]" />,
+      text: t('auth.setup.step1'),
+    },
+    {
+      icon: <ShieldCheck className="h-4 w-4 text-[var(--kw-primary-500)]" />,
+      text: t('auth.setup.step2'),
+    },
+    {
+      icon: <Heart className="h-4 w-4 text-[var(--kw-primary-500)]" />,
+      text: t('auth.setup.step3'),
+    },
   ];
 
   return (
@@ -94,44 +103,6 @@ export default function SetupPage() {
       id="main-content"
       className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
     >
-      {/* Floating decorations */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <span
-          aria-hidden="true"
-          className="absolute left-[8%] top-16 animate-float text-4xl opacity-10 dark:opacity-5"
-        >
-          🌟
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute right-[12%] top-32 animate-float text-3xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '1s' }}
-        >
-          💫
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute bottom-40 left-[15%] animate-float text-5xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '2s' }}
-        >
-          🎀
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute right-[70%] top-48 animate-float text-3xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '0.5s' }}
-        >
-          🌸
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute bottom-24 right-[20%] animate-float text-4xl opacity-10 dark:opacity-5"
-          style={{ animationDelay: '1.5s' }}
-        >
-          💕
-        </span>
-      </div>
-
       {/* Header controls */}
       <div className="fixed right-4 top-4 z-toast flex items-center gap-3">
         <LanguageSwitcher />
@@ -139,27 +110,15 @@ export default function SetupPage() {
       </div>
 
       <Card
-        variant="feature"
-        className="relative z-10 w-full max-w-3xl dark:border-[var(--kw-dark-border)] dark:bg-gradient-to-br dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+        variant="default"
+        className="relative z-10 w-full max-w-3xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
       >
-        {/* Decorative elements */}
-        <div
-          className="absolute -right-4 -top-4 animate-float text-3xl"
-          style={{ animationDuration: '3s' }}
-          aria-hidden="true"
-        >
-          ✨
-        </div>
-        <div className="absolute -bottom-3 -left-3 text-2xl opacity-60" aria-hidden="true">
-          🌸
-        </div>
-
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left side - Info */}
           <div className="space-y-6">
             {/* Header */}
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-100)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
                 <ShieldCheck className="h-4 w-4" />
                 <span className="uppercase tracking-wider">{t('auth.setup.subtitle')}</span>
               </div>
@@ -174,7 +133,7 @@ export default function SetupPage() {
             </div>
 
             {/* Steps */}
-            <div className="dark:bg-[var(--kw-dark-bg)]/80 space-y-4 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5 dark:border-[var(--kw-dark-border)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/80 space-y-4 rounded-xl border border-[var(--kw-border)] bg-white/80 p-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-center gap-3 text-[var(--kw-text)]">
                 <UserRoundPlus className="h-5 w-5 text-[var(--kw-primary-500)]" />
                 <span className="font-semibold">{t('auth.setup.whatNext')}</span>
@@ -186,24 +145,11 @@ export default function SetupPage() {
                     className="flex animate-slide-up items-start gap-3 text-sm text-[var(--kw-text-muted)]"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <span className="text-lg">{step.icon}</span>
+                    <span className="mt-0.5">{step.icon}</span>
                     <span>{step.text}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-
-            {/* Decoration */}
-            <div className="flex justify-center gap-3 text-3xl opacity-40 dark:opacity-20">
-              <span className="animate-float" style={{ animationDelay: '0s' }}>
-                🌸
-              </span>
-              <span className="animate-float" style={{ animationDelay: '0.3s' }}>
-                ✨
-              </span>
-              <span className="animate-float" style={{ animationDelay: '0.6s' }}>
-                💕
-              </span>
             </div>
           </div>
 
@@ -253,7 +199,7 @@ export default function SetupPage() {
             />
 
             {/* Status */}
-            <div className="dark:bg-[var(--kw-dark-bg)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/80 rounded-xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
               {error ? (
                 <span
                   role="alert"
@@ -265,7 +211,7 @@ export default function SetupPage() {
                 </span>
               ) : !isReady ? (
                 <span className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 animate-pulse" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   {t('auth.setup.checkingStatus')}
                 </span>
               ) : (
@@ -276,10 +222,10 @@ export default function SetupPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" loading={isSubmitting} shimmer>
+            <Button type="submit" className="w-full" loading={isSubmitting}>
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <span className="animate-spin">🌸</span>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   {t('auth.setup.creating')}...
                 </span>
               ) : (

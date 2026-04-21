@@ -190,9 +190,7 @@ export function useAssetsForm({
           ? []
           : current.access_token_ids,
       label_key:
-        mode === 'all_access_tokens' || mode === 'specific_access_tokens'
-          ? ''
-          : current.label_key,
+        mode === 'all_access_tokens' || mode === 'specific_access_tokens' ? '' : current.label_key,
       label_values:
         mode === 'all_access_tokens' || mode === 'specific_access_tokens'
           ? []

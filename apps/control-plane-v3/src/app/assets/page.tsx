@@ -555,9 +555,7 @@ function CapabilityCard({
             {t(governanceStatusTranslationKey(governanceStatus))}
           </Badge>
           <Badge
-            variant={
-              capability.access_policy.mode === 'all_access_tokens' ? 'success' : 'warning'
-            }
+            variant={capability.access_policy.mode === 'all_access_tokens' ? 'success' : 'warning'}
           >
             {capability.access_policy.mode === 'all_access_tokens'
               ? t('assets.capabilities.allTokens')

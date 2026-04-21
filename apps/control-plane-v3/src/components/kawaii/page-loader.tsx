@@ -1,13 +1,11 @@
 /**
  * Page Loader - 统一页面加载组件
- *
- * Kawaii风格的加载动画
  */
 
 'use client';
 
 import { cn } from '@/lib/utils';
-import { CuteSpinner } from './cute-spinner';
+import { Loader2 } from 'lucide-react';
 
 interface PageLoaderProps {
   /** 加载提示文字 */
@@ -27,14 +25,18 @@ export function PageLoader({
     <div
       className={cn(
         'flex items-center justify-center',
-        fullScreen &&
-          'min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]'
+        fullScreen && 'min-h-screen bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]'
       )}
       style={fullScreen ? undefined : { minHeight }}
     >
       <div className="flex flex-col items-center gap-4">
-        <CuteSpinner size={fullScreen ? 'lg' : 'md'} />
-        <p className="animate-pulse text-[var(--kw-text-muted)]">{message}</p>
+        <Loader2
+          className={cn(
+            'animate-spin text-[var(--kw-primary-500)]',
+            fullScreen ? 'h-10 w-10' : 'h-8 w-8'
+          )}
+        />
+        <p className="text-[var(--kw-text-muted)]">{message}</p>
       </div>
     </div>
   );
@@ -46,7 +48,7 @@ export function PageLoader({
 export function InlineLoader({ message }: { message?: string }) {
   return (
     <div className="flex items-center justify-center gap-3 py-8">
-      <CuteSpinner size="sm" />
+      <Loader2 className="h-5 w-5 animate-spin text-[var(--kw-primary-500)]" />
       {message && <span className="text-sm text-[var(--kw-text-muted)]">{message}</span>}
     </div>
   );
@@ -61,7 +63,7 @@ export function SkeletonLoader({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="bg-[var(--kw-primary-100)]/50 dark:bg-[var(--kw-dark-pink-surface)]/20 h-20 animate-pulse rounded-2xl"
+          className="bg-[var(--kw-border)]/50 dark:bg-[var(--kw-dark-border)]/30 h-20 animate-pulse rounded-xl"
         />
       ))}
     </div>

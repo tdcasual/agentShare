@@ -40,11 +40,7 @@ export function useRole(): UseRoleReturn {
     redirectOnMissingSession: false,
   });
 
-  const {
-    role: storedRole,
-    setRole,
-    clearRole,
-  } = useRoleStore();
+  const { role: storedRole, setRole, clearRole } = useRoleStore();
 
   // 同步session中的role到store
   useEffect(() => {
@@ -68,7 +64,9 @@ export function useRole(): UseRoleReturn {
   }, [clearRole, isLoading, session?.role, storedRole]);
 
   // 会话加载期间不暴露持久化角色，避免短暂渲染上一个账号的导航权限。
-  const role = isLoading ? null : ((session?.role as ManagementRole | undefined) ?? storedRole ?? null);
+  const role = isLoading
+    ? null
+    : ((session?.role as ManagementRole | undefined) ?? storedRole ?? null);
   const hasRole = (required: ManagementRole) => !isLoading && hasRequiredRole(role, required);
 
   return {

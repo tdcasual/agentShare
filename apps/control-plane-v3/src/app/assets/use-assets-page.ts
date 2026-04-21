@@ -73,23 +73,20 @@ export function useAssetsPage() {
   const secrets = useMemo(() => secretsQuery.data?.items ?? [], [secretsQuery.data]);
   const capabilities = useMemo(() => capabilitiesQuery.data?.items ?? [], [capabilitiesQuery.data]);
 
-  const allTokens = useMemo<FlattenedToken[]>(
-    () => {
-      const agentNameById = Object.fromEntries(agents.map((agent) => [agent.id, agent.name]));
-      return (accessTokensQuery.data?.items ?? []).map((token) => ({
-        id: token.id,
-        label: token.displayName ?? token.id,
-        agentId: token.subjectType === 'openclaw_agent' ? token.subjectId : token.id,
-        agentName:
-          token.subjectType === 'openclaw_agent'
-            ? (agentNameById[token.subjectId] ?? token.subjectId)
-            : `${token.subjectType}:${token.subjectId}`,
-        status: token.status,
-        labels: token.labels ?? {},
-      }));
-    },
-    [agents, accessTokensQuery.data]
-  );
+  const allTokens = useMemo<FlattenedToken[]>(() => {
+    const agentNameById = Object.fromEntries(agents.map((agent) => [agent.id, agent.name]));
+    return (accessTokensQuery.data?.items ?? []).map((token) => ({
+      id: token.id,
+      label: token.displayName ?? token.id,
+      agentId: token.subjectType === 'openclaw_agent' ? token.subjectId : token.id,
+      agentName:
+        token.subjectType === 'openclaw_agent'
+          ? (agentNameById[token.subjectId] ?? token.subjectId)
+          : `${token.subjectType}:${token.subjectId}`,
+      status: token.status,
+      labels: token.labels ?? {},
+    }));
+  }, [agents, accessTokensQuery.data]);
 
   const tokenNameById = useMemo(
     () =>

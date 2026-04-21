@@ -60,8 +60,8 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
   // 错误状态
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
-        <div className="w-full max-w-md rounded-3xl border border-[var(--kw-border)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]">
+        <div className="w-full max-w-md rounded-xl border border-[var(--kw-border)] bg-white p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
           <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
             {t('runtime.initFailedTitle')}
           </h1>
@@ -74,9 +74,9 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
   // 加载状态
   if (!isReady || !runtime) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--kw-primary-500)]" />
           <p className="text-[var(--kw-text-muted)]">{t('runtime.initializing')}</p>
         </div>
       </div>

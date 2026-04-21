@@ -9,7 +9,7 @@ const config = {
   theme: {
     extend: {
       colors: {
-        // Kawaii color palette
+        // Kawaii color palette - kept for compatibility
         kw: {
           primary: {
             50: '#FFF0F5',
@@ -32,9 +32,9 @@ const config = {
         '4xl': '32px',
       },
       boxShadow: {
-        'soft': '0 4px 20px rgba(255, 105, 180, 0.15)',
-        'medium': '0 8px 30px rgba(255, 105, 180, 0.2)',
-        'glow': '0 0 20px rgba(255, 105, 180, 0.4)',
+        'soft': '0 1px 8px rgba(0, 0, 0, 0.05)',
+        'medium': '0 2px 16px rgba(0, 0, 0, 0.06)',
+        'glow': '0 0 12px rgba(0, 0, 0, 0.06)',
       },
       zIndex: {
         background: '-10',
@@ -47,27 +47,37 @@ const config = {
         skip: '80',
       },
       animation: {
-        'float': 'float 3s ease-in-out infinite',
-        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-        'slide-up': 'slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-        'scale-in': 'scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        'float': 'float 4s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
+        'slide-up': 'slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-down': 'slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        'scale-in': 'scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fade-in 0.2s ease-out',
       },
       keyframes: {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
+          '50%': { transform: 'translateY(-4px)' },
         },
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(255, 105, 180, 0.2)' },
-          '50%': { boxShadow: '0 0 40px rgba(255, 105, 180, 0.5)' },
+          '0%, 100%': { boxShadow: '0 0 8px rgba(0, 0, 0, 0.04)' },
+          '50%': { boxShadow: '0 0 14px rgba(0, 0, 0, 0.08)' },
         },
         'slide-up': {
-          from: { opacity: '0', transform: 'translateY(20px)' },
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-down': {
+          from: { opacity: '0', transform: 'translateY(-12px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
         'scale-in': {
-          from: { opacity: '0', transform: 'scale(0.95)' },
+          from: { opacity: '0', transform: 'scale(0.98)' },
           to: { opacity: '1', transform: 'scale(1)' },
+        },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
         },
       },
     },

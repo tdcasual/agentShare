@@ -13,8 +13,9 @@ describe('ManagementSessionExpiredAlert', () => {
   it('localizes the relogin CTA label', () => {
     render(<ManagementSessionExpiredAlert message="Session expired" />);
 
-    expect(
-      screen.getByRole('link', { name: 'Continue to login (localized)' })
-    ).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: 'Continue to login (localized)' })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 });

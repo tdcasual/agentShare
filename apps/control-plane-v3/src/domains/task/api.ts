@@ -48,7 +48,10 @@ export function getRuns() {
 // Feedback
 // ============================================
 
-export function createTaskTargetFeedback(targetId: string, payload: AccessTokenFeedbackCreateInput) {
+export function createTaskTargetFeedback(
+  targetId: string,
+  payload: AccessTokenFeedbackCreateInput
+) {
   return apiFetch<AccessTokenFeedbackTransport>(`/task-targets/${targetId}/feedback`, {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -58,11 +61,9 @@ export function createTaskTargetFeedback(targetId: string, payload: AccessTokenF
 export function getAccessTokenFeedback(accessTokenId: string) {
   return apiFetch<{ items: AccessTokenFeedbackTransport[] }>(
     `/access-tokens/${accessTokenId}/feedback`
-  ).then(
-    ({ items }) => ({
-      items: items.map(normalizeAccessTokenFeedback),
-    })
-  );
+  ).then(({ items }) => ({
+    items: items.map(normalizeAccessTokenFeedback),
+  }));
 }
 
 export function getAccessTokenFeedbackBulk(accessTokenIds: string[]) {

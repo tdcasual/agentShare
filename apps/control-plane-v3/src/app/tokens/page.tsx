@@ -165,7 +165,9 @@ const TokensContent = memo(function TokensContent() {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);
       } else {
-        setError(submitError instanceof Error ? submitError.message : t('tokens.errors.mintTokenFailed'));
+        setError(
+          submitError instanceof Error ? submitError.message : t('tokens.errors.mintTokenFailed')
+        );
       }
     } finally {
       setSubmitting(false);
@@ -188,7 +190,9 @@ const TokensContent = memo(function TokensContent() {
           setError(revokeError.detail);
         } else {
           setError(
-            revokeError instanceof Error ? revokeError.message : t('tokens.errors.revokeTokenFailed')
+            revokeError instanceof Error
+              ? revokeError.message
+              : t('tokens.errors.revokeTokenFailed')
           );
         }
       }
@@ -200,7 +204,7 @@ const TokensContent = memo(function TokensContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface)]/80">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <ShieldCheck className="h-4 w-4" />
             {t('tokens.remoteAccessSupervision')}
           </div>
@@ -249,7 +253,7 @@ const TokensContent = memo(function TokensContent() {
         />
       </div>
 
-      <Card className="border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -337,7 +341,7 @@ const TokensContent = memo(function TokensContent() {
         {visibleTokens.map((token) => (
           <Card
             key={token.id}
-            className="space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90"
+            className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
@@ -385,10 +389,18 @@ const TokensContent = memo(function TokensContent() {
             </div>
 
             <div className="space-y-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              <p>{t('tokens.labels.tokenPrefix')}: {token.tokenPrefix}</p>
-              <p>{t('tokens.labels.scopes')}: {token.scopes.join(', ') || t('tokens.none')}</p>
-              <p>{t('tokens.labels.lastUsedAt')}: {token.lastUsedAt ?? t('tokens.neverUsed')}</p>
-              <p>{t('tokens.labels.issuedBy')}: {token.issuedByActorId ?? t('tokens.unknownIssuer')}</p>
+              <p>
+                {t('tokens.labels.tokenPrefix')}: {token.tokenPrefix}
+              </p>
+              <p>
+                {t('tokens.labels.scopes')}: {token.scopes.join(', ') || t('tokens.none')}
+              </p>
+              <p>
+                {t('tokens.labels.lastUsedAt')}: {token.lastUsedAt ?? t('tokens.neverUsed')}
+              </p>
+              <p>
+                {t('tokens.labels.issuedBy')}: {token.issuedByActorId ?? t('tokens.unknownIssuer')}
+              </p>
             </div>
           </Card>
         ))}
@@ -414,7 +426,7 @@ const TokensContent = memo(function TokensContent() {
       >
         {revealedSecret ? (
           <div className="space-y-4">
-            <Card className="space-y-3 bg-[var(--kw-primary-50)]/40">
+            <Card className="bg-[var(--kw-primary-50)]/40 space-y-3">
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {revealedSecret.prefix}
               </p>

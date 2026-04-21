@@ -42,10 +42,9 @@ vi.mock('@/lib/session', () => ({
 }));
 
 vi.mock('@/lib/management-session-recovery', async () => {
-  const actual =
-    await vi.importActual<typeof import('@/lib/management-session-recovery')>(
-      '@/lib/management-session-recovery'
-    );
+  const actual = await vi.importActual<typeof import('@/lib/management-session-recovery')>(
+    '@/lib/management-session-recovery'
+  );
 
   return {
     ...actual,

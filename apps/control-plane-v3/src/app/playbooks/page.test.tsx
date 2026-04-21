@@ -106,7 +106,9 @@ describe('playbooks page', () => {
     expect(screen.getByRole('button', { name: t('common.copy') })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: t('common.close') })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: t('common.closeModal') })).toHaveLength(2);
-    expect(screen.getByText(t('playbooks.detail.taskTypeLabel'), { exact: false })).toBeInTheDocument();
+    expect(
+      screen.getByText(t('playbooks.detail.taskTypeLabel'), { exact: false })
+    ).toBeInTheDocument();
     expect(
       screen.getByText(t('playbooks.detail.publicationStatusLabel'), { exact: false })
     ).toBeInTheDocument();
@@ -130,7 +132,9 @@ describe('playbooks page', () => {
       screen.getByPlaceholderText(t('playbooks.modal.bodyPlaceholder')),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') }));
+    await user.click(
+      screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') })
+    );
 
     await waitFor(() => {
       expect(createPlaybookMock).toHaveBeenCalledWith({
@@ -157,7 +161,9 @@ describe('playbooks page', () => {
       screen.getByPlaceholderText(t('playbooks.modal.bodyPlaceholder')),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') }));
+    await user.click(
+      screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') })
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Playbook service unavailable');
@@ -179,7 +185,9 @@ describe('playbooks page', () => {
       screen.getByPlaceholderText(t('playbooks.modal.bodyPlaceholder')),
       'Inspect alerts, confirm scope, and notify responders.'
     );
-    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') }));
+    await user.click(
+      screen.getByRole('button', { name: new RegExp(`^${t('common.create')}$`, 'i') })
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('playbooks.sessionExpired'));

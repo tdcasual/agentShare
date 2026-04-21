@@ -156,7 +156,9 @@ const MarketplaceContent = memo(function MarketplaceContent() {
     selectedFilter === 'rejected' ? rejectedAgentSubmissions : pendingAgentSubmissions;
   const showReviewPanel = selectedFilter !== 'active';
   const showPublishedPanel = selectedFilter !== 'rejected' && selectedFilter !== 'pending';
-  const quickLinks = QUICK_LINKS.filter((link) => hasRequiredRole(session?.role, link.requiredRole));
+  const quickLinks = QUICK_LINKS.filter((link) =>
+    hasRequiredRole(session?.role, link.requiredRole)
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">

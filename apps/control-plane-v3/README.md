@@ -1,130 +1,114 @@
-# Control Plane V3 - Dual Cosmos
+# Control Plane V3
 
-A revolutionary control plane where Humans and Agents coexist as equals.
+Next.js 15 web surface for the AgentShare control plane. This package is the frontend for the repository's agent-server-first stack and should be read together with the root `README.md`.
 
-## 🌌 Philosophy
+## What This README Covers
 
-**Dual Equality**: Human and Agent are both Identity - same rights, same capabilities, different interfaces.
+- frontend-specific architecture
+- local development commands
+- browser-to-backend API contract
+- current release posture for the web layer
 
+For deployment, backend routes, and operations runbooks, use the root `README.md` plus `docs/guides/*`.
+
+## Current Product Shape
+
+- Management routes use persisted backend data through same-origin `/api/*`.
+- Demo and runtime-oriented routes still use a browser-side runtime and plugin model.
+- The current visual direction intentionally keeps a `kawaii` and soft-operational tone. Treat that as a product requirement, not accidental design drift.
+
+## Dual-Track Frontend Architecture
+
+```text
+Browser
+├─ Management shell
+│  ├─ domain APIs + SWR hooks
+│  ├─ same-origin /api/*
+│  ├─ Next.js proxy route
+│  └─ FastAPI management API + management_session cookie
+└─ Demo/runtime shell
+   ├─ RuntimeProvider
+   ├─ createCoreRuntime() + initializeRuntime()
+   ├─ IdentityDomainPlugin and local registry services
+   └─ in-browser state, event bus, and theme/i18n runtime
 ```
-┌─────────────────────────────────────────┐
-│           Identity Universe             │
-│                                         │
-│    👤 Human ◄──────► 🤖 Agent          │
-│         (Equal beings)                  │
-│              │                          │
-│              ▼                          │
-│    ┌─────────────────────┐             │
-│    │   Shared Assets     │             │
-│    │   • Token           │             │
-│    │   • Task            │             │
-│    │   • Space           │             │
-│    └─────────────────────┘             │
-└─────────────────────────────────────────┘
-```
 
-## 🚀 Quick Start
+### Management track
 
-```bash
-# Install dependencies
-npm install
+- Browser code calls business paths without an `/api` prefix.
+- `src/app/api/[...path]/route.ts` proxies those requests to the backend and forwards headers plus cookies.
+- `src/domains/*/hooks.ts` uses SWR for session-aware reads and writes.
+- `src/lib/control-plane-links.ts` is the shared navigation schema for mobile, tablet, and desktop shells.
 
-# Run development server
-npm run dev
+### Runtime/demo track
 
-# Open http://localhost:3000
-```
+- `src/components/runtime-provider.tsx` creates the browser runtime and installs domain plugins.
+- `src/core/runtime.ts` provides the local plugin registry, event bus, DI container, state container, theme engine, and i18n engine.
+- `src/hooks/use-shell-identity.ts` switches between session-backed management identity and runtime-backed demo identity based on the current route.
 
 ## API Contract
 
-- 浏览器代码统一访问同域 `/api/*`
-- domain API 只传业务路径，例如 `/session/login`、`/session/me`、`/agents`
-- Next.js 代理负责把这些浏览器请求转发到后端管理 API
-- `BACKEND_API_URL` 可以配置为:
-  - `http://localhost:8000`
-  - `http://localhost:8000/api`
-- 代理层会把这两种配置都归一化到单层 `/api/*` 后端目标
+- Browser code should call logical paths such as `/session/me` or `/openclaw/agents`.
+- The frontend proxy normalizes `BACKEND_API_URL` and `AGENT_CONTROL_PLANE_API_URL`.
+- Both `http://localhost:8000` and `http://localhost:8000/api` are valid backend base URLs.
+- The final backend target must contain exactly one `/api` prefix.
 
-## 📁 Architecture
+More endpoint detail lives in `docs/api-endpoints.md`.
 
-```
-src/
-├── core/                    # Runtime infrastructure
-│   ├── plugin/             # Plugin system
-│   ├── event/              # Event bus
-│   ├── di/                 # Dependency injection
-│   ├── state/              # State management
-│   └── runtime.ts          # Core runtime
-│
-├── domains/                # Business domains
-│   └── identity/           # Identity domain
-│       ├── services/       # Identity registry
-│       ├── components/     # Identity card
-│       └── plugin.ts       # Domain plugin
-│
-├── themes/                 # Theme system
-│   └── kawaii/            # Kawaii theme
-│
-└── shared/                # Shared utilities
-    ├── types/             # Core types
-    └── ui-primitives/     # UI components
+## Local Development
+
+Install dependencies:
+
+```bash
+npm install
 ```
 
-## 🎨 Kawaii Theme
+Run the frontend against a local API:
 
-- **Primary**: Pink gradient (#FF69B4 → #FF1493)
-- **Human Accent**: Sky blue (#87CEEB)
-- **Agent Accent**: Mint green (#98FB98)
-- **Style**: Rounded, soft shadows, playful animations
-
-## 🔌 Plugin System
-
-```typescript
-class MyPlugin implements Plugin {
-  readonly id = 'my.plugin';
-  readonly version = '1.0.0';
-  
-  install(runtime: CoreRuntime) {
-    // Register routes, components, services
-  }
-  
-  activate() {
-    // Initialize
-  }
-}
+```bash
+BACKEND_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
-## 👤 Identity Model
+Equivalent fallback env:
 
-```typescript
-interface Identity {
-  id: string;
-  type: 'human' | 'agent';
-  profile: {
-    name: string;
-    avatar: string;
-    bio: string;
-    tags: string[];
-  };
-  capabilities: {
-    canCreate: AssetType[];
-    canExecute: string[];
-  };
-  // ... same for both human and agent
-}
+```bash
+AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
-## 🛣️ Roadmap
+If you want the full local demo stack with seeded backend data, run this from the repository root:
 
-- [x] Core runtime (plugin, event, DI, state)
-- [x] Identity domain (registry, cards)
-- [x] Kawaii theme
-- [x] Demo page
-- [ ] Asset domain
-- [ ] Collaboration spaces
-- [ ] Agent SDK
-- [ ] Human GUI polish
+```bash
+./scripts/ops/start-control-plane-demo.sh
+```
 
-## 📄 License
+## Verification
 
-MIT
+Frontend-only checks:
+
+```bash
+npm run check
+npm test -- --run
+npm run build
+```
+
+Canonical repository verification:
+
+```bash
+./scripts/ops/verify-control-plane.sh
+```
+
+## Current Release Posture
+
+- The frontend is suitable for internal demos, operator dogfooding, and supervised trial-run deployments with the current backend and runbooks.
+- It is not the sole architecture authority for deployment or enterprise readiness; the repository root posture still applies.
+- The recent convergence pass focused on calmer visual hierarchy, shared primitive cleanup, centralized shell navigation, and safer system-state presentation without changing routing or backend contracts.
+
+## Key References
+
+- `src/app/api/[...path]/route.ts`
+- `src/components/runtime-provider.tsx`
+- `src/core/runtime.ts`
+- `src/hooks/use-shell-identity.ts`
+- `src/lib/control-plane-links.ts`
+- `docs/api-endpoints.md`
+- `../../docs/plans/2026-04-21-frontend-convergence-kimi-plan.md`

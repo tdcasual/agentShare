@@ -120,9 +120,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         'transition-colors duration-300',
         className
       )}
-      aria-label={
-        isDark ? t('settings.theme.switchToLight') : t('settings.theme.switchToDark')
-      }
+      aria-label={isDark ? t('settings.theme.switchToLight') : t('settings.theme.switchToDark')}
       title={isDark ? t('settings.theme.switchToLight') : t('settings.theme.switchToDark')}
     >
       <span

@@ -1,7 +1,6 @@
 /**
  * Error Boundary - 错误边界组件
  *
- * Kawaii风格的错误页面
  * 捕获子组件的错误，防止整个应用崩溃
  */
 
@@ -50,8 +49,7 @@ function ErrorFallback({
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">
       <Card
-        variant="kawaii"
-        decoration
+        variant="default"
         className="w-full max-w-lg text-center"
         role="alert"
         aria-live="assertive"
@@ -78,7 +76,7 @@ function ErrorFallback({
 
         {/* 操作按钮 */}
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Button variant="kawaii" onClick={onReload} leftIcon={<RefreshCw className="h-4 w-4" />}>
+          <Button variant="primary" onClick={onReload} leftIcon={<RefreshCw className="h-4 w-4" />}>
             {t('common.refreshPage')}
           </Button>
           <Button variant="outline" onClick={onGoHome} leftIcon={<Home className="h-4 w-4" />}>

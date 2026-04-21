@@ -362,101 +362,101 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
 
   return (
     <Modal isOpen onClose={onClose} size="md">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-            {t('playbooks.modal.title')}
-          </h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+          {t('playbooks.modal.title')}
+        </h2>
 
-          <div>
-            <label
-              htmlFor={titleId}
-              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
-            >
-              {t('tasks.form.title')}
-            </label>
-            <Input
-              id={titleId}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('playbooks.modal.titlePlaceholder')}
-              required
-            />
-          </div>
+        <div>
+          <label
+            htmlFor={titleId}
+            className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+          >
+            {t('tasks.form.title')}
+          </label>
+          <Input
+            id={titleId}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t('playbooks.modal.titlePlaceholder')}
+            required
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor={taskTypeId}
-              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
-            >
-              {t('tasks.form.taskType')}
-            </label>
-            <select
-              id={taskTypeId}
-              value={taskType}
-              onChange={(e) => setTaskType(e.target.value)}
-              className="w-full rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
-            >
-              <option value="code_review">{t('playbooks.taskTypes.codeReview')}</option>
-              <option value="deployment">{t('playbooks.taskTypes.deployment')}</option>
-              <option value="analysis">{t('playbooks.taskTypes.analysis')}</option>
-              <option value="documentation">{t('playbooks.taskTypes.documentation')}</option>
-              <option value="testing">{t('playbooks.taskTypes.testing')}</option>
-            </select>
-          </div>
+        <div>
+          <label
+            htmlFor={taskTypeId}
+            className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+          >
+            {t('tasks.form.taskType')}
+          </label>
+          <select
+            id={taskTypeId}
+            value={taskType}
+            onChange={(e) => setTaskType(e.target.value)}
+            className="w-full rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
+          >
+            <option value="code_review">{t('playbooks.taskTypes.codeReview')}</option>
+            <option value="deployment">{t('playbooks.taskTypes.deployment')}</option>
+            <option value="analysis">{t('playbooks.taskTypes.analysis')}</option>
+            <option value="documentation">{t('playbooks.taskTypes.documentation')}</option>
+            <option value="testing">{t('playbooks.taskTypes.testing')}</option>
+          </select>
+        </div>
 
-          <div>
-            <label
-              htmlFor={tagsId}
-              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
-            >
-              {t('playbooks.modal.tagsLabel')}
-            </label>
-            <Input
-              id={tagsId}
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder={t('playbooks.form.tagsPlaceholder')}
-            />
-          </div>
+        <div>
+          <label
+            htmlFor={tagsId}
+            className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+          >
+            {t('playbooks.modal.tagsLabel')}
+          </label>
+          <Input
+            id={tagsId}
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder={t('playbooks.form.tagsPlaceholder')}
+          />
+        </div>
 
-          <div>
-            <label
-              htmlFor={bodyId}
-              className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
-            >
-              {t('playbooks.modal.bodyLabel')}
-            </label>
-            <textarea
-              id={bodyId}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={t('playbooks.modal.bodyPlaceholder')}
-              rows={6}
-              required
-              className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
-            />
-          </div>
+        <div>
+          <label
+            htmlFor={bodyId}
+            className="mb-1 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-border)]"
+          >
+            {t('playbooks.modal.bodyLabel')}
+          </label>
+          <textarea
+            id={bodyId}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder={t('playbooks.modal.bodyPlaceholder')}
+            rows={6}
+            required
+            className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
+          />
+        </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isCreating}
-              className="flex-1"
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              type="submit"
-              variant="kawaii"
-              disabled={isCreating || !title.trim() || !body.trim()}
-              className="flex-1"
-            >
-              {isCreating ? t('playbooks.modal.creating') : t('common.create')}
-            </Button>
-          </div>
-        </form>
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isCreating}
+            className="flex-1"
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            variant="kawaii"
+            disabled={isCreating || !title.trim() || !body.trim()}
+            className="flex-1"
+          >
+            {isCreating ? t('playbooks.modal.creating') : t('common.create')}
+          </Button>
+        </div>
+      </form>
     </Modal>
   );
 }

@@ -138,7 +138,9 @@ describe('settings page', () => {
     );
     await user.type(screen.getByPlaceholderText(t('settings.displayNamePlaceholder')), 'Operator');
     await user.type(screen.getByPlaceholderText(t('settings.passwordPlaceholder')), 'password-123');
-    await user.click(screen.getByRole('button', { name: new RegExp(`^${t('settings.inviteAccount')}$`, 'i') }));
+    await user.click(
+      screen.getByRole('button', { name: new RegExp(`^${t('settings.inviteAccount')}$`, 'i') })
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(t('settings.sessionExpired'));

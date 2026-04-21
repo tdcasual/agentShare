@@ -33,15 +33,17 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
 
   if (compact) {
     return (
-      <div className={cn('relative', className)}>
+      <div className={cn('relative', className)} ref={isOpen ? containerRef : undefined}>
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
           aria-label={t('common.switchLanguage')}
           className={cn(
             'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
-            'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)] bg-white/80 dark:border-[var(--kw-dark-border)]',
-            'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+            'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)]',
+            'hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
             'text-[var(--kw-text)]'
           )}
           title={`${localeFlags[locale as Locale]} ${localeLabels[locale as Locale]}`}
@@ -51,25 +53,28 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
 
         {isOpen && (
           <div
-            ref={containerRef}
             className={cn(
               'absolute right-0 top-full z-dropdown mt-2',
-              'w-32 overflow-hidden rounded-2xl',
+              'w-32 overflow-hidden rounded-xl',
               'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
-              'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-              'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
+              'border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
+              'shadow-lg dark:shadow-black/30',
               'animate-slide-up'
             )}
+            role="listbox"
+            aria-label={t('common.switchLanguage')}
           >
             {locales.map((l) => (
               <button
                 type="button"
                 key={l}
                 onClick={() => handleLocaleChange(l)}
+                role="option"
+                aria-selected={locale === l}
                 className={cn(
                   'flex w-full items-center gap-2 px-3 py-2.5 text-left',
                   'transition-colors duration-200',
-                  'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+                  'hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
                   locale === l &&
                     'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
                 )}
@@ -94,7 +99,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
   }
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn('relative', className)} ref={isOpen ? containerRef : undefined}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
@@ -103,8 +108,8 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         type="button"
         className={cn(
           'flex items-center gap-2 rounded-full px-3 py-2 transition-colors duration-200',
-          'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)] bg-white/80 dark:border-[var(--kw-dark-border)]',
-          'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+          'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)]',
+          'hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
           'text-[var(--kw-text)]',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]'
         )}
@@ -118,25 +123,28 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
 
       {isOpen && (
         <div
-          ref={containerRef}
           className={cn(
             'absolute right-0 top-full z-dropdown mt-2',
-            'w-40 overflow-hidden rounded-2xl',
+            'w-40 overflow-hidden rounded-xl',
             'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]',
-            'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-            'shadow-[var(--kw-primary-500)]/10 shadow-lg dark:shadow-black/30',
+            'border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
+            'shadow-lg dark:shadow-black/30',
             'animate-slide-up'
           )}
+          role="listbox"
+          aria-label={t('common.switchLanguage')}
         >
           {locales.map((l) => (
             <button
               type="button"
               key={l}
               onClick={() => handleLocaleChange(l)}
+              role="option"
+              aria-selected={locale === l}
               className={cn(
                 'flex w-full items-center gap-3 px-4 py-3 text-left',
                 'transition-colors duration-200',
-                'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+                'hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
                 locale === l &&
                   'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-primary)]'
               )}

@@ -29,7 +29,6 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
   return (
     <Card
       hover
-      decoration
       className={cn(
         'cursor-pointer transition-shadow transition-transform duration-300',
         className

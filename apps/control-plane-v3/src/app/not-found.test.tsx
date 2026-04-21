@@ -25,6 +25,8 @@ describe('not found page', () => {
     });
 
     expect(homeLink).toHaveAttribute('href', '/playbooks');
-    expect(screen.queryByRole('button', { name: translateMessage('common.backToHome') })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: translateMessage('common.backToHome') })
+    ).toBeNull();
   });
 });

@@ -106,11 +106,13 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
 
   const actions = useMemo(
     () =>
-      CREATE_ACTIONS.filter((action) => hasRequiredRole(role, action.requiredRole)).map((action) => ({
-        ...action,
-        label: t(action.labelKey),
-        description: t(action.descriptionKey),
-      })),
+      CREATE_ACTIONS.filter((action) => hasRequiredRole(role, action.requiredRole)).map(
+        (action) => ({
+          ...action,
+          label: t(action.labelKey),
+          description: t(action.descriptionKey),
+        })
+      ),
     [role, t]
   );
 

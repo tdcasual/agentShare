@@ -72,8 +72,8 @@ export function useTaskDashboard(options?: SWRConfiguration) {
   const feedbackQuery = useSWR<Record<string, AccessTokenFeedback[]>>(
     targetAccessTokenIds.length > 0 ? [TASK_DASHBOARD_FEEDBACK_KEY, ...targetAccessTokenIds] : null,
     async () => {
-      const grouped =
-        (await taskApi.getAccessTokenFeedbackBulk(targetAccessTokenIds)).items_by_access_token;
+      const grouped = (await taskApi.getAccessTokenFeedbackBulk(targetAccessTokenIds))
+        .items_by_access_token;
       const allFeedback = Object.values(grouped).flat();
       return allFeedback.reduce<Record<string, AccessTokenFeedback[]>>((acc, item) => {
         const key = item.taskTargetId;

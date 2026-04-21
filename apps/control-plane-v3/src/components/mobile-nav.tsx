@@ -8,48 +8,11 @@ import { useI18n } from '@/components/i18n-provider';
 import { useIsMobile } from '@/hooks/use-device-type';
 import { useRole } from '@/hooks/use-role';
 import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
-import {
-  LayoutDashboard,
-  Inbox,
-  BookOpen,
-  PlayCircle,
-  Users,
-  Package,
-  Globe,
-  CheckSquare,
-  Gavel,
-  ShieldCheck,
-  Sparkles,
-  KeyRound,
-  Settings,
-} from 'lucide-react';
-
-interface NavItemDefinition {
-  href: string;
-  labelKey: string;
-  icon: typeof LayoutDashboard;
-  requiredRole: ManagementRole;
-}
-
-const MOBILE_NAV_ITEMS: NavItemDefinition[] = [
-  { href: '/', labelKey: 'navigation.hub', icon: LayoutDashboard, requiredRole: 'admin' },
-  { href: '/inbox', labelKey: 'navigation.inbox', icon: Inbox, requiredRole: 'admin' },
-  { href: '/reviews', labelKey: 'navigation.reviews', icon: ShieldCheck, requiredRole: 'operator' },
-  { href: '/approvals', labelKey: 'navigation.approvals', icon: Gavel, requiredRole: 'operator' },
-  { href: '/marketplace', labelKey: 'navigation.marketplace', icon: Sparkles, requiredRole: 'operator' },
-  { href: '/playbooks', labelKey: 'navigation.playbooks', icon: BookOpen, requiredRole: 'viewer' },
-  { href: '/runs', labelKey: 'navigation.runs', icon: PlayCircle, requiredRole: 'viewer' },
-  { href: '/spaces', labelKey: 'navigation.spaces', icon: Globe, requiredRole: 'viewer' },
-  { href: '/identities', labelKey: 'navigation.identities', icon: Users, requiredRole: 'admin' },
-  { href: '/assets', labelKey: 'navigation.assets', icon: Package, requiredRole: 'admin' },
-  { href: '/tokens', labelKey: 'navigation.tokens', icon: KeyRound, requiredRole: 'admin' },
-  { href: '/tasks', labelKey: 'navigation.tasks', icon: CheckSquare, requiredRole: 'admin' },
-];
+import { Sparkles, Settings } from 'lucide-react';
+import { getVisibleShellNavItems } from '@/lib/control-plane-links';
 
 export function getMobileShellNavTargets(role: ManagementRole | null = 'admin') {
-  return MOBILE_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map(
-    (item) => item.href
-  );
+  return getVisibleShellNavItems(role, { includeSettings: false }).map((item) => item.href);
 }
 
 export function shouldRenderMobileNavMoreButton(role: ManagementRole | null = 'admin') {
@@ -61,13 +24,11 @@ export function MobileNav() {
   const { t } = useI18n();
   const { role } = useRole();
   const isMobile = useIsMobile();
-  const navItems = MOBILE_NAV_ITEMS.filter((item) => hasRequiredRole(role, item.requiredRole)).map(
-    (item) => ({
-      href: item.href,
-      label: t(item.labelKey),
-      icon: item.icon,
-    })
-  );
+  const navItems = getVisibleShellNavItems(role, { includeSettings: false }).map((item) => ({
+    href: item.href,
+    label: t(item.labelKey),
+    icon: item.icon,
+  }));
   const [showMore, setShowMore] = React.useState(false);
 
   // 仅在移动端显示
@@ -96,7 +57,7 @@ export function MobileNav() {
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-colors transition-transform duration-200',
+                  'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-2 transition-colors duration-200',
                   isActive
                     ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
                     : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
@@ -116,7 +77,7 @@ export function MobileNav() {
               aria-label={t('common.more') || 'More'}
               type="button"
               className={cn(
-                'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-2 transition-colors transition-transform duration-200',
+                'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-2 transition-colors duration-200',
                 showMore
                   ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
                   : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
@@ -141,7 +102,7 @@ export function MobileNav() {
           <div
             role="dialog"
             aria-label={t('common.more') || 'More'}
-            className="fixed bottom-20 left-4 right-4 z-dropdown animate-slide-up rounded-3xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+            className="fixed bottom-20 left-4 right-4 z-dropdown animate-slide-up rounded-2xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           >
             <div className="space-y-1 p-4">
               {moreItems.map((item) => {
@@ -154,7 +115,7 @@ export function MobileNav() {
                     href={item.href}
                     onClick={() => setShowMore(false)}
                     className={cn(
-                      'flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200',
+                      'flex items-center gap-3 rounded-xl px-4 py-3 transition-colors duration-200',
                       isActive
                         ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
                         : 'hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]'
@@ -172,7 +133,7 @@ export function MobileNav() {
                 <Link
                   href="/settings"
                   onClick={() => setShowMore(false)}
-                  className="hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex items-center gap-3 rounded-2xl px-4 py-3 text-[var(--kw-text)] transition-colors duration-200 dark:text-[var(--kw-dark-text)]"
+                  className="hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50 flex items-center gap-3 rounded-xl px-4 py-3 text-[var(--kw-text)] transition-colors duration-200 dark:text-[var(--kw-dark-text)]"
                 >
                   <Settings className="h-5 w-5" />
                   <span className="font-medium">{t('navigation.settings')}</span>
