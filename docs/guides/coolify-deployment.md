@@ -6,6 +6,12 @@ This guide is the public production path for teams that still want a simple sing
 
 If you want the full operator runbook, see [Deployment Manual](/Users/lvxiaoer/Documents/codeWork/agentShare/docs/guides/deployment-manual.md).
 
+Important boundary:
+
+- `docker-compose.coolify.yml` is the recommended public path when Coolify is actually providing ingress and TLS.
+- Without Coolify, this compose file is only appropriate when another reverse proxy, load balancer, or private network boundary already fronts the stack.
+- If you want the repository-owned hardened public ingress path, use `docker-compose.prod.yml` instead.
+
 ## What You Trade For Simplicity
 
 - Coolify handles public ingress and TLS instead of the in-repo Caddy service.
@@ -51,6 +57,8 @@ The API container will run `alembic upgrade head` automatically during startup, 
 
 ## Deploy With Plain Docker Compose
 
+Use this only when ingress/TLS are already handled elsewhere or the stack is private.
+
 ```bash
 cp ops/compose/coolify.env.example .env.coolify
 docker compose --env-file .env.coolify -f docker-compose.coolify.yml up -d --build
@@ -62,6 +70,8 @@ Then visit:
 - the `api` service's own public domain plus `/docs` if you exposed the API directly
 
 `NEXT_PUBLIC_API_BASE_URL` may still be set to the web domain so browser calls flow through the web app's `/api/*` proxy path. It is not always the same thing as a separate public API origin.
+
+If you are not under Coolify and need a standalone public-TLS deployment, stop here and switch to `docker-compose.prod.yml` plus the full `Deployment Manual`.
 
 ## Notes
 

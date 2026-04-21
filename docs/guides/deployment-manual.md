@@ -13,7 +13,24 @@ It covers:
 - upgrade and rollback flow
 - common troubleshooting steps
 
-For the simplest public production path, use `docker-compose.coolify.yml`.
+For the simplest public production path under Coolify, use `docker-compose.coolify.yml`.
+For the hardened standalone single-host baseline, use `docker-compose.prod.yml`.
+
+## Choose The Right Deployment Path
+
+Pick one path before you start copying env files or attaching domains:
+
+| Path | Use when | Compose file | Public ingress/TLS |
+|------|----------|--------------|--------------------|
+| Coolify-managed public deployment | Coolify is the orchestrator and should own ingress plus TLS | `docker-compose.coolify.yml` | Coolify |
+| Self-hosted compose with external ingress already handled elsewhere | another reverse proxy, load balancer, or private network already fronts the stack | `docker-compose.coolify.yml` | external to this repository |
+| Hardened standalone public single-host baseline | this repository should provide the public ingress stack itself | `docker-compose.prod.yml` | in-repo `caddy` |
+
+Important boundary:
+
+- `docker-compose.coolify.yml` is not, by itself, the repository's hardened public-TLS stack when Coolify is absent.
+- If you run `docker-compose.coolify.yml` with plain `docker compose`, you must already have ingress/TLS handled elsewhere or you must intentionally expose host ports yourself.
+- If you want the repository-owned public ingress path, use `docker-compose.prod.yml`.
 
 ## Recommended Topology
 
@@ -77,6 +94,7 @@ Before the first deploy, confirm:
    - bootstrap owner key
    - management session secret
 4. You know whether the API needs a public domain in addition to the web domain.
+5. You have chosen one of the three deployment paths above and are using the matching env template.
 
 Suggested secret generation commands:
 
@@ -140,9 +158,11 @@ After the stack is healthy:
 2. complete the first-owner bootstrap flow
 3. store the owner credentials securely
 
-## First-Time Deploy With Plain Docker Compose
+## Self-Hosted Compose Without Coolify
 
-Use this path when you want a direct single-host deployment without Coolify.
+Use this path only when `docker-compose.coolify.yml` is still the right stack shape but ingress/TLS are already handled outside this repository, or when the deployment is private/internal.
+
+This is not the repository's hardened public-internet baseline.
 
 ### 1. Prepare the env file
 
@@ -151,6 +171,8 @@ cp ops/compose/coolify.env.example .env.coolify
 ```
 
 Edit `.env.coolify` and replace the real production values.
+
+If you need direct host-port exposure without Coolify, set `API_BIND_HOST` or `WEB_BIND_HOST` to `0.0.0.0` intentionally and front those ports with your own reverse proxy or private network controls.
 
 ### 2. Start the stack
 
@@ -173,9 +195,81 @@ Visit:
 - `APP_BASE_URL`
 - the `api` service's own public domain plus `/docs` if you attached a separate public domain directly to the API service
 
+## First-Time Deploy With Hardened Production Compose
+
+Use this path when you want the repository-owned public ingress baseline with `caddy`, private `api` and `web` services, and an external secret backend.
+
+### 1. Prepare the env file
+
+```bash
+cp ops/compose/prod.env.example .env.production
+```
+
+Edit `.env.production` and replace the required production values:
+
+- `PUBLIC_HOST`
+- `ACME_EMAIL`
+- `POSTGRES_PASSWORD`
+- `SECRET_BACKEND_URL`
+- `SECRET_BACKEND_TOKEN`
+- `BOOTSTRAP_OWNER_KEY`
+- `MANAGEMENT_SESSION_SECRET`
+- `API_IMAGE`
+- `WEB_IMAGE`
+
+For the default same-stack Postgres wiring, prefer leaving `DATABASE_URL` blank so compose can derive it from `POSTGRES_*`.
+
+### 2. Validate and start the stack
+
+```bash
+docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null
+docker compose --env-file .env.production -f docker-compose.prod.yml pull
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
+```
+
+### 3. Verify service state
+
+```bash
+docker compose --env-file .env.production -f docker-compose.prod.yml ps
+docker compose --env-file .env.production -f docker-compose.prod.yml logs api --tail=100
+docker compose --env-file .env.production -f docker-compose.prod.yml logs web --tail=100
+docker compose --env-file .env.production -f docker-compose.prod.yml logs caddy --tail=100
+```
+
+### 4. Run the authenticated smoke checks
+
+```bash
+export PUBLIC_HOST=agentshare.example.com
+export APP_BASE_URL=https://agentshare.example.com
+export ACP_ADMIN_EMAIL=owner@example.com
+export ACP_ADMIN_PASSWORD=replace-with-owner-password
+./scripts/ops/smoke-test.sh
+```
+
+The smoke script checks `/`, `/healthz`, the presence of `x-request-id`, and authenticated `/metrics`.
+
+### 5. Open the application
+
+Visit:
+
+- `APP_BASE_URL`
+- `APP_BASE_URL/docs` if you want the FastAPI docs through `caddy`
+
 ## Post-Deploy Smoke Checks
 
 Run these checks after every first deploy and every upgrade.
+
+Preferred operator check:
+
+```bash
+export PUBLIC_HOST=agentshare.example.com
+export APP_BASE_URL=https://agentshare.example.com
+export ACP_ADMIN_EMAIL=owner@example.com
+export ACP_ADMIN_PASSWORD=replace-with-owner-password
+./scripts/ops/smoke-test.sh
+```
+
+If you already have a cookie jar for an authenticated owner or admin session, you can use `ACP_COOKIE_JAR` instead of `ACP_ADMIN_EMAIL` and `ACP_ADMIN_PASSWORD`.
 
 ### Public endpoints
 
@@ -195,6 +289,7 @@ docker compose --env-file .env.coolify -f docker-compose.coolify.yml exec api \
 ```
 
 - on Coolify, prefer the web domain as the primary user-facing health check
+- on the hardened production baseline, prefer the smoke script because it matches the same `/metrics` and header expectations used by the deploy workflow
 
 ### Container health
 
@@ -225,6 +320,13 @@ For regular upgrades:
 5. run the post-deploy smoke checks
 
 The API container runs migrations automatically, so there is no separate migration job for this path.
+
+For the hardened `docker-compose.prod.yml` path, the manual upgrade sequence is:
+
+1. update `API_IMAGE` and `WEB_IMAGE` in `.env.production`
+2. run `docker compose --env-file .env.production -f docker-compose.prod.yml pull`
+3. run `docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans`
+4. rerun `./scripts/ops/smoke-test.sh`
 
 ## Rollback Procedure
 
@@ -306,4 +408,5 @@ If the API container fails during `alembic upgrade head` with `password authenti
 ## Related Documents
 
 - [Coolify Deployment](/Users/lvxiaoer/Documents/codeWork/agentShare/docs/guides/coolify-deployment.md)
+- [Production Deployment](/Users/lvxiaoer/Documents/codeWork/agentShare/docs/guides/production-deployment.md)
 - [README](/Users/lvxiaoer/Documents/codeWork/agentShare/README.md)

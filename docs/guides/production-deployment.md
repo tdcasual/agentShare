@@ -12,6 +12,8 @@ For the architecture framing, read `docs/guides/agent-server-first.md` before ch
 
 This guide covers the production deployment path only. Use the agent quickstart for local development, tests, and manual exploration.
 
+For the full operator runbook across Coolify, manual `docker compose`, smoke checks, rollback, and troubleshooting, use [Deployment Manual](/Users/lvxiaoer/Documents/codeWork/agentShare/docs/guides/deployment-manual.md).
+
 ## Baseline
 
 - `docker-compose.prod.yml` is the single-host production stack.
@@ -30,6 +32,8 @@ This guide covers the app team's single-host production baseline only. Managed d
 5. The smoke script accepts either `APP_BASE_URL` or `PUBLIC_BASE_URL` as the public entrypoint override when operators need to match existing environment naming.
 
 This repository currently keeps image publishing automated, but disables automatic production rollout. That reduces accidental deployments while operators are still validating environment parity and database credentials.
+
+If you are not using the GitHub Actions deploy workflow, you can still run the same baseline manually with `docker-compose.prod.yml`, `.env.production`, and `scripts/ops/smoke-test.sh`. The full manual sequence is documented in `docs/guides/deployment-manual.md`.
 
 ## Database Migrations
 
