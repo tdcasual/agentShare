@@ -28,6 +28,7 @@ from app.routes.tasks import router as tasks_router, task_targets_router
 from app.routes.token_feedback import router as token_feedback_router
 from app.routes.bootstrap import router as bootstrap_router
 from app.routes.events import router as events_router
+from app.routes.public_docs import router as public_docs_router
 
 
 def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
@@ -62,6 +63,7 @@ def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:
         metrics_router,
         runs_router,
         playbooks_router,
+        public_docs_router,
     ])
     return tuple(routers)
 
