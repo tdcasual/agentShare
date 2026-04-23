@@ -56,10 +56,9 @@ export interface ReviewEvents {
 // ============================================
 
 export interface ApproveReviewInput {
-  readonly comment?: string;
+  readonly reason?: string;
 }
 
 export interface RejectReviewInput {
   readonly reason: string;
-  readonly comment?: string;
 }

@@ -2,7 +2,7 @@
 
 This guide is the shortest path from "I have a runtime bearer credential" to "I can call the control plane through MCP".
 
-The preferred runtime bearer is an OpenClaw-style `session_key`. Remote managed tokens remain valid for external runtimes, but MCP should be understood as part of the agent server surface, not as a token product by itself. For the architecture framing, read `docs/guides/agent-server-first.md`.
+The preferred runtime bearer is an OpenClaw-style `session_key`. Remote managed tokens remain valid for external runtimes, but MCP should be understood as part of the agent server surface, not as a token product by itself. For the architecture framing, read `docs/guides/agent-server-first.md`. For the full external agent workflow including MCP with Access Tokens, see `docs/guides/external-agent-quickstart.md`.
 
 ## Preconditions
 

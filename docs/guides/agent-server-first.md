@@ -82,8 +82,9 @@ If you are new to the project, read in this order:
 1. `README.md`
 2. `docs/guides/agent-server-first.md`
 3. `docs/guides/agent-quickstart.md`
-4. `docs/guides/mcp-quickstart.md`
-5. `docs/guides/admin-bootstrap-and-token-ops.md`
+4. `docs/guides/external-agent-quickstart.md`
+5. `docs/guides/mcp-quickstart.md`
+6. `docs/guides/admin-bootstrap-and-access-token-ops.md`
 
 Historical design and migration plans under `docs/plans/` may still describe earlier token-centric or migration-era thinking. Treat them as change history unless they are explicitly linked from the current guides as the active source of truth.
 

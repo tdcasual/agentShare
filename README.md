@@ -305,6 +305,7 @@ The primary runtime path is now OpenClaw-native:
 - bounded autonomous continuation is available through Dream Mode runs and explicit memory notes
 
 For the end-to-end local workflow, use [docs/guides/agent-quickstart.md](docs/guides/agent-quickstart.md).
+For external remote-agent workflows using standalone Access Tokens, use [docs/guides/external-agent-quickstart.md](docs/guides/external-agent-quickstart.md).
 For bounded autonomy setup and operator guidance, use [docs/guides/dream-mode-quickstart.md](docs/guides/dream-mode-quickstart.md).
 
 ## Frontend Control Plane Notes
@@ -374,12 +375,13 @@ cd apps/control-plane-v3 && npm run test:contracts
 
 Start with the operational guide:
 
-- `docs/guides/agent-quickstart.md`
+- `docs/guides/agent-quickstart.md` — in-project OpenClaw agent runtime
+- `docs/guides/external-agent-quickstart.md` — external remote agents with Access Tokens
 - `docs/guides/admin-bootstrap-and-access-token-ops.md`
 - `docs/guides/dream-mode-quickstart.md`
 - `docs/guides/mcp-quickstart.md`
 
-The quickstarts cover first-run management bootstrap, external remote-access token operations, OpenClaw runtime session flows, direct HTTP runtime calls, bounded Dream Mode runs, and the MCP tool surface on top of the same control-plane services.
+The quickstarts cover first-run management bootstrap, in-project and external agent runtime workflows, external remote-access token operations, direct HTTP and MCP runtime calls, bounded Dream Mode runs, and the MCP tool surface on top of the same control-plane services.
 
 ## Phase 2 Surface
 

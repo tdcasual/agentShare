@@ -257,6 +257,8 @@ Human operators can leave feedback on completed task targets:
 - `POST /api/task-targets/{task_target_id}/feedback`
 - `GET /api/access-tokens/{token_id}/feedback`
 
+For the external agent quickstart that consumes these access tokens, see `docs/guides/external-agent-quickstart.md`.
+
 Feedback records then roll up into token-level trust metrics.
 
 These access-token-targeted task routes are for external remote runtimes. The primary in-project runtime path remains the OpenClaw-style `session_key`, which is tracked through the OpenClaw session inventory.

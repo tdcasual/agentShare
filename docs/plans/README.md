@@ -8,7 +8,8 @@ Read these guides first for the current architecture position:
 
 - `docs/guides/agent-server-first.md`
 - `docs/guides/agent-quickstart.md`
-- `docs/guides/admin-bootstrap-and-token-ops.md`
+- `docs/guides/external-agent-quickstart.md`
+- `docs/guides/admin-bootstrap-and-access-token-ops.md`
 - `docs/guides/production-deployment.md`
 
 Additional reading guidance:

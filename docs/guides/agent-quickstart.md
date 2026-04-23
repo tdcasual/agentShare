@@ -4,7 +4,7 @@ This guide is for local development and day-to-day agent workflow discovery. For
 
 This guide is the shortest path from "I have a management session" to "I can provision an OpenClaw-backed agent server runtime and complete a task safely".
 
-The runtime model described here is the project's primary `agent server first` path. For the architectural framing, read `docs/guides/agent-server-first.md`.
+The runtime model described here is the project's primary `agent server first` path. For the architectural framing, read `docs/guides/agent-server-first.md`. If you are an external remote agent using a standalone Access Token instead of an OpenClaw session key, use `docs/guides/external-agent-quickstart.md` instead of this guide.
 
 ## Preconditions
 
