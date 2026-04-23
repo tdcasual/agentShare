@@ -118,7 +118,7 @@ const InboxContent = memo(function InboxContent() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+    <div className="mx-auto max-w-3xl space-y-6 sm:p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--kw-text)]">{t('inbox.title')}</h1>

@@ -115,7 +115,7 @@ export function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-modal flex items-end justify-center p-4 sm:items-center">
       {/* Backdrop */}
       <button
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -139,7 +139,7 @@ export function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-6 py-4">
+          <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-4 py-4 sm:px-6">
             <div>
               {title && (
                 <h2 id="modal-title" className="text-xl font-semibold text-[var(--kw-text)]">
@@ -166,7 +166,7 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className="max-h-[70vh] overflow-y-auto px-6 py-4">{children}</div>
+        <div className="max-h-[calc(85dvh-4rem)] overflow-y-auto px-4 py-4 sm:px-6 safe-area-pb">{children}</div>
       </div>
     </div>
   );

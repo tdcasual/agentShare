@@ -43,7 +43,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'relative rounded-2xl p-6',
+          'relative rounded-2xl p-4 md:p-6',
           cardVariants[variant],
           hover && 'card-kawaii cursor-pointer',
           className
@@ -91,7 +91,7 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
     <div
       ref={ref}
       className={cn(
-        'border-[var(--kw-border)]/50 mt-4 flex items-center gap-3 border-t pt-4',
+        'border-[var(--kw-border)]/50 mt-4 flex flex-wrap items-center gap-3 border-t pt-4',
         className
       )}
       {...props}

@@ -165,7 +165,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-dropdown mt-2 overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div className="absolute left-0 right-0 top-full z-dropdown mt-2 max-h-[50vh] overflow-hidden overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
           {isLoading && (
             <div className="flex items-center justify-center gap-2 p-4 text-[var(--kw-text-muted)]">
               <Loader2 className="h-4 w-4 animate-spin" />

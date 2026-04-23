@@ -23,7 +23,7 @@ const GlobalSearch = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-10 w-64 animate-pulse rounded-full bg-[var(--kw-primary-100)]" />
+      <div className="h-10 w-48 animate-pulse rounded-full bg-[var(--kw-primary-100)] sm:w-64" />
     ),
   }
 );
@@ -83,14 +83,14 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   });
 
   return (
-    <header className="sticky top-0 z-sticky flex h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white px-6 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+    <header className="safe-area-inset-top sticky top-0 z-sticky flex min-h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white px-6 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
       {/* Left - Search */}
       <div className="max-w-xl flex-1">
         <GlobalSearch />
       </div>
 
       {/* Right - Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
         {/* Language & Theme - Compact on mobile */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 md:hidden">
@@ -132,9 +132,11 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
         {showAdminControls && (
           <>
             {/* Notifications - 使用真实数据绑定的 Notifications 组件 */}
-            <Notifications />
+            <div className="hidden sm:block">
+              <Notifications />
+            </div>
 
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <button
                 type="button"
                 onClick={() => {

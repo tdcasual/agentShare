@@ -14,7 +14,7 @@ export function StatDisplay({ icon, label, value }: StatDisplayProps) {
         {icon}
         {label}
       </div>
-      <p className="mt-2 break-all text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+      <p className="mt-2 truncate text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
         {value}
       </p>
     </div>

@@ -170,7 +170,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
           ) : null}
 
           {/* 页面标题 */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
                 {t('playbooks.title')}
@@ -437,7 +437,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           />
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"

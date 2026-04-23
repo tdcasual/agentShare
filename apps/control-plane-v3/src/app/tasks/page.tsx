@@ -498,7 +498,7 @@ function CreateTaskModal({
           </div>
         ) : null}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button type="button" variant="ghost" onClick={form.closeCreateTaskModal}>
             {form.t('common.cancel')}
           </Button>
@@ -767,7 +767,7 @@ function FeedbackModal({ form }: { form: ReturnType<typeof useTasksForm> }) {
           </div>
         ) : null}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button type="button" variant="ghost" onClick={form.closeFeedbackModal}>
             {form.t('common.cancel')}
           </Button>
@@ -802,7 +802,7 @@ function TokenCheckbox({
         <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
           {token.displayName}
         </p>
-        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        <p className="break-all text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           {token.id} • {token.subjectId} • {t('tasks.form.trust') || 'trust'}{' '}
           {(token.trustScore ?? 0).toFixed(2)}
         </p>

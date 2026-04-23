@@ -64,7 +64,7 @@ export function MobileNav() {
                 )}
               >
                 <Icon className={cn('h-5 w-5', isActive && 'scale-110')} aria-hidden="true" />
-                <span className="max-w-full truncate text-[10px] font-medium">{item.label}</span>
+                <span className="max-w-full truncate text-[11px] font-medium">{item.label}</span>
               </Link>
             );
           })}
@@ -84,7 +84,7 @@ export function MobileNav() {
               )}
             >
               <Sparkles className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{t('common.more') || '更多'}</span>
+              <span className="text-[11px] font-medium">{t('common.more') || '更多'}</span>
             </button>
           ) : null}
         </div>
@@ -102,7 +102,7 @@ export function MobileNav() {
           <div
             role="dialog"
             aria-label={t('common.more') || 'More'}
-            className="fixed bottom-20 left-4 right-4 z-dropdown animate-slide-up rounded-2xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+            className="fixed bottom-20 left-4 right-4 z-dropdown max-h-[60vh] animate-slide-up overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           >
             <div className="space-y-1 p-4">
               {moreItems.map((item) => {
