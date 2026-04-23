@@ -7,7 +7,7 @@ import TokensPage from './page';
 
 const t = translateMessage;
 
-const useManagementSessionGateMock = vi.fn();
+const useGlobalSessionMock = vi.fn();
 const useAccessTokensMock = vi.fn();
 const useCreateAccessTokenMock = vi.fn();
 const useRevokeAccessTokenMock = vi.fn();
@@ -23,8 +23,8 @@ vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('@/lib/session', () => ({
-  useManagementSessionGate: () => useManagementSessionGateMock(),
+vi.mock('@/lib/session-state', () => ({
+  useGlobalSession: () => useGlobalSessionMock(),
 }));
 
 vi.mock('@/domains/identity', () => ({
@@ -37,13 +37,13 @@ describe('tokens page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    useManagementSessionGateMock.mockReturnValue({
-      session: {
-        email: 'owner@example.com',
-        role: 'owner',
-      },
-      loading: false,
-      error: null,
+    useGlobalSessionMock.mockReturnValue({
+      state: 'authenticated',
+      email: 'owner@example.com',
+      role: 'owner',
+      sessionId: 'session-1',
+      lastLoadedAt: Date.now(),
+      summary: { email: 'owner@example.com', role: 'owner', session_id: 'session-1' },
     });
 
     useAccessTokensMock.mockReturnValue({

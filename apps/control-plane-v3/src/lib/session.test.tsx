@@ -1,17 +1,7 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useManagementSessionGate } from './session';
+import { describe, expect, it, vi } from 'vitest';
+import { resolveAppEntryState } from './session';
 
-const replaceMock = vi.fn();
-const resolveEntryStateMock = vi.fn();
 const setGlobalSessionMock = vi.fn();
-const routerMock = {
-  replace: replaceMock,
-};
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => routerMock,
-}));
 
 vi.mock('@/lib/api', () => ({
   api: {
@@ -21,52 +11,19 @@ vi.mock('@/lib/api', () => ({
 }));
 
 vi.mock('@/lib/entry-state', () => ({
-  resolveEntryState: (...args: unknown[]) => resolveEntryStateMock(...args),
+  resolveEntryStateFast: vi.fn(),
 }));
 
 vi.mock('@/lib/session-state', () => ({
   setGlobalSession: (...args: unknown[]) => setGlobalSessionMock(...args),
 }));
 
-describe('useManagementSessionGate', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+describe('resolveAppEntryState', () => {
+  it('syncs authenticated session to global state', async () => {
+    const { resolveEntryStateFast } = await import('@/lib/entry-state');
+    const mocked = vi.mocked(resolveEntryStateFast);
 
-  it('redirects to login by default when the entry state requires authentication', async () => {
-    resolveEntryStateMock.mockResolvedValue({
-      kind: 'login_required',
-      bootstrap: { initialized: true },
-    });
-
-    renderHook(() => useManagementSessionGate());
-
-    await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith('/login');
-    });
-  });
-
-  it('can stay on the current page when authentication is missing and redirects are disabled', async () => {
-    resolveEntryStateMock.mockResolvedValue({
-      kind: 'login_required',
-      bootstrap: { initialized: true },
-    });
-
-    const { result } = renderHook(() =>
-      useManagementSessionGate({ redirectOnMissingSession: false })
-    );
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(replaceMock).not.toHaveBeenCalled();
-    expect(result.current.session).toBeNull();
-    expect(result.current.error).toBeNull();
-  });
-
-  it('clears the current session before redirecting when authentication expires', async () => {
-    resolveEntryStateMock.mockResolvedValueOnce({
+    mocked.mockResolvedValue({
       kind: 'authenticated_ready',
       bootstrap: { initialized: true },
       session: {
@@ -74,67 +31,50 @@ describe('useManagementSessionGate', () => {
         role: 'owner',
         session_id: 'session-1',
       },
-    });
+    } as never);
 
-    const { result } = renderHook(() => useManagementSessionGate());
+    const result = await resolveAppEntryState();
 
-    await waitFor(() => {
-      expect(result.current.session?.email).toBe('owner@example.com');
-    });
+    expect(result.kind).toBe('authenticated_ready');
+    expect(setGlobalSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: 'authenticated',
+        email: 'owner@example.com',
+        role: 'owner',
+      })
+    );
+  });
 
-    resolveEntryStateMock.mockResolvedValueOnce({
+  it('syncs anonymous state when login is required', async () => {
+    const { resolveEntryStateFast } = await import('@/lib/entry-state');
+    const mocked = vi.mocked(resolveEntryStateFast);
+
+    mocked.mockResolvedValue({
       kind: 'login_required',
       bootstrap: { initialized: true },
-    });
+    } as never);
 
-    await act(async () => {
-      result.current.refreshSession();
-    });
+    const result = await resolveAppEntryState();
 
-    await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith('/login');
-    });
-
-    expect(result.current.session).toBeNull();
-    expect(setGlobalSessionMock).toHaveBeenLastCalledWith(
+    expect(result.kind).toBe('login_required');
+    expect(setGlobalSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({ state: 'anonymous' })
     );
   });
 
-  it('clears the current session when the entry-state check becomes unavailable', async () => {
-    resolveEntryStateMock.mockResolvedValueOnce({
-      kind: 'authenticated_ready',
-      bootstrap: { initialized: true },
-      session: {
-        email: 'owner@example.com',
-        role: 'owner',
-        session_id: 'session-1',
-      },
-    });
+  it('syncs unavailable state with error', async () => {
+    const { resolveEntryStateFast } = await import('@/lib/entry-state');
+    const mocked = vi.mocked(resolveEntryStateFast);
 
-    const { result } = renderHook(() =>
-      useManagementSessionGate({ redirectOnMissingSession: false })
-    );
-
-    await waitFor(() => {
-      expect(result.current.session?.email).toBe('owner@example.com');
-    });
-
-    resolveEntryStateMock.mockResolvedValueOnce({
+    mocked.mockResolvedValue({
       kind: 'unavailable',
       error: 'backend down',
-    });
+    } as never);
 
-    await act(async () => {
-      result.current.refreshSession();
-    });
+    const result = await resolveAppEntryState();
 
-    await waitFor(() => {
-      expect(result.current.error).toBe('backend down');
-    });
-
-    expect(result.current.session).toBeNull();
-    expect(setGlobalSessionMock).toHaveBeenLastCalledWith(
+    expect(result.kind).toBe('unavailable');
+    expect(setGlobalSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({ state: 'unavailable', error: 'backend down' })
     );
   });

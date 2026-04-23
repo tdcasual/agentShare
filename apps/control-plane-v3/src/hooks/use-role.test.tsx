@@ -3,10 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRole } from '@/hooks/use-role';
 import { useRoleStore } from '@/store/role-store';
 
-const useManagementSessionGateMock = vi.fn();
+let mockGlobalSession: {
+  state: string;
+  email?: string;
+  role?: string;
+  sessionId?: string;
+  error?: string;
+  lastLoadedAt?: number;
+};
 
-vi.mock('@/lib/session', () => ({
-  useManagementSessionGate: (...args: unknown[]) => useManagementSessionGateMock(...args),
+vi.mock('@/lib/session-state', () => ({
+  useGlobalSession: () => mockGlobalSession,
 }));
 
 function RoleProbe() {
@@ -25,16 +32,13 @@ function RoleProbe() {
 describe('useRole', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useRoleStore.setState({ role: null, lastUpdated: null });
+    useRoleStore.setState({ role: null });
+    mockGlobalSession = { state: 'unknown', lastLoadedAt: Date.now() };
   });
 
   it('does not expose a persisted role while the session is still loading', () => {
     useRoleStore.getState().setRole('admin');
-    useManagementSessionGateMock.mockReturnValue({
-      session: null,
-      loading: true,
-      refreshSession: vi.fn(),
-    });
+    mockGlobalSession = { state: 'unknown', lastLoadedAt: Date.now() };
 
     render(<RoleProbe />);
 
@@ -46,11 +50,7 @@ describe('useRole', () => {
 
   it('clears the persisted role after the session resolves as anonymous', async () => {
     useRoleStore.getState().setRole('admin');
-    useManagementSessionGateMock.mockReturnValue({
-      session: null,
-      loading: false,
-      refreshSession: vi.fn(),
-    });
+    mockGlobalSession = { state: 'anonymous', lastLoadedAt: Date.now() };
 
     render(<RoleProbe />);
 
@@ -59,5 +59,22 @@ describe('useRole', () => {
     });
     expect(screen.getByTestId('role')).toHaveTextContent('none');
     expect(screen.getByTestId('is-admin')).toHaveTextContent('false');
+  });
+
+  it('exposes the role from global session when authenticated', () => {
+    mockGlobalSession = {
+      state: 'authenticated',
+      email: 'admin@test.com',
+      role: 'admin',
+      sessionId: 'sess-1',
+      lastLoadedAt: Date.now(),
+    };
+
+    render(<RoleProbe />);
+
+    expect(screen.getByTestId('role')).toHaveTextContent('admin');
+    expect(screen.getByTestId('loading')).toHaveTextContent('false');
+    expect(screen.getByTestId('is-admin')).toHaveTextContent('true');
+    expect(screen.getByTestId('has-viewer')).toHaveTextContent('true');
   });
 });

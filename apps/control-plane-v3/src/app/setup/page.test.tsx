@@ -6,12 +6,27 @@ import enMessages from '@/i18n/messages/en.json';
 import zhMessages from '@/i18n/messages/zh-CN.json';
 import SetupPage from './page';
 
-const pushMock = vi.fn();
 const replaceMock = vi.fn();
+const originalLocation = window.location;
+
+beforeEach(() => {
+  // jsdom doesn't support setting window.location.href directly,
+  // so we delete it and provide a writable mock.
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: { href: '' },
+  });
+});
+
+afterEach(() => {
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: originalLocation,
+  });
+});
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: pushMock,
     replace: replaceMock,
   }),
 }));
@@ -94,7 +109,7 @@ describe('setup page', () => {
       });
     });
 
-    expect(pushMock).toHaveBeenCalledWith('/login');
+    expect(window.location.href).toBe('/login');
   });
 
   it('shows an API error when bootstrap submission fails', async () => {
@@ -126,7 +141,7 @@ describe('setup page', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Invalid bootstrap credential');
     });
 
-    expect(pushMock).not.toHaveBeenCalled();
+    expect(window.location.href).toBe('');
   });
 
   it('ships a localized setup description in both locales', () => {

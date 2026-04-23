@@ -4,13 +4,13 @@ import { translateMessage } from '@/test-utils/i18n-mock';
 import HubPage from './page';
 
 const t = translateMessage;
-const replaceMock = vi.fn();
-const resolveAppEntryStateMock = vi.fn();
 const useEventsMock = vi.fn();
 const useAdminAccountsMock = vi.fn();
 const useOpenClawAgentsMock = vi.fn();
 const useAccessTokensMock = vi.fn();
 const useReviewsMock = vi.fn();
+
+let mockGlobalSession: Record<string, unknown>;
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
@@ -20,7 +20,7 @@ vi.mock('next/link', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    replace: replaceMock,
+    replace: vi.fn(),
   }),
 }));
 
@@ -35,8 +35,8 @@ vi.mock('@/components/i18n-provider', () => ({
   }),
 }));
 
-vi.mock('@/lib/session', () => ({
-  resolveAppEntryState: () => resolveAppEntryStateMock(),
+vi.mock('@/lib/session-state', () => ({
+  useGlobalSession: () => mockGlobalSession,
 }));
 
 vi.mock('@/domains/event', () => ({
@@ -57,13 +57,13 @@ describe('hub page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    resolveAppEntryStateMock.mockResolvedValue({
-      kind: 'authenticated_ready',
-      session: {
-        email: 'owner@example.com',
-        role: 'owner',
-      },
-    });
+    mockGlobalSession = {
+      state: 'authenticated',
+      email: 'owner@example.com',
+      role: 'owner',
+      sessionId: 'session-1',
+      lastLoadedAt: Date.now(),
+    };
 
     useEventsMock.mockReturnValue({
       events: [

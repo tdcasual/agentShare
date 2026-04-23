@@ -14,7 +14,7 @@ const useOpenClawAgentsMock = vi.fn();
 const useAccessTokensMock = vi.fn();
 const useSecretsMock = vi.fn();
 const useCapabilitiesMock = vi.fn();
-const useManagementSessionGateMock = vi.fn();
+const useGlobalSessionMock = vi.fn();
 const useApproveReviewMock = vi.fn();
 const useRejectReviewMock = vi.fn();
 const useSpacesMock = vi.fn();
@@ -44,8 +44,8 @@ vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('@/lib/session', () => ({
-  useManagementSessionGate: () => useManagementSessionGateMock(),
+vi.mock('@/lib/session-state', () => ({
+  useGlobalSession: () => useGlobalSessionMock(),
 }));
 
 vi.mock('@/domains/event', () => ({
@@ -83,13 +83,13 @@ describe('spaces page', () => {
     vi.clearAllMocks();
     mockSearchParams = new URLSearchParams();
 
-    useManagementSessionGateMock.mockReturnValue({
-      session: {
-        email: 'owner@example.com',
-        role: 'owner',
-      },
-      loading: false,
-      error: null,
+    useGlobalSessionMock.mockReturnValue({
+      state: 'authenticated',
+      email: 'owner@example.com',
+      role: 'owner',
+      sessionId: 'session-1',
+      lastLoadedAt: Date.now(),
+      summary: { email: 'owner@example.com', role: 'owner', session_id: 'session-1' },
     });
 
     useEventsMock.mockReturnValue({
@@ -588,13 +588,13 @@ describe('spaces page', () => {
   });
 
   it('degrades to a read-only workspace for viewer roles', () => {
-    useManagementSessionGateMock.mockReturnValue({
-      session: {
-        email: 'viewer@example.com',
-        role: 'viewer',
-      },
-      loading: false,
-      error: null,
+    useGlobalSessionMock.mockReturnValue({
+      state: 'authenticated',
+      email: 'viewer@example.com',
+      role: 'viewer',
+      sessionId: 'session-2',
+      lastLoadedAt: Date.now(),
+      summary: { email: 'viewer@example.com', role: 'viewer', session_id: 'session-2' },
     });
 
     render(<SpacesPage />);

@@ -7,7 +7,7 @@ import MarketplacePage from './page';
 let mockSearchParams = new URLSearchParams();
 const useReviewsMock = vi.fn();
 const useCatalogMock = vi.fn();
-const useManagementSessionGateMock = vi.fn();
+let mockGlobalSession: Record<string, unknown>;
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
@@ -23,8 +23,8 @@ vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('@/lib/session', () => ({
-  useManagementSessionGate: () => useManagementSessionGateMock(),
+vi.mock('@/lib/session-state', () => ({
+  useGlobalSession: () => mockGlobalSession,
 }));
 
 vi.mock('@/domains/review', () => ({
@@ -46,14 +46,13 @@ describe('marketplace page', () => {
     vi.clearAllMocks();
     mockSearchParams = new URLSearchParams();
 
-    useManagementSessionGateMock.mockReturnValue({
-      session: {
-        email: 'owner@example.com',
-        role: 'owner',
-      },
-      loading: false,
-      error: null,
-    });
+    mockGlobalSession = {
+      state: 'authenticated',
+      email: 'owner@example.com',
+      role: 'owner',
+      sessionId: 'session-1',
+      lastLoadedAt: Date.now(),
+    };
 
     useReviewsMock.mockReturnValue({
       data: {
@@ -191,14 +190,13 @@ describe('marketplace page', () => {
   });
 
   it('filters quick links down to operator-allowed destinations', () => {
-    useManagementSessionGateMock.mockReturnValue({
-      session: {
-        email: 'operator@example.com',
-        role: 'operator',
-      },
-      loading: false,
-      error: null,
-    });
+    mockGlobalSession = {
+      state: 'authenticated',
+      email: 'operator@example.com',
+      role: 'operator',
+      sessionId: 'session-1',
+      lastLoadedAt: Date.now(),
+    };
 
     render(<MarketplacePage />);
 
@@ -212,11 +210,11 @@ describe('marketplace page', () => {
   });
 
   it('shows a generic inline error when the session gate fails for non-auth reasons', () => {
-    useManagementSessionGateMock.mockReturnValue({
-      session: null,
-      loading: false,
+    mockGlobalSession = {
+      state: 'unavailable',
       error: 'Backend unavailable',
-    });
+      lastLoadedAt: Date.now(),
+    };
 
     render(<MarketplacePage />);
 

@@ -8,7 +8,7 @@ import AssetsPage from './page';
 const t = translateMessage;
 
 let mockSearchParams = new URLSearchParams();
-const useManagementSessionGateMock = vi.fn();
+const useGlobalSessionMock = vi.fn();
 const useOpenClawAgentsMock = vi.fn();
 const useAccessTokensMock = vi.fn();
 const useSecretsMock = vi.fn();
@@ -31,8 +31,8 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
 
-vi.mock('@/lib/session', () => ({
-  useManagementSessionGate: () => useManagementSessionGateMock(),
+vi.mock('@/lib/session-state', () => ({
+  useGlobalSession: () => useGlobalSessionMock(),
 }));
 
 vi.mock('@/domains/identity', () => ({
@@ -57,13 +57,13 @@ describe('assets page', () => {
     vi.clearAllMocks();
     mockSearchParams = new URLSearchParams();
 
-    useManagementSessionGateMock.mockReturnValue({
-      session: {
-        email: 'owner@example.com',
-        role: 'owner',
-      },
-      loading: false,
-      error: null,
+    useGlobalSessionMock.mockReturnValue({
+      state: 'authenticated',
+      email: 'owner@example.com',
+      role: 'owner',
+      sessionId: 'session-1',
+      lastLoadedAt: Date.now(),
+      summary: { email: 'owner@example.com', role: 'owner', session_id: 'session-1' },
     });
 
     useOpenClawAgentsMock.mockReturnValue({

@@ -1,15 +1,28 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, api } from '@/lib/api';
 import LoginPage from './page';
 
-const pushMock = vi.fn();
 const replaceMock = vi.fn();
+const originalLocation = window.location;
+
+beforeEach(() => {
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: { href: '' },
+  });
+});
+
+afterEach(() => {
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: originalLocation,
+  });
+});
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: pushMock,
     replace: replaceMock,
   }),
 }));
@@ -79,7 +92,7 @@ describe('login page', () => {
       });
     });
 
-    expect(pushMock).toHaveBeenCalledWith('/playbooks');
+    expect(window.location.href).toBe('/playbooks');
   });
 
   it('shows API errors from failed sign-in attempts', async () => {
@@ -100,6 +113,6 @@ describe('login page', () => {
       expect(screen.getByRole('status')).toHaveTextContent('Invalid credentials');
     });
 
-    expect(pushMock).not.toHaveBeenCalled();
+    expect(window.location.href).toBe('');
   });
 });
