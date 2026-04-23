@@ -59,7 +59,8 @@ export default function LoginPage() {
     setError(null);
     try {
       const session = await api.login(form);
-      router.push(getDefaultManagementRoute(session.role));
+      const target = getDefaultManagementRoute(session.role);
+      window.location.href = target;
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);

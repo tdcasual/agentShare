@@ -27,7 +27,7 @@ import {
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
 import { hasRequiredRole, isValidRole } from '@/lib/role-system';
-import { useManagementSessionGate } from '@/lib/session';
+import { useGlobalSession } from '@/lib/session-state';
 import { Badge } from '@/shared/ui-primitives/badge';
 
 import { Card } from '@/shared/ui-primitives/card';
@@ -43,8 +43,8 @@ function SpacesContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
-  const { session } = useManagementSessionGate({ redirectOnMissingSession: false });
-  const sessionRole = session?.role ?? null;
+  const globalSession = useGlobalSession();
+  const sessionRole = globalSession.state === 'authenticated' ? globalSession.role ?? null : null;
   const role = isValidRole(sessionRole ?? '') ? sessionRole : null;
   const canManageSpaces = hasRequiredRole(role, 'operator');
   const canViewAdminPanels = hasRequiredRole(role, 'admin');

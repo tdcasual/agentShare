@@ -11,7 +11,8 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { isRouteAllowed } from '@/lib/route-policy';
-import { resolveAppEntryState, useManagementSessionGate } from '@/lib/session';
+import { resolveAppEntryState } from '@/lib/session';
+import { useGlobalSession } from '@/lib/session-state';
 import {
   getDefaultManagementRoute,
   getRequiredRoleForPath,
@@ -43,16 +44,16 @@ export function RouteGuard({ children }: RouteGuardProps) {
   );
 
   useEffect(() => {
-    let cancelled = false;
+    let stale = false;
 
     async function load() {
       try {
         const nextState = await resolveAppEntryState();
-        if (!cancelled) {
+        if (!stale) {
           setEntryState(nextState);
         }
       } catch {
-        if (!cancelled) {
+        if (!stale) {
           setEntryState({
             kind: 'unavailable',
             error: t('common.entryStateLoadFailed'),
@@ -63,9 +64,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     void load();
     return () => {
-      cancelled = true;
+      stale = true;
     };
-  }, [pathname, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   // 根据入口状态和当前路径决定行为
   useEffect(() => {
@@ -89,10 +91,18 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     const sessionState = entryState.kind === 'authenticated_ready' ? 'authenticated' : 'anonymous';
 
-    // 认证就绪后的默认重定向
-    if (entryState.kind === 'authenticated_ready' && pathname === '/login') {
+    // 已认证用户访问登录页 — 重定向到管理首页
+    if (entryState.kind === 'authenticated_ready' && (pathname === '/login' || pathname === '/setup')) {
       const userRole = isValidRole(entryState.session.role) ? entryState.session.role : null;
       router.replace(getDefaultManagementRoute(userRole));
+      return;
+    }
+
+    // 未认证用户访问需要认证的页面 — 重定向到登录页
+    if (entryState.kind === 'login_required') {
+      if (pathname !== '/login') {
+        router.replace('/login');
+      }
       return;
     }
 
@@ -173,19 +183,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
 /**
  * 管理路由守卫 - 仅允许认证用户访问
+ * 读取全局会话状态，不触发独立API调用。
  */
 export function ManagementRouteGuard({
   children,
-  redirectOnMissingSession = true,
 }: {
   children: React.ReactNode;
   redirectOnMissingSession?: boolean;
 }) {
-  const { session, loading, error } = useManagementSessionGate({
-    redirectOnMissingSession,
-  });
+  const globalSession = useGlobalSession();
 
-  if (loading) {
+  if (globalSession.state === 'unknown') {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
@@ -193,17 +201,17 @@ export function ManagementRouteGuard({
     );
   }
 
-  if (error) {
+  if (globalSession.state === 'unavailable') {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="bg-[var(--kw-rose-surface)]/80 rounded-xl border border-[var(--kw-rose-surface)] px-6 py-4 text-[var(--kw-rose-text)]">
-          {error}
+          {globalSession.error}
         </div>
       </div>
     );
   }
 
-  if (!session && redirectOnMissingSession) {
+  if (globalSession.state !== 'authenticated') {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />

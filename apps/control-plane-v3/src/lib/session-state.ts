@@ -26,6 +26,8 @@ export interface SessionData {
   sessionId?: string;
   lastLoadedAt?: number;
   error?: string;
+  /** Full session summary when authenticated — gives access to expires_at, actor_id, etc. */
+  summary?: ManagementSessionSummary;
 }
 
 function sessionSummaryToSessionData(session: ManagementSessionSummary): SessionData {
@@ -35,6 +37,7 @@ function sessionSummaryToSessionData(session: ManagementSessionSummary): Session
     role: session.role,
     sessionId: session.session_id,
     lastLoadedAt: Date.now(),
+    summary: session,
   };
 }
 
@@ -141,7 +144,25 @@ export async function logout(): Promise<void> {
       state: 'anonymous',
       lastLoadedAt: Date.now(),
     });
+    // Clear role store to prevent stale role flash on re-login
+    const { useRoleStore } = await import('@/store/role-store');
+    useRoleStore.getState().clearRole();
   }
+}
+
+/**
+ * React Hook: 读取全局会话状态（不触发API调用）
+ * 订阅 globalSession 变化，适合在 RouteGuard 已经解析过会话的页面使用。
+ */
+export function useGlobalSession() {
+  const [session, setSession] = useState<SessionData>(getGlobalSession);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToSession(setSession);
+    return unsubscribe;
+  }, []);
+
+  return session;
 }
 
 /**

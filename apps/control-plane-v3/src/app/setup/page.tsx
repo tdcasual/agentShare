@@ -14,6 +14,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { ApiError, api } from '@/lib/api';
+import { resetBootstrapCache } from '@/lib/entry-state';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
@@ -69,7 +70,8 @@ export default function SetupPage() {
 
     try {
       await api.setupOwner(form);
-      router.push('/login');
+      resetBootstrapCache();
+      window.location.href = '/login';
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setError(submitError.detail);

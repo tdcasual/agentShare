@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import type { BootstrapStatus, ManagementSessionSummary } from '@/shared/types';
 import { api } from '@/lib/api';
-import { resolveEntryState } from '@/lib/entry-state';
+import { resolveEntryState, resolveEntryStateFast, resetBootstrapCache } from '@/lib/entry-state';
 import { setGlobalSession } from '@/lib/session-state';
 
 export type AppEntryState =
@@ -23,6 +21,7 @@ function syncGlobalSession(entryState: AppEntryState) {
       role: entryState.session.role,
       sessionId: entryState.session.session_id,
       lastLoadedAt,
+      summary: entryState.session,
     });
     return;
   }
@@ -43,7 +42,7 @@ function syncGlobalSession(entryState: AppEntryState) {
 }
 
 export async function resolveAppEntryState(): Promise<AppEntryState> {
-  const entryState = await resolveEntryState({
+  const entryState = await resolveEntryStateFast({
     getBootstrapStatus: api.getBootstrapStatus,
     getSession: api.getSession,
   });
@@ -52,81 +51,18 @@ export async function resolveAppEntryState(): Promise<AppEntryState> {
   return entryState;
 }
 
-interface ManagementSessionGateOptions {
+export { resetBootstrapCache };
+
+/**
+ * @deprecated Use useGlobalSession from session-state instead.
+ * Kept for test mock backward-compatibility.
+ */
+export function useManagementSessionGate(_options?: {
   redirectOnMissingSession?: boolean;
-}
-
-export function useManagementSessionGate(options: ManagementSessionGateOptions = {}) {
-  const router = useRouter();
-  const [session, setSession] = useState<ManagementSessionSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshNonce, setRefreshNonce] = useState(0);
-  const redirectOnMissingSession = options.redirectOnMissingSession ?? true;
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        if (cancelled) {
-          return;
-        }
-        const nextState = await resolveAppEntryState();
-        if (cancelled) {
-          return;
-        }
-
-        if (nextState.kind === 'bootstrap_required') {
-          setSession(null);
-          router.replace('/setup');
-          return;
-        }
-
-        if (nextState.kind === 'login_required') {
-          setSession(null);
-          if (redirectOnMissingSession) {
-            router.replace('/login');
-          } else {
-            setSession(null);
-          }
-          return;
-        }
-
-        if (nextState.kind === 'unavailable') {
-          setSession(null);
-          setError(nextState.error);
-          return;
-        }
-
-        setSession(nextState.session);
-      } catch (loadError) {
-        if (!cancelled) {
-          setSession(null);
-          setError(
-            loadError instanceof Error ? loadError.message : 'Failed to load management session'
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [redirectOnMissingSession, refreshNonce, router]);
-
-  return {
-    session,
-    loading,
-    error,
-    refreshSession: () => setRefreshNonce((current) => current + 1),
-  };
+}) {
+  // This should never be called at runtime — all consumers have been migrated.
+  // If a test mock is missing, this will throw.
+  throw new Error(
+    'useManagementSessionGate is deprecated. Use useGlobalSession from session-state instead.'
+  );
 }

@@ -195,13 +195,14 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     redirectTo: '/login',
   },
 
-  // Entry (特殊处理)
+  // Entry
   {
     path: '/',
-    mode: 'public',
-    requiredSession: null,
-    dataSource: 'none',
-    unauthorizedBehavior: 'allow_readonly',
+    mode: 'authenticated',
+    requiredSession: 'authenticated',
+    dataSource: 'backend',
+    unauthorizedBehavior: 'redirect',
+    redirectTo: '/login',
   },
 ];
 

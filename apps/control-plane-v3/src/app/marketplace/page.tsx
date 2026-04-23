@@ -9,7 +9,7 @@ import { useCatalog } from '@/domains/catalog';
 import { useReviews } from '@/domains/review';
 import { readFocusedEntry } from '@/lib/focused-entry';
 import { deriveGovernanceStatus, governanceStatusTranslationKey } from '@/domains/governance';
-import { useManagementSessionGate } from '@/lib/session';
+import { useGlobalSession } from '@/lib/session-state';
 import {
   ManagementForbiddenAlert,
   ManagementSessionRecoveryNotice,
@@ -67,7 +67,11 @@ export default function MarketplacePage() {
 
 const MarketplaceContent = memo(function MarketplaceContent() {
   const { t } = useI18n();
-  const { session } = useManagementSessionGate({ redirectOnMissingSession: false });
+  const globalSession = useGlobalSession();
+  const session =
+    globalSession.state === 'authenticated'
+      ? { email: globalSession.email ?? '', role: globalSession.role ?? 'viewer' }
+      : null;
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   const [selectedFilter, setSelectedFilter] = useState<MarketplaceFilter>('all');

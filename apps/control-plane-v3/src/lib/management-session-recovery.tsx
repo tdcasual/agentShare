@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ApiError } from '@/lib/api-client';
 import { useI18n } from '@/components/i18n-provider';
-import { useManagementSessionGate } from '@/lib/session';
+import { useGlobalSession } from '@/lib/session-state';
 import { cn } from '@/lib/utils';
 import { Card } from '@/shared/ui-primitives/card';
 
@@ -23,9 +23,7 @@ export function isAuthError(error: unknown): error is ApiError {
 }
 
 export function useManagementPageSessionRecovery(queryErrors: QueryErrorInput) {
-  const gate = useManagementSessionGate({
-    redirectOnMissingSession: false,
-  });
+  const globalSession = useGlobalSession();
   const [sessionExpired, setSessionExpired] = useState(false);
   const [forbidden, setForbidden] = useState(false);
 
@@ -35,8 +33,17 @@ export function useManagementPageSessionRecovery(queryErrors: QueryErrorInput) {
   const shouldShowSessionExpired = sessionExpired || querySessionExpired;
   const shouldShowForbidden = forbidden || queryForbidden;
 
+  // Map global session to the same shape consumers expect.
+  const loading = globalSession.state === 'unknown';
+  const session = globalSession.summary ?? null;
+  const error =
+    globalSession.state === 'unavailable' ? globalSession.error ?? 'Service unavailable' : null;
+
   return {
-    ...gate,
+    session,
+    loading,
+    error,
+    refreshSession: () => window.location.reload(),
     querySessionExpired,
     queryForbidden,
     shouldShowSessionExpired,

@@ -58,3 +58,52 @@ export async function resolveEntryState({
     };
   }
 }
+
+/**
+ * Optimized resolver that skips bootstrap check if already initialized.
+ * The RouteGuard calls this on every pathname change; re-checking bootstrap
+ * on every navigation is wasteful since it only changes once (at setup).
+ */
+let _bootstrapInitialized: boolean | null = null;
+
+export async function resolveEntryStateFast({
+  getBootstrapStatus,
+  getSession,
+}: EntryStateResolvers): Promise<ResolvedEntryState> {
+  if (_bootstrapInitialized === null) {
+    const result = await resolveEntryState({ getBootstrapStatus, getSession });
+    if (result.kind === 'bootstrap_required') {
+      return result;
+    }
+    _bootstrapInitialized = true;
+    return result;
+  }
+
+  try {
+    const session = await getSession();
+    return {
+      kind: 'authenticated_ready',
+      bootstrap: { initialized: true },
+      session,
+    };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      return {
+        kind: 'login_required',
+        bootstrap: { initialized: true },
+      };
+    }
+    // Non-401 errors may indicate bootstrap state changed — reset cache so next
+    // attempt does a full bootstrap + session check.
+    _bootstrapInitialized = null;
+    return {
+      kind: 'unavailable',
+      error: error instanceof Error ? error.message : 'Failed to resolve management session',
+      status: error instanceof ApiError ? error.status : undefined,
+    };
+  }
+}
+
+export function resetBootstrapCache() {
+  _bootstrapInitialized = null;
+}

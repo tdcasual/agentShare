@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState, memo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, memo } from 'react';
 import { Layout } from '../interfaces/human/layout';
 import { useEvents, type Event } from '@/domains/event';
 import { useAccessTokens, useAdminAccounts, useOpenClawAgents } from '@/domains/identity';
@@ -10,7 +9,7 @@ import { useReviews } from '@/domains/review';
 import { Card } from '../shared/ui-primitives/card';
 import { Button } from '../shared/ui-primitives/button';
 import { Badge } from '../shared/ui-primitives/badge';
-import { resolveAppEntryState, type AppEntryState } from '@/lib/session';
+import { useGlobalSession } from '@/lib/session-state';
 import { useI18n } from '@/components/i18n-provider';
 import {
   Users,
@@ -35,48 +34,11 @@ const KeyRoundIcon = <KeyRound className="h-6 w-6 text-[var(--kw-purple-text)]" 
 const CheckSquareIcon = <CheckSquare className="h-6 w-6 text-[var(--kw-orange-text)]" />;
 
 export default function HubPage() {
-  const router = useRouter();
   const { t } = useI18n();
-  const [entryState, setEntryState] = useState<AppEntryState | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const session = useGlobalSession();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const nextState = await resolveAppEntryState();
-        if (cancelled) {
-          return;
-        }
-        setEntryState(nextState);
-        if (nextState.kind === 'bootstrap_required') {
-          router.replace('/setup');
-          return;
-        }
-        if (nextState.kind === 'login_required') {
-          router.replace('/login');
-          return;
-        }
-        if (nextState.kind === 'unavailable') {
-          setError(nextState.error);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : t('hub.loadingError'));
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-    // t 不需要作为依赖，入口状态检查只在挂载时执行一次
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
-
-  if (error) {
+  // RouteGuard handles redirects; we just read the already-resolved global state.
+  if (session.state === 'unavailable') {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
         <Card
@@ -90,14 +52,14 @@ export default function HubPage() {
               Control Plane V3
             </p>
             <h1 className="text-3xl font-bold text-[var(--kw-text)]">{t('hub.unableToOpen')}</h1>
-            <p className="text-[var(--kw-text-muted)]">{error}</p>
+            <p className="text-[var(--kw-text-muted)]">{session.error}</p>
           </div>
         </Card>
       </div>
     );
   }
 
-  if (!entryState || entryState.kind !== 'authenticated_ready') {
+  if (session.state !== 'authenticated' || !session.email || !session.role) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
         <Card variant="default" className="w-full max-w-lg space-y-4 text-center">
@@ -115,7 +77,7 @@ export default function HubPage() {
 
   return (
     <Layout>
-      <HubContent email={entryState.session.email ?? ''} role={entryState.session.role} />
+      <HubContent email={session.email} role={session.role} />
     </Layout>
   );
 }
@@ -167,9 +129,9 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-[var(--kw-text)]">
+          <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
             {t('hub.welcome')} {t('hub.dualCosmos')}
           </h1>
           <p className="text-[var(--kw-text-muted)]">
@@ -261,7 +223,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                           <p className="font-medium text-[var(--kw-text)]">
                             {account.display_name}
                           </p>
-                          <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
+                          <p className="mt-1 break-words text-sm text-[var(--kw-text-muted)]">
                             {account.email}
                           </p>
                         </div>
@@ -298,7 +260,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="font-medium text-[var(--kw-text)]">{agent.name}</p>
-                          <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
+                          <p className="mt-1 break-words text-sm text-[var(--kw-text-muted)]">
                             {agent.id}
                           </p>
                         </div>
