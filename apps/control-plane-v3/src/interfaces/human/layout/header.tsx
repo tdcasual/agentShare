@@ -83,7 +83,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   });
 
   return (
-    <header className="safe-area-inset-top sticky top-0 z-sticky flex min-h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white px-6 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+    <header className="safe-area-inset-top sticky top-0 z-sticky flex min-h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white px-3 sm:px-6 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
       {/* Left - Search */}
       <div className="max-w-xl flex-1">
         <GlobalSearch />

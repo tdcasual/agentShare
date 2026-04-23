@@ -53,7 +53,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
     case 'identity':
       return (
         <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-          <p className="text-sm text-[var(--kw-text-muted)]">{label}</p>
+          <p className="text-[11px] text-[var(--kw-text-muted)] sm:text-sm">{label}</p>
           <p className="text-3xl font-bold text-[var(--kw-text)]">{value}</p>
           <p className="text-xs text-[var(--kw-text-muted)]">{hint}</p>
         </Card>
@@ -63,7 +63,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
       return (
         <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
           <div className="space-y-2">
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="text-[11px] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)] sm:text-sm">
               {label}
             </p>
             <p className="text-3xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -80,7 +80,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
     default:
       return (
         <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-          <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          <p className="text-[11px] uppercase tracking-[0.1em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)] sm:text-sm sm:tracking-[0.2em]">
             {label}
           </p>
           <p className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">

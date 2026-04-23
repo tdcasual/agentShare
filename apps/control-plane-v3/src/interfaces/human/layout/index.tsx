@@ -43,7 +43,7 @@ interface LayoutProps {
  */
 export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [tabletCollapsed, setTabletCollapsed] = useState(false);
+  const [tabletCollapsed, setTabletCollapsed] = useState(true);
   const device = useDeviceType();
   const { currentIdentity, onlineIdentities, isLoading, error, refresh } = useShellIdentity();
 
@@ -175,7 +175,7 @@ export function SimpleLayout({
   isLoading = false,
 }: SimpleLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [tabletCollapsed, setTabletCollapsed] = useState(false);
+  const [tabletCollapsed, setTabletCollapsed] = useState(true);
   const device = useDeviceType();
 
   if (isLoading) {

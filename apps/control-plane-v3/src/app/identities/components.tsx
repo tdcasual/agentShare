@@ -14,7 +14,7 @@ export interface CoverageMetricProps {
 export function CoverageMetric({ label, value, hint }: CoverageMetricProps) {
   return (
     <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/60 dark:bg-[var(--kw-dark-amber-surface)]/10 rounded-2xl border bg-white/70 px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)] sm:text-xs sm:tracking-[0.2em]">
         {label}
       </p>
       <p className="mt-2 text-xl font-semibold text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)] sm:text-2xl">

@@ -57,14 +57,14 @@ export function MobileNav() {
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-2 transition-colors duration-200',
+                  'flex min-h-[44px] min-w-[52px] flex-col items-center gap-1 rounded-xl px-2 py-2 transition-colors duration-200 sm:min-w-[64px] sm:px-3',
                   isActive
                     ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
                     : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
                 )}
               >
                 <Icon className={cn('h-5 w-5', isActive && 'scale-110')} aria-hidden="true" />
-                <span className="max-w-full truncate text-[11px] font-medium">{item.label}</span>
+                <span className="max-w-full truncate text-[10px] font-medium sm:text-[11px]">{item.label}</span>
               </Link>
             );
           })}
@@ -77,14 +77,14 @@ export function MobileNav() {
               aria-label={t('common.more') || 'More'}
               type="button"
               className={cn(
-                'flex min-h-[44px] min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-2 transition-colors duration-200',
+                'flex min-h-[44px] min-w-[52px] flex-col items-center gap-1 rounded-xl px-2 py-2 transition-colors duration-200 sm:min-w-[64px] sm:px-3',
                 showMore
                   ? 'bg-[var(--kw-primary-50)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]'
                   : 'text-[var(--kw-text-muted)] hover:text-[var(--kw-primary-500)] dark:text-[var(--kw-dark-text-muted)] dark:hover:text-[var(--kw-dark-primary)]'
               )}
             >
               <Sparkles className="h-5 w-5" />
-              <span className="text-[11px] font-medium">{t('common.more') || '更多'}</span>
+              <span className="text-[10px] font-medium sm:text-[11px]">{t('common.more') || '更多'}</span>
             </button>
           ) : null}
         </div>
