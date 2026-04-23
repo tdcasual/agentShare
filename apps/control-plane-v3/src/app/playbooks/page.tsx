@@ -149,7 +149,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message={t('playbooks.sessionExpired')} />
           ) : null}

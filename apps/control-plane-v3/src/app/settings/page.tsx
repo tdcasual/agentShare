@@ -163,7 +163,7 @@ const SettingsContent = memo(function SettingsContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
@@ -210,7 +210,7 @@ const SettingsContent = memo(function SettingsContent() {
       </div>
 
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('settings.coverageTitle')}
@@ -267,8 +267,8 @@ const SettingsContent = memo(function SettingsContent() {
         </div>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <Card variant="kawaii" className="space-y-5">
+      <div className="grid gap-3 sm:gap-4 lg:gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <Card variant="kawaii" className="space-y-3 sm:space-y-4 lg:space-y-5">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-100)] px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
               <UserPlus className="h-4 w-4" />
@@ -348,7 +348,7 @@ const SettingsContent = memo(function SettingsContent() {
           </form>
         </Card>
 
-        <Card variant="feature" className="space-y-5">
+        <Card variant="feature" className="space-y-3 sm:space-y-4 lg:space-y-5">
           <div className="space-y-2">
             <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
               <UserCog className="h-4 w-4" />
@@ -395,7 +395,7 @@ const SettingsContent = memo(function SettingsContent() {
             />
           </div>
 
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-5">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-3 sm:p-4 lg:p-5">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]">
                 <ShieldCheck className="h-5 w-5" />
@@ -445,7 +445,7 @@ const SettingsContent = memo(function SettingsContent() {
         </Card>
       ) : null}
 
-      <Card variant="kawaii" className="space-y-5">
+      <Card variant="kawaii" className="space-y-3 sm:space-y-4 lg:space-y-5">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
             <Users className="h-4 w-4" />
@@ -604,7 +604,8 @@ function SessionStat({
         {label}
       </p>
       <p
-        className={`mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] ${monospace ? 'break-all font-mono' : ''}`}
+        className={`mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] ${monospace ? 'truncate font-mono text-xs' : ''}`}
+        title={monospace ? value : undefined}
       >
         {value}
       </p>

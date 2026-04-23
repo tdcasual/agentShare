@@ -191,7 +191,7 @@ const ReviewsContent = memo(function ReviewsContent() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
@@ -248,7 +248,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       </div>
 
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('reviews.filters.title')}
@@ -382,7 +382,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length === 0 ? (
         <Card
           variant="feature"
-          className="space-y-6 py-12 text-center dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+          className="space-y-3 sm:space-y-4 lg:space-y-6 py-12 text-center dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
         >
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-green-accent-surface)] dark:text-[var(--kw-dark-mint)]">
             <ShieldCheck className="h-10 w-10" />

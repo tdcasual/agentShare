@@ -43,6 +43,7 @@ interface LayoutProps {
  */
 export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [tabletCollapsed, setTabletCollapsed] = useState(false);
   const device = useDeviceType();
   const { currentIdentity, onlineIdentities, isLoading, error, refresh } = useShellIdentity();
 
@@ -58,16 +59,18 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 min-h-screen bg-gradient-to-br dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
-      {/* Desktop Sidebar - lg 及以上显示 */}
-      <div className="hidden lg:block">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-      </div>
+      {/* Desktop Sidebar - 仅桌面端显示 */}
+      {device.isDesktop && (
+        <div className="hidden lg:block">
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        </div>
+      )}
 
       {/* Tablet Sidebar - md 到 lg 之间显示 */}
-      <TabletSidebar />
+      <TabletSidebar collapsed={tabletCollapsed} onToggle={() => setTabletCollapsed((v) => !v)} />
 
       {/* Main Content Area */}
       <div
@@ -76,7 +79,7 @@ export function Layout({ children }: LayoutProps) {
           // 移动端无侧边栏
           device.isMobile && 'ml-0 pb-20',
           // 平板竖屏：可折叠侧边栏
-          device.isTabletPortrait && 'md:ml-14',
+          device.isTabletPortrait && (tabletCollapsed ? 'md:ml-20' : 'md:ml-56'),
           // 平板横屏：图标侧边栏
           device.isTabletLandscape && 'ml-20',
           // 桌面端：根据侧边栏状态
@@ -88,11 +91,10 @@ export function Layout({ children }: LayoutProps) {
         <main
           id="main-content"
           className={cn(
-            'touch-pan-y',
             // 移动端更多底部空间给底部导航
-            device.isMobile && 'p-4 pb-24',
+            device.isMobile && 'p-3 pb-4',
             // 平板适中内边距
-            device.isTablet && 'p-6',
+            device.isTablet && 'p-4',
             // 桌面端宽松内边距
             device.isDesktop && 'p-6'
           )}
@@ -173,6 +175,7 @@ export function SimpleLayout({
   isLoading = false,
 }: SimpleLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [tabletCollapsed, setTabletCollapsed] = useState(false);
   const device = useDeviceType();
 
   if (isLoading) {
@@ -182,21 +185,23 @@ export function SimpleLayout({
   return (
     <div className="from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 min-h-screen bg-gradient-to-br dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-      </div>
+      {device.isDesktop && (
+        <div className="hidden lg:block">
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        </div>
+      )}
 
       {/* Tablet Sidebar */}
-      <TabletSidebar />
+      <TabletSidebar collapsed={tabletCollapsed} onToggle={() => setTabletCollapsed((v) => !v)} />
 
       <div
         className={cn(
           'transition-[margin] duration-300',
           device.isMobile && 'ml-0 pb-20',
-          device.isTabletPortrait && 'md:ml-14',
+          device.isTabletPortrait && (tabletCollapsed ? 'md:ml-20' : 'md:ml-56'),
           device.isTabletLandscape && 'ml-20',
           device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
         )}
@@ -205,8 +210,8 @@ export function SimpleLayout({
 
         <main
           className={cn(
-            device.isMobile && 'p-4 pb-24',
-            device.isTablet && 'p-6',
+            device.isMobile && 'p-3 pb-4',
+            device.isTablet && 'p-4',
             device.isDesktop && 'p-6'
           )}
         >

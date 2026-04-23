@@ -321,7 +321,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -454,7 +454,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       </div>
 
       <Card className="bg-[var(--kw-amber-surface)]/90 dark:bg-[var(--kw-dark-amber-surface)]/20 border border-[var(--kw-amber-surface)] dark:border-[var(--kw-dark-amber-surface)]">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
             <div className="dark:bg-[var(--kw-dark-amber-surface)]/30 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-amber-surface)]">
               <ShieldCheck className="h-6 w-6 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
@@ -573,7 +573,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       ) : null}
 
       {!isLoading && !guardedError ? (
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:gap-6 xl:grid-cols-2">
           <HumanOperatorsSection
             accounts={adminAccounts}
             filteredAccounts={filteredAdminAccounts}

@@ -56,7 +56,7 @@ const AssetsContent = memo(function AssetsContent() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
       <Header page={page} form={form} />
       <Metrics page={page} />
       <FilterCard page={page} />
@@ -145,7 +145,7 @@ function Metrics({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
   return (
     <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
             {page.t('assets.governance.title')}
@@ -316,7 +316,7 @@ function AssetGrids({
   form: ReturnType<typeof useAssetsForm>;
 }) {
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+    <div className="grid gap-3 sm:gap-4 lg:gap-6 xl:grid-cols-[1fr_1fr]">
       <SecretsPanel page={page} form={form} />
       <CapabilitiesPanel page={page} form={form} />
     </div>
@@ -400,7 +400,7 @@ function SecretCard({
         focus.resourceKind === 'secret' && focus.resourceId === secret.id ? 'focused' : 'default'
       }
       className={cn(
-        'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-5',
+        'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-3 sm:p-4 lg:p-5',
         focus.resourceKind === 'secret' && focus.resourceId === secret.id
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
@@ -526,7 +526,7 @@ function CapabilityCard({
           : 'default'
       }
       className={cn(
-        'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-5',
+        'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-3 sm:p-4 lg:p-5',
         focus.resourceKind === 'capability' && focus.resourceId === capability.id
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'

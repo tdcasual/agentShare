@@ -171,7 +171,7 @@ const RunsContent = memo(function RunsContent() {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message={t('runs.sessionExpired')} />
           ) : null}

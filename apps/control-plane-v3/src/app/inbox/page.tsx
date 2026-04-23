@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Inbox } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';
 import { useEvents, useMarkEventRead } from '@/domains/event';
 import { useI18n } from '@/components/i18n-provider';
@@ -118,7 +118,7 @@ const InboxContent = memo(function InboxContent() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 sm:p-6">
+    <div className="mx-auto max-w-3xl space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--kw-text)]">{t('inbox.title')}</h1>
@@ -170,6 +170,20 @@ const InboxContent = memo(function InboxContent() {
             />
           </CardFooter>
         </Card>
+      )}
+
+      {!isLoading && !error && events.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 py-16 text-center dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/60">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+            <Inbox className="h-8 w-8" />
+          </div>
+          <p className="text-base font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            {t('inbox.emptyTitle')}
+          </p>
+          <p className="mt-1 max-w-xs text-sm text-[var(--kw-text-muted)]">
+            {t('inbox.emptyDesc')}
+          </p>
+        </div>
       )}
 
       <div className="space-y-4">

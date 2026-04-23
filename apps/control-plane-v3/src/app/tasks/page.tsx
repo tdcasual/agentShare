@@ -48,7 +48,7 @@ const TasksContent = memo(function TasksContent() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
@@ -77,7 +77,7 @@ const TasksContent = memo(function TasksContent() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label={page.t('tasks.metrics.publishedTasks')}
           value={page.taskViews.length.toString()}
@@ -101,7 +101,7 @@ const TasksContent = memo(function TasksContent() {
       </div>
 
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {page.t('tasks.supervision.title')}
@@ -208,7 +208,7 @@ const TasksContent = memo(function TasksContent() {
         </Card>
       ) : null}
 
-      <div className="grid gap-5" role="list">
+      <div className="grid gap-3 sm:gap-4 lg:gap-5" role="list">
         {page.visibleTaskViews.map(({ task, targets }) => (
           <TaskCard
             key={task.id}
@@ -282,7 +282,7 @@ function TaskCard({
             </Badge>
           </div>
           <div>
-            <h2 className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] sm:text-xl lg:text-2xl">
               {task.title}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -548,7 +548,7 @@ function TaskDetailModal({
       size="xl"
     >
       {task ? (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={priorityVariant(task.task.priority)}>{task.task.priority}</Badge>
             <Badge
@@ -572,7 +572,7 @@ function TaskDetailModal({
               <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {page.t('tasks.inputPayload')}
               </p>
-              <pre className="overflow-x-auto rounded-2xl bg-[var(--kw-dark-bg)] px-4 py-4 text-sm text-[var(--kw-primary-50)]">
+              <pre className="max-h-40 overflow-y-auto rounded-2xl bg-[var(--kw-dark-bg)] px-4 py-4 text-sm text-[var(--kw-primary-50)] sm:max-h-64">
                 {JSON.stringify(task.task.input ?? {}, null, 2)}
               </pre>
             </Card>
@@ -596,7 +596,7 @@ function TaskDetailModal({
             </Card>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {page.t('tasks.perTokenStatus')}
@@ -613,7 +613,7 @@ function TaskDetailModal({
               {task.targets.map((target) => (
                 <Card
                   key={target.targetId}
-                  className="bg-[var(--kw-primary-50)]/30 space-y-4 border border-[var(--kw-border)]"
+                  className="bg-[var(--kw-primary-50)]/30 space-y-3 border border-[var(--kw-border)] sm:space-y-4"
                 >
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div className="space-y-2">
@@ -752,7 +752,7 @@ function FeedbackModal({ form }: { form: ReturnType<typeof useTasksForm> }) {
           onChange={(event) =>
             form.setFeedbackForm((current) => ({ ...current, summary: event.target.value }))
           }
-          className="min-h-[140px]"
+          className="min-h-[80px] sm:min-h-[140px]"
           placeholder={form.t('tasks.form.summaryPlaceholder')}
         />
 
@@ -836,11 +836,11 @@ function FeedbackButton({
 
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white px-4 py-3 dark:bg-[var(--kw-dark-bg)]">
+    <div className="rounded-2xl bg-white px-3 py-2 dark:bg-[var(--kw-dark-bg)] sm:px-4 sm:py-3">
       <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+      <p className="mt-1 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] sm:mt-2">
         {value}
       </p>
     </div>

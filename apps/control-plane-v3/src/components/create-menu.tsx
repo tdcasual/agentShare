@@ -9,7 +9,6 @@
 import { useId, useRef, useState } from 'react';
 import { Plus, User, Key, Box, Users, Settings, X, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { Button } from '@/shared/ui-primitives/button';
 import { useI18n } from '@/components/i18n-provider';
 import { useMemo } from 'react';
@@ -150,8 +149,8 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
         aria-controls={isOpen ? dialogId : undefined}
         aria-label={t('createMenu.ariaLabel')}
       >
-        <Plus className={cn('h-4 w-4', size === 'sm' ? 'mr-1' : 'mr-2')} aria-hidden="true" />
-        {t('createMenu.buttonLabel')}
+        <Plus className="h-4 w-4" aria-hidden="true" />
+        <span className="hidden sm:inline">{t('createMenu.buttonLabel')}</span>
       </Button>
 
       {/* 下拉菜单 */}
@@ -162,7 +161,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
           role="dialog"
           aria-modal="false"
           aria-label={t('createMenu.ariaLabel')}
-          className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+          className="absolute right-0 top-full z-dropdown mt-2 w-80 max-w-[calc(100vw-2rem)] animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
           {/* 头部搜索 */}
           <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">

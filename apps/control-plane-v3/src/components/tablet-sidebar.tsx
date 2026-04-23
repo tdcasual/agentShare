@@ -48,17 +48,28 @@ export function getTabletShellHomeTarget(role: ManagementRole | null = 'admin') 
  * - Tablet Landscape: 仅图标，始终展开，侧边固定
  * - Desktop: 完整侧边栏（由 DesktopSidebar 处理）
  */
-export function TabletSidebar() {
+interface TabletSidebarProps {
+  collapsed?: boolean;
+  onToggle?: () => void;
+}
+
+export function TabletSidebar({ collapsed: controlledCollapsed, onToggle }: TabletSidebarProps = {}) {
   const { t } = useI18n();
   const { role } = useRole();
   const device = useDeviceType();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const isControlled = controlledCollapsed !== undefined;
+  const isCollapsed = isControlled ? controlledCollapsed : internalCollapsed;
   const pathname = usePathname();
   const navItems = useNavItems(role);
   const homeTarget = getTabletShellHomeTarget(role);
   const toggleSidebar = useCallback(() => {
-    setIsCollapsed((prev) => !prev);
-  }, []);
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalCollapsed((prev) => !prev);
+    }
+  }, [onToggle]);
 
   // 只在平板设备显示
   if (!device.isTablet) {
@@ -181,7 +192,7 @@ const NavLink = memo(function NavLink({ item, isActive, isCollapsed }: NavLinkPr
 
       {/* 折叠状态下的 Tooltip */}
       {isCollapsed && (
-        <div className="invisible absolute left-full z-dropdown ml-2 whitespace-nowrap rounded-md bg-[var(--kw-text)] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 dark:bg-[var(--kw-dark-surface-alt)]">
+        <div className="invisible absolute left-full z-dropdown ml-2 max-w-xs truncate rounded-md bg-[var(--kw-text)] px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 dark:bg-[var(--kw-dark-surface-alt)]">
           {item.label}
           {item.badge && <span className="ml-2 text-[var(--kw-primary-400)]">({item.badge})</span>}
         </div>

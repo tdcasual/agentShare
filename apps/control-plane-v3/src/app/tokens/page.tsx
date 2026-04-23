@@ -201,7 +201,7 @@ const TokensContent = memo(function TokensContent() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
@@ -254,7 +254,7 @@ const TokensContent = memo(function TokensContent() {
       </div>
 
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('tokens.remoteAccessSupervision')}
@@ -284,7 +284,7 @@ const TokensContent = memo(function TokensContent() {
             <FilterButton
               active={selectedHealthFilter === 'all'}
               aria-pressed={selectedHealthFilter === 'all'}
-              label={t('tokens.filters.all')}
+              label={t('tokens.filters.allTokens')}
               onClick={() => setSelectedHealthFilter('all')}
             />
             <FilterButton

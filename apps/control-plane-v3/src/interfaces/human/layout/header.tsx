@@ -23,7 +23,7 @@ const GlobalSearch = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-10 w-48 animate-pulse rounded-full bg-[var(--kw-primary-100)] sm:w-64" />
+      <div className="h-10 w-32 animate-pulse rounded-full bg-[var(--kw-primary-100)] sm:w-48 md:w-64" />
     ),
   }
 );

@@ -117,7 +117,7 @@ export default function SetupPage() {
       >
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left side - Info */}
-          <div className="space-y-6">
+          <div className="space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Header */}
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
@@ -135,7 +135,7 @@ export default function SetupPage() {
             </div>
 
             {/* Steps */}
-            <div className="dark:bg-[var(--kw-dark-bg)]/80 space-y-4 rounded-xl border border-[var(--kw-border)] bg-white/80 p-5 dark:border-[var(--kw-dark-border)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/80 space-y-4 rounded-xl border border-[var(--kw-border)] bg-white/80 p-3 sm:p-4 lg:p-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-center gap-3 text-[var(--kw-text)]">
                 <UserRoundPlus className="h-5 w-5 text-[var(--kw-primary-500)]" />
                 <span className="font-semibold">{t('auth.setup.whatNext')}</span>

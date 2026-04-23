@@ -2,7 +2,7 @@
 
 import type { BootstrapStatus, ManagementSessionSummary } from '@/shared/types';
 import { api } from '@/lib/api';
-import { resolveEntryState, resolveEntryStateFast, resetBootstrapCache } from '@/lib/entry-state';
+import { resolveEntryStateFast, resetBootstrapCache } from '@/lib/entry-state';
 import { setGlobalSession } from '@/lib/session-state';
 
 export type AppEntryState =

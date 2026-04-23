@@ -39,7 +39,7 @@ export default function OfflinePage() {
       id="main-content"
       className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]"
     >
-      <Card variant="default" className="w-full max-w-md space-y-6 p-8 text-center">
+      <Card variant="default" className="w-full max-w-md space-y-3 sm:space-y-4 lg:space-y-6 p-8 text-center">
         {/* 图标 */}
         <div className="dark:bg-[var(--kw-dark-amber-surface)]/30 mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-amber-surface)]">
           <WifiOff className="h-10 w-10 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />

@@ -17,7 +17,7 @@ export function CoverageMetric({ label, value, hint }: CoverageMetricProps) {
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
+      <p className="mt-2 text-xl font-semibold text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)] sm:text-2xl">
         {value}
       </p>
       <p className="text-[var(--kw-amber-text)]/80 dark:text-[var(--kw-warning)]/80 mt-1 text-xs">

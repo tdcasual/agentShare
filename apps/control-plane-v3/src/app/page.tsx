@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, memo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { Layout } from '../interfaces/human/layout';
 import { useEvents, type Event } from '@/domains/event';
 import { useAccessTokens, useAdminAccounts, useOpenClawAgents } from '@/domains/identity';
@@ -128,7 +128,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
@@ -140,9 +140,13 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           </p>
         </div>
         <Link href="/tokens">
-          <Button variant="primary" size="lg">
-            <Sparkles className="mr-2 h-5 w-5" />
-            {t('hub.openTokenOps')}
+          <Button
+            variant="primary"
+            size="sm"
+            className="shrink-0 whitespace-nowrap md:h-11 md:px-8 md:text-base"
+            leftIcon={<Sparkles className="h-4 w-4 md:h-5 md:w-5" />}
+          >
+            <span className="hidden md:inline">{t('hub.openTokenOps')}</span>
           </Button>
         </Link>
       </div>
@@ -156,7 +160,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard
           icon={UsersIcon}
           label={t('identities.humans')}
@@ -188,7 +192,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6 lg:col-span-2">
           <section>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-[var(--kw-text)]">
@@ -205,7 +209,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Card className="space-y-4 p-5">
+              <Card className="space-y-4 p-3 sm:p-4 lg:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-semibold text-[var(--kw-text)]">
                     {t('hub.humanSupervisors')}
@@ -244,7 +248,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                 </div>
               </Card>
 
-              <Card className="space-y-4 p-5">
+              <Card className="space-y-4 p-3 sm:p-4 lg:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-semibold text-[var(--kw-text)]">
                     {t('hub.agentIdentities')}
@@ -310,7 +314,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             <Card className="overflow-hidden p-0">
               <div className="divide-y divide-[var(--kw-border)]" role="list">
                 {recentActivity.length === 0 && (
-                  <div className="p-6 text-sm text-[var(--kw-text-muted)]">
+                  <div className="p-3 sm:p-4 lg:p-6 text-sm text-[var(--kw-text-muted)]">
                     {t('hub.emptyActivity')}
                   </div>
                 )}
@@ -347,8 +351,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           </section>
         </div>
 
-        <div className="space-y-6">
-          <Card className="p-6">
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+          <Card className="p-3 sm:p-4 lg:p-6">
             <h3 className="mb-4 font-semibold text-[var(--kw-text)]">
               {t('hub.quickActions.title')}
             </h3>
@@ -376,7 +380,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-3 sm:p-4 lg:p-6">
             <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.reviewQueue')}</h3>
             <div className="space-y-2">
               {pendingReviews.length === 0 ? (
@@ -399,7 +403,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             </div>
           </Card>
 
-          <Card className="border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)] p-6">
+          <Card className="border border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)] p-3 sm:p-4 lg:p-6">
             <div className="mb-3 flex items-center gap-3">
               <div className="h-3 w-3 animate-pulse rounded-full bg-[var(--kw-green-text)]" />
               <h3 className="font-semibold text-[var(--kw-green-text)]">
@@ -452,16 +456,16 @@ const StatCard = memo(function StatCard({
   };
 
   return (
-    <Card className="flex items-center gap-4 p-4 transition-shadow hover:shadow-medium">
+    <Card className="flex items-center gap-3 p-3 transition-shadow hover:shadow-medium sm:gap-4 sm:p-4">
       <div
-        className={cn('flex h-12 w-12 items-center justify-center rounded-xl', colorClasses[color])}
+        className={cn('flex h-9 w-9 items-center justify-center rounded-lg sm:h-12 sm:w-12 sm:rounded-xl [&>svg]:h-4 [&>svg]:w-4 [&>svg]:sm:h-6 [&>svg]:sm:w-6', colorClasses[color])}
       >
         {icon}
       </div>
-      <div>
-        <p className="text-2xl font-bold text-[var(--kw-text)]">{value}</p>
-        <p className="text-sm text-[var(--kw-text-muted)]">{label}</p>
-        <p className="mt-1 text-xs text-[var(--kw-text-muted)]">{trend}</p>
+      <div className="min-w-0">
+        <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">{value}</p>
+        <p className="text-xs text-[var(--kw-text-muted)] sm:text-sm">{label}</p>
+        <p className="mt-0.5 text-[10px] text-[var(--kw-text-muted)] sm:mt-1 sm:text-xs">{trend}</p>
       </div>
     </Card>
   );

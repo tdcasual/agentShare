@@ -56,7 +56,7 @@ export function SpacesList({
               onClick={onShowCreateModal}
               leftIcon={<Plus className="h-4 w-4" />}
             >
-              {t('spaces.createSpace')}
+              <span className="hidden sm:inline">{t('spaces.createSpace')}</span>
             </Button>
           ) : null}
           <Badge variant="info">{spaces.length}</Badge>
