@@ -4,10 +4,12 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
+from app.orm.openclaw_session import OpenClawSessionModel
 from app.orm.task import TaskModel
 from app.repositories.task_repo import TaskRepository
 from app.services.approval_service import approve_request, require_runtime_approval
 from app.services.idempotency import IdempotencyMiddleware
+from app.services.openclaw_session_key_service import hash_openclaw_session_key
 from app.services.policy_service import PolicyContext
 from app.services.redis_client import get_redis
 from conftest import BOOTSTRAP_OWNER_KEY, TEST_AGENT_KEY, bootstrap_owner_account, login_management_account
@@ -77,6 +79,14 @@ def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client,
         task_type="prompt_run",
         status="pending",
     ))
+    session_key = "openclaw-session-key-for-metrics"
+    db_session.add(OpenClawSessionModel(
+        id="session-metrics-test",
+        agent_id="test-agent",
+        session_key=hash_openclaw_session_key(session_key),
+        display_name="Metrics test session",
+        channel="chat",
+    ))
     db_session.flush()
 
     bootstrap_owner_account(client)
@@ -86,11 +96,11 @@ def test_metrics_track_login_outcomes_task_lifecycle_and_approval_events(client,
     relogin = login_management_account(client)
     claim = client.post(
         "/api/tasks/task-observed/claim",
-        headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
+        headers={"Authorization": f"Bearer {session_key}"},
     )
     complete = client.post(
         "/api/tasks/task-observed/complete",
-        headers={"Authorization": f"Bearer {TEST_AGENT_KEY}"},
+        headers={"Authorization": f"Bearer {session_key}"},
         json={"result_summary": "done", "output_payload": {"ok": True}},
     )
     approval = require_runtime_approval(

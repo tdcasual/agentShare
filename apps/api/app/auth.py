@@ -227,6 +227,12 @@ def require_management_action(action: str):
     return dependency
 
 
+_AGENT_ALLOWED_ACTIONS: frozenset[str] = frozenset({
+    "tasks:create",
+    "playbooks:create",
+})
+
+
 def require_management_or_agent_action(action: str):
     def dependency(
         actor: AuthenticatedActor = Depends(require_management_or_agent),
@@ -239,6 +245,11 @@ def require_management_or_agent_action(action: str):
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=str(exc),
                 ) from exc
+        elif action not in _AGENT_ALLOWED_ACTIONS:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Runtime agents cannot perform action: {action}",
+            )
         return actor
 
     dependency.__name__ = f"require_management_or_agent_action_{action.replace(':', '_')}"

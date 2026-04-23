@@ -61,7 +61,7 @@ def list_tasks(session: Session, *, actor=None, limit: int = 100, offset: int = 
     if _uses_access_token_assignments(actor):
         items: list[dict] = []
         for target in target_repo.list_assigned(actor.token_id):
-            if target.status != "pending":
+            if target.status == "completed":
                 continue
             task = TaskRepository(session).get(target.task_id)
             if task is None or task.publication_status != "active":
@@ -104,6 +104,7 @@ def claim_task(
             return _task_response_for_target_transition(task, claimed)
         if target_repo.list_by_task(task_id):
             raise AuthorizationError("Task is not assigned to this token")
+        raise NotFoundError("Task not found")
     lock_key = f"task:{task_id}:claim"
     lock_token = acquire_lock(lock_key, ttl_seconds=10, settings=settings)
     if not lock_token:
@@ -141,7 +142,8 @@ def complete_task(
     settings: Settings | None = None,
 ) -> dict:
     if _uses_access_token_assignments(agent):
-        target = TaskTargetRepository(session).find_by_task_and_access_token(task_id, agent.token_id)
+        target_repo = TaskTargetRepository(session)
+        target = target_repo.find_by_task_and_access_token(task_id, agent.token_id)
         if target is not None:
             completed = complete_task_target(
                 session,
@@ -153,6 +155,9 @@ def complete_task(
             )
             task = TaskRepository(session).get(task_id)
             return _task_response_for_target_transition(task, completed)
+        if target_repo.list_by_task(task_id):
+            raise AuthorizationError("Task is not assigned to this token")
+        raise NotFoundError("Task not found")
     lock_key = f"task:{task_id}:complete"
     lock_token = acquire_lock(lock_key, ttl_seconds=10, settings=settings)
     if not lock_token:
@@ -163,6 +168,8 @@ def complete_task(
         task = task_repo.get(task_id)
         if task is None:
             raise NotFoundError("Task not found")
+        if task.target_mode == "explicit_access_tokens":
+            raise AuthorizationError("Task is not assigned to this token")
         if task.status != "claimed":
             raise ConflictError("Task is not claimed")
         if task.claimed_by != agent.id:
@@ -232,9 +239,7 @@ def claim_task_target(
         target.claimed_by_agent_id = agent.id
         target.claimed_at = datetime.now(timezone.utc)
         target_repo.update(target)
-        sibling_targets = target_repo.list_by_task(task.id)
-        _sync_task_state_from_targets(task, sibling_targets)
-        task_repo.update(task)
+        _sync_task_under_lock(task, target_repo, task_repo, settings)
         record_task_claim()
         return _task_target_to_dict(target, task)
     finally:
@@ -299,9 +304,7 @@ def complete_task_target(
         target.last_run_id = run.id
         target_repo.update(target)
 
-        sibling_targets = target_repo.list_by_task(task.id)
-        _sync_task_state_from_targets(task, sibling_targets)
-        task_repo.update(task)
+        _sync_task_under_lock(task, target_repo, task_repo, settings)
         record_task_completion()
         return _task_target_to_dict(target, task)
     finally:
@@ -358,6 +361,25 @@ def _task_response_for_target_transition(task: TaskModel | None, target_payload:
         "status": target_payload["status"],
         "claimed_by": target_payload.get("claimed_by_agent_id"),
     }
+
+
+def _sync_task_under_lock(
+    task: TaskModel,
+    target_repo: TaskTargetRepository,
+    task_repo: TaskRepository,
+    settings: Settings | None,
+) -> None:
+    lock_key = f"task:{task.id}:sync"
+    lock_token = acquire_lock(lock_key, ttl_seconds=5, settings=settings)
+    if not lock_token:
+        _sync_task_state_from_targets(task, target_repo.list_by_task(task.id))
+        task_repo.update(task)
+        return
+    try:
+        _sync_task_state_from_targets(task, target_repo.list_by_task(task.id))
+        task_repo.update(task)
+    finally:
+        release_lock(lock_key, lock_token, settings=settings)
 
 
 def _sync_task_state_from_targets(task: TaskModel, targets: list[TaskTargetModel]) -> None:

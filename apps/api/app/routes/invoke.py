@@ -27,7 +27,7 @@ def invoke_capability_route(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     try:
-        return proxy_invoke(
+        result = proxy_invoke(
             session,
             capability_id,
             payload.task_id,
@@ -35,6 +35,8 @@ def invoke_capability_route(
             agent,
             settings=settings,
         )
+        session.commit()
+        return result
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PolicyDeniedError as exc:

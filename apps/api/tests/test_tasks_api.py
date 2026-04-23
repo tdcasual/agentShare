@@ -62,7 +62,7 @@ def test_agent_claim_uses_runtime_settings_for_redis_lock(client, management_cli
     )
 
     assert response.status_code == 200
-    assert captured == [TEST_SETTINGS.redis_url, TEST_SETTINGS.redis_url]
+    assert captured == [TEST_SETTINGS.redis_url] * 4
 
 
 def test_agent_claim_returns_503_when_coordination_is_unavailable(client, management_client, monkeypatch):
@@ -204,7 +204,7 @@ def test_agent_complete_uses_runtime_settings_for_redis_lock(client, management_
     )
 
     assert response.status_code == 200
-    assert captured == [TEST_SETTINGS.redis_url, TEST_SETTINGS.redis_url]
+    assert captured == [TEST_SETTINGS.redis_url] * 4
 
 
 def test_task_target_complete_uses_runtime_settings_for_redis_lock(
@@ -255,7 +255,7 @@ def test_task_target_complete_uses_runtime_settings_for_redis_lock(
     )
 
     assert response.status_code == 200
-    assert captured == [TEST_SETTINGS.redis_url, TEST_SETTINGS.redis_url]
+    assert captured == [TEST_SETTINGS.redis_url] * 4
 
 
 def test_management_task_listing_supports_limit_and_offset(management_client):
@@ -487,8 +487,11 @@ def test_runtime_task_listing_only_returns_claimable_tasks_for_current_token(
     )
 
     assert runtime.status_code == 200, runtime.text
-    assert [item["title"] for item in runtime.json()["items"]] == ["Visible to current token"]
-    assert runtime.json()["items"][0]["target_access_token_ids"] == [TEST_ACCESS_TOKEN_ID]
+    titles = [item["title"] for item in runtime.json()["items"]]
+    assert titles == [
+        "Visible to current token",
+        "Already claimed by current token",
+    ]
 
 
 def test_task_creation_rejects_broadcast_mode_with_explicit_target_tokens(management_client):

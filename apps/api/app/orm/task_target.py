@@ -9,7 +9,7 @@ from app.orm.base import Base, TimestampMixin
 class TaskTargetModel(Base, TimestampMixin):
     __tablename__ = "task_targets"
     __table_args__ = (
-        UniqueConstraint("task_id", "target_access_token_id", name="uq_task_targets_task_access_token"),
+        UniqueConstraint("task_id", "target_access_token_id", name="ix_task_targets_task_access_token_unique"),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)

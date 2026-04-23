@@ -9,11 +9,13 @@ from uuid import uuid4
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.errors import ConflictError
 from app.orm.approval_request import ApprovalRequestModel
 from app.observability import record_approval_decision, record_approval_requested
 from app.repositories.approval_repo import ApprovalRequestRepository
 from app.services.audit_service import write_audit_event
 from app.services.policy_service import PolicyContext, evaluate_policy
+from app.services.redis_client import acquire_lock, release_lock
 
 logger = logging.getLogger(__name__)
 
@@ -145,26 +147,33 @@ def approve_request(
     reason: str = "",
     now: datetime | None = None,
 ) -> ApprovalRequestModel:
-    repo = ApprovalRequestRepository(session)
-    approval = _require_existing(repo, approval_id)
-    _require_pending_state(approval, operation="approve")
-    current_time = _utc_now() if now is None else now
-    normalized_reason = _normalize_reason(reason)
-    approval.status = "approved"
-    approval.decided_by = decided_by
-    approval.reason = normalized_reason
-    approval.expires_at = current_time + timedelta(seconds=APPROVAL_TTL_SECONDS)
-    updated = repo.update(approval)
-    record_approval_decision(True)
-    _write_audit_event_best_effort(session, "approval_approved", {
-        "approval_id": updated.id,
-        "task_id": updated.task_id,
-        "capability_id": updated.capability_id,
-        "agent_id": updated.agent_id,
-        "action_type": updated.action_type,
-        "decided_by": decided_by,
-    })
-    return updated
+    lock_key = f"approval:{approval_id}:decide"
+    lock_token = acquire_lock(lock_key, ttl_seconds=10)
+    if not lock_token:
+        raise ConflictError("Approval decision is being processed by another operator")
+    try:
+        repo = ApprovalRequestRepository(session)
+        approval = _require_existing(repo, approval_id)
+        _require_pending_state(approval, operation="approve")
+        current_time = _utc_now() if now is None else now
+        normalized_reason = _normalize_reason(reason)
+        approval.status = "approved"
+        approval.decided_by = decided_by
+        approval.reason = normalized_reason
+        approval.expires_at = current_time + timedelta(seconds=APPROVAL_TTL_SECONDS)
+        updated = repo.update(approval)
+        record_approval_decision(True)
+        _write_audit_event_best_effort(session, "approval_approved", {
+            "approval_id": updated.id,
+            "task_id": updated.task_id,
+            "capability_id": updated.capability_id,
+            "agent_id": updated.agent_id,
+            "action_type": updated.action_type,
+            "decided_by": decided_by,
+        })
+        return updated
+    finally:
+        release_lock(lock_key, lock_token)
 
 
 def reject_request(
@@ -174,28 +183,35 @@ def reject_request(
     decided_by: str,
     reason: str = "",
 ) -> ApprovalRequestModel:
-    repo = ApprovalRequestRepository(session)
-    approval = _require_existing(repo, approval_id)
-    _require_pending_state(approval, operation="reject")
-    normalized_reason = _normalize_reason(reason)
-    if not normalized_reason:
-        raise ValueError("Rejection reason is required")
-    approval.status = "rejected"
-    approval.reason = normalized_reason
-    approval.decided_by = decided_by
-    approval.expires_at = None
-    updated = repo.update(approval)
-    record_approval_decision(False)
-    _write_audit_event_best_effort(session, "approval_rejected", {
-        "approval_id": updated.id,
-        "task_id": updated.task_id,
-        "capability_id": updated.capability_id,
-        "agent_id": updated.agent_id,
-        "action_type": updated.action_type,
-        "decided_by": decided_by,
-        "reason": normalized_reason,
-    })
-    return updated
+    lock_key = f"approval:{approval_id}:decide"
+    lock_token = acquire_lock(lock_key, ttl_seconds=10)
+    if not lock_token:
+        raise ConflictError("Approval decision is being processed by another operator")
+    try:
+        repo = ApprovalRequestRepository(session)
+        approval = _require_existing(repo, approval_id)
+        _require_pending_state(approval, operation="reject")
+        normalized_reason = _normalize_reason(reason)
+        if not normalized_reason:
+            raise ValueError("Rejection reason is required")
+        approval.status = "rejected"
+        approval.reason = normalized_reason
+        approval.decided_by = decided_by
+        approval.expires_at = None
+        updated = repo.update(approval)
+        record_approval_decision(False)
+        _write_audit_event_best_effort(session, "approval_rejected", {
+            "approval_id": updated.id,
+            "task_id": updated.task_id,
+            "capability_id": updated.capability_id,
+            "agent_id": updated.agent_id,
+            "action_type": updated.action_type,
+            "decided_by": decided_by,
+            "reason": normalized_reason,
+        })
+        return updated
+    finally:
+        release_lock(lock_key, lock_token)
 
 
 def list_approval_requests(
@@ -229,6 +245,8 @@ def approval_to_dict(model: ApprovalRequestModel) -> dict:
         "task_id": model.task_id,
         "capability_id": model.capability_id,
         "agent_id": model.agent_id,
+        "token_id": model.token_id,
+        "task_target_id": model.task_target_id,
         "action_type": model.action_type,
         "status": model.status,
         "reason": model.reason,

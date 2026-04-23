@@ -140,7 +140,7 @@ def _to_secret_response(model: SecretModel) -> dict:
         "environment": model.environment,
         "provider_scopes": model.provider_scopes or [],
         "resource_selector": model.resource_selector,
-        "metadata": model.metadata_json if model.metadata_json is not None else (model.scope or {}),
+        "metadata": model.metadata_json or {},
         "backend_ref": model.backend_ref,
         "publication_status": model.publication_status,
         "created_by_actor_type": model.created_by_actor_type,

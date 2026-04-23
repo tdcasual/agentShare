@@ -28,7 +28,7 @@ def issue_lease_route(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     try:
-        return issue_lease(
+        result = issue_lease(
             session,
             capability_id,
             payload.task_id,
@@ -36,6 +36,8 @@ def issue_lease_route(
             agent,
             settings=settings,
         )
+        session.commit()
+        return result
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PolicyDeniedError as exc:

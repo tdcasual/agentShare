@@ -197,6 +197,8 @@ def stop_dream_run(
 ) -> dict:
     repo = OpenClawDreamRunRepository(session)
     run = get_dream_run_for_update(session, run_id, agent=agent)
+    if run.status != "active":
+        raise ConflictError("Dream run is not active")
     run.status = "stopped"
     run.stop_reason = stop_reason
     repo.update(run)

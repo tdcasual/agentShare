@@ -117,15 +117,6 @@ def approve_review(
             reviewed["_cleanup_secret_backend_ref"] = promoted_backend_ref
         return reviewed
     except Exception:
-        if promoted_backend_ref is not None and settings is not None:
-            try:
-                backend = get_secret_backend_for_ref(promoted_backend_ref, settings)
-                backend.delete_secret(model.id, promoted_backend_ref)
-            except Exception:
-                logger.exception(
-                    "Failed to clean up promoted secret during review approval rollback",
-                    extra={"resource_id": model.id},
-                )
         raise
 
 

@@ -97,8 +97,8 @@ def proxy_invoke(
             ) from exc
         except Exception as exc:
             record_capability_invoke(False)
-            raise GatewayConfigurationError(
-                f"Capability adapter '{adapter_type}' crashed during proxy execution"
+            raise GatewayExecutionError(
+                f"Capability adapter '{adapter_type}' failed with unexpected error"
             ) from exc
 
         _write_audit_event_best_effort(session, "capability_invoked", {

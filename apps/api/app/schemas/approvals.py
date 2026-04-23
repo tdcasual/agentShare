@@ -48,6 +48,8 @@ class ApprovalResponse(BaseModel):
             "task_id": "task-1",
             "capability_id": "capability-1",
             "agent_id": "agent-1",
+            "token_id": "access-token-1",
+            "task_target_id": "target-1",
             "action_type": "invoke",
             "status": "pending",
             "reason": "",
@@ -63,6 +65,8 @@ class ApprovalResponse(BaseModel):
     task_id: str
     capability_id: str
     agent_id: str
+    token_id: str
+    task_target_id: str
     action_type: ApprovalActionType
     status: ApprovalStatus
     reason: str
