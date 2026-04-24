@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { isRouteAllowed } from '@/lib/route-policy';
+import { getRoutePolicy, isRouteAllowed } from '@/lib/route-policy';
 import { resolveAppEntryState } from '@/lib/session';
 import { useGlobalSession } from '@/lib/session-state';
 import {
@@ -75,8 +75,16 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
+    const sessionState = entryState.kind === 'authenticated_ready' ? 'authenticated' : 'anonymous';
+    const allowed = isRouteAllowed(pathname, sessionState);
+    const routePolicy = getRoutePolicy(pathname);
+
     // 引导状态特殊处理
     if (entryState.kind === 'bootstrap_required') {
+      if (routePolicy?.mode === 'public') {
+        setRoleCheckFailed(null);
+        return;
+      }
       if (pathname !== '/setup') {
         router.replace('/setup');
       }
@@ -89,17 +97,12 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
-    const sessionState = entryState.kind === 'authenticated_ready' ? 'authenticated' : 'anonymous';
-
     // 已认证用户访问登录页 — 重定向到管理首页
     if (entryState.kind === 'authenticated_ready' && (pathname === '/login' || pathname === '/setup')) {
       const userRole = isValidRole(entryState.session.role) ? entryState.session.role : null;
       router.replace(getDefaultManagementRoute(userRole));
       return;
     }
-
-    // 检查路由访问权限（基础认证）
-    const allowed = isRouteAllowed(pathname, sessionState);
 
     // 未认证用户访问需要认证的页面 — 重定向到登录页
     if (entryState.kind === 'login_required' && !allowed.allowed) {

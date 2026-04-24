@@ -75,4 +75,24 @@ describe('RouteGuard', () => {
 
     expect(replaceMock).not.toHaveBeenCalled();
   });
+
+  it('allows public docs routes even before bootstrap is completed', async () => {
+    pathnameMock.mockReturnValue('/docs');
+    resolveAppEntryStateMock.mockResolvedValue({
+      kind: 'bootstrap_required',
+      bootstrap: { initialized: false },
+    });
+
+    render(
+      <RouteGuard>
+        <div>public docs before bootstrap</div>
+      </RouteGuard>
+    );
+
+    await waitFor(() => {
+      expect(resolveAppEntryStateMock).toHaveBeenCalled();
+    });
+
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
 });

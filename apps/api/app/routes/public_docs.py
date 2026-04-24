@@ -106,14 +106,17 @@ def list_docs() -> DocListResponse:
     files: list[DocFile] = []
 
     if DOCS_ROOT.exists():
+        docs_root = DOCS_ROOT.resolve()
         for category in _get_public_categories():
             category_dir = DOCS_ROOT / category
             if not category_dir.is_dir():
                 continue
-            if not category_dir.resolve().is_relative_to(DOCS_ROOT.resolve()):
+            if not category_dir.resolve().is_relative_to(docs_root):
                 continue
             categories.append(category)
             for doc_file in sorted(category_dir.glob("*.md")):
+                if not doc_file.resolve().is_relative_to(docs_root):
+                    continue
                 content = doc_file.read_text(encoding="utf-8")
                 files.append(
                     DocFile(

@@ -67,6 +67,12 @@ describe('docs page', () => {
     expect(screen.queryByText(t('common.operator'))).not.toBeInTheDocument();
   });
 
+  it('renders the docs content inside the shared main-content anchor target', () => {
+    render(<DocsPage />);
+
+    expect(document.querySelector('main#main-content')).not.toBeNull();
+  });
+
   it('filters by search query', async () => {
     const user = userEvent.setup();
     render(<DocsPage />);

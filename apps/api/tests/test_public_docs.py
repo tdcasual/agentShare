@@ -78,3 +78,22 @@ def test_public_docs_rejects_symlink_escape_outside_docs_root(client, tmp_path, 
     response = client.get("/api/public/docs/guides/secret")
 
     assert response.status_code == 400, response.text
+
+
+def test_public_docs_listing_skips_symlinked_markdown_files_outside_docs_root(client, tmp_path, monkeypatch):
+    docs_root = tmp_path / "docs"
+    guides_dir = docs_root / "guides"
+    guides_dir.mkdir(parents=True)
+    outside_file = tmp_path / "outside-secret.md"
+    outside_file.write_text("# Outside Secret\n", encoding="utf-8")
+    (guides_dir / "linked.md").symlink_to(outside_file)
+
+    from app.routes import public_docs
+
+    monkeypatch.setattr(public_docs, "DOCS_ROOT", docs_root.resolve())
+    monkeypatch.delenv("PUBLIC_DOCS_CATEGORIES", raising=False)
+
+    response = client.get("/api/public/docs")
+
+    assert response.status_code == 200, response.text
+    assert response.json() == {"categories": ["guides"], "files": []}
