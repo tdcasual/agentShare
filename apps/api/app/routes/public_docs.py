@@ -13,8 +13,54 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/public", tags=["public-docs"])
+_DEFAULT_PUBLIC_DOC_CATEGORIES = ("guides",)
 
-DOCS_ROOT = Path(__file__).resolve().parents[4] / "docs"
+
+def _resolve_docs_root(module_file: Path | None = None, cwd: Path | None = None) -> Path:
+    """Locate the public docs directory in both source-tree and installed-package layouts."""
+    module_path = (module_file or Path(__file__)).resolve()
+    working_dir = (cwd or Path.cwd()).resolve()
+
+    candidates: list[Path] = []
+    env_root = os.environ.get("PUBLIC_DOCS_ROOT")
+    if env_root:
+        candidates.append(Path(env_root).expanduser().resolve())
+
+    candidates.append((working_dir / "docs").resolve())
+    for parent in module_path.parents:
+        candidates.append((parent / "docs").resolve())
+
+    seen: set[Path] = set()
+    for candidate in candidates:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if candidate.exists() and candidate.is_dir():
+            return candidate
+
+    return (working_dir / "docs").resolve()
+
+
+def _get_public_categories() -> tuple[str, ...]:
+    raw_value = os.environ.get("PUBLIC_DOCS_CATEGORIES")
+    if raw_value is None:
+        return _DEFAULT_PUBLIC_DOC_CATEGORIES
+
+    categories: list[str] = []
+    seen: set[str] = set()
+    for item in raw_value.split(","):
+        category = item.strip()
+        if not category or category in seen:
+            continue
+        if not all(char.isalnum() or char in "-_" for char in category):
+            continue
+        seen.add(category)
+        categories.append(category)
+
+    return tuple(categories or _DEFAULT_PUBLIC_DOC_CATEGORIES)
+
+
+DOCS_ROOT = _resolve_docs_root()
 
 
 class DocFile(BaseModel):
@@ -59,19 +105,20 @@ def list_docs() -> DocListResponse:
     files: list[DocFile] = []
 
     if DOCS_ROOT.exists():
-        for category_dir in sorted(DOCS_ROOT.iterdir()):
-            if category_dir.is_dir():
-                category = category_dir.name
-                categories.append(category)
-                for doc_file in sorted(category_dir.glob("*.md")):
-                    content = doc_file.read_text(encoding="utf-8")
-                    files.append(
-                        DocFile(
-                            category=category,
-                            name=doc_file.stem,
-                            title=_extract_title(content),
-                        )
+        for category in _get_public_categories():
+            category_dir = DOCS_ROOT / category
+            if not category_dir.is_dir():
+                continue
+            categories.append(category)
+            for doc_file in sorted(category_dir.glob("*.md")):
+                content = doc_file.read_text(encoding="utf-8")
+                files.append(
+                    DocFile(
+                        category=category,
+                        name=doc_file.stem,
+                        title=_extract_title(content),
                     )
+                )
 
     return DocListResponse(categories=categories, files=files)
 
@@ -87,6 +134,8 @@ def get_doc(category: str, filename: str) -> DocContentResponse:
         raise HTTPException(status_code=400, detail="Invalid category")
     if not all(c.isalnum() or c in "-_" for c in filename):
         raise HTTPException(status_code=400, detail="Invalid filename")
+    if category not in _get_public_categories():
+        raise HTTPException(status_code=404, detail="Document not found")
 
     doc_path = _safe_doc_path(category, f"{filename}.md")
 
