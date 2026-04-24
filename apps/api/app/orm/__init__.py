@@ -24,6 +24,8 @@ from app.orm.openclaw_dream_step import OpenClawDreamStepModel
 from app.orm.openclaw_memory_note import OpenClawMemoryNoteModel
 from app.orm.openclaw_session import OpenClawSessionModel
 from app.orm.openclaw_tool_binding import OpenClawToolBindingModel
+from app.orm.openclaw_workbench_message import OpenClawWorkbenchMessageModel
+from app.orm.openclaw_workbench_session import OpenClawWorkbenchSessionModel
 from app.orm.system_setting import SystemSettingModel
 
 __all__ = [
@@ -53,5 +55,7 @@ __all__ = [
     "OpenClawMemoryNoteModel",
     "OpenClawSessionModel",
     "OpenClawToolBindingModel",
+    "OpenClawWorkbenchSessionModel",
+    "OpenClawWorkbenchMessageModel",
     "SystemSettingModel",
 ]

@@ -21,6 +21,7 @@ from app.services.openclaw_agent_cleanup_service import delete_openclaw_agent_wi
 
 from .openclaw_agent_files import router as openclaw_agent_files_router
 from .openclaw_sessions import agent_sessions_router
+from .openclaw_workbench import agent_workbench_router
 
 router = APIRouter(prefix="/api/openclaw/agents")
 
@@ -158,3 +159,4 @@ def delete_openclaw_agent(
 
 router.include_router(openclaw_agent_files_router)
 router.include_router(agent_sessions_router)
+router.include_router(agent_workbench_router)

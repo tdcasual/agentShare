@@ -138,3 +138,27 @@ def get_openclaw_session(
         raise NotFoundError("OpenClaw session not found")
     write_audit_event(session, "openclaw_session_read", {"actor_id": manager.id, "session_id": session_id})
     return _serialize_session(model)
+
+
+@router.post(
+    "/{session_id}/revoke",
+    tags=["Management"],
+    summary="Revoke one OpenClaw session",
+    description="Delete one OpenClaw runtime session record so its session key can no longer authenticate.",
+)
+def revoke_openclaw_session(
+    session_id: str,
+    manager: ManagementIdentity = Depends(require_management_action("agents:create")),
+    session: Session = Depends(get_db),
+) -> dict:
+    repo = OpenClawSessionRepository(session)
+    model = repo.get(session_id)
+    if model is None:
+        raise NotFoundError("OpenClaw session not found")
+    repo.delete(model)
+    write_audit_event(
+        session,
+        "openclaw_session_revoked",
+        {"actor_id": manager.id, "session_id": session_id, "agent_id": model.agent_id},
+    )
+    return {"id": session_id, "agent_id": model.agent_id, "status": "revoked"}

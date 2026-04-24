@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import inspect, text
 
 
-CURRENT_ALEMBIC_HEAD = "20260419_04"
+CURRENT_ALEMBIC_HEAD = "20260424_01"
 
 
 def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
@@ -27,6 +27,8 @@ def test_init_db_creates_expected_tables(monkeypatch, tmp_path):
         "openclaw_dream_runs",
         "openclaw_dream_steps",
         "openclaw_memory_notes",
+        "openclaw_workbench_sessions",
+        "openclaw_workbench_messages",
         "system_settings",
         "secrets",
         "pending_secret_materials",

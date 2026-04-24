@@ -13,7 +13,7 @@ from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CURRENT_ALEMBIC_HEAD = "20260419_04"
+CURRENT_ALEMBIC_HEAD = "20260424_01"
 
 
 def _joined_term(*parts: str) -> str:
@@ -53,6 +53,7 @@ def test_alembic_versions_directory_contains_current_baseline_and_openclaw_follo
         "20260419_02_task_access_token_targets.py",
         "20260419_03_access_token_feedback.py",
         "20260419_04_drop_legacy_agents.py",
+        "20260424_01_openclaw_workbench.py",
     ]
 
 
@@ -75,6 +76,8 @@ def test_alembic_upgrade_head_creates_current_schema(tmp_path) -> None:
             "openclaw_dream_runs",
             "openclaw_dream_steps",
             "openclaw_memory_notes",
+            "openclaw_workbench_sessions",
+            "openclaw_workbench_messages",
             "system_settings",
             "secrets",
             "pending_secret_materials",
@@ -246,6 +249,8 @@ def test_openclaw_followup_migration_creates_workspace_session_and_tool_tables(t
             "openclaw_dream_runs",
             "openclaw_dream_steps",
             "openclaw_memory_notes",
+            "openclaw_workbench_sessions",
+            "openclaw_workbench_messages",
         }.issubset(
             set(inspector.get_table_names())
         )

@@ -63,6 +63,37 @@ def test_openclaw_session_key_can_authenticate_runtime_routes(client, management
     assert identity_response.json()["session_key"] == "sess_runtime_route_auth"
 
 
+def test_management_can_revoke_openclaw_session(client, management_client):
+    agent = _create_openclaw_agent(management_client)
+    session_response = management_client.post(
+        f"/api/openclaw/agents/{agent['id']}/sessions",
+        json={
+            "session_key": "sess_runtime_route_revoke",
+            "display_name": "Runtime Revoke Session",
+            "channel": "chat",
+        },
+    )
+    assert session_response.status_code == 201, session_response.text
+    session_id = session_response.json()["id"]
+
+    revoke_response = management_client.post(f"/api/openclaw/sessions/{session_id}/revoke")
+    assert revoke_response.status_code == 200, revoke_response.text
+    assert revoke_response.json() == {
+        "id": session_id,
+        "agent_id": agent["id"],
+        "status": "revoked",
+    }
+
+    detail_response = management_client.get(f"/api/openclaw/sessions/{session_id}")
+    assert detail_response.status_code == 404, detail_response.text
+
+    identity_response = client.get(
+        "/api/runtime/me",
+        headers={"Authorization": "Bearer sess_runtime_route_revoke"},
+    )
+    assert identity_response.status_code == 401, identity_response.text
+
+
 def test_management_can_list_sessions_for_one_openclaw_agent(management_client):
     primary_agent = _create_openclaw_agent(management_client)
     secondary_agent = management_client.post(

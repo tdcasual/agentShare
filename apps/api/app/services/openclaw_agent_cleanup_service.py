@@ -9,6 +9,8 @@ from app.orm.openclaw_dream_step import OpenClawDreamStepModel
 from app.orm.openclaw_memory_note import OpenClawMemoryNoteModel
 from app.orm.openclaw_session import OpenClawSessionModel
 from app.orm.openclaw_tool_binding import OpenClawToolBindingModel
+from app.orm.openclaw_workbench_message import OpenClawWorkbenchMessageModel
+from app.orm.openclaw_workbench_session import OpenClawWorkbenchSessionModel
 
 
 def delete_openclaw_agent_with_children(session: Session, agent_id: str) -> bool:
@@ -26,6 +28,16 @@ def delete_openclaw_agent_with_children(session: Session, agent_id: str) -> bool
         session.query(OpenClawDreamStepModel).filter(OpenClawDreamStepModel.run_id.in_(run_ids)).delete(
             synchronize_session=False
         )
+    workbench_session_ids = [
+        workbench_session_id
+        for (workbench_session_id,) in session.query(OpenClawWorkbenchSessionModel.id)
+        .filter(OpenClawWorkbenchSessionModel.agent_id == agent_id)
+        .all()
+    ]
+    if workbench_session_ids:
+        session.query(OpenClawWorkbenchMessageModel).filter(
+            OpenClawWorkbenchMessageModel.session_id.in_(workbench_session_ids)
+        ).delete(synchronize_session=False)
 
     session.query(OpenClawDreamRunModel).filter(OpenClawDreamRunModel.agent_id == agent_id).delete(
         synchronize_session=False
@@ -40,6 +52,9 @@ def delete_openclaw_agent_with_children(session: Session, agent_id: str) -> bool
         synchronize_session=False
     )
     session.query(OpenClawToolBindingModel).filter(OpenClawToolBindingModel.agent_id == agent_id).delete(
+        synchronize_session=False
+    )
+    session.query(OpenClawWorkbenchSessionModel).filter(OpenClawWorkbenchSessionModel.agent_id == agent_id).delete(
         synchronize_session=False
     )
     session.delete(agent)

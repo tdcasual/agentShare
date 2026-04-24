@@ -41,3 +41,7 @@ class OpenClawSessionRepository:
             .order_by(OpenClawSessionModel.updated_at.desc())
             .all()
         )
+
+    def delete(self, model: OpenClawSessionModel) -> None:
+        self.session.delete(model)
+        self.session.flush()

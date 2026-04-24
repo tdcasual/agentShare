@@ -13,6 +13,8 @@ def test_all_tables_created():
         "capabilities",
         "openclaw_agents",
         "openclaw_sessions",
+        "openclaw_workbench_sessions",
+        "openclaw_workbench_messages",
         "access_tokens",
         "tasks",
         "runs",
@@ -34,6 +36,14 @@ def test_runtime_agent_tables_match_openclaw_and_access_token_schema():
     openclaw_session_columns = [c["name"] for c in inspector.get_columns("openclaw_sessions")]
     assert "session_key" in openclaw_session_columns
     assert "agent_id" in openclaw_session_columns
+
+    workbench_session_columns = [c["name"] for c in inspector.get_columns("openclaw_workbench_sessions")]
+    assert "capability_id" in workbench_session_columns
+    assert "last_message_at" in workbench_session_columns
+
+    workbench_message_columns = [c["name"] for c in inspector.get_columns("openclaw_workbench_messages")]
+    assert "session_id" in workbench_message_columns
+    assert "message_metadata" in workbench_message_columns
 
     access_token_columns = [c["name"] for c in inspector.get_columns("access_tokens")]
     assert "token_hash" in access_token_columns
