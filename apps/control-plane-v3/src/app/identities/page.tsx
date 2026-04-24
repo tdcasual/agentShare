@@ -10,6 +10,8 @@ import {
   refreshOpenClawSessions,
   refreshSession,
   useAdminAccounts,
+  useCreateOpenClawAgent,
+  useUpdateOpenClawAgent,
   useDeleteOpenClawAgent,
   useOpenClawAgents,
   useOpenClawDreamRuns,
@@ -33,6 +35,7 @@ import { MetricCard } from '@/shared/ui-primitives/metric';
 import { HumanOperatorsSection } from './human-operators-section';
 import { AIAgentsSection } from './ai-agents-section';
 import { DreamRunDetailCard } from './dream-run-detail-card';
+import { AgentModal } from './agent-modal';
 import type {
   AdminAccountSummary,
   OpenClawAgent,
@@ -109,6 +112,8 @@ const IdentitiesContent = memo(function IdentitiesContent() {
   const sessionsQuery = useOpenClawSessions();
   const dreamRunsQuery = useOpenClawDreamRuns();
   const eventsQuery = useEvents();
+  const createAgent = useCreateOpenClawAgent();
+  const updateAgent = useUpdateOpenClawAgent();
   const deleteAgent = useDeleteOpenClawAgent();
   const pauseDreamRun = usePauseOpenClawDreamRun();
   const resumeDreamRun = useResumeOpenClawDreamRun();
@@ -141,6 +146,9 @@ const IdentitiesContent = memo(function IdentitiesContent() {
   const [pausingDreamRunId, setPausingDreamRunId] = useState<string | null>(null);
   const [resumingDreamRunId, setResumingDreamRunId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [showAgentModal, setShowAgentModal] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<OpenClawAgent | null>(null);
+  const [submittingAgent, setSubmittingAgent] = useState(false);
 
   const adminAccounts = adminAccountsData?.items ?? EMPTY_ADMIN_ACCOUNTS;
   const agents = agentsQuery.data?.items ?? EMPTY_OPENCLAW_AGENTS;
@@ -299,6 +307,54 @@ const IdentitiesContent = memo(function IdentitiesContent() {
     }
   }
 
+  async function handleCreateAgent(payload: Parameters<typeof createAgent>[0]) {
+    setSubmittingAgent(true);
+    setActionError(null);
+    clearAllAuthErrors();
+    try {
+      await createAgent(payload);
+      setShowAgentModal(false);
+    } catch (error) {
+      if (consumeUnauthorized(error)) {
+        return;
+      }
+      setActionError(error instanceof Error ? error.message : t('identities.agentModal.createFailed'));
+      throw error;
+    } finally {
+      setSubmittingAgent(false);
+    }
+  }
+
+  async function handleUpdateAgent(agentId: string, payload: Parameters<typeof updateAgent>[1]) {
+    setSubmittingAgent(true);
+    setActionError(null);
+    clearAllAuthErrors();
+    try {
+      await updateAgent(agentId, payload);
+      setShowAgentModal(false);
+      setEditingAgent(null);
+    } catch (error) {
+      if (consumeUnauthorized(error)) {
+        return;
+      }
+      setActionError(error instanceof Error ? error.message : t('identities.agentModal.updateFailed'));
+      throw error;
+    } finally {
+      setSubmittingAgent(false);
+    }
+  }
+
+  function openCreateModal() {
+    setEditingAgent(null);
+    setShowAgentModal(true);
+  }
+
+  function openEditModal(agentId: string) {
+    const agent = agents.find((a) => a.id === agentId) ?? null;
+    setEditingAgent(agent);
+    setShowAgentModal(true);
+  }
+
   const handleToggleAccount = (accountId: string) => {
     setExpandedAccounts((current) =>
       current.includes(accountId)
@@ -358,6 +414,13 @@ const IdentitiesContent = memo(function IdentitiesContent() {
               leftIcon={<Building2 className="h-4 w-4" />}
             >
               {t('identities.page.reviewSpaces')}
+            </Button>
+            <Button
+              size="sm"
+              onClick={openCreateModal}
+              leftIcon={<Bot className="h-4 w-4" />}
+            >
+              {t('identities.agentModal.createTitle')}
             </Button>
           </div>
         </div>
@@ -606,12 +669,14 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             shouldShowSessionExpired={shouldShowSessionExpired}
             shouldShowForbidden={shouldShowForbidden}
             canDelete={session?.role === 'owner'}
+            canEdit={session?.role === 'owner' || session?.role === 'admin'}
             isRefreshing={refreshingAction === 'agents'}
             focusedAgentId={focus.agentId}
             onToggleExpand={handleToggleAgent}
             onSelectDreamRun={handleSelectDreamRun}
             onRetry={retryAgents}
             onDelete={handleDeleteAgent}
+            onEdit={openEditModal}
           />
         </div>
       ) : null}
@@ -642,6 +707,19 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           </div>
         </Card>
       ) : null}
+
+      <AgentModal
+        isOpen={showAgentModal}
+        onClose={() => {
+          setShowAgentModal(false);
+          setEditingAgent(null);
+        }}
+        agent={editingAgent}
+        onSubmit={(payload) =>
+          editingAgent ? handleUpdateAgent(editingAgent.id, payload) : handleCreateAgent(payload as Parameters<typeof createAgent>[0])
+        }
+        isSubmitting={submittingAgent}
+      />
     </div>
   );
 });

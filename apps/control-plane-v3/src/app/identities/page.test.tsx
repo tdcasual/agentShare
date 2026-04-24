@@ -15,9 +15,15 @@ const useOpenClawSessionsMock = vi.fn();
 const useOpenClawDreamRunsMock = vi.fn();
 const useOpenClawFilesMock = vi.fn();
 const useEventsMock = vi.fn();
+const useCreateOpenClawAgentMock = vi.fn();
+const useUpdateOpenClawAgentMock = vi.fn();
 const useDeleteOpenClawAgentMock = vi.fn();
 const usePauseOpenClawDreamRunMock = vi.fn();
 const useResumeOpenClawDreamRunMock = vi.fn();
+const useAgentWorkbenchSessionsMock = vi.fn();
+const useCreateOpenClawSessionMock = vi.fn();
+const useCreateAgentWorkbenchSessionMock = vi.fn();
+const useRevokeOpenClawSessionMock = vi.fn();
 const deleteOpenClawAgentMock = vi.fn();
 const pauseOpenClawDreamRunMock = vi.fn();
 const resumeOpenClawDreamRunMock = vi.fn();
@@ -76,9 +82,15 @@ vi.mock('@/domains/identity', () => ({
   useOpenClawSessions: () => useOpenClawSessionsMock(),
   useOpenClawDreamRuns: () => useOpenClawDreamRunsMock(),
   useOpenClawFiles: (agentId: string | null) => useOpenClawFilesMock(agentId),
+  useCreateOpenClawAgent: () => useCreateOpenClawAgentMock(),
+  useUpdateOpenClawAgent: () => useUpdateOpenClawAgentMock(),
   useDeleteOpenClawAgent: () => useDeleteOpenClawAgentMock(),
   usePauseOpenClawDreamRun: () => usePauseOpenClawDreamRunMock(),
   useResumeOpenClawDreamRun: () => useResumeOpenClawDreamRunMock(),
+  useAgentWorkbenchSessions: () => useAgentWorkbenchSessionsMock(),
+  useCreateOpenClawSession: () => useCreateOpenClawSessionMock(),
+  useCreateAgentWorkbenchSession: () => useCreateAgentWorkbenchSessionMock(),
+  useRevokeOpenClawSession: () => useRevokeOpenClawSessionMock(),
   refreshSession: () => refreshSessionMock(),
   refreshAdminAccounts: () => refreshAdminAccountsMock(),
   refreshOpenClawAgents: () => refreshOpenClawAgentsMock(),
@@ -296,6 +308,12 @@ describe('identities page', () => {
     });
     usePauseOpenClawDreamRunMock.mockReturnValue(pauseOpenClawDreamRunMock);
     useResumeOpenClawDreamRunMock.mockReturnValue(resumeOpenClawDreamRunMock);
+    useCreateOpenClawSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'runtime-session-1' }));
+    useCreateOpenClawAgentMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'new-agent', name: 'New Agent' }));
+    useUpdateOpenClawAgentMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'bootstrap', name: 'Bootstrap Credential' }));
+    useAgentWorkbenchSessionsMock.mockReturnValue({ data: { items: [] }, isLoading: false, error: null });
+    useCreateAgentWorkbenchSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'new-session', display_name: 'New Session' }));
+    useRevokeOpenClawSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'session-1', status: 'revoked' }));
   });
 
   it('filters human and openclaw agent lists locally from the search query', async () => {

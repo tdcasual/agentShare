@@ -6,7 +6,7 @@ import { getRoutePolicy } from '@/lib/route-policy';
 
 describe('shell navigation integrity', () => {
   it('retargets tablet navigation to routes allowed for each role', () => {
-    expect(getTabletShellNavTargets('viewer')).toEqual(['/playbooks', '/runs', '/spaces']);
+    expect(getTabletShellNavTargets('viewer')).toEqual(['/playbooks', '/runs', '/spaces', '/docs']);
     expect(getTabletShellNavTargets('operator')).toEqual([
       '/reviews',
       '/approvals',
@@ -14,6 +14,7 @@ describe('shell navigation integrity', () => {
       '/playbooks',
       '/runs',
       '/spaces',
+      '/docs',
     ]);
     expect(getTabletShellNavTargets('admin')).toEqual([
       '/',
@@ -28,6 +29,7 @@ describe('shell navigation integrity', () => {
       '/assets',
       '/tokens',
       '/tasks',
+      '/docs',
       '/settings',
     ]);
   });
@@ -45,7 +47,7 @@ describe('shell navigation integrity', () => {
   });
 
   it('keeps mobile navigation within declared route policy for each role', () => {
-    expect(getMobileShellNavTargets('viewer')).toEqual(['/playbooks', '/runs', '/spaces']);
+    expect(getMobileShellNavTargets('viewer')).toEqual(['/playbooks', '/runs', '/spaces', '/docs']);
     expect(getMobileShellNavTargets('operator')).toEqual([
       '/reviews',
       '/approvals',
@@ -53,6 +55,7 @@ describe('shell navigation integrity', () => {
       '/playbooks',
       '/runs',
       '/spaces',
+      '/docs',
     ]);
     expect(getMobileShellNavTargets('admin')).toEqual([
       '/',
@@ -67,6 +70,7 @@ describe('shell navigation integrity', () => {
       '/assets',
       '/tokens',
       '/tasks',
+      '/docs',
     ]);
 
     for (const href of getMobileShellNavTargets('admin').filter((path) => path !== '/')) {

@@ -19,6 +19,11 @@ import type {
   OpenClawDreamRunDetail,
   OpenClawDreamRun,
   OpenClawSession,
+  OpenClawSessionCreateInput,
+  WorkbenchSessionSummary,
+  WorkbenchMessageSummary,
+  WorkbenchSessionCreateInput,
+  WorkbenchMessageInput,
 } from './types';
 import type { AccessToken } from '../shared-types';
 import type { AdminAccountCreateInput, LoginInput, AccessTokenCreateInput } from '@/lib/api-client';
@@ -73,6 +78,15 @@ export function useOpenClawAgents(options?: SWRConfiguration) {
   );
 }
 
+export function useOpenClawAgent(agentId: string | null, options?: SWRConfiguration) {
+  const key = !agentId || options?.isPaused ? null : `/api/openclaw/agents/${agentId}`;
+
+  return useSWR<OpenClawAgent>(key, () => api.getOpenClawAgent(agentId!), {
+    ...swrConfig,
+    ...options,
+  });
+}
+
 export function useCreateOpenClawAgent() {
   return useCallback(async (payload: api.OpenClawAgentCreateInput) => {
     const result = await api.createOpenClawAgent(payload);
@@ -111,6 +125,14 @@ export function useOpenClawSessions(options?: SWRConfiguration) {
   );
 }
 
+export function useCreateOpenClawSession() {
+  return useCallback(async (agentId: string, payload: OpenClawSessionCreateInput) => {
+    const result = await api.createOpenClawSession(agentId, payload);
+    await mutate('/api/openclaw/sessions');
+    return result;
+  }, []);
+}
+
 export function useOpenClawDreamRuns(options?: SWRConfiguration) {
   return useSWR<{ items: OpenClawDreamRun[] }>(
     options?.isPaused ? null : '/api/openclaw/dream-runs',
@@ -140,6 +162,62 @@ export function useOpenClawFiles(agentId: string | null, options?: SWRConfigurat
       ...options,
     }
   );
+}
+
+export function useRevokeOpenClawSession() {
+  return useCallback(async (sessionId: string) => {
+    const result = await api.revokeOpenClawSession(sessionId);
+    await mutate('/api/openclaw/sessions');
+    return result;
+  }, []);
+}
+
+export function useAgentWorkbenchSessions(agentId: string | null, options?: SWRConfiguration) {
+  return useSWR<{ items: WorkbenchSessionSummary[] }>(
+    agentId ? `/api/openclaw/agents/${agentId}/workbench/sessions` : null,
+    () => (agentId ? api.getAgentWorkbenchSessions(agentId) : { items: [] }),
+    {
+      ...swrConfig,
+      ...options,
+    }
+  );
+}
+
+export function useCreateAgentWorkbenchSession() {
+  return useCallback(async (agentId: string, payload: WorkbenchSessionCreateInput) => {
+    const result = await api.createAgentWorkbenchSession(agentId, payload);
+    await mutate(`/api/openclaw/agents/${agentId}/workbench/sessions`);
+    return result;
+  }, []);
+}
+
+export function useWorkbenchSession(conversationId: string | null, options?: SWRConfiguration) {
+  const key = !conversationId || options?.isPaused ? null : `/api/openclaw/workbench/sessions/${conversationId}`;
+
+  return useSWR<WorkbenchSessionSummary>(key, () => api.getWorkbenchSession(conversationId!), {
+    ...swrConfig,
+    ...options,
+  });
+}
+
+export function useWorkbenchMessages(conversationId: string | null, options?: SWRConfiguration) {
+  const key = !conversationId || options?.isPaused ? null : `/api/openclaw/workbench/sessions/${conversationId}/messages`;
+
+  return useSWR<{ items: WorkbenchMessageSummary[] }>(key, () => api.getWorkbenchMessages(conversationId!), {
+    ...swrConfig,
+    ...options,
+  });
+}
+
+export function useSendWorkbenchMessage() {
+  return useCallback(async (conversationId: string, payload: WorkbenchMessageInput) => {
+    const result = await api.sendWorkbenchMessage(conversationId, payload);
+    await Promise.all([
+      mutate(`/api/openclaw/workbench/sessions/${conversationId}/messages`),
+      mutate(`/api/openclaw/agents/${result.session.agent_id}/workbench/sessions`),
+    ]);
+    return result;
+  }, []);
 }
 
 export function usePauseOpenClawDreamRun() {
@@ -240,6 +318,14 @@ export function refreshOpenClawSessions() {
 
 export function refreshOpenClawDreamRuns() {
   return mutate('/api/openclaw/dream-runs');
+}
+
+export function refreshAgentWorkbenchSessions(agentId: string) {
+  return mutate(`/api/openclaw/agents/${agentId}/workbench/sessions`);
+}
+
+export function refreshWorkbenchMessages(conversationId: string) {
+  return mutate(`/api/openclaw/workbench/sessions/${conversationId}/messages`);
 }
 
 export function refreshAccessTokens() {

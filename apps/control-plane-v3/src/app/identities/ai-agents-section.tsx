@@ -31,12 +31,14 @@ export interface AIAgentsSectionProps {
   shouldShowSessionExpired: boolean;
   shouldShowForbidden?: boolean;
   canDelete: boolean;
+  canEdit: boolean;
   isRefreshing: boolean;
   focusedAgentId?: string | null;
   onToggleExpand: (agentId: string) => void;
   onSelectDreamRun?: (agentId: string, runId: string) => void;
   onRetry: () => Promise<void>;
   onDelete: (agentId: string) => Promise<void>;
+  onEdit: (agentId: string) => void;
 }
 
 export function AIAgentsSection({
@@ -56,12 +58,14 @@ export function AIAgentsSection({
   shouldShowSessionExpired,
   shouldShowForbidden,
   canDelete,
+  canEdit,
   isRefreshing,
   focusedAgentId,
   onToggleExpand,
   onSelectDreamRun,
   onRetry,
   onDelete,
+  onEdit,
 }: AIAgentsSectionProps) {
   const { t } = useI18n();
   const errorMessage = error instanceof Error ? error.message : null;
@@ -135,11 +139,13 @@ export function AIAgentsSection({
                 {isExpanded ? (
                   <AgentManagementCard
                     agent={agent}
+                    sessions={sessions}
                     recentSession={sessions[0] ?? null}
                     sessionCount={sessions.length}
                     recentDreamRuns={dreamRuns}
                     sessionErrorMessage={sessionsErrorMessage}
                     canDelete={canDelete}
+                    canEdit={canEdit}
                     events={events.filter((event) => event.actor_id === agent.id)}
                     eventsErrorMessage={eventsErrorMessage}
                     isDeleting={deletingAgentId === agent.id}
@@ -147,6 +153,7 @@ export function AIAgentsSection({
                       onSelectDreamRun ? (runId) => onSelectDreamRun(agent.id, runId) : undefined
                     }
                     onDelete={() => onDelete(agent.id)}
+                    onEdit={() => onEdit(agent.id)}
                   />
                 ) : null}
               </AgentCard>

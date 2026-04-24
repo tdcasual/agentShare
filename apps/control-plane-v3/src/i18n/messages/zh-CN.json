@@ -583,7 +583,65 @@
       "on": "开启",
       "neverSignedIn": "从未登录"
     },
-    "workspaceFilesUnavailable": "工作区文件不可用。"
+    "workspaceFilesUnavailable": "工作区文件不可用。",
+    "agentModal": {
+      "createTitle": "创建智能体",
+      "createDesc": "注册一个新的 OpenClaw 智能体工作区。",
+      "editTitle": "编辑智能体",
+      "editDesc": "更新智能体工作区和运行时配置。",
+      "name": "智能体名称",
+      "namePlaceholder": "MyAgent-1",
+      "nameRequired": "智能体名称必填。",
+      "workspaceRootRequired": "工作区根目录必填。",
+      "agentDirRequired": "智能体目录必填。",
+      "riskTier": "风险层级",
+      "authMethod": "认证方式",
+      "commaSeparated": "使用逗号分隔多个值",
+      "submitFailed": "保存智能体失败",
+      "createFailed": "创建智能体失败",
+      "updateFailed": "更新智能体失败",
+      "openWorkbench": "打开工作台"
+    },
+    "sessionManager": {
+      "title": "会话",
+      "newSession": "新建会话",
+      "sessionKey": "会话 Key",
+      "sessionKeyPlaceholder": "sess_openclaw_primary",
+      "displayName": "显示名称",
+      "displayNamePlaceholder": "支持会话",
+      "channel": "通道",
+      "subject": "主题",
+      "subjectPlaceholder": "简要主题",
+      "revoke": "撤销",
+      "createFailed": "创建会话失败",
+      "revokeFailed": "撤销会话失败"
+    },
+    "detail": {
+      "loading": "正在加载智能体详情...",
+      "notFound": "未找到该智能体。",
+      "tabs": {
+        "overview": "概览",
+        "sessions": "会话",
+        "workspace": "工作区",
+        "dream": "Dream",
+        "events": "事件",
+        "workbench": "工作台"
+      }
+    },
+    "workbench": {
+      "conversations": "对话",
+      "capability": "Capability",
+      "selectCapability": "选择一个 capability",
+      "noCapabilities": "这个智能体当前没有可用的 OpenAI capability。",
+      "loadingConversations": "正在加载对话...",
+      "loadingMessages": "正在加载消息...",
+      "noConversations": "暂无对话。创建一个开始。",
+      "noMessages": "此对话暂无消息。",
+      "selectConversation": "选择一个对话",
+      "send": "发送",
+      "sendFailed": "发送消息失败",
+      "composerPlaceholder": "输入消息...（Shift+Enter 换行）"
+    }
   },
   "inbox": {
     "actionLabels": {
@@ -671,6 +729,19 @@
     "title": "资产市场",
     "version": "版本"
   },
+  "docs": {
+    "title": "文档",
+    "description": "浏览公共文档和操作指南",
+    "loading": "正在加载文档...",
+    "loadingContent": "正在加载文档内容...",
+    "empty": "暂无可用的公共文档。",
+    "noResults": "没有匹配当前查询的文档。",
+    "noContent": "该文档暂无内容。",
+    "detailTitle": "文档",
+    "searchPlaceholder": "按标题、分类或文件名搜索文档...",
+    "sessionExpired": "您的管理会话已过期。请重新登录以浏览文档。",
+    "sessionForbidden": "您没有权限查看文档。请使用管理会话继续。"
+  },
   "notifications": {
     "buttonAriaLabelWithUnread": "{label}，{count} 条未读",
     "emptyDescription": "智能体反馈和系统告警会显示在这里。",
@@ -713,7 +784,8 @@
     "settings": "设置",
     "spaces": "空间",
     "tasks": "任务",
-    "tokens": "远程接入"
+    "tokens": "远程接入",
+    "docs": "文档"
   },
   "playbooks": {
     "createFailed": "创建手册失败",

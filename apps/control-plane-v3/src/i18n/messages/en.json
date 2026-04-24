@@ -583,7 +583,65 @@
       "on": "on",
       "neverSignedIn": "Never signed in"
     },
-    "workspaceFilesUnavailable": "Workspace files unavailable."
+    "workspaceFilesUnavailable": "Workspace files unavailable.",
+    "agentModal": {
+      "createTitle": "Create Agent",
+      "createDesc": "Register a new OpenClaw agent workspace.",
+      "editTitle": "Edit Agent",
+      "editDesc": "Update agent workspace and runtime configuration.",
+      "name": "Agent Name",
+      "namePlaceholder": "MyAgent-1",
+      "nameRequired": "Agent name is required.",
+      "workspaceRootRequired": "Workspace root is required.",
+      "agentDirRequired": "Agent directory is required.",
+      "riskTier": "Risk Tier",
+      "authMethod": "Auth Method",
+      "commaSeparated": "Comma-separated values",
+      "submitFailed": "Failed to save agent",
+      "createFailed": "Failed to create agent",
+      "updateFailed": "Failed to update agent",
+      "openWorkbench": "Open Workbench"
+    },
+    "sessionManager": {
+      "title": "Sessions",
+      "newSession": "New Session",
+      "sessionKey": "Session Key",
+      "sessionKeyPlaceholder": "sess_openclaw_primary",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Support session",
+      "channel": "Channel",
+      "subject": "Subject",
+      "subjectPlaceholder": "Brief topic",
+      "revoke": "Revoke",
+      "createFailed": "Failed to create session",
+      "revokeFailed": "Failed to revoke session"
+    },
+    "detail": {
+      "loading": "Loading agent detail...",
+      "notFound": "Agent not found.",
+      "tabs": {
+        "overview": "Overview",
+        "sessions": "Sessions",
+        "workspace": "Workspace",
+        "dream": "Dream",
+        "events": "Events",
+        "workbench": "Workbench"
+      }
+    },
+    "workbench": {
+      "conversations": "Conversations",
+      "capability": "Capability",
+      "selectCapability": "Select a capability",
+      "noCapabilities": "No active OpenAI capabilities are available for this agent.",
+      "loadingConversations": "Loading conversations...",
+      "loadingMessages": "Loading messages...",
+      "noConversations": "No conversations yet. Create one to start.",
+      "noMessages": "No messages in this conversation yet.",
+      "selectConversation": "Select a conversation",
+      "send": "Send",
+      "sendFailed": "Failed to send message",
+      "composerPlaceholder": "Type a message... (Shift+Enter for new line)"
+    }
   },
   "inbox": {
     "actionLabels": {
@@ -671,6 +729,19 @@
     "title": "Asset Marketplace",
     "version": "Version"
   },
+  "docs": {
+    "title": "Documentation",
+    "description": "Browse public documentation and operational guides",
+    "loading": "Loading documentation...",
+    "loadingContent": "Loading document content...",
+    "empty": "No public documents available yet.",
+    "noResults": "No documents match the current query.",
+    "noContent": "No content available for this document.",
+    "detailTitle": "Document",
+    "searchPlaceholder": "Search documents by title, category, or filename...",
+    "sessionExpired": "Your management session has expired. Sign in again to browse documentation.",
+    "sessionForbidden": "You do not have permission to view documentation. Use a management session to continue."
+  },
   "notifications": {
     "buttonAriaLabelWithUnread": "{label}, {count} unread",
     "emptyDescription": "We will surface agent feedback and system alerts here.",
@@ -713,7 +784,8 @@
     "settings": "Settings",
     "spaces": "Spaces",
     "tasks": "Tasks",
-    "tokens": "Remote Access"
+    "tokens": "Remote Access",
+    "docs": "Docs"
   },
   "playbooks": {
     "createFailed": "Failed to create playbook",

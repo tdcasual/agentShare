@@ -1,21 +1,25 @@
-import { Trash2 } from 'lucide-react';
-import { useOpenClawFiles } from '@/domains/identity';
+import { Trash2, Pencil, ExternalLink } from 'lucide-react';
 import type { OpenClawAgent, OpenClawDreamRun, OpenClawSession } from '@/domains/identity';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { IdentityDetailsGrid, formatSnapshotTimestamp } from './components';
 import { DreamPolicyCard } from './dream-policy-card';
 import { DreamRunList } from './dream-run-list';
+import { SessionManager } from './session-manager';
+import { WorkspaceFilesManager } from './workspace-files-manager';
 import { useI18n } from '@/components/i18n-provider';
+import Link from 'next/link';
 
 export interface AgentManagementCardProps {
   agent: OpenClawAgent;
+  sessions: OpenClawSession[];
   recentSession: OpenClawSession | null;
   sessionCount: number;
   recentDreamRuns: OpenClawDreamRun[];
   onSelectDreamRun?: (runId: string) => void;
   sessionErrorMessage: string | null;
   canDelete: boolean;
+  canEdit: boolean;
   events: Array<{
     id: string;
     summary: string;
@@ -25,6 +29,7 @@ export interface AgentManagementCardProps {
   eventsErrorMessage: string | null;
   isDeleting: boolean;
   onDelete: () => Promise<void>;
+  onEdit: () => void;
 }
 
 function formatList(values: string[], fallback: string) {
@@ -42,28 +47,23 @@ function formatPolicy(policy: Record<string, unknown>, t: (key: string) => strin
     .join(' · ');
 }
 
-function summarizeFileContent(content: string, t: (key: string) => string) {
-  return (
-    content.split('\n').find((line) => line.trim().length > 0) ?? t('identities.labels.emptyFile')
-  );
-}
-
 export function AgentManagementCard({
   agent,
-  recentSession,
-  sessionCount,
+  sessions,
+  recentSession: _recentSession,
+  sessionCount: _sessionCount,
   recentDreamRuns,
   onSelectDreamRun,
   sessionErrorMessage,
   canDelete,
+  canEdit,
   events,
   eventsErrorMessage,
   isDeleting,
   onDelete,
+  onEdit,
 }: AgentManagementCardProps) {
   const { t } = useI18n();
-  const filesQuery = useOpenClawFiles(agent.id);
-  const files = filesQuery.data?.items ?? [];
 
   return (
     <div className="mt-4 space-y-4">
@@ -95,80 +95,14 @@ export function AgentManagementCard({
         <DreamRunList runs={recentDreamRuns} onSelectRun={onSelectDreamRun} />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
-              {t('identities.sections.recentSessionTitle')}
-            </h3>
-            <Badge variant="info">{sessionCount}</Badge>
-          </div>
-
-          {sessionErrorMessage ? (
-            <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-              {t('identities.sections.sessionHistoryUnavailable', {
-                message: sessionErrorMessage,
-              })}
-            </p>
-          ) : recentSession === null ? (
-            <p className="text-sm text-[var(--kw-text-muted)]">
-              {t('identities.sections.noRecentSessions')}
-            </p>
-          ) : (
-            <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]">
-              <p className="font-medium text-[var(--kw-text)]">{recentSession.display_name}</p>
-              <p className="mt-1 break-all text-sm text-[var(--kw-text-muted)]">
-                {recentSession.session_key}
-              </p>
-              <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                {recentSession.channel}
-                {recentSession.subject ? ` · ${recentSession.subject}` : ''}
-              </p>
-              <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                {t('identities.sections.updatedAt', {
-                  value: formatSnapshotTimestamp(recentSession.updated_at),
-                })}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
-              {t('identities.sections.workspaceFilesTitle')}
-            </h3>
-            <Badge variant="secondary">{files.length}</Badge>
-          </div>
-
-          {filesQuery.isLoading ? (
-            <p className="text-sm text-[var(--kw-text-muted)]">
-              {t('identities.loadingWorkspaceFiles')}
-            </p>
-          ) : filesQuery.error instanceof Error ? (
-            <p className="text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
-              {t('identities.workspaceFilesUnavailable')} {filesQuery.error.message}
-            </p>
-          ) : files.length === 0 ? (
-            <p className="text-sm text-[var(--kw-text-muted)]">
-              {t('identities.noWorkspaceFiles')}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {files.slice(0, 3).map((file) => (
-                <div
-                  key={file.file_name}
-                  className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]"
-                >
-                  <p className="font-medium text-[var(--kw-text)]">{file.file_name}</p>
-                  <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                    {summarizeFileContent(file.content, t)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="space-y-4">
+        <SessionManager
+          agent={agent}
+          sessions={sessions}
+          sessionErrorMessage={sessionErrorMessage}
+          canManage={canEdit}
+        />
+        <WorkspaceFilesManager agent={agent} />
 
         <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center justify-between gap-3">
@@ -207,8 +141,27 @@ export function AgentManagementCard({
         </div>
       </div>
 
-      {canDelete ? (
-        <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Link href={`/identities/${agent.id}`}>
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<ExternalLink className="h-4 w-4" />}
+          >
+            {t('identities.agentModal.openWorkbench')}
+          </Button>
+        </Link>
+        {canEdit ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onEdit}
+            leftIcon={<Pencil className="h-4 w-4" />}
+          >
+            {t('common.edit')}
+          </Button>
+        ) : null}
+        {canDelete ? (
           <Button
             variant="outline"
             size="sm"
@@ -219,8 +172,8 @@ export function AgentManagementCard({
           >
             {t('identities.sections.deleteAgent', { name: agent.name })}
           </Button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }

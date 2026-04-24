@@ -161,6 +161,14 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
     unauthorizedBehavior: 'redirect',
     redirectTo: '/login',
   },
+  {
+    path: '/docs',
+    mode: 'authenticated',
+    requiredSession: 'authenticated',
+    dataSource: 'backend',
+    unauthorizedBehavior: 'redirect',
+    redirectTo: '/login',
+  },
 
   // Demo Routes (显式演示)
   {

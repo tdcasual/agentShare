@@ -12,6 +12,7 @@ import {
   Sparkles,
   KeyRound,
   Settings,
+  FileText,
 } from 'lucide-react';
 import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
 import type { LucideIcon } from 'lucide-react';
@@ -155,6 +156,7 @@ export const SHELL_NAV_ITEMS: ShellNavItem[] = [
   { href: '/assets', labelKey: 'navigation.assets', icon: Package, requiredRole: 'admin' },
   { href: '/tokens', labelKey: 'navigation.tokens', icon: KeyRound, requiredRole: 'admin' },
   { href: '/tasks', labelKey: 'navigation.tasks', icon: CheckSquare, requiredRole: 'admin' },
+  { href: '/docs', labelKey: 'navigation.docs', icon: FileText, requiredRole: 'viewer' },
   {
     href: '/settings',
     labelKey: 'navigation.settings',

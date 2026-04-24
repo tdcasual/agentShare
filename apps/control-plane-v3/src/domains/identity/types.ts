@@ -211,7 +211,7 @@ export interface OpenClawDreamPolicy {
 export interface OpenClawSessionSummary {
   readonly id: string;
   readonly agent_id: string;
-  readonly session_key: string;
+  readonly session_key?: string;
   readonly display_name: string;
   readonly channel: string;
   readonly subject?: string | null;
@@ -270,3 +270,54 @@ export type OpenClawAgentFile = OpenClawAgentFileSummary;
 
 export type OpenClawDreamRun = OpenClawDreamRunSummary;
 export type OpenClawDreamStep = OpenClawDreamStepSummary;
+
+// ============================================
+// Workbench
+// ============================================
+
+export interface OpenClawSessionCreateInput {
+  readonly session_key: string;
+  readonly display_name: string;
+  readonly channel?: string;
+  readonly subject?: string;
+}
+
+export interface WorkbenchSessionSummary {
+  readonly id: string;
+  readonly agent_id: string;
+  readonly capability_id: string;
+  readonly capability_name?: string | null;
+  readonly title: string;
+  readonly status: string;
+  readonly created_by_actor_id: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+  readonly last_message_at: string;
+}
+
+export interface WorkbenchMessageSummary {
+  readonly id: string;
+  readonly session_id: string;
+  readonly role: 'user' | 'assistant' | 'system';
+  readonly content: string;
+  readonly message_metadata: Record<string, unknown>;
+  readonly created_at: string;
+  readonly updated_at: string;
+}
+
+export interface WorkbenchSessionCreateInput {
+  readonly capability_id: string;
+  readonly title?: string;
+}
+
+export interface WorkbenchMessageInput {
+  readonly content: string;
+  readonly temperature?: number;
+  readonly max_tokens?: number;
+}
+
+export interface WorkbenchMessageCreateResponse {
+  readonly session: WorkbenchSessionSummary;
+  readonly user_message: WorkbenchMessageSummary;
+  readonly assistant_message: WorkbenchMessageSummary;
+}

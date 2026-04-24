@@ -24,6 +24,12 @@ import type {
   OpenClawDreamRunDetail,
   OpenClawDreamRun,
   OpenClawSession,
+  OpenClawSessionCreateInput,
+  WorkbenchSessionSummary,
+  WorkbenchMessageSummary,
+  WorkbenchSessionCreateInput,
+  WorkbenchMessageInput,
+  WorkbenchMessageCreateResponse,
 } from './types';
 import { normalizeAccessToken, type AccessTokenTransport } from '../shared-types';
 
@@ -120,6 +126,13 @@ export function getOpenClawSessions() {
   return apiFetch<{ items: OpenClawSession[] }>('/openclaw/sessions');
 }
 
+export function createOpenClawSession(agentId: string, payload: OpenClawSessionCreateInput) {
+  return apiFetch<OpenClawSession>(`/openclaw/agents/${agentId}/sessions`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function getOpenClawDreamRuns() {
   return apiFetch<{ items: OpenClawDreamRun[] }>('/openclaw/dream-runs');
 }
@@ -144,6 +157,39 @@ export function resumeOpenClawDreamRun(runId: string) {
 
 export function getOpenClawFiles(agentId: string) {
   return apiFetch<{ items: OpenClawAgentFile[] }>(`/openclaw/agents/${agentId}/files`);
+}
+
+export function revokeOpenClawSession(sessionId: string) {
+  return apiFetch<{ id: string; status: string }>(`/openclaw/sessions/${sessionId}/revoke`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
+export function getAgentWorkbenchSessions(agentId: string) {
+  return apiFetch<{ items: WorkbenchSessionSummary[] }>(`/openclaw/agents/${agentId}/workbench/sessions`);
+}
+
+export function createAgentWorkbenchSession(agentId: string, payload: WorkbenchSessionCreateInput) {
+  return apiFetch<WorkbenchSessionSummary>(`/openclaw/agents/${agentId}/workbench/sessions`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getWorkbenchSession(conversationId: string) {
+  return apiFetch<WorkbenchSessionSummary>(`/openclaw/workbench/sessions/${conversationId}`);
+}
+
+export function getWorkbenchMessages(conversationId: string) {
+  return apiFetch<{ items: WorkbenchMessageSummary[] }>(`/openclaw/workbench/sessions/${conversationId}/messages`);
+}
+
+export function sendWorkbenchMessage(conversationId: string, payload: WorkbenchMessageInput) {
+  return apiFetch<WorkbenchMessageCreateResponse>(`/openclaw/workbench/sessions/${conversationId}/messages`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 // ============================================
@@ -211,11 +257,18 @@ export const identityApi = {
   updateOpenClawAgent,
   deleteOpenClawAgent,
   getOpenClawSessions,
+  createOpenClawSession,
   getOpenClawDreamRuns,
   getOpenClawDreamRun,
   pauseOpenClawDreamRun,
   resumeOpenClawDreamRun,
   getOpenClawFiles,
+  revokeOpenClawSession,
+  getAgentWorkbenchSessions,
+  createAgentWorkbenchSession,
+  getWorkbenchSession,
+  getWorkbenchMessages,
+  sendWorkbenchMessage,
   // Admin Accounts
   getAdminAccounts,
   createAdminAccount,
