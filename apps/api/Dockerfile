@@ -18,6 +18,7 @@ RUN mkdir -p apps/api/app \
 COPY apps/api/app apps/api/app
 COPY apps/api/alembic.ini apps/api/alembic.ini
 COPY apps/api/alembic apps/api/alembic
+COPY docs docs
 RUN pip install --no-cache-dir --no-deps ./apps/api
 
 EXPOSE 8000

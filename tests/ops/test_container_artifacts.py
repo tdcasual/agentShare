@@ -39,6 +39,7 @@ def test_api_dockerfile_exposes_runtime_contract() -> None:
     assert "pip install --no-cache-dir -r apps/api/requirements.lock" in dockerfile
     assert "pip install --no-cache-dir --no-deps ./apps/api" in dockerfile
     assert "COPY apps/api/docker-entrypoint.sh" in dockerfile
+    assert "COPY docs docs" in dockerfile
     assert "ENTRYPOINT" in dockerfile
     assert 'EXPOSE 8000' in dockerfile
     assert 'uvicorn' in dockerfile
