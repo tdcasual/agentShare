@@ -92,8 +92,9 @@ def _extract_title(content: str) -> str:
 
 def _safe_doc_path(category: str, filename: str) -> Path:
     """Resolve and validate that the requested file lives inside docs/."""
-    requested = (DOCS_ROOT / category / filename).resolve()
-    if not str(requested).startswith(str(DOCS_ROOT.resolve())):
+    docs_root = DOCS_ROOT.resolve()
+    requested = (docs_root / category / filename).resolve()
+    if not requested.is_relative_to(docs_root):
         raise HTTPException(status_code=400, detail="Invalid path")
     return requested
 
@@ -108,6 +109,8 @@ def list_docs() -> DocListResponse:
         for category in _get_public_categories():
             category_dir = DOCS_ROOT / category
             if not category_dir.is_dir():
+                continue
+            if not category_dir.resolve().is_relative_to(DOCS_ROOT.resolve()):
                 continue
             categories.append(category)
             for doc_file in sorted(category_dir.glob("*.md")):

@@ -55,4 +55,24 @@ describe('RouteGuard', () => {
       expect(replaceMock).toHaveBeenCalledWith('/playbooks');
     });
   });
+
+  it('allows anonymous users to stay on public docs routes', async () => {
+    pathnameMock.mockReturnValue('/docs');
+    resolveAppEntryStateMock.mockResolvedValue({
+      kind: 'login_required',
+      bootstrap: { initialized: true },
+    });
+
+    render(
+      <RouteGuard>
+        <div>public docs</div>
+      </RouteGuard>
+    );
+
+    await waitFor(() => {
+      expect(resolveAppEntryStateMock).toHaveBeenCalled();
+    });
+
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
 });

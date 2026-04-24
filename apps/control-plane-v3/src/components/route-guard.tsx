@@ -98,16 +98,16 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
+    // 检查路由访问权限（基础认证）
+    const allowed = isRouteAllowed(pathname, sessionState);
+
     // 未认证用户访问需要认证的页面 — 重定向到登录页
-    if (entryState.kind === 'login_required') {
+    if (entryState.kind === 'login_required' && !allowed.allowed) {
       if (pathname !== '/login') {
         router.replace('/login');
       }
       return;
     }
-
-    // 检查路由访问权限（基础认证）
-    const allowed = isRouteAllowed(pathname, sessionState);
 
     if (!allowed.allowed && allowed.redirect) {
       router.replace(allowed.redirect);

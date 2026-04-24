@@ -60,3 +60,21 @@ def test_public_docs_blocks_non_public_categories(client, tmp_path, monkeypatch)
     response = client.get("/api/public/docs/plans/internal-rollout")
 
     assert response.status_code == 404, response.text
+
+
+def test_public_docs_rejects_symlink_escape_outside_docs_root(client, tmp_path, monkeypatch):
+    docs_root = tmp_path / "docs"
+    docs_root.mkdir()
+    escaped_dir = tmp_path / "docs-evil"
+    escaped_dir.mkdir()
+    (escaped_dir / "secret.md").write_text("# Escaped Secret\n", encoding="utf-8")
+    (docs_root / "guides").symlink_to(escaped_dir, target_is_directory=True)
+
+    from app.routes import public_docs
+
+    monkeypatch.setattr(public_docs, "DOCS_ROOT", docs_root.resolve())
+    monkeypatch.delenv("PUBLIC_DOCS_CATEGORIES", raising=False)
+
+    response = client.get("/api/public/docs/guides/secret")
+
+    assert response.status_code == 400, response.text
