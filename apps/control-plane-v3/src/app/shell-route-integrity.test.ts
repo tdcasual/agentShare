@@ -64,4 +64,10 @@ describe('shell route integrity', () => {
     expect(isRouteAllowed('/runs', 'authenticated')).toEqual({ allowed: true });
     await expect(access(path.join(appDir, 'runs/page.tsx'))).resolves.toBeUndefined();
   });
+
+  it('ships a public docs page readable without authentication', async () => {
+    expect(getRoutePolicy('/docs')).toBeDefined();
+    expect(isRouteAllowed('/docs', 'anonymous')).toEqual({ allowed: true });
+    await expect(access(path.join(appDir, 'docs/page.tsx'))).resolves.toBeUndefined();
+  });
 });

@@ -163,11 +163,10 @@ export const ROUTE_POLICIES: RoutePolicy[] = [
   },
   {
     path: '/docs',
-    mode: 'authenticated',
-    requiredSession: 'authenticated',
+    mode: 'public',
+    requiredSession: null,
     dataSource: 'backend',
-    unauthorizedBehavior: 'redirect',
-    redirectTo: '/login',
+    unauthorizedBehavior: 'allow_readonly',
   },
 
   // Demo Routes (显式演示)
@@ -259,6 +258,10 @@ export function isRouteAllowed(
   }
 
   if (policy.mode === 'transition') {
+    return { allowed: true };
+  }
+
+  if (policy.mode === 'public') {
     return { allowed: true };
   }
 

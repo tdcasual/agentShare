@@ -3,12 +3,6 @@
 import { useMemo, useState, memo } from 'react';
 import { BookOpen, FileText, RefreshCw, Search } from 'lucide-react';
 import { usePublicDocs, usePublicDoc, refreshPublicDocs } from '@/domains/docs';
-import { Layout } from '@/interfaces/human/layout';
-import {
-  ManagementForbiddenAlert,
-  ManagementSessionExpiredAlert,
-  useManagementPageSessionRecovery,
-} from '@/lib/management-session-recovery';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -23,17 +17,6 @@ const DocsContent = memo(function DocsContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [refreshing, setRefreshing] = useState(false);
-
-  const {
-    session,
-    loading: gateLoading,
-    error: gateError,
-    shouldShowForbidden,
-    shouldShowSessionExpired,
-    clearAllAuthErrors,
-    consumeUnauthorized,
-  } = useManagementPageSessionRecovery(docsQuery.error);
-
   const docDetailQuery = usePublicDoc(selectedDoc?.category ?? null, selectedDoc?.filename ?? null);
 
   const docs = docsQuery.docs;
@@ -57,19 +40,15 @@ const DocsContent = memo(function DocsContent() {
 
   async function handleRefresh() {
     setRefreshing(true);
-    clearAllAuthErrors();
     try {
       await refreshPublicDocs();
-    } catch (error) {
-      if (!consumeUnauthorized(error)) {
-        // silently surface via SWR
-      }
     } finally {
       setRefreshing(false);
     }
   }
 
-  const isLoading = gateLoading || docsQuery.isLoading;
+  const isLoading = docsQuery.isLoading;
+  const docsError = docsQuery.error instanceof Error ? docsQuery.error.message : null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
@@ -83,12 +62,7 @@ const DocsContent = memo(function DocsContent() {
             {t('docs.description')}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="primary">{t('common.operator')}</Badge>
-          <span className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            {session?.email ?? t('common.loading')}
-          </span>
-        </div>
+        <Badge variant="info">Public</Badge>
       </div>
 
       {/* Search + Refresh */}
@@ -143,22 +117,14 @@ const DocsContent = memo(function DocsContent() {
       )}
 
       {/* Alerts */}
-      {shouldShowSessionExpired ? (
-        <ManagementSessionExpiredAlert message={t('docs.sessionExpired')} />
-      ) : null}
-
-      {!shouldShowSessionExpired && shouldShowForbidden ? (
-        <ManagementForbiddenAlert message={t('docs.sessionForbidden')} />
-      ) : null}
-
-      {gateError && !shouldShowSessionExpired && !shouldShowForbidden ? (
+      {docsError ? (
         <Card
           role="alert"
           aria-live="assertive"
           className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <span>{gateError}</span>
+            <span>{docsError}</span>
             <Button
               variant="secondary"
               size="sm"
@@ -282,8 +248,10 @@ function EmptyState({ icon, message }: { icon: React.ReactNode; message: string 
 
 export default function DocsPage() {
   return (
-    <Layout>
-      <DocsContent />
-    </Layout>
+    <div className="min-h-screen bg-gradient-to-br from-[var(--kw-primary-50)] via-white to-[var(--kw-surface-alt)] dark:from-[var(--kw-dark-bg)] dark:via-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+      <main className="px-4 py-8 sm:px-6 lg:px-8">
+        <DocsContent />
+      </main>
+    </div>
   );
 }

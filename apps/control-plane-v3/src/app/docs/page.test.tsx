@@ -6,7 +6,6 @@ import DocsPage from './page';
 
 const t = translateMessage;
 
-const useManagementPageSessionRecoveryMock = vi.fn();
 const usePublicDocsMock = vi.fn();
 const usePublicDocMock = vi.fn();
 const refreshPublicDocsMock = vi.fn();
@@ -26,23 +25,6 @@ vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('@/lib/management-session-recovery', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/management-session-recovery')>(
-    '@/lib/management-session-recovery'
-  );
-  return {
-    ...actual,
-    useManagementPageSessionRecovery: (...args: unknown[]) =>
-      useManagementPageSessionRecoveryMock(...args),
-    ManagementSessionExpiredAlert: ({ message }: { message: string }) => (
-      <div role="alert">{message}</div>
-    ),
-    ManagementForbiddenAlert: ({ message }: { message: string }) => (
-      <div role="alert">{message}</div>
-    ),
-  };
-});
-
 vi.mock('@/domains/docs', () => ({
   usePublicDocs: () => usePublicDocsMock(),
   usePublicDoc: (_category: string | null, _filename: string | null) => usePublicDocMock(),
@@ -52,16 +34,6 @@ vi.mock('@/domains/docs', () => ({
 describe('docs page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    useManagementPageSessionRecoveryMock.mockReturnValue({
-      session: { email: 'operator@example.com', role: 'operator' },
-      loading: false,
-      error: null,
-      shouldShowForbidden: false,
-      shouldShowSessionExpired: false,
-      clearAllAuthErrors: vi.fn(),
-      consumeUnauthorized: vi.fn().mockReturnValue(false),
-    });
 
     usePublicDocsMock.mockReturnValue({
       docs: [
@@ -87,6 +59,12 @@ describe('docs page', () => {
     expect(screen.getByText('Getting Started')).toBeInTheDocument();
     expect(screen.getByText('Advanced')).toBeInTheDocument();
     expect(screen.getByText('API Endpoints')).toBeInTheDocument();
+  });
+
+  it('renders a public docs entry without management identity chrome', () => {
+    render(<DocsPage />);
+
+    expect(screen.queryByText(t('common.operator'))).not.toBeInTheDocument();
   });
 
   it('filters by search query', async () => {
@@ -136,15 +114,6 @@ describe('docs page', () => {
 
   it('shows error state and retry', async () => {
     refreshPublicDocsMock.mockResolvedValue(undefined);
-    useManagementPageSessionRecoveryMock.mockReturnValue({
-      session: { email: 'operator@example.com', role: 'operator' },
-      loading: false,
-      error: 'network error',
-      shouldShowForbidden: false,
-      shouldShowSessionExpired: false,
-      clearAllAuthErrors: vi.fn(),
-      consumeUnauthorized: vi.fn().mockReturnValue(false),
-    });
     usePublicDocsMock.mockReturnValue({
       docs: [],
       isLoading: false,

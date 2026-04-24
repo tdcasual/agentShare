@@ -79,9 +79,6 @@ export const ROUTE_ROLES: Record<string, ManagementRole> = {
   '/tokens': 'admin',
   '/assets': 'admin',
   '/settings': 'admin',
-
-  // viewer级别（公共文档）
-  '/docs': 'viewer',
 };
 
 const DEFAULT_MANAGEMENT_ROUTE_PRIORITY = [

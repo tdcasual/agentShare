@@ -68,4 +68,9 @@ describe('route-policy', () => {
       reason: 'Authentication required for /runs',
     });
   });
+
+  it('keeps docs readable without authentication', () => {
+    expect(getRoutePolicy('/docs')?.mode).toBe('public');
+    expect(isRouteAllowed('/docs', 'anonymous')).toEqual({ allowed: true });
+  });
 });
