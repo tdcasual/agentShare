@@ -20,6 +20,7 @@ import {
   useResumeOpenClawDreamRun,
   useOpenClawSessions,
 } from '@/domains/identity';
+import { useCapabilities } from '@/domains/governance';
 import { useEvents, refreshEvents } from '@/domains/event';
 import { Layout } from '@/interfaces/human/layout';
 import {
@@ -113,6 +114,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
   const sessionsQuery = useOpenClawSessions();
   const dreamRunsQuery = useOpenClawDreamRuns();
   const eventsQuery = useEvents();
+  const capabilitiesQuery = useCapabilities();
   const createAgent = useCreateOpenClawAgent();
   const updateAgent = useUpdateOpenClawAgent();
   const deleteAgent = useDeleteOpenClawAgent();
@@ -155,6 +157,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
   const agents = agentsQuery.data?.items ?? EMPTY_OPENCLAW_AGENTS;
   const sessions = sessionsQuery.data?.items ?? EMPTY_OPENCLAW_SESSIONS;
   const dreamRuns = dreamRunsQuery.data?.items ?? EMPTY_OPENCLAW_DREAM_RUNS;
+  const capabilities = capabilitiesQuery.data?.items ?? [];
   const sessionsByAgent = useMemo(() => groupSessionsByAgent(sessions), [sessions]);
   const dreamRunsByAgent = useMemo(() => groupDreamRunsByAgent(dreamRuns), [dreamRuns]);
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -754,8 +757,14 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           setEditingAgent(null);
         }}
         agent={editingAgent}
+        availableCapabilities={capabilities.map((capability) => ({
+          id: capability.id,
+          name: capability.name,
+        }))}
         onSubmit={(payload) =>
-          editingAgent ? handleUpdateAgent(editingAgent.id, payload) : handleCreateAgent(payload as Parameters<typeof createAgent>[0])
+          editingAgent
+            ? handleUpdateAgent(editingAgent.id, payload)
+            : handleCreateAgent(payload as Parameters<typeof createAgent>[0])
         }
         isSubmitting={submittingAgent}
       />

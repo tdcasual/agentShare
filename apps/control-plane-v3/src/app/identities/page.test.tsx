@@ -14,6 +14,7 @@ const useOpenClawAgentsMock = vi.fn();
 const useOpenClawSessionsMock = vi.fn();
 const useOpenClawDreamRunsMock = vi.fn();
 const useOpenClawFilesMock = vi.fn();
+const useCapabilitiesMock = vi.fn();
 const useEventsMock = vi.fn();
 const useCreateOpenClawAgentMock = vi.fn();
 const useUpdateOpenClawAgentMock = vi.fn();
@@ -25,6 +26,7 @@ const useCreateOpenClawSessionMock = vi.fn();
 const useCreateAgentWorkbenchSessionMock = vi.fn();
 const useRevokeOpenClawSessionMock = vi.fn();
 const deleteOpenClawAgentMock = vi.fn();
+const createOpenClawAgentActionMock = vi.fn();
 const pauseOpenClawDreamRunMock = vi.fn();
 const resumeOpenClawDreamRunMock = vi.fn();
 const refreshSessionMock = vi.fn();
@@ -101,6 +103,10 @@ vi.mock('@/domains/identity', () => ({
 vi.mock('@/domains/event', () => ({
   useEvents: () => useEventsMock(),
   refreshEvents: () => refreshEventsMock(),
+}));
+
+vi.mock('@/domains/governance', () => ({
+  useCapabilities: () => useCapabilitiesMock(),
 }));
 
 describe('identities page', () => {
@@ -294,6 +300,25 @@ describe('identities page', () => {
       mutate: vi.fn(),
     });
 
+    useCapabilitiesMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: 'cap-deploy',
+            name: 'Deploy capability',
+            publication_status: 'active',
+          },
+          {
+            id: 'cap-analysis',
+            name: 'Analysis capability',
+            publication_status: 'active',
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
     deleteOpenClawAgentMock.mockResolvedValue({ status: 'deleted', id: 'bootstrap' });
     useDeleteOpenClawAgentMock.mockReturnValue(deleteOpenClawAgentMock);
     pauseOpenClawDreamRunMock.mockResolvedValue({
@@ -311,9 +336,8 @@ describe('identities page', () => {
     useCreateOpenClawSessionMock.mockReturnValue(
       vi.fn().mockResolvedValue({ id: 'runtime-session-1' })
     );
-    useCreateOpenClawAgentMock.mockReturnValue(
-      vi.fn().mockResolvedValue({ id: 'new-agent', name: 'New Agent' })
-    );
+    createOpenClawAgentActionMock.mockResolvedValue({ id: 'new-agent', name: 'New Agent' });
+    useCreateOpenClawAgentMock.mockReturnValue(createOpenClawAgentActionMock);
     useUpdateOpenClawAgentMock.mockReturnValue(
       vi.fn().mockResolvedValue({ id: 'bootstrap', name: 'Bootstrap Credential' })
     );
@@ -537,6 +561,55 @@ describe('identities page', () => {
       expect(within(dialog).getByRole('alert')).toHaveTextContent('Agent workspace already exists');
     });
     expect(dialog).toBeInTheDocument();
+  });
+
+  it('configures new agents with guided catalog selectors', async () => {
+    const user = userEvent.setup();
+
+    render(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: t('identities.agentModal.createTitle') }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(
+      within(dialog).getByRole('combobox', { name: t('identities.agentModal.authMethod') })
+    ).toHaveValue('openclaw_session');
+    expect(
+      within(dialog).getByRole('option', { name: t('options.thinkingLevels.balanced') })
+    ).toHaveValue('balanced');
+    expect(
+      within(dialog).getByRole('option', { name: t('options.sandboxModes.workspaceWrite') })
+    ).toHaveValue('workspace-write');
+    expect(
+      within(dialog).queryByPlaceholderText('capability-1, capability-2')
+    ).not.toBeInTheDocument();
+
+    await user.type(within(dialog).getByLabelText(t('identities.agentModal.name')), 'Ops Agent');
+    await user.type(
+      within(dialog).getByLabelText(t('identities.labels.workspaceRoot')),
+      '/srv/ops-agent'
+    );
+    await user.type(
+      within(dialog).getByLabelText(t('identities.labels.agentDirectory')),
+      '.openclaw/ops-agent'
+    );
+    await user.click(within(dialog).getByRole('checkbox', { name: /Deploy capability/ }));
+    await user.click(
+      within(dialog).getByRole('checkbox', { name: t('options.taskTypes.configSync') })
+    );
+    await user.click(within(dialog).getByRole('button', { name: t('common.create') }));
+
+    await waitFor(() => {
+      expect(createOpenClawAgentActionMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth_method: 'openclaw_session',
+          thinking_level: 'balanced',
+          sandbox_mode: 'workspace-write',
+          allowed_capability_ids: ['cap-deploy'],
+          allowed_task_types: ['config_sync'],
+        })
+      );
+    });
   });
 
   it('shows a relogin recovery state when refresh hits an expired session', async () => {

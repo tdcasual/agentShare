@@ -1,18 +1,32 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { Input } from '@/shared/ui-primitives/input';
 import { Button } from '@/shared/ui-primitives/button';
 import { MutationAlert } from '@/shared/mutations/mutation-alert';
+import {
+  AGENT_MODEL_OPTIONS,
+  AUTH_METHOD_OPTIONS,
+  DEFAULT_AUTH_METHOD,
+  SANDBOX_MODE_OPTIONS,
+  TASK_TYPE_OPTIONS,
+  THINKING_LEVEL_OPTIONS,
+} from '@/lib/option-catalogs';
 import type { OpenClawAgent } from '@/domains/identity';
 import type { OpenClawAgentCreateInput, OpenClawAgentUpdateInput } from '@/domains/identity/api';
 import { useI18n } from '@/components/i18n-provider';
+
+export interface AgentCapabilityOption {
+  id: string;
+  name: string;
+}
 
 export interface AgentModalProps {
   isOpen: boolean;
   onClose: () => void;
   agent?: OpenClawAgent | null;
+  availableCapabilities: AgentCapabilityOption[];
   onSubmit: (payload: OpenClawAgentCreateInput | OpenClawAgentUpdateInput) => Promise<void>;
   isSubmitting: boolean;
 }
@@ -22,15 +36,25 @@ const DEFAULT_FORM: OpenClawAgentCreateInput = {
   workspace_root: '',
   agent_dir: '',
   model: '',
-  thinking_level: 'standard',
-  sandbox_mode: 'isolated',
+  thinking_level: 'balanced',
+  sandbox_mode: 'workspace-write',
   risk_tier: 'low',
-  auth_method: 'internal',
+  auth_method: DEFAULT_AUTH_METHOD,
   allowed_capability_ids: [],
   allowed_task_types: [],
 };
 
-export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: AgentModalProps) {
+const selectClassName =
+  'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]';
+
+export function AgentModal({
+  isOpen,
+  onClose,
+  agent,
+  availableCapabilities,
+  onSubmit,
+  isSubmitting,
+}: AgentModalProps) {
   const { t } = useI18n();
   const isEdit = Boolean(agent);
   const [form, setForm] = useState<OpenClawAgentCreateInput>(() =>
@@ -50,15 +74,6 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
       : { ...DEFAULT_FORM }
   );
   const [error, setError] = useState<string | null>(null);
-
-  const capabilityIdsText = useMemo(
-    () => form.allowed_capability_ids?.join(', ') ?? '',
-    [form.allowed_capability_ids]
-  );
-  const taskTypesText = useMemo(
-    () => form.allowed_task_types?.join(', ') ?? '',
-    [form.allowed_task_types]
-  );
 
   function handleClose() {
     setError(null);
@@ -106,6 +121,18 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  function toggleListValue(field: 'allowed_capability_ids' | 'allowed_task_types', value: string) {
+    setForm((current) => {
+      const currentValues = current[field] ?? [];
+      return {
+        ...current,
+        [field]: currentValues.includes(value)
+          ? currentValues.filter((item) => item !== value)
+          : [...currentValues, value],
+      };
+    });
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -143,49 +170,67 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Input
+          <CatalogSelect
+            id="agent-model"
             label={t('identities.labels.model')}
             value={form.model ?? ''}
-            onChange={(e) => updateField('model', e.target.value)}
-            placeholder="gpt-4o"
+            onChange={(value) => updateField('model', value)}
+            options={AGENT_MODEL_OPTIONS}
+            t={t}
           />
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
+            <label
+              htmlFor="agent-thinking-level"
+              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+            >
               {t('identities.labels.thinkingLevel')}
             </label>
             <select
-              className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+              id="agent-thinking-level"
+              className={selectClassName}
               value={form.thinking_level}
               onChange={(e) => updateField('thinking_level', e.target.value)}
             >
-              <option value="minimal">minimal</option>
-              <option value="standard">standard</option>
-              <option value="deep">deep</option>
+              {THINKING_LEVEL_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.labelKey)}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
+            <label
+              htmlFor="agent-sandbox-mode"
+              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+            >
               {t('identities.labels.sandboxMode')}
             </label>
             <select
-              className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+              id="agent-sandbox-mode"
+              className={selectClassName}
               value={form.sandbox_mode}
               onChange={(e) => updateField('sandbox_mode', e.target.value)}
             >
-              <option value="isolated">isolated</option>
-              <option value="shared">shared</option>
-              <option value="host">host</option>
+              {SANDBOX_MODE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.labelKey)}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
+            <label
+              htmlFor="agent-risk-tier"
+              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+            >
               {t('identities.agentModal.riskTier')}
             </label>
             <select
-              className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+              id="agent-risk-tier"
+              className={selectClassName}
               value={form.risk_tier}
               onChange={(e) => updateField('risk_tier', e.target.value)}
             >
@@ -195,52 +240,73 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
+            <label
+              htmlFor="agent-auth-method"
+              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+            >
               {t('identities.agentModal.authMethod')}
             </label>
             <select
-              className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+              id="agent-auth-method"
+              className={selectClassName}
               value={form.auth_method}
               onChange={(e) => updateField('auth_method', e.target.value)}
             >
-              <option value="internal">internal</option>
-              <option value="token">token</option>
-              <option value="mTLS">mTLS</option>
+              {AUTH_METHOD_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.labelKey)}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
-        <Input
-          label={t('identities.labels.allowedCapabilityIds')}
-          value={capabilityIdsText}
-          onChange={(e) =>
-            updateField(
-              'allowed_capability_ids',
-              e.target.value
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean)
-            )
-          }
-          placeholder="capability-1, capability-2"
-          helper={t('identities.agentModal.commaSeparated')}
-        />
+        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+          <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
+            {t('identities.labels.allowedCapabilityIds')}
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {availableCapabilities.map((capability) => (
+              <label
+                key={capability.id}
+                className="flex items-start gap-3 rounded-xl border border-[var(--kw-border)] bg-white/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={(form.allowed_capability_ids ?? []).includes(capability.id)}
+                  onChange={() => toggleListValue('allowed_capability_ids', capability.id)}
+                />
+                <span>
+                  <span className="block font-medium text-[var(--kw-text)]">{capability.name}</span>
+                  <span className="block text-xs text-[var(--kw-text-muted)]">{capability.id}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-        <Input
-          label={t('identities.labels.allowedTaskTypes')}
-          value={taskTypesText}
-          onChange={(e) =>
-            updateField(
-              'allowed_task_types',
-              e.target.value
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean)
-            )
-          }
-          placeholder="analysis, deployment"
-          helper={t('identities.agentModal.commaSeparated')}
-        />
+        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+          <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
+            {t('identities.labels.allowedTaskTypes')}
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {TASK_TYPE_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className="flex items-center gap-3 rounded-xl border border-[var(--kw-border)] bg-white/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={(form.allowed_task_types ?? []).includes(option.value)}
+                  onChange={() => toggleListValue('allowed_task_types', option.value)}
+                />
+                <span className="font-medium text-[var(--kw-text)]">{t(option.labelKey)}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         <MutationAlert error={error} success={null} />
 
@@ -254,5 +320,41 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
         </div>
       </form>
     </Modal>
+  );
+}
+
+function CatalogSelect({
+  id,
+  label,
+  value,
+  options,
+  t,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  options: readonly { value: string; labelKey: string }[];
+  t: (key: string) => string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
+        {label}
+      </label>
+      <select
+        id={id}
+        className={selectClassName}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {t(option.labelKey)}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
