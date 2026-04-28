@@ -10,7 +10,7 @@ import useSWR, { SWRConfiguration, mutate } from 'swr';
 import { useCallback } from 'react';
 import { swrConfig, pollingConfig } from '@/lib/swr-config';
 import * as api from './api';
-import type { Task, Run, AccessTokenFeedback, TaskPriority, TaskTargetMode } from './types';
+import type { Task, Run, AccessTokenFeedback } from './types';
 import type { TaskCreateInput, AccessTokenFeedbackCreateInput } from '@/lib/api-client';
 import { TASK_DASHBOARD_FEEDBACK_KEY, TASK_DASHBOARD_TOKENS_KEY } from './hooks-dashboard';
 
@@ -25,48 +25,10 @@ export function useTasks(options?: SWRConfiguration) {
   });
 }
 
-/**
- * 创建 Task（带乐观更新）
- */
 export function useCreateTask() {
   return useCallback(async (taskData: TaskCreateInput) => {
-    // 乐观更新：先更新本地缓存
-    const optimisticTask: Task = {
-      id: 'temp-' + Date.now(),
-      title: taskData.title,
-      taskType: taskData.task_type,
-      priority: (taskData.priority as TaskPriority) ?? 'normal',
-      status: 'pending',
-      publicationStatus: 'draft',
-      targetMode: (taskData.target_mode as TaskTargetMode) ?? 'explicit_access_tokens',
-      input: taskData.input ?? {},
-      targetIds: [],
-      targetAccessTokenIds: taskData.target_access_token_ids ?? [],
-      requiredCapabilityIds: taskData.required_capability_ids ?? [],
-      playbookIds: taskData.playbook_ids ?? [],
-      leaseAllowed: taskData.lease_allowed ?? false,
-      approvalMode: taskData.approval_mode ?? null,
-      approvalRules: taskData.approval_rules ?? [],
-      createdBy: { id: 'current-user', type: 'human', name: 'Current User' },
-      createdViaAccessTokenId: null,
-      claimedBy: undefined,
-    };
-
-    // 更新缓存
-    await mutate(
-      '/api/tasks',
-      (current: { items: Task[] } | undefined) => ({
-        items: [optimisticTask, ...(current?.items || [])],
-      }),
-      false // 不重新验证
-    );
-
-    // 发送请求
     const result = await api.createTask(taskData);
-
-    // 重新验证数据
     await mutate('/api/tasks');
-
     return result;
   }, []);
 }
