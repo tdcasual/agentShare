@@ -265,6 +265,32 @@ describe('tasks page', () => {
     expect(screen.queryByText(/^completed$/)).not.toBeInTheDocument();
   });
 
+  it('publishes tasks with a catalog-backed task type selector', async () => {
+    const user = userEvent.setup();
+
+    render(<TasksPage />);
+
+    await user.click(screen.getByRole('button', { name: t('tasks.publishTask') }));
+    await user.type(
+      screen.getByPlaceholderText(t('tasks.form.titlePlaceholder')),
+      'Ship config sync'
+    );
+
+    const taskType = screen.getByRole('combobox', { name: t('tasks.form.taskType') });
+    expect(taskType.tagName).toBe('SELECT');
+    await user.selectOptions(taskType, 'config_sync');
+    await user.click(screen.getAllByRole('checkbox')[0]);
+    await user.click(screen.getAllByRole('button', { name: t('tasks.publishTask') })[1]);
+
+    await waitFor(() => {
+      expect(createTaskActionMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          task_type: 'config_sync',
+        })
+      );
+    });
+  });
+
   it('shows a relogin recovery state when publish task hits an expired session', async () => {
     const user = userEvent.setup();
     createTaskActionMock.mockRejectedValueOnce(new ApiError(401, 'Missing management session'));
@@ -276,8 +302,8 @@ describe('tasks page', () => {
       screen.getByPlaceholderText(t('tasks.form.titlePlaceholder')),
       'Ship config sync'
     );
-    await user.type(
-      screen.getByPlaceholderText(t('tasks.form.taskTypePlaceholder')),
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: t('tasks.form.taskType') }),
       'config_sync'
     );
     await user.click(screen.getAllByRole('checkbox')[0]);

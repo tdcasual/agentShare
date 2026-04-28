@@ -15,6 +15,7 @@ import { Modal } from '@/shared/ui-primitives/modal';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
 import { MetricCard } from '@/shared/ui-primitives/metric';
 import { translatePublicationStatus, translateTaskStatus } from '@/lib/enum-labels';
+import { TASK_TYPE_OPTIONS } from '@/lib/option-catalogs';
 import { useTasksPage, type TaskView } from './use-tasks-page';
 import { useTasksForm } from './use-tasks-form';
 
@@ -405,15 +406,29 @@ function CreateTaskModal({
           required
         />
         <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label={form.t('tasks.form.taskType')}
-            value={form.taskForm.task_type}
-            onChange={(event) =>
-              form.setTaskForm((current) => ({ ...current, task_type: event.target.value }))
-            }
-            placeholder={form.t('tasks.form.taskTypePlaceholder') || 'config_sync'}
-            required
-          />
+          <div>
+            <label
+              htmlFor="task-type"
+              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+            >
+              {form.t('tasks.form.taskType')}
+            </label>
+            <select
+              id="task-type"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
+              value={form.taskForm.task_type}
+              onChange={(event) =>
+                form.setTaskForm((current) => ({ ...current, task_type: event.target.value }))
+              }
+              required
+            >
+              {TASK_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {form.t(option.labelKey)}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label
               htmlFor="task-priority"
