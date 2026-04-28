@@ -257,41 +257,6 @@ const RunsContent = memo(function RunsContent() {
             />
           </div>
 
-          <Card className="space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90 sm:p-5 lg:p-6">
-            <div className="space-y-2">
-              <Badge variant="secondary">{t('runs.workflow.badge')}</Badge>
-              <div>
-                <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                  {t('runs.workflow.title')}
-                </h2>
-                <p className="mt-1 max-w-3xl text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  {t('runs.workflow.description')}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              <RunsWorkflowCard
-                href="/tasks"
-                title={t('runs.workflow.steps.tasks.title')}
-                description={t('runs.workflow.steps.tasks.description')}
-                cta={t('runs.workflow.steps.tasks.cta')}
-              />
-              <RunsWorkflowCard
-                href="/reviews"
-                title={t('runs.workflow.steps.reviews.title')}
-                description={t('runs.workflow.steps.reviews.description')}
-                cta={t('runs.workflow.steps.reviews.cta')}
-              />
-              <RunsWorkflowCard
-                href="/approvals"
-                title={t('runs.workflow.steps.approvals.title')}
-                description={t('runs.workflow.steps.approvals.description')}
-                cta={t('runs.workflow.steps.approvals.cta')}
-              />
-            </div>
-          </Card>
-
           <div className="flex flex-wrap items-center gap-2">
             <StatusFilterButton
               status="all"
@@ -523,35 +488,6 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
         </div>
       </div>
     </Modal>
-  );
-}
-
-function RunsWorkflowCard({
-  href,
-  title,
-  description,
-  cta,
-}: {
-  href: string;
-  title: string;
-  description: string;
-  cta: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)]/40 p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/50 dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
-    >
-      <h3 className="text-base font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {title}
-      </h3>
-      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {description}
-      </p>
-      <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-        {cta}
-      </span>
-    </Link>
   );
 }
 

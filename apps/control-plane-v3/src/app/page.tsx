@@ -20,8 +20,6 @@ import {
   Sparkles,
   KeyRound,
   ShieldCheck,
-  BookOpen,
-  PlayCircle,
 } from 'lucide-react';
 import {
   translateAccountRole,
@@ -128,52 +126,6 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
     () => events.slice(0, 6).map((event) => buildActivityItem(event, actorDirectory, t, locale)),
     [events, actorDirectory, t, locale]
   );
-  const workflowSteps = useMemo(
-    () => [
-      {
-        id: 'docs',
-        href: '/docs',
-        icon: <BookOpen className="h-4 w-4" />,
-        title: t('hub.workflow.steps.docs.title'),
-        description: t('hub.workflow.steps.docs.description'),
-        cta: t('hub.workflow.steps.docs.cta'),
-      },
-      {
-        id: 'identities',
-        href: '/identities',
-        icon: <Users className="h-4 w-4" />,
-        title: t('hub.workflow.steps.identities.title'),
-        description: t('hub.workflow.steps.identities.description'),
-        cta: t('hub.workflow.steps.identities.cta'),
-      },
-      {
-        id: 'tokens',
-        href: '/tokens',
-        icon: <KeyRound className="h-4 w-4" />,
-        title: t('hub.workflow.steps.tokens.title'),
-        description: t('hub.workflow.steps.tokens.description'),
-        cta: t('hub.workflow.steps.tokens.cta'),
-      },
-      {
-        id: 'tasks',
-        href: '/tasks',
-        icon: <Zap className="h-4 w-4" />,
-        title: t('hub.workflow.steps.tasks.title'),
-        description: t('hub.workflow.steps.tasks.description'),
-        cta: t('hub.workflow.steps.tasks.cta'),
-      },
-      {
-        id: 'outcomes',
-        href: '/runs',
-        icon: <PlayCircle className="h-4 w-4" />,
-        title: t('hub.workflow.steps.outcomes.title'),
-        description: t('hub.workflow.steps.outcomes.description'),
-        cta: t('hub.workflow.steps.outcomes.cta'),
-      },
-    ],
-    [t]
-  );
-
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -238,52 +190,8 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         />
       </div>
 
-      <Card className="space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90 sm:p-5 lg:p-6">
-        <div className="space-y-2">
-          <Badge variant="secondary">{t('hub.workflow.badge')}</Badge>
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--kw-text)]">
-              {t('hub.workflow.title')}
-            </h2>
-            <p className="mt-1 max-w-3xl text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('hub.workflow.description')}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          {workflowSteps.map((step, index) => (
-            <Link
-              key={step.id}
-              href={step.href}
-              aria-label={step.cta}
-              className="group rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)]/40 p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/50 dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]">
-                  {step.icon}
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  {t('hub.workflow.stepLabel', { step: index + 1 })}
-                </span>
-              </div>
-              <h3 className="mt-4 text-base font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {step.title}
-              </h3>
-              <p className="mt-2 min-h-16 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {step.description}
-              </p>
-              <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-                {step.cta}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </Link>
-          ))}
-        </div>
-      </Card>
-
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="space-y-3 sm:space-y-4 lg:space-y-6 lg:col-span-2">
+        <div className="space-y-3 sm:space-y-4 lg:col-span-2 lg:space-y-6">
           <section>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-[var(--kw-text)]">
@@ -405,7 +313,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             <Card className="overflow-hidden p-0">
               <div className="divide-y divide-[var(--kw-border)]" role="list">
                 {recentActivity.length === 0 && (
-                  <div className="p-3 sm:p-4 lg:p-6 text-sm text-[var(--kw-text-muted)]">
+                  <div className="p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 lg:p-6">
                     {t('hub.emptyActivity')}
                   </div>
                 )}
@@ -549,7 +457,10 @@ const StatCard = memo(function StatCard({
   return (
     <Card className="flex items-center gap-3 p-3 transition-shadow hover:shadow-medium sm:gap-4 sm:p-4">
       <div
-        className={cn('flex h-9 w-9 items-center justify-center rounded-lg sm:h-12 sm:w-12 sm:rounded-xl [&>svg]:h-4 [&>svg]:w-4 [&>svg]:sm:h-6 [&>svg]:sm:w-6', colorClasses[color])}
+        className={cn(
+          'flex h-9 w-9 items-center justify-center rounded-lg sm:h-12 sm:w-12 sm:rounded-xl [&>svg]:h-4 [&>svg]:w-4 [&>svg]:sm:h-6 [&>svg]:sm:w-6',
+          colorClasses[color]
+        )}
       >
         {icon}
       </div>

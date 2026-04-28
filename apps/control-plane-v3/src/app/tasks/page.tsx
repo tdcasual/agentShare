@@ -102,41 +102,6 @@ const TasksContent = memo(function TasksContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 sm:p-5 lg:p-6 dark:border-[var(--kw-dark-border)]">
-        <div className="space-y-2">
-          <Badge variant="secondary">{page.t('tasks.workflow.badge')}</Badge>
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              {page.t('tasks.workflow.title')}
-            </h2>
-            <p className="mt-1 max-w-3xl text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {page.t('tasks.workflow.description')}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-3">
-          <WorkflowLinkCard
-            href="/runs"
-            title={page.t('tasks.workflow.steps.runs.title')}
-            description={page.t('tasks.workflow.steps.runs.description')}
-            cta={page.t('tasks.workflow.steps.runs.cta')}
-          />
-          <WorkflowLinkCard
-            href="/reviews"
-            title={page.t('tasks.workflow.steps.reviews.title')}
-            description={page.t('tasks.workflow.steps.reviews.description')}
-            cta={page.t('tasks.workflow.steps.reviews.cta')}
-          />
-          <WorkflowLinkCard
-            href="/approvals"
-            title={page.t('tasks.workflow.steps.approvals.title')}
-            description={page.t('tasks.workflow.steps.approvals.description')}
-            cta={page.t('tasks.workflow.steps.approvals.cta')}
-          />
-        </div>
-      </Card>
-
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
@@ -895,35 +860,6 @@ function DetailStat({ label, value }: { label: string; value: string }) {
         {value}
       </p>
     </div>
-  );
-}
-
-function WorkflowLinkCard({
-  href,
-  title,
-  description,
-  cta,
-}: {
-  href: string;
-  title: string;
-  description: string;
-  cta: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="bg-[var(--kw-surface-alt)]/40 dark:bg-[var(--kw-dark-surface-alt)]/50 group rounded-2xl border border-[var(--kw-border)] p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
-    >
-      <h3 className="text-base font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {title}
-      </h3>
-      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {description}
-      </p>
-      <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-        {cta}
-      </span>
-    </Link>
   );
 }
 

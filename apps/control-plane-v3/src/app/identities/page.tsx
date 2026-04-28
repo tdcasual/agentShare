@@ -459,44 +459,6 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         </div>
       </Card>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 sm:p-5 lg:p-6 dark:border-[var(--kw-dark-border)]">
-        <div className="space-y-2">
-          <Badge variant="secondary">{t('identities.workflow.badge')}</Badge>
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              {t('identities.workflow.title')}
-            </h2>
-            <p className="mt-1 max-w-3xl text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('identities.workflow.description')}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-3">
-          <WorkflowStepCard
-            href="/settings"
-            step={1}
-            title={t('identities.workflow.steps.settings.title')}
-            description={t('identities.workflow.steps.settings.description')}
-            cta={t('identities.workflow.steps.settings.cta')}
-          />
-          <WorkflowStepCard
-            href="/tokens"
-            step={2}
-            title={t('identities.workflow.steps.tokens.title')}
-            description={t('identities.workflow.steps.tokens.description')}
-            cta={t('identities.workflow.steps.tokens.cta')}
-          />
-          <WorkflowStepCard
-            href="/tasks"
-            step={3}
-            title={t('identities.workflow.steps.tasks.title')}
-            description={t('identities.workflow.steps.tasks.description')}
-            cta={t('identities.workflow.steps.tasks.cta')}
-          />
-        </div>
-      </Card>
-
       {focusedIdentity ? (
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
@@ -771,40 +733,6 @@ const IdentitiesContent = memo(function IdentitiesContent() {
     </div>
   );
 });
-
-function WorkflowStepCard({
-  href,
-  step,
-  title,
-  description,
-  cta,
-}: {
-  href: string;
-  step: number;
-  title: string;
-  description: string;
-  cta: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="bg-[var(--kw-surface-alt)]/40 dark:bg-[var(--kw-dark-surface-alt)]/50 group rounded-2xl border border-[var(--kw-border)] p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
-    >
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        Step {step}
-      </span>
-      <h3 className="mt-3 text-base font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-        {title}
-      </h3>
-      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-        {description}
-      </p>
-      <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
-        {cta}
-      </span>
-    </Link>
-  );
-}
 
 export default function IdentitiesPage() {
   return (

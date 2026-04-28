@@ -673,20 +673,18 @@ describe('identities page', () => {
     );
   });
 
-  it('links identity setup to remote access and task publication for human operators', () => {
+  it('keeps identity operations visible without a persistent workflow guide', () => {
     render(<IdentitiesPage />);
 
-    expect(screen.getByText(t('identities.workflow.title'))).toBeInTheDocument();
-    expect(screen.getByText(t('identities.workflow.description'))).toBeInTheDocument();
     expect(
-      screen.getByText(t('identities.workflow.steps.settings.cta')).closest('a')
-    ).toHaveAttribute('href', '/settings');
+      screen.getByRole('searchbox', { name: t('common.searchIdentities') })
+    ).toBeInTheDocument();
     expect(
-      screen.getByText(t('identities.workflow.steps.tokens.cta')).closest('a')
-    ).toHaveAttribute('href', '/tokens');
-    expect(screen.getByText(t('identities.workflow.steps.tasks.cta')).closest('a')).toHaveAttribute(
-      'href',
-      '/tasks'
-    );
+      screen.getByRole('button', { name: t('identities.page.refreshSnapshot') })
+    ).toBeInTheDocument();
+    expect(screen.getByText(t('identities.metrics.activeOperators'))).toBeInTheDocument();
+    expect(screen.getByText(t('identities.metrics.activeAgents'))).toBeInTheDocument();
+    expect(screen.queryByText(t('identities.workflow.title'))).not.toBeInTheDocument();
+    expect(screen.queryByText(t('identities.workflow.description'))).not.toBeInTheDocument();
   });
 });

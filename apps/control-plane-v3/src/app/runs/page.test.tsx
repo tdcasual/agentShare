@@ -137,22 +137,13 @@ describe('runs page', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Run refresh unavailable');
   });
 
-  it('guides humans from run history into tasks, reviews, and approvals', () => {
+  it('keeps run history controls visible without a persistent workflow guide', () => {
     render(<RunsPage />);
 
-    expect(screen.getByText('runs.workflow.title')).toBeInTheDocument();
-    expect(screen.getByText('runs.workflow.description')).toBeInTheDocument();
-    expect(screen.getByText('runs.workflow.steps.tasks.cta').closest('a')).toHaveAttribute(
-      'href',
-      '/tasks'
-    );
-    expect(screen.getByText('runs.workflow.steps.reviews.cta').closest('a')).toHaveAttribute(
-      'href',
-      '/reviews'
-    );
-    expect(screen.getByText('runs.workflow.steps.approvals.cta').closest('a')).toHaveAttribute(
-      'href',
-      '/approvals'
-    );
+    expect(screen.getByRole('button', { name: /common.refresh/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /runs.stats.completed \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByText(/runs.labels.runId #12345678/i)).toBeInTheDocument();
+    expect(screen.queryByText('runs.workflow.title')).not.toBeInTheDocument();
+    expect(screen.queryByText('runs.workflow.description')).not.toBeInTheDocument();
   });
 });

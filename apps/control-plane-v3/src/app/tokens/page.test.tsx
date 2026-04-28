@@ -295,21 +295,16 @@ describe('tokens page', () => {
     expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
   });
 
-  it('connects token operations back to docs, identities, and task delivery', () => {
+  it('keeps token controls visible without a persistent workflow guide', () => {
     render(<TokensPage />);
 
-    expect(screen.getByText(t('tokens.workflow.title'))).toBeInTheDocument();
-    expect(screen.getByText(t('tokens.workflow.description'))).toBeInTheDocument();
-    expect(screen.getByText(t('tokens.workflow.steps.docs.cta')).closest('a')).toHaveAttribute(
-      'href',
-      '/docs'
-    );
     expect(
-      screen.getByText(t('tokens.workflow.steps.identities.cta')).closest('a')
-    ).toHaveAttribute('href', '/identities');
-    expect(screen.getByText(t('tokens.workflow.steps.tasks.cta')).closest('a')).toHaveAttribute(
-      'href',
-      '/tasks'
-    );
+      screen.getByRole('button', { name: t('tokens.actions.issueAccessToken') })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('tokens.actions.refresh') })).toBeInTheDocument();
+    expect(screen.getAllByText(t('tokens.metrics.activeTokens')).length).toBeGreaterThan(0);
+    expect(screen.getByText('Primary Token')).toBeInTheDocument();
+    expect(screen.queryByText(t('tokens.workflow.title'))).not.toBeInTheDocument();
+    expect(screen.queryByText(t('tokens.workflow.description'))).not.toBeInTheDocument();
   });
 });

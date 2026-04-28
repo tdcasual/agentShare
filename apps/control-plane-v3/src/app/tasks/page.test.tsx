@@ -343,22 +343,14 @@ describe('tasks page', () => {
     );
   });
 
-  it('guides humans from task publication into runs, reviews, and approvals', () => {
+  it('keeps task publication controls visible without a persistent workflow guide', () => {
     render(<TasksPage />);
 
-    expect(screen.getByText(t('tasks.workflow.title'))).toBeInTheDocument();
-    expect(screen.getByText(t('tasks.workflow.description'))).toBeInTheDocument();
-    expect(screen.getByText(t('tasks.workflow.steps.runs.cta')).closest('a')).toHaveAttribute(
-      'href',
-      '/runs'
-    );
-    expect(screen.getByText(t('tasks.workflow.steps.reviews.cta')).closest('a')).toHaveAttribute(
-      'href',
-      '/reviews'
-    );
-    expect(screen.getByText(t('tasks.workflow.steps.approvals.cta')).closest('a')).toHaveAttribute(
-      'href',
-      '/approvals'
-    );
+    expect(screen.getByRole('button', { name: t('tasks.publishTask') })).toBeInTheDocument();
+    expect(screen.getByText(t('tasks.metrics.publishedTasks'))).toBeInTheDocument();
+    expect(screen.getByText(t('tasks.supervision.title'))).toBeInTheDocument();
+    expect(screen.getByText('Sync Config')).toBeInTheDocument();
+    expect(screen.queryByText(t('tasks.workflow.title'))).not.toBeInTheDocument();
+    expect(screen.queryByText(t('tasks.workflow.description'))).not.toBeInTheDocument();
   });
 });
