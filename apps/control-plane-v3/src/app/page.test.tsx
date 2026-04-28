@@ -227,4 +227,27 @@ describe('hub page', () => {
     expect(screen.queryByText(t('hub.workflow.title'))).not.toBeInTheDocument();
     expect(screen.queryByText(t('hub.workflow.description'))).not.toBeInTheDocument();
   });
+
+  it('shows primary operation actions for agents, assets, tasks, and reviews', async () => {
+    render(<HubPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Founding Owner')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('link', { name: t('hub.primaryActions.createAgent') })).toHaveAttribute(
+      'href',
+      '/identities'
+    );
+    expect(
+      screen.getByRole('link', { name: t('hub.primaryActions.configureCapability') })
+    ).toHaveAttribute('href', '/assets');
+    expect(screen.getByRole('link', { name: t('hub.primaryActions.publishTask') })).toHaveAttribute(
+      'href',
+      '/tasks'
+    );
+    expect(
+      screen.getByRole('link', { name: t('hub.primaryActions.reviewPending') })
+    ).toHaveAttribute('href', '/reviews');
+  });
 });

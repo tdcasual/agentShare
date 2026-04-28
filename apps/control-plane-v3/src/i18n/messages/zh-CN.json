@@ -399,6 +399,12 @@
     "openInbox": "打开收件箱",
     "openTokenOps": "打开远程接入",
     "publicRegistrationClosed": "首次运行所有者引导后，公开注册已关闭。",
+    "primaryActions": {
+      "configureCapability": "配置能力",
+      "createAgent": "创建智能体",
+      "publishTask": "发布任务",
+      "reviewPending": "处理待审核"
+    },
     "publishTask": "发布任务",
     "queueDepth": "队列深度",
     "quickActions": {

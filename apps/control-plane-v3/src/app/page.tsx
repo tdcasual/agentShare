@@ -190,6 +190,31 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         />
       </div>
 
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/95 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <ActionButton
+            href="/identities"
+            icon={<Bot className="h-4 w-4" />}
+            label={t('hub.primaryActions.createAgent')}
+          />
+          <ActionButton
+            href="/assets"
+            icon={<ShieldCheck className="h-4 w-4" />}
+            label={t('hub.primaryActions.configureCapability')}
+          />
+          <ActionButton
+            href="/tasks"
+            icon={<Zap className="h-4 w-4" />}
+            label={t('hub.primaryActions.publishTask')}
+          />
+          <ActionButton
+            href="/reviews"
+            icon={<CheckSquare className="h-4 w-4" />}
+            label={t('hub.primaryActions.reviewPending')}
+          />
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="space-y-3 sm:space-y-4 lg:col-span-2 lg:space-y-6">
           <section>
@@ -351,34 +376,6 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         </div>
 
         <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-          <Card className="p-3 sm:p-4 lg:p-6">
-            <h3 className="mb-4 font-semibold text-[var(--kw-text)]">
-              {t('hub.quickActions.title')}
-            </h3>
-            <div className="space-y-3">
-              <ActionButton
-                href="/tasks"
-                icon={<Zap className="h-4 w-4" />}
-                label={t('hub.publishTask')}
-              />
-              <ActionButton
-                href="/tokens"
-                icon={<KeyRound className="h-4 w-4" />}
-                label={t('hub.manageTokens')}
-              />
-              <ActionButton
-                href="/reviews"
-                icon={<ShieldCheck className="h-4 w-4" />}
-                label={t('hub.reviewQueue')}
-              />
-              <ActionButton
-                href="/settings"
-                icon={<Users className="h-4 w-4" />}
-                label={t('hub.inviteAdmin')}
-              />
-            </div>
-          </Card>
-
           <Card className="p-3 sm:p-4 lg:p-6">
             <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.reviewQueue')}</h3>
             <div className="space-y-2">

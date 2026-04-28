@@ -399,6 +399,12 @@
     "openInbox": "Open inbox",
     "openTokenOps": "Open Remote Access",
     "publicRegistrationClosed": "Public registration is closed after first-run owner bootstrap.",
+    "primaryActions": {
+      "configureCapability": "Configure Capability",
+      "createAgent": "Create Agent",
+      "publishTask": "Publish Task",
+      "reviewPending": "Review Pending"
+    },
     "publishTask": "Publish Task",
     "queueDepth": "Queue Depth",
     "quickActions": {
