@@ -13,6 +13,7 @@ import { useCapabilities } from '@/domains/governance';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
+import { MutationAlert } from '@/shared/mutations/mutation-alert';
 import { useI18n } from '@/components/i18n-provider';
 import { formatSnapshotTimestamp } from '../components';
 
@@ -108,7 +109,9 @@ export function WorkbenchPanel({
         setSelectedConversationId(session.id);
       }
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : t('identities.sessionManager.createFailed'));
+      setSendError(
+        err instanceof Error ? err.message : t('identities.sessionManager.createFailed')
+      );
     } finally {
       setIsCreatingSession(false);
     }
@@ -126,11 +129,7 @@ export function WorkbenchPanel({
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
                 {t('identities.workbench.conversations')}
               </h3>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowNewSession((s) => !s)}
-              >
+              <Button variant="secondary" size="sm" onClick={() => setShowNewSession((s) => !s)}>
                 {t('identities.sessionManager.newSession')}
               </Button>
             </div>
@@ -169,6 +168,11 @@ export function WorkbenchPanel({
                     {t('identities.workbench.noCapabilities')}
                   </p>
                 ) : null}
+                <MutationAlert
+                  error={sendError}
+                  success={null}
+                  className="rounded-xl px-3 py-2 text-xs"
+                />
                 <div className="flex justify-end gap-2">
                   <Button variant="ghost" size="sm" onClick={() => setShowNewSession(false)}>
                     {t('common.cancel')}
@@ -208,8 +212,8 @@ export function WorkbenchPanel({
                     onClick={() => setSelectedConversationId(session.id)}
                     className={`w-full rounded-2xl border p-3 text-left transition-colors ${
                       selectedConversationId === session.id
-                        ? 'border-[var(--kw-primary-400)] bg-[var(--kw-primary-50)] dark:border-[var(--kw-primary-400)] dark:bg-[var(--kw-primary-500)]/10'
-                        : 'border-[var(--kw-border)] bg-white/70 hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/70'
+                        ? 'dark:bg-[var(--kw-primary-500)]/10 border-[var(--kw-primary-400)] bg-[var(--kw-primary-50)] dark:border-[var(--kw-primary-400)]'
+                        : 'dark:bg-[var(--kw-dark-surface)]/70 border-[var(--kw-border)] bg-white/70 hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -219,7 +223,9 @@ export function WorkbenchPanel({
                       </span>
                     </div>
                     <div className="mt-1 flex items-center gap-2">
-                      {session.capability_name ? <Badge variant="secondary">{session.capability_name}</Badge> : null}
+                      {session.capability_name ? (
+                        <Badge variant="secondary">{session.capability_name}</Badge>
+                      ) : null}
                       <span className="text-xs text-[var(--kw-text-muted)]">
                         {formatSnapshotTimestamp(session.last_message_at)}
                       </span>
@@ -234,7 +240,7 @@ export function WorkbenchPanel({
 
       {/* Main panel */}
       <div className="flex min-h-[24rem] flex-1 flex-col lg:min-h-[32rem]">
-        <Card className="flex flex-1 flex-col overflow-hidden dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 flex flex-1 flex-col overflow-hidden border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-4 py-3 dark:border-[var(--kw-dark-border)]">
             <div className="min-w-0">
@@ -247,9 +253,7 @@ export function WorkbenchPanel({
                   {selectedSession.capability_name ? ` · ${selectedSession.capability_name}` : ''}
                 </p>
               ) : (
-                <p className="truncate text-xs text-[var(--kw-text-muted)]">
-                  {agent.name}
-                </p>
+                <p className="truncate text-xs text-[var(--kw-text-muted)]">{agent.name}</p>
               )}
             </div>
             {selectedSession && (
@@ -284,7 +288,9 @@ export function WorkbenchPanel({
                       }`}
                     >
                       <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-                      <p className={`mt-1 text-xs ${message.role === 'user' ? 'text-white/70' : 'text-[var(--kw-text-muted)]'}`}>
+                      <p
+                        className={`mt-1 text-xs ${message.role === 'user' ? 'text-white/70' : 'text-[var(--kw-text-muted)]'}`}
+                      >
                         {formatSnapshotTimestamp(message.created_at)}
                       </p>
                     </div>
@@ -298,11 +304,11 @@ export function WorkbenchPanel({
           {/* Composer */}
           {selectedConversationId && (
             <div className="border-t border-[var(--kw-border)] px-4 py-3 dark:border-[var(--kw-dark-border)]">
-              {sendError && (
-                <div className="mb-2 rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 px-3 py-2 text-xs text-[var(--kw-rose-text)]">
-                  {sendError}
-                </div>
-              )}
+              <MutationAlert
+                error={sendError}
+                success={null}
+                className="mb-2 rounded-xl px-3 py-2 text-xs"
+              />
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <textarea
@@ -367,9 +373,5 @@ function ErrorState({ message }: { message: string }) {
 }
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-3xl p-4 sm:p-5 ${className ?? ''}`}>
-      {children}
-    </div>
-  );
+  return <div className={`rounded-3xl p-4 sm:p-5 ${className ?? ''}`}>{children}</div>;
 }

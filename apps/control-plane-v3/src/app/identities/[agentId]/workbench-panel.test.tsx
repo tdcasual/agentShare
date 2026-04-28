@@ -9,6 +9,7 @@ const useSendWorkbenchMessageMock = vi.fn();
 const useCreateAgentWorkbenchSessionMock = vi.fn();
 const useCapabilitiesMock = vi.fn();
 const createAgentWorkbenchSessionMock = vi.fn();
+const sendWorkbenchMessageMock = vi.fn();
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
@@ -37,7 +38,12 @@ describe('WorkbenchPanel', () => {
       isLoading: false,
       error: null,
     });
-    useSendWorkbenchMessageMock.mockReturnValue(vi.fn());
+    sendWorkbenchMessageMock.mockResolvedValue({
+      session: { id: 'workbench-1', agent_id: 'agent-1' },
+      user_message: { id: 'message-user' },
+      assistant_message: { id: 'message-assistant' },
+    });
+    useSendWorkbenchMessageMock.mockReturnValue(sendWorkbenchMessageMock);
     createAgentWorkbenchSessionMock.mockResolvedValue({
       id: 'workbench-1',
       agent_id: 'agent-1',
@@ -84,18 +90,22 @@ describe('WorkbenchPanel', () => {
 
     render(
       <WorkbenchPanel
-        agent={{
-          id: 'agent-1',
-          name: 'Bootstrap',
-          allowed_capability_ids: ['cap-1'],
-        } as never}
+        agent={
+          {
+            id: 'agent-1',
+            name: 'Bootstrap',
+            allowed_capability_ids: ['cap-1'],
+          } as never
+        }
         workbenchSessions={[]}
         isLoadingSessions={false}
         sessionsError={null}
       />
     );
 
-    await user.click(screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') }));
+    await user.click(
+      screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') })
+    );
     await user.selectOptions(
       screen.getByLabelText(translateMessage('identities.workbench.capability')),
       'cap-1'
@@ -132,19 +142,106 @@ describe('WorkbenchPanel', () => {
 
     render(
       <WorkbenchPanel
-        agent={{
-          id: 'agent-1',
-          name: 'Bootstrap',
-          allowed_capability_ids: ['cap-1'],
-        } as never}
+        agent={
+          {
+            id: 'agent-1',
+            name: 'Bootstrap',
+            allowed_capability_ids: ['cap-1'],
+          } as never
+        }
         workbenchSessions={[]}
         isLoadingSessions={false}
         sessionsError={null}
       />
     );
 
-    await user.click(screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') }));
+    await user.click(
+      screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') })
+    );
 
-    expect(screen.getByText(translateMessage('identities.workbench.noCapabilities'))).toBeInTheDocument();
+    expect(
+      screen.getByText(translateMessage('identities.workbench.noCapabilities'))
+    ).toBeInTheDocument();
+  });
+
+  it('shows an error in the new-session panel when conversation creation fails', async () => {
+    const user = userEvent.setup();
+    createAgentWorkbenchSessionMock.mockRejectedValueOnce(
+      new Error('Capability secret is not active')
+    );
+
+    render(
+      <WorkbenchPanel
+        agent={
+          {
+            id: 'agent-1',
+            name: 'Bootstrap',
+            allowed_capability_ids: ['cap-1'],
+          } as never
+        }
+        workbenchSessions={[]}
+        isLoadingSessions={false}
+        sessionsError={null}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') })
+    );
+    await user.type(
+      screen.getByLabelText(translateMessage('identities.sessionManager.displayName')),
+      'Deploy triage'
+    );
+    await user.click(screen.getByRole('button', { name: translateMessage('common.create') }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Capability secret is not active');
+  });
+
+  it('keeps composer text when message sending fails', async () => {
+    const user = userEvent.setup();
+    sendWorkbenchMessageMock.mockRejectedValueOnce(
+      new Error('Workbench capability invocation failed')
+    );
+
+    render(
+      <WorkbenchPanel
+        agent={
+          {
+            id: 'agent-1',
+            name: 'Bootstrap',
+            allowed_capability_ids: ['cap-1'],
+          } as never
+        }
+        workbenchSessions={[
+          {
+            id: 'workbench-1',
+            agent_id: 'agent-1',
+            capability_id: 'cap-1',
+            capability_name: 'Ops Assistant',
+            title: 'Deploy triage',
+            status: 'active',
+            created_by_actor_id: 'owner-1',
+            created_at: '2026-04-24T10:00:00.000Z',
+            updated_at: '2026-04-24T10:00:00.000Z',
+            last_message_at: '2026-04-24T10:00:00.000Z',
+          },
+        ]}
+        isLoadingSessions={false}
+        sessionsError={null}
+      />
+    );
+
+    const composer = screen.getByPlaceholderText(
+      translateMessage('identities.workbench.composerPlaceholder')
+    );
+    await user.type(composer, 'Check the deployment');
+    await user.click(
+      screen.getByRole('button', { name: translateMessage('identities.workbench.send') })
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Workbench capability invocation failed'
+    );
+    expect(composer).toHaveValue('Check the deployment');
   });
 });

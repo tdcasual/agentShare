@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import { Modal } from '@/shared/ui-primitives/modal';
 import { Input } from '@/shared/ui-primitives/input';
 import { Button } from '@/shared/ui-primitives/button';
+import { MutationAlert } from '@/shared/mutations/mutation-alert';
 import type { OpenClawAgent } from '@/domains/identity';
 import type { OpenClawAgentCreateInput, OpenClawAgentUpdateInput } from '@/domains/identity/api';
 import { useI18n } from '@/components/i18n-provider';
@@ -92,11 +93,16 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
         setForm({ ...DEFAULT_FORM });
       }
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : t('identities.agentModal.submitFailed'));
+      setError(
+        submitError instanceof Error ? submitError.message : t('identities.agentModal.submitFailed')
+      );
     }
   }
 
-  function updateField<K extends keyof OpenClawAgentCreateInput>(field: K, value: OpenClawAgentCreateInput[K]) {
+  function updateField<K extends keyof OpenClawAgentCreateInput>(
+    field: K,
+    value: OpenClawAgentCreateInput[K]
+  ) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
@@ -105,7 +111,9 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
       isOpen={isOpen}
       onClose={handleClose}
       title={isEdit ? t('identities.agentModal.editTitle') : t('identities.agentModal.createTitle')}
-      description={isEdit ? t('identities.agentModal.editDesc') : t('identities.agentModal.createDesc')}
+      description={
+        isEdit ? t('identities.agentModal.editDesc') : t('identities.agentModal.createDesc')
+      }
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -208,7 +216,10 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
           onChange={(e) =>
             updateField(
               'allowed_capability_ids',
-              e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+              e.target.value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
             )
           }
           placeholder="capability-1, capability-2"
@@ -221,18 +232,17 @@ export function AgentModal({ isOpen, onClose, agent, onSubmit, isSubmitting }: A
           onChange={(e) =>
             updateField(
               'allowed_task_types',
-              e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+              e.target.value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
             )
           }
           placeholder="analysis, deployment"
           helper={t('identities.agentModal.commaSeparated')}
         />
 
-        {error ? (
-          <div className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 p-3 text-sm text-[var(--kw-rose-text)]">
-            {error}
-          </div>
-        ) : null}
+        <MutationAlert error={error} success={null} />
 
         <div className="flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={handleClose}>

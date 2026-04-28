@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
@@ -308,12 +308,26 @@ describe('identities page', () => {
     });
     usePauseOpenClawDreamRunMock.mockReturnValue(pauseOpenClawDreamRunMock);
     useResumeOpenClawDreamRunMock.mockReturnValue(resumeOpenClawDreamRunMock);
-    useCreateOpenClawSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'runtime-session-1' }));
-    useCreateOpenClawAgentMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'new-agent', name: 'New Agent' }));
-    useUpdateOpenClawAgentMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'bootstrap', name: 'Bootstrap Credential' }));
-    useAgentWorkbenchSessionsMock.mockReturnValue({ data: { items: [] }, isLoading: false, error: null });
-    useCreateAgentWorkbenchSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'new-session', display_name: 'New Session' }));
-    useRevokeOpenClawSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'session-1', status: 'revoked' }));
+    useCreateOpenClawSessionMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'runtime-session-1' })
+    );
+    useCreateOpenClawAgentMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'new-agent', name: 'New Agent' })
+    );
+    useUpdateOpenClawAgentMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'bootstrap', name: 'Bootstrap Credential' })
+    );
+    useAgentWorkbenchSessionsMock.mockReturnValue({
+      data: { items: [] },
+      isLoading: false,
+      error: null,
+    });
+    useCreateAgentWorkbenchSessionMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'new-session', display_name: 'New Session' })
+    );
+    useRevokeOpenClawSessionMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'session-1', status: 'revoked' })
+    );
   });
 
   it('filters human and openclaw agent lists locally from the search query', async () => {
@@ -499,6 +513,30 @@ describe('identities page', () => {
     await user.click(screen.getByRole('button', { name: /delete bootstrap credential/i }));
 
     expect(deleteOpenClawAgentMock).toHaveBeenCalledWith('bootstrap');
+  });
+
+  it('keeps the agent creation form open and shows backend errors when creation fails', async () => {
+    const user = userEvent.setup();
+    useCreateOpenClawAgentMock.mockReturnValue(
+      vi.fn().mockRejectedValue(new Error('Agent workspace already exists'))
+    );
+
+    render(<IdentitiesPage />);
+
+    await user.click(screen.getByRole('button', { name: t('identities.agentModal.createTitle') }));
+    await user.type(screen.getByLabelText(t('identities.agentModal.name')), 'Ops Agent');
+    await user.type(screen.getByLabelText(t('identities.labels.workspaceRoot')), '/srv/ops-agent');
+    await user.type(
+      screen.getByLabelText(t('identities.labels.agentDirectory')),
+      '.openclaw/ops-agent'
+    );
+    await user.click(screen.getByRole('button', { name: t('common.create') }));
+
+    const dialog = screen.getByRole('dialog');
+    await waitFor(() => {
+      expect(within(dialog).getByRole('alert')).toHaveTextContent('Agent workspace already exists');
+    });
+    expect(dialog).toBeInTheDocument();
   });
 
   it('shows a relogin recovery state when refresh hits an expired session', async () => {
