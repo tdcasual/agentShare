@@ -26,12 +26,18 @@ import { Modal } from '@/shared/ui-primitives/modal';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
 import { cn } from '@/lib/utils';
 import { translateAccountRole, translateTokenStatus } from '@/lib/enum-labels';
+import { ENVIRONMENT_OPTIONS, PROVIDER_OPTIONS, SECRET_KIND_OPTIONS } from '@/lib/option-catalogs';
 import { MutationAlert } from '@/shared/mutations/mutation-alert';
 import { useAssetsPage } from './use-assets-page';
 import { useAssetsForm } from './use-assets-form';
 
 const selectClassName =
   'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none transition-colors transition-shadow duration-200 focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]';
+
+type CatalogSelectOption = {
+  value: string;
+  labelKey: string;
+};
 
 export default function AssetsPage() {
   return (
@@ -586,6 +592,48 @@ function CapabilityCard({
   );
 }
 
+function CatalogSelect({
+  id,
+  label,
+  value,
+  options,
+  t,
+  onChange,
+  blankLabel,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  options: readonly CatalogSelectOption[];
+  t: (key: string) => string;
+  onChange: (value: string) => void;
+  blankLabel?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label
+        htmlFor={id}
+        className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+      >
+        {label}
+      </label>
+      <select
+        id={id}
+        className={selectClassName}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {blankLabel ? <option value="">{blankLabel}</option> : null}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {t(option.labelKey)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
   return (
     <Modal
@@ -605,29 +653,34 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
             }
             placeholder={form.t('assets.secrets.providerPlaceholder')}
           />
-          <Input
+          <CatalogSelect
+            id="secret-kind"
             label={form.t('assets.secrets.kind')}
             value={form.secretForm.kind}
-            onChange={(event) =>
-              form.setSecretForm((current) => ({ ...current, kind: event.target.value }))
-            }
-            placeholder={form.t('assets.secrets.kindPlaceholder')}
+            options={SECRET_KIND_OPTIONS}
+            t={form.t}
+            onChange={(value) => form.setSecretForm((current) => ({ ...current, kind: value }))}
           />
-          <Input
+          <CatalogSelect
+            id="secret-provider"
             label={form.t('assets.secrets.provider')}
             value={form.secretForm.provider}
-            onChange={(event) =>
-              form.setSecretForm((current) => ({ ...current, provider: event.target.value }))
+            options={PROVIDER_OPTIONS}
+            t={form.t}
+            onChange={(value) =>
+              form.setSecretForm((current) => ({ ...current, provider: value }))
             }
-            placeholder={form.t('assets.secrets.providerPlaceholderShort')}
           />
-          <Input
+          <CatalogSelect
+            id="secret-environment"
             label={form.t('assets.secrets.environment')}
             value={form.secretForm.environment}
-            onChange={(event) =>
-              form.setSecretForm((current) => ({ ...current, environment: event.target.value }))
+            options={ENVIRONMENT_OPTIONS}
+            t={form.t}
+            blankLabel={form.t('common.notSpecified')}
+            onChange={(value) =>
+              form.setSecretForm((current) => ({ ...current, environment: value }))
             }
-            placeholder={form.t('assets.secrets.environmentPlaceholder')}
           />
         </div>
         <Input
@@ -778,16 +831,19 @@ function CapabilityModal({
               }))
             }
           />
-          <Input
+          <CatalogSelect
+            id="capability-required-provider"
             label={form.t('assets.capabilities.requiredProvider')}
             value={form.capabilityForm.required_provider}
-            onChange={(event) =>
+            options={PROVIDER_OPTIONS}
+            t={form.t}
+            blankLabel={form.t('common.notSpecified')}
+            onChange={(value) =>
               form.setCapabilityForm((current) => ({
                 ...current,
-                required_provider: event.target.value,
+                required_provider: value,
               }))
             }
-            placeholder={form.t('assets.secrets.providerPlaceholderShort')}
           />
           <Input
             label={form.t('assets.capabilities.requiredScopes')}

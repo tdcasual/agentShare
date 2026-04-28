@@ -348,6 +348,46 @@ describe('assets page', () => {
     });
   });
 
+  it('uses catalog selectors for secret type fields', async () => {
+    const user = userEvent.setup();
+
+    render(<AssetsPage />);
+
+    await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('combobox', { name: t('assets.secrets.kind') })).toHaveValue(
+      'api_token'
+    );
+    expect(
+      within(dialog).getByRole('combobox', { name: t('assets.secrets.provider') })
+    ).toHaveValue('openai');
+
+    const environment = within(dialog).getByRole('combobox', {
+      name: t('assets.secrets.environment'),
+    });
+    expect(environment).toHaveValue('');
+    expect(within(environment).getByRole('option', { name: t('common.notSpecified') })).toHaveValue(
+      ''
+    );
+  });
+
+  it('defaults capability required provider from the selected secret catalog value', async () => {
+    const user = userEvent.setup();
+
+    render(<AssetsPage />);
+
+    await user.click(screen.getByRole('button', { name: t('assets.newCapability') }));
+    const dialog = screen.getByRole('dialog');
+    await user.selectOptions(within(dialog).getByLabelText(t('assets.capabilities.bindSecret')), [
+      'secret-2',
+    ]);
+
+    expect(
+      within(dialog).getByRole('combobox', { name: t('assets.capabilities.requiredProvider') })
+    ).toHaveValue('anthropic');
+  });
+
   it('surfaces governance coverage and filters assets awaiting human review', async () => {
     const user = userEvent.setup();
 
