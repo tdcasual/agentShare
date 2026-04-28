@@ -280,6 +280,74 @@ describe('assets page', () => {
     );
   });
 
+  it('keeps the secret form open and shows backend errors when secret publishing fails', async () => {
+    const user = userEvent.setup();
+    useCreateSecretMock.mockReturnValue(
+      vi.fn().mockRejectedValue(new ApiError(503, 'Secret backend unavailable'))
+    );
+
+    render(<AssetsPage />);
+
+    await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
+    await user.click(screen.getByRole('button', { name: t('assets.secrets.create') }));
+
+    const dialog = screen.getByRole('dialog');
+    await waitFor(() => {
+      expect(within(dialog).getByRole('alert')).toHaveTextContent('Secret backend unavailable');
+    });
+    expect(dialog).toBeInTheDocument();
+  });
+
+  it('keeps the capability form open and shows backend errors when capability publishing fails', async () => {
+    const user = userEvent.setup();
+    useCreateCapabilityMock.mockReturnValue(
+      vi.fn().mockRejectedValue(new ApiError(400, 'Secret not found'))
+    );
+
+    render(<AssetsPage />);
+
+    await user.click(screen.getByRole('button', { name: t('assets.newCapability') }));
+    await user.selectOptions(
+      screen.getByLabelText(t('assets.capabilities.bindSecret')),
+      'secret-1'
+    );
+    await user.click(screen.getByRole('button', { name: t('assets.capabilities.create') }));
+
+    const dialog = screen.getByRole('dialog');
+    await waitFor(() => {
+      expect(within(dialog).getByRole('alert')).toHaveTextContent('Secret not found');
+    });
+    expect(dialog).toBeInTheDocument();
+  });
+
+  it('shows a status message when secret publishing succeeds', async () => {
+    const user = userEvent.setup();
+    useCreateSecretMock.mockReturnValue(
+      vi.fn().mockResolvedValue({
+        id: 'secret-new',
+        display_name: 'OpenAI production key',
+        kind: 'api_token',
+        provider: 'openai',
+        environment: 'production',
+        provider_scopes: ['responses.read'],
+        resource_selector: null,
+        publication_status: 'active',
+      })
+    );
+
+    render(<AssetsPage />);
+
+    await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
+    await user.click(screen.getByRole('button', { name: t('assets.secrets.create') }));
+
+    const dialog = screen.getByRole('dialog');
+    await waitFor(() => {
+      expect(within(dialog).getByRole('status')).toHaveTextContent(
+        t('assets.secrets.createSuccessActive')
+      );
+    });
+  });
+
   it('surfaces governance coverage and filters assets awaiting human review', async () => {
     const user = userEvent.setup();
 

@@ -26,6 +26,7 @@ import { Modal } from '@/shared/ui-primitives/modal';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
 import { cn } from '@/lib/utils';
 import { translateAccountRole, translateTokenStatus } from '@/lib/enum-labels';
+import { MutationAlert } from '@/shared/mutations/mutation-alert';
 import { useAssetsPage } from './use-assets-page';
 import { useAssetsForm } from './use-assets-form';
 
@@ -659,6 +660,7 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
             placeholder={form.t('assets.secrets.resourceSelectorPlaceholder')}
           />
         </div>
+        <MutationAlert error={form.error} success={form.success} />
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={form.closeSecretModal}>
             {form.t('common.cancel')}
@@ -905,6 +907,7 @@ function CapabilityModal({
           </div>
         </Card>
 
+        <MutationAlert error={form.error} success={form.success} />
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="secondary" onClick={form.closeCapabilityModal}>
             {form.t('common.cancel')}

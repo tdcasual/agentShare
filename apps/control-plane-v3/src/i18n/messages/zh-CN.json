@@ -80,6 +80,8 @@
       "noLabelsAvailable": "当前 token 还没有标签，无法按标签限制。",
       "selectLabelKeyFirst": "先选择一个标签键，再勾选允许的值。",
       "createFailed": "创建 capability 失败",
+      "createSuccessActive": "Capability 已创建并生效。",
+      "createSuccessPendingReview": "Capability 已提交人工审核。",
       "accessPolicyAgent": "主体：{items}",
       "accessPolicyLabel": "标签：{key} = {values}",
       "accessPolicyToken": "令牌：{items}"
@@ -127,6 +129,8 @@
     "secrets": {
       "create": "创建密钥",
       "createFailed": "创建密钥失败",
+      "createSuccessActive": "密钥已创建并生效。",
+      "createSuccessPendingReview": "密钥已提交人工审核。",
       "description": "发布供 capability 绑定的 API key 与外部凭据。",
       "displayName": "显示名称",
       "displayNamePlaceholder": "openai.config.bootstrap",

@@ -80,6 +80,8 @@
       "noLabelsAvailable": "Current tokens have no labels, so label-based restriction is unavailable.",
       "selectLabelKeyFirst": "Select a label key first, then check allowed values.",
       "createFailed": "Failed to create capability",
+      "createSuccessActive": "Capability created and active.",
+      "createSuccessPendingReview": "Capability submitted for human review.",
       "accessPolicyAgent": "Subject: {items}",
       "accessPolicyLabel": "Label: {key} = {values}",
       "accessPolicyToken": "Token: {items}"
@@ -127,6 +129,8 @@
     "secrets": {
       "create": "Create Secret",
       "createFailed": "Failed to create secret",
+      "createSuccessActive": "Secret created and active.",
+      "createSuccessPendingReview": "Secret submitted for human review.",
       "description": "Publish API keys and external credentials for capability binding.",
       "displayName": "Display Name",
       "displayNamePlaceholder": "openai.config.bootstrap",

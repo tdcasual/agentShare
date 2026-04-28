@@ -62,6 +62,15 @@ function buildCapabilityAccessPolicy(form: CapabilityFormState) {
   };
 }
 
+function successMessageKey(
+  resource: 'secrets' | 'capabilities',
+  publicationStatus?: string | null
+) {
+  return publicationStatus === 'pending_review'
+    ? `assets.${resource}.createSuccessPendingReview`
+    : `assets.${resource}.createSuccessActive`;
+}
+
 export function useAssetsForm({
   createSecret,
   createCapability,
@@ -108,6 +117,7 @@ export function useAssetsForm({
     label_values: [],
   });
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const openSecretModal = useCallback(() => {
     setSecretForm({
@@ -120,6 +130,7 @@ export function useAssetsForm({
       resource_selector: '',
     });
     setError(null);
+    setSuccess(null);
     setShowSecretModal(true);
   }, []);
 
@@ -142,6 +153,7 @@ export function useAssetsForm({
       label_values: [],
     }));
     setError(null);
+    setSuccess(null);
     setShowCapabilityModal(true);
   }, []);
 
@@ -203,6 +215,7 @@ export function useAssetsForm({
       event.preventDefault();
       setSubmittingSecret(true);
       setError(null);
+      setSuccess(null);
       clearAllAuthErrors();
 
       try {
@@ -230,7 +243,7 @@ export function useAssetsForm({
           required_provider: created.provider ?? current.required_provider,
           required_provider_scopes: (created.provider_scopes ?? []).join(', '),
         }));
-        setShowSecretModal(false);
+        setSuccess(t(successMessageKey('secrets', created.publication_status)));
         onSecretCreated?.();
       } catch (submitError) {
         if (consumeUnauthorized(submitError)) {
@@ -274,10 +287,11 @@ export function useAssetsForm({
 
       setSubmittingCapability(true);
       setError(null);
+      setSuccess(null);
       clearAllAuthErrors();
 
       try {
-        await createCapability({
+        const created = await createCapability({
           name: capabilityForm.name.trim(),
           secret_id: capabilityForm.secret_id,
           risk_level: capabilityForm.risk_level,
@@ -302,7 +316,7 @@ export function useAssetsForm({
           label_key: '',
           label_values: [],
         }));
-        setShowCapabilityModal(false);
+        setSuccess(t(successMessageKey('capabilities', created.publication_status)));
         onCapabilityCreated?.();
       } catch (submitError) {
         if (consumeUnauthorized(submitError)) {
@@ -334,7 +348,9 @@ export function useAssetsForm({
   return {
     t,
     error,
+    success,
     setError,
+    setSuccess,
     showSecretModal,
     openSecretModal,
     closeSecretModal,
