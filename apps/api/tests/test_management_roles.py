@@ -173,10 +173,35 @@ def test_admin_can_manage_secrets_and_tokens_but_cannot_delete_openclaw_agents(t
             },
         )
         tokens = client.get("/api/access-tokens")
+        revealed = client.get(f"/api/access-tokens/{created_token.json()['id']}/secret")
 
     assert secret.status_code == 201
     assert created_token.status_code == 201
     assert tokens.status_code == 200
+    assert revealed.status_code == 200
+
+
+def test_operator_cannot_reveal_access_token_secret(tmp_path: Path) -> None:
+    shared_database = "operator-token-reveal.db"
+
+    with management_client_for_role(tmp_path, "admin", database_name=shared_database) as admin_client:
+        created_token = admin_client.post(
+            "/api/access-tokens",
+            json={
+                "display_name": "Admin reveal token",
+                "subject_type": "automation",
+                "subject_id": "reveal-runner",
+                "scopes": ["runtime"],
+            },
+        )
+        assert created_token.status_code == 201, created_token.text
+        token_id = created_token.json()["id"]
+
+    with management_client_for_role(tmp_path, "operator", database_name=shared_database) as client:
+        revealed = client.get(f"/api/access-tokens/{token_id}/secret")
+
+    assert revealed.status_code == 403
+    assert revealed.json()["detail"] == "admin role required"
 
 
 def test_non_admin_roles_cannot_create_capabilities_but_can_still_list_them(tmp_path: Path) -> None:

@@ -404,6 +404,39 @@
       "joinSpace": "Join Space",
       "title": "Quick Actions"
     },
+    "workflow": {
+      "badge": "Human workflow",
+      "description": "People should not need to reverse-engineer the control plane. Start with docs, connect who will act, issue credentials only when needed, then publish work and review outcomes.",
+      "stepLabel": "Step {step}",
+      "title": "Start here as a human operator",
+      "steps": {
+        "docs": {
+          "cta": "Read docs",
+          "description": "Open the public docs first so humans and external agents share the same operating context.",
+          "title": "Read the operating guide"
+        },
+        "identities": {
+          "cta": "Open identities",
+          "description": "Confirm which humans and in-project agents exist before you start delegating or supervising work.",
+          "title": "Connect people and agents"
+        },
+        "tokens": {
+          "cta": "Manage access tokens",
+          "description": "Issue or re-check remote access credentials for external machines and off-project agents.",
+          "title": "Issue remote credentials"
+        },
+        "tasks": {
+          "cta": "Publish tasks",
+          "description": "Create the work item, target the right tokens, and keep delivery visible to human operators.",
+          "title": "Publish work"
+        },
+        "outcomes": {
+          "cta": "Review outcomes",
+          "description": "Inspect run history, then follow through in reviews or approvals when a human decision is needed.",
+          "title": "Review results"
+        }
+      }
+    },
     "recentActivity": "Recent Activity",
     "reviewGate": "Review Gate",
     "reviewQueue": "Review Queue",
@@ -510,6 +543,28 @@
       "runtimeDescription": "Agents now surface workspace roots, session history, sandbox posture, and tool policy instead of linked token state.",
       "runtimeTitle": "OpenClaw runtime identities",
       "title": "Identity Management"
+    },
+    "workflow": {
+      "badge": "Access setup",
+      "description": "Use this page to confirm who is operating the system, then continue to remote access and task delivery without guessing which page comes next.",
+      "title": "Move from identities to delivery",
+      "steps": {
+        "settings": {
+          "cta": "Invite operators",
+          "description": "Add or review the human operators who own governance and can supervise runtime activity.",
+          "title": "Confirm human operators"
+        },
+        "tokens": {
+          "cta": "Open remote access",
+          "description": "Once the right humans and in-project agents are visible, issue credentials for external machines and off-project agents.",
+          "title": "Issue remote credentials"
+        },
+        "tasks": {
+          "cta": "Publish work",
+          "description": "After access is ready, send work to the correct tokens and keep the execution path visible to humans.",
+          "title": "Hand off work"
+        }
+      }
     },
     "refreshFailed": "Failed to refresh identity data",
     "reloadAgents": "Sign in again to reload OpenClaw agents.",
@@ -947,6 +1002,28 @@
     "refreshFailed": "Failed to refresh runs",
     "sessionExpired": "Your management session has expired. Sign in again to inspect run history.",
     "sessionForbidden": "You do not have permission to inspect run history. Use a management session with the required permission to continue.",
+    "workflow": {
+      "badge": "Human workflow",
+      "title": "Move from run history into decisions",
+      "description": "After runs start landing, humans usually compare execution outcomes, review anything sensitive, and finalize approvals before the work is trusted.",
+      "steps": {
+        "tasks": {
+          "title": "Return to tasks",
+          "description": "Jump back to the publishing queue to compare run outcomes against the original task setup and targeting.",
+          "cta": "Open tasks"
+        },
+        "reviews": {
+          "title": "Review sensitive results",
+          "description": "Use the review queue when a run produces artifacts or findings that need explicit human inspection.",
+          "cta": "Open reviews"
+        },
+        "approvals": {
+          "title": "Finalize approvals",
+          "description": "Move into approvals when a human decision is required before downstream systems or operators can proceed.",
+          "cta": "Open approvals"
+        }
+      }
+    },
     "title": "Run Observatory",
     "description": "View task execution history and status",
     "loading": "Loading runs...",
@@ -1313,6 +1390,28 @@
     "saveFeedback": "Save feedback",
     "sessionExpired": "Your management session has expired. Sign in again to keep working with live task data.",
     "sessionForbidden": "You do not have permission to access some task management data. Sign in with an admin session to view the full task surface.",
+    "workflow": {
+      "badge": "Human workflow",
+      "title": "Publish work and keep humans in the loop",
+      "description": "Once a task is published to remote tokens, the next human jobs are tracking runs, reviewing risky outcomes, and resolving approvals when the workflow calls for it.",
+      "steps": {
+        "runs": {
+          "title": "Watch run execution",
+          "description": "Open the run history to confirm which targeted tokens picked up the task and how each execution finished.",
+          "cta": "Open runs"
+        },
+        "reviews": {
+          "title": "Inspect review queues",
+          "description": "Use reviews when task outputs, findings, or asset changes need a human to inspect quality and risk before continuing.",
+          "cta": "Open reviews"
+        },
+        "approvals": {
+          "title": "Resolve approvals",
+          "description": "Move into approvals when the workflow requires a person to explicitly allow or reject the next step.",
+          "cta": "Open approvals"
+        }
+      }
+    },
     "supervision": {
       "completedTargetsAwaitingFeedback": "{count} completed targets awaiting feedback",
       "description": "Track which remote-token-targeted runs are still in flight and which completed targets still need explicit feedback from a human supervisor for remote agent supervision.",
@@ -1359,7 +1458,8 @@
       "issueAccessToken": "Issue Access Token",
       "mintToken": "Mint Access Token",
       "refresh": "Refresh",
-      "revoke": "Revoke"
+      "revoke": "Revoke",
+      "viewSecret": "View Access Token"
     },
     "agent": {
       "authMethod": "Auth method",
@@ -1377,6 +1477,7 @@
       "mintTokenFailed": "Failed to mint access token",
       "noAgentSelected": "Choose a remote subject before minting a token",
       "refreshFailed": "Failed to refresh remote access tokens",
+      "revealTokenFailed": "Failed to reveal access token",
       "registerAgentFailed": "Failed to register remote agent",
       "revokeTokenFailed": "Failed to revoke access token"
     },
@@ -1430,6 +1531,28 @@
       "low": "low",
       "medium": "medium"
     },
+    "workflow": {
+      "badge": "Remote access workflow",
+      "description": "This page is the bridge between setup and execution. Check the docs, confirm who should act, then issue credentials and continue straight into task delivery.",
+      "title": "Operate remote access without losing the thread",
+      "steps": {
+        "docs": {
+          "cta": "Open docs",
+          "description": "Review the public operating guide so humans and external agents follow the same instructions.",
+          "title": "Start from shared docs"
+        },
+        "identities": {
+          "cta": "Review identities",
+          "description": "Confirm which humans and in-project agents are already connected before minting external access.",
+          "title": "Verify participants"
+        },
+        "tasks": {
+          "cta": "Go to tasks",
+          "description": "Once a token is ready, move directly into task publication instead of hunting through the navigation.",
+          "title": "Continue to delivery"
+        }
+      }
+    },
     "sessionExpired": "Your management session has expired. Sign in again to keep working with live remote access data.",
     "sessionForbidden": "You do not have permission to manage remote access credentials. Use an admin management session to continue.",
     "status": {
@@ -1468,7 +1591,7 @@
     "noFeedback": "No feedback yet",
     "none": "None",
     "secretModal": {
-      "title": "New access token"
+      "title": "Access token"
     },
     "unknownIssuer": "Unknown issuer",
     "remoteAccessSupervision": "Remote access supervision",

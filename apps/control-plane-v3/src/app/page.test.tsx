@@ -212,4 +212,34 @@ describe('hub page', () => {
     expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
     expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
   });
+
+  it('surfaces a human workflow guide with direct links into the main control-plane flow', async () => {
+    render(<HubPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(t('hub.workflow.title'))).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(t('hub.workflow.description'))).toBeInTheDocument();
+    expect(screen.getByText(t('hub.workflow.steps.docs.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/docs'
+    );
+    expect(screen.getByText(t('hub.workflow.steps.identities.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/identities'
+    );
+    expect(screen.getByText(t('hub.workflow.steps.tokens.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/tokens'
+    );
+    expect(screen.getByText(t('hub.workflow.steps.tasks.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/tasks'
+    );
+    expect(screen.getByText(t('hub.workflow.steps.outcomes.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/runs'
+    );
+  });
 });

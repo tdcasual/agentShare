@@ -10,6 +10,7 @@ const t = translateMessage;
 const useGlobalSessionMock = vi.fn();
 const useAccessTokensMock = vi.fn();
 const useCreateAccessTokenMock = vi.fn();
+const useRevealAccessTokenMock = vi.fn();
 const useRevokeAccessTokenMock = vi.fn();
 
 vi.mock('@/components/i18n-provider', () => ({
@@ -23,6 +24,12 @@ vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('next/link', () => ({
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock('@/lib/session-state', () => ({
   useGlobalSession: () => useGlobalSessionMock(),
 }));
@@ -30,6 +37,7 @@ vi.mock('@/lib/session-state', () => ({
 vi.mock('@/domains/identity', () => ({
   useAccessTokens: () => useAccessTokensMock(),
   useCreateAccessToken: () => useCreateAccessTokenMock(),
+  useRevealAccessToken: () => useRevealAccessTokenMock(),
   useRevokeAccessToken: () => useRevokeAccessTokenMock(),
 }));
 
@@ -93,6 +101,7 @@ describe('tokens page', () => {
     });
 
     useCreateAccessTokenMock.mockReturnValue(vi.fn());
+    useRevealAccessTokenMock.mockReturnValue(vi.fn());
     useRevokeAccessTokenMock.mockReturnValue(vi.fn());
   });
 
@@ -197,6 +206,40 @@ describe('tokens page', () => {
     });
   });
 
+  it('re-reveals an existing access token so humans can copy it again', async () => {
+    const user = userEvent.setup();
+    const revealAccessTokenMock = vi.fn().mockResolvedValue({
+      id: 'token-1',
+      api_key: 'revealed-token-value',
+    });
+    useRevealAccessTokenMock.mockReturnValue(revealAccessTokenMock);
+
+    render(<TokensPage />);
+
+    await user.click(screen.getAllByRole('button', { name: t('tokens.actions.viewSecret') })[0]);
+
+    await waitFor(() => {
+      expect(revealAccessTokenMock).toHaveBeenCalledWith('token-1');
+    });
+    expect(screen.getByText('revealed-token-value')).toBeInTheDocument();
+  });
+
+  it('shows a relogin recovery state when revealing a token hits an expired session', async () => {
+    const user = userEvent.setup();
+    const revealAccessTokenMock = vi
+      .fn()
+      .mockRejectedValue(new ApiError(401, 'Missing management session'));
+    useRevealAccessTokenMock.mockReturnValue(revealAccessTokenMock);
+
+    render(<TokensPage />);
+
+    await user.click(screen.getAllByRole('button', { name: t('tokens.actions.viewSecret') })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(t('tokens.sessionExpired'));
+    });
+  });
+
   it('surfaces token supervision metrics and filters tokens needing feedback', async () => {
     const user = userEvent.setup();
 
@@ -250,5 +293,23 @@ describe('tokens page', () => {
     expect(screen.getAllByText(t('common.active')).length).toBeGreaterThanOrEqual(3);
     expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
     expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
+  });
+
+  it('connects token operations back to docs, identities, and task delivery', () => {
+    render(<TokensPage />);
+
+    expect(screen.getByText(t('tokens.workflow.title'))).toBeInTheDocument();
+    expect(screen.getByText(t('tokens.workflow.description'))).toBeInTheDocument();
+    expect(screen.getByText(t('tokens.workflow.steps.docs.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/docs'
+    );
+    expect(
+      screen.getByText(t('tokens.workflow.steps.identities.cta')).closest('a')
+    ).toHaveAttribute('href', '/identities');
+    expect(screen.getByText(t('tokens.workflow.steps.tasks.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/tasks'
+    );
   });
 });

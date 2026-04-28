@@ -4,16 +4,20 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.auth import ManagementIdentity, require_management_action
+from app.config import Settings
 from app.db import get_db
+from app.dependencies import get_settings
 from app.schemas.access_tokens import (
     AccessTokenCreate,
     AccessTokenListResponse,
     AccessTokenResponse,
     AccessTokenRevokeResponse,
+    AccessTokenSecretResponse,
 )
 from app.services.access_token_service import (
     list_access_tokens,
     mint_access_token,
+    reveal_access_token_secret,
     revoke_access_token,
     serialize_access_token,
 )
@@ -54,6 +58,7 @@ def create_access_token_route(
     payload: AccessTokenCreate,
     manager: ManagementIdentity = Depends(require_management_action("tokens:issue")),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
     token, raw_token = mint_access_token(
         session,
@@ -66,6 +71,7 @@ def create_access_token_route(
         labels=payload.labels,
         policy=payload.policy,
         expires_at=payload.expires_at,
+        settings=settings,
     )
     write_audit_event(session, "access_token_created", {
         "token_id": token.id,
@@ -73,6 +79,28 @@ def create_access_token_route(
         "actor_id": manager.id,
     })
     return serialize_access_token(token, api_key=raw_token)
+
+
+@router.get(
+    "/{token_id}/secret",
+    response_model=AccessTokenSecretResponse,
+    tags=["Management"],
+    summary="Reveal a stored standalone access token",
+    description="Return the stored raw standalone access token for an admin management session so humans can copy it again when needed.",
+)
+def reveal_access_token_secret_route(
+    token_id: str,
+    manager: ManagementIdentity = Depends(require_management_action("tokens:reveal")),
+    session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    token, raw_token = reveal_access_token_secret(session, token_id, settings=settings)
+    write_audit_event(session, "access_token_secret_revealed", {
+        "token_id": token.id,
+        "actor_type": manager.actor_type,
+        "actor_id": manager.id,
+    })
+    return {"id": token.id, "api_key": raw_token}
 
 
 @router.post(

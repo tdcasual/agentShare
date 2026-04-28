@@ -1,10 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useMemo, useState } from 'react';
 import { Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Star } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 import { Layout } from '@/interfaces/human/layout';
-import { useAccessTokens, useCreateAccessToken, useRevokeAccessToken } from '@/domains/identity';
+import {
+  useAccessTokens,
+  useCreateAccessToken,
+  useRevealAccessToken,
+  useRevokeAccessToken,
+} from '@/domains/identity';
 import { ApiError, type AccessTokenCreateInput } from '@/lib/api-client';
 import {
   ManagementPageAlerts,
@@ -43,6 +49,7 @@ const TokensContent = memo(function TokensContent() {
   } = useManagementPageSessionRecovery(dataError);
 
   const createAccessToken = useCreateAccessToken();
+  const revealAccessToken = useRevealAccessToken();
   const revokeAccessToken = useRevokeAccessToken();
 
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +59,7 @@ const TokensContent = memo(function TokensContent() {
   const [selectedHealthFilter, setSelectedHealthFilter] = useState<
     'all' | 'needs_feedback' | 'low_trust'
   >('all');
+  const [revealingTokenId, setRevealingTokenId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [revealedSecret, setRevealedSecret] = useState<{
     label: string;
@@ -200,6 +208,45 @@ const TokensContent = memo(function TokensContent() {
     [clearAllAuthErrors, consumeUnauthorized, revokeAccessToken, t]
   );
 
+  const handleRevealToken = useCallback(
+    async (token: {
+      id: string;
+      displayName: string;
+      tokenPrefix: string;
+      status: string;
+    }) => {
+      setError(null);
+      clearAllAuthErrors();
+      setRevealingTokenId(token.id);
+
+      try {
+        const revealed = await revealAccessToken(token.id);
+        setRevealedSecret({
+          label: token.displayName,
+          prefix: token.tokenPrefix,
+          apiKey: revealed.api_key,
+        });
+      } catch (revealError) {
+        if (consumeUnauthorized(revealError)) {
+          return;
+        }
+
+        if (revealError instanceof ApiError) {
+          setError(revealError.detail);
+        } else {
+          setError(
+            revealError instanceof Error
+              ? revealError.message
+              : t('tokens.errors.revealTokenFailed')
+          );
+        }
+      } finally {
+        setRevealingTokenId(null);
+      }
+    },
+    [clearAllAuthErrors, consumeUnauthorized, revealAccessToken, t]
+  );
+
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -252,6 +299,41 @@ const TokensContent = memo(function TokensContent() {
           hint={t('tokens.hints.averageTrust')}
         />
       </div>
+
+      <Card className="space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90 sm:p-5 lg:p-6">
+        <div className="space-y-2">
+          <Badge variant="secondary">{t('tokens.workflow.badge')}</Badge>
+          <div>
+            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {t('tokens.workflow.title')}
+            </h2>
+            <p className="mt-1 max-w-3xl text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {t('tokens.workflow.description')}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <WorkflowStepLink
+            href="/docs"
+            title={t('tokens.workflow.steps.docs.title')}
+            description={t('tokens.workflow.steps.docs.description')}
+            cta={t('tokens.workflow.steps.docs.cta')}
+          />
+          <WorkflowStepLink
+            href="/identities"
+            title={t('tokens.workflow.steps.identities.title')}
+            description={t('tokens.workflow.steps.identities.description')}
+            cta={t('tokens.workflow.steps.identities.cta')}
+          />
+          <WorkflowStepLink
+            href="/tasks"
+            title={t('tokens.workflow.steps.tasks.title')}
+            description={t('tokens.workflow.steps.tasks.description')}
+            cta={t('tokens.workflow.steps.tasks.cta')}
+          />
+        </div>
+      </Card>
 
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
@@ -360,14 +442,25 @@ const TokensContent = memo(function TokensContent() {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={token.status !== 'active'}
-                onClick={() => handleRevokeToken(token.id)}
-              >
-                {t('tokens.actions.revoke')}
-              </Button>
+              <div className="flex flex-col items-end gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={token.status !== 'active' || revealingTokenId === token.id}
+                  loading={revealingTokenId === token.id}
+                  onClick={() => handleRevealToken(token)}
+                >
+                  {t('tokens.actions.viewSecret')}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={token.status !== 'active'}
+                  onClick={() => handleRevokeToken(token.id)}
+                >
+                  {t('tokens.actions.revoke')}
+                </Button>
+              </div>
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
@@ -598,6 +691,35 @@ function FilterButton({
     >
       {label}
     </button>
+  );
+}
+
+function WorkflowStepLink({
+  href,
+  title,
+  description,
+  cta,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  cta: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)]/40 p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/50 dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+    >
+      <h3 className="text-base font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+        {title}
+      </h3>
+      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        {description}
+      </p>
+      <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+        {cta}
+      </span>
+    </Link>
   );
 }
 

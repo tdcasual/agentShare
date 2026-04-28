@@ -561,4 +561,21 @@ describe('identities page', () => {
       'focused'
     );
   });
+
+  it('links identity setup to remote access and task publication for human operators', () => {
+    render(<IdentitiesPage />);
+
+    expect(screen.getByText(t('identities.workflow.title'))).toBeInTheDocument();
+    expect(screen.getByText(t('identities.workflow.description'))).toBeInTheDocument();
+    expect(
+      screen.getByText(t('identities.workflow.steps.settings.cta')).closest('a')
+    ).toHaveAttribute('href', '/settings');
+    expect(
+      screen.getByText(t('identities.workflow.steps.tokens.cta')).closest('a')
+    ).toHaveAttribute('href', '/tokens');
+    expect(screen.getByText(t('identities.workflow.steps.tasks.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/tasks'
+    );
+  });
 });

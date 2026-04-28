@@ -22,6 +22,7 @@ def test_create_app_registers_core_routes():
     assert "/api/admin-accounts" in route_paths
     assert "/api/access-tokens" in route_paths
     assert "/api/access-tokens/{token_id}/revoke" in route_paths
+    assert "/api/access-tokens/{token_id}/secret" in route_paths
     assert "/api/openclaw/agents" in route_paths
     assert "/api/intake-catalog" in route_paths
     assert "/api/reviews" in route_paths

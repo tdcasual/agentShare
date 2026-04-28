@@ -16,6 +16,12 @@ vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('next/link', () => ({
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock('@/lib/session', () => ({
   useManagementSessionGate: () => useManagementSessionGateMock(),
 }));
@@ -129,5 +135,24 @@ describe('runs page', () => {
     await user.click(screen.getByRole('button', { name: /common.refresh/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Run refresh unavailable');
+  });
+
+  it('guides humans from run history into tasks, reviews, and approvals', () => {
+    render(<RunsPage />);
+
+    expect(screen.getByText('runs.workflow.title')).toBeInTheDocument();
+    expect(screen.getByText('runs.workflow.description')).toBeInTheDocument();
+    expect(screen.getByText('runs.workflow.steps.tasks.cta').closest('a')).toHaveAttribute(
+      'href',
+      '/tasks'
+    );
+    expect(screen.getByText('runs.workflow.steps.reviews.cta').closest('a')).toHaveAttribute(
+      'href',
+      '/reviews'
+    );
+    expect(screen.getByText('runs.workflow.steps.approvals.cta').closest('a')).toHaveAttribute(
+      'href',
+      '/approvals'
+    );
   });
 });

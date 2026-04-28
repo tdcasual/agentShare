@@ -82,6 +82,7 @@ export {
   disableAdminAccount,
   getAccessTokens,
   createAccessToken,
+  revealAccessToken,
   revokeAccessToken,
 } from './api';
 
@@ -117,6 +118,7 @@ export {
   useDisableAdminAccount,
   useAccessTokens,
   useCreateAccessToken,
+  useRevealAccessToken,
   useRevokeAccessToken,
   // Manual mutations
   refreshSession,

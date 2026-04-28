@@ -404,6 +404,39 @@
       "joinSpace": "加入空间",
       "title": "快速操作"
     },
+    "workflow": {
+      "badge": "人工工作流",
+      "description": "人类用户不该先去反向理解控制平面的内部模型。更自然的顺序是先看文档，再确认参与者，需要时再签发凭证，然后发布工作并查看结果。",
+      "stepLabel": "步骤 {step}",
+      "title": "作为人工操作员，从这里开始",
+      "steps": {
+        "docs": {
+          "cta": "查看文档",
+          "description": "先打开公开文档，让人类和外部智能体站在同一套操作上下文里。",
+          "title": "阅读操作说明"
+        },
+        "identities": {
+          "cta": "进入身份页",
+          "description": "在派发和监管工作前，先确认有哪些人类和项目内智能体已经接入。",
+          "title": "连接人和智能体"
+        },
+        "tokens": {
+          "cta": "管理访问令牌",
+          "description": "为外部机器和项目外智能体签发或复查远程访问凭证。",
+          "title": "签发远程凭证"
+        },
+        "tasks": {
+          "cta": "发布任务",
+          "description": "创建工作项，定向到正确的令牌，同时让人工操作员能持续看到投递状态。",
+          "title": "发布工作"
+        },
+        "outcomes": {
+          "cta": "查看结果",
+          "description": "检查运行历史；如果需要人工判断，再继续进入审核或审批环节。",
+          "title": "查看结果"
+        }
+      }
+    },
     "recentActivity": "最近活动",
     "reviewGate": "审核门",
     "reviewQueue": "审核队列",
@@ -510,6 +543,28 @@
       "runtimeDescription": "智能体现在展示工作区根目录、会话历史、沙盒姿态和工具策略，而不再展示关联令牌状态。",
       "runtimeTitle": "OpenClaw 运行时身份",
       "title": "身份管理"
+    },
+    "workflow": {
+      "badge": "接入设置",
+      "description": "先在这里确认是谁在操作系统，再继续去远程访问和任务投递，不用靠猜测判断下一页该去哪。",
+      "title": "从身份确认走到任务投递",
+      "steps": {
+        "settings": {
+          "cta": "邀请操作员",
+          "description": "添加或核查负责人类治理的人类操作员，他们会监督运行时活动和策略执行。",
+          "title": "确认人类操作员"
+        },
+        "tokens": {
+          "cta": "打开远程接入",
+          "description": "当正确的人类和项目内智能体都已可见后，再为外部机器和项目外智能体签发凭证。",
+          "title": "签发远程凭证"
+        },
+        "tasks": {
+          "cta": "发布任务",
+          "description": "当访问准备就绪后，直接把工作投递给正确的令牌，并让人工操作员持续看见执行链路。",
+          "title": "交付工作"
+        }
+      }
     },
     "refreshFailed": "刷新身份数据失败",
     "reloadAgents": "请重新登录以重新加载 OpenClaw 智能体。",
@@ -947,6 +1002,28 @@
     "refreshFailed": "刷新运行记录失败",
     "sessionExpired": "您的管理会话已过期。请重新登录以查看运行历史。",
     "sessionForbidden": "您没有权限查看运行历史。请使用具有所需权限的管理会话继续。",
+    "workflow": {
+      "badge": "人工工作流",
+      "title": "从运行历史进入人工决策",
+      "description": "当运行结果开始回来后，人通常会先比对执行结果，再处理需要人工审核或批准的事项，最后再决定是否继续信任这条链路。",
+      "steps": {
+        "tasks": {
+          "title": "回到任务页",
+          "description": "返回发布队列，对照原始任务配置与定向范围，理解这次运行为什么会产生当前结果。",
+          "cta": "查看任务"
+        },
+        "reviews": {
+          "title": "审核敏感结果",
+          "description": "当运行产出包含敏感资产、重要发现或需要人工检视的内容时，转到审核队列继续处理。",
+          "cta": "查看审核"
+        },
+        "approvals": {
+          "title": "完成审批决策",
+          "description": "如果后续动作必须先得到人工同意或拒绝，就在审批页完成最后决策。",
+          "cta": "查看审批"
+        }
+      }
+    },
     "title": "运行观测",
     "description": "查看任务执行历史和状态",
     "loading": "加载运行记录...",
@@ -1313,6 +1390,28 @@
     "saveFeedback": "保存反馈",
     "sessionExpired": "您的管理会话已过期。请重新登录以继续使用实时任务数据。",
     "sessionForbidden": "您没有权限访问部分任务管理数据。请使用管理员会话查看完整任务面。",
+    "workflow": {
+      "badge": "人工工作流",
+      "title": "发布任务后继续保持人工闭环",
+      "description": "任务发给远程令牌之后，接下来的人类工作通常是盯运行、看风险结果，并在流程要求时完成审核或审批。",
+      "steps": {
+        "runs": {
+          "title": "查看运行执行情况",
+          "description": "打开运行历史，确认哪些目标令牌已经领取任务，以及每次执行最终是怎样结束的。",
+          "cta": "查看运行"
+        },
+        "reviews": {
+          "title": "进入审核队列",
+          "description": "当任务输出、发现或资产变更需要人工检查质量与风险时，转到审核页继续处理。",
+          "cta": "查看审核"
+        },
+        "approvals": {
+          "title": "处理审批",
+          "description": "如果流程要求由人明确放行或拒绝下一步，就进入审批页完成决策。",
+          "cta": "查看审批"
+        }
+      }
+    },
     "supervision": {
       "completedTargetsAwaitingFeedback": "{count} 个已完成目标等待反馈",
       "description": "跟踪哪些定向到远程令牌的运行仍在进行中，以及哪些已完成目标仍需要人类监督者补充明确反馈。",
@@ -1359,7 +1458,8 @@
       "issueAccessToken": "签发访问令牌",
       "mintToken": "签发访问令牌",
       "refresh": "刷新",
-      "revoke": "撤销"
+      "revoke": "撤销",
+      "viewSecret": "查看访问令牌"
     },
     "agent": {
       "authMethod": "认证方式",
@@ -1377,6 +1477,7 @@
       "mintTokenFailed": "签发访问令牌失败",
       "noAgentSelected": "请先选择远程主体再签发令牌",
       "refreshFailed": "刷新远程接入令牌失败",
+      "revealTokenFailed": "查看访问令牌失败",
       "registerAgentFailed": "注册远程智能体失败",
       "revokeTokenFailed": "撤销访问令牌失败"
     },
@@ -1430,6 +1531,28 @@
       "low": "低",
       "medium": "中"
     },
+    "workflow": {
+      "badge": "远程接入工作流",
+      "description": "这个页面是连接“完成接入”和“开始执行”的桥梁。先看文档，确认谁应该执行，再签发凭证并直接进入任务投递。",
+      "title": "管理远程接入时不丢主线",
+      "steps": {
+        "docs": {
+          "cta": "打开文档",
+          "description": "先查看公开操作文档，让人类和外部智能体遵循同一套说明。",
+          "title": "从共享文档开始"
+        },
+        "identities": {
+          "cta": "查看身份",
+          "description": "在签发外部接入前，先确认哪些人类和项目内智能体已经连接到系统。",
+          "title": "确认参与方"
+        },
+        "tasks": {
+          "cta": "前往任务页",
+          "description": "令牌准备好后，直接进入任务发布，而不是再回头翻导航找下一步。",
+          "title": "继续投递工作"
+        }
+      }
+    },
     "sessionExpired": "您的管理会话已过期。请重新登录以继续使用实时远程接入数据。",
     "sessionForbidden": "您没有权限管理远程访问凭证。请使用管理员会话继续。",
     "status": {
@@ -1461,7 +1584,7 @@
     "noFeedback": "暂无反馈",
     "none": "无",
     "secretModal": {
-      "title": "新建访问令牌"
+      "title": "访问令牌"
     },
     "unknownIssuer": "未知签发者",
     "remoteAccessSupervision": "远程访问监管",

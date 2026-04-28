@@ -21,6 +21,7 @@ ManagementAction = Literal[
     "tasks:create",
     "tokens:list",
     "tokens:issue",
+    "tokens:reveal",
     "tokens:revoke",
 ]
 
@@ -44,6 +45,7 @@ MANAGEMENT_ACTION_MINIMUM_ROLES: dict[ManagementAction, ManagementRole] = {
     "tasks:create": "operator",
     "tokens:list": "admin",
     "tokens:issue": "admin",
+    "tokens:reveal": "admin",
     "tokens:revoke": "admin",
 }
 

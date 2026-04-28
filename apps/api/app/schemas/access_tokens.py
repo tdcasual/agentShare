@@ -48,6 +48,11 @@ class AccessTokenResponse(BaseModel):
     api_key: str | None = None
 
 
+class AccessTokenSecretResponse(BaseModel):
+    id: str
+    api_key: str
+
+
 class AccessTokenListResponse(BaseModel):
     items: list[AccessTokenResponse]
 

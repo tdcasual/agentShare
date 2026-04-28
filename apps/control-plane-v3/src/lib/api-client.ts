@@ -158,6 +158,11 @@ export interface AccessTokenCreateResponse {
   api_key?: string;
 }
 
+export interface AccessTokenSecretResponse {
+  id: string;
+  api_key: string;
+}
+
 export interface TaskCreateInput {
   title: string;
   task_type: string;

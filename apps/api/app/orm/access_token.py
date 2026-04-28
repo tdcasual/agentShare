@@ -17,6 +17,7 @@ class AccessTokenModel(Base, TimestampMixin):
     display_name: Mapped[str] = mapped_column(String, nullable=False)
     token_hash: Mapped[str] = mapped_column(String, nullable=False)
     token_prefix: Mapped[str] = mapped_column(String, nullable=False)
+    token_secret_backend_ref: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[str] = mapped_column(String, default="active")
     subject_type: Mapped[str] = mapped_column(String, nullable=False)
     subject_id: Mapped[str] = mapped_column(String, nullable=False)

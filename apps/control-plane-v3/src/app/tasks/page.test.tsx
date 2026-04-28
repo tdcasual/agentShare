@@ -26,6 +26,12 @@ vi.mock('@/interfaces/human/layout', () => ({
   Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('next/link', () => ({
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
@@ -308,6 +314,25 @@ describe('tasks page', () => {
     expect(screen.getByRole('link', { name: t('auth.logout.continueToLogin') })).toHaveAttribute(
       'href',
       '/login'
+    );
+  });
+
+  it('guides humans from task publication into runs, reviews, and approvals', () => {
+    render(<TasksPage />);
+
+    expect(screen.getByText(t('tasks.workflow.title'))).toBeInTheDocument();
+    expect(screen.getByText(t('tasks.workflow.description'))).toBeInTheDocument();
+    expect(screen.getByText(t('tasks.workflow.steps.runs.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/runs'
+    );
+    expect(screen.getByText(t('tasks.workflow.steps.reviews.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/reviews'
+    );
+    expect(screen.getByText(t('tasks.workflow.steps.approvals.cta')).closest('a')).toHaveAttribute(
+      'href',
+      '/approvals'
     );
   });
 });

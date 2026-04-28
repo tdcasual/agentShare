@@ -14,6 +14,7 @@ import {
   AdminAccountCreateInput,
   AccessTokenCreateInput,
   AccessTokenCreateResponse,
+  AccessTokenSecretResponse,
 } from '@/lib/api-client';
 import type {
   BootstrapStatus,
@@ -238,6 +239,10 @@ export function revokeAccessToken(tokenId: string) {
   });
 }
 
+export function revealAccessToken(tokenId: string) {
+  return apiFetch<AccessTokenSecretResponse>(`/access-tokens/${tokenId}/secret`);
+}
+
 // ============================================
 // 向后兼容的 API 对象
 // ============================================
@@ -276,5 +281,6 @@ export const identityApi = {
   // Access Tokens
   getAccessTokens,
   createAccessToken,
+  revealAccessToken,
   revokeAccessToken,
 };

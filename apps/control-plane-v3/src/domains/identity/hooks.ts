@@ -288,6 +288,12 @@ export function useCreateAccessToken() {
   }, []);
 }
 
+export function useRevealAccessToken() {
+  return useCallback(async (tokenId: string) => {
+    return api.revealAccessToken(tokenId);
+  }, []);
+}
+
 export function useRevokeAccessToken() {
   return useCallback(async (tokenId: string) => {
     const result = await api.revokeAccessToken(tokenId);
