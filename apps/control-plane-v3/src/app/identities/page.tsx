@@ -322,7 +322,9 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : t('identities.agentModal.createFailed'));
+      setActionError(
+        error instanceof Error ? error.message : t('identities.agentModal.createFailed')
+      );
       throw error;
     } finally {
       setSubmittingAgent(false);
@@ -341,7 +343,9 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       if (consumeUnauthorized(error)) {
         return;
       }
-      setActionError(error instanceof Error ? error.message : t('identities.agentModal.updateFailed'));
+      setActionError(
+        error instanceof Error ? error.message : t('identities.agentModal.updateFailed')
+      );
       throw error;
     } finally {
       setSubmittingAgent(false);
@@ -419,11 +423,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             >
               {t('identities.page.reviewSpaces')}
             </Button>
-            <Button
-              size="sm"
-              onClick={openCreateModal}
-              leftIcon={<Bot className="h-4 w-4" />}
-            >
+            <Button size="sm" onClick={openCreateModal} leftIcon={<Bot className="h-4 w-4" />}>
               {t('identities.agentModal.createTitle')}
             </Button>
           </div>
@@ -459,7 +459,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         </div>
       </Card>
 
-      <Card className="space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90 sm:p-5 lg:p-6">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 sm:p-5 lg:p-6 dark:border-[var(--kw-dark-border)]">
         <div className="space-y-2">
           <Badge variant="secondary">{t('identities.workflow.badge')}</Badge>
           <div>
@@ -559,7 +559,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       </div>
 
       <Card className="bg-[var(--kw-amber-surface)]/90 dark:bg-[var(--kw-dark-amber-surface)]/20 border border-[var(--kw-amber-surface)] dark:border-[var(--kw-dark-amber-surface)]">
-        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
           <div className="flex items-start gap-4">
             <div className="dark:bg-[var(--kw-dark-amber-surface)]/30 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-amber-surface)]">
               <ShieldCheck className="h-6 w-6 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
@@ -788,7 +788,7 @@ function WorkflowStepCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)]/40 p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/50 dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+      className="bg-[var(--kw-surface-alt)]/40 dark:bg-[var(--kw-dark-surface-alt)]/50 group rounded-2xl border border-[var(--kw-border)] p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
     >
       <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         Step {step}

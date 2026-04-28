@@ -667,9 +667,7 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
             value={form.secretForm.provider}
             options={PROVIDER_OPTIONS}
             t={form.t}
-            onChange={(value) =>
-              form.setSecretForm((current) => ({ ...current, provider: value }))
-            }
+            onChange={(value) => form.setSecretForm((current) => ({ ...current, provider: value }))}
           />
           <CatalogSelect
             id="secret-environment"

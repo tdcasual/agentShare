@@ -102,7 +102,7 @@ const TasksContent = memo(function TasksContent() {
         />
       </div>
 
-      <Card className="space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/90 sm:p-5 lg:p-6">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/95 p-4 sm:p-5 lg:p-6 dark:border-[var(--kw-dark-border)]">
         <div className="space-y-2">
           <Badge variant="secondary">{page.t('tasks.workflow.badge')}</Badge>
           <div>
@@ -319,7 +319,7 @@ function TaskCard({
             </Badge>
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] sm:text-xl lg:text-2xl">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl lg:text-2xl dark:text-[var(--kw-dark-text)]">
               {task.title}
             </h2>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -887,11 +887,11 @@ function FeedbackButton({
 
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white px-3 py-2 dark:bg-[var(--kw-dark-bg)] sm:px-4 sm:py-3">
+    <div className="rounded-2xl bg-white px-3 py-2 sm:px-4 sm:py-3 dark:bg-[var(--kw-dark-bg)]">
       <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
-      <p className="mt-1 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] sm:mt-2">
+      <p className="mt-1 text-sm font-medium text-[var(--kw-text)] sm:mt-2 dark:text-[var(--kw-dark-text)]">
         {value}
       </p>
     </div>
@@ -912,7 +912,7 @@ function WorkflowLinkCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)]/40 p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)]/50 dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+      className="bg-[var(--kw-surface-alt)]/40 dark:bg-[var(--kw-dark-surface-alt)]/50 group rounded-2xl border border-[var(--kw-border)] p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--kw-primary-300)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
     >
       <h3 className="text-base font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
         {title}
