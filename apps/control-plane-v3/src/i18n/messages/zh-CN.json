@@ -1611,6 +1611,59 @@
     },
     "secretLabel": "{name} 主令牌"
   },
+  "options": {
+    "agentModels": {
+      "default": "默认模型",
+      "gpt54": "GPT-5.4",
+      "gpt5": "GPT-5",
+      "gpt5Mini": "GPT-5 Mini"
+    },
+    "authMethods": {
+      "accessToken": "访问令牌",
+      "openclawSession": "OpenClaw 会话"
+    },
+    "environments": {
+      "development": "开发",
+      "production": "生产",
+      "staging": "预发"
+    },
+    "priorities": {
+      "critical": "紧急",
+      "high": "高",
+      "low": "低",
+      "normal": "普通"
+    },
+    "providers": {
+      "anthropic": "Anthropic",
+      "deepseek": "DeepSeek",
+      "genericHttp": "通用 HTTP",
+      "github": "GitHub",
+      "openai": "OpenAI"
+    },
+    "sandboxModes": {
+      "readOnly": "只读",
+      "workspaceWrite": "工作区写入"
+    },
+    "secretKinds": {
+      "apiToken": "API 令牌",
+      "oauthToken": "OAuth 令牌",
+      "password": "密码",
+      "sshKey": "SSH 密钥",
+      "webhookSecret": "Webhook 密钥"
+    },
+    "taskTypes": {
+      "accountRead": "读取账号",
+      "analysis": "分析",
+      "configSync": "同步配置",
+      "deployment": "部署",
+      "promptRun": "运行提示词"
+    },
+    "thinkingLevels": {
+      "balanced": "均衡",
+      "high": "高",
+      "low": "低"
+    }
+  },
   "errorBoundary": {
     "title": "页面出错了",
     "contactSupport": "如果问题持续存在，请联系技术支持"

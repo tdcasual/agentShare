@@ -1618,6 +1618,59 @@
     },
     "secretLabel": "{name} primary token"
   },
+  "options": {
+    "agentModels": {
+      "default": "Default model",
+      "gpt54": "GPT-5.4",
+      "gpt5": "GPT-5",
+      "gpt5Mini": "GPT-5 Mini"
+    },
+    "authMethods": {
+      "accessToken": "Access token",
+      "openclawSession": "OpenClaw session"
+    },
+    "environments": {
+      "development": "Development",
+      "production": "Production",
+      "staging": "Staging"
+    },
+    "priorities": {
+      "critical": "Critical",
+      "high": "High",
+      "low": "Low",
+      "normal": "Normal"
+    },
+    "providers": {
+      "anthropic": "Anthropic",
+      "deepseek": "DeepSeek",
+      "genericHttp": "Generic HTTP",
+      "github": "GitHub",
+      "openai": "OpenAI"
+    },
+    "sandboxModes": {
+      "readOnly": "Read only",
+      "workspaceWrite": "Workspace write"
+    },
+    "secretKinds": {
+      "apiToken": "API token",
+      "oauthToken": "OAuth token",
+      "password": "Password",
+      "sshKey": "SSH key",
+      "webhookSecret": "Webhook secret"
+    },
+    "taskTypes": {
+      "accountRead": "Account read",
+      "analysis": "Analysis",
+      "configSync": "Config sync",
+      "deployment": "Deployment",
+      "promptRun": "Prompt run"
+    },
+    "thinkingLevels": {
+      "balanced": "Balanced",
+      "high": "High",
+      "low": "Low"
+    }
+  },
   "errorBoundary": {
     "title": "Something went wrong",
     "contactSupport": "If the issue persists, please contact technical support"
