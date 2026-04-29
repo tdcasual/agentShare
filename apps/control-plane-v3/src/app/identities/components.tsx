@@ -14,10 +14,10 @@ export interface CoverageMetricProps {
 export function CoverageMetric({ label, value, hint }: CoverageMetricProps) {
   return (
     <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/60 dark:bg-[var(--kw-dark-amber-surface)]/10 rounded-2xl border bg-white/70 px-4 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)] sm:text-xs sm:tracking-[0.2em]">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-amber-text)] sm:text-xs sm:tracking-[0.2em] dark:text-[var(--kw-warning)]">
         {label}
       </p>
-      <p className="mt-2 text-xl font-semibold text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)] sm:text-2xl">
+      <p className="mt-2 text-xl font-semibold text-[var(--kw-amber-text)] sm:text-2xl dark:text-[var(--kw-warning)]">
         {value}
       </p>
       <p className="text-[var(--kw-amber-text)]/80 dark:text-[var(--kw-warning)]/80 mt-1 text-xs">
@@ -30,15 +30,22 @@ export function CoverageMetric({ label, value, hint }: CoverageMetricProps) {
 export interface EmptyStateProps {
   icon: React.ReactNode;
   message: string;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
-export function EmptyState({ icon, message }: EmptyStateProps) {
+export function EmptyState({ icon, message, actionLabel, onAction }: EmptyStateProps) {
   return (
     <div className="dark:bg-[var(--kw-dark-surface)]/60 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 p-6 text-center dark:border-[var(--kw-dark-border)]">
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
         {icon}
       </div>
       <p className="text-sm text-[var(--kw-text-muted)]">{message}</p>
+      {actionLabel && onAction ? (
+        <Button className="mt-4" size="sm" onClick={onAction}>
+          {actionLabel}
+        </Button>
+      ) : null}
     </div>
   );
 }

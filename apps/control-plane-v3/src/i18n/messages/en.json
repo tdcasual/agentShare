@@ -586,6 +586,8 @@
       "agentDataUnavailable": "OpenClaw agent data is temporarily unavailable. {message}",
       "agentWorkspacesDescription": "Workspace and runtime records from `/api/openclaw/agents` and `/api/openclaw/sessions`.",
       "agentWorkspacesTitle": "Agent Workspaces",
+      "chatAgent": "Chat with {name}",
+      "createProjectAgent": "Create project agent",
       "defaultModel": "default model",
       "deleteAgent": "Delete {name}",
       "dreamRunStatus": {
@@ -613,6 +615,7 @@
       "recentEventsTitle": "Recent Events",
       "recentDreamRunsTitle": "Recent Dream Runs",
       "recentSessionTitle": "Recent Session",
+      "openAgent": "Open {name}",
       "pauseDreamRun": "Pause dream run",
       "resumeDreamRun": "Resume dream run",
       "sessionHistoryUnavailable": "Session history is temporarily unavailable. {message}",

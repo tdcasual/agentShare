@@ -497,6 +497,41 @@ describe('identities page', () => {
     expect(screen.getByText(/Sessions backend unavailable/i)).toBeInTheDocument();
   });
 
+  it('promotes creating a project agent from the empty agent list', async () => {
+    const user = userEvent.setup();
+    useOpenClawAgentsMock.mockReturnValue({
+      data: { items: [] },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<IdentitiesPage />);
+
+    await user.click(
+      screen.getByRole('button', { name: t('identities.sections.createProjectAgent') })
+    );
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText(t('identities.agentModal.createDesc'))).toBeInTheDocument();
+  });
+
+  it('shows direct open and chat actions on project agent cards', () => {
+    render(<IdentitiesPage />);
+
+    const card = screen.getByTestId('agent-card-bootstrap');
+
+    expect(
+      within(card).getByRole('link', {
+        name: t('identities.sections.openAgent', { name: 'Bootstrap Credential' }),
+      })
+    ).toHaveAttribute('href', '/identities/bootstrap');
+    expect(
+      within(card).getByRole('link', {
+        name: t('identities.sections.chatAgent', { name: 'Bootstrap Credential' }),
+      })
+    ).toHaveAttribute('href', '/identities/bootstrap?tab=workbench');
+  });
+
   it('reveals openclaw runtime details, files, sessions, and recent events when expanded', async () => {
     const user = userEvent.setup();
 

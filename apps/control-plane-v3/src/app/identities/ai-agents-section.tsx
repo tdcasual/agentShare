@@ -1,4 +1,5 @@
-import { Bot, ChevronDown, ChevronUp } from 'lucide-react';
+import Link from 'next/link';
+import { Bot, ChevronDown, ChevronUp, ExternalLink, MessageSquare } from 'lucide-react';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -39,6 +40,7 @@ export interface AIAgentsSectionProps {
   onRetry: () => Promise<void>;
   onDelete: (agentId: string) => Promise<void>;
   onEdit: (agentId: string) => void;
+  onCreateAgent: () => void;
 }
 
 export function AIAgentsSection({
@@ -66,6 +68,7 @@ export function AIAgentsSection({
   onRetry,
   onDelete,
   onEdit,
+  onCreateAgent,
 }: AIAgentsSectionProps) {
   const { t } = useI18n();
   const errorMessage = error instanceof Error ? error.message : null;
@@ -98,7 +101,12 @@ export function AIAgentsSection({
           isRefreshing={isRefreshing}
         />
       ) : agents.length === 0 ? (
-        <EmptyState icon={<Bot className="h-6 w-6" />} message={t('identities.noAgents')} />
+        <EmptyState
+          icon={<Bot className="h-6 w-6" />}
+          message={t('identities.noAgents')}
+          actionLabel={t('identities.sections.createProjectAgent')}
+          onAction={onCreateAgent}
+        />
       ) : filteredAgents.length === 0 ? (
         <EmptyState
           icon={<Bot className="h-6 w-6" />}
@@ -220,19 +228,31 @@ function AgentCard({
         </div>
       </div>
       <div className="mt-4 flex justify-end">
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-expanded={isExpanded}
-          onClick={onToggleExpand}
-          rightIcon={
-            isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-          }
-        >
-          {isExpanded
-            ? t('identities.sections.hideDetails', { name: agent.name })
-            : t('identities.sections.viewDetails', { name: agent.name })}
-        </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Link href={`/identities/${agent.id}`}>
+            <Button variant="secondary" size="sm" leftIcon={<ExternalLink className="h-4 w-4" />}>
+              {t('identities.sections.openAgent', { name: agent.name })}
+            </Button>
+          </Link>
+          <Link href={`/identities/${agent.id}?tab=workbench`}>
+            <Button variant="secondary" size="sm" leftIcon={<MessageSquare className="h-4 w-4" />}>
+              {t('identities.sections.chatAgent', { name: agent.name })}
+            </Button>
+          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-expanded={isExpanded}
+            onClick={onToggleExpand}
+            rightIcon={
+              isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+            }
+          >
+            {isExpanded
+              ? t('identities.sections.hideDetails', { name: agent.name })
+              : t('identities.sections.viewDetails', { name: agent.name })}
+          </Button>
+        </div>
       </div>
       {children}
     </div>

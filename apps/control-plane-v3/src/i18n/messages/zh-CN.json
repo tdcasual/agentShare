@@ -586,6 +586,8 @@
       "agentDataUnavailable": "OpenClaw 智能体数据暂时不可用。{message}",
       "agentWorkspacesDescription": "来自 `/api/openclaw/agents` 与 `/api/openclaw/sessions` 的工作区和运行时记录。",
       "agentWorkspacesTitle": "智能体工作区",
+      "chatAgent": "与 {name} 聊天",
+      "createProjectAgent": "创建项目智能体",
       "defaultModel": "默认模型",
       "deleteAgent": "删除 {name}",
       "dreamRunStatus": {
@@ -613,6 +615,7 @@
       "recentEventsTitle": "最近事件",
       "recentDreamRunsTitle": "最近 Dream Run",
       "recentSessionTitle": "最近会话",
+      "openAgent": "打开 {name}",
       "pauseDreamRun": "暂停 Dream Run",
       "resumeDreamRun": "恢复 Dream Run",
       "sessionHistoryUnavailable": "会话历史暂时不可用。{message}",

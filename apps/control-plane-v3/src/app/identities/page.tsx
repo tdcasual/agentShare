@@ -681,6 +681,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             onRetry={retryAgents}
             onDelete={handleDeleteAgent}
             onEdit={openEditModal}
+            onCreateAgent={openCreateModal}
           />
         </div>
       ) : null}

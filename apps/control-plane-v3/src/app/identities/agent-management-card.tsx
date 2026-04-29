@@ -143,11 +143,7 @@ export function AgentManagementCard({
 
       <div className="flex flex-wrap justify-end gap-2">
         <Link href={`/identities/${agent.id}`}>
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<ExternalLink className="h-4 w-4" />}
-          >
+          <Button variant="secondary" size="sm" leftIcon={<ExternalLink className="h-4 w-4" />}>
             {t('identities.agentModal.openWorkbench')}
           </Button>
         </Link>
