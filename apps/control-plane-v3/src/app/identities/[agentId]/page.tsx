@@ -1,21 +1,18 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Bot } from 'lucide-react';
 import {
   useOpenClawAgent,
   useOpenClawAgents,
   useOpenClawSessions,
   useOpenClawDreamRuns,
-
   useAgentWorkbenchSessions,
 } from '@/domains/identity';
 import { useEvents } from '@/domains/event';
 import { Layout } from '@/interfaces/human/layout';
-import {
-  useManagementPageSessionRecovery,
-} from '@/lib/management-session-recovery';
+import { useManagementPageSessionRecovery } from '@/lib/management-session-recovery';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
@@ -32,6 +29,10 @@ import { WorkbenchPanel } from './workbench-panel';
 const TABS = ['overview', 'sessions', 'workspace', 'dream', 'events', 'workbench'] as const;
 type Tab = (typeof TABS)[number];
 
+function readTabParam(value: string | null): Tab {
+  return TABS.includes(value as Tab) ? (value as Tab) : 'overview';
+}
+
 export default function AgentDetailPage() {
   return (
     <Layout>
@@ -44,8 +45,9 @@ function AgentDetailContent() {
   const { t } = useI18n();
   const router = useRouter();
   const params = useParams<{ agentId: string }>();
+  const searchParams = useSearchParams();
   const agentId = params.agentId;
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [activeTab, setActiveTab] = useState<Tab>(() => readTabParam(searchParams.get('tab')));
 
   const agentsQuery = useOpenClawAgents();
   const agentQuery = useOpenClawAgent(agentId);
@@ -86,6 +88,18 @@ function AgentDetailContent() {
     [t]
   );
 
+  function handleSelectTab(tab: Tab) {
+    setActiveTab(tab);
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (tab === 'overview') {
+      nextParams.delete('tab');
+    } else {
+      nextParams.set('tab', tab);
+    }
+    const query = nextParams.toString();
+    router.push(query ? `/identities/${agentId}?${query}` : `/identities/${agentId}`);
+  }
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
@@ -100,7 +114,12 @@ function AgentDetailContent() {
   if (gateError || !agent) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
-        <Button variant="secondary" size="sm" onClick={() => router.push('/identities')} leftIcon={<ArrowLeft className="h-4 w-4" />}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => router.push('/identities')}
+          leftIcon={<ArrowLeft className="h-4 w-4" />}
+        >
           {t('common.back')}
         </Button>
         <Card className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]">
@@ -150,7 +169,7 @@ function AgentDetailContent() {
               key={tab}
               value={tab}
               active={activeTab === tab}
-              onSelect={(v) => setActiveTab(v as Tab)}
+              onSelect={(v) => handleSelectTab(v as Tab)}
               label={tabLabel[tab]}
             />
           ))}
@@ -164,7 +183,10 @@ function AgentDetailContent() {
               [t('identities.labels.agentId'), agent.id],
               [t('identities.labels.workspaceRoot'), agent.workspace_root],
               [t('identities.labels.agentDirectory'), agent.agent_dir],
-              [t('identities.labels.model'), agent.model ?? t('identities.labels.defaultRuntimeModel')],
+              [
+                t('identities.labels.model'),
+                agent.model ?? t('identities.labels.defaultRuntimeModel'),
+              ],
               [t('identities.labels.thinkingLevel'), agent.thinking_level],
               [t('identities.labels.sandboxMode'), agent.sandbox_mode],
               [
@@ -234,7 +256,9 @@ function AgentDetailContent() {
               <Badge variant="secondary">{allEvents.length}</Badge>
             </div>
             {allEvents.length === 0 ? (
-              <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.sections.noRecentEvents')}</p>
+              <p className="text-sm text-[var(--kw-text-muted)]">
+                {t('identities.sections.noRecentEvents')}
+              </p>
             ) : (
               <div className="space-y-2">
                 {allEvents.map((event) => (
@@ -244,7 +268,8 @@ function AgentDetailContent() {
                   >
                     <p className="font-medium text-[var(--kw-text)]">{event.summary}</p>
                     <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-                      {event.event_type.replaceAll('_', ' ')} · {formatSnapshotTimestamp(event.created_at)}
+                      {event.event_type.replaceAll('_', ' ')} ·{' '}
+                      {formatSnapshotTimestamp(event.created_at)}
                     </p>
                   </div>
                 ))}
@@ -259,7 +284,11 @@ function AgentDetailContent() {
           agent={agent}
           workbenchSessions={workbenchSessions}
           isLoadingSessions={workbenchSessionsQuery.isLoading}
-          sessionsError={workbenchSessionsQuery.error instanceof Error ? workbenchSessionsQuery.error.message : null}
+          sessionsError={
+            workbenchSessionsQuery.error instanceof Error
+              ? workbenchSessionsQuery.error.message
+              : null
+          }
         />
       )}
     </div>
