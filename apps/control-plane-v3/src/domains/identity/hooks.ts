@@ -192,7 +192,10 @@ export function useCreateAgentWorkbenchSession() {
 }
 
 export function useWorkbenchSession(conversationId: string | null, options?: SWRConfiguration) {
-  const key = !conversationId || options?.isPaused ? null : `/api/openclaw/workbench/sessions/${conversationId}`;
+  const key =
+    !conversationId || options?.isPaused
+      ? null
+      : `/api/openclaw/workbench/sessions/${conversationId}`;
 
   return useSWR<WorkbenchSessionSummary>(key, () => api.getWorkbenchSession(conversationId!), {
     ...swrConfig,
@@ -201,12 +204,19 @@ export function useWorkbenchSession(conversationId: string | null, options?: SWR
 }
 
 export function useWorkbenchMessages(conversationId: string | null, options?: SWRConfiguration) {
-  const key = !conversationId || options?.isPaused ? null : `/api/openclaw/workbench/sessions/${conversationId}/messages`;
+  const key =
+    !conversationId || options?.isPaused
+      ? null
+      : `/api/openclaw/workbench/sessions/${conversationId}/messages`;
 
-  return useSWR<{ items: WorkbenchMessageSummary[] }>(key, () => api.getWorkbenchMessages(conversationId!), {
-    ...swrConfig,
-    ...options,
-  });
+  return useSWR<{ items: WorkbenchMessageSummary[] }>(
+    key,
+    () => api.getWorkbenchMessages(conversationId!),
+    {
+      ...swrConfig,
+      ...options,
+    }
+  );
 }
 
 export function useSendWorkbenchMessage() {

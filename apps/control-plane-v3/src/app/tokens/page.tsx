@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useMemo, useState } from 'react';
 import { Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Star } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';

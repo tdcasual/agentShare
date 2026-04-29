@@ -227,7 +227,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                   <Clock className="h-5 w-5 text-[var(--kw-orange-text)]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{stats.pending}</p>
+                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                    {stats.pending}
+                  </p>
                   <p className="text-sm text-[var(--kw-text-muted)]">
                     {getApprovalStatusLabel('pending', t)}
                   </p>
@@ -240,7 +242,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                   <CheckCircle className="h-5 w-5 text-[var(--kw-green-text)]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{stats.approved}</p>
+                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                    {stats.approved}
+                  </p>
                   <p className="text-sm text-[var(--kw-text-muted)]">
                     {getApprovalStatusLabel('approved', t)}
                   </p>
@@ -253,7 +257,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                   <XCircle className="h-5 w-5 text-[var(--kw-error)]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{stats.rejected}</p>
+                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                    {stats.rejected}
+                  </p>
                   <p className="text-sm text-[var(--kw-text-muted)]">
                     {getApprovalStatusLabel('rejected', t)}
                   </p>

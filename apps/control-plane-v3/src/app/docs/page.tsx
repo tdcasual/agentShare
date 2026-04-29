@@ -13,7 +13,9 @@ import { useI18n } from '@/components/i18n-provider';
 const DocsContent = memo(function DocsContent() {
   const { t } = useI18n();
   const docsQuery = usePublicDocs();
-  const [selectedDoc, setSelectedDoc] = useState<{ category: string; filename: string } | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<{ category: string; filename: string } | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -32,7 +34,9 @@ const DocsContent = memo(function DocsContent() {
       const matchesSearch =
         !query ||
         [doc.title, doc.filename, doc.category, doc.summary].some((v) =>
-          String(v ?? '').toLowerCase().includes(query)
+          String(v ?? '')
+            .toLowerCase()
+            .includes(query)
         );
       return matchesCategory && matchesSearch;
     });
@@ -185,7 +189,7 @@ const DocsContent = memo(function DocsContent() {
               <Badge variant="info">{docDetailQuery.data?.category}</Badge>
               <Badge variant="secondary">{docDetailQuery.data?.filename}</Badge>
             </div>
-            <div className="max-h-[60vh] overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-white/80 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80">
+            <div className="dark:bg-[var(--kw-dark-surface)]/80 max-h-[60vh] overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-white/80 p-4 dark:border-[var(--kw-dark-border)]">
               <pre className="whitespace-pre-wrap break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {docDetailQuery.data?.content ?? t('docs.noContent')}
               </pre>
@@ -197,7 +201,13 @@ const DocsContent = memo(function DocsContent() {
   );
 });
 
-function DocCard({ doc, onClick }: { doc: { category: string; filename: string; title?: string; summary?: string }; onClick: () => void }) {
+function DocCard({
+  doc,
+  onClick,
+}: {
+  doc: { category: string; filename: string; title?: string; summary?: string };
+  onClick: () => void;
+}) {
   const { t: _t } = useI18n();
   return (
     <Card
@@ -241,7 +251,9 @@ function EmptyState({ icon, message }: { icon: React.ReactNode; message: string 
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
         {icon}
       </div>
-      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">{message}</p>
+      <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        {message}
+      </p>
     </Card>
   );
 }

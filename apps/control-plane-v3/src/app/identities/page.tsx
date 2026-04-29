@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState, memo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Bot, Building2, RefreshCw, Search, ShieldCheck, Users, UserPlus } from 'lucide-react';

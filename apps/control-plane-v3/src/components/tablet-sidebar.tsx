@@ -53,7 +53,10 @@ interface TabletSidebarProps {
   onToggle?: () => void;
 }
 
-export function TabletSidebar({ collapsed: controlledCollapsed, onToggle }: TabletSidebarProps = {}) {
+export function TabletSidebar({
+  collapsed: controlledCollapsed,
+  onToggle,
+}: TabletSidebarProps = {}) {
   const { t } = useI18n();
   const { role } = useRole();
   const device = useDeviceType();

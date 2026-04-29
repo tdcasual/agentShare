@@ -37,7 +37,12 @@ describe('docs page', () => {
 
     usePublicDocsMock.mockReturnValue({
       docs: [
-        { category: 'guides', filename: 'getting-started.md', title: 'Getting Started', summary: 'First steps' },
+        {
+          category: 'guides',
+          filename: 'getting-started.md',
+          title: 'Getting Started',
+          summary: 'First steps',
+        },
         { category: 'guides', filename: 'advanced.md', title: 'Advanced', summary: 'Deep dive' },
         { category: 'api', filename: 'endpoints.md', title: 'API Endpoints', summary: 'Reference' },
       ],
@@ -46,7 +51,12 @@ describe('docs page', () => {
     });
 
     usePublicDocMock.mockReturnValue({
-      data: { category: 'guides', filename: 'getting-started.md', title: 'Getting Started', content: '# Hello' },
+      data: {
+        category: 'guides',
+        filename: 'getting-started.md',
+        title: 'Getting Started',
+        content: '# Hello',
+      },
       isLoading: false,
       error: null,
     });

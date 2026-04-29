@@ -7,7 +7,6 @@
 
 'use client';
 
-import Link from 'next/link';
 import { useState, useMemo, memo } from 'react';
 import { Layout } from '@/interfaces/human/layout';
 import { ManagementRouteGuard } from '@/components/route-guard';

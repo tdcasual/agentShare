@@ -44,7 +44,7 @@ function SpacesContent() {
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
   const globalSession = useGlobalSession();
-  const sessionRole = globalSession.state === 'authenticated' ? globalSession.role ?? null : null;
+  const sessionRole = globalSession.state === 'authenticated' ? (globalSession.role ?? null) : null;
   const role = isValidRole(sessionRole ?? '') ? sessionRole : null;
   const canManageSpaces = hasRequiredRole(role, 'operator');
   const canViewAdminPanels = hasRequiredRole(role, 'admin');
@@ -257,7 +257,7 @@ function SpacesContent() {
       {/* Hero Section */}
       {canViewAdminPanels ? (
         <section className="relative overflow-hidden rounded-[2rem] border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-4 sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
-          <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
             <div className="max-w-3xl">
               <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-orange-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">
                 <Sparkles className="h-3.5 w-3.5" />
@@ -400,7 +400,7 @@ function SpacesContent() {
             />
 
             {/* Market Inventory */}
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 sm:space-y-4 lg:space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90 sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold text-[var(--kw-text)]">

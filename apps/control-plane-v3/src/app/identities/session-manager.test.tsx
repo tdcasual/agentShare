@@ -53,10 +53,12 @@ describe('SessionManager', () => {
   it('manages runtime sessions only and excludes workbench conversations', () => {
     render(
       <SessionManager
-        agent={{
-          id: 'agent-1',
-          name: 'Bootstrap',
-        } as never}
+        agent={
+          {
+            id: 'agent-1',
+            name: 'Bootstrap',
+          } as never
+        }
         sessions={[
           {
             id: 'runtime-1',
@@ -86,25 +88,38 @@ describe('SessionManager', () => {
 
     render(
       <SessionManager
-        agent={{
-          id: 'agent-1',
-          name: 'Bootstrap',
-        } as never}
+        agent={
+          {
+            id: 'agent-1',
+            name: 'Bootstrap',
+          } as never
+        }
         sessions={[]}
         sessionErrorMessage={null}
         canManage
       />
     );
 
-    await user.click(screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') }));
-    await user.type(screen.getByLabelText(translateMessage('identities.sessionManager.sessionKey')), 'sess_runtime_2');
+    await user.click(
+      screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') })
+    );
+    await user.type(
+      screen.getByLabelText(translateMessage('identities.sessionManager.sessionKey')),
+      'sess_runtime_2'
+    );
     await user.type(
       screen.getByLabelText(translateMessage('identities.sessionManager.displayName')),
       'Support Session'
     );
     await user.clear(screen.getByLabelText(translateMessage('identities.sessionManager.channel')));
-    await user.type(screen.getByLabelText(translateMessage('identities.sessionManager.channel')), 'chat');
-    await user.type(screen.getByLabelText(translateMessage('identities.sessionManager.subject')), 'deployment');
+    await user.type(
+      screen.getByLabelText(translateMessage('identities.sessionManager.channel')),
+      'chat'
+    );
+    await user.type(
+      screen.getByLabelText(translateMessage('identities.sessionManager.subject')),
+      'deployment'
+    );
     await user.click(screen.getByRole('button', { name: translateMessage('common.create') }));
 
     expect(createOpenClawSessionMock).toHaveBeenCalledWith('agent-1', {

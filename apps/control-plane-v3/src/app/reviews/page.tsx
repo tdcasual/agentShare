@@ -382,7 +382,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length === 0 ? (
         <Card
           variant="feature"
-          className="space-y-3 sm:space-y-4 lg:space-y-6 py-12 text-center dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+          className="space-y-3 py-12 text-center sm:space-y-4 lg:space-y-6 dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
         >
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-green-accent-surface)] dark:text-[var(--kw-dark-mint)]">
             <ShieldCheck className="h-10 w-10" />

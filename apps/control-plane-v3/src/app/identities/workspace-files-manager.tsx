@@ -44,7 +44,9 @@ export function WorkspaceFilesManager({ agent }: WorkspaceFilesManagerProps) {
       </div>
 
       {filesQuery.isLoading ? (
-        <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.loadingWorkspaceFiles')}</p>
+        <p className="text-sm text-[var(--kw-text-muted)]">
+          {t('identities.loadingWorkspaceFiles')}
+        </p>
       ) : filesQuery.error instanceof Error ? (
         <p className="text-sm text-[var(--kw-error)]">
           {t('identities.workspaceFilesUnavailable')} {filesQuery.error.message}
@@ -58,16 +60,18 @@ export function WorkspaceFilesManager({ agent }: WorkspaceFilesManagerProps) {
             return (
               <div
                 key={file.file_name}
-                className="rounded-2xl border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
+                className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)]"
               >
                 <button
                   type="button"
                   onClick={() => toggleFile(file.file_name)}
                   className="flex w-full items-center justify-between gap-3 p-3 text-left"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
                     <FileText className="h-4 w-4 flex-shrink-0 text-[var(--kw-text-muted)]" />
-                    <span className="truncate text-sm font-medium text-[var(--kw-text)]">{file.file_name}</span>
+                    <span className="truncate text-sm font-medium text-[var(--kw-text)]">
+                      {file.file_name}
+                    </span>
                   </div>
                   {isExpanded ? (
                     <ChevronUp className="h-4 w-4 flex-shrink-0 text-[var(--kw-text-muted)]" />

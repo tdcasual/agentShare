@@ -21,7 +21,12 @@ export interface SessionManagerProps {
   canManage: boolean;
 }
 
-export function SessionManager({ agent, sessions, sessionErrorMessage, canManage }: SessionManagerProps) {
+export function SessionManager({
+  agent,
+  sessions,
+  sessionErrorMessage,
+  canManage,
+}: SessionManagerProps) {
   const { t } = useI18n();
   const createSession = useCreateOpenClawSession();
   const revokeSession = useRevokeOpenClawSession();
@@ -35,7 +40,9 @@ export function SessionManager({ agent, sessions, sessionErrorMessage, canManage
   });
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const sortedSessions = [...sessions].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+  const sortedSessions = [...sessions].sort(
+    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  );
 
   async function handleCreate() {
     if (!createForm.session_key.trim() || !createForm.display_name.trim()) {
@@ -101,7 +108,7 @@ export function SessionManager({ agent, sessions, sessionErrorMessage, canManage
       ) : null}
 
       {showCreate && canManage ? (
-        <div className="space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-4 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-4 dark:border-[var(--kw-dark-border)]">
           <Input
             label={t('identities.sessionManager.sessionKey')}
             value={createForm.session_key}
@@ -140,19 +147,21 @@ export function SessionManager({ agent, sessions, sessionErrorMessage, canManage
       ) : null}
 
       {error ? (
-        <div className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)]/80 p-3 text-sm text-[var(--kw-rose-text)]">
+        <div className="bg-[var(--kw-rose-surface)]/80 rounded-2xl border border-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)]">
           {error}
         </div>
       ) : null}
 
       {sortedSessions.length === 0 ? (
-        <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.sections.noRecentSessions')}</p>
+        <p className="text-sm text-[var(--kw-text-muted)]">
+          {t('identities.sections.noRecentSessions')}
+        </p>
       ) : (
         <div className="space-y-2">
           {sortedSessions.map((session) => (
             <div
               key={session.id}
-              className="flex items-start justify-between gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80"
+              className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start justify-between gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-[var(--kw-text)]">{session.display_name}</p>
@@ -169,7 +178,9 @@ export function SessionManager({ agent, sessions, sessionErrorMessage, canManage
                   <p className="mt-1 text-xs text-[var(--kw-text-muted)]">{session.subject}</p>
                 ) : null}
                 <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
-                  {t('identities.sections.updatedAt', { value: formatSnapshotTimestamp(session.updated_at) })}
+                  {t('identities.sections.updatedAt', {
+                    value: formatSnapshotTimestamp(session.updated_at),
+                  })}
                 </p>
               </div>
               {canManage ? (

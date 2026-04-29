@@ -168,7 +168,9 @@ export function revokeOpenClawSession(sessionId: string) {
 }
 
 export function getAgentWorkbenchSessions(agentId: string) {
-  return apiFetch<{ items: WorkbenchSessionSummary[] }>(`/openclaw/agents/${agentId}/workbench/sessions`);
+  return apiFetch<{ items: WorkbenchSessionSummary[] }>(
+    `/openclaw/agents/${agentId}/workbench/sessions`
+  );
 }
 
 export function createAgentWorkbenchSession(agentId: string, payload: WorkbenchSessionCreateInput) {
@@ -183,14 +185,19 @@ export function getWorkbenchSession(conversationId: string) {
 }
 
 export function getWorkbenchMessages(conversationId: string) {
-  return apiFetch<{ items: WorkbenchMessageSummary[] }>(`/openclaw/workbench/sessions/${conversationId}/messages`);
+  return apiFetch<{ items: WorkbenchMessageSummary[] }>(
+    `/openclaw/workbench/sessions/${conversationId}/messages`
+  );
 }
 
 export function sendWorkbenchMessage(conversationId: string, payload: WorkbenchMessageInput) {
-  return apiFetch<WorkbenchMessageCreateResponse>(`/openclaw/workbench/sessions/${conversationId}/messages`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  return apiFetch<WorkbenchMessageCreateResponse>(
+    `/openclaw/workbench/sessions/${conversationId}/messages`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 // ============================================

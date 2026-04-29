@@ -166,7 +166,9 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className="max-h-[calc(85dvh-4rem)] overflow-y-auto px-4 py-4 sm:px-6 safe-area-pb">{children}</div>
+        <div className="safe-area-pb max-h-[calc(85dvh-4rem)] overflow-y-auto px-4 py-4 sm:px-6">
+          {children}
+        </div>
       </div>
     </div>
   );

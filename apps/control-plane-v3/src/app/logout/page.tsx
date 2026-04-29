@@ -40,7 +40,12 @@ export default function LogoutPage() {
       <main id="main-content" className="flex min-h-screen items-center justify-center px-6">
         <div role="alert" aria-live="assertive" className="max-w-md text-center">
           <p>{error}</p>
-          <button type="button" onClick={() => { window.location.href = '/login'; }}>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = '/login';
+            }}
+          >
             {t('auth.logout.continueToLogin')}
           </button>
         </div>

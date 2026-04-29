@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { memo, useCallback } from 'react';
 import { ClipboardList, MessageSquarePlus, Plus, RefreshCw, Target } from 'lucide-react';
 import { Layout } from '@/interfaces/human/layout';

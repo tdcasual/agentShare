@@ -98,7 +98,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
     }
 
     // 已认证用户访问登录页 — 重定向到管理首页
-    if (entryState.kind === 'authenticated_ready' && (pathname === '/login' || pathname === '/setup')) {
+    if (
+      entryState.kind === 'authenticated_ready' &&
+      (pathname === '/login' || pathname === '/setup')
+    ) {
       const userRole = isValidRole(entryState.session.role) ? entryState.session.role : null;
       router.replace(getDefaultManagementRoute(userRole));
       return;

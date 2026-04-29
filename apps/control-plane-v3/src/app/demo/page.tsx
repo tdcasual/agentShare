@@ -42,7 +42,7 @@ export default function DemoHubPage() {
             </div>
           </div>
 
-          <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-bg)]/30 grid gap-3 rounded-[1.5rem] border bg-white/75 p-3 sm:p-4 lg:p-5 text-sm text-[var(--kw-text-muted)] shadow-sm dark:text-[var(--kw-dark-text-muted)]">
+          <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-bg)]/30 grid gap-3 rounded-[1.5rem] border bg-white/75 p-3 text-sm text-[var(--kw-text-muted)] shadow-sm sm:p-4 lg:p-5 dark:text-[var(--kw-dark-text-muted)]">
             <div className="flex items-start gap-3">
               <Compass className="mt-0.5 h-4 w-4 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
               <p>
@@ -65,7 +65,7 @@ export default function DemoHubPage() {
         {SANDBOX_ROUTES.map((route) => (
           <article
             key={route.demoHref}
-            className="border-[var(--kw-border)]/80 dark:bg-[var(--kw-dark-bg)]/60 group rounded-[1.75rem] border bg-white/85 p-3 sm:p-4 lg:p-6 shadow-[0_16px_45px_-35px_rgba(0,0,0,0.15)] transition-transform duration-200 hover:-translate-y-0.5 dark:border-[var(--kw-dark-border)]"
+            className="border-[var(--kw-border)]/80 dark:bg-[var(--kw-dark-bg)]/60 group rounded-[1.75rem] border bg-white/85 p-3 shadow-[0_16px_45px_-35px_rgba(0,0,0,0.15)] transition-transform duration-200 hover:-translate-y-0.5 sm:p-4 lg:p-6 dark:border-[var(--kw-dark-border)]"
           >
             <div className="flex h-full flex-col gap-3 sm:gap-4 lg:gap-5">
               <div className="space-y-3">

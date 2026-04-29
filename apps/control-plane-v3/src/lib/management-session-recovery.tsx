@@ -37,7 +37,7 @@ export function useManagementPageSessionRecovery(queryErrors: QueryErrorInput) {
   const loading = globalSession.state === 'unknown';
   const session = globalSession.summary ?? null;
   const error =
-    globalSession.state === 'unavailable' ? globalSession.error ?? 'Service unavailable' : null;
+    globalSession.state === 'unavailable' ? (globalSession.error ?? 'Service unavailable') : null;
 
   return {
     session,

@@ -249,12 +249,26 @@ describe('openclaw migration characterization on identities page', () => {
       mutate: vi.fn(),
     });
 
-    useCreateOpenClawAgentMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'new-agent', name: 'New Agent' }));
-    useUpdateOpenClawAgentMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'bootstrap', name: 'Bootstrap Credential' }));
-    useCreateOpenClawSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'runtime-session-1' }));
-    useAgentWorkbenchSessionsMock.mockReturnValue({ data: { items: [] }, isLoading: false, error: null });
-    useCreateAgentWorkbenchSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'new-session', display_name: 'New Session' }));
-    useRevokeOpenClawSessionMock.mockReturnValue(vi.fn().mockResolvedValue({ id: 'session-1', status: 'revoked' }));
+    useCreateOpenClawAgentMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'new-agent', name: 'New Agent' })
+    );
+    useUpdateOpenClawAgentMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'bootstrap', name: 'Bootstrap Credential' })
+    );
+    useCreateOpenClawSessionMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'runtime-session-1' })
+    );
+    useAgentWorkbenchSessionsMock.mockReturnValue({
+      data: { items: [] },
+      isLoading: false,
+      error: null,
+    });
+    useCreateAgentWorkbenchSessionMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'new-session', display_name: 'New Session' })
+    );
+    useRevokeOpenClawSessionMock.mockReturnValue(
+      vi.fn().mockResolvedValue({ id: 'session-1', status: 'revoked' })
+    );
     useDeleteOpenClawAgentMock.mockReturnValue(vi.fn());
     usePauseOpenClawDreamRunMock.mockReturnValue(vi.fn());
     useResumeOpenClawDreamRunMock.mockReturnValue(vi.fn());

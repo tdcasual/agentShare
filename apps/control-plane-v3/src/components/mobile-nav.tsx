@@ -64,7 +64,9 @@ export function MobileNav() {
                 )}
               >
                 <Icon className={cn('h-5 w-5', isActive && 'scale-110')} aria-hidden="true" />
-                <span className="max-w-full truncate text-[10px] font-medium sm:text-[11px]">{item.label}</span>
+                <span className="max-w-full truncate text-[10px] font-medium sm:text-[11px]">
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -84,7 +86,9 @@ export function MobileNav() {
               )}
             >
               <Sparkles className="h-5 w-5" />
-              <span className="text-[10px] font-medium sm:text-[11px]">{t('common.more') || '更多'}</span>
+              <span className="text-[10px] font-medium sm:text-[11px]">
+                {t('common.more') || '更多'}
+              </span>
             </button>
           ) : null}
         </div>
