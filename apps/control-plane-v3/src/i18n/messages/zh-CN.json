@@ -699,6 +699,7 @@
     "workbench": {
       "conversations": "对话",
       "capability": "Capability",
+      "configureCapabilities": "配置能力",
       "selectCapability": "选择一个 capability",
       "noCapabilities": "这个智能体当前没有可用的 OpenAI capability。",
       "loadingConversations": "正在加载对话...",

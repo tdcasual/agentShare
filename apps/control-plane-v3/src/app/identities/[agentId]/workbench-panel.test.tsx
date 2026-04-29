@@ -18,6 +18,12 @@ vi.mock('@/components/i18n-provider', () => ({
   }),
 }));
 
+vi.mock('next/link', () => ({
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock('@/domains/identity', () => ({
   useWorkbenchMessages: (...args: unknown[]) => useWorkbenchMessagesMock(...args),
   useSendWorkbenchMessage: () => useSendWorkbenchMessageMock(),
@@ -162,6 +168,51 @@ describe('WorkbenchPanel', () => {
     expect(
       screen.getByText(translateMessage('identities.workbench.noCapabilities'))
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', {
+        name: translateMessage('identities.workbench.configureCapabilities'),
+      })
+    ).toHaveAttribute('href', '/assets');
+  });
+
+  it('selects the new conversation after creation', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <WorkbenchPanel
+        agent={
+          {
+            id: 'agent-1',
+            name: 'Bootstrap',
+            allowed_capability_ids: ['cap-1'],
+          } as never
+        }
+        workbenchSessions={[]}
+        isLoadingSessions={false}
+        sessionsError={null}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: translateMessage('identities.sessionManager.newSession') })
+    );
+    await user.type(
+      screen.getByLabelText(translateMessage('identities.sessionManager.displayName')),
+      'Deploy triage'
+    );
+    await user.click(screen.getByRole('button', { name: translateMessage('common.create') }));
+
+    const composer = await screen.findByPlaceholderText(
+      translateMessage('identities.workbench.composerPlaceholder')
+    );
+    await user.type(composer, 'Start deployment triage');
+    await user.click(
+      screen.getByRole('button', { name: translateMessage('identities.workbench.send') })
+    );
+
+    expect(sendWorkbenchMessageMock).toHaveBeenCalledWith('workbench-1', {
+      content: 'Start deployment triage',
+    });
   });
 
   it('shows an error in the new-session panel when conversation creation fails', async () => {

@@ -699,6 +699,7 @@
     "workbench": {
       "conversations": "Conversations",
       "capability": "Capability",
+      "configureCapabilities": "Configure capabilities",
       "selectCapability": "Select a capability",
       "noCapabilities": "No active OpenAI capabilities are available for this agent.",
       "loadingConversations": "Loading conversations...",

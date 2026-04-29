@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { Send, MessageSquare, AlertTriangle, Loader2 } from 'lucide-react';
 import type { OpenClawAgent, WorkbenchSessionSummary } from '@/domains/identity';
 import {
@@ -164,9 +165,17 @@ export function WorkbenchPanel({
                   placeholder={t('identities.sessionManager.displayNamePlaceholder')}
                 />
                 {availableCapabilities.length === 0 ? (
-                  <p className="text-sm text-[var(--kw-text-muted)]">
-                    {t('identities.workbench.noCapabilities')}
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-[var(--kw-text-muted)]">
+                      {t('identities.workbench.noCapabilities')}
+                    </p>
+                    <Link
+                      href="/assets"
+                      className="inline-flex text-sm font-medium text-[var(--kw-primary-600)] hover:text-[var(--kw-primary-500)]"
+                    >
+                      {t('identities.workbench.configureCapabilities')}
+                    </Link>
+                  </div>
                 ) : null}
                 <MutationAlert
                   error={sendError}
