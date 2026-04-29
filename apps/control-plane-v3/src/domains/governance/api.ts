@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api-client';
+import { apiFetch, apiFetchWithMeta } from '@/lib/api-client';
 import type {
   CapabilityCreateInput,
   GovernedCapability,
@@ -11,10 +11,10 @@ export function getSecrets() {
 }
 
 export function createSecret(payload: SecretCreateInput) {
-  return apiFetch<GovernedSecret>('/secrets', {
+  return apiFetchWithMeta<GovernedSecret>('/secrets', {
     method: 'POST',
     body: JSON.stringify(payload),
-  });
+  }).then(({ data, status }) => ({ ...data, response_status: status }));
 }
 
 export function getCapabilities() {
@@ -22,10 +22,10 @@ export function getCapabilities() {
 }
 
 export function createCapability(payload: CapabilityCreateInput) {
-  return apiFetch<GovernedCapability>('/capabilities', {
+  return apiFetchWithMeta<GovernedCapability>('/capabilities', {
     method: 'POST',
     body: JSON.stringify(payload),
-  });
+  }).then(({ data, status }) => ({ ...data, response_status: status }));
 }
 
 export const governanceApi = {

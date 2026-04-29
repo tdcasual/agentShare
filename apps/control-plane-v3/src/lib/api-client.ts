@@ -14,6 +14,12 @@ const API_BASE_URL = '/api';
 
 type JsonValue = Record<string, unknown> | Array<unknown> | string | number | boolean | null;
 
+export interface ApiFetchMeta<T> {
+  data: T;
+  ok: boolean;
+  status: number;
+}
+
 export class ApiError extends Error {
   status: number;
   detail: string;
@@ -25,13 +31,10 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * 基础 API 请求函数
- */
-export async function apiFetch<T>(
+async function requestJson<T>(
   path: string,
   init: RequestInit & { timeout?: number } = {}
-): Promise<T> {
+): Promise<ApiFetchMeta<T>> {
   const { timeout = 30000, signal: externalSignal, ...rest } = init;
   const headers = new Headers(rest.headers);
   if (!headers.has('Content-Type') && rest.body) {
@@ -76,7 +79,11 @@ export async function apiFetch<T>(
 
     // Note: Runtime validation would be better, but for now we trust the API
     // Consider using zod or similar for runtime type checking
-    return payload as T;
+    return {
+      data: payload as T,
+      ok: response.ok,
+      status: response.status,
+    };
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError(0, '请求超时，请检查网络连接');
@@ -85,6 +92,24 @@ export async function apiFetch<T>(
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+/**
+ * 基础 API 请求函数
+ */
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit & { timeout?: number } = {}
+): Promise<T> {
+  const { data } = await requestJson<T>(path, init);
+  return data;
+}
+
+export function apiFetchWithMeta<T>(
+  path: string,
+  init: RequestInit & { timeout?: number } = {}
+): Promise<ApiFetchMeta<T>> {
+  return requestJson<T>(path, init);
 }
 
 // ============================================

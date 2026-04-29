@@ -64,11 +64,30 @@ function buildCapabilityAccessPolicy(form: CapabilityFormState) {
 
 function successMessageKey(
   resource: 'secrets' | 'capabilities',
-  publicationStatus?: string | null
+  publicationStatus?: string | null,
+  responseStatus?: number | null
 ) {
+  if (responseStatus === 202) {
+    return `assets.${resource}.createSuccessPendingReview`;
+  }
+  if (responseStatus === 201) {
+    return `assets.${resource}.createSuccessActive`;
+  }
   return publicationStatus === 'pending_review'
     ? `assets.${resource}.createSuccessPendingReview`
     : `assets.${resource}.createSuccessActive`;
+}
+
+function responseStatusOf(value: unknown) {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'response_status' in value &&
+    typeof value.response_status === 'number'
+  ) {
+    return value.response_status;
+  }
+  return null;
 }
 
 export function useAssetsForm({
@@ -243,7 +262,9 @@ export function useAssetsForm({
           required_provider: created.provider ?? current.required_provider,
           required_provider_scopes: (created.provider_scopes ?? []).join(', '),
         }));
-        setSuccess(t(successMessageKey('secrets', created.publication_status)));
+        setSuccess(
+          t(successMessageKey('secrets', created.publication_status, responseStatusOf(created)))
+        );
         onSecretCreated?.();
       } catch (submitError) {
         if (consumeUnauthorized(submitError)) {
@@ -316,7 +337,11 @@ export function useAssetsForm({
           label_key: '',
           label_values: [],
         }));
-        setSuccess(t(successMessageKey('capabilities', created.publication_status)));
+        setSuccess(
+          t(
+            successMessageKey('capabilities', created.publication_status, responseStatusOf(created))
+          )
+        );
         onCapabilityCreated?.();
       } catch (submitError) {
         if (consumeUnauthorized(submitError)) {

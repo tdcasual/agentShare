@@ -348,6 +348,35 @@ describe('assets page', () => {
     });
   });
 
+  it('uses accepted response status for pending-review publish feedback', async () => {
+    const user = userEvent.setup();
+    useCreateSecretMock.mockReturnValue(
+      vi.fn().mockResolvedValue({
+        id: 'secret-review',
+        display_name: 'OpenAI production key',
+        kind: 'api_token',
+        provider: 'openai',
+        environment: 'production',
+        provider_scopes: ['responses.read'],
+        resource_selector: null,
+        publication_status: 'active',
+        response_status: 202,
+      })
+    );
+
+    render(<AssetsPage />);
+
+    await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
+    await user.click(screen.getByRole('button', { name: t('assets.secrets.create') }));
+
+    const dialog = screen.getByRole('dialog');
+    await waitFor(() => {
+      expect(within(dialog).getByRole('status')).toHaveTextContent(
+        t('assets.secrets.createSuccessPendingReview')
+      );
+    });
+  });
+
   it('uses catalog selectors for secret type fields', async () => {
     const user = userEvent.setup();
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { apiFetch, ApiError } from './api-client';
+import { apiFetch, apiFetchWithMeta, ApiError } from './api-client';
 
 describe('api-client', () => {
   beforeEach(() => {
@@ -20,6 +20,23 @@ describe('api-client', () => {
 
     const result = await apiFetch<{ id: string; name: string }>('/agents');
     expect(result).toEqual({ id: '1', name: 'Alice' });
+  });
+
+  it('returns parsed JSON with response status metadata', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 202,
+      statusText: 'Accepted',
+      text: async () => JSON.stringify({ id: 'secret-1' }),
+    } as Response);
+
+    const result = await apiFetchWithMeta<{ id: string }>('/secrets', { method: 'POST' });
+
+    expect(result).toEqual({
+      data: { id: 'secret-1' },
+      ok: true,
+      status: 202,
+    });
   });
 
   it('throws ApiError with detail on 4xx response', async () => {

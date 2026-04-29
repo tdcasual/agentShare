@@ -7,7 +7,12 @@
  * - Access token feedback
  */
 
-import { apiFetch, TaskCreateInput, AccessTokenFeedbackCreateInput } from '@/lib/api-client';
+import {
+  apiFetch,
+  apiFetchWithMeta,
+  TaskCreateInput,
+  AccessTokenFeedbackCreateInput,
+} from '@/lib/api-client';
 import {
   normalizeAccessTokenFeedback,
   normalizeRun,
@@ -28,10 +33,10 @@ export function getTasks() {
 }
 
 export function createTask(payload: TaskCreateInput) {
-  return apiFetch<TaskTransport>('/tasks', {
+  return apiFetchWithMeta<TaskTransport>('/tasks', {
     method: 'POST',
     body: JSON.stringify(payload),
-  }).then(normalizeTask);
+  }).then(({ data, status }) => ({ ...normalizeTask(data), response_status: status }));
 }
 
 // ============================================
