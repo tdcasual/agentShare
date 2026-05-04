@@ -46,12 +46,12 @@
       "allowedMode": "调用模式",
       "bindSecret": "绑定密钥",
       "create": "创建 capability",
-      "description": "将已发布密钥包装成可由 agent 调用或租借的 capability。",
-      "emptyDesc": "选择一个密钥并定义访问策略，发布第一个 capability。",
+      "description": "",
+      "emptyDesc": "发布 capability",
       "emptyTitle": "还没有 capability",
       "labelRequiredError": "按 token 标签限制时，请选择标签键和值。",
       "leaseTTL": "租约 TTL",
-      "modalDesc": "绑定密钥并定义哪些 token 或 agent 可以看到它。",
+      "modalDesc": "",
       "modalTitle": "发布 capability",
       "modeProxyOnly": "仅代理",
       "modeProxyOrLease": "代理或租赁",
@@ -100,7 +100,7 @@
       "activeAssets": "{count} 个活跃资产",
       "allResources": "全部资源",
       "allStates": "全部状态",
-      "description": "查看智能体正在发布什么、哪些内容已经上线，以及下一个需要人工关注的资源通道。",
+      "description": "",
       "pendingReview": "待审核",
       "pendingReviewItems": "{count} 个待审核项目",
       "publicationState": "发布状态",
@@ -112,11 +112,11 @@
     "metrics": {
       "activeTokens": "活跃令牌",
       "capabilities": "能力",
-      "capabilitiesHint": "已发布给 agent 使用的配置入口",
+      "capabilitiesHint": "",
       "restricted": "定向能力",
-      "restrictedHint": "按选择器限制可见范围的 capability",
+      "restrictedHint": "",
       "secrets": "密钥",
-      "secretsHint": "可供能力绑定的已发布凭据"
+      "secretsHint": ""
     },
     "newCapability": "新建能力",
     "newSecret": "新建密钥",
@@ -131,17 +131,17 @@
       "createFailed": "创建密钥失败",
       "createSuccessActive": "密钥已创建并生效。",
       "createSuccessPendingReview": "密钥已提交人工审核。",
-      "description": "发布供 capability 绑定的 API key 与外部凭据。",
+      "description": "",
       "displayName": "显示名称",
       "displayNamePlaceholder": "openai.config.bootstrap",
-      "emptyDesc": "先发布一个密钥，再把它绑定到 capability。",
+      "emptyDesc": "发布密钥",
       "emptyTitle": "还没有密钥",
       "environment": "环境",
       "environmentPlaceholder": "production",
       "inventory": "密钥库存",
       "kind": "类型",
       "kindPlaceholder": "api_token",
-      "modalDesc": "创建一个可供 capability 绑定的受管密钥。",
+      "modalDesc": "",
       "modalTitle": "发布密钥",
       "provider": "提供方",
       "providerPlaceholder": "OpenAI production key",
@@ -173,7 +173,7 @@
   "auth": {
     "login": {
       "checking": "正在检查引导状态和会话...",
-      "description": "使用您引导创建或受邀加入的持久管理员账户。",
+      "description": "管理员登录",
       "email": "邮箱",
       "failedToLoad": "加载登录状态失败",
       "loginFailed": "登录失败",
@@ -193,7 +193,7 @@
       "bootstrapKeyPlaceholder": "changeme-bootstrap-key",
       "createAccount": "创建所有者账户",
       "creating": "创建中",
-      "description": "使用引导凭证完成一次性初始化，创建创始所有者账户并解锁管理登录流程。",
+      "description": "初始化系统并创建所有者账户",
       "displayName": "显示名称",
       "displayNamePlaceholder": "创始所有者",
       "failedToBootstrap": "引导所有者失败",
@@ -732,7 +732,7 @@
     "refresh": "刷新",
     "retry": "重试",
     "subject": "主题",
-    "subtitle": "智能体反馈、完成事件和系统警报均汇聚于此。",
+    "subtitle": "事件收件箱",
     "title": "收件箱",
     "tryAgain": "请稍后再试。",
     "unread": "未读"
@@ -747,7 +747,7 @@
     "comingSoon": "市场功能即将推出...",
     "contextPublished": "已发布上下文",
     "contextReview": "审核上下文",
-    "description": "发现、分享和安装社区创建的资产。人类和智能体都可以在此处发布。",
+    "description": "社区资产市场",
     "emptyPending": "当前没有等待审核的智能体提交。",
     "emptyPublished": "当前没有可见的基于发布版本的智能体出版物。",
     "emptyRejected": "当前没有可见的被拒绝的智能体提交。",
@@ -792,7 +792,7 @@
     "sectionSkills": "技能",
     "sessionExpiredMessage": "请重新登录以重新加载市场审核状态。",
     "submittedByAgent": "由智能体提交",
-    "subtitle": "市场是由智能体运营的技能、凭据和执行产物展示面。人类操作员负责监督审批、策略和生命周期决策，而不是亲自向目录发布内容。",
+    "subtitle": "",
     "switchHint": "切换回全部或活跃以查看当前已发布的资产和技能。",
     "tagline": "智能体市场",
     "title": "资产市场",
@@ -946,9 +946,9 @@
       "reject": "拒绝"
     },
     "awaitingDecision": "等待首次决定",
-    "description": "智能体发布的资产保持非活跃状态，直到人类操作员在此处批准或拒绝。",
+    "description": "审核智能体提交的资产",
     "empty": {
-      "description": "所有待处理的智能体提交资产已处理完毕。",
+      "description": "暂无待审核项",
       "title": "审核队列已清空"
     },
     "errors": {
@@ -1064,10 +1064,10 @@
     "accessModel3": "只有受邀管理员账户可以打开管理会话。",
     "accountId": "账户 ID",
     "accounts": "账户",
-    "accountsHint": "持久化管理身份",
+    "accountsHint": "",
     "activeOperators": "活跃操作员",
     "admins": "管理员",
-    "adminsHint": "完全管理访问权限",
+    "adminsHint": "",
     "appearance": "外观",
     "availability": "可用性",
     "canLogin": "可以登录",
@@ -1076,7 +1076,7 @@
     "createAdminDesc": "首次运行引导后，这是添加新人类操作员的唯一支持路径。",
     "createAdminTitle": "创建新的管理员身份",
     "currentSession": "当前会话",
-    "description": "所有者引导已完成。人类访问现在仅通过受邀管理员账户控制。",
+    "description": "管理账户与权限",
     "disable": "禁用",
     "disableError": "禁用账户失败",
     "displayName": "显示名称",
@@ -1103,10 +1103,10 @@
     "operatorPosture": "操作员状态",
     "operatorPostureDesc": "引导凭证现在仅保留用于首次运行设置，不再作为日常登录使用。",
     "operatorsViewers": "操作员 + 观察者",
-    "operatorsViewersHint": "仅限邀请的支持角色",
+    "operatorsViewersHint": "",
     "ownerAccounts": "所有者账户",
     "owners": "所有者",
-    "ownersHint": "引导创建的创始操作员",
+    "ownersHint": "",
     "passwordPlaceholder": "至少 12 个字符",
     "profile": "个人资料",
     "role": "角色",
@@ -1178,7 +1178,7 @@
     },
     "governance": {
       "title": "治理空间",
-      "description": "针对智能体发起的市场提交项的人工审核待办。",
+      "description": "",
       "allReviews": "全部审核",
       "pendingReview": "待审核",
       "rejectedReview": "已拒绝审核",
@@ -1195,7 +1195,7 @@
     },
     "hero": {
       "badge": "操作空间",
-      "description": "这个空间聚合了智能体反馈、治理审核、身份信息以及已发布市场库存，让人类监督者能在一个由后端支撑的界面中统一协调。",
+      "description": "",
       "metrics": {
         "activeAgents": "活跃智能体",
         "pendingReviews": "待处理审核",
@@ -1236,7 +1236,7 @@
     "messagePlaceholder": "向 @DeployBot 或群组发送消息...",
     "marketInventory": {
       "assetsCount": "{count} 个资产",
-      "description": "当前对智能体生态可见的已发布资产和技能。",
+      "description": "",
       "skillsCount": "{count} 个技能",
       "title": "市场库存"
     },
@@ -1315,10 +1315,10 @@
     "completed": "已完成",
     "completedCount": "{completed}/{total} 已完成",
     "createdByLine": "{taskType} • 创建者 {actorType}:{actorId}",
-    "description": "将工作发布到特定的远程访问令牌，逐令牌监控完成情况，并与外部智能体闭环反馈。",
+    "description": "发布并监控定向任务",
     "directHumanPublish": "直接人工发布",
     "empty": {
-      "description": "从此页面创建任务并将其定向到一个或多个远程访问令牌。",
+      "description": "创建定向任务",
       "title": "尚未发布任何任务"
     },
     "errors": {
@@ -1364,10 +1364,10 @@
       "verdictPlaceholder": "accepted"
     },
     "hints": {
-      "completedTargets": "令牌关联的运行记录",
-      "feedbackRecords": "对已完成的工件的人工审核备注",
-      "publishedTasks": "当前可见的活跃任务",
-      "targetedTokens": "显式令牌分配"
+      "completedTargets": "",
+      "feedbackRecords": "",
+      "publishedTasks": "",
+      "targetedTokens": ""
     },
     "inputPayload": "输入负载",
     "leaveFeedback": "留下反馈",
@@ -1391,7 +1391,7 @@
       "normal": "正常"
     },
     "publishTask": "发布任务",
-    "publishTaskDescription": "选择应接收此工作的具体远程访问令牌。",
+    "publishTaskDescription": "",
     "publication": {
       "active": "活跃",
       "archived": "已归档",
@@ -1428,7 +1428,7 @@
     },
     "supervision": {
       "completedTargetsAwaitingFeedback": "{count} 个已完成目标等待反馈",
-      "description": "跟踪哪些定向到远程令牌的运行仍在进行中，以及哪些已完成目标仍需要人类监督者补充明确反馈。",
+      "description": "",
       "filters": {
         "all": "全部任务",
         "inFlight": "进行中",
@@ -1483,7 +1483,7 @@
       "riskBadge": "{tier} 风险",
       "riskTier": "风险等级"
     },
-    "description": "为外部机器和项目外调用方签发独立访问令牌，使其能够获取项目信息、发布交付物并参与协作流程。",
+    "description": "签发并监管远程访问令牌",
     "errors": {
       "clipboardBlocked": "剪贴板访问被阻止。请手动从展示卡片中复制访问令牌。",
       "loadDataFailed": "加载数据失败",
@@ -1534,10 +1534,10 @@
       "totalHint": "总计 {count}"
     },
     "hints": {
-      "activeTokens": "当前活跃的远程凭证",
-      "averageTrust": "所有令牌的平均信任分",
-      "feedbackCoverage": "至少有一条反馈记录的令牌",
-      "needsFeedback": "仍等待人工审核的令牌"
+      "activeTokens": "",
+      "averageTrust": "",
+      "feedbackCoverage": "",
+      "needsFeedback": ""
     },
     "riskTiers": {
       "critical": "严重",
@@ -1591,7 +1591,7 @@
     },
     "empty": {
       "title": "尚未签发任何访问令牌",
-      "description": "签发第一个独立访问令牌，开始监管远程调用方。"
+      "description": "签发首个访问令牌"
     },
     "loading": "正在加载访问令牌清单...",
     "neverUsed": "从未使用",

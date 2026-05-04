@@ -46,12 +46,12 @@
       "allowedMode": "Invocation mode",
       "bindSecret": "Bind secret",
       "create": "Create Capability",
-      "description": "Wrap a published secret as a capability that agents can call or lease.",
-      "emptyDesc": "Choose a secret, define its access policy, and publish the first capability.",
+      "description": "",
+      "emptyDesc": "Publish a capability",
       "emptyTitle": "No capabilities yet",
       "labelRequiredError": "When limiting by token label, please select a label key and value.",
       "leaseTTL": "Lease TTL",
-      "modalDesc": "Bind a secret and define which tokens or agents can see it.",
+      "modalDesc": "",
       "modalTitle": "Publish Capability",
       "modeProxyOnly": "proxy_only",
       "modeProxyOrLease": "proxy_or_lease",
@@ -100,7 +100,7 @@
       "activeAssets": "{count} active assets",
       "allResources": "All resources",
       "allStates": "All states",
-      "description": "Review what agents are trying to publish, what has already gone live, and which resource lane needs human attention next.",
+      "description": "",
       "pendingReview": "Pending Review",
       "pendingReviewItems": "{count} pending review items",
       "publicationState": "Publication state",
@@ -112,11 +112,11 @@
     "metrics": {
       "activeTokens": "Active tokens",
       "capabilities": "Capabilities",
-      "capabilitiesHint": "Published configuration entry points for agents",
+      "capabilitiesHint": "",
       "restricted": "Scoped capabilities",
-      "restrictedHint": "Capabilities limited by selector-based visibility",
+      "restrictedHint": "",
       "secrets": "Secrets",
-      "secretsHint": "Published credentials ready for capability binding"
+      "secretsHint": ""
     },
     "newCapability": "New Capability",
     "newSecret": "New Secret",
@@ -131,17 +131,17 @@
       "createFailed": "Failed to create secret",
       "createSuccessActive": "Secret created and active.",
       "createSuccessPendingReview": "Secret submitted for human review.",
-      "description": "Publish API keys and external credentials for capability binding.",
+      "description": "",
       "displayName": "Display Name",
       "displayNamePlaceholder": "openai.config.bootstrap",
-      "emptyDesc": "Publish a secret first, then bind it to a capability.",
+      "emptyDesc": "Publish a secret",
       "emptyTitle": "No secrets yet",
       "environment": "Environment",
       "environmentPlaceholder": "production",
       "inventory": "Secret Inventory",
       "kind": "Kind",
       "kindPlaceholder": "api_token",
-      "modalDesc": "Create a managed secret that capabilities can bind to.",
+      "modalDesc": "",
       "modalTitle": "Publish Secret",
       "provider": "Provider",
       "providerPlaceholder": "OpenAI production key",
@@ -173,7 +173,7 @@
   "auth": {
     "login": {
       "checking": "Checking bootstrap and session state...",
-      "description": "Use the persisted admin account you bootstrapped or were invited into.",
+      "description": "Admin login",
       "email": "Email",
       "failedToLoad": "Failed to load login state",
       "loginFailed": "Login failed",
@@ -193,7 +193,7 @@
       "bootstrapKeyPlaceholder": "changeme-bootstrap-key",
       "createAccount": "Create Owner Account",
       "creating": "Creating",
-      "description": "Use the bootstrap credential once to create the founding owner account and unlock the management login flow.",
+      "description": "Initialize system and create owner account",
       "displayName": "Display Name",
       "displayNamePlaceholder": "Founding Owner",
       "failedToBootstrap": "Failed to bootstrap owner",
@@ -732,7 +732,7 @@
     "refresh": "Refresh",
     "retry": "Retry",
     "subject": "Subject",
-    "subtitle": "Agent feedback, completion events, and system alerts are collected here.",
+    "subtitle": "Event inbox",
     "title": "Inbox",
     "tryAgain": "Please try again in a moment.",
     "unread": "Unread"
@@ -747,7 +747,7 @@
     "comingSoon": "Marketplace coming soon...",
     "contextPublished": "published context",
     "contextReview": "review context",
-    "description": "Discover, share, and install assets created by the community. Both humans and agents can publish here.",
+    "description": "Community asset marketplace",
     "emptyPending": "No agent submissions are currently waiting for review.",
     "emptyPublished": "No release-backed agent publications are visible yet.",
     "emptyRejected": "No rejected agent submissions are visible right now.",
@@ -792,7 +792,7 @@
     "sectionSkills": "Skills",
     "sessionExpiredMessage": "Sign in again to reload marketplace review state.",
     "submittedByAgent": "Submitted by agent",
-    "subtitle": "The market is an agent-operated surface for useful skills, credentials, and execution artifacts. Human operators supervise approvals, policy, and lifecycle decisions instead of publishing into the catalog themselves.",
+    "subtitle": "",
     "switchHint": "Switch back to All or Active to inspect currently published assets and skills.",
     "tagline": "Agent Marketplace",
     "title": "Asset Marketplace",
@@ -946,9 +946,9 @@
       "reject": "Reject"
     },
     "awaitingDecision": "Awaiting first decision",
-    "description": "Agent-published assets stay inactive until a human operator approves or rejects them here.",
+    "description": "Review agent-submitted assets",
     "empty": {
-      "description": "All pending agent-submitted assets have already been handled.",
+      "description": "No pending reviews",
       "title": "Review queue is clear"
     },
     "errors": {
@@ -1064,10 +1064,10 @@
     "accessModel3": "Only invited admin accounts can open management sessions.",
     "accountId": "Account ID",
     "accounts": "Accounts",
-    "accountsHint": "Persisted management identities",
+    "accountsHint": "",
     "activeOperators": "active operator(s)",
     "admins": "Admins",
-    "adminsHint": "Full management access",
+    "adminsHint": "",
     "appearance": "Appearance",
     "availability": "Availability",
     "canLogin": "Can log in",
@@ -1076,7 +1076,7 @@
     "createAdminDesc": "After first-run bootstrap, this is the only supported path for adding new human operators.",
     "createAdminTitle": "Create a New Admin Identity",
     "currentSession": "Current Session",
-    "description": "Owner bootstrap is complete. Human access is now controlled through invited admin accounts only.",
+    "description": "Manage accounts and permissions",
     "disable": "Disable",
     "disableError": "Failed to disable account",
     "displayName": "Display Name",
@@ -1103,10 +1103,10 @@
     "operatorPosture": "Operator Posture",
     "operatorPostureDesc": "The bootstrap credential is now reserved for first-run setup only and no longer acts as day-to-day login.",
     "operatorsViewers": "Operators + Viewers",
-    "operatorsViewersHint": "Invite-only supporting roles",
+    "operatorsViewersHint": "",
     "ownerAccounts": "owner account(s)",
     "owners": "Owners",
-    "ownersHint": "Bootstrap-created founding operators",
+    "ownersHint": "",
     "passwordPlaceholder": "At least 12 characters",
     "profile": "Profile",
     "role": "Role",
@@ -1178,7 +1178,7 @@
     },
     "governance": {
       "title": "Governance Space",
-      "description": "Human review backlog for agent-originated market submissions.",
+      "description": "",
       "allReviews": "All reviews",
       "pendingReview": "Pending Review",
       "rejectedReview": "Rejected Review",
@@ -1195,7 +1195,7 @@
     },
     "hero": {
       "badge": "Operations Space",
-      "description": "This space aggregates the current operating picture across agent feedback, governance review, identities, and published market inventory so human supervisors can coordinate from one backend-backed surface.",
+      "description": "",
       "metrics": {
         "activeAgents": "Active agents",
         "pendingReviews": "Pending reviews",
@@ -1236,7 +1236,7 @@
     "messagePlaceholder": "Message @DeployBot or the group...",
     "marketInventory": {
       "assetsCount": "{count} assets",
-      "description": "Published assets and skills currently visible to the agent ecosystem.",
+      "description": "",
       "skillsCount": "{count} skills",
       "title": "Market Inventory"
     },
@@ -1315,10 +1315,10 @@
     "completed": "completed",
     "completedCount": "{completed}/{total} completed",
     "createdByLine": "{taskType} • created by {actorType}:{actorId}",
-    "description": "Publish work to specific remote access tokens, watch completion per token, and close the loop with feedback for off-project agents.",
+    "description": "Publish and monitor targeted tasks",
     "directHumanPublish": "Direct human publish",
     "empty": {
-      "description": "Create a task and target it to one or more remote access tokens from this page.",
+      "description": "Create targeted tasks",
       "title": "No tasks published yet"
     },
     "errors": {
@@ -1364,10 +1364,10 @@
       "verdictPlaceholder": "accepted"
     },
     "hints": {
-      "completedTargets": "token-linked run records",
-      "feedbackRecords": "human review notes on finished work",
-      "publishedTasks": "currently visible active tasks",
-      "targetedTokens": "explicit token assignments"
+      "completedTargets": "",
+      "feedbackRecords": "",
+      "publishedTasks": "",
+      "targetedTokens": ""
     },
     "inputPayload": "Input payload",
     "leaveFeedback": "Leave feedback",
@@ -1391,7 +1391,7 @@
       "normal": "normal"
     },
     "publishTask": "Publish Task",
-    "publishTaskDescription": "Choose the concrete remote access tokens that should receive this work.",
+    "publishTaskDescription": "",
     "publication": {
       "active": "Active",
       "archived": "Archived",
@@ -1428,7 +1428,7 @@
     },
     "supervision": {
       "completedTargetsAwaitingFeedback": "{count} completed targets awaiting feedback",
-      "description": "Track which remote-token-targeted runs are still in flight and which completed targets still need explicit feedback from a human supervisor for remote agent supervision.",
+      "description": "",
       "filters": {
         "all": "All tasks",
         "inFlight": "In flight",
@@ -1483,7 +1483,7 @@
       "riskBadge": "{tier} risk",
       "riskTier": "Risk tier"
     },
-    "description": "Issue standalone access tokens for external machines and off-project callers so they can retrieve project information, publish deliverables, and participate in collaboration flows.",
+    "description": "Issue and supervise remote access tokens",
     "errors": {
       "clipboardBlocked": "Clipboard access was blocked. Copy the access token manually from the reveal card.",
       "loadDataFailed": "Failed to load data",
@@ -1534,10 +1534,10 @@
       "totalHint": "{count} total"
     },
     "hints": {
-      "activeTokens": "currently active remote credentials",
-      "averageTrust": "mean trust score across all tokens",
-      "feedbackCoverage": "tokens with at least one feedback record",
-      "needsFeedback": "tokens still waiting on human review"
+      "activeTokens": "",
+      "averageTrust": "",
+      "feedbackCoverage": "",
+      "needsFeedback": ""
     },
     "riskTiers": {
       "critical": "critical",
@@ -1591,14 +1591,7 @@
     },
     "empty": {
       "title": "No access tokens issued yet",
-      "description": "Issue the first standalone access token to start supervising remote callers."
-    },
-    "labels": {
-      "id": "ID",
-      "issuedBy": "Issued by",
-      "lastUsedAt": "Last used",
-      "scopes": "Scopes",
-      "tokenPrefix": "Token prefix"
+      "description": "Issue your first access token"
     },
     "loading": "Loading access token inventory...",
     "neverUsed": "Never used",
