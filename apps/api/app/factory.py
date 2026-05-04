@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from time import monotonic
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from sqlalchemy.engine import make_url
@@ -90,7 +91,22 @@ def register_core_routes(app: FastAPI) -> None:
         return {"status": "ok"}
 
 
+def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
+    allowed_origins = [origin.strip() for origin in settings.cors_allowed_origins.split(",") if origin.strip()]
+    if not allowed_origins:
+        return
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=settings.cors_allow_credentials,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        max_age=600,
+    )
+
+
 def configure_default_app(app: FastAPI, settings: Settings) -> None:
+    add_cors_middleware(app, settings)
     add_request_logging_middleware(app)
     add_idempotency_middleware(app, settings)
     add_domain_error_handlers(app)

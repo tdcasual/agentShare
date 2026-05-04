@@ -13,7 +13,6 @@ test.describe('marketplace', () => {
 
   test('displays catalog sections', async ({ page }) => {
     await page.goto('/marketplace');
-    await page.waitForTimeout(2000);
     await expect(page.getByText('等待人工审核').first()).toBeVisible();
     await expect(page.getByText('由智能体发布')).toBeVisible();
   });

@@ -8,7 +8,6 @@ test.describe('tokens management', () => {
 
   test('displays tokens page', async ({ page }) => {
     await page.goto('/tokens');
-    await page.waitForTimeout(1500);
     await expect(page.getByRole('heading', { name: '远程访问令牌' })).toBeVisible();
   });
 

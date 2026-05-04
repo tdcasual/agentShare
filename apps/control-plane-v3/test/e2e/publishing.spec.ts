@@ -144,11 +144,9 @@ test.describe('publish failure feedback', () => {
     await mockControlPlaneApi(page, 'secret', 'Secret backend unavailable');
 
     await page.goto('/assets');
-    await page.waitForTimeout(1500);
     await expect(page.getByRole('heading', { name: '资产管理' })).toBeVisible();
 
     await page.getByRole('button', { name: '新建密钥' }).click();
-    await page.waitForTimeout(500);
     const dialog = page.getByRole('dialog', { name: '发布密钥' });
     await dialog.getByLabel('显示名称').fill('E2E OpenAI key');
     await dialog.getByLabel('密钥值').fill('sk-test-secret');
@@ -162,11 +160,9 @@ test.describe('publish failure feedback', () => {
     await mockControlPlaneApi(page, 'capability', 'Capability publisher rejected policy');
 
     await page.goto('/assets');
-    await page.waitForTimeout(1500);
     await expect(page.getByRole('heading', { name: '资产管理' })).toBeVisible();
 
     await page.getByRole('button', { name: '新建能力' }).click();
-    await page.waitForTimeout(500);
     const dialog = page.getByRole('dialog', { name: '发布 capability' });
     await dialog.getByLabel('Capability 名称').fill('openai.e2e.failure');
     await dialog.getByLabel('绑定密钥').selectOption('secret-1');
@@ -180,11 +176,9 @@ test.describe('publish failure feedback', () => {
     await mockControlPlaneApi(page, 'task', 'Task backend unavailable');
 
     await page.goto('/tasks');
-    await page.waitForTimeout(1500);
     await expect(page.getByRole('heading', { name: '任务编排' })).toBeVisible();
 
     await page.getByRole('button', { name: '发布任务' }).click();
-    await page.waitForTimeout(500);
     const dialog = page.getByRole('dialog', { name: '发布任务' });
     await dialog.getByLabel('标题').fill('发布失败回归任务');
     await dialog.getByText('Primary Token').click();

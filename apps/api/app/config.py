@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     auth_rate_limit_max_attempts: int = 5
     auth_rate_limit_window_seconds: int = 300
     operator_identity_provider: Literal["local"] = "local"
+    cors_allowed_origins: str = ""
+    cors_allow_credentials: bool = True
     metrics_enabled: bool = True
     demo_seed_enabled: bool = Field(
         default=False,

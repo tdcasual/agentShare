@@ -13,7 +13,6 @@ test.describe('spaces management', () => {
 
   test('displays operations and governance panels', async ({ page }) => {
     await page.goto('/spaces');
-    await page.waitForTimeout(2000);
     await expect(page.getByRole('heading', { name: '操作空间' })).toBeVisible();
     await expect(page.getByRole('heading', { name: '治理空间' })).toBeVisible();
   });

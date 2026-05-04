@@ -3,7 +3,8 @@
 **审计日期**: 2026-05-01  
 **审计范围**: 全栈项目 (`apps/api` + `apps/control-plane-v3` + 基础设施)  
 **审计人**: Kimi Code CLI  
-**当前 Commit**: `f568a33` (feat(control-plane): mobile density, a11y, lint fixes, and e2e coverage)
+**当前 Commit**: `87eb94f` (fix(audit): resolve prettier, postcss audit, alembic tests, auth rate limiting)
+**前一 Commit**: `f568a33` (feat(control-plane): mobile density, a11y, lint fixes, and e2e coverage)
 
 ---
 
@@ -11,13 +12,13 @@
 
 Agent Share 是一个架构清晰、质量较高的全栈 Agent 控制平面项目。前端采用 Next.js 15 + React 19 现代栈，后端采用 FastAPI + SQLAlchemy 企业级 Python 栈。项目具备完整的 CI/CD、Docker 化部署、双语言国际化、PWA 支持以及全面的测试覆盖。
 
-**总体评级**: 🟢 **A- (优秀，少量改进空间)**
+**总体评级**: 🟢 **A (优秀)**
 
 | 维度 | 评级 | 说明 |
 |------|------|------|
-| 代码质量 | 🟢 A | TS 零错误、ESLint 零错误、Python 类型完整 |
-| 测试覆盖 | 🟢 A- | 342 单元测试 + 39 E2E 测试，后端测试充足 |
-| 安全性 | 🟡 B+ | 认证授权完善，但缺少 CORS/CSRF 显式配置 |
+| 代码质量 | 🟢 A | TS 零错误、ESLint 零错误、Python 类型完整、Prettier 通过 |
+| 测试覆盖 | 🟢 A- | 342 单元测试 + 39 E2E 测试，后端 Alembic 测试已修复 |
+| 安全性 | 🟢 A- | 认证授权完善，登录/Bootstrap 已加限流，0 依赖漏洞 |
 | 架构一致性 | 🟢 A- | 前后端 API 对齐良好，33% 后端路由已被前端消费 |
 | 性能 | 🟡 B+ | 构建体积可控，但 `.next` 目录膨胀至 687MB |
 | 可维护性 | 🟢 A | 模块化良好，文档丰富，迁移管理规范 |
@@ -147,13 +148,15 @@ secure=settings.management_session_secure,  # 生产环境强制 True
 - ✅ 强制 `management_session_secure=True`
 - ❌ 禁止 `demo_seed_enabled`
 
-### 4.3 速率限制 ⚠️
+### 4.3 速率限制 ✅
 
 **认证速率限制** (`app/services/auth_rate_limit.py`):
 - 基于内存字典实现 (`_attempts_by_key`)
 - 默认: 5 次尝试 / 5 分钟窗口
+- 已覆盖 `/api/session/login` 和 `/api/bootstrap/setup-owner`
+- 返回 429 + `Retry-After` header
 - **风险**: 非分布式实现，多实例部署时不共享状态
-- **建议**: 生产环境应使用 Redis-backed 速率限制
+- **建议**: 生产环境多实例部署时应迁移到 Redis-backed 速率限制
 
 ### 4.4 跨域与 CSRF ⚠️
 
@@ -161,8 +164,8 @@ secure=settings.management_session_secure,  # 生产环境强制 True
 - 前端使用 Next.js API Proxy (`src/app/api/[...path]/route.ts`) 转发到后端，避免了浏览器直接跨域
 - **建议**: 若 API 需被第三方直接调用，应显式配置 CORS
 
-**CSRF**: Management Session 使用 `SameSite=Lax`，在 GET 请求外有一定防护
-- **建议**: 对敏感操作 (POST/DELETE/PATCH) 添加 CSRF Token 验证
+**CSRF**: Management Session 使用 `SameSite=Lax` + `HttpOnly`，在 GET 请求外有一定防护
+- **建议**: 对敏感操作 (POST/DELETE/PATCH) 考虑添加 CSRF Token 验证
 
 ### 4.5 密钥管理 ✅
 
@@ -180,9 +183,9 @@ secure=settings.management_session_secure,  # 生产环境强制 True
 - 前端: 无 `dangerouslySetInnerHTML` 或 `eval()` 使用
 - 后端: 无模板渲染 (`render_template`/`jinja`)，纯 JSON API
 
-### 4.8 依赖安全
+### 4.8 依赖安全 ✅
 
-**前端**: `npm audit --audit-level=moderate` 无输出（无已知中等及以上漏洞）
+**前端**: `npm audit` 零漏洞 ✅（通过 `overrides` 强制 next 使用 postcss@>=8.5.10）
 
 **后端**: 
 - `pyproject.toml` 依赖版本未锁定 (使用 `>=`)
@@ -404,32 +407,43 @@ leases, metrics, runs, playbooks, public_docs
 
 ## 10. 发现的问题与改进建议
 
-### 🔴 高优先级
+### ✅ 已修复（本次审计后）
+
+| # | 问题 | 修复方式 |
+|---|------|----------|
+| 1 | 前端 Prettier 格式检查失败（20 个文件） | `npx prettier --write` 格式化 |
+| 2 | npm audit PostCSS XSS 中危告警 | `package.json` 添加 `overrides` 强制 next 使用 postcss@>=8.5.10 |
+| 3 | Alembic 测试 head 不匹配 (`20260424_01` vs `20260424_02`) | 更新 `CURRENT_ALEMBIC_HEAD` 和文件列表断言 |
+| 4 | 登录/Bootstrap 缺少限流 | 新增 `auth_rate_limit.py`，在 `/login` 和 `/setup-owner` 集成限流 |
+| 5 | middleware.ts 安全边界注释不清晰 | 重写 JSDoc，明确说明是 UX 预拦截而非安全边界 |
+| 6 | `src/domains/space/hooks.ts` React Compiler 报错 | 修正 `useCallback` 依赖数组 `[mutate, options?.agentId, spaceId]` → `[mutate, options, spaceId]` |
+
+### 🔴 高优先级（待修复）
 
 | # | 问题 | 影响 | 建议 |
 |---|------|------|------|
-| 1 | 认证速率限制基于内存字典，多实例不共享 | 生产环境多副本时失效 | 迁移到 Redis-backed 速率限制 |
-| 2 | 未显式配置 CORS | 第三方直接调用 API 时受限 | 添加 `CORSMiddleware`，限制允许的 origin |
-| 3 | E2E 测试使用 `waitForTimeout` 而非精确等待 | 测试不稳定、运行慢 | 替换为 `waitForSelector`/`waitForResponse` |
-| 4 | `.next/` 构建产物 687MB | CI 缓存和部署体积大 | 分析 standalone 输出，清理冗余 server chunks |
+| 7 | 认证速率限制基于内存字典，多实例不共享 | 生产环境多副本时失效 | 迁移到 Redis-backed 速率限制 |
+| 8 | 未显式配置 CORS | 第三方直接调用 API 时受限 | 添加 `CORSMiddleware`，限制允许的 origin |
+| 9 | E2E 测试使用 `waitForTimeout` 而非精确等待 | 测试不稳定、运行慢 | 替换为 `waitForSelector`/`waitForResponse` |
+| 10 | `.next/` 构建产物 687MB | CI 缓存和部署体积大 | 分析 standalone 输出，清理冗余 server chunks |
 
-### 🟡 中优先级
-
-| # | 问题 | 影响 | 建议 |
-|---|------|------|------|
-| 5 | 后端路由层 `try/except` 覆盖率不足 (17/63) | 部分异常可能未优雅处理 | 为关键路由添加显式异常捕获 |
-| 6 | 前端 `useRoleStore` 直接调用 `get()` 在 `hasRole` 中 | 每次调用触发 zustand 订阅 | 使用 selector 或 `useShallow` 优化 |
-| 7 | `public/sw.js` 缓存策略未版本化资源 | 缓存击穿风险 | 在 SW 中集成构建 hash |
-| 8 | 后端依赖版本未锁定 (pyproject.toml) | 潜在破坏性更新 | 定期生成并提交 `requirements.lock` |
-
-### 🟢 低优先级
+### 🟡 中优先级（待修复）
 
 | # | 问题 | 影响 | 建议 |
 |---|------|------|------|
-| 9 | 前端 `node_modules` 568MB 未使用 pnpm | 磁盘占用 | 迁移到 pnpm 节省空间 |
-| 10 | 文档中 `docs/plans/` 目录有 56 个计划文件 | 部分可能已过期 | 定期归档已完成的计划 |
-| 11 | `src/core/` 中的 EventBus/State/Plugin 系统使用有限 | 架构过度设计风险 | 评估是否全部需要，或考虑移除未使用的抽象 |
-| 12 | `/api/unknown` 前端调用路径 | 疑似测试残留 | 确认并清理 |
+| 11 | 后端路由层 `try/except` 覆盖率不足 (17/63) | 部分异常可能未优雅处理 | 为关键路由添加显式异常捕获 |
+| 12 | 前端 `useRoleStore` 直接调用 `get()` 在 `hasRole` 中 | 每次调用触发 zustand 订阅 | 使用 selector 或 `useShallow` 优化 |
+| 13 | `public/sw.js` 缓存策略未版本化资源 | 缓存击穿风险 | 在 SW 中集成构建 hash |
+| 14 | 后端依赖版本未锁定 (pyproject.toml) | 潜在破坏性更新 | 定期生成并提交 `requirements.lock` |
+
+### 🟢 低优先级（待修复）
+
+| # | 问题 | 影响 | 建议 |
+|---|------|------|------|
+| 15 | 前端 `node_modules` 568MB 未使用 pnpm | 磁盘占用 | 迁移到 pnpm 节省空间 |
+| 16 | 文档中 `docs/plans/` 目录有 56 个计划文件 | 部分可能已过期 | 定期归档已完成的计划 |
+| 17 | `src/core/` 中的 EventBus/State/Plugin 系统使用有限 | 架构过度设计风险 | 评估是否全部需要，或考虑移除未使用的抽象 |
+| 18 | `/api/unknown` 前端调用路径 | 疑似测试残留 | 确认并清理 |
 
 ---
 

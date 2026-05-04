@@ -13,7 +13,6 @@ test.describe('playbooks', () => {
 
   test('displays playbook list', async ({ page }) => {
     await page.goto('/playbooks');
-    await page.waitForTimeout(2000);
     await expect(page.getByText('Test Playbook').first()).toBeVisible();
   });
 });
