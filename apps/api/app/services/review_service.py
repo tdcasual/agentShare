@@ -31,7 +31,7 @@ REVIEW_ACTIVE = "active"
 REVIEW_REJECTED = "rejected"
 logger = logging.getLogger(__name__)
 
-REVIEWABLE_MODELS: dict[str, type] = {
+REVIEWABLE_MODELS: dict[str, Any] = {
     "secret": SecretModel,
     "capability": CapabilityModel,
     "playbook": PlaybookModel,

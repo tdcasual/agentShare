@@ -43,7 +43,7 @@ def project_review_decision_to_spaces(
     subject_id: str,
     summary: str,
 ) -> None:
-    if created_by_actor_type == "human" or not created_by_actor_id:
+    if created_by_actor_type == "human" or not created_by_actor_id or not created_by_actor_type:
         return
 
     project_actor_activity_to_spaces(

@@ -96,6 +96,8 @@ def claim_task(
     settings: Settings | None = None,
 ) -> dict:
     if _uses_access_token_assignments(agent):
+        if agent.token_id is None:
+            raise ValueError("agent.token_id is required for access-token assignment")
         target_repo = TaskTargetRepository(session)
         target = target_repo.find_by_task_and_access_token(task_id, agent.token_id)
         if target is not None:
@@ -142,6 +144,8 @@ def complete_task(
     settings: Settings | None = None,
 ) -> dict:
     if _uses_access_token_assignments(agent):
+        if agent.token_id is None:
+            raise ValueError("agent.token_id is required for access-token assignment")
         target_repo = TaskTargetRepository(session)
         target = target_repo.find_by_task_and_access_token(task_id, agent.token_id)
         if target is not None:

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from typing import cast
+
 from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 
 from app.auth import ManagementIdentity, require_admin_management_session
 from app.config import Settings
 from app.dependencies import get_settings
-from app.observability import snapshot_metrics
+from app.observability import HttpRequestMetric, snapshot_metrics
 
 
 router = APIRouter(tags=["Observability"])
@@ -32,7 +34,7 @@ def metrics(
             f'{{method="{_escape_label(sample["method"])}",path="{_escape_label(sample["path"])}",status="{_escape_label(sample["status"])}"}} '
             f'{sample["count"]}'
         )
-        for sample in metrics_snapshot["http_request_dimensions"]
+        for sample in cast(list[HttpRequestMetric], metrics_snapshot["http_request_dimensions"])
     ]
     payload = "\n".join(
         [

@@ -18,6 +18,9 @@ dependencies = [
 dev = [
   "pytest>=8.4.1",
   "fakeredis[lua]",
+  "mypy>=1.0",
+  "bandit>=1.7",
+  "pip-audit>=2.0",
 ]
 
 [build-system]
@@ -26,6 +29,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["app*"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+exclude = ["tests/"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

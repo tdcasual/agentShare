@@ -19,7 +19,9 @@ from app.services.access_token_service import (
     touch_access_token,
 )
 from app.services.openclaw_runtime_service import build_runtime_principal
-from app.services.policy_service import ensure_management_action_allowed
+from typing import cast
+
+from app.services.policy_service import ManagementAction, ensure_management_action_allowed
 from app.services.session_service import authenticate_management_session_token
 
 security = HTTPBearer(auto_error=False)
@@ -215,7 +217,7 @@ def require_management_action(action: str):
         identity: ManagementIdentity = Depends(require_management_session),
     ) -> ManagementIdentity:
         try:
-            ensure_management_action_allowed(identity.role, action)
+            ensure_management_action_allowed(identity.role, cast(ManagementAction, action))
         except PermissionError as exc:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -239,7 +241,7 @@ def require_management_or_agent_action(action: str):
     ) -> AuthenticatedActor:
         if actor.actor_type == "human" and actor.role is not None:
             try:
-                ensure_management_action_allowed(actor.role, action)
+                ensure_management_action_allowed(actor.role, cast(ManagementAction, action))
             except PermissionError as exc:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,

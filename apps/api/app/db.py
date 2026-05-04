@@ -143,6 +143,8 @@ def migrate_db(
         if not should_recover:
             raise
 
+        if database_path is None:
+            raise RuntimeError("database_path should not be None after recovery check")
         backup_path = _backup_stale_local_dev_database(database_path)
         command.upgrade(_build_alembic_config(resolved_database_url), "head")
         return backup_path

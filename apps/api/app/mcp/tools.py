@@ -173,7 +173,7 @@ def execute_tool(
         raise ToolExecutionError(status_code=404, detail=f"Unknown MCP tool: {name}")
 
     try:
-        parsed = model.model_validate(arguments)
+        parsed: Any = model.model_validate(arguments)
     except ValidationError as exc:
         raise ToolExecutionError(status_code=422, detail=exc.errors()) from exc
 
@@ -196,18 +196,18 @@ def execute_tool(
                 parsed.output_payload,
             )
         if canonical_name == "playbooks.search":
-            result = search_playbooks(
+            search_result = search_playbooks(
                 session,
                 task_type=parsed.task_type,
                 query=parsed.q,
                 tag=parsed.tag,
             )
             return {
-                "items": result.items,
+                "items": search_result.items,
                 "meta": {
-                    "total": result.total,
-                    "items_count": len(result.items),
-                    "applied_filters": result.applied_filters,
+                    "total": search_result.total,
+                    "items_count": len(search_result.items),
+                    "applied_filters": search_result.applied_filters,
                 },
             }
         if canonical_name == "capabilities.invoke":

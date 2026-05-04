@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import JSON, DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,4 +20,4 @@ class EventModel(Base, TimestampMixin):
     severity: Mapped[str] = mapped_column(String, default="info")
     action_url: Mapped[str | None] = mapped_column(String, nullable=True)
     metadata_json: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
-    read_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

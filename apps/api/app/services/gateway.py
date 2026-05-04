@@ -179,6 +179,8 @@ def _authorize_capability_use(
         raise KeyError(f"Task {task_id} not found")
     target = None
     if uses_access_token_target:
+        if agent.token_id is None:
+            raise ValueError("agent.token_id is required for access-token target")
         target = TaskTargetRepository(session).find_by_task_and_access_token(task_id, agent.token_id)
         if target is None or target.status != "claimed" or target.claimed_by_access_token_id != agent.token_id:
             raise PermissionError("Task is not claimed by this token")

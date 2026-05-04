@@ -77,8 +77,8 @@ def login_management_session(
         record_auth_failure(settings, rate_limit_key)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail) from exc
 
-    payload = create_management_session(session, settings, account)
-    token = issue_management_session_token(settings, payload=payload)
+    session_payload = create_management_session(session, settings, account)
+    token = issue_management_session_token(settings, payload=session_payload)
     clear_auth_failures(rate_limit_key)
     record_management_session_login(True)
     response.set_cookie(
@@ -92,20 +92,20 @@ def login_management_session(
     )
     write_audit_event(session, "management_session_started", {
         "actor_type": "human",
-        "actor_id": payload.actor_id,
-        "session_id": payload.session_id,
+        "actor_id": session_payload.actor_id,
+        "session_id": session_payload.session_id,
     })
     return {
         "status": "authenticated",
-        "actor_type": payload.actor_type,
-        "actor_id": payload.actor_id,
-        "role": payload.role,
-        "auth_method": payload.auth_method,
-        "session_id": payload.session_id,
-        "email": payload.email,
-        "expires_in": _remaining_expires_in(payload.exp),
-        "issued_at": payload.iat,
-        "expires_at": payload.exp,
+        "actor_type": session_payload.actor_type,
+        "actor_id": session_payload.actor_id,
+        "role": session_payload.role,
+        "auth_method": session_payload.auth_method,
+        "session_id": session_payload.session_id,
+        "email": session_payload.email,
+        "expires_in": _remaining_expires_in(session_payload.exp),
+        "issued_at": session_payload.iat,
+        "expires_at": session_payload.exp,
     }
 
 

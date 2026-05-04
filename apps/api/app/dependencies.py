@@ -11,7 +11,7 @@ RUNTIME_MISSING_MESSAGE = (
 
 
 def get_attached_runtime(request: Request) -> AppRuntime:
-    runtime = getattr(request.app.state, "runtime", None)
+    runtime: AppRuntime = getattr(request.app.state, "runtime", None)  # type: ignore[assignment]
     if runtime is None:
         raise RuntimeError(RUNTIME_MISSING_MESSAGE)
     return runtime

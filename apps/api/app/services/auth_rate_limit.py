@@ -4,6 +4,9 @@ import logging
 import time
 from dataclasses import dataclass
 from math import ceil
+from typing import Any
+
+import redis
 
 from app.config import Settings
 
@@ -122,7 +125,7 @@ def _redis_active_attempts(
     # Ensure TTL in case it wasn't set
     r.expire(redis_key, window_seconds)
     # Get remaining attempts
-    raw_attempts = r.zrange(redis_key, 0, -1, withscores=False)
+    raw_attempts: Any = r.zrange(redis_key, 0, -1, withscores=False)
     return [float(a) for a in raw_attempts]
 
 

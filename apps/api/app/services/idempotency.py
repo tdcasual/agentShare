@@ -100,7 +100,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         return hashlib.sha256(normalized_context.encode("utf-8")).hexdigest()
 
     def _load_cached_response(self, cache_key: str) -> JSONResponse | None:
-        cached = self.redis.get(cache_key)
+        cached: Any = self.redis.get(cache_key)
         if not cached:
             return None
 
@@ -168,9 +168,9 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
     async def _read_response_body(self, response: Response) -> bytes:
         body_bytes = b""
-        async for chunk in response.body_iterator:
+        async for chunk in response.body_iterator:  # type: ignore[attr-defined]
             body_bytes += chunk if isinstance(chunk, bytes) else chunk.encode()
         return body_bytes
 
     def _restore_response_body(self, response: Response, body_bytes: bytes) -> None:
-        response.body_iterator = iterate_in_threadpool([body_bytes])
+        response.body_iterator = iterate_in_threadpool([body_bytes])  # type: ignore[attr-defined]

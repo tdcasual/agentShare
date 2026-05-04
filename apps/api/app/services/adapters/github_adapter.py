@@ -53,7 +53,7 @@ class GitHubAdapter:
             "X-GitHub-Api-Version": adapter_config.get("api_version", "2022-11-28"),
         }
 
-        request_kwargs = {
+        request_kwargs: dict[str, Any] = {
             "url": url,
             "headers": headers,
         }

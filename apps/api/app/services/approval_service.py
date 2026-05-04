@@ -452,7 +452,7 @@ def _normalize_reason(reason: str) -> str:
     return reason.strip()
 
 
-def _approval_sort_key(model: ApprovalRequestModel) -> tuple[datetime, int]:
+def _approval_sort_key(model: ApprovalRequestModel) -> tuple[datetime, str]:
     return _normalize_datetime(model.created_at), model.id
 
 

@@ -8,10 +8,12 @@ import time
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from typing import cast
+
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from app.config import Settings
+from app.config import ManagementRole, Settings
 from app.orm.human_account import HumanAccountModel
 from app.orm.management_session import ManagementSessionModel
 from app.repositories.human_account_repo import HumanAccountRepository
@@ -60,7 +62,7 @@ def build_management_session_payload(
         sub=account.id,
         actor_id=account.id,
         actor_type="human",
-        role=account.role,
+        role=cast(ManagementRole, account.role),
         auth_method="session",
         session_id=f"session-{uuid4().hex}",
         email=account.email,

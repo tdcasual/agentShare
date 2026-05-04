@@ -145,7 +145,7 @@ def add_runtime_openapi_customizer(app: FastAPI) -> None:
         app.openapi_schema = schema
         return schema
 
-    app.openapi = custom_openapi
+    setattr(app, "openapi", custom_openapi)
 
 
 def create_app(

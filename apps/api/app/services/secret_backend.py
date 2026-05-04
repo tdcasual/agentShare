@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
 
 from app.config import Settings
@@ -100,7 +102,7 @@ class OpenBaoSecretBackend(SecretBackend):
     def read_secret(self, secret_id: str, backend_ref: str | None = None) -> str:
         mount, path = self._resolve_location(secret_id, backend_ref)
         payload = self._request("GET", self._kv_v2_path(mount, path))
-        return payload["data"]["data"]["value"]
+        return str(payload["data"]["data"]["value"])
 
     def delete_secret(self, secret_id: str, backend_ref: str | None = None) -> None:
         mount, path = self._resolve_location(secret_id, backend_ref)
@@ -130,13 +132,13 @@ class OpenBaoSecretBackend(SecretBackend):
         response.raise_for_status()
         if not response.content:
             return {}
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     def _get_client(self) -> httpx.Client:
         if self._client is not None:
             return self._client
 
-        client_kwargs = {
+        client_kwargs: dict[str, Any] = {
             "base_url": self.settings.openbao_addr,
             "headers": {"X-Vault-Token": self.settings.openbao_token},
             "timeout": 10.0,
@@ -146,7 +148,11 @@ class OpenBaoSecretBackend(SecretBackend):
             self._client = httpx.Client(**client_kwargs)
             return self._client
 
-        key = (self.settings.openbao_addr, self.settings.openbao_token)
+        addr = self.settings.openbao_addr
+        token = self.settings.openbao_token
+        if addr is None or token is None:
+            raise ValueError("openbao_addr and openbao_token must be configured")
+        key = (addr, token)
         client = _OPENBAO_SHARED_CLIENTS.get(key)
         if client is None:
             client = httpx.Client(**client_kwargs)

@@ -115,7 +115,7 @@ def reset_metrics() -> None:
 
 def snapshot_metrics() -> dict[str, float | int | list[HttpRequestMetric]]:
     with _lock:
-        snapshot = {
+        snapshot: dict[str, float | int | list[HttpRequestMetric]] = {
             "up": 1,
             "uptime_seconds": monotonic() - STARTED_AT,
             "http_requests_total": _http_requests_total,
