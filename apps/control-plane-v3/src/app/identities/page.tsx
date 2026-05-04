@@ -178,9 +178,18 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       ? t('identities.agentType.human')
       : null;
 
-  const operatorCount = adminAccounts.filter((account) => account.status === 'active').length;
-  const ownerCount = adminAccounts.filter((account) => account.role === 'owner').length;
-  const activeAgentCount = agents.filter((agent) => agent.status === 'active').length;
+  const operatorCount = useMemo(
+    () => adminAccounts.filter((account) => account.status === 'active').length,
+    [adminAccounts]
+  );
+  const ownerCount = useMemo(
+    () => adminAccounts.filter((account) => account.role === 'owner').length,
+    [adminAccounts]
+  );
+  const activeAgentCount = useMemo(
+    () => agents.filter((agent) => agent.status === 'active').length,
+    [agents]
+  );
   const agentFeedbackCounts = useMemo(
     () =>
       eventsQuery.events
@@ -191,15 +200,18 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         }, {}),
     [eventsQuery.events]
   );
-  const agentsWithSessionsCount = agents.filter(
-    (agent) => (sessionsByAgent[agent.id] ?? []).length > 0
-  ).length;
-  const workspaceReadyCount = agents.filter(
-    (agent) => agent.workspace_root.trim() !== '' && agent.agent_dir.trim() !== ''
-  ).length;
-  const agentsWithFeedbackCount = agents.filter(
-    (agent) => (agentFeedbackCounts[agent.id] ?? 0) > 0
-  ).length;
+  const agentsWithSessionsCount = useMemo(
+    () => agents.filter((agent) => (sessionsByAgent[agent.id] ?? []).length > 0).length,
+    [agents, sessionsByAgent]
+  );
+  const workspaceReadyCount = useMemo(
+    () => agents.filter((agent) => agent.workspace_root.trim() !== '' && agent.agent_dir.trim() !== '').length,
+    [agents]
+  );
+  const agentsWithFeedbackCount = useMemo(
+    () => agents.filter((agent) => (agentFeedbackCounts[agent.id] ?? 0) > 0).length,
+    [agents, agentFeedbackCounts]
+  );
   const guardedError = gateError;
   const accountsErrorMessage = accountsError instanceof Error ? accountsError.message : null;
   const agentsErrorMessage = agentsQuery.error instanceof Error ? agentsQuery.error.message : null;
@@ -384,10 +396,10 @@ const IdentitiesContent = memo(function IdentitiesContent() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
             {t('identities.page.title')}
           </h1>
           <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -395,7 +407,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+          <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               <Badge variant="primary">{t('common.operator')}</Badge>
               <span className="dark:text-[var(--kw-dark-text)]">
@@ -429,11 +441,11 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         </div>
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
             <span className="sr-only">{t('common.searchIdentities')}</span>
-            <div className="flex items-center gap-3 rounded-2xl border border-[var(--kw-border)] bg-white px-4 py-3 text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] px-3 py-2 text-[var(--kw-text-muted)] sm:px-4 sm:py-3 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text-muted)]">
               <Search className="h-4 w-4 flex-shrink-0" />
               <input
                 type="search"
@@ -461,7 +473,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       {focusedIdentity ? (
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+            <p className="text-xs font-semibold text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               {t('identities.focusedIdentity')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -535,7 +547,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <CoverageMetric
               label={t('identities.metrics.humanCoverage')}
               value={t('identities.page.ownerCount', { count: ownerCount })}
@@ -686,7 +698,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       ) : null}
 
       {!isLoading && !guardedError ? (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Building2 className="h-5 w-5" />
@@ -730,7 +742,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         }
         isSubmitting={submittingAgent}
       />
-    </div>
+    </main>
   );
 });
 

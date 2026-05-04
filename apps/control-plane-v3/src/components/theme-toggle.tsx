@@ -27,7 +27,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       <div
         className={cn(
           'flex h-10 w-10 items-center justify-center rounded-full',
-          'border border-[var(--kw-primary-200)] bg-white/80',
+          'border border-[var(--kw-primary-200)] bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80',
           className
         )}
       >
@@ -97,7 +97,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       <div
         className={cn(
           'flex h-10 w-10 items-center justify-center rounded-full',
-          'border border-[var(--kw-primary-200)] bg-white/80',
+          'border border-[var(--kw-primary-200)] bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80',
           className
         )}
       >

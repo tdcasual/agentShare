@@ -38,6 +38,11 @@
   --kw-text: #2d2d3a;
   --kw-text-muted: #6b6b7b;
 
+  /* Shadow colors - adapt to theme */
+  --kw-shadow-color: rgba(0, 0, 0, 0.05);
+  --kw-shadow-color-strong: rgba(0, 0, 0, 0.08);
+  --kw-glass-bg: rgba(255, 255, 255, 0.75);
+
   --kw-human-accent: #0ea5e9;
   --kw-agent-accent: #22c55e;
 
@@ -62,6 +67,11 @@
   --kw-dark-border: #3d3d5c;
   --kw-dark-text: #e8e8ec;
   --kw-dark-text-muted: #9ca3af;
+
+  /* Dark mode shadow colors */
+  --kw-dark-shadow-color: rgba(0, 0, 0, 0.25);
+  --kw-dark-shadow-color-strong: rgba(0, 0, 0, 0.35);
+  --kw-dark-glass-bg: rgba(37, 37, 64, 0.75);
 
   /* Muted accent colors for dark mode */
   --kw-dark-primary: #e891c0;
@@ -89,6 +99,31 @@
   --kw-border: var(--kw-dark-border);
   --kw-text: var(--kw-dark-text);
   --kw-text-muted: var(--kw-dark-text-muted);
+
+  /* Semantic surface dark mappings */
+  --kw-sky-surface: #1a2a3d;
+  --kw-sky-text: #6b9ac4;
+  --kw-green-surface: #1a3d2a;
+  --kw-green-text: #90ee90;
+  --kw-purple-surface: #2d1a3d;
+  --kw-purple-text: #c4a5e6;
+  --kw-orange-surface: #3d2d1a;
+  --kw-orange-text: #f5b070;
+  --kw-rose-surface: #3d1a2a;
+  --kw-rose-text: #e891b0;
+  --kw-amber-surface: #3d3d1a;
+  --kw-amber-text: #f5d070;
+
+  /* Functional accents dark mode */
+  --kw-success: #4ade80;
+  --kw-warning: #fbbf24;
+  --kw-error: #f87171;
+  --kw-info: #60a5fa;
+
+  /* Shadow colors dark mode */
+  --kw-shadow-color: var(--kw-dark-shadow-color);
+  --kw-shadow-color-strong: var(--kw-dark-shadow-color-strong);
+  --kw-glass-bg: var(--kw-dark-glass-bg);
 }
 
 * {
@@ -156,7 +191,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 50%,  /* intentional white for shimmer on primary button */
     transparent 100%
   );
   background-size: 200% 100%;
@@ -186,10 +221,10 @@ body {
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 0 8px var(--kw-shadow-color);
   }
   50% {
-    box-shadow: 0 0 14px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 14px var(--kw-shadow-color-strong);
   }
 }
 
@@ -259,40 +294,51 @@ body {
   animation: fade-in 0.2s ease-out forwards;
 }
 
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Utility classes - neutral, operational */
 .shadow-soft {
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 8px var(--kw-shadow-color);
 }
 
 .dark .shadow-soft {
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 8px var(--kw-dark-shadow-color);
 }
 
 .shadow-medium {
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 16px var(--kw-shadow-color);
 }
 
 .dark .shadow-medium {
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 16px var(--kw-dark-shadow-color);
 }
 
 .shadow-glow {
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0 12px var(--kw-shadow-color);
 }
 
 .dark .shadow-glow {
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 12px var(--kw-dark-shadow-color);
 }
 
 /* Glass effect - adapts to mode, used sparingly */
 .glass {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--kw-glass-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .dark .glass {
-  background: rgba(37, 37, 64, 0.75);
+  background: var(--kw-dark-glass-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }

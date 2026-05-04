@@ -40,7 +40,7 @@ export default function HubPage() {
   // RouteGuard handles redirects; we just read the already-resolved global state.
   if (session.state === 'unavailable') {
     return (
-      <div className="flex min-h-screen items-center justify-center px-6">
+      <main id="main-content" className="flex min-h-screen items-center justify-center px-6">
         <Card
           role="alert"
           aria-live="assertive"
@@ -48,30 +48,30 @@ export default function HubPage() {
           className="w-full max-w-lg space-y-4 text-center"
         >
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">
+            <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-primary-500)] sm:text-sm sm:tracking-[0.35em]">
               Control Plane V3
             </p>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)]">{t('hub.unableToOpen')}</h1>
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">{t('hub.unableToOpen')}</h1>
             <p className="text-[var(--kw-text-muted)]">{session.error}</p>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
   if (session.state !== 'authenticated' || !session.email || !session.role) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-6">
+      <main id="main-content" className="flex min-h-screen items-center justify-center px-6">
         <Card variant="default" className="w-full max-w-lg space-y-4 text-center">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.35em] text-[var(--kw-primary-500)]">
+            <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-primary-500)] sm:text-sm sm:tracking-[0.35em]">
               Control Plane V3
             </p>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)]">{t('hub.routing')}</h1>
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">{t('hub.routing')}</h1>
             <p className="text-[var(--kw-text-muted)]">{t('hub.checkingStatus')}</p>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
@@ -127,7 +127,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
     [events, actorDirectory, t, locale]
   );
   return (
-    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+    <main id="main-content" className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
@@ -150,7 +150,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         </Link>
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white p-4">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)] p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)]">
           <Badge variant="primary">{t('hub.inviteOnly')}</Badge>
           <span>{t('hub.snapshotDescription')}</span>
@@ -215,11 +215,11 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-8">
         <div className="space-y-3 sm:space-y-4 lg:col-span-2 lg:space-y-6">
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+              <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
                 {t('identities.title')}
               </h2>
               <div className="flex gap-2">
@@ -244,7 +244,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                   {adminAccountList.map((account) => (
                     <div
                       key={account.id}
-                      className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
+                      className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-xl border border-[var(--kw-border)] bg-white/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -265,7 +265,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                     </div>
                   ))}
                   {adminAccountList.length === 0 ? (
-                    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+                    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-xl border border-dashed border-[var(--kw-border)] bg-white/70 p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                       {t('hub.emptyHumans')}
                     </div>
                   ) : null}
@@ -283,7 +283,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                   {agents.map((agent) => (
                     <div
                       key={agent.id}
-                      className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
+                      className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-xl border border-[var(--kw-border)] bg-white/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -314,7 +314,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                     </div>
                   ))}
                   {agents.length === 0 ? (
-                    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+                    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-xl border border-dashed border-[var(--kw-border)] bg-white/70 p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                       {t('hub.emptyAgents')}
                     </div>
                   ) : null}
@@ -325,7 +325,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
 
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+              <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
                 {t('hub.recentActivity')}
               </h2>
               <Link href="/inbox">
@@ -346,7 +346,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
                   <div
                     key={activity.id}
                     role="listitem"
-                    className="hover:bg-[var(--kw-surface-alt)]/50 flex items-center gap-4 p-4 transition-colors"
+                    className="hover:bg-[var(--kw-surface-alt)]/50 flex items-center gap-3 p-3 transition-colors sm:gap-4 sm:p-4"
                   >
                     <div
                       className={cn(
@@ -380,14 +380,14 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
             <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('hub.reviewQueue')}</h3>
             <div className="space-y-2">
               {pendingReviews.length === 0 ? (
-                <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-xl border border-dashed border-[var(--kw-border)] bg-white/70 p-4 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+                <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-xl border border-dashed border-[var(--kw-border)] bg-white/70 p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
                   {t('hub.emptyReviews')}
                 </div>
               ) : (
                 pendingReviews.slice(0, 4).map((item) => (
                   <div
                     key={`${item.resource_kind}-${item.resource_id}`}
-                    className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]"
+                    className="dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-xl border border-[var(--kw-border)] bg-white/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]"
                   >
                     <p className="font-medium text-[var(--kw-text)]">{item.title}</p>
                     <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
@@ -427,7 +427,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           </Card>
         </div>
       </div>
-    </div>
+    </main>
   );
 });
 

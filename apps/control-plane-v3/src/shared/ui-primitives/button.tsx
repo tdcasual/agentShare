@@ -9,7 +9,7 @@ const buttonVariants = {
   primary:
     'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-medium shadow-[var(--kw-primary-300)]/20 hover:shadow-[var(--kw-primary-400)]/30 active:scale-95',
   secondary:
-    'bg-white border-2 border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-50)] hover:border-[var(--kw-primary-400)]',
+    'bg-[var(--kw-surface)] border-2 border-[var(--kw-primary-300)] text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-50)] hover:border-[var(--kw-primary-400)] dark:bg-[var(--kw-dark-surface)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
   ghost: 'text-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-100)]',
   gradient:
     'bg-gradient-to-r from-[var(--kw-sky)] to-[var(--kw-mint)] text-white shadow-medium shadow-[var(--kw-mint)]/20 active:scale-95',

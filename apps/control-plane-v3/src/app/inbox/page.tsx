@@ -118,10 +118,10 @@ const InboxContent = memo(function InboxContent() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-3 sm:space-y-4 lg:space-y-6">
+    <main id="main-content" className="mx-auto max-w-3xl space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--kw-text)]">{t('inbox.title')}</h1>
+          <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">{t('inbox.title')}</h1>
           <p className="text-sm text-[var(--kw-text-muted)]">{t('inbox.subtitle')}</p>
         </div>
         {unreadCount > 0 && (
@@ -132,13 +132,13 @@ const InboxContent = memo(function InboxContent() {
       </div>
 
       {isLoading && events.length === 0 && (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-8 sm:py-12">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
         </div>
       )}
 
       {error && (
-        <div className="bg-[var(--kw-rose-surface)]/10 flex items-center gap-2 rounded-xl border border-[var(--kw-rose-surface)] p-4 text-[var(--kw-error)]">
+        <div className="bg-[var(--kw-rose-surface)]/10 flex items-center gap-2 rounded-xl border border-[var(--kw-rose-surface)] p-3 text-[var(--kw-error)] sm:p-4">
           <AlertCircle className="h-5 w-5" />
           <p>{error instanceof Error ? error.message : t('inbox.loadError')}</p>
         </div>
@@ -173,7 +173,7 @@ const InboxContent = memo(function InboxContent() {
       )}
 
       {!isLoading && !error && events.length === 0 && (
-        <div className="dark:bg-[var(--kw-dark-surface)]/60 flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 py-16 text-center dark:border-[var(--kw-dark-border)]">
+        <div className="dark:bg-[var(--kw-dark-surface)]/60 flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/70 py-10 text-center sm:py-16 dark:border-[var(--kw-dark-border)]">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             <Inbox className="h-8 w-8" />
           </div>
@@ -235,7 +235,7 @@ const InboxContent = memo(function InboxContent() {
           </Card>
         ))}
       </div>
-    </div>
+    </main>
   );
 });
 

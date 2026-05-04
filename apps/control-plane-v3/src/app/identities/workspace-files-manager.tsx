@@ -27,7 +27,7 @@ export function WorkspaceFilesManager({ agent }: WorkspaceFilesManagerProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
           {t('identities.sections.workspaceFilesTitle')}
         </h3>
         <div className="flex items-center gap-2">

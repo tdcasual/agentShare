@@ -98,7 +98,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
               {identity.profile.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-[var(--kw-border)] bg-[var(--kw-primary-50)] px-2.5 py-0.5 text-xs text-[var(--kw-primary-600)]"
+                  className="rounded-full border border-[var(--kw-border)] bg-[var(--kw-primary-50)] px-2.5 py-1 text-xs text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]"
                 >
                   {tag}
                 </span>

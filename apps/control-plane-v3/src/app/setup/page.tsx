@@ -122,10 +122,10 @@ export default function SetupPage() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
                 <ShieldCheck className="h-4 w-4" />
-                <span className="uppercase tracking-wider">{t('auth.setup.subtitle')}</span>
+                <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">{t('auth.setup.subtitle')}</span>
               </div>
               <div className="space-y-3">
-                <h1 className="text-3xl font-bold leading-tight text-[var(--kw-text)] lg:text-4xl dark:text-[var(--kw-dark-text)]">
+                <h1 className="text-2xl font-bold leading-tight text-[var(--kw-text)] sm:text-3xl lg:text-4xl dark:text-[var(--kw-dark-text)]">
                   {t('auth.setup.title')}
                 </h1>
                 <p className="leading-relaxed text-[var(--kw-text-muted)]">
@@ -170,6 +170,7 @@ export default function SetupPage() {
             <Input
               label={t('auth.setup.ownerEmail')}
               type="email"
+              autoComplete="email"
               icon={<Mail className="h-4 w-4" />}
               value={form.email}
               onChange={(event) =>
@@ -180,6 +181,7 @@ export default function SetupPage() {
             />
             <Input
               label={t('auth.setup.displayName')}
+              autoComplete="name"
               icon={<User className="h-4 w-4" />}
               value={form.display_name}
               onChange={(event) =>
@@ -191,6 +193,7 @@ export default function SetupPage() {
             <Input
               label={t('auth.setup.password')}
               type="password"
+              autoComplete="new-password"
               icon={<LockKeyhole className="h-4 w-4" />}
               value={form.password}
               onChange={(event) =>

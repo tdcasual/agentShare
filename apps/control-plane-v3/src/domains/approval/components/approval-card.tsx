@@ -121,7 +121,7 @@ export function ApprovalCard({
             <span className="font-medium text-[var(--kw-text)]">{actionTypeLabel}</span>
           </div>
           <span
-            className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${statusColors[approval.status]}`}
+            className={`flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium ${statusColors[approval.status]}`}
           >
             {statusIcons[approval.status]}
             {statusLabel}
@@ -132,7 +132,7 @@ export function ApprovalCard({
         <div className="mb-3">
           <p className="text-sm text-[var(--kw-text-muted)]">
             {t('approvals.capability')}:{' '}
-            <span className="font-medium">{approval.capabilityId}</span>
+            <span className="break-all font-medium">{approval.capabilityId}</span>
           </p>
           <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
             {t('approvals.task')}: {approval.taskId}
@@ -143,7 +143,7 @@ export function ApprovalCard({
         <div className="mb-4 flex items-center gap-4 text-sm text-[var(--kw-text-muted)]">
           <div className="flex items-center gap-1">
             <Bot className="h-4 w-4" />
-            <span>{approval.agentId}</span>
+            <span className="break-all">{approval.agentId}</span>
           </div>
           {approval.expiresAt && (
             <div className="flex items-center gap-1 text-xs">
@@ -218,7 +218,7 @@ export function ApprovalCard({
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder={t('approvals.rejectReasonPlaceholder')}
-                  className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-sm text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-surface-alt)]"
+                  className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-3 py-2 text-sm text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-surface-alt)]"
                   rows={2}
                 />
                 <div className="flex gap-2">

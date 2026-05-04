@@ -45,7 +45,7 @@ const DEFAULT_FORM: OpenClawAgentCreateInput = {
 };
 
 const selectClassName =
-  'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]';
+  'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]';
 
 export function AgentModal({
   isOpen,
@@ -152,7 +152,7 @@ export function AgentModal({
           required
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             label={t('identities.labels.workspaceRoot')}
             value={form.workspace_root}
@@ -169,7 +169,7 @@ export function AgentModal({
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <CatalogSelect
             id="agent-model"
             label={t('identities.labels.model')}
@@ -220,7 +220,7 @@ export function AgentModal({
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label
               htmlFor="agent-risk-tier"
@@ -261,7 +261,7 @@ export function AgentModal({
           </div>
         </div>
 
-        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
           <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
             {t('identities.labels.allowedCapabilityIds')}
           </legend>
@@ -286,7 +286,7 @@ export function AgentModal({
           </div>
         </fieldset>
 
-        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
           <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
             {t('identities.labels.allowedTaskTypes')}
           </legend>

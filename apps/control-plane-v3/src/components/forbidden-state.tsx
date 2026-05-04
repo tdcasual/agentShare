@@ -66,7 +66,7 @@ export function ForbiddenState({
         </div>
 
         {/* 标题 */}
-        <h1 className="mb-3 text-2xl font-bold text-[var(--kw-text)]">
+        <h1 className="mb-3 text-xl font-bold text-[var(--kw-text)] sm:text-2xl">
           {title ?? t('forbiddenState.title')}
         </h1>
 

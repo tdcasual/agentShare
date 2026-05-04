@@ -152,7 +152,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   if (entryState.kind === 'unavailable') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]">
-        <div className="dark:border-[var(--kw-dark-error-surface)]/30 w-full max-w-md rounded-xl border border-[var(--kw-rose-surface)] bg-white p-8 text-center shadow-xl dark:bg-[var(--kw-dark-surface)]">
+        <div className="dark:border-[var(--kw-dark-error-surface)]/30 w-full max-w-md rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-surface)] p-8 text-center shadow-xl dark:bg-[var(--kw-dark-surface)]">
           <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
             <Loader2 className="h-8 w-8 text-[var(--kw-error)]" />
           </div>

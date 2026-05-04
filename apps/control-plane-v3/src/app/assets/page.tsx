@@ -32,7 +32,7 @@ import { useAssetsPage } from './use-assets-page';
 import { useAssetsForm } from './use-assets-form';
 
 const selectClassName =
-  'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-base text-[var(--kw-text)] outline-none transition-colors transition-shadow duration-200 focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]';
+  'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base text-[var(--kw-text)] outline-none transition-colors transition-shadow duration-200 focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]';
 
 type CatalogSelectOption = {
   value: string;
@@ -63,7 +63,7 @@ const AssetsContent = memo(function AssetsContent() {
   });
 
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <Header page={page} form={form} />
       <Metrics page={page} />
       <FilterCard page={page} />
@@ -72,7 +72,7 @@ const AssetsContent = memo(function AssetsContent() {
       <AssetGrids page={page} form={form} />
       <SecretModal form={form} />
       <CapabilityModal page={page} form={form} />
-    </div>
+    </main>
   );
 });
 
@@ -91,7 +91,7 @@ function Header({
           {page.t('assets.subtitle')}
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
             {page.t('assets.title')}
           </h1>
           <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -151,7 +151,7 @@ function Metrics({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 
 function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -175,7 +175,7 @@ function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
               {page.t('assets.governance.publicationState')}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -201,7 +201,7 @@ function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
               {page.t('assets.governance.resourceLane')}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -233,7 +233,7 @@ function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 
 function OperatorCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         <Badge variant="primary">{page.t('common.operator')}</Badge>
         <span className="dark:text-[var(--kw-dark-text)]">
@@ -297,7 +297,7 @@ function Alerts({
       {page.focusedAsset ? (
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-primary-600)] sm:text-xs sm:tracking-[0.22em] dark:text-[var(--kw-dark-primary)]">
               {page.t('assets.focusedAsset')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -340,7 +340,7 @@ function SecretsPanel({
   return (
     <Card
       variant="feature"
-      className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+      className="space-y-3 sm:space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -390,7 +390,7 @@ function SecretsPanel({
   );
 }
 
-function SecretCard({
+const SecretCard = memo(function SecretCard({
   secret,
   focus,
   t,
@@ -444,7 +444,7 @@ function SecretCard({
       </div>
     </Card>
   );
-}
+});
 
 function CapabilitiesPanel({
   page,
@@ -456,7 +456,7 @@ function CapabilitiesPanel({
   return (
     <Card
       variant="feature"
-      className="space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+      className="space-y-3 sm:space-y-4 dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -512,7 +512,7 @@ function CapabilitiesPanel({
   );
 }
 
-function CapabilityCard({
+const CapabilityCard = memo(function CapabilityCard({
   capability,
   focus,
   tokenNameById,
@@ -590,7 +590,7 @@ function CapabilityCard({
       </div>
     </Card>
   );
-}
+});
 
 function CatalogSelect({
   id,
@@ -643,7 +643,7 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
       description={form.t('assets.secrets.modalDesc')}
       size="lg"
     >
-      <form className="space-y-4" onSubmit={form.handleCreateSecret}>
+      <form className="space-y-3 sm:space-y-4" onSubmit={form.handleCreateSecret}>
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             label={form.t('assets.secrets.displayName')}
@@ -712,7 +712,7 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
           />
         </div>
         <MutationAlert error={form.error} success={form.success} />
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
           <Button type="button" variant="secondary" onClick={form.closeSecretModal}>
             {form.t('common.cancel')}
           </Button>
@@ -908,7 +908,7 @@ function CapabilityModal({
             ) : null}
 
             {form.capabilityForm.access_mode === 'access_token_label' ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-1.5">
                   <label
                     htmlFor="token-label-key"
@@ -962,7 +962,7 @@ function CapabilityModal({
         </Card>
 
         <MutationAlert error={form.error} success={form.success} />
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="secondary" onClick={form.closeCapabilityModal}>
             {form.t('common.cancel')}
           </Button>
@@ -1019,7 +1019,7 @@ function EmptyState({
       <h3 className="mt-4 text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
         {title}
       </h3>
-      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+      <p className="mt-2 hidden text-sm text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
         {description}
       </p>
     </Card>
@@ -1029,7 +1029,7 @@ function EmptyState({
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-[var(--kw-surface-alt)]/80 dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+      <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
       <p className="mt-2 break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -1109,7 +1109,7 @@ function policyButtonClass(active: boolean) {
     'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
     active
       ? 'border-[var(--kw-primary-400)] bg-[var(--kw-primary-500)] text-white'
-      : 'border-[var(--kw-primary-200)] bg-white text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]',
+      : 'border-[var(--kw-primary-200)] bg-[var(--kw-surface)] text-[var(--kw-text)] hover:bg-[var(--kw-primary-50)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]',
   ].join(' ');
 }
 

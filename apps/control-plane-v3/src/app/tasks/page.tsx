@@ -49,7 +49,7 @@ const TasksContent = memo(function TasksContent() {
   });
 
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
@@ -57,10 +57,10 @@ const TasksContent = memo(function TasksContent() {
             {page.t('tasks.tokenTargetedDelivery')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
               {page.t('tasks.title')}
             </h1>
-            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="mt-1 hidden text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
               {page.t('tasks.description')}
             </p>
           </div>
@@ -78,7 +78,7 @@ const TasksContent = memo(function TasksContent() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         <MetricCard
           label={page.t('tasks.metrics.publishedTasks')}
           value={page.taskViews.length.toString()}
@@ -101,7 +101,7 @@ const TasksContent = memo(function TasksContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -151,13 +151,13 @@ const TasksContent = memo(function TasksContent() {
       {page.selectedTask ? (
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-primary-600)] sm:text-xs sm:tracking-[0.22em] dark:text-[var(--kw-dark-primary)]">
               {page.t('tasks.focusedTask.title')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {page.selectedTask.task.title}
             </h2>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="text-xs text-[var(--kw-text-muted)] sm:text-sm dark:text-[var(--kw-dark-text-muted)]">
               {page.t('tasks.focusedTask.description', {
                 count: page.selectedTask.targets.length,
               })}
@@ -190,10 +190,10 @@ const TasksContent = memo(function TasksContent() {
             <ClipboardList className="h-7 w-7" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
               {page.t('tasks.empty.title')}
             </h2>
-            <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="hidden text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
               {page.t('tasks.empty.description')}
             </p>
           </div>
@@ -224,11 +224,11 @@ const TasksContent = memo(function TasksContent() {
       <CreateTaskModal form={form} allTokens={page.allTokens} />
       <TaskDetailModal page={page} form={form} />
       <FeedbackModal form={form} />
-    </div>
+    </main>
   );
 });
 
-function TaskCard({
+const TaskCard = memo(function TaskCard({
   taskView,
   isFocused,
   onSelect,
@@ -286,7 +286,7 @@ function TaskCard({
             <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl lg:text-2xl dark:text-[var(--kw-dark-text)]">
               {task.title}
             </h2>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="text-xs text-[var(--kw-text-muted)] sm:text-sm dark:text-[var(--kw-dark-text-muted)]">
               {t('tasks.createdByLine', {
                 taskType: task.taskType,
                 actorType: task.createdBy.type,
@@ -296,8 +296,8 @@ function TaskCard({
           </div>
         </div>
 
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-3xl border border-[var(--kw-border)] bg-white/80 px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-3 py-2 sm:rounded-3xl sm:px-4 sm:py-3">
+          <p className="text-xs font-medium text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             {t('tasks.feedbackSummary')}
           </p>
           <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -321,7 +321,7 @@ function TaskCard({
       </div>
 
       <div className="space-y-3">
-        <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+        <p className="text-xs font-medium text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           {t('tasks.targetAccessTokens')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -342,7 +342,7 @@ function TaskCard({
       </div>
     </Card>
   );
-}
+});
 
 function CreateTaskModal({
   form,
@@ -359,7 +359,7 @@ function CreateTaskModal({
       description={form.t('tasks.publishTaskDescription')}
       size="lg"
     >
-      <form className="space-y-4" onSubmit={form.handleCreateTask}>
+      <form className="space-y-3 sm:space-y-4" onSubmit={form.handleCreateTask}>
         <Input
           label={form.t('tasks.form.title')}
           value={form.taskForm.title}
@@ -379,7 +379,7 @@ function CreateTaskModal({
             </label>
             <select
               id="task-type"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
               value={form.taskForm.task_type}
               onChange={(event) =>
                 form.setTaskForm((current) => ({ ...current, task_type: event.target.value }))
@@ -402,7 +402,7 @@ function CreateTaskModal({
             </label>
             <select
               id="task-priority"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
               value={form.taskForm.priority}
               onChange={(event) =>
                 form.setTaskForm((current) => ({ ...current, priority: event.target.value }))
@@ -439,10 +439,10 @@ function CreateTaskModal({
               type="button"
               onClick={() => form.setTargetMode('explicit_access_tokens')}
               aria-pressed={form.taskForm.target_mode === 'explicit_access_tokens'}
-              className={`rounded-2xl border p-4 text-left transition-colors ${
+              className={`rounded-2xl border p-3 text-left transition-colors sm:p-4 ${
                 form.taskForm.target_mode === 'explicit_access_tokens'
                   ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
-                  : 'border-[var(--kw-border)] bg-white dark:bg-[var(--kw-dark-bg)]'
+                  : 'border-[var(--kw-border)] bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]'
               }`}
             >
               <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -456,10 +456,10 @@ function CreateTaskModal({
               type="button"
               onClick={() => form.setTargetMode('broadcast')}
               aria-pressed={form.taskForm.target_mode === 'broadcast'}
-              className={`rounded-2xl border p-4 text-left transition-colors ${
+              className={`rounded-2xl border p-3 text-left transition-colors sm:p-4 ${
                 form.taskForm.target_mode === 'broadcast'
                   ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
-                  : 'border-[var(--kw-border)] bg-white dark:bg-[var(--kw-dark-bg)]'
+                  : 'border-[var(--kw-border)] bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]'
               }`}
             >
               <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -482,7 +482,7 @@ function CreateTaskModal({
                 {form.t('tasks.form.targetAccessTokensDescription')}
               </p>
             </div>
-            <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-3xl border border-[var(--kw-border)] p-4">
+            <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-2xl border border-[var(--kw-border)] p-3 sm:rounded-3xl sm:p-4">
               {allTokens.length === 0 ? (
                 <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {form.t('tasks.form.noTokensAvailable')}
@@ -584,7 +584,7 @@ function TaskDetailModal({
 
           <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
             <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90">
-              <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              <p className="text-xs uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {page.t('tasks.inputPayload')}
               </p>
               <pre className="max-h-40 overflow-y-auto rounded-2xl bg-[var(--kw-dark-bg)] px-4 py-4 text-sm text-[var(--kw-primary-50)] sm:max-h-64">
@@ -593,7 +593,7 @@ function TaskDetailModal({
             </Card>
 
             <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90">
-              <p className="text-sm uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              <p className="text-xs uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {page.t('tasks.publishingContext')}
               </p>
               <div className="space-y-2 text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -726,7 +726,7 @@ function FeedbackModal({ form }: { form: ReturnType<typeof useTasksForm> }) {
           : undefined
       }
     >
-      <form className="space-y-4" onSubmit={form.handleSubmitFeedback}>
+      <form className="space-y-3 sm:space-y-4" onSubmit={form.handleSubmitFeedback}>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label
@@ -737,7 +737,7 @@ function FeedbackModal({ form }: { form: ReturnType<typeof useTasksForm> }) {
             </label>
             <select
               id="feedback-score"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
+              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
               value={form.feedbackForm.score}
               onChange={(event) =>
                 form.setFeedbackForm((current) => ({ ...current, score: event.target.value }))
@@ -811,7 +811,7 @@ function TokenCheckbox({
   }, [onToggle, token.id]);
 
   return (
-    <label className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white px-4 py-3 dark:bg-[var(--kw-dark-bg)]">
+    <label className="flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 dark:bg-[var(--kw-dark-surface)]">
       <input type="checkbox" className="mt-1" checked={checked} onChange={handleChange} />
       <div>
         <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -851,8 +851,8 @@ function FeedbackButton({
 
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white px-3 py-2 sm:px-4 sm:py-3 dark:bg-[var(--kw-dark-bg)]">
-      <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+    <div className="rounded-2xl bg-[var(--kw-surface)] px-3 py-2 sm:px-4 sm:py-3 dark:bg-[var(--kw-dark-surface)]">
+      <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.15em] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
       <p className="mt-1 text-sm font-medium text-[var(--kw-text)] sm:mt-2 dark:text-[var(--kw-dark-text)]">

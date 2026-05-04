@@ -89,7 +89,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
               placeholder={t('spaces.createModal.summaryPlaceholder')}
               rows={3}
               maxLength={200}
-              className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-surface-alt)]"
+              className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-3 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-surface-alt)]"
             />
             <p className="mt-1 text-xs text-[var(--kw-text-muted)]">{summary.length}/200</p>
           </div>

@@ -8,7 +8,7 @@
 
 import useSWR, { SWRConfiguration, mutate } from 'swr';
 import { useCallback } from 'react';
-import { swrConfig, pollingConfig } from '@/lib/swr-config';
+import { swrConfig, pollingConfig, usePageVisible } from '@/lib/swr-config';
 import * as api from './api';
 import type { Task, Run, AccessTokenFeedback } from './types';
 import type { TaskCreateInput, AccessTokenFeedbackCreateInput } from '@/lib/api-client';
@@ -19,10 +19,15 @@ import { TASK_DASHBOARD_FEEDBACK_KEY, TASK_DASHBOARD_TOKENS_KEY } from './hooks-
 // ============================================
 
 export function useTasks(options?: SWRConfiguration) {
-  return useSWR<{ items: Task[] }>('/api/tasks', () => api.getTasks(), {
-    ...pollingConfig, // 默认轮询，任务状态变化快
-    ...options,
-  });
+  const visible = usePageVisible();
+  return useSWR<{ items: Task[] }>(
+    options?.isPaused || !visible ? null : '/api/tasks',
+    () => api.getTasks(),
+    {
+      ...pollingConfig, // 默认轮询，任务状态变化快
+      ...options,
+    }
+  );
 }
 
 export function useCreateTask() {

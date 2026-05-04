@@ -13,9 +13,9 @@ export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
   const { t } = useI18n();
 
   return (
-    <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-4 dark:border-[var(--kw-dark-border)]">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
           {t('identities.sections.recentDreamRunsTitle')}
         </h3>
         <Badge variant="secondary">{runs.length}</Badge>

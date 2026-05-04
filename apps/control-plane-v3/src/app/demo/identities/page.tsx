@@ -110,7 +110,7 @@ function IdentitiesContent() {
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
@@ -333,7 +333,7 @@ function IdentitiesContent() {
         title={t('identities.createIdentity')}
         description={t('identities.chooseType')}
       >
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => setShowCreateModal(false)}
@@ -362,7 +362,7 @@ function IdentitiesContent() {
           </button>
         </div>
       </Modal>
-    </div>
+    </main>
   );
 }
 

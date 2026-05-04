@@ -59,7 +59,7 @@ const DocsContent = memo(function DocsContent() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="mb-2 text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
             {t('docs.title')}
           </h1>
           <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -74,7 +74,7 @@ const DocsContent = memo(function DocsContent() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
             <span className="sr-only">{t('common.search')}</span>
-            <div className="flex items-center gap-3 rounded-2xl border border-[var(--kw-border)] bg-white px-4 py-3 text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text-muted)]">
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text-muted)]">
               <Search className="h-4 w-4 flex-shrink-0" />
               <input
                 type="search"
@@ -153,7 +153,7 @@ const DocsContent = memo(function DocsContent() {
       ) : filteredDocs.length === 0 ? (
         <EmptyState icon={<Search className="h-6 w-6" />} message={t('docs.noResults')} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredDocs.map((doc) => (
             <DocCard
               key={`${doc.category}/${doc.filename}`}
@@ -189,7 +189,7 @@ const DocsContent = memo(function DocsContent() {
               <Badge variant="info">{docDetailQuery.data?.category}</Badge>
               <Badge variant="secondary">{docDetailQuery.data?.filename}</Badge>
             </div>
-            <div className="dark:bg-[var(--kw-dark-surface)]/80 max-h-[60vh] overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-white/80 p-4 dark:border-[var(--kw-dark-border)]">
+            <div className="dark:bg-[var(--kw-dark-surface)]/80 max-h-[60vh] overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
               <pre className="whitespace-pre-wrap break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {docDetailQuery.data?.content ?? t('docs.noContent')}
               </pre>

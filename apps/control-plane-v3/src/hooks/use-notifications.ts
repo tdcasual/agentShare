@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { logger } from '@/lib/logger';
 import { Event } from '@/domains/event/types';
+import type { SWRConfiguration } from 'swr';
 import { EVENTS_FEED_KEY, useEvents, useMarkEventRead } from '@/domains/event';
 
 export type Notification = Event;
@@ -79,8 +80,8 @@ export async function markAllNotificationsReadForSource(
   });
 }
 
-export function useNotifications(): UseNotificationsResult {
-  const { events, isLoading, error, mutate } = useEvents();
+export function useNotifications(options?: SWRConfiguration): UseNotificationsResult {
+  const { events, isLoading, error, mutate } = useEvents(options);
 
   return {
     availability: 'backend',

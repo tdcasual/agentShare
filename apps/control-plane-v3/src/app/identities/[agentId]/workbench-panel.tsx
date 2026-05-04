@@ -68,13 +68,10 @@ export function WorkbenchPanel({
     if (!selectedConversationId && workbenchSessions.length > 0) {
       setSelectedConversationId(workbenchSessions[0].id);
     }
-  }, [workbenchSessions, selectedConversationId]);
-
-  useEffect(() => {
     if (!selectedCapabilityId && availableCapabilities.length > 0) {
       setSelectedCapabilityId(availableCapabilities[0].id);
     }
-  }, [availableCapabilities, selectedCapabilityId]);
+  }, [workbenchSessions, selectedConversationId, availableCapabilities, selectedCapabilityId]);
 
   async function handleSend() {
     if (!composerValue.trim() || !selectedConversationId) {
@@ -127,7 +124,7 @@ export function WorkbenchPanel({
         <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
                 {t('identities.workbench.conversations')}
               </h3>
               <Button variant="secondary" size="sm" onClick={() => setShowNewSession((s) => !s)}>
@@ -148,7 +145,7 @@ export function WorkbenchPanel({
                     id="workbench-capability"
                     value={selectedCapabilityId}
                     onChange={(e) => setSelectedCapabilityId(e.target.value)}
-                    className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]"
+                    className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-sm outline-none transition-colors focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]"
                   >
                     <option value="">{t('identities.workbench.selectCapability')}</option>
                     {availableCapabilities.map((capability) => (
@@ -331,7 +328,7 @@ export function WorkbenchPanel({
                     }}
                     placeholder={t('identities.workbench.composerPlaceholder')}
                     rows={2}
-                    className="w-full resize-none rounded-2xl border-2 border-[var(--kw-border)] bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]"
+                    className="w-full resize-none rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-sm outline-none transition-colors focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)]"
                   />
                 </div>
                 <Button
@@ -382,5 +379,5 @@ function ErrorState({ message }: { message: string }) {
 }
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`rounded-3xl p-4 sm:p-5 ${className ?? ''}`}>{children}</div>;
+  return <div className={`rounded-2xl p-3 sm:rounded-3xl sm:p-5 ${className ?? ''}`}>{children}</div>;
 }

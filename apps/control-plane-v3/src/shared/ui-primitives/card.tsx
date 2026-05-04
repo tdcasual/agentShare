@@ -5,16 +5,16 @@ import { cn } from '@/lib/utils';
 
 const cardVariants = {
   default:
-    'bg-white dark:bg-[var(--kw-dark-surface)] border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
-  elevated: 'bg-white shadow-medium dark:shadow-black/20',
+    'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)] border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
+  elevated: 'bg-[var(--kw-surface)] shadow-medium dark:shadow-black/20',
   glass:
-    'bg-white/80 dark:bg-[var(--kw-dark-surface)]/80 backdrop-blur-sm border border-[var(--kw-border)]/60 dark:border-[var(--kw-dark-border)]/60',
+    'bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80 backdrop-blur-sm border border-[var(--kw-border)]/60 dark:border-[var(--kw-dark-border)]/60',
   gradient:
     'bg-gradient-to-br from-[var(--kw-surface-alt)]/80 to-[var(--kw-lavender)]/30 border border-[var(--kw-border)]/40 dark:from-[var(--kw-dark-surface)]/80 dark:to-[var(--kw-dark-surface-alt)]/30 dark:border-[var(--kw-dark-border)]/40',
   feature:
     'bg-gradient-to-br from-[var(--kw-surface-alt)]/90 to-[var(--kw-lavender)]/40 relative overflow-hidden dark:from-[var(--kw-dark-surface)]/90 dark:to-[var(--kw-dark-surface-alt)]/40',
   kawaii:
-    'bg-white border border-[var(--kw-border)] dark:bg-[var(--kw-dark-surface)] dark:border-[var(--kw-dark-border)]',
+    'bg-[var(--kw-surface)] border border-[var(--kw-border)] dark:bg-[var(--kw-dark-surface)] dark:border-[var(--kw-dark-border)]',
 } as const;
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -43,7 +43,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'relative rounded-2xl p-4 md:p-6',
+          'relative rounded-2xl p-3 sm:p-4 md:p-6',
           cardVariants[variant],
           hover && 'card-kawaii cursor-pointer',
           className
@@ -61,14 +61,18 @@ Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('mb-4 flex flex-col gap-2', className)} {...props} />
+    <div
+      ref={ref}
+      className={cn('mb-3 flex flex-col gap-1 sm:mb-4 sm:gap-2', className)}
+      {...props}
+    />
   )
 );
 CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-xl font-bold text-[var(--kw-text)]', className)} {...props} />
+    <h3 ref={ref} className={cn('text-lg font-bold text-[var(--kw-text)] sm:text-xl', className)} {...props} />
   )
 );
 CardTitle.displayName = 'CardTitle';

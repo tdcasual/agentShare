@@ -73,7 +73,7 @@ export function SectionError({ message, actionLabel, onRetry, isRefreshing }: Se
   return (
     <div
       role="alert"
-      className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 rounded-2xl border border-[var(--kw-rose-surface)] p-4 text-sm text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]"
+      className="bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 rounded-2xl border border-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] sm:p-4 dark:text-[var(--kw-error)]"
     >
       <div className="flex flex-col gap-4">
         <p>{message}</p>
@@ -99,10 +99,10 @@ export interface IdentityDetailsGridProps {
 
 export function IdentityDetailsGrid({ items }: IdentityDetailsGridProps) {
   return (
-    <dl className="dark:bg-[var(--kw-dark-surface-alt)]/60 mt-4 grid gap-3 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/60 p-4 sm:grid-cols-2 dark:border-[var(--kw-dark-border)]">
+    <dl className="dark:bg-[var(--kw-dark-surface-alt)]/60 mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/60 p-3 sm:grid-cols-2 sm:p-4 dark:border-[var(--kw-dark-border)]">
       {items.map(([label, value]) => (
         <div key={label} className="min-w-0">
-          <dt className="text-xs uppercase tracking-wide text-[var(--kw-text-muted)]">{label}</dt>
+          <dt className="text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-wide">{label}</dt>
           <dd className="mt-1 break-all text-sm text-[var(--kw-text)]">{value}</dd>
         </div>
       ))}

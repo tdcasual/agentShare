@@ -8,6 +8,7 @@
  */
 
 import { SWRConfiguration } from 'swr';
+import { useEffect, useState } from 'react';
 import { api, ApiError } from './api';
 
 /**
@@ -66,6 +67,24 @@ export const fetcherWithParams = async <T, P extends Record<string, unknown>>(
 
   throw new Error(`Unknown API endpoint: ${url}`);
 };
+
+/**
+ * 页面可见性状态 hook
+ * 当 tab 隐藏时返回 false，可用于暂停轮询
+ */
+export function usePageVisible(): boolean {
+  const [visible, setVisible] = useState(
+    typeof document !== 'undefined' ? !document.hidden : true
+  );
+
+  useEffect(() => {
+    const handleVisibilityChange = () => setVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  return visible;
+}
 
 /**
  * 轮询配置（用于实时数据）

@@ -102,18 +102,18 @@ function AgentDetailContent() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+      <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <span className="animate-spin">🌸</span>
           {t('identities.detail.loading')}
         </Card>
-      </div>
+      </main>
     );
   }
 
   if (gateError || !agent) {
     return (
-      <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+      <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
         <Button
           variant="secondary"
           size="sm"
@@ -125,12 +125,12 @@ function AgentDetailContent() {
         <Card className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]">
           {gateError ?? t('identities.detail.notFound')}
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-4">
           <Button
@@ -144,7 +144,7 @@ function AgentDetailContent() {
           <div>
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-[var(--kw-text-muted)]" />
-              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-dark-text)]">
                 {agent.name}
               </h1>
             </div>
@@ -163,7 +163,7 @@ function AgentDetailContent() {
       </div>
 
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-        <div className="flex flex-wrap gap-2">
+        <div className="scrollbar-hide flex flex-nowrap gap-2 overflow-x-auto">
           {TABS.map((tab) => (
             <FilterButton
               key={tab}
@@ -203,7 +203,7 @@ function AgentDetailContent() {
               ],
             ]}
           />
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             <DreamPolicyCard dreamPolicy={agent.dream_policy} />
             <DreamRunList
               runs={allDreamRuns.slice(0, 5)}
@@ -250,7 +250,7 @@ function AgentDetailContent() {
         <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
                 {t('identities.sections.recentEventsTitle')}
               </h3>
               <Badge variant="secondary">{allEvents.length}</Badge>
@@ -291,6 +291,6 @@ function AgentDetailContent() {
           }
         />
       )}
-    </div>
+    </main>
   );
 }

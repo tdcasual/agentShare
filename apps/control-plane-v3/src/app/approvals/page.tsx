@@ -137,7 +137,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
+            <h2 className="mb-2 text-lg font-bold text-[var(--kw-text)] sm:text-xl">
               {t('approvals.loadFailed')}
             </h2>
             <p className="mb-4 text-[var(--kw-text-muted)]">
@@ -155,7 +155,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message={t('approvals.sessionExpired')} />
           ) : null}
@@ -178,7 +178,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
           {/* 页面标题 */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+              <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-surface-alt)]">
                 {t('approvals.title')}
               </h1>
               <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
@@ -221,13 +221,13 @@ const ApprovalsContent = memo(function ApprovalsContent() {
 
           {/* 统计卡片 */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Card variant="gradient" className="p-4">
+            <Card variant="gradient" className="p-3 sm:p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-orange-surface)]">
                   <Clock className="h-5 w-5 text-[var(--kw-orange-text)]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-dark-text)]">
                     {stats.pending}
                   </p>
                   <p className="text-sm text-[var(--kw-text-muted)]">
@@ -236,13 +236,13 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
               </div>
             </Card>
-            <Card variant="gradient" className="p-4">
+            <Card variant="gradient" className="p-3 sm:p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-green-surface)]">
                   <CheckCircle className="h-5 w-5 text-[var(--kw-green-text)]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-dark-text)]">
                     {stats.approved}
                   </p>
                   <p className="text-sm text-[var(--kw-text-muted)]">
@@ -251,13 +251,13 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                 </div>
               </div>
             </Card>
-            <Card variant="gradient" className="p-4">
+            <Card variant="gradient" className="p-3 sm:p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
                   <XCircle className="h-5 w-5 text-[var(--kw-error)]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-dark-text)]">
                     {stats.rejected}
                   </p>
                   <p className="text-sm text-[var(--kw-text-muted)]">
@@ -343,7 +343,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
               {t('approvals.totalRecords').replace('{count}', String(total))}
             </p>
           )}
-        </div>
+        </main>
       </Layout>
     </ErrorBoundary>
   );

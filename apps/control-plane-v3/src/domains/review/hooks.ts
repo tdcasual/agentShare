@@ -8,7 +8,7 @@
 
 import useSWR, { SWRConfiguration, mutate } from 'swr';
 import { useCallback } from 'react';
-import { pollingConfig } from '@/lib/swr-config';
+import { pollingConfig, usePageVisible } from '@/lib/swr-config';
 import * as api from './api';
 import type { ReviewQueueItem, ApproveReviewInput, RejectReviewInput } from './types';
 
@@ -17,8 +17,9 @@ import type { ReviewQueueItem, ApproveReviewInput, RejectReviewInput } from './t
 // ============================================
 
 export function useReviews(options?: SWRConfiguration) {
+  const visible = usePageVisible();
   return useSWR<{ items: ReviewQueueItem[] }>(
-    options?.isPaused ? null : '/api/reviews',
+    options?.isPaused || !visible ? null : '/api/reviews',
     () => api.getReviews(),
     {
       ...pollingConfig, // Review 队列需要较新鲜的数据

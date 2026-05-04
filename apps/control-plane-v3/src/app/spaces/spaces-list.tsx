@@ -41,7 +41,7 @@ export function SpacesList({
     <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+          <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
             {t('spaces.sections.persistedSpacesTitle')}
           </h2>
           <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
@@ -68,13 +68,13 @@ export function SpacesList({
       ) : spaces.length === 0 ? (
         <SectionNotice message={t('spaces.noSpaces')} />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {spaces.map((space) => (
             <div
               key={space.id}
               role="group"
               aria-label={t('spaces.sections.spaceAriaLabel', { name: space.name })}
-              className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]"
+              className="bg-[var(--kw-primary-50)]/40 dark:bg-[var(--kw-dark-surface-alt)]/60 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -103,7 +103,7 @@ export function SpacesList({
                     className="dark:bg-[var(--kw-dark-surface)]/80 rounded-xl border border-white/70 bg-white/70 px-3 py-2 dark:border-[var(--kw-dark-border)]"
                   >
                     <p className="text-sm font-medium text-[var(--kw-text)]">{entry.summary}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--kw-text-muted)]">
+                    <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.18em]">
                       {entry.entry_type.replaceAll('_', ' ')}
                     </p>
                   </div>

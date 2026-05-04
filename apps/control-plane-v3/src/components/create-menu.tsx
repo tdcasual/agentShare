@@ -161,10 +161,10 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
           role="dialog"
           aria-modal="false"
           aria-label={t('createMenu.ariaLabel')}
-          className="absolute right-0 top-full z-dropdown mt-2 w-80 max-w-[calc(100vw-2rem)] animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+          className="absolute right-0 top-full z-dropdown mt-2 w-80 max-w-[calc(100vw-2rem)] sm:w-96 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
           {/* 头部搜索 */}
-          <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+          <div className="border-b border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-semibold text-[var(--kw-text)]">{t('createMenu.title')}</h3>
               <button
@@ -199,7 +199,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
             {/* Identities */}
             {identityActions.length > 0 && (
               <div className="mb-2 px-2">
-                <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
+                <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-wider">
                   {t('createMenu.sections.identity')}
                 </p>
                 {identityActions.map((action) => (
@@ -227,7 +227,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
             {/* Resources */}
             {resourceActions.length > 0 && (
               <div className="mb-2 px-2">
-                <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
+                <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-wider">
                   {t('createMenu.sections.resource')}
                 </p>
                 {resourceActions.map((action) => (
@@ -255,7 +255,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
             {/* System */}
             {systemActions.length > 0 && (
               <div className="px-2">
-                <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--kw-text-muted)]">
+                <p className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-wider">
                   {t('createMenu.sections.system')}
                 </p>
                 {systemActions.map((action) => (
@@ -300,7 +300,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
                   i === 1 ? (
                     <kbd
                       key={i}
-                      className="rounded border border-[var(--kw-border)] bg-white px-1.5 py-0.5 font-mono dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+                      className="rounded border border-[var(--kw-border)] bg-[var(--kw-surface)] px-1.5 py-0.5 font-mono dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
                     >
                       {part.split('</0>')[0]}
                     </kbd>

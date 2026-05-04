@@ -57,7 +57,7 @@ export default function DemoSpacesPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <main id="main-content" className="space-y-4">
       <div className="bg-[var(--kw-amber-surface)]/80 rounded-2xl border border-[var(--kw-amber-surface)] p-4 dark:border-[var(--kw-dark-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]">
         <p className="text-sm font-medium text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]">
           Collaboration prototype
@@ -175,6 +175,6 @@ export default function DemoSpacesPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

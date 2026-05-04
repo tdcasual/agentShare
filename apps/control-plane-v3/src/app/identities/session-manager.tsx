@@ -83,7 +83,7 @@ export function SessionManager({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)]">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
           {t('identities.sessionManager.title')}
         </h3>
         <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export function SessionManager({
       ) : null}
 
       {showCreate && canManage ? (
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-4 dark:border-[var(--kw-dark-border)]">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
           <Input
             label={t('identities.sessionManager.sessionKey')}
             value={createForm.session_key}

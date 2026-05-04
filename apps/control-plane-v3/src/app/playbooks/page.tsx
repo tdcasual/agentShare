@@ -149,7 +149,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message={t('playbooks.sessionExpired')} />
           ) : null}
@@ -308,7 +308,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               ))
             )}
           </div>
-        </div>
+        </main>
 
         {/* 详情弹窗 */}
         {selectedPlaybook && (
@@ -394,7 +394,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
             id={taskTypeId}
             value={taskType}
             onChange={(e) => setTaskType(e.target.value)}
-            className="w-full rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
+            className="w-full rounded-xl border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           >
             <option value="code_review">{t('playbooks.taskTypes.codeReview')}</option>
             <option value="deployment">{t('playbooks.taskTypes.deployment')}</option>
@@ -433,7 +433,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
             placeholder={t('playbooks.modal.bodyPlaceholder')}
             rows={6}
             required
-            className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-white px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)]"
+            className="w-full resize-none rounded-xl border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-3 py-2 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           />
         </div>
 

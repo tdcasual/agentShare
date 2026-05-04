@@ -50,12 +50,12 @@ export default function OfflinePage() {
 
         {/* 标题 */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-[var(--kw-text)]">{t('offline.title')}</h1>
+          <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">{t('offline.title')}</h1>
           <p className="text-[var(--kw-text-muted)]">{t('offline.description')}</p>
         </div>
 
         {/* 说明 */}
-        <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-xl bg-white/50 p-4 text-left">
+        <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-xl bg-white/50 p-3 text-left sm:p-4">
           <div className="flex items-start gap-3">
             <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]" />
             <div>

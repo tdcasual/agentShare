@@ -25,7 +25,7 @@ export default function NotFound() {
           <Home className="h-8 w-8" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-[var(--kw-text)]">
+          <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">
             {t('common.pageNotFoundTitle')}
           </h1>
           <p className="text-[var(--kw-text-muted)]">{t('common.pageNotFoundDescription')}</p>

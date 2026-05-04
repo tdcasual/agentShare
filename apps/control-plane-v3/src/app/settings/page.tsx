@@ -163,7 +163,7 @@ const SettingsContent = memo(function SettingsContent() {
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
@@ -171,10 +171,10 @@ const SettingsContent = memo(function SettingsContent() {
             {t('settings.inviteOnlyAccess')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
               {t('settings.title')}
             </h1>
-            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="mt-1 hidden text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
               {t('settings.description')}
             </p>
           </div>
@@ -209,13 +209,13 @@ const SettingsContent = memo(function SettingsContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('settings.coverageTitle')}
             </h2>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="hidden text-sm text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
               {t('settings.coverageDesc')}
             </p>
           </div>
@@ -275,7 +275,7 @@ const SettingsContent = memo(function SettingsContent() {
               {t('settings.inviteAccount')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
                 {t('settings.createAdminTitle')}
               </h2>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -323,7 +323,7 @@ const SettingsContent = memo(function SettingsContent() {
               </label>
               <select
                 id="role-select"
-                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-white px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-bg)]"
+                className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
                 value={inviteForm.role}
                 onChange={(event) =>
                   setInviteForm((current) => ({
@@ -355,7 +355,7 @@ const SettingsContent = memo(function SettingsContent() {
               {t('settings.currentSession')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
                 {t('settings.operatorPosture')}
               </h2>
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -395,7 +395,7 @@ const SettingsContent = memo(function SettingsContent() {
             />
           </div>
 
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-3xl border border-[var(--kw-border)] bg-white/80 p-3 sm:p-4 lg:p-5">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 sm:rounded-3xl sm:p-4 lg:p-5">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]">
                 <ShieldCheck className="h-5 w-5" />
@@ -452,10 +452,10 @@ const SettingsContent = memo(function SettingsContent() {
             {t('settings.invitedAccounts')}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
               {t('settings.managementRoster')}
             </h2>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="hidden text-sm text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
               {t('settings.rosterDesc')}
             </p>
           </div>
@@ -479,7 +479,7 @@ const SettingsContent = memo(function SettingsContent() {
           ) : null}
         </div>
       </Card>
-    </div>
+    </main>
   );
 });
 
@@ -600,7 +600,7 @@ function SessionStat({
 }) {
   return (
     <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl bg-white/80 px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+      <p className="text-xs font-medium text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>
       <p

@@ -92,7 +92,7 @@ function SpacesContent() {
 
   const events = eventsQuery.events;
   const reviewItems = reviewsQuery.data?.items;
-  const agents = agentsQuery.data?.items ?? [];
+  const agents = useMemo(() => agentsQuery.data?.items ?? [], [agentsQuery.data]);
   const accessTokensByAgentId = useMemo(
     () =>
       (accessTokensQuery.data?.items ?? []).reduce<Record<string, AccessToken[]>>(
@@ -107,16 +107,20 @@ function SpacesContent() {
       ),
     [accessTokensQuery.data]
   );
-  const secrets = secretsQuery.data?.items ?? [];
-  const capabilities = capabilitiesQuery.data?.items ?? [];
+  const secrets = useMemo(() => secretsQuery.data?.items ?? [], [secretsQuery.data]);
+  const capabilities = useMemo(() => capabilitiesQuery.data?.items ?? [], [capabilitiesQuery.data]);
   const reviewItemList = useMemo(() => reviewItems ?? [], [reviewItems]);
   const persistedSpaces = useMemo(() => spacesQuery.spaces ?? [], [spacesQuery.spaces]);
 
-  const pendingReviews = reviewItemList.filter(
-    (item) => item.publication_status === 'pending_review'
+  const pendingReviews = useMemo(
+    () => reviewItemList.filter((item) => item.publication_status === 'pending_review'),
+    [reviewItemList]
   );
-  const rejectedReviews = reviewItemList.filter((item) => item.publication_status === 'rejected');
-  const activeAgents = agents.filter((agent) => agent.status === 'active');
+  const rejectedReviews = useMemo(
+    () => reviewItemList.filter((item) => item.publication_status === 'rejected'),
+    [reviewItemList]
+  );
+  const activeAgents = useMemo(() => agents.filter((agent) => agent.status === 'active'), [agents]);
   const agentEventCounts = useMemo(
     () =>
       events
@@ -153,10 +157,29 @@ function SpacesContent() {
     }
     return reviewItemList ?? [];
   }, [pendingReviews, rejectedReviews, reviewItemList, selectedReviewStatus]);
-  const publishedAssets = secrets.filter((item) => item.publication_status === 'active');
-  const publishedSkills = capabilities.filter((item) => item.publication_status === 'active');
-  const focusedAgent = agents.find((agent) => agent.id === focus.agentId) ?? null;
-  const focusedEvent = events.find((event) => event.id === focus.eventId) ?? null;
+  const publishedAssets = useMemo(
+    () => secrets.filter((item) => item.publication_status === 'active'),
+    [secrets]
+  );
+  const publishedSkills = useMemo(
+    () => capabilities.filter((item) => item.publication_status === 'active'),
+    [capabilities]
+  );
+  const marketInventoryData = useMemo(
+    () => ({
+      assets: publishedAssets.slice(0, 3).map((item) => item.display_name),
+      skills: publishedSkills.slice(0, 3).map((item) => item.name),
+    }),
+    [publishedAssets, publishedSkills]
+  );
+  const focusedAgent = useMemo(
+    () => agents.find((agent) => agent.id === focus.agentId) ?? null,
+    [agents, focus.agentId]
+  );
+  const focusedEvent = useMemo(
+    () => events.find((event) => event.id === focus.eventId) ?? null,
+    [events, focus.eventId]
+  );
   const focusedSpace = useMemo(
     () =>
       persistedSpaces.find((space) =>
@@ -253,17 +276,17 @@ function SpacesContent() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Hero Section */}
       {canViewAdminPanels ? (
-        <section className="relative overflow-hidden rounded-[2rem] border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-4 sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
+        <section className="relative overflow-hidden rounded-3xl border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-4 sm:rounded-[2rem] sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
           <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
             <div className="max-w-3xl">
-              <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-orange-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">
+              <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-orange-text)] sm:text-xs sm:tracking-[0.22em] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">
                 <Sparkles className="h-3.5 w-3.5" />
                 {t('spaces.hero.badge')}
               </div>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight text-[var(--kw-text)]">
+              <h1 className="mt-4 text-2xl font-bold tracking-tight text-[var(--kw-text)] sm:text-4xl">
                 {t('spaces.hero.title')}
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--kw-text-muted)]">
@@ -299,7 +322,7 @@ function SpacesContent() {
       {focusedAgent || focusedEvent || focusedSpace ? (
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+            <p className="text-xs font-semibold text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
               {t('spaces.focusedContext.title')}
             </p>
             {focusedSpace ? (
@@ -403,7 +426,7 @@ function SpacesContent() {
             <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90 sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+                  <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
                     {t('spaces.marketInventory.title')}
                   </h2>
                   <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
@@ -419,12 +442,7 @@ function SpacesContent() {
                   </Badge>
                 </div>
               </div>
-              <MarketInventoryPanel
-                data={{
-                  assets: publishedAssets.slice(0, 3).map((item) => item.display_name),
-                  skills: publishedSkills.slice(0, 3).map((item) => item.name),
-                }}
-              />
+              <MarketInventoryPanel data={marketInventoryData} />
             </Card>
           </div>
         </div>
@@ -456,7 +474,7 @@ function SpacesContent() {
           isCreating={isCreating}
         />
       )}
-    </div>
+    </main>
   );
 }
 

@@ -132,7 +132,7 @@ export function Modal({
         aria-labelledby={title ? 'modal-title' : undefined}
         aria-describedby={description ? 'modal-description' : undefined}
         className={cn(
-          'relative w-full overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-[var(--kw-dark-surface)]',
+          'relative w-full overflow-hidden rounded-2xl bg-[var(--kw-surface)] shadow-2xl sm:rounded-3xl dark:bg-[var(--kw-dark-surface)]',
           'animate-scale-in',
           modalSizes[size]
         )}
@@ -142,7 +142,7 @@ export function Modal({
           <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-4 py-4 sm:px-6">
             <div>
               {title && (
-                <h2 id="modal-title" className="text-xl font-semibold text-[var(--kw-text)]">
+                <h2 id="modal-title" className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
                   {title}
                 </h2>
               )}
@@ -157,7 +157,7 @@ export function Modal({
                 onClick={onClose}
                 type="button"
                 aria-label={t('common.closeModal')}
-                className="rounded-full p-2 transition-colors hover:bg-[var(--kw-surface-alt)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
+                className="rounded-full p-2.5 transition-colors hover:bg-[var(--kw-surface-alt)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]"
               >
                 <X className="h-5 w-5 text-[var(--kw-text-muted)]" />
               </button>
@@ -218,7 +218,7 @@ export function ConfirmModal({
                 : 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] hover:from-[var(--kw-primary-500)] hover:to-[var(--kw-primary-600)] focus-visible:ring-[var(--kw-primary-400)]'
             )}
           >
-            {isLoading ? t('common.loadingEllipsis') : finalConfirmText}
+            {isLoading ? t('common.loading') : finalConfirmText}
           </button>
         </div>
       </div>

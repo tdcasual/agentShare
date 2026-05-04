@@ -104,7 +104,7 @@ export function MemberManager({
                   className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors ${
                     memberType === 'human'
                       ? 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]'
-                      : 'bg-white text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
+                      : 'bg-[var(--kw-surface)] text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
                   }`}
                 >
                   <User className="h-4 w-4" />
@@ -116,7 +116,7 @@ export function MemberManager({
                   className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors ${
                     memberType === 'agent'
                       ? 'bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]'
-                      : 'bg-white text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
+                      : 'bg-[var(--kw-surface)] text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
                   }`}
                 >
                   <Bot className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function MemberManager({
                 id={roleId}
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full rounded-lg border border-[var(--kw-primary-200)] bg-white px-3 py-2 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+                className="w-full rounded-lg border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-3 py-2 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
               >
                 {roleOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -201,7 +201,7 @@ export function MemberManager({
               className="flex items-center justify-between rounded-xl bg-[var(--kw-surface-alt)] p-3 dark:bg-[var(--kw-dark-surface)]"
             >
               <div className="flex items-center gap-3">
-                <div className="dark:bg-[var(--kw-dark-pink-surface)]/20 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
+                <div className="dark:bg-[var(--kw-dark-pink-surface)]/20 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
                   {member.member_type === 'human' ? (
                     <User className="h-4 w-4 text-[var(--kw-primary-500)]" />
                   ) : (

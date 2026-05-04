@@ -45,7 +45,7 @@ export function MobileNav() {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className="safe-area-pb fixed bottom-0 left-0 right-0 z-drawer border-t border-[var(--kw-border)] bg-white dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+      <nav className="safe-area-pb fixed bottom-0 left-0 right-0 z-drawer border-t border-[var(--kw-border)] bg-[var(--kw-surface)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
         <div className="flex items-center justify-around px-2 py-2">
           {mainItems.map((item) => {
             const Icon = item.icon;
@@ -106,9 +106,9 @@ export function MobileNav() {
           <div
             role="dialog"
             aria-label={t('common.more') || 'More'}
-            className="fixed bottom-20 left-4 right-4 z-dropdown max-h-[60vh] animate-slide-up overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-white shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+            className="fixed bottom-20 left-4 right-4 z-dropdown max-h-[60vh] animate-slide-up overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           >
-            <div className="space-y-1 p-4">
+            <div className="space-y-1 p-3 sm:p-4">
               {moreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');

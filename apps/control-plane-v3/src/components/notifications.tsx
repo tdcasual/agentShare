@@ -92,7 +92,7 @@ export function Notifications({ className }: NotificationsProps) {
     onFocusOutside: () => setIsOpen(false),
   });
 
-  const { availability, notifications, isLoading, error, mutate } = useNotifications();
+  const { availability, notifications, isLoading, error, mutate } = useNotifications({ isPaused: () => !isOpen });
   const { markAllRead, markOneRead, isMarking } = useMarkNotificationsRead();
 
   const unreadEvents = useMemo(
@@ -165,7 +165,7 @@ export function Notifications({ className }: NotificationsProps) {
       >
         <Bell className="h-5 w-5" aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--kw-primary-500)] px-1 text-[10px] font-bold text-white dark:bg-[var(--kw-dark-primary)]">
+          <span className="absolute right-0.5 top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--kw-primary-500)] px-1 text-[10px] font-bold text-white dark:bg-[var(--kw-dark-primary)]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -176,9 +176,9 @@ export function Notifications({ className }: NotificationsProps) {
           ref={containerRef}
           role="dialog"
           aria-label={hubLabel}
-          className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl sm:w-96 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+          className="absolute right-0 top-full z-dropdown mt-2 w-80 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-xl sm:w-96 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
-          <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
+          <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
             <div>
               <h3 className="font-semibold text-[var(--kw-text)]">{hubLabel}</h3>
               {unreadCount > 0 && (
@@ -243,7 +243,7 @@ export function Notifications({ className }: NotificationsProps) {
             )}
 
             {!isLoading && availability !== 'unavailable' && Boolean(error) && (
-              <div className="p-6 text-center">
+              <div className="p-4 text-center sm:p-6">
                 <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
                   <AlertCircle className="h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
                 </div>
@@ -270,9 +270,7 @@ export function Notifications({ className }: NotificationsProps) {
                   <p className="text-sm text-[var(--kw-text-muted)]">
                     {t('notifications.emptyTitle')}
                   </p>
-                  <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
-                    {t('notifications.emptyDescription')}
-                  </p>
+
                 </div>
               )}
 
@@ -324,7 +322,7 @@ export function Notifications({ className }: NotificationsProps) {
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-[var(--kw-text-muted)]">
-                          <span className="uppercase tracking-wide">{notification.event_type}</span>
+                          <span className="text-[10px] uppercase tracking-[0.06em] sm:text-xs sm:tracking-wide">{notification.event_type}</span>
                           <span>·</span>
                           <span>{notification.actor_type}</span>
                         </div>

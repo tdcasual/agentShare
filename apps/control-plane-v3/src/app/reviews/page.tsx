@@ -191,7 +191,7 @@ const ReviewsContent = memo(function ReviewsContent() {
   );
 
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
@@ -200,7 +200,7 @@ const ReviewsContent = memo(function ReviewsContent() {
             {t('reviews.subtitle')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
               {t('reviews.title')}
             </h1>
             <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -272,7 +272,7 @@ const ReviewsContent = memo(function ReviewsContent() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {t('reviews.filters.provenance')}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -304,7 +304,7 @@ const ReviewsContent = memo(function ReviewsContent() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {t('reviews.filters.resourceLane')}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -382,7 +382,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length === 0 ? (
         <Card
           variant="feature"
-          className="space-y-3 py-12 text-center sm:space-y-4 lg:space-y-6 dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
+          className="space-y-3 py-8 text-center sm:space-y-4 sm:py-12 lg:space-y-6 dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
         >
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-green-accent-surface)] dark:text-[var(--kw-dark-mint)]">
             <ShieldCheck className="h-10 w-10" />
@@ -391,7 +391,7 @@ const ReviewsContent = memo(function ReviewsContent() {
             <h2 className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('reviews.empty.title')}
             </h2>
-            <p className="mx-auto max-w-md text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <p className="mx-auto hidden max-w-md text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
               {t('reviews.empty.description')}
             </p>
           </div>
@@ -422,7 +422,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {focusedReviewItem ? (
         <Card className="bg-[var(--kw-primary-50)]/70 dark:border-[var(--kw-dark-primary)]/60 dark:bg-[var(--kw-primary-500)]/10 border border-[var(--kw-primary-200)]">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-primary-600)] sm:text-xs sm:tracking-[0.22em] dark:text-[var(--kw-dark-primary)]">
               {t('reviews.focusedItem')}
             </p>
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -486,7 +486,7 @@ const ReviewsContent = memo(function ReviewsContent() {
                     ) : null}
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                    <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
                       {item.title}
                     </h2>
                     <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -564,7 +564,7 @@ const ReviewsContent = memo(function ReviewsContent() {
           </span>
         </div>
       )}
-    </div>
+    </main>
   );
 });
 

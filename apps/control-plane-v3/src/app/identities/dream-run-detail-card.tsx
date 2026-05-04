@@ -30,7 +30,7 @@ export function DreamRunDetailCard({
     <Card className="bg-[var(--kw-sky-surface)]/70 dark:bg-[var(--kw-dark-surface-alt)]/80 border border-[var(--kw-sky-surface)] dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-sky-text)] sm:text-xs sm:tracking-[0.22em] dark:text-[var(--kw-dark-sky)]">
             {t('identities.sections.dreamRunDetail')}
           </p>
           <h2 className="text-lg font-semibold text-[var(--kw-text)]">{run.objective}</h2>

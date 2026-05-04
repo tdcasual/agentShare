@@ -52,7 +52,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
   return (
     <div className={cn('space-y-4', className)}>
       {/* 安装状态 */}
-      <Card className="p-4">
+      <Card className="p-3 sm:p-4">
         <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.appStatus')}</h3>
         <div className="space-y-3">
           {/* 安装状态 */}
@@ -137,7 +137,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
       </Card>
 
       {/* 功能支持 */}
-      <Card className="p-4">
+      <Card className="p-3 sm:p-4">
         <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.deviceFeatures')}</h3>
         <div className="grid grid-cols-2 gap-3">
           {/* 分享功能 */}
@@ -213,7 +213,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
       </Card>
 
       {/* 功能清单 */}
-      <Card className="p-4">
+      <Card className="p-3 sm:p-4">
         <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.pwaFeatures')}</h3>
         <ul className="space-y-2">
           <FeatureItem

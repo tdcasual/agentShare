@@ -84,7 +84,7 @@ export function TabletSidebar({
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-full bg-white dark:bg-[var(--kw-dark-bg)]',
+        'fixed left-0 top-0 h-full bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-bg)]',
         'border-r border-[var(--kw-border)] dark:border-[var(--kw-dark-surface)]',
         'z-drawer transition-[width] duration-300 ease-in-out will-change-[width]',
         'flex flex-col',

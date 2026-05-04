@@ -242,7 +242,7 @@ const TokensContent = memo(function TokensContent() {
   );
 
   return (
-    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
@@ -250,7 +250,7 @@ const TokensContent = memo(function TokensContent() {
             {t('tokens.remoteAccessSupervision')}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
               {t('tokens.title')}
             </h1>
             <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -368,7 +368,7 @@ const TokensContent = memo(function TokensContent() {
             <KeyRound className="h-7 w-7" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
               {t('tokens.empty.title')}
             </h2>
             <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -503,7 +503,7 @@ const TokensContent = memo(function TokensContent() {
           {translateAccountRole(t, session.role)}
         </div>
       ) : null}
-    </div>
+    </main>
   );
 });
 
@@ -645,7 +645,7 @@ function FilterButton({
       className={`rounded-full border px-3 py-1.5 text-sm transition ${
         active
           ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)] text-[var(--kw-primary-700)]'
-          : 'border-[var(--kw-border)] bg-white text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
+          : 'border-[var(--kw-border)] bg-[var(--kw-surface)] text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
       }`}
     >
       {label}

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { Bot, ChevronDown, ChevronUp, ExternalLink, MessageSquare } from 'lucide-react';
 import { Badge } from '@/shared/ui-primitives/badge';
@@ -73,15 +74,25 @@ export function AIAgentsSection({
   const { t } = useI18n();
   const errorMessage = error instanceof Error ? error.message : null;
 
+  const eventsByAgent = useMemo(() => {
+    return events.reduce<Record<string, typeof events>>((groups, event) => {
+      if (!groups[event.actor_id]) {
+        groups[event.actor_id] = [];
+      }
+      groups[event.actor_id].push(event);
+      return groups;
+    }, {});
+  }, [events]);
+
   return (
     <Card variant="feature" className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--kw-text)]">
+          <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
             {t('identities.sections.agentWorkspacesTitle')}
           </h2>
           <p className="text-sm text-[var(--kw-text-muted)]">
-            {t('identities.sections.agentWorkspacesDescription')}
+
           </p>
         </div>
         <Badge variant="agent">{agents.length}</Badge>
@@ -115,7 +126,7 @@ export function AIAgentsSection({
       ) : (
         <div className="space-y-3">
           {sessionsErrorMessage ? (
-            <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
+            <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-3 text-sm text-[var(--kw-amber-text)] sm:p-4 dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
               {t('identities.sections.sessionHistoryUnavailable', {
                 message: sessionsErrorMessage,
               })}
@@ -123,7 +134,7 @@ export function AIAgentsSection({
           ) : null}
 
           {eventsErrorMessage ? (
-            <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-4 text-sm text-[var(--kw-amber-text)] dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
+            <div className="bg-[var(--kw-amber-surface)]/80 dark:bg-[var(--kw-dark-amber-surface)]/20 rounded-2xl border border-[var(--kw-amber-surface)] p-3 text-sm text-[var(--kw-amber-text)] sm:p-4 dark:border-[var(--kw-dark-amber-surface)] dark:text-[var(--kw-warning)]">
               {t('identities.sections.recentEventsUnavailable', { message: eventsErrorMessage })}
             </div>
           ) : null}
@@ -154,7 +165,7 @@ export function AIAgentsSection({
                     sessionErrorMessage={sessionsErrorMessage}
                     canDelete={canDelete}
                     canEdit={canEdit}
-                    events={events.filter((event) => event.actor_id === agent.id)}
+                    events={eventsByAgent[agent.id] ?? []}
                     eventsErrorMessage={eventsErrorMessage}
                     isDeleting={deletingAgentId === agent.id}
                     onSelectDreamRun={
@@ -197,7 +208,7 @@ function AgentCard({
     <div
       data-testid={`agent-card-${agent.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`dark:bg-[var(--kw-dark-surface)]/90 rounded-2xl border bg-white/90 p-4 ${
+      className={`dark:bg-[var(--kw-dark-surface)]/90 rounded-2xl border bg-white/90 p-3 sm:p-4 ${
         isFocused
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]'
