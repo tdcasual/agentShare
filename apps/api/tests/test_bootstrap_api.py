@@ -72,6 +72,22 @@ def test_setup_owner_rejects_short_password(tmp_path) -> None:
     assert response.status_code == 422
 
 
+def test_setup_owner_rate_limits_repeated_invalid_bootstrap_credentials(tmp_path) -> None:
+    payload = {
+        "bootstrap_key": "wrong-bootstrap-token",
+        "email": "owner@example.com",
+        "display_name": "Founding Owner",
+        "password": "correct horse battery staple",
+    }
+
+    with make_client(tmp_path) as client:
+        responses = [client.post("/api/bootstrap/setup-owner", json=payload) for _ in range(6)]
+
+    assert [response.status_code for response in responses[:5]] == [401] * 5
+    assert responses[5].status_code == 429
+    assert responses[5].headers["retry-after"] == "300"
+
+
 def test_setup_owner_returns_conflict_when_bootstrap_claim_collides(tmp_path, monkeypatch) -> None:
     payload = {
         "bootstrap_key": BOOTSTRAP_KEY,

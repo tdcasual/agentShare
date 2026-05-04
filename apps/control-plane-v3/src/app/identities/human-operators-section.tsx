@@ -62,9 +62,7 @@ export function HumanOperatorsSection({
           <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
             {t('identities.sections.humanOperatorsTitle')}
           </h2>
-          <p className="text-sm text-[var(--kw-text-muted)]">
-
-          </p>
+          <p className="text-sm text-[var(--kw-text-muted)]"></p>
         </div>
         <Badge variant="human">{accounts.length}</Badge>
       </div>

@@ -51,7 +51,9 @@ export default function HubPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-primary-500)] sm:text-sm sm:tracking-[0.35em]">
               Control Plane V3
             </p>
-            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">{t('hub.unableToOpen')}</h1>
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
+              {t('hub.unableToOpen')}
+            </h1>
             <p className="text-[var(--kw-text-muted)]">{session.error}</p>
           </div>
         </Card>
@@ -67,7 +69,9 @@ export default function HubPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-primary-500)] sm:text-sm sm:tracking-[0.35em]">
               Control Plane V3
             </p>
-            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">{t('hub.routing')}</h1>
+            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
+              {t('hub.routing')}
+            </h1>
             <p className="text-[var(--kw-text-muted)]">{t('hub.checkingStatus')}</p>
           </div>
         </Card>

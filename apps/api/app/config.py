@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     management_session_cookie_name: str = "management_session"
     management_session_ttl_seconds: int = 60 * 60 * 12
     management_session_secure: bool = False
+    auth_rate_limit_max_attempts: int = 5
+    auth_rate_limit_window_seconds: int = 300
     operator_identity_provider: Literal["local"] = "local"
     metrics_enabled: bool = True
     demo_seed_enabled: bool = Field(

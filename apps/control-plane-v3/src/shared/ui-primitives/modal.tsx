@@ -142,7 +142,10 @@ export function Modal({
           <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-4 py-4 sm:px-6">
             <div>
               {title && (
-                <h2 id="modal-title" className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
+                <h2
+                  id="modal-title"
+                  className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl"
+                >
                   {title}
                 </h2>
               )}

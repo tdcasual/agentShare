@@ -161,7 +161,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
           role="dialog"
           aria-modal="false"
           aria-label={t('createMenu.ariaLabel')}
-          className="absolute right-0 top-full z-dropdown mt-2 w-80 max-w-[calc(100vw-2rem)] sm:w-96 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+          className="absolute right-0 top-full z-dropdown mt-2 w-80 max-w-[calc(100vw-2rem)] animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-xl sm:w-96 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
           {/* 头部搜索 */}
           <div className="border-b border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">

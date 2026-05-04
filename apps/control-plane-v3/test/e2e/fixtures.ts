@@ -114,10 +114,20 @@ export const space = {
   name: 'Test Space',
   description: 'A test collaboration space',
   members: [
-    { member_type: 'agent', member_id: 'agent-1', role: 'viewer', created_at: '2024-01-01T00:00:00Z' },
+    {
+      member_type: 'agent',
+      member_id: 'agent-1',
+      role: 'viewer',
+      created_at: '2024-01-01T00:00:00Z',
+    },
   ],
   timeline: [
-    { id: 'tl-1', summary: 'Agent joined', entry_type: 'member_joined', created_at: '2024-01-01T00:00:00Z' },
+    {
+      id: 'tl-1',
+      summary: 'Agent joined',
+      entry_type: 'member_joined',
+      created_at: '2024-01-01T00:00:00Z',
+    },
   ],
   created_at: '2024-01-01T00:00:00Z',
 };
@@ -182,7 +192,9 @@ export async function mockSession(page: Page, role = 'owner') {
       '/openclaw/agents/agent-1': agent,
     };
 
-    const singleMatch = Object.keys(singleResponses).find((p) => path === p || path.startsWith(`${p}/`));
+    const singleMatch = Object.keys(singleResponses).find(
+      (p) => path === p || path.startsWith(`${p}/`)
+    );
     if (singleMatch) {
       await fulfillJson(route, 200, singleResponses[singleMatch]);
       return;
@@ -204,7 +216,10 @@ export async function mockSession(page: Page, role = 'owner') {
       '/spaces': { items: [space] },
       '/reviews': { items: [review] },
       '/approvals': { items: [approval] },
-      '/playbooks/search': { items: [playbook], meta: { total: 1, items_count: 1, applied_filters: {} } },
+      '/playbooks/search': {
+        items: [playbook],
+        meta: { total: 1, items_count: 1, applied_filters: {} },
+      },
     };
 
     await fulfillJson(route, 200, listResponses[path] ?? { items: [] });

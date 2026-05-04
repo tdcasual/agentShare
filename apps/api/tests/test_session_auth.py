@@ -53,6 +53,29 @@ def test_management_login_rejects_invalid_bootstrap_credential(anonymous_client)
     assert response.status_code == 401
 
 
+def test_management_login_rate_limits_repeated_failed_attempts(anonymous_client):
+    bootstrap_owner_account(anonymous_client)
+
+    responses = [
+        login_management_account(anonymous_client, password="wrong-password")
+        for _ in range(6)
+    ]
+
+    assert [response.status_code for response in responses[:5]] == [401] * 5
+    assert responses[5].status_code == 429
+    assert responses[5].headers["retry-after"] == "300"
+
+
+def test_management_login_success_clears_failed_attempt_counter(anonymous_client):
+    bootstrap_owner_account(anonymous_client)
+
+    for _ in range(4):
+        assert login_management_account(anonymous_client, password="wrong-password").status_code == 401
+
+    assert login_management_account(anonymous_client).status_code == 200
+    assert login_management_account(anonymous_client, password="wrong-password").status_code == 401
+
+
 def test_failed_management_login_persists_rejection_audit(anonymous_client, db_session):
     bootstrap_owner_account(anonymous_client)
 

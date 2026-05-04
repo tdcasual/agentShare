@@ -31,7 +31,9 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
         <div className="dark:bg-[var(--kw-dark-bg)]/65 rounded-2xl border border-[var(--kw-border)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-2 text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
             {icon}
-            <span className="text-[10px] uppercase tracking-[0.1em] sm:text-xs sm:tracking-[0.2em]">{label}</span>
+            <span className="text-[10px] uppercase tracking-[0.1em] sm:text-xs sm:tracking-[0.2em]">
+              {label}
+            </span>
           </div>
           <p className="mt-3 text-2xl font-semibold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
             {value}
@@ -44,7 +46,9 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
         <div className="dark:bg-[var(--kw-dark-surface-alt)]/65 rounded-2xl border border-[var(--kw-orange-surface)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-2 text-[var(--kw-orange-text)] dark:text-[var(--kw-warning)]">
             {icon}
-            <span className="text-[10px] uppercase tracking-[0.1em] sm:text-xs sm:tracking-[0.2em]">{label}</span>
+            <span className="text-[10px] uppercase tracking-[0.1em] sm:text-xs sm:tracking-[0.2em]">
+              {label}
+            </span>
           </div>
           <p className="mt-3 text-2xl font-semibold text-[var(--kw-text)] sm:text-3xl">{value}</p>
         </div>

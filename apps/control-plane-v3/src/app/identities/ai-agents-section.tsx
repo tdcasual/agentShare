@@ -91,9 +91,7 @@ export function AIAgentsSection({
           <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
             {t('identities.sections.agentWorkspacesTitle')}
           </h2>
-          <p className="text-sm text-[var(--kw-text-muted)]">
-
-          </p>
+          <p className="text-sm text-[var(--kw-text-muted)]"></p>
         </div>
         <Badge variant="agent">{agents.length}</Badge>
       </div>

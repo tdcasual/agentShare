@@ -122,7 +122,9 @@ export default function SetupPage() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
                 <ShieldCheck className="h-4 w-4" />
-                <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">{t('auth.setup.subtitle')}</span>
+                <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">
+                  {t('auth.setup.subtitle')}
+                </span>
               </div>
               <div className="space-y-3">
                 <h1 className="text-2xl font-bold leading-tight text-[var(--kw-text)] sm:text-3xl lg:text-4xl dark:text-[var(--kw-dark-text)]">

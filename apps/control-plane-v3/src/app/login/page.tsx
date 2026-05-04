@@ -92,7 +92,9 @@ export default function LoginPage() {
           <div className="space-y-3 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <LockKeyhole className="h-4 w-4" />
-              <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">{t('auth.login.subtitle')}</span>
+              <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">
+                {t('auth.login.subtitle')}
+              </span>
             </div>
             <h1 className="text-3xl font-bold text-[var(--kw-text)] sm:text-4xl">
               {t('auth.login.title')}

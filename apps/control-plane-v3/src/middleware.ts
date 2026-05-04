@@ -1,8 +1,10 @@
 /**
- * Next.js Middleware - 服务端权限拦截
+ * Next.js Middleware - 服务端权限预检查（UX 层）
  *
- * 在服务端层面对请求进行初步权限检查
- * 与客户端Route Guard形成双重保护
+ * ⚠️ 安全声明：此中间件仅用于 UX 预拦截，不验证 Cookie 签名。
+ * 实际身份验证和授权校验由后端 API 层严格完成。
+ * 此中间件不阻止页面渲染，也不暴露任何敏感数据；
+ * 仅通过 HTTP Header（x-auth-required / x-forbidden）向客户端提示状态。
  */
 
 import { NextResponse } from 'next/server';

@@ -101,7 +101,7 @@ export function useAddSpaceMember(spaceId: string, options?: { agentId?: string 
         setIsAdding(false);
       }
     },
-    [mutate, options?.agentId, spaceId]
+    [mutate, options, spaceId]
   );
 
   return {

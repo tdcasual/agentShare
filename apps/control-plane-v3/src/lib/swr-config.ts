@@ -73,9 +73,7 @@ export const fetcherWithParams = async <T, P extends Record<string, unknown>>(
  * 当 tab 隐藏时返回 false，可用于暂停轮询
  */
 export function usePageVisible(): boolean {
-  const [visible, setVisible] = useState(
-    typeof document !== 'undefined' ? !document.hidden : true
-  );
+  const [visible, setVisible] = useState(typeof document !== 'undefined' ? !document.hidden : true);
 
   useEffect(() => {
     const handleVisibilityChange = () => setVisible(!document.hidden);

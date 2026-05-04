@@ -20,6 +20,7 @@ from app.runtime import AppRuntime
 from app.observability import reset_metrics
 from app.services.access_token_service import hash_access_token, mint_access_token
 from app.services.secret_backend import InMemorySecretBackend
+from app.services.auth_rate_limit import reset_auth_rate_limits
 
 ROOT = Path(__file__).resolve().parents[3]
 API_ROOT = ROOT / "apps/api"
@@ -99,6 +100,7 @@ def test_session_factory(test_engine):
 @pytest.fixture(autouse=True)
 def db_session(test_session_factory):
     InMemorySecretBackend.reset_store()
+    reset_auth_rate_limits()
     session = test_session_factory()
     try:
         yield session

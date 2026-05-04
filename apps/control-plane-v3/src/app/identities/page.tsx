@@ -205,7 +205,9 @@ const IdentitiesContent = memo(function IdentitiesContent() {
     [agents, sessionsByAgent]
   );
   const workspaceReadyCount = useMemo(
-    () => agents.filter((agent) => agent.workspace_root.trim() !== '' && agent.agent_dir.trim() !== '').length,
+    () =>
+      agents.filter((agent) => agent.workspace_root.trim() !== '' && agent.agent_dir.trim() !== '')
+        .length,
     [agents]
   );
   const agentsWithFeedbackCount = useMemo(

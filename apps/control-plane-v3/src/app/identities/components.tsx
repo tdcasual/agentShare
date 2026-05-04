@@ -102,7 +102,9 @@ export function IdentityDetailsGrid({ items }: IdentityDetailsGridProps) {
     <dl className="dark:bg-[var(--kw-dark-surface-alt)]/60 mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-dashed border-[var(--kw-border)] bg-white/60 p-3 sm:grid-cols-2 sm:p-4 dark:border-[var(--kw-dark-border)]">
       {items.map(([label, value]) => (
         <div key={label} className="min-w-0">
-          <dt className="text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-wide">{label}</dt>
+          <dt className="text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-wide">
+            {label}
+          </dt>
           <dd className="mt-1 break-all text-sm text-[var(--kw-text)]">{value}</dd>
         </div>
       ))}

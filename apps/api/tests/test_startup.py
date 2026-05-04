@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import inspect, text
 
 
-CURRENT_ALEMBIC_HEAD = "20260424_01"
+CURRENT_ALEMBIC_HEAD = "20260424_02"
 
 
 def test_init_db_creates_expected_tables(monkeypatch, tmp_path):

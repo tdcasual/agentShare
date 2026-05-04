@@ -92,7 +92,9 @@ export function Notifications({ className }: NotificationsProps) {
     onFocusOutside: () => setIsOpen(false),
   });
 
-  const { availability, notifications, isLoading, error, mutate } = useNotifications({ isPaused: () => !isOpen });
+  const { availability, notifications, isLoading, error, mutate } = useNotifications({
+    isPaused: () => !isOpen,
+  });
   const { markAllRead, markOneRead, isMarking } = useMarkNotificationsRead();
 
   const unreadEvents = useMemo(
@@ -270,7 +272,6 @@ export function Notifications({ className }: NotificationsProps) {
                   <p className="text-sm text-[var(--kw-text-muted)]">
                     {t('notifications.emptyTitle')}
                   </p>
-
                 </div>
               )}
 
@@ -322,7 +323,9 @@ export function Notifications({ className }: NotificationsProps) {
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-[var(--kw-text-muted)]">
-                          <span className="text-[10px] uppercase tracking-[0.06em] sm:text-xs sm:tracking-wide">{notification.event_type}</span>
+                          <span className="text-[10px] uppercase tracking-[0.06em] sm:text-xs sm:tracking-wide">
+                            {notification.event_type}
+                          </span>
                           <span>·</span>
                           <span>{notification.actor_type}</span>
                         </div>

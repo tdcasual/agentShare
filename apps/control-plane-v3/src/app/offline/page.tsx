@@ -50,7 +50,9 @@ export default function OfflinePage() {
 
         {/* 标题 */}
         <div className="space-y-2">
-          <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">{t('offline.title')}</h1>
+          <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">
+            {t('offline.title')}
+          </h1>
           <p className="text-[var(--kw-text-muted)]">{t('offline.description')}</p>
         </div>
 

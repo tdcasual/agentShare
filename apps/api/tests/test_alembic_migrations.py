@@ -13,7 +13,7 @@ from app import db as db_module
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CURRENT_ALEMBIC_HEAD = "20260424_01"
+CURRENT_ALEMBIC_HEAD = "20260424_02"
 
 
 def _joined_term(*parts: str) -> str:
@@ -54,6 +54,7 @@ def test_alembic_versions_directory_contains_current_baseline_and_openclaw_follo
         "20260419_03_access_token_feedback.py",
         "20260419_04_drop_legacy_agents.py",
         "20260424_01_openclaw_workbench.py",
+        "20260424_02_access_token_secret_backend_ref.py",
     ]
 
 

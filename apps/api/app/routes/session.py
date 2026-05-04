@@ -11,6 +11,13 @@ from app.errors import AuthorizationError, ConflictError
 from app.observability import record_management_session_login, record_management_session_logout
 from app.schemas.sessions import ManagementLoginRequest, ManagementSessionResponse
 from app.services.audit_service import write_audit_event
+from app.services.auth_rate_limit import (
+    AuthRateLimitExceeded,
+    build_auth_rate_limit_key,
+    clear_auth_failures,
+    ensure_auth_attempt_allowed,
+    record_auth_failure,
+)
 from app.services.session_service import (
     authenticate_management_operator,
     create_management_session,
@@ -31,10 +38,25 @@ router = APIRouter(prefix="/api/session")
 )
 def login_management_session(
     payload: ManagementLoginRequest,
+    request: Request,
     response: Response,
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
+    rate_limit_key = build_auth_rate_limit_key(
+        bucket="management-login",
+        client_host=request.client.host if request.client else None,
+        subject=payload.email,
+    )
+    try:
+        ensure_auth_attempt_allowed(settings, rate_limit_key)
+    except AuthRateLimitExceeded as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Try again later.",
+            headers={"Retry-After": str(exc.retry_after_seconds)},
+        ) from exc
+
     try:
         account = authenticate_management_operator(
             session,
@@ -52,10 +74,12 @@ def login_management_session(
         detail = str(exc)
         if detail == "Bootstrap setup is required before management login":
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from exc
+        record_auth_failure(settings, rate_limit_key)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail) from exc
 
     payload = create_management_session(session, settings, account)
     token = issue_management_session_token(settings, payload=payload)
+    clear_auth_failures(rate_limit_key)
     record_management_session_login(True)
     response.set_cookie(
         key=settings.management_session_cookie_name,

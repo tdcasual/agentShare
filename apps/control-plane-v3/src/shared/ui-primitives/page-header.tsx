@@ -21,14 +21,11 @@ export function PageHeader({ title, badge, description, actions, className }: Pa
 
   return (
     <div
-      className={cn(
-        'flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between',
-        className,
-      )}
+      className={cn('flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between', className)}
     >
       <div className={cn(badge ? 'space-y-2' : undefined)}>
         {badge ? (
-          <div className="hidden items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] sm:inline-flex dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]/80 dark:text-[var(--kw-dark-primary)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 hidden items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] sm:inline-flex dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             {badge}
           </div>
         ) : null}
@@ -43,9 +40,7 @@ export function PageHeader({ title, badge, description, actions, className }: Pa
           ) : null}
         </div>
       </div>
-      {actions ? (
-        <div className="flex flex-wrap gap-3">{actions}</div>
-      ) : null}
+      {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -10,6 +10,13 @@ from app.schemas.bootstrap import (
     BootstrapStatusResponse,
 )
 from app.services.audit_service import write_audit_event
+from app.services.auth_rate_limit import (
+    AuthRateLimitExceeded,
+    build_auth_rate_limit_key,
+    clear_auth_failures,
+    ensure_auth_attempt_allowed,
+    record_auth_failure,
+)
 from app.services.bootstrap_service import create_first_owner, is_bootstrap_initialized
 from app.services.session_service import authenticate_bootstrap_key
 
@@ -39,10 +46,26 @@ def bootstrap_status(
 )
 def setup_owner(
     payload: BootstrapOwnerSetupRequest,
+    request: Request,
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
+    rate_limit_key = build_auth_rate_limit_key(
+        bucket="bootstrap-owner",
+        client_host=request.client.host if request.client else None,
+        subject="setup-owner",
+    )
+    try:
+        ensure_auth_attempt_allowed(settings, rate_limit_key)
+    except AuthRateLimitExceeded as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed bootstrap attempts. Try again later.",
+            headers={"Retry-After": str(exc.retry_after_seconds)},
+        ) from exc
+
     if not authenticate_bootstrap_key(settings, payload.bootstrap_key):
+        record_auth_failure(settings, rate_limit_key)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid bootstrap credential",
@@ -54,6 +77,7 @@ def setup_owner(
         display_name=payload.display_name,
         password=payload.password,
     )
+    clear_auth_failures(rate_limit_key)
     write_audit_event(session, "owner_bootstrapped", {
         "actor_type": "bootstrap",
         "actor_id": "bootstrap",

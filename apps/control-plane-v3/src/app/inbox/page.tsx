@@ -121,7 +121,9 @@ const InboxContent = memo(function InboxContent() {
     <main id="main-content" className="mx-auto max-w-3xl space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">{t('inbox.title')}</h1>
+          <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">
+            {t('inbox.title')}
+          </h1>
           <p className="text-sm text-[var(--kw-text-muted)]">{t('inbox.subtitle')}</p>
         </div>
         {unreadCount > 0 && (
