@@ -163,7 +163,7 @@ const SettingsContent = memo(function SettingsContent() {
   }
 
   return (
-    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
@@ -479,7 +479,7 @@ const SettingsContent = memo(function SettingsContent() {
           ) : null}
         </div>
       </Card>
-    </main>
+    </section>
   );
 });
 

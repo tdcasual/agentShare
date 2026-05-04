@@ -398,7 +398,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
   };
 
   return (
-    <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
@@ -744,7 +744,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         }
         isSubmitting={submittingAgent}
       />
-    </main>
+    </section>
   );
 });
 

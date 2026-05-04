@@ -63,7 +63,7 @@ const AssetsContent = memo(function AssetsContent() {
   });
 
   return (
-    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <Header page={page} form={form} />
       <Metrics page={page} />
       <FilterCard page={page} />
@@ -72,7 +72,7 @@ const AssetsContent = memo(function AssetsContent() {
       <AssetGrids page={page} form={form} />
       <SecretModal form={form} />
       <CapabilityModal page={page} form={form} />
-    </main>
+    </section>
   );
 });
 

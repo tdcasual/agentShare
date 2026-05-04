@@ -155,7 +155,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
   return (
     <ErrorBoundary>
       <Layout>
-        <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message={t('approvals.sessionExpired')} />
           ) : null}
@@ -343,7 +343,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
               {t('approvals.totalRecords').replace('{count}', String(total))}
             </p>
           )}
-        </main>
+        </section>
       </Layout>
     </ErrorBoundary>
   );

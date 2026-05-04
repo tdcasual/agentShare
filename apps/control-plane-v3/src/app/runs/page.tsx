@@ -171,7 +171,7 @@ const RunsContent = memo(function RunsContent() {
   return (
     <ErrorBoundary>
       <Layout>
-        <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message={t('runs.sessionExpired')} />
           ) : null}
@@ -300,7 +300,7 @@ const RunsContent = memo(function RunsContent() {
               ))
             )}
           </div>
-        </main>
+        </section>
 
         {selectedRun && <RunDetailModal run={selectedRun} onClose={() => setSelectedRun(null)} />}
       </Layout>

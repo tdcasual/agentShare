@@ -102,18 +102,18 @@ function AgentDetailContent() {
 
   if (isLoading) {
     return (
-      <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+      <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <span className="animate-spin">🌸</span>
           {t('identities.detail.loading')}
         </Card>
-      </main>
+      </section>
     );
   }
 
   if (gateError || !agent) {
     return (
-      <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+      <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
         <Button
           variant="secondary"
           size="sm"
@@ -125,12 +125,12 @@ function AgentDetailContent() {
         <Card className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]">
           {gateError ?? t('identities.detail.notFound')}
         </Card>
-      </main>
+      </section>
     );
   }
 
   return (
-    <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-4">
           <Button
@@ -291,6 +291,6 @@ function AgentDetailContent() {
           }
         />
       )}
-    </main>
+    </section>
   );
 }

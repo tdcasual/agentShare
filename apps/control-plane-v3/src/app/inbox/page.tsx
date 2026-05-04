@@ -118,7 +118,7 @@ const InboxContent = memo(function InboxContent() {
   );
 
   return (
-    <main id="main-content" className="mx-auto max-w-3xl space-y-3 sm:space-y-4 lg:space-y-6">
+    <section id="main-content" className="mx-auto max-w-3xl space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">
@@ -237,7 +237,7 @@ const InboxContent = memo(function InboxContent() {
           </Card>
         ))}
       </div>
-    </main>
+    </section>
   );
 });
 

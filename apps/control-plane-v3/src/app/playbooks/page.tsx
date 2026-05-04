@@ -149,7 +149,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
   return (
     <ErrorBoundary>
       <Layout>
-        <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
           {shouldShowSessionExpired ? (
             <ManagementSessionExpiredAlert message={t('playbooks.sessionExpired')} />
           ) : null}
@@ -308,7 +308,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
               ))
             )}
           </div>
-        </main>
+        </section>
 
         {/* 详情弹窗 */}
         {selectedPlaybook && (

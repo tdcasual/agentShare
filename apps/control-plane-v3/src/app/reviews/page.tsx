@@ -191,7 +191,7 @@ const ReviewsContent = memo(function ReviewsContent() {
   );
 
   return (
-    <main id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
@@ -564,7 +564,7 @@ const ReviewsContent = memo(function ReviewsContent() {
           </span>
         </div>
       )}
-    </main>
+    </section>
   );
 });
 

@@ -40,7 +40,7 @@ export default function HubPage() {
   // RouteGuard handles redirects; we just read the already-resolved global state.
   if (session.state === 'unavailable') {
     return (
-      <main id="main-content" className="flex min-h-screen items-center justify-center px-6">
+      <section id="main-content" className="flex min-h-screen items-center justify-center px-6">
         <Card
           role="alert"
           aria-live="assertive"
@@ -57,13 +57,13 @@ export default function HubPage() {
             <p className="text-[var(--kw-text-muted)]">{session.error}</p>
           </div>
         </Card>
-      </main>
+      </section>
     );
   }
 
   if (session.state !== 'authenticated' || !session.email || !session.role) {
     return (
-      <main id="main-content" className="flex min-h-screen items-center justify-center px-6">
+      <section id="main-content" className="flex min-h-screen items-center justify-center px-6">
         <Card variant="default" className="w-full max-w-lg space-y-4 text-center">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--kw-primary-500)] sm:text-sm sm:tracking-[0.35em]">
@@ -75,7 +75,7 @@ export default function HubPage() {
             <p className="text-[var(--kw-text-muted)]">{t('hub.checkingStatus')}</p>
           </div>
         </Card>
-      </main>
+      </section>
     );
   }
 
@@ -131,7 +131,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
     [events, actorDirectory, t, locale]
   );
   return (
-    <main id="main-content" className="space-y-4 sm:space-y-6 lg:space-y-8">
+    <section id="main-content" className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
@@ -431,7 +431,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
           </Card>
         </div>
       </div>
-    </main>
+    </section>
   );
 });
 

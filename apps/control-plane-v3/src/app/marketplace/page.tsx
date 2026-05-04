@@ -165,7 +165,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
   );
 
   return (
-    <main id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       <section className="relative overflow-hidden rounded-3xl border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.14),_transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(252,231,243,0.92))] p-4 sm:rounded-[2rem] sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(236,72,153,0.14),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
           <div className="max-w-3xl">
@@ -463,7 +463,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
       {gateError && !shouldShowSessionExpired && !shouldShowForbidden ? (
         <SectionNotice tone="error" message={gateError} />
       ) : null}
-    </main>
+    </section>
   );
 });
 
