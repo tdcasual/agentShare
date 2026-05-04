@@ -16,7 +16,6 @@ import type {
 } from './types';
 import { pollingConfig } from '@/lib/swr-config';
 
-// 转换函数 - 与后端 ApprovalResponse 对齐
 function toApprovalModel(dto: ApprovalTransportDTO): Approval {
   return {
     id: dto.id,
@@ -34,7 +33,6 @@ function toApprovalModel(dto: ApprovalTransportDTO): Approval {
   };
 }
 
-// SWR key生成
 const getApprovalsKey = (query?: ApprovalQuery) => {
   if (!query) {
     return '/api/approvals';
@@ -55,7 +53,7 @@ export function useApprovals(query?: ApprovalQuery, config?: SWRConfiguration) {
     }
   );
 
-  // 转换DTO到Model
+
   const approvals = useMemo(() => {
     return (data?.items || []).map(toApprovalModel);
   }, [data]);
@@ -87,7 +85,7 @@ export function useApprovalActions() {
 
       try {
         const result = await approveRequest(approvalId, input);
-        // 刷新列表缓存
+
         await mutate('/api/approvals');
         return result;
       } catch (err) {
@@ -110,7 +108,7 @@ export function useApprovalActions() {
 
       try {
         const result = await rejectRequest(approvalId, input);
-        // 刷新列表缓存
+
         await mutate('/api/approvals');
         return result;
       } catch (err) {

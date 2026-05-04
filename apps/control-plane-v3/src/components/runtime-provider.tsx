@@ -11,15 +11,6 @@ interface RuntimeProviderProps {
   children: React.ReactNode;
 }
 
-/**
- * Runtime Provider
- *
- * 负责：
- * 1. 创建 CoreRuntime 实例
- * 2. 注册 Domain 插件（不再硬编码在 Core 中）
- * 3. 初始化插件
- * 4. 通过 Context 提供 Runtime
- */
 export function RuntimeProvider({ children }: RuntimeProviderProps) {
   const { t } = useI18n();
   const [runtime, setRuntime] = useState<ReturnType<typeof createCoreRuntime> | null>(null);
@@ -31,12 +22,10 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
 
     async function init() {
       try {
-        // 1. 创建 Runtime，传入插件（解决反向依赖问题！）
         const rt = createCoreRuntime({
           plugins: [new IdentityDomainPlugin()],
         });
 
-        // 2. 初始化插件
         await initializeRuntime(rt);
 
         if (mounted) {
@@ -57,7 +46,6 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
     };
   }, []);
 
-  // 错误状态
   if (error) {
     return (
       <main
@@ -74,7 +62,6 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
     );
   }
 
-  // 加载状态
   if (!isReady || !runtime) {
     return (
       <main
@@ -89,6 +76,5 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
     );
   }
 
-  // 提供 Runtime Context
   return <RuntimeContext.Provider value={runtime}>{children}</RuntimeContext.Provider>;
 }

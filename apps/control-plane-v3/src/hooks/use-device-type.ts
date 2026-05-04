@@ -17,7 +17,7 @@ interface DeviceTypeInfo {
   height: number;
 }
 
-// Breakpoints matching Tailwind config
+
 const BREAKPOINTS = {
   mobile: 768,
   tablet: 1024,
@@ -33,13 +33,12 @@ const BREAKPOINTS = {
  * const device = useDeviceType();
  *
  * if (device.isTabletPortrait) {
- *   // 平板竖屏特定逻辑
  * }
  */
 export function useDeviceType(): DeviceTypeInfo {
-  // 使用 lazy initialization 避免 SSR 不匹配
+
   const [deviceInfo, setDeviceInfo] = useState<DeviceTypeInfo>(() => {
-    // 服务端渲染默认值
+
     if (typeof window === 'undefined') {
       return {
         type: 'desktop',
@@ -53,7 +52,7 @@ export function useDeviceType(): DeviceTypeInfo {
         height: 1080,
       };
     }
-    // 客户端初始值
+
     return {
       type: 'desktop',
       isMobile: false,
@@ -81,11 +80,11 @@ export function useDeviceType(): DeviceTypeInfo {
       let isDesktop = false;
 
       if (width < BREAKPOINTS.mobile) {
-        // Mobile: < 768px
+
         type = 'mobile';
         isMobile = true;
       } else if (width <= BREAKPOINTS.tablet) {
-        // Tablet range: 768px - 1024px (inclusive)
+
         isTablet = true;
         if (orientation === 'portrait') {
           type = 'tablet-portrait';
@@ -95,7 +94,7 @@ export function useDeviceType(): DeviceTypeInfo {
           isTabletLandscape = true;
         }
       } else {
-        // Desktop: > 1024px
+
         type = 'desktop';
         isDesktop = true;
       }
@@ -113,7 +112,7 @@ export function useDeviceType(): DeviceTypeInfo {
       });
     };
 
-    // Throttle resize events to avoid excessive re-renders
+
     let ticking = false;
     const throttledUpdate = () => {
       if (!ticking) {
@@ -125,10 +124,10 @@ export function useDeviceType(): DeviceTypeInfo {
       }
     };
 
-    // Initial check
+
     updateDeviceType();
 
-    // Listen for resize and orientation change
+
     window.addEventListener('resize', throttledUpdate);
     window.addEventListener('orientationchange', updateDeviceType);
 

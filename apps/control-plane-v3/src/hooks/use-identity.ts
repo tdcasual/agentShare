@@ -14,16 +14,16 @@ export interface UseIdentityOptions {
 }
 
 export interface UseIdentityReturn {
-  // 数据
+
   identities: Identity[];
   currentIdentity: Identity | null;
   onlineIdentities: Identity[];
 
-  // 加载状态
+
   isLoading: boolean;
   error: Error | null;
 
-  // 操作
+
   setPresence: (identityId: string, status: PresenceStatus) => void;
   refresh: () => void;
 }
@@ -71,7 +71,7 @@ export function useIdentities(options: UseIdentityOptions = {}): UseIdentityRetu
 
     load();
 
-    // 订阅在线状态变化
+
     const unsubscribe = registry.onPresenceChanged((id, status) => {
       if (mounted) {
         setIdentities((prev) => prev.map((i) => (i.id === id ? { ...i, presence: status } : i)));
@@ -140,7 +140,7 @@ export function useIdentity(identityId: string | null) {
 
     load();
 
-    // 订阅该身份的变化
+
     const unsubscribe = registry.onPresenceChanged((id, status) => {
       if (mounted && id === identityId) {
         setIdentity((prev) => (prev ? { ...prev, presence: status } : null));

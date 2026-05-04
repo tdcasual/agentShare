@@ -16,7 +16,7 @@ export function useLocale() {
         setLocaleState(saved);
       }
     } catch {
-      // ignore localStorage errors (SSR, private mode, disabled)
+
     }
     setIsReady(true);
   }, []);
@@ -26,7 +26,7 @@ export function useLocale() {
     try {
       localStorage.setItem(STORAGE_KEY, newLocale);
     } catch {
-      // ignore localStorage errors
+
     }
     window.location.reload();
   }, []);

@@ -7,7 +7,7 @@ describe('useDeviceType', () => {
   const originalInnerHeight = window.innerHeight;
 
   beforeEach(() => {
-    // 重置 window 尺寸
+
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,

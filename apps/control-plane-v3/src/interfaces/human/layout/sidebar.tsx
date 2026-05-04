@@ -27,7 +27,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { t } = useI18n();
   const { role, isLoading } = useRole();
 
-  // 根据角色过滤导航项
+
   const visibleNavItems = React.useMemo(() => {
     if (!role) {
       return [];
@@ -35,7 +35,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return getVisibleShellNavItems(role, { includeSettings: false });
   }, [role]);
 
-  // 根据角色过滤底部导航项
+
   const visibleBottomNavItems = React.useMemo(() => {
     if (!role) {
       return [];
@@ -45,7 +45,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     );
   }, [role]);
 
-  // 角色加载中显示骨架屏
+
   if (isLoading) {
     return (
       <aside

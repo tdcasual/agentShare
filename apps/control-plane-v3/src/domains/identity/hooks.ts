@@ -29,9 +29,6 @@ import type { AccessToken } from '../shared-types';
 import type { AdminAccountCreateInput, LoginInput, AccessTokenCreateInput } from '@/lib/api-client';
 const ACCESS_TOKENS_KEY = '/api/access-tokens';
 
-// ============================================
-// Bootstrap
-// ============================================
 
 export function useBootstrapStatus(options?: SWRConfiguration) {
   return useSWR<BootstrapStatus>('/api/bootstrap/status', () => api.getBootstrapStatus(), {
@@ -40,9 +37,6 @@ export function useBootstrapStatus(options?: SWRConfiguration) {
   });
 }
 
-// ============================================
-// Session
-// ============================================
 
 export function useSession(options?: SWRConfiguration) {
   return useSWR<ManagementSessionSummary>('/api/session/me', () => api.getSession(), {
@@ -248,9 +242,6 @@ export function useResumeOpenClawDreamRun() {
   }, []);
 }
 
-// ============================================
-// Admin Accounts
-// ============================================
 
 export function useAdminAccounts(options?: SWRConfiguration) {
   return useSWR<{ items: AdminAccountSummary[] }>(
@@ -279,9 +270,6 @@ export function useDisableAdminAccount() {
   }, []);
 }
 
-// ============================================
-// Access Tokens
-// ============================================
 
 export function useAccessTokens(options?: SWRConfiguration) {
   return useSWR<{ items: AccessToken[] }>(ACCESS_TOKENS_KEY, () => api.getAccessTokens(), {
@@ -312,9 +300,6 @@ export function useRevokeAccessToken() {
   }, []);
 }
 
-// ============================================
-// Manual Mutations
-// ============================================
 
 export function refreshSession() {
   return mutate('/api/session/me');
@@ -348,9 +333,6 @@ export function refreshAccessTokens() {
   return mutate(ACCESS_TOKENS_KEY);
 }
 
-// ============================================
-// Prefetch
-// ============================================
 
 export function prefetchSession() {
   return mutate('/api/session/me', api.getSession(), false);

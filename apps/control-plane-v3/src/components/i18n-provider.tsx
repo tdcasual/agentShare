@@ -20,13 +20,13 @@ function persistLocale(locale: Locale) {
   try {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
   } catch {
-    // ignore localStorage errors
+
   }
 
   try {
     window.document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
   } catch {
-    // ignore cookie write errors
+
   }
 }
 
@@ -133,7 +133,7 @@ export function I18nProvider({
     [locale]
   );
 
-  // Always provide the context value, even during SSR
+
   const value = React.useMemo(
     () => ({
       locale,

@@ -31,9 +31,6 @@ export interface SpaceListResponse {
   items: Space[];
 }
 
-// ============================================
-// 创建空间
-// ============================================
 
 export interface CreateSpaceInput {
   name: string;
@@ -52,9 +49,6 @@ export interface SpaceResponse {
   timeline: SpaceTimelineEntry[];
 }
 
-// ============================================
-// 成员管理
-// ============================================
 
 export interface CreateSpaceMemberInput {
   memberType: 'agent' | 'human';

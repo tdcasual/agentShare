@@ -1,7 +1,3 @@
-// ============================================
-// Identity Registry Service
-// Core of the Dual Cosmos
-// ============================================
 
 import type {
   Identity,
@@ -20,29 +16,23 @@ export const IdentityRegistryServiceId = createServiceIdentifier<IdentityRegistr
 );
 
 export interface IdentityRegistry {
-  // Registration
   registerHuman(identity: Omit<HumanIdentity, 'id' | 'createdAt' | 'updatedAt'>): HumanIdentity;
   registerAgent(identity: Omit<AgentIdentity, 'id' | 'createdAt' | 'updatedAt'>): AgentIdentity;
   unregister(identityId: string): void;
 
-  // Retrieval
   getById(id: string): Identity | undefined;
   getByType(type: IdentityType): Identity[];
   getAll(): Identity[];
 
-  // Presence
   setPresence(identityId: string, status: PresenceStatus): void;
   getPresence(identityId: string): PresenceStatus;
 
-  // Search
   search(query: string): Identity[];
   findByTag(tag: string): Identity[];
   findByCapability(capability: string): Identity[];
 
-  // References
   toReference(identity: Identity): IdentityReference;
 
-  // Events
   onIdentityCreated(handler: (identity: Identity) => void): Disposable;
   onIdentityUpdated(handler: (identity: Identity) => void): Disposable;
   onPresenceChanged(handler: (identityId: string, presence: PresenceStatus) => void): Disposable;

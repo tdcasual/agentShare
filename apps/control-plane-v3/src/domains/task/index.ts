@@ -7,7 +7,6 @@
  * - React Hooks
  */
 
-// Types
 export type {
   Task,
   TaskStatus,
@@ -28,7 +27,6 @@ export type {
   TaskQuery,
 } from './types';
 
-// API
 export {
   taskApi,
   getTasks,
@@ -39,23 +37,16 @@ export {
   getAccessTokenFeedbackBulk,
 } from './api';
 
-// Dashboard hooks
 export { useTaskDashboard, type TaskView } from './hooks-dashboard';
 
-// Hooks
 export {
-  // Tasks
   useTasks,
   useCreateTask,
-  // Runs
   useRuns,
-  // Feedback
   useAccessTokenFeedback,
   useCreateTaskTargetFeedback,
-  // Manual mutations
   refreshTasks,
   refreshRuns,
-  // Prefetch
   prefetchTasks,
   prefetchRuns,
 } from './hooks';

@@ -9,17 +9,11 @@
 import { apiFetch } from '@/lib/api-client';
 import type { ReviewQueueItem, ApproveReviewInput, RejectReviewInput } from './types';
 
-// ============================================
-// Review Queue
-// ============================================
 
 export function getReviews() {
   return apiFetch<{ items: ReviewQueueItem[] }>('/reviews');
 }
 
-// ============================================
-// Review Decisions
-// ============================================
 
 export function approveReview(
   resourceKind: string,
@@ -43,12 +37,8 @@ export function rejectReview(
   });
 }
 
-// ============================================
-// 向后兼容的 API 对象
-// ============================================
 
 export const reviewApi = {
-  // Reviews
   getReviews,
   approveReview,
   rejectReview,

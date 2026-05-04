@@ -22,9 +22,6 @@ import {
   type AccessTokenFeedbackTransport,
 } from './types';
 
-// ============================================
-// Tasks
-// ============================================
 
 export function getTasks() {
   return apiFetch<{ items: TaskTransport[] }>('/tasks').then(({ items }) => ({
@@ -39,9 +36,6 @@ export function createTask(payload: TaskCreateInput) {
   }).then(({ data, status }) => ({ ...normalizeTask(data), response_status: status }));
 }
 
-// ============================================
-// Runs
-// ============================================
 
 export function getRuns() {
   return apiFetch<{ items: RunTransport[] }>('/runs').then(({ items }) => ({
@@ -49,9 +43,6 @@ export function getRuns() {
   }));
 }
 
-// ============================================
-// Feedback
-// ============================================
 
 export function createTaskTargetFeedback(
   targetId: string,
@@ -86,17 +77,11 @@ export function getAccessTokenFeedbackBulk(accessTokenIds: string[]) {
   }));
 }
 
-// ============================================
-// 向后兼容的 API 对象
-// ============================================
 
 export const taskApi = {
-  // Tasks
   getTasks,
   createTask,
-  // Runs
   getRuns,
-  // Feedback
   createTaskTargetFeedback,
   getAccessTokenFeedback,
   getAccessTokenFeedbackBulk,

@@ -493,7 +493,6 @@ describe('spaces page', () => {
     expect(screen.getByText('Coordinate review and runtime follow-up')).toBeInTheDocument();
     expect(screen.getAllByText(t('common.active')).length).toBeGreaterThanOrEqual(2);
     expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
-    // MemberManager displays member_id.slice(-8) - 'bootstrap' → 'ootstrap'
     expect(screen.getByText('ootstrap')).toBeInTheDocument();
     expect(screen.getByText(t('spaces.memberManager.roles.participant'))).toBeInTheDocument();
     expect(screen.queryByText(/^participant$/)).not.toBeInTheDocument();

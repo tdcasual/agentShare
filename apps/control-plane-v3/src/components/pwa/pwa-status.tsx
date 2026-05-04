@@ -41,7 +41,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
         url: window.location.origin,
       });
     } catch {
-      // share failed or user cancelled
+
     }
   };
 

@@ -48,12 +48,12 @@ export function Layout({ children }: LayoutProps) {
   const device = useDeviceType();
   const { currentIdentity, onlineIdentities, isLoading, error, refresh } = useShellIdentity();
 
-  // 加载状态
+
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // 错误状态
+
   if (error) {
     return <ErrorScreen error={error} onRetry={refresh} />;
   }
@@ -77,13 +77,13 @@ export function Layout({ children }: LayoutProps) {
       <div
         className={cn(
           'transition-[margin] duration-300 will-change-[margin]',
-          // 移动端无侧边栏
+
           device.isMobile && 'ml-0 pb-20',
-          // 平板竖屏：可折叠侧边栏
+
           device.isTabletPortrait && (tabletCollapsed ? 'md:ml-20' : 'md:ml-56'),
-          // 平板横屏：图标侧边栏
+
           device.isTabletLandscape && 'ml-20',
-          // 桌面端：根据侧边栏状态
+
           device.isDesktop && (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64')
         )}
       >
@@ -92,11 +92,11 @@ export function Layout({ children }: LayoutProps) {
         <main
           id="main-content"
           className={cn(
-            // 移动端更多底部空间给底部导航
+
             device.isMobile && 'p-3 pb-4',
-            // 平板适中内边距
+
             device.isTablet && 'p-4',
-            // 桌面端宽松内边距
+
             device.isDesktop && 'p-6'
           )}
         >

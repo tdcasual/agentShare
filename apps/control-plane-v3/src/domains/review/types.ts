@@ -8,16 +8,10 @@
 
 import { IdentityReference } from '../identity/types';
 
-// ============================================
-// 基础类型
-// ============================================
 
 export type ReviewResourceKind = 'task' | 'playbook' | 'secret' | 'capability';
 export type ReviewDecision = 'pending' | 'approved' | 'rejected';
 
-// ============================================
-// 实体: Review Queue Item
-// ============================================
 
 export interface ReviewQueueItem {
   readonly resource_kind: ReviewResourceKind;
@@ -32,9 +26,6 @@ export interface ReviewQueueItem {
   readonly review_reason?: string;
 }
 
-// ============================================
-// 领域事件
-// ============================================
 
 export interface ReviewEvents {
   'review:approved': {
@@ -51,9 +42,6 @@ export interface ReviewEvents {
   };
 }
 
-// ============================================
-// DTOs
-// ============================================
 
 export interface ApproveReviewInput {
   readonly reason?: string;

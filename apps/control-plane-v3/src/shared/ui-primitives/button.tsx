@@ -4,7 +4,6 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CuteSpinner } from '@/components/kawaii/cute-spinner';
 
-// Button variants following Kawaii theme - uses CSS custom properties for theming
 const buttonVariants = {
   primary:
     'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-medium shadow-[var(--kw-primary-300)]/20 hover:shadow-[var(--kw-primary-400)]/30 active:scale-95',

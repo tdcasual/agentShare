@@ -31,12 +31,12 @@ export function MobileNav() {
   }));
   const [showMore, setShowMore] = React.useState(false);
 
-  // 仅在移动端显示
+
   if (!isMobile) {
     return null;
   }
 
-  // 只显示前4个主要导航项，其他放入"更多"
+
   const showMoreButton = shouldRenderMobileNavMoreButton(role);
   const primarySlotCount = showMoreButton ? 4 : navItems.length;
   const mainItems = navItems.slice(0, primarySlotCount);

@@ -39,7 +39,7 @@ export function useFocusTrap({
     onFocusOutsideRef.current = onFocusOutside;
   });
 
-  // 保存触发前的焦点
+
   useEffect(() => {
     if (isActive && document.activeElement instanceof HTMLElement) {
       previousFocusRef.current = document.activeElement;
@@ -47,7 +47,7 @@ export function useFocusTrap({
     }
   }, [isActive]);
 
-  // 管理焦点陷阱
+
   useEffect(() => {
     if (!isActive) {
       return;
@@ -58,7 +58,7 @@ export function useFocusTrap({
       return;
     }
 
-    // 获取所有可聚焦元素
+
     const getFocusableElements = (): HTMLElement[] => {
       const selector = [
         'button:not([disabled])',
@@ -71,23 +71,23 @@ export function useFocusTrap({
       ].join(', ');
 
       return Array.from(container.querySelectorAll(selector)).filter((el): el is HTMLElement => {
-        // 过滤不可见元素
+
         const style = window.getComputedStyle(el);
         return style.display !== 'none' && style.visibility !== 'hidden';
       });
     };
 
-    // 聚焦第一个元素
+
     const focusableElements = getFocusableElements();
     if (focusableElements.length > 0) {
-      // 延迟聚焦以确保元素已渲染
+
       timeoutRef.current = setTimeout(() => {
         const firstElement = focusableElements[0];
         firstElement?.focus();
       }, 0);
     }
 
-    // 键盘事件处理
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && onEscapeRef.current) {
         e.preventDefault();
@@ -120,7 +120,7 @@ export function useFocusTrap({
       }
     };
 
-    // 点击外部处理
+
     const handleClickOutside = (e: MouseEvent) => {
       if (
         onFocusOutsideRef.current &&
@@ -138,13 +138,13 @@ export function useFocusTrap({
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
 
-      // 清理延迟聚焦定时器
+
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
 
-      // 恢复焦点
+
       if (returnFocusOnDeactivate && previousFocusRef.current) {
         previousFocusRef.current.focus();
       }
@@ -191,12 +191,12 @@ export function useClickOutside(
     const handleClick = (e: MouseEvent) => {
       const target = e.target as Node;
 
-      // 检查是否在容器内
+
       if (containerRef.current?.contains(target)) {
         return;
       }
 
-      // 检查是否在排除列表中
+
       const isExcluded = excludeRefs?.some((ref) => ref.current?.contains(target));
       if (isExcluded) {
         return;

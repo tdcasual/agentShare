@@ -1,10 +1,5 @@
 'use client';
 
-// ============================================
-// Core Runtime - Composition Root
-// ============================================
-// 重构版本：解决 Core 层反向依赖 Domain 层的问题
-// 同时保持向后兼容
 
 import type { CoreRuntime, RouteConfig, Disposable, ThemeDefinition, Plugin } from './plugin/types';
 import { PluginRegistry } from './plugin';
@@ -15,9 +10,6 @@ import type { DomainEvents } from '../shared/types';
 import { logger } from '@/lib/logger';
 import * as React from 'react';
 
-// ============================================
-// 基础设施实现
-// ============================================
 
 class RouterManagerImpl {
   private routes: Map<string, RouteConfig> = new Map();
@@ -145,9 +137,6 @@ class I18nEngineImpl {
   }
 }
 
-// ============================================
-// 重构后的 Runtime Factory（新增）
-// ============================================
 
 export interface RuntimeConfig {
   plugins?: Plugin[];
@@ -155,7 +144,6 @@ export interface RuntimeConfig {
 }
 
 export function createCoreRuntime(config: RuntimeConfig = {}): CoreRuntime {
-  // 创建基础设施
   const eventBus = new EventBusImpl();
   const diContainer = new DIContainerImpl();
   const stateContainer = new StateContainerImpl();
@@ -168,7 +156,6 @@ export function createCoreRuntime(config: RuntimeConfig = {}): CoreRuntime {
     i18nEngine.setLocale(config.initialLocale);
   }
 
-  // 创建运行时对象
   const runtime: CoreRuntime = {
     plugin: null as unknown as PluginRegistry,
     event: eventBus,
@@ -180,10 +167,8 @@ export function createCoreRuntime(config: RuntimeConfig = {}): CoreRuntime {
     i18n: i18nEngine,
   };
 
-  // 创建插件注册表
   runtime.plugin = new PluginRegistry(runtime);
 
-  // 注册初始插件（由调用方传入，而非硬编码）
   if (config.plugins) {
     for (const plugin of config.plugins) {
       runtime.plugin.register(plugin);
@@ -193,7 +178,6 @@ export function createCoreRuntime(config: RuntimeConfig = {}): CoreRuntime {
   return runtime;
 }
 
-// 初始化函数改为接收运行时实例和可选的插件ID列表
 export async function initializeRuntime(
   runtime: CoreRuntime,
   pluginIds?: string[]
@@ -209,9 +193,6 @@ export async function initializeRuntime(
   return runtime;
 }
 
-// ============================================
-// React Context（新增 - 替代全局单例）
-// ============================================
 
 export const RuntimeContext = React.createContext<CoreRuntime | null>(null);
 
@@ -223,14 +204,10 @@ export function useRuntime(): CoreRuntime {
   return runtime;
 }
 
-// 用于测试的 Hook，允许可选的 Runtime
 export function useRuntimeOptional(): CoreRuntime | null {
   return React.useContext(RuntimeContext);
 }
 
-// ============================================
-// 向后兼容的全局单例（标记为 deprecated）
-// ============================================
 
 let globalRuntime: CoreRuntime | null = null;
 
@@ -253,7 +230,6 @@ export function setRuntime(runtime: CoreRuntime): void {
   globalRuntime = runtime;
 }
 
-// 向后兼容的初始化函数（自动注册 Identity 插件）
 /**
  * @deprecated 使用 initializeRuntime(runtime, plugins) 替代
  * 将在 v2.0 中移除
@@ -261,7 +237,6 @@ export function setRuntime(runtime: CoreRuntime): void {
 export async function initializeRuntimeLegacy(
   runtime: CoreRuntime = getRuntime()
 ): Promise<CoreRuntime> {
-  // 动态导入以避免循环依赖
   const { IdentityDomainPlugin } = await import('../domains/identity/plugin');
 
   const identityPluginId = 'domain.identity';
@@ -277,7 +252,6 @@ export async function initializeRuntimeLegacy(
   return runtime;
 }
 
-// Typed event bus for domain events
 export function createTypedEventBus(runtime: CoreRuntime) {
   return new TypedEventBus<DomainEvents>(runtime.event);
 }

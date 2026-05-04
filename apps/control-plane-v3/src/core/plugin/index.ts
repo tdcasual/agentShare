@@ -1,6 +1,3 @@
-// ============================================
-// Plugin System Implementation
-// ============================================
 
 import type { Plugin, PluginSystem, ExtensionPoint, CoreRuntime, Disposable } from './types';
 
@@ -21,7 +18,6 @@ export class PluginRegistry implements PluginSystem {
       throw new Error(`Plugin ${plugin.id} is already registered`);
     }
 
-    // Check dependencies
     if (plugin.dependencies) {
       for (const dep of plugin.dependencies) {
         if (!this.plugins.has(dep)) {
@@ -32,7 +28,6 @@ export class PluginRegistry implements PluginSystem {
 
     this.plugins.set(plugin.id, plugin);
 
-    // Auto-install
     plugin.install(this.runtime);
   }
 
@@ -46,7 +41,6 @@ export class PluginRegistry implements PluginSystem {
       return;
     }
 
-    // Activate dependencies first
     if (plugin.dependencies) {
       for (const dep of plugin.dependencies) {
         await this.activatePlugin(dep);
@@ -63,7 +57,6 @@ export class PluginRegistry implements PluginSystem {
       return;
     }
 
-    // Deactivate dependent plugins first
     for (const [id, p] of this.plugins) {
       if (p.dependencies?.includes(pluginId)) {
         await this.deactivatePlugin(id);
@@ -112,7 +105,6 @@ export class PluginRegistry implements PluginSystem {
   }
 
   async activateAll(): Promise<void> {
-    // Topological sort based on dependencies
     const sorted = this.topologicalSort();
     for (const pluginId of sorted) {
       await this.activatePlugin(pluginId);

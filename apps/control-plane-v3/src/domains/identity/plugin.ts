@@ -1,7 +1,3 @@
-// ============================================
-// Identity Domain Plugin
-// ============================================
-
 import type { Plugin, CoreRuntime } from '../../core/plugin/types';
 import { IdentityRegistryImpl, IdentityRegistryServiceId } from './services/identity-registry';
 import { logger } from '@/lib/logger';
@@ -16,11 +12,9 @@ export class IdentityDomainPlugin implements Plugin {
   install(runtime: CoreRuntime): void {
     this.runtime = runtime;
 
-    // Register identity registry service
     this.registry = new IdentityRegistryImpl(runtime);
     runtime.di.register(IdentityRegistryServiceId, this.registry);
 
-    // Create identity state store
     runtime.state.create('identity.current', (set) => ({
       currentIdentity: null as Identity | null,
       isAuthenticated: false,
@@ -36,7 +30,6 @@ export class IdentityDomainPlugin implements Plugin {
   }
 
   activate(): void {
-    // Seed with demo identities
     this.seedDemoData();
 
     logger.runtime.info('Identity domain activated');
@@ -47,11 +40,9 @@ export class IdentityDomainPlugin implements Plugin {
   }
 
   uninstall(): void {
-    // Cleanup
   }
 
   private seedDemoData(): void {
-    // Create demo human
     this.registry.registerHuman({
       type: 'human',
       profile: {
@@ -84,7 +75,6 @@ export class IdentityDomainPlugin implements Plugin {
       },
     });
 
-    // Create demo agent
     this.registry.registerAgent({
       type: 'agent',
       profile: {
@@ -123,7 +113,6 @@ export class IdentityDomainPlugin implements Plugin {
       },
     });
 
-    // Create another agent
     this.registry.registerAgent({
       type: 'agent',
       profile: {
@@ -167,5 +156,4 @@ export class IdentityDomainPlugin implements Plugin {
   }
 }
 
-// Import Identity type for the store
 import type { Identity } from '../../shared/types';

@@ -49,7 +49,6 @@ export default function LoginPage() {
     return () => {
       cancelled = true;
     };
-    // t 不需要作为依赖，bootstrap 检查只在挂载时执行一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
@@ -77,7 +76,6 @@ export default function LoginPage() {
       id="main-content"
       className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
     >
-      {/* Header controls */}
       <div className="safe-area-inset-top fixed right-4 top-4 z-toast flex items-center gap-3">
         <LanguageSwitcher />
         <SimpleThemeToggle />
@@ -88,7 +86,6 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
       >
         <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-          {/* Header */}
           <div className="space-y-3 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-text)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
               <LockKeyhole className="h-4 w-4" />
@@ -102,7 +99,6 @@ export default function LoginPage() {
             <p className="mx-auto max-w-sm text-[var(--kw-text)]">{t('auth.login.description')}</p>
           </div>
 
-          {/* Form */}
           <form className="space-y-5" onSubmit={handleSubmit}>
             <Input
               label={t('auth.login.email')}
@@ -129,7 +125,6 @@ export default function LoginPage() {
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
             />
 
-            {/* Status message */}
             <div
               role="status"
               aria-live="polite"

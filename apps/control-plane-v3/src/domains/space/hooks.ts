@@ -52,7 +52,7 @@ export function useCreateSpace() {
 
       try {
         const result = await createSpace(input);
-        // 刷新列表
+
         await mutate('/spaces');
         return result;
       } catch (err) {
@@ -87,7 +87,7 @@ export function useAddSpaceMember(spaceId: string, options?: { agentId?: string 
 
       try {
         const result = await addSpaceMember(spaceId, input);
-        // 刷新空间详情和列表
+
         await mutate(`/spaces/${spaceId}`);
         await mutate('/spaces');
         if (options?.agentId) {

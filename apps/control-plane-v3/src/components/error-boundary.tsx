@@ -119,7 +119,7 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, State> {
 
   render() {
     if (this.state.hasError) {
-      // 使用自定义fallback或默认错误UI
+
       if (this.props.fallback) {
         return this.props.fallback;
       }

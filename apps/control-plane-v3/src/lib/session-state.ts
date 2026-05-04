@@ -12,12 +12,12 @@ import type { ManagementSessionSummary, ManagementRole } from '@/shared/types';
 import { ApiError, apiFetch } from './api-client';
 
 export type SessionState =
-  | 'unknown' // 初始状态，正在解析
-  | 'anonymous' // 未登录
-  | 'authenticated' // 已认证
-  | 'expired' // 会话过期
-  | 'forbidden' // 无权限
-  | 'unavailable'; // 服务不可用
+  | 'unknown'
+  | 'anonymous'
+  | 'authenticated'
+  | 'expired'
+  | 'forbidden'
+  | 'unavailable';
 
 export interface SessionData {
   state: SessionState;
@@ -41,7 +41,6 @@ function sessionSummaryToSessionData(session: ManagementSessionSummary): Session
   };
 }
 
-// 全局会话状态（用于非React上下文）
 let globalSession: SessionData = { state: 'unknown' };
 let sessionListeners: ((session: SessionData) => void)[] = [];
 
@@ -144,7 +143,7 @@ export async function logout(): Promise<void> {
       state: 'anonymous',
       lastLoadedAt: Date.now(),
     });
-    // Clear role store to prevent stale role flash on re-login
+
     const { useRoleStore } = await import('@/store/role-store');
     useRoleStore.getState().clearRole();
   }
@@ -177,10 +176,10 @@ export function useSession() {
     mountedRef.current = true;
     const initialSession = getGlobalSession();
 
-    // 订阅全局会话变化
+
     const unsubscribe = subscribeToSession(setSession);
 
-    // 初始解析（如果未知状态）
+
     if (initialSession.state === 'unknown') {
       setIsLoading(true);
       resolveSession().then((newSession) => {

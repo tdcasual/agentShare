@@ -14,9 +14,6 @@ import type { Task, Run, AccessTokenFeedback } from './types';
 import type { TaskCreateInput, AccessTokenFeedbackCreateInput } from '@/lib/api-client';
 import { TASK_DASHBOARD_FEEDBACK_KEY, TASK_DASHBOARD_TOKENS_KEY } from './hooks-dashboard';
 
-// ============================================
-// Tasks
-// ============================================
 
 export function useTasks(options?: SWRConfiguration) {
   const visible = usePageVisible();
@@ -24,7 +21,7 @@ export function useTasks(options?: SWRConfiguration) {
     options?.isPaused || !visible ? null : '/api/tasks',
     () => api.getTasks(),
     {
-      ...pollingConfig, // 默认轮询，任务状态变化快
+      ...pollingConfig,
       ...options,
     }
   );
@@ -38,20 +35,14 @@ export function useCreateTask() {
   }, []);
 }
 
-// ============================================
-// Runs
-// ============================================
 
 export function useRuns(options?: SWRConfiguration) {
   return useSWR<{ items: Run[] }>('/api/runs', () => api.getRuns(), {
-    ...pollingConfig, // Run 状态实时变化
+    ...pollingConfig,
     ...options,
   });
 }
 
-// ============================================
-// Feedback
-// ============================================
 
 export function useAccessTokenFeedback(accessTokenId: string | null, options?: SWRConfiguration) {
   return useSWR<{ items: AccessTokenFeedback[] }>(
@@ -67,7 +58,7 @@ export function useAccessTokenFeedback(accessTokenId: string | null, options?: S
 export function useCreateTaskTargetFeedback() {
   return useCallback(async (targetId: string, payload: AccessTokenFeedbackCreateInput) => {
     const result = await api.createTaskTargetFeedback(targetId, payload);
-    // 刷新相关缓存
+
     await mutate('/api/tasks');
     await mutate('/api/runs');
     await mutate(
@@ -79,9 +70,6 @@ export function useCreateTaskTargetFeedback() {
   }, []);
 }
 
-// ============================================
-// Manual Mutations
-// ============================================
 
 export function refreshTasks() {
   return mutate('/api/tasks');
@@ -91,9 +79,6 @@ export function refreshRuns() {
   return mutate('/api/runs');
 }
 
-// ============================================
-// Prefetch
-// ============================================
 
 export function prefetchTasks() {
   return mutate('/api/tasks', api.getTasks(), false);

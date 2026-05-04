@@ -37,7 +37,7 @@ export default function HubPage() {
   const { t } = useI18n();
   const session = useGlobalSession();
 
-  // RouteGuard handles redirects; we just read the already-resolved global state.
+
   if (session.state === 'unavailable') {
     return (
       <section id="main-content" className="flex min-h-screen items-center justify-center px-6">

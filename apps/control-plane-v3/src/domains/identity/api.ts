@@ -1,12 +1,3 @@
-/**
- * Identity Domain API
- *
- * 负责：
- * - 认证管理 (login/logout/session)
- * - 引导流程 (bootstrap)
- * - 账号管理 (agents, admin accounts)
- */
-
 import {
   apiFetch,
   SetupOwnerInput,
@@ -54,10 +45,6 @@ export interface OpenClawAgentUpdateInput extends Partial<OpenClawAgentCreateInp
   status?: string;
 }
 
-// ============================================
-// 引导流程 (Bootstrap)
-// ============================================
-
 export function getBootstrapStatus() {
   return apiFetch<BootstrapStatus>('/bootstrap/status');
 }
@@ -71,10 +58,6 @@ export function setupOwner(payload: SetupOwnerInput) {
     body: JSON.stringify(payload),
   });
 }
-
-// ============================================
-// 会话管理 (Session)
-// ============================================
 
 export function login(payload: LoginInput) {
   return apiFetch<ManagementSessionSummary>('/session/login', {
@@ -90,10 +73,6 @@ export function logout() {
 export function getSession() {
   return apiFetch<ManagementSessionSummary>('/session/me');
 }
-
-// ============================================
-// OpenClaw Agents
-// ============================================
 
 export function getOpenClawAgents() {
   return apiFetch<{ items: OpenClawAgent[] }>('/openclaw/agents');
@@ -200,10 +179,6 @@ export function sendWorkbenchMessage(conversationId: string, payload: WorkbenchM
   );
 }
 
-// ============================================
-// Admin Accounts
-// ============================================
-
 export function getAdminAccounts() {
   return apiFetch<{ items: AdminAccountSummary[] }>('/admin-accounts');
 }
@@ -221,10 +196,6 @@ export function disableAdminAccount(accountId: string) {
     body: JSON.stringify({}),
   });
 }
-
-// ============================================
-// Access Tokens
-// ============================================
 
 export function getAccessTokens() {
   return apiFetch<{ items: AccessTokenTransport[] }>('/access-tokens').then(({ items }) => ({
@@ -250,19 +221,12 @@ export function revealAccessToken(tokenId: string) {
   return apiFetch<AccessTokenSecretResponse>(`/access-tokens/${tokenId}/secret`);
 }
 
-// ============================================
-// 向后兼容的 API 对象
-// ============================================
-
 export const identityApi = {
-  // Bootstrap
   getBootstrapStatus,
   setupOwner,
-  // Session
   login,
   logout,
   getSession,
-  // OpenClaw agents
   getOpenClawAgents,
   getOpenClawAgent,
   createOpenClawAgent,
@@ -281,11 +245,9 @@ export const identityApi = {
   getWorkbenchSession,
   getWorkbenchMessages,
   sendWorkbenchMessage,
-  // Admin Accounts
   getAdminAccounts,
   createAdminAccount,
   disableAdminAccount,
-  // Access Tokens
   getAccessTokens,
   createAccessToken,
   revealAccessToken,

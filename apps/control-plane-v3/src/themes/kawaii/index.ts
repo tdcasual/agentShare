@@ -1,6 +1,3 @@
-// ============================================
-// Kawaii Theme - Dual Cosmos
-// ============================================
 
 import type { ThemeDefinition } from '../../core/plugin/types';
 
@@ -10,7 +7,7 @@ export const kawaiiTheme: ThemeDefinition = {
   version: '1.0.0',
 
   variables: {
-    // Primary colors - Pink gradient (kept for compatibility)
+
     '--kw-primary-50': '#FFF0F5',
     '--kw-primary-100': '#FFE4E1',
     '--kw-primary-200': '#FFC0CB',
@@ -19,20 +16,20 @@ export const kawaiiTheme: ThemeDefinition = {
     '--kw-primary-500': '#FF1493',
     '--kw-primary-600': '#DB7093',
 
-    // Secondary colors - Candy palette
+
     '--kw-mint': '#98FB98',
     '--kw-sky': '#87CEEB',
     '--kw-lavender': '#E6E6FA',
     '--kw-peach': '#FFDAB9',
     '--kw-lemon': '#FFFACD',
 
-    // Semantic colors
+
     '--kw-success': '#90EE90',
     '--kw-warning': '#FFD700',
     '--kw-error': '#FF6B6B',
     '--kw-info': '#87CEFA',
 
-    // Neutrals - calmer, more operational
+
     '--kw-bg': '#f6f5f8',
     '--kw-surface': '#FFFFFF',
     '--kw-surface-alt': '#F4F4F7',
@@ -40,24 +37,24 @@ export const kawaiiTheme: ThemeDefinition = {
     '--kw-text': '#2d2d3a',
     '--kw-text-muted': '#6b6b7b',
 
-    // Human/Agent accent colors
+
     '--kw-human-accent': '#0ea5e9',
     '--kw-agent-accent': '#22c55e',
     '--kw-dual-gradient': 'linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%)',
 
-    // Spacing
+
     '--kw-radius-sm': '8px',
     '--kw-radius-md': '16px',
     '--kw-radius-lg': '24px',
     '--kw-radius-xl': '32px',
     '--kw-radius-full': '9999px',
 
-    // Shadows - neutral, no pink tint
+
     '--kw-shadow-soft': '0 1px 8px rgba(0, 0, 0, 0.05)',
     '--kw-shadow-medium': '0 2px 16px rgba(0, 0, 0, 0.06)',
     '--kw-shadow-glow': '0 0 12px rgba(0, 0, 0, 0.06)',
 
-    // Animation timing
+
     '--kw-duration-fast': '150ms',
     '--kw-duration-normal': '250ms',
     '--kw-duration-slow': '400ms',
@@ -205,7 +202,7 @@ export const kawaiiTheme: ThemeDefinition = {
   },
 };
 
-// Helper function to apply CSS variables
+
 export function applyKawaiiTheme(): void {
   const root = document.documentElement;
 

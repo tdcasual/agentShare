@@ -1,6 +1,3 @@
-// ============================================
-// Event Bus Implementation
-// ============================================
 
 import type { EventBus, Disposable } from '../plugin/types';
 
@@ -9,7 +6,6 @@ export class EventBusImpl implements EventBus {
   private onceHandlers = new Map<string, Set<(payload: unknown) => void>>();
 
   emit<K extends string>(event: K, payload: unknown): void {
-    // Execute regular handlers
     const handlers = this.handlers.get(event);
     if (handlers) {
       handlers.forEach((handler) => {
@@ -30,12 +26,9 @@ export class EventBusImpl implements EventBus {
       });
     }
 
-    // Execute once handlers
     const onceHandlers = this.onceHandlers.get(event);
     if (onceHandlers) {
-      // Snapshot handlers to avoid mutations during iteration
       const handlersSnapshot = Array.from(onceHandlers);
-      // Clear before invoking so re-registrations during execution are preserved
       onceHandlers.clear();
       handlersSnapshot.forEach((handler) => {
         try {
@@ -76,7 +69,6 @@ export class EventBusImpl implements EventBus {
     this.onceHandlers.get(event)?.delete(handler);
   }
 
-  // Debug helper
   getActiveEvents(): string[] {
     return Array.from(this.handlers.keys());
   }
@@ -86,7 +78,6 @@ export class EventBusImpl implements EventBus {
   }
 }
 
-// Typed event emitter wrapper for better type safety
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class TypedEventBus<Events = any> {
   constructor(private bus: EventBus) {}

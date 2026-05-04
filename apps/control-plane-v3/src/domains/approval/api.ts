@@ -54,7 +54,6 @@ export async function rejectRequest(
   });
 }
 
-// API对象（用于统一导出）
 export const approvalApi = {
   getApprovals,
   approveRequest,

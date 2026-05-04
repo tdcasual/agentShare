@@ -36,7 +36,7 @@ export default function SettingsPage() {
 const SettingsContent = memo(function SettingsContent() {
   const { locale, t } = useI18n();
   const router = useRouter();
-  // 使用 SWR hooks
+
   const { data: accountsData, isLoading, error: dataError } = useAdminAccounts();
   const {
     session,
@@ -54,7 +54,7 @@ const SettingsContent = memo(function SettingsContent() {
   const accounts = accountsData?.items;
   const accountList = accounts ?? [];
 
-  // 本地 UI 状态
+
   const [error, setError] = useState<string | null>(null);
   const [submittingInvite, setSubmittingInvite] = useState(false);
   const [signingOut, setSigningOut] = useState(false);

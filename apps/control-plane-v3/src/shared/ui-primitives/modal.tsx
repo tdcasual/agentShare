@@ -37,16 +37,16 @@ export function Modal({
   const modalRef = React.useRef<HTMLDivElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
-  // Handle focus trap and initial focus
+
   React.useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    // Store previous focus
+
     previousFocusRef.current = document.activeElement as HTMLElement;
 
-    // Set initial focus
+
     if (initialFocusRef?.current) {
       initialFocusRef.current.focus();
     } else if (modalRef.current) {
@@ -68,14 +68,14 @@ export function Modal({
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
-      // Restore previous focus when modal closes
+
       if (previousFocusRef.current && document.body.contains(previousFocusRef.current)) {
         previousFocusRef.current.focus();
       }
     };
   }, [isOpen, initialFocusRef]);
 
-  // Handle keyboard navigation
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -83,7 +83,7 @@ export function Modal({
         return;
       }
 
-      // Focus trap
+
       if (e.key === 'Tab' && modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'

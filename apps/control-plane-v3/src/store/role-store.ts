@@ -13,11 +13,11 @@ interface RoleState {
   /** 当前用户角色 */
   role: ManagementRole | null;
 
-  // Actions
+
   setRole: (role: ManagementRole) => void;
   clearRole: () => void;
 
-  // Queries
+
   hasRole: (required: ManagementRole) => boolean;
   isViewer: () => boolean;
   isOperator: () => boolean;
@@ -58,7 +58,7 @@ export const useRoleStore = create<RoleState>()((set, get) => ({
   },
 }));
 
-// 非hook版本（用于非React上下文）
+
 export function getCurrentRole(): ManagementRole | null {
   return useRoleStore.getState().role;
 }
