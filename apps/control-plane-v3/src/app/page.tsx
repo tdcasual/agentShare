@@ -466,9 +466,11 @@ const StatCard = memo(function StatCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">{value}</p>
-        <p className="text-xs text-[var(--kw-text-muted)] sm:text-sm">{label}</p>
-        <p className="mt-0.5 text-[10px] text-[var(--kw-text-muted)] sm:mt-1 sm:text-xs">{trend}</p>
+        <p className="truncate text-xl font-bold text-[var(--kw-text)] sm:text-2xl">{value}</p>
+        <p className="truncate text-xs text-[var(--kw-text-muted)] sm:text-sm">{label}</p>
+        <p className="mt-0.5 truncate text-[10px] text-[var(--kw-text-muted)] sm:mt-1 sm:text-xs">
+          {trend}
+        </p>
       </div>
     </Card>
   );

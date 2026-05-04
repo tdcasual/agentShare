@@ -18,7 +18,8 @@ import { TabletSidebar } from '@/components/tablet-sidebar';
 import { useDeviceType } from '@/hooks/use-device-type';
 import { useShellIdentity } from '@/hooks/use-shell-identity';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { CuteLoading } from '@/components/kawaii/cute-spinner';
 import { Button } from '@/shared/ui-primitives/button';
 import type { Identity } from '@/shared/types';
 import { cn } from '@/lib/utils';
@@ -119,10 +120,7 @@ function LoadingScreen() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-[var(--kw-primary-500)]" />
-        <p className="text-[var(--kw-text-muted)]">{t('common.preparingPage')}</p>
-      </div>
+      <CuteLoading text={t('common.preparingPage')} />
     </div>
   );
 }

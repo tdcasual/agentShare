@@ -163,7 +163,7 @@ function AgentDetailContent() {
       </div>
 
       <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
-        <div className="scrollbar-hide flex flex-nowrap gap-2 overflow-x-auto">
+        <div className="scrollbar-hide relative flex flex-nowrap gap-2 overflow-x-auto">
           {TABS.map((tab) => (
             <FilterButton
               key={tab}
@@ -173,6 +173,10 @@ function AgentDetailContent() {
               label={tabLabel[tab]}
             />
           ))}
+          <div
+            className="dark:from-[var(--kw-dark-surface)]/80 pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white/80 to-transparent"
+            aria-hidden="true"
+          />
         </div>
       </Card>
 

@@ -78,7 +78,7 @@ export default function LoginPage() {
       className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
     >
       {/* Header controls */}
-      <div className="fixed right-4 top-4 z-toast flex items-center gap-3">
+      <div className="safe-area-inset-top fixed right-4 top-4 z-toast flex items-center gap-3">
         <LanguageSwitcher />
         <SimpleThemeToggle />
       </div>
