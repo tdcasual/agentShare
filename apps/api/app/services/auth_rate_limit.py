@@ -78,15 +78,21 @@ def _active_attempts(settings: Settings, key: str, now: float) -> list[float]:
     window_started_at = now - settings.auth_rate_limit_window_seconds
     r = _get_redis_or_none(settings)
     if r is not None:
-        return _redis_active_attempts(r, key, window_started_at, settings.auth_rate_limit_window_seconds)
+        try:
+            return _redis_active_attempts(r, key, window_started_at, settings.auth_rate_limit_window_seconds)
+        except (redis.RedisError, RuntimeError):
+            logger.warning("Redis unavailable for auth rate limit; falling back to memory")
     return _memory_active_attempts(key, window_started_at)
 
 
 def _record_failure(settings: Settings, key: str, now: float) -> None:
     r = _get_redis_or_none(settings)
     if r is not None:
-        _redis_record_failure(r, key, now, settings.auth_rate_limit_window_seconds)
-        return
+        try:
+            _redis_record_failure(r, key, now, settings.auth_rate_limit_window_seconds)
+            return
+        except (redis.RedisError, RuntimeError):
+            logger.warning("Redis unavailable for auth rate limit; falling back to memory")
     attempts = _memory_active_attempts(key, now - settings.auth_rate_limit_window_seconds)
     attempts.append(now)
     _attempts_by_key[key] = attempts
