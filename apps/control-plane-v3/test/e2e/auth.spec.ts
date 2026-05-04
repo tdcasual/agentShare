@@ -20,15 +20,20 @@ test.describe('authentication flow', () => {
     await expect(page.getByRole('heading', { name: /欢迎/ })).toBeVisible();
   });
 
-  test('shows dashboard for authenticated viewer', async ({ page }) => {
+  test('shows forbidden for viewer accessing admin-only hub', async ({ page }) => {
     await mockSession(page, 'viewer');
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: /欢迎/ })).toBeVisible();
+    await expect(page.getByText(/访问受限/)).toBeVisible();
+    await expect(page.getByText(/当前.*观察者/)).toBeVisible();
+    await expect(page.getByText(/需要.*管理员/)).toBeVisible();
   });
 
-  test('logout page shows signing out', async ({ page }) => {
+  test('logout sends POST to session logout endpoint', async ({ page }) => {
     await mockSession(page, 'owner');
+    const logoutRequest = page.waitForRequest(
+      (req) => req.url().includes('/api/session/logout') && req.method() === 'POST'
+    );
     await page.goto('/logout');
-    await expect(page.getByText(/正在退出/)).toBeVisible();
+    await logoutRequest;
   });
 });
