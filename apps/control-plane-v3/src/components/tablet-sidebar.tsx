@@ -74,7 +74,7 @@ export function TabletSidebar({
     }
   }, [onToggle]);
 
-
+  // 只在平板设备显示
   if (!device.isTablet) {
     return null;
   }

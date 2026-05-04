@@ -21,7 +21,7 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
   const [isHovering, setIsHovering] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-
+  // 清理定时器
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -32,7 +32,7 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
 
   const handleMouseEnter = () => {
     setIsHovering(true);
-
+    // 清除之前的定时器
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;

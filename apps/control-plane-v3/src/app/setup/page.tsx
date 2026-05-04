@@ -59,7 +59,7 @@ export default function SetupPage() {
     return () => {
       cancelled = true;
     };
-
+    // t 不需要作为依赖，bootstrap 检查只在挂载时执行一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 

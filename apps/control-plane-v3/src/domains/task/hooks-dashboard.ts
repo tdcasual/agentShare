@@ -32,7 +32,7 @@ export interface TaskView {
  * - 相关 Token Feedback
  */
 export function useTaskDashboard(options?: SWRConfiguration) {
- 
+  // 并行获取基础数据
   const tasksQuery = useSWR<{ items: Task[] }>('/api/tasks', () => taskApi.getTasks(), {
     ...pollingConfig,
     ...options,
@@ -86,7 +86,7 @@ export function useTaskDashboard(options?: SWRConfiguration) {
 
   const feedbackByTargetId = feedbackQuery.data;
 
- 
+  // 构建任务视图
   const runs = runsQuery.data?.items;
   const runsByTaskTarget = useMemo(() => {
     const index = new Map<string, Run>();
@@ -106,7 +106,7 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     }));
   }, [tasks, tokensById, runsByTaskTarget, feedbackByTargetId]);
 
- 
+  // 计算加载状态
   const isLoading =
     tasksQuery.isLoading ||
     runsQuery.isLoading ||

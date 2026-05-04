@@ -54,7 +54,7 @@ export default function DemoIdentitiesPage() {
 
 function IdentitiesContent() {
   const { t } = useI18n();
-
+  // 使用演示数据
   const { identities, isLoading, error } = useMockIdentities({
     identities: demoIdentities,
   });
@@ -63,11 +63,11 @@ function IdentitiesContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-
+  // 使用 useMemo 进行筛选，避免重复计算
   const filteredIdentities = useMemo(() => {
     let filtered = identities;
 
-
+    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -78,7 +78,7 @@ function IdentitiesContent() {
       );
     }
 
-
+    // Apply type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter((i) => i.type === typeFilter);
     }

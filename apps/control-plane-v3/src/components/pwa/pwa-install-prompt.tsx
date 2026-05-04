@@ -10,9 +10,9 @@ import { useI18n } from '@/components/i18n-provider';
 
 interface PWAInstallPromptProps {
   className?: string;
-
+  // 延迟显示（毫秒）
   delay?: number;
-
+  // 最小访问次数才显示
   minVisits?: number;
 }
 
@@ -42,16 +42,16 @@ export function PWAInstallPrompt({
 
     setIsDismissed(false);
 
-
+    // 增加访问计数
     const visits = parseInt(localStorage.getItem(VISIT_KEY) || '0', 10);
     localStorage.setItem(VISIT_KEY, String(visits + 1));
 
-
+    // 检查是否达到最小访问次数
     if (visits + 1 < minVisits) {
       return;
     }
 
-
+    // 延迟显示
     if (isInstallable && !isInstalled) {
       const timer = setTimeout(() => {
         setIsVisible(true);
@@ -63,7 +63,7 @@ export function PWAInstallPrompt({
   const handleDismiss = () => {
     setIsVisible(false);
     setIsDismissed(true);
-
+    // 记住用户的选择（7天）
     const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
     localStorage.setItem(STORAGE_KEY, String(expiry));
   };
@@ -122,7 +122,7 @@ export function PWAInstallPrompt({
   );
 }
 
-
+// 简化的安装按钮（用于设置页面）
 export function PWAInstallButton({ className }: { className?: string }) {
   const { t } = useI18n();
   const { isInstallable, isInstalled, install } = usePWA();

@@ -1,3 +1,6 @@
+// ============================================
+// Plugin System Types
+// ============================================
 
 import type { Disposable } from '../../shared/types';
 export type { Disposable };
@@ -155,6 +158,7 @@ export interface I18nEngine {
   registerTranslations(locale: string, translations: Record<string, string>): void;
 }
 
+// Extension Point IDs
 export const ExtensionPoints = {
   ROUTES: 'core.routes',
   MENUS: 'core.menus',
@@ -166,6 +170,7 @@ export const ExtensionPoints = {
   ICONS: 'core.icons',
 } as const;
 
+// Service Identifiers
 export function createServiceIdentifier<T>(name: string): ServiceIdentifier<T> {
   return {
     symbol: Symbol.for(name),

@@ -10,6 +10,9 @@
 
 import type { IdentityReference, AccessToken } from '../shared-types';
 
+// ============================================
+// 基础类型
+// ============================================
 
 export type TaskStatus = 'pending' | 'claimed' | 'completed' | 'failed' | 'cancelled';
 export type TaskPriority = 'low' | 'normal' | 'high' | 'critical';
@@ -18,6 +21,9 @@ export type TaskTargetMode = 'explicit_access_tokens' | 'broadcast';
 export type RunStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 export type FeedbackVerdict = 'accepted' | 'rejected' | 'needs_improvement';
 
+// ============================================
+// 值对象
+// ============================================
 
 export interface TaskInput {
   readonly [key: string]: unknown;
@@ -29,6 +35,9 @@ export interface TaskTarget {
   readonly status: RunStatus;
 }
 
+// ============================================
+// 传输 DTO
+// ============================================
 
 export interface TaskTransport {
   readonly id: string;
@@ -84,6 +93,9 @@ export interface AccessTokenFeedbackTransport {
 export type { AccessTokenTransport, AccessToken } from '../shared-types';
 export { normalizeAccessToken } from '../shared-types';
 
+// ============================================
+// 实体: Task
+// ============================================
 
 export interface Task {
   readonly id: string;
@@ -107,6 +119,9 @@ export interface Task {
   readonly claimedBy?: string;
 }
 
+// ============================================
+// 实体: Run - 与后端 /api/runs 返回对齐
+// ============================================
 
 export interface Run {
   readonly id: string;
@@ -122,6 +137,9 @@ export interface Run {
   readonly leaseEvents?: unknown;
 }
 
+// ============================================
+// 实体: Access Token Feedback
+// ============================================
 
 export interface AccessTokenFeedback {
   readonly id: string;
@@ -136,6 +154,9 @@ export interface AccessTokenFeedback {
   readonly createdAt?: string;
 }
 
+// ============================================
+// 领域事件
+// ============================================
 
 export interface TaskEvents {
   'task:created': {
@@ -168,6 +189,9 @@ export interface TaskEvents {
   };
 }
 
+// ============================================
+// DTOs
+// ============================================
 
 export interface CreateTaskInput {
   readonly title: string;
@@ -185,6 +209,9 @@ export interface CreateFeedbackInput {
   readonly summary: string;
 }
 
+// ============================================
+// 视图模型
+// ============================================
 
 export interface TaskWithTargets extends Task {
   readonly targets: TaskTargetView[];
@@ -199,6 +226,9 @@ export interface TaskTargetView {
   readonly status: RunStatus;
 }
 
+// ============================================
+// 查询参数
+// ============================================
 
 export interface TaskQuery {
   readonly status?: TaskStatus;

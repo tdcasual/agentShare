@@ -26,8 +26,8 @@ describe('shared layout fallbacks', () => {
     const source = await readLayoutSource();
 
     expect(source).not.toMatch(/<SkipLink \/>/);
-
-
+    // LoadingScreen and main content area both use <main id="main-content">,
+    // but they are mutually exclusive at runtime so only one landmark exists in the DOM.
     const matches = source.match(/id="main-content"/g) ?? [];
     expect(matches.length).toBeGreaterThanOrEqual(1);
   });

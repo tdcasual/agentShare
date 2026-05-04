@@ -64,7 +64,7 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
   );
 }
 
-
+// 离线提示
 interface PWAOfflineIndicatorProps {
   className?: string;
 }

@@ -1,3 +1,4 @@
+// Export all UI primitives
 export * from './button';
 export * from './card';
 export * from './badge';

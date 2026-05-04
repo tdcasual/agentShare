@@ -61,7 +61,7 @@ class Logger {
   }
 }
 
-
+// 预定义的日志实例
 export const logger = {
   api: new Logger({ namespace: 'API', level: 'info' }),
   auth: new Logger({ namespace: 'Auth', level: 'info' }),

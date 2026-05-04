@@ -1,3 +1,6 @@
+// ============================================
+// State Management
+// ============================================
 
 import { useEffect, useState } from 'react';
 import type { StateContainer, Store, StateInitializer, Disposable } from '../plugin/types';
@@ -93,6 +96,7 @@ class StoreImpl<T> implements Store<T> {
   }
 }
 
+// React integration helper
 export function createReactHook<T>(store: Store<T>) {
   return function useStore(): [T, Store<T>['setState']] {
     const [state, setState] = useState(store.getState());
@@ -107,6 +111,7 @@ export function createReactHook<T>(store: Store<T>) {
   };
 }
 
+// Selector helper for derived state
 export function createSelector<T, R>(store: Store<T>, selectorFn: (state: T) => R): Store<R> {
   const storeName = (store as StoreImpl<T>).name;
   const selectorStore = new StoreImpl<R>(`${storeName}.selector`, () =>

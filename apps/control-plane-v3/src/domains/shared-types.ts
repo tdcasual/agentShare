@@ -4,6 +4,9 @@
  * 用于打破 task 与 identity 等领域的循环依赖
  */
 
+// ============================================
+// Identity 共享
+// ============================================
 
 export interface IdentityReference {
   readonly id: string;
@@ -12,6 +15,9 @@ export interface IdentityReference {
   readonly avatar?: string;
 }
 
+// ============================================
+// Task/Token 共享
+// ============================================
 
 export interface AccessTokenTransport {
   readonly id: string;

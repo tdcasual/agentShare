@@ -10,8 +10,8 @@ const replaceMock = vi.fn();
 const originalLocation = window.location;
 
 beforeEach(() => {
-
-
+  // jsdom doesn't support setting window.location.href directly,
+  // so we delete it and provide a writable mock.
   Object.defineProperty(window, 'location', {
     writable: true,
     value: { href: '' },

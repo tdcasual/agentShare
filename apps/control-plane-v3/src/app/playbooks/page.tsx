@@ -28,7 +28,7 @@ import { PlaybookDetail } from '@/domains/playbook/components/playbook-detail';
 import type { Playbook, CreatePlaybookInput, PlaybookSearchQuery } from '@/domains/playbook/types';
 import { BookOpen, Search, Plus, Tag, RefreshCw, XCircle, Filter } from 'lucide-react';
 
-
+// 常见任务类型
 const TASK_TYPES = ['all', 'code_review', 'deployment', 'analysis', 'documentation', 'testing'];
 
 function getPlaybookTaskTypeLabel(taskType: string, t: (key: string) => string): string {
@@ -50,7 +50,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
-
+  // 构建查询参数
   const query = useMemo<PlaybookSearchQuery>(() => {
     return {
       ...(searchQuery && { q: searchQuery }),
@@ -70,14 +70,14 @@ const PlaybooksContent = memo(function PlaybooksContent() {
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(error);
 
-
+  // 提取所有标签
   const allTags = useMemo(() => {
     const tags = new Set<string>();
     playbooks.forEach((p) => p.tags.forEach((t) => tags.add(t)));
     return Array.from(tags).slice(0, 20);
   }, [playbooks]);
 
-
+  // 处理创建
   const handleCreate = async (input: CreatePlaybookInput) => {
     clearAllAuthErrors();
     setActionError(null);
@@ -113,7 +113,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
     }
   };
 
-
+  // 加载中
   if (isLoading) {
     return (
       <Layout>
@@ -122,7 +122,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
     );
   }
 
-
+  // 错误状态
   if (error && !shouldShowSessionExpired && !shouldShowForbidden) {
     return (
       <Layout>
@@ -328,7 +328,7 @@ const PlaybooksContent = memo(function PlaybooksContent() {
   );
 });
 
-
+// 创建手册弹窗
 interface CreatePlaybookModalProps {
   onClose: () => void;
   onCreate: (input: CreatePlaybookInput) => Promise<void>;

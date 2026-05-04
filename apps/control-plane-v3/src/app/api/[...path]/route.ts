@@ -24,36 +24,36 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
   const targetUrl = `${buildBackendApiUrl(apiBaseUrl, path)}${searchParams ? `?${searchParams}` : ''}`;
 
   try {
-
+    // 获取请求体
     let body: string | undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       body = await request.text();
     }
 
-
+    // 构建 headers
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
-
+      // 跳过 host 和一些不需要的 headers
       if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
         headers[key] = value;
       }
     });
 
-
+    // 转发请求到后端
     const response = await fetch(targetUrl, {
       method: request.method,
       headers,
       body,
-
+      // 重要：转发 cookies
       credentials: 'include',
     });
 
-
+    // 构建响应
     const responseBody = await response.text();
     const responseHeaders: Record<string, string> = {};
 
     response.headers.forEach((value, key) => {
-
+      // 跳过一次性的 headers
       if (!['content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
         responseHeaders[key] = value;
       }
@@ -78,7 +78,7 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
   }
 }
 
-
+// 支持所有 HTTP 方法
 export const GET = handleRequest;
 export const POST = handleRequest;
 export const PUT = handleRequest;

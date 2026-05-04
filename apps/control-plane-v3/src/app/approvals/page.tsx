@@ -57,7 +57,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(error);
 
-
+  // 统计
   const stats = useMemo(() => {
     return {
       pending: approvals.filter((a) => a.status === 'pending').length,
@@ -66,7 +66,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
     };
   }, [approvals]);
 
-
+  // 处理批准
   const handleApprove = async (id: string) => {
     clearAllAuthErrors();
     setActionError(null);
@@ -84,7 +84,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
     }
   };
 
-
+  // 处理拒绝
   const handleReject = async (id: string, reason: string) => {
     clearAllAuthErrors();
     setActionError(null);
@@ -119,7 +119,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
     }
   };
 
-
+  // 加载中
   if (isLoading) {
     return (
       <Layout>
@@ -128,7 +128,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
     );
   }
 
-
+  // 错误状态
   if (error && !shouldShowSessionExpired && !shouldShowForbidden) {
     return (
       <Layout>

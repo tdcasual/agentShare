@@ -24,7 +24,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', hover = false, children, onClick, ...props }, ref) => {
-
+    // Only add role when the card is actually interactive
     const interactiveProps = onClick
       ? {
           role: 'button' as const,

@@ -58,7 +58,7 @@ function SpacesContent() {
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
-
+  // 空间管理状态
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null);
   const { create, isCreating } = useCreateSpace();

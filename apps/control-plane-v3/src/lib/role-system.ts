@@ -59,22 +59,22 @@ export function compareRoles(userRole: ManagementRole, requiredRole: ManagementR
  * - /api/reviews, /api/approvals => operator
  */
 export const ROUTE_ROLES: Record<string, ManagementRole> = {
-
+  // admin级别（基础查看依赖 admin-only API）
   '/': 'admin',
   '/inbox': 'admin',
 
-
+  // admin级别（当前 tasks 页面仍依赖 admin-only APIs）
   '/tasks': 'admin',
   '/reviews': 'operator',
   '/approvals': 'operator',
   '/marketplace': 'operator',
 
-
+  // viewer级别（后端只要求任意 management session）
   '/playbooks': 'viewer',
   '/runs': 'viewer',
   '/spaces': 'viewer',
 
-
+  // admin级别（管理配置）
   '/identities': 'admin',
   '/tokens': 'admin',
   '/assets': 'admin',
@@ -93,11 +93,12 @@ const DEFAULT_MANAGEMENT_ROUTE_PRIORITY = [
  * 获取路由所需角色
  */
 export function getRequiredRoleForPath(path: string): ManagementRole | null {
-
+  // 精确匹配
   if (ROUTE_ROLES[path]) {
     return ROUTE_ROLES[path];
   }
 
+  // 动态路由匹配（如 /playbooks/[id]）
   for (const [route, role] of Object.entries(ROUTE_ROLES)) {
     if (path.startsWith(route + '/')) {
       return role;

@@ -1,3 +1,9 @@
+/**
+ * Playbook Detail - 手册详情组件
+ *
+ * 显示完整的手册内容
+ */
+
 'use client';
 
 import { Button } from '@/shared/ui-primitives/button';
@@ -36,12 +42,14 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
       }
       timeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {
+      // 复制失败静默处理
     }
   };
 
   return (
     <Modal isOpen onClose={onClose} size="lg" showCloseButton={false}>
       <div className="flex max-h-[90vh] flex-col overflow-hidden">
+        {/* 头部 */}
         <div className="flex items-start justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-purple-text)] text-white">
@@ -63,7 +71,9 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
           </Button>
         </div>
 
+        {/* 内容区域 */}
         <div className="flex-1 space-y-6 overflow-y-auto p-6">
+          {/* 标签 */}
           {playbook.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {playbook.tags.map((tag) => (
@@ -75,6 +85,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
             </div>
           )}
 
+          {/* 正文 */}
           <div className="relative">
             <div className="absolute right-2 top-2">
               <Button
@@ -95,6 +106,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
             </div>
           </div>
 
+          {/* 元信息 */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2 text-[var(--kw-text-muted)]">
               <BookOpen className="h-4 w-4" />
@@ -113,6 +125,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
           </div>
         </div>
 
+        {/* 底部 */}
         <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <Button variant="outline" onClick={onClose}>
             {t('common.close')}

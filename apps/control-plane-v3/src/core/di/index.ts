@@ -1,3 +1,6 @@
+// ============================================
+// Dependency Injection Container
+// ============================================
 
 import type { DIContainer, DIScope, ServiceIdentifier, Constructor } from '../plugin/types';
 
@@ -29,14 +32,17 @@ export class DIContainerImpl implements DIContainer {
       throw new Error(`Service ${id.name} is not registered`);
     }
 
+    // Return singleton instance
     if (registration.singleton) {
       return registration.implementation as T;
     }
 
+    // Return cached singleton instance
     if (registration.instance) {
       return registration.instance as T;
     }
 
+    // Create new instance
     const Constructor = registration.implementation as Constructor<T>;
     const instance = new Constructor();
     registration.instance = instance;
@@ -46,6 +52,7 @@ export class DIContainerImpl implements DIContainer {
   async resolveAsync<T>(id: ServiceIdentifier<T>): Promise<T> {
     const result = this.resolve(id);
 
+    // Check if result has async initialization
     const initializable = result as unknown as { initialize?: () => Promise<void> };
     if (initializable && typeof initializable.initialize === 'function') {
       await initializable.initialize();
@@ -73,21 +80,26 @@ class DIScopeImpl implements DIScope {
   }
 
   resolve<T>(id: ServiceIdentifier<T>): T {
+    // Check scoped registrations first
     const scoped = this.scopedRegistrations.get(id.symbol);
     if (scoped) {
       return scoped as T;
     }
 
+    // Fall back to parent container
     return this.parent.resolve(id);
   }
 
   dispose(): void {
+    // Cleanup scoped instances
     this.scopedRegistrations.clear();
   }
 }
 
+// Decorator for auto-registration (if using decorators)
 export function injectable<T>() {
   return function (target: Constructor<T>) {
+    // Mark as injectable
     (target as unknown as { __injectable: boolean }).__injectable = true;
     return target;
   };
@@ -99,6 +111,7 @@ export function inject<T>(id: ServiceIdentifier<T>) {
     propertyKey: string | symbol | undefined,
     parameterIndex: number
   ) {
+    // Store injection metadata
     const existingInjections =
       (target as { __injections?: Array<{ index: number; id: ServiceIdentifier<unknown> }> })
         .__injections || [];

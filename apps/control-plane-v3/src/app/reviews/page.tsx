@@ -49,7 +49,7 @@ const ReviewsContent = memo(function ReviewsContent() {
   const { locale, t } = useI18n();
   const searchParams = useSearchParams();
   const focus = readFocusedEntry(searchParams);
-
+  // 使用 SWR hooks 替代手动 useEffect
   const {
     data: reviewsData,
     isLoading,
@@ -69,7 +69,7 @@ const ReviewsContent = memo(function ReviewsContent() {
   const approveReview = useApproveReview();
   const rejectReview = useRejectReview();
 
-
+  // 本地 UI 状态
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);

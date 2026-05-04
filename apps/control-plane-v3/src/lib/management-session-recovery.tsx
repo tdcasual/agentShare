@@ -33,7 +33,7 @@ export function useManagementPageSessionRecovery(queryErrors: QueryErrorInput) {
   const shouldShowSessionExpired = sessionExpired || querySessionExpired;
   const shouldShowForbidden = forbidden || queryForbidden;
 
-
+  // Map global session to the same shape consumers expect.
   const loading = globalSession.state === 'unknown';
   const session = globalSession.summary ?? null;
   const error =

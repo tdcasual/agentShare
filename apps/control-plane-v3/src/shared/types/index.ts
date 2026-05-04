@@ -7,6 +7,9 @@
  * 3. 向后兼容的重新导出
  */
 
+// ============================================
+// 从领域类型重新导出（向后兼容）
+// ============================================
 
 export type {
   Identity,
@@ -42,6 +45,7 @@ export type {
   TaskTargetView,
 } from '@/domains/task/types';
 
+// Asset domain types removed - domain is being deprecated
 
 export type {
   ReviewQueueItem,
@@ -52,6 +56,9 @@ export type {
   RejectReviewInput,
 } from '@/domains/review/types';
 
+// ============================================
+// 基础设施类型
+// ============================================
 
 export type Disposable = () => void;
 
@@ -67,32 +74,51 @@ export interface PaginatedResponse<T> {
   readonly offset: number;
 }
 
+// ============================================
+// 共享领域事件（跨领域）
+// ============================================
 
 import type { IdentityEvents } from '@/domains/identity/types';
 import type { TaskEvents } from '@/domains/task/types';
+// Asset domain removed
 import type { ReviewEvents } from '@/domains/review/types';
 
+// 合并所有领域事件
 export type DomainEvents = IdentityEvents & TaskEvents & ReviewEvents;
 
+// ============================================
+// 向后兼容的别名
+// ============================================
 
+// 身份相关别名（向后兼容） — NOTE: HumanIdentity and AgentIdentity are both Identity.
+// Consumers should use discriminated access via identity.type instead.
 export type HumanIdentity = import('@/domains/identity/types').Identity;
 export type AgentIdentity = import('@/domains/identity/types').Identity;
 
+// 任务相关别名
 export type TaskSummary = import('@/domains/task/types').Task;
 export type RunSummary = import('@/domains/task/types').Run;
 export type AccessTokenFeedbackSummary = import('@/domains/task/types').AccessTokenFeedback;
 export type AccessTokenSummary = import('@/domains/task/types').AccessToken;
 
+// 输入类型别名 — NOTE: These alias the domain types (camelCase, typed unions).
+// The API client in @/lib/api-client exports separate types with snake_case fields.
+// Consumers importing from @/lib/api-client get the correct API-layer types.
 export type TaskCreateInput = import('@/domains/task/types').CreateTaskInput;
 export type AccessTokenFeedbackCreateInput = import('@/domains/task/types').CreateFeedbackInput;
 
+// 其他共享类型
 export type AgentSummary = import('@/domains/identity/types').OpenClawAgent;
 
 export type AdminAccountSummary = import('@/domains/identity/types').AdminAccountSummary;
 
 export type BootstrapStatus = import('@/domains/identity/types').BootstrapStatus;
 
+// ============================================
+// Management Session Types
+// ============================================
 
+// 从 identity domain 重新导出，避免重复定义
 export type { ManagementSessionSummary } from '@/domains/identity/types';
 
 import type { ManagementSessionSummary } from '@/domains/identity/types';
@@ -116,6 +142,7 @@ export interface ManagementSession {
   readonly expiresAt: Date;
 }
 
+// Session转换函数
 export function toManagementSession(dto: ManagementSessionSummary): ManagementSession {
   return {
     actorId: dto.actor_id,
@@ -148,13 +175,22 @@ export function toManagementSessionDTO(model: ManagementSession): Omit<
   };
 }
 
+// ============================================
+// 弃用警告（开发时提示）
+// ============================================
 
+// ============================================
+// 公共枚举
+// ============================================
 
 export const TASK_PRIORITIES = ['low', 'normal', 'high', 'critical'] as const;
 export const TASK_STATUSES = ['pending', 'claimed', 'completed', 'failed', 'cancelled'] as const;
 export const IDENTITY_TYPES = ['human', 'agent'] as const;
 export const PRESENCE_STATUSES = ['online', 'away', 'busy', 'offline'] as const;
 
+// ============================================
+// 类型守卫
+// ============================================
 
 import type { IdentityType } from '@/domains/identity/types';
 import type { TaskPriority, TaskStatus } from '@/domains/task/types';

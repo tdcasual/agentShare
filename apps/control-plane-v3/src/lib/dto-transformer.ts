@@ -7,6 +7,9 @@
 
 import { logger } from './logger';
 
+// ============================================
+// 基础类型定义
+// ============================================
 
 export type TransportDTO = Record<string, unknown>;
 
@@ -21,6 +24,9 @@ export interface DTOTransformer<TDTO extends TransportDTO, TModel extends Domain
   toModelList(dtos: TDTO[]): TModel[];
 }
 
+// ============================================
+// 缓存机制
+// ============================================
 
 interface TransformCache<TDTO, TModel> {
   get(dto: TDTO): TModel | undefined;
@@ -44,6 +50,9 @@ export function createTransformCache<TDTO, TModel>(
   };
 }
 
+// ============================================
+// 命名转换工具
+// ============================================
 
 /**
  * snake_case 转 camelCase
@@ -72,6 +81,9 @@ export function transformKeys<T extends Record<string, unknown>>(
   }, {});
 }
 
+// ============================================
+// 时间戳转换
+// ============================================
 
 /**
  * 后端时间戳（秒）转Date对象
@@ -93,6 +105,9 @@ export function dateToTimestamp(date: Date | undefined): number | undefined {
   return Math.floor(date.getTime() / 1000);
 }
 
+// ============================================
+// 基础转换器类
+// ============================================
 
 export abstract class BaseTransformer<
   TDTO extends TransportDTO,
@@ -110,6 +125,9 @@ export abstract class BaseTransformer<
   }
 }
 
+// ============================================
+// 带缓存的转换器
+// ============================================
 
 export abstract class CachedTransformer<
   TDTO extends TransportDTO & { id?: string },
@@ -118,16 +136,16 @@ export abstract class CachedTransformer<
   private cache = createTransformCache<TDTO, TModel>((dto) => dto.id || JSON.stringify(dto));
 
   toModel(dto: TDTO): TModel {
-
+    // 检查缓存
     const cached = this.cache.get(dto);
     if (cached) {
       return cached;
     }
 
-
+    // 执行转换
     const model = this.transformToModel(dto);
 
-
+    // 存入缓存
     this.cache.set(dto, model);
     return model;
   }
@@ -139,6 +157,9 @@ export abstract class CachedTransformer<
   }
 }
 
+// ============================================
+// 转换错误处理
+// ============================================
 
 export class TransformError extends Error {
   constructor(

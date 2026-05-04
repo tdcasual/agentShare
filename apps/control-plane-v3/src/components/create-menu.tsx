@@ -32,7 +32,7 @@ interface CreateMenuProps {
 }
 
 export const CREATE_ACTIONS: CreateAction[] = [
-
+  // Identity
   {
     id: 'create-agent',
     labelKey: 'createMenu.actions.agent',
@@ -51,7 +51,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
     section: 'identity',
     requiredRole: 'admin',
   },
-
+  // Resource
   {
     id: 'create-token',
     labelKey: 'createMenu.actions.token',
@@ -70,7 +70,7 @@ export const CREATE_ACTIONS: CreateAction[] = [
     section: 'resource',
     requiredRole: 'operator',
   },
-
+  // System
   {
     id: 'system-settings',
     labelKey: 'createMenu.actions.setting',
@@ -115,7 +115,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
     [role, t]
   );
 
-
+  // 过滤操作
   const filteredActions = actions.filter(
     (action) =>
       action.label.toLowerCase().includes(searchQuery.toLowerCase()) ||

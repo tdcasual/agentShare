@@ -32,7 +32,7 @@ describe('Control Plane Pages', () => {
   it('settings page uses invite-only admin account management', async () => {
     const source = await readRouteSource('settings/page.tsx');
 
-  
+    // 检查是否使用管理相关的 hooks
     expect(source).toMatch(/useManagementSessionGate|useAdminAccounts/);
     expect(source).toMatch(/createAdminAccount|disableAdminAccount/);
   });

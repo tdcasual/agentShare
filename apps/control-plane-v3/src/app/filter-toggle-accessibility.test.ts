@@ -56,7 +56,7 @@ describe('filter toggle accessibility', () => {
     ]);
 
     expect(settingsSource).toMatch(/FilterButton/);
-
+    // Spaces page aria-pressed attributes are now in sub-components
     expect(operationsFeedSource).toMatch(/aria-pressed=\{selectedAgentId === null\}/);
     expect(operationsFeedSource).toMatch(/aria-pressed=\{selectedEventType === 'all'\}/);
     expect(governancePanelSource).toMatch(/aria-pressed=\{selectedStatus === 'all'\}/);

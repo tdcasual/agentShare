@@ -93,8 +93,8 @@ export async function resolveEntryStateFast({
         bootstrap: { initialized: true },
       };
     }
-
-
+    // Non-401 errors may indicate bootstrap state changed — reset cache so next
+    // attempt does a full bootstrap + session check.
     _bootstrapInitialized = null;
     return {
       kind: 'unavailable',

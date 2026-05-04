@@ -12,6 +12,9 @@ import { pollingConfig, usePageVisible } from '@/lib/swr-config';
 import * as api from './api';
 import type { ReviewQueueItem, ApproveReviewInput, RejectReviewInput } from './types';
 
+// ============================================
+// Review Queue
+// ============================================
 
 export function useReviews(options?: SWRConfiguration) {
   const visible = usePageVisible();
@@ -19,13 +22,16 @@ export function useReviews(options?: SWRConfiguration) {
     options?.isPaused || !visible ? null : '/api/reviews',
     () => api.getReviews(),
     {
-      ...pollingConfig,
-      refreshInterval: 10_000,
+      ...pollingConfig, // Review 队列需要较新鲜的数据
+      refreshInterval: 10_000, // 10秒轮询
       ...options,
     }
   );
 }
 
+// ============================================
+// Review Actions
+// ============================================
 
 export function useApproveReview() {
   return useCallback(
@@ -49,11 +55,17 @@ export function useRejectReview() {
   );
 }
 
+// ============================================
+// Manual Mutations
+// ============================================
 
 export function refreshReviews() {
   return mutate('/api/reviews');
 }
 
+// ============================================
+// Prefetch
+// ============================================
 
 export function prefetchReviews() {
   return mutate('/api/reviews', api.getReviews(), false);

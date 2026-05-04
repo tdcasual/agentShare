@@ -1,3 +1,7 @@
+/**
+ * Playbook Hooks - 手册领域React Hooks
+ */
+
 'use client';
 
 import useSWR, { useSWRConfig, type SWRConfiguration } from 'swr';
@@ -11,6 +15,7 @@ import type {
 } from './types';
 import { staticConfig } from '@/lib/swr-config';
 
+// 转换函数 - 与后端 PlaybookResponse 对齐
 function toPlaybookModel(dto: PlaybookTransportDTO): Playbook {
   return {
     id: dto.id,
@@ -22,6 +27,7 @@ function toPlaybookModel(dto: PlaybookTransportDTO): Playbook {
   };
 }
 
+// SWR key生成
 const getPlaybooksKey = (query?: PlaybookSearchQuery) => {
   if (!query) {
     return '/api/playbooks/search';
@@ -38,6 +44,9 @@ interface UsePlaybooksReturn {
   refresh: () => Promise<PlaybookSearchResponse | undefined>;
 }
 
+/**
+ * 搜索手册
+ */
 export function usePlaybooks(
   query?: PlaybookSearchQuery,
   config?: SWRConfiguration
@@ -51,6 +60,7 @@ export function usePlaybooks(
     }
   );
 
+  // 转换DTO到Model
   const playbooks = useMemo(() => {
     return (data?.items || []).map(toPlaybookModel);
   }, [data?.items]);
@@ -65,6 +75,9 @@ export function usePlaybooks(
   };
 }
 
+/**
+ * 获取单个手册
+ */
 export function usePlaybook(playbookId: string | null, config?: SWRConfiguration) {
   const { data, error, isLoading } = useSWR<PlaybookTransportDTO>(
     playbookId ? `/api/playbooks/${playbookId}` : null,
@@ -86,6 +99,9 @@ export function usePlaybook(playbookId: string | null, config?: SWRConfiguration
   };
 }
 
+/**
+ * 创建手册操作
+ */
 export function useCreatePlaybook() {
   const { mutate } = useSWRConfig();
   const [isCreating, setIsCreating] = useState(false);
@@ -98,6 +114,7 @@ export function useCreatePlaybook() {
 
       try {
         const result = await createPlaybook(input);
+        // 刷新列表缓存
         await mutate('/api/playbooks/search');
         return toPlaybookModel(result);
       } catch (err) {

@@ -27,7 +27,7 @@ import './globals.css';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-
+  // 不设置 maximumScale 以允许用户自由缩放（WCAG 2.1 要求允许缩放至 200%）
   viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#FFF5F7' },

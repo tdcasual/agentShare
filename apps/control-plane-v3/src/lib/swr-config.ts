@@ -16,14 +16,14 @@ import { api, ApiError } from './api';
  */
 export const swrConfig: SWRConfiguration = {
   // 数据刷新策略
-  revalidateOnFocus: false,
-  revalidateOnReconnect: true,
-  refreshInterval: 0,
-  dedupingInterval: 2000,
+  revalidateOnFocus: false, // 窗口聚焦时不刷新
+  revalidateOnReconnect: true, // 网络恢复时刷新
+  refreshInterval: 0, // 默认不自动轮询
+  dedupingInterval: 2000, // 2秒内重复请求去重
 
   // 错误重试
   shouldRetryOnError: (err) => {
-
+    // 只在网络错误或 5xx 错误时重试
     if (err instanceof ApiError) {
       return err.status >= 500 || err.status === 0;
     }
@@ -89,7 +89,7 @@ export function usePageVisible(): boolean {
  */
 export const pollingConfig: SWRConfiguration = {
   ...swrConfig,
-  refreshInterval: 5000,
+  refreshInterval: 5000, // 5秒轮询
   revalidateOnFocus: true,
 };
 
@@ -100,5 +100,5 @@ export const staticConfig: SWRConfiguration = {
   ...swrConfig,
   revalidateOnFocus: false,
   revalidateOnReconnect: false,
-  dedupingInterval: 60000,
+  dedupingInterval: 60000, // 1分钟
 };

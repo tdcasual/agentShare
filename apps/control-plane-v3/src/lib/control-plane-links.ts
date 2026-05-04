@@ -126,6 +126,9 @@ export function deriveEventHref({ actionUrl, subjectType, subjectId, metadata }:
   return explicitAction ?? '/inbox';
 }
 
+// ============================================
+// Centralized Shell Navigation Schema
+// ============================================
 
 export interface ShellNavItem {
   href: string;

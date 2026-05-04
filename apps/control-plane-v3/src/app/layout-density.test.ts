@@ -32,15 +32,15 @@ describe('console layout density', () => {
     const tokensSource = await readSource('app/tokens/page.tsx');
     const reviewsSource = await readSource('app/reviews/page.tsx');
 
-
+    // Card component provides the base responsive padding
     expect(cardSource).toContain('p-3 sm:p-4 md:p-6');
-
+    // Metric values scale down on mobile
     expect(metricSource).toContain('text-2xl');
     expect(metricSource).toContain('sm:text-3xl');
-
+    // Metric labels use compact mobile font sizes
     expect(metricSource).toMatch(/text-\[10px\]|text-\[11px\]|text-xs/);
     expect(metricSource).toMatch(/sm:text-xs|sm:text-sm/);
-
+    // Grid layouts with responsive gaps
     expect(assetsSource).toMatch(/grid gap-4/);
     expect(approvalsSource).toMatch(/grid.*gap-4/);
     expect(settingsSource).toMatch(/grid.*gap-3/);
@@ -58,11 +58,11 @@ describe('console layout density', () => {
     ]);
     const pageHeaderSource = await readSource('shared/ui-primitives/page-header.tsx');
 
-
+    // PageHeader centralises the hidden/sm:block pattern for page descriptions
     expect(pageHeaderSource).toContain('hidden');
     expect(pageHeaderSource).toContain('sm:block');
 
-
+    // Pages using PageHeader or responsive hidden classes
     for (const source of pageSources) {
       const hasPageHeader = source.includes('PageHeader') || source.includes('hidden');
       expect(hasPageHeader).toBe(true);
@@ -73,7 +73,7 @@ describe('console layout density', () => {
     const marketplaceSource = await readSource('app/marketplace/page.tsx');
     const spacesSource = await readSource('app/spaces/page.tsx');
 
-
+    // Hero sections with responsive padding
     expect(marketplaceSource).toMatch(/p-4 .*sm:p-6 .*lg:p-8/);
     expect(marketplaceSource).toContain('text-2xl');
     expect(marketplaceSource).toContain('sm:text-4xl');
@@ -87,9 +87,9 @@ describe('console layout density', () => {
     const hubSource = await readSource('app/page.tsx');
     const pageHeaderSource = await readSource('shared/ui-primitives/page-header.tsx');
 
-
+    // Hub description responsive classes now live in PageHeader component
     expect(pageHeaderSource).toContain('hidden text-[var(--kw-text-muted)] sm:block');
-
+    // Hub uses responsive grid and padding
     expect(hubSource).toMatch(/grid grid-cols-1 gap-4/);
     expect(hubSource).toContain('p-3 sm:p-4');
     expect(hubSource).toMatch(/hidden.*md:inline|hidden.*sm:block/);

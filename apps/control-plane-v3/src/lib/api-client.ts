@@ -9,7 +9,7 @@
 
 'use client';
 
-
+// 使用同域代理路径，避免跨域问题
 const API_BASE_URL = '/api';
 
 type JsonValue = Record<string, unknown> | Array<unknown> | string | number | boolean | null;
@@ -77,8 +77,8 @@ async function requestJson<T>(
       throw new ApiError(response.status, detail);
     }
 
-
-
+    // Note: Runtime validation would be better, but for now we trust the API
+    // Consider using zod or similar for runtime type checking
     return {
       data: payload as T,
       ok: response.ok,
@@ -112,6 +112,9 @@ export function apiFetchWithMeta<T>(
   return requestJson<T>(path, init);
 }
 
+// ============================================
+// 共享类型定义
+// ============================================
 
 export interface SetupOwnerInput {
   bootstrap_key: string;

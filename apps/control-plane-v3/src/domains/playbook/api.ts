@@ -1,3 +1,7 @@
+/**
+ * Playbook API - 手册领域API
+ */
+
 import { apiFetch } from '@/lib/api-client';
 import type {
   PlaybookTransportDTO,
@@ -8,8 +12,12 @@ import type {
 
 const BASE_URL = '/playbooks';
 
+// 重新导出类型
 export type { PlaybookSearchResponse } from './types';
 
+/**
+ * 搜索手册
+ */
 export async function searchPlaybooks(
   query?: PlaybookSearchQuery
 ): Promise<PlaybookSearchResponse> {
@@ -30,10 +38,16 @@ export async function searchPlaybooks(
   return apiFetch(url);
 }
 
+/**
+ * 获取手册详情
+ */
 export async function getPlaybook(playbookId: string): Promise<PlaybookTransportDTO> {
   return apiFetch(`${BASE_URL}/${playbookId}`);
 }
 
+/**
+ * 创建手册
+ */
 export async function createPlaybook(input: CreatePlaybookInput): Promise<PlaybookTransportDTO> {
   return apiFetch(BASE_URL, {
     method: 'POST',
@@ -47,6 +61,7 @@ export async function createPlaybook(input: CreatePlaybookInput): Promise<Playbo
   });
 }
 
+// API对象
 export const playbookApi = {
   searchPlaybooks,
   getPlaybook,

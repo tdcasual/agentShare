@@ -7,6 +7,7 @@
  * - React Hooks
  */
 
+// Types
 export type {
   Identity,
   IdentityType,
@@ -47,8 +48,10 @@ export type {
   WorkbenchMessageCreateResponse,
 } from './types';
 
+// Re-export AccessToken from task domain for convenience
 export type { AccessToken } from '@/domains/task/types';
 
+// API
 export {
   identityApi,
   getBootstrapStatus,
@@ -83,8 +86,11 @@ export {
   revokeAccessToken,
 } from './api';
 
+// Hooks
 export {
+  // Bootstrap
   useBootstrapStatus,
+  // Session
   useSession,
   useLogin,
   useLogout,
@@ -106,6 +112,7 @@ export {
   useWorkbenchSession,
   useWorkbenchMessages,
   useSendWorkbenchMessage,
+  // Admin Accounts
   useAdminAccounts,
   useCreateAdminAccount,
   useDisableAdminAccount,
@@ -113,6 +120,7 @@ export {
   useCreateAccessToken,
   useRevealAccessToken,
   useRevokeAccessToken,
+  // Manual mutations
   refreshSession,
   refreshOpenClawAgents,
   refreshAdminAccounts,
@@ -121,6 +129,7 @@ export {
   refreshOpenClawDreamRuns,
   refreshAgentWorkbenchSessions,
   refreshWorkbenchMessages,
+  // Prefetch
   prefetchSession,
   prefetchOpenClawAgents,
   prefetchOpenClawSessions,

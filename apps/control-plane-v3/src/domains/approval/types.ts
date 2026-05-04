@@ -6,10 +6,16 @@
  *              policy_reason, policy_source, requested_by, decided_by, expires_at
  */
 
+// ============================================
+// 基础枚举
+// ============================================
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired';
 export type ApprovalActionType = 'invoke' | 'lease';
 
+// ============================================
+// Transport DTO (后端原始结构 - 与 ApprovalResponse 对齐)
+// ============================================
 
 export interface ApprovalTransportDTO {
   readonly id: string;
@@ -26,6 +32,9 @@ export interface ApprovalTransportDTO {
   readonly expires_at: string | null;
 }
 
+// ============================================
+// Domain Model (前端使用)
+// ============================================
 
 export interface Approval {
   readonly id: string;
@@ -42,11 +51,17 @@ export interface Approval {
   readonly expiresAt: string | null;
 }
 
+// ============================================
+// 查询参数
+// ============================================
 
 export interface ApprovalQuery {
   readonly status?: ApprovalStatus;
 }
 
+// ============================================
+// 操作输入
+// ============================================
 
 export interface ApproveInput {
   readonly reason?: string;

@@ -1,3 +1,11 @@
+/**
+ * Route Guard - 路由守卫
+ *
+ * 强制执行路由访问策略
+ * 支持四级角色权限检查：viewer < operator < admin < owner
+ * 统一的入口状态解析和重定向
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -20,6 +28,10 @@ interface RouteGuardProps {
   children: React.ReactNode;
 }
 
+/**
+ * 全局路由守卫
+ * 处理引导、认证、角色权限三层检查
+ */
 export function RouteGuard({ children }: RouteGuardProps) {
   const { t } = useI18n();
   const router = useRouter();
@@ -62,6 +74,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  // 根据入口状态和当前路径决定行为
   useEffect(() => {
     if (!entryState) {
       return;
@@ -71,6 +84,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const allowed = isRouteAllowed(pathname, sessionState);
     const routePolicy = getRoutePolicy(pathname);
 
+    // 引导状态特殊处理
     if (entryState.kind === 'bootstrap_required') {
       if (routePolicy?.mode === 'public') {
         setRoleCheckFailed(null);
@@ -82,11 +96,13 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
+    // 服务不可用
     if (entryState.kind === 'unavailable') {
       setRoleCheckFailed(null);
       return;
     }
 
+    // 已认证用户访问登录页 — 重定向到管理首页
     if (
       entryState.kind === 'authenticated_ready' &&
       (pathname === '/login' || pathname === '/setup')
@@ -96,6 +112,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
+    // 未认证用户访问需要认证的页面 — 重定向到登录页
     if (entryState.kind === 'login_required' && !allowed.allowed) {
       if (pathname !== '/login') {
         router.replace('/login');
@@ -108,6 +125,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
+    // 角色权限检查（仅认证后）
     if (entryState.kind === 'authenticated_ready') {
       const requiredRole = getRequiredRoleForPath(pathname);
       const userRoleStr = entryState.session.role;
@@ -119,13 +137,16 @@ export function RouteGuard({ children }: RouteGuardProps) {
       }
     }
 
+    // 通过所有检查
     setRoleCheckFailed(null);
   }, [entryState, pathname, router]);
 
+  // 避免 hydration mismatch：SSR 和初始 hydrate 渲染 children
   if (!mounted) {
     return <>{children}</>;
   }
 
+  // 加载状态
   if (!entryState) {
     return (
       <main
@@ -140,6 +161,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     );
   }
 
+  // 服务不可用状态
   if (entryState.kind === 'unavailable') {
     return (
       <main
@@ -168,6 +190,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     );
   }
 
+  // 角色权限不足 - 显示403页面
   if (roleCheckFailed) {
     return (
       <main
@@ -179,9 +202,14 @@ export function RouteGuard({ children }: RouteGuardProps) {
     );
   }
 
+  // 正常渲染子内容
   return <>{children}</>;
 }
 
+/**
+ * 管理路由守卫 - 仅允许认证用户访问
+ * 读取全局会话状态，不触发独立API调用。
+ */
 export function ManagementRouteGuard({
   children,
 }: {
