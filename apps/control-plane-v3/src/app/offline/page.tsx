@@ -1,5 +1,5 @@
 /**
- * 离线页面
+ * 离线页面 (Kawaii 版)
  *
  * 当用户处于离线状态且请求的内容不在缓存中时显示
  */
@@ -10,19 +10,17 @@ import { useEffect, useState } from 'react';
 import { useI18n } from '@/components/i18n-provider';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
-import { WifiOff, RefreshCw, CloudOff } from 'lucide-react';
+import { emojiCombo, emoji } from '@/lib/kawaii-emojis';
 
 export default function OfflinePage() {
   const { t } = useI18n();
   const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
-    // 检查网络状态
     setIsOnline(navigator.onLine);
 
     const handleOnline = () => {
       setIsOnline(true);
-      // 网络恢复时自动刷新
       window.location.reload();
     };
 
@@ -44,14 +42,17 @@ export default function OfflinePage() {
         className="w-full max-w-md space-y-3 p-8 text-center sm:space-y-4 lg:space-y-6"
       >
         {/* 图标 */}
-        <div className="dark:bg-[var(--kw-dark-amber-surface)]/30 mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-amber-surface)]">
-          <WifiOff className="h-10 w-10 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
+        <div
+          className="dark:bg-[var(--kw-dark-amber-surface)]/30 mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-amber-surface)] text-4xl"
+          aria-hidden="true"
+        >
+          {emojiCombo('offline', 1)}
         </div>
 
         {/* 标题 */}
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">
-            {t('offline.title')}
+            {emoji('offline')} {t('offline.title')}
           </h1>
           <p className="text-[var(--kw-text-muted)]">{t('offline.description')}</p>
         </div>
@@ -59,15 +60,21 @@ export default function OfflinePage() {
         {/* 说明 */}
         <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-xl bg-white/50 p-3 text-left sm:p-4">
           <div className="flex items-start gap-3">
-            <CloudOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]" />
+            <span className="mt-0.5 flex-shrink-0 text-lg">{emoji('empty')}</span>
             <div>
               <p className="font-medium text-[var(--kw-text)]">
                 {t('offline.availableFeaturesTitle')}
               </p>
               <ul className="mt-1 space-y-1 text-sm text-[var(--kw-text-muted)]">
-                <li>• {t('offline.cachedPages')}</li>
-                <li>• {t('offline.localData')}</li>
-                <li>• {t('offline.formsSync')}</li>
+                <li>
+                  • {emoji('docs')} {t('offline.cachedPages')}
+                </li>
+                <li>
+                  • {emoji('settings')} {t('offline.localData')}
+                </li>
+                <li>
+                  • {emoji('sync')} {t('offline.formsSync')}
+                </li>
               </ul>
             </div>
           </div>
@@ -76,29 +83,23 @@ export default function OfflinePage() {
         {/* 操作按钮 */}
         <div className="flex gap-3">
           <Button variant="secondary" onClick={() => window.history.back()} className="flex-1">
-            {t('common.back')}
+            {emoji('back')} {t('common.back')}
           </Button>
-          <Button
-            onClick={handleRetry}
-            disabled={!isOnline}
-            loading={isOnline}
-            className="flex-1"
-            leftIcon={<RefreshCw className="h-4 w-4" />}
-          >
-            {t('common.retry')}
+          <Button onClick={handleRetry} disabled={!isOnline} loading={isOnline} className="flex-1">
+            {emoji('refresh')} {t('common.retry')}
           </Button>
         </div>
 
         {/* 状态提示 */}
         {isOnline && (
           <p className="animate-fade-in text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
-            {t('offline.backOnline')}
+            {emoji('success')} {t('offline.backOnline')}
           </p>
         )}
 
         {/* 底部信息 */}
         <p className="text-xs text-[var(--kw-text-muted)]">
-          Control Plane V3 · {t('common.offline')}
+          {emoji('cosmos')} Control Plane V3 · {t('common.offline')}
         </p>
       </Card>
     </main>

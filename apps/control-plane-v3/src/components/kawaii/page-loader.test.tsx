@@ -6,7 +6,7 @@ describe('PageLoader', () => {
   it('applies non-fullscreen minHeight via inline style', () => {
     render(<PageLoader message="Loading tasks" minHeight="42vh" />);
 
-    const message = screen.getByText('Loading tasks');
+    const message = screen.getByText(/Loading tasks/);
     const container = message.parentElement?.parentElement;
 
     expect(container).not.toBeNull();

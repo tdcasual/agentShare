@@ -21,7 +21,7 @@ describe('not found page', () => {
     render(<NotFound />);
 
     const homeLink = screen.getByRole('link', {
-      name: translateMessage('common.backToHome'),
+      name: new RegExp(translateMessage('common.backToHome')),
     });
 
     expect(homeLink).toHaveAttribute('href', '/playbooks');
