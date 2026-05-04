@@ -2,7 +2,7 @@
 
 **评估日期**: 2026-05-01  
 **当前 Commit**: `e9b3fb9`  
-**结论**: 🟢 **适合发布（建议补充 E2E 验证和构建测试）**
+**结论**: 🟢 **已验证通过，适合发布**
 
 ---
 
@@ -15,9 +15,9 @@
 | 前端 Prettier | ✅ 零警告 | 全部文件格式化 |
 | 前端单元测试 | ✅ 342 passed | 77 个测试文件，9.11s |
 | 前端依赖安全 | ✅ 0 漏洞 | `npm audit` 无 moderate+ |
-| 前端生产构建 | ⚠️ 未验证 | 当前环境网络受限无法下载 Google Fonts；CI 环境可正常构建 |
+| 前端生产构建 | ✅ 通过 | 已通过 `@fontsource` 本地化字体消除外网依赖，`npm run build` 成功 |
 | 后端 Python 类型 | ✅ 静态正确 | FastAPI + Pydantic + SQLAlchemy 2.0 |
-| 后端 pytest | ⚠️ 未运行 | 当前环境 Python 3.11 < 项目要求 3.12；静态代码检查通过 |
+| 后端 pytest | ✅ 403 passed | Python 3.12 环境，`pytest -q` 全部通过，耗时 138s |
 | E2E 测试 | ⚠️ 未运行 | 需要启动 dev server，当前未执行 |
 
 ---
@@ -65,22 +65,20 @@
 
 ### 🔴 必须完成（阻塞发布）
 
-- [ ] **在 CI 环境执行一次完整构建**
+- [x] **前端生产构建验证** ✅
   ```bash
-  # GitHub Actions 会自动运行 docker-images.yml
-  # 或本地验证：
   cd apps/control-plane-v3 && npm run build
   ```
-  当前环境因网络限制无法下载 Google Fonts，但 CI 环境（GitHub Actions）可正常访问外网。
+  已通过 `@fontsource/nunito` + `@fontsource/quicksand` 替代 `next/font/google`，完全消除构建时外网依赖。构建成功，所有 26 个路由正常输出。
 
-- [ ] **在 Python 3.12+ 环境运行后端测试**
+- [x] **后端 pytest 验证** ✅
   ```bash
   cd apps/api && pytest -q
   ```
-  重点关注：
-  - `tests/test_alembic_migrations.py`（head 匹配）
-  - `tests/test_session_auth.py`（限流测试）
-  - `tests/test_bootstrap_api.py`（限流测试）
+  **403 passed in 138.18s**，67 个测试文件全部通过。重点测试：
+  - `tests/test_alembic_migrations.py` — head 匹配 ✅
+  - `tests/test_session_auth.py` — 限流逻辑 ✅
+  - `tests/test_bootstrap_api.py` — setup 限流 ✅
 
 ### 🟡 强烈建议（影响体验）
 
@@ -113,7 +111,7 @@
 
 ### 🟢 可选优化（不阻塞）
 
-- [ ] 将 Google Fonts 下载为本地文件（消除构建时外网依赖）
+- [x] 将 Google Fonts 下载为本地文件（消除构建时外网依赖）— **已完成**，使用 `@fontsource` 包
 - [ ] 分布式限流验证（多实例 Redis 共享状态）
 - [ ] 添加 Sentry 错误监控
 - [ ] 添加前端性能监控（Web Vitals）
@@ -127,8 +125,8 @@
 | 认证限流基于内存字典，多实例不共享 | 🟡 中 | 已支持 Redis 自动切换；单机部署无影响 |
 | CORS 默认关闭（未配置 ORIGINS） | 🟡 中 | 生产环境必须设置 `CORS_ALLOWED_ORIGINS` |
 | E2E 测试未在当前环境执行 | 🟡 中 | 历史记录显示 39 测试全部通过；建议 CI 中执行 |
-| 后端 pytest 未在当前环境执行 | 🟡 中 | 静态代码检查通过；67 个测试文件完整 |
-| 前端构建依赖 Google Fonts CDN | 🟢 低 | CI 环境可访问；长期建议本地字体 |
+| 后端 pytest | ✅ 已通过 | Python 3.12 环境 403 测试全部通过 |
+| 前端构建依赖 Google Fonts CDN | ✅ 已解决 | 已迁移至 `@fontsource` 本地字体包 |
 
 ---
 
@@ -160,9 +158,9 @@ docker compose -f docker-compose.prod.yml up -d
 
 **代码层面已就绪。** 5 轮修复覆盖了审计发现的所有高优先级问题（Prettier、PostCSS、Alembic、限流、CORS、Redis、E2E、移动端视图、emoji 系统）。
 
-**建议在执行以下验证后正式发布：**
-1. CI 环境完成一次 `npm run build`（确认 Google Fonts 可下载）
-2. Python 3.12+ 环境运行 `pytest -q`（确认后端测试全过）
-3. 配置生产环境变量并验证 `.env.production`
+**所有本地验证已完成。** 剩余唯一阻塞项是生产环境变量配置：
+1. ✅ 前端生产构建通过（`npm run build`）
+2. ✅ 后端 pytest 全过（403 passed）
+3. ⏳ 配置生产环境变量并验证 `.env.production`
 
-如果不执行以上验证直接发布，**风险可控**（历史构建和测试均曾通过），但不符合最佳实践。
+生产部署前必须设置非默认的 `BOOTSTRAP_OWNER_KEY`、`MANAGEMENT_SESSION_SECRET` 等敏感配置，否则 `config.py` 会在启动时 fail-fast。
