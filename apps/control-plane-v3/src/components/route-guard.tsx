@@ -42,6 +42,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const [roleCheckFailed, setRoleCheckFailed] = useState<{ requiredRole: ManagementRole } | null>(
     null
   );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let stale = false;
@@ -136,22 +141,33 @@ export function RouteGuard({ children }: RouteGuardProps) {
     setRoleCheckFailed(null);
   }, [entryState, pathname, router]);
 
+  // 避免 hydration mismatch：SSR 和初始 hydrate 渲染 children
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
   // 加载状态
   if (!entryState) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]">
+      <main
+        id="main-content"
+        className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]"
+      >
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-[var(--kw-primary-500)]" />
-          <p className="text-[var(--kw-text-muted)]">{t('common.initializing')}</p>
+          <p className="text-[var(--kw-text)]">{t('common.initializing')}</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   // 服务不可用状态
   if (entryState.kind === 'unavailable') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]">
+      <main
+        id="main-content"
+        className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]"
+      >
         <div className="dark:border-[var(--kw-dark-error-surface)]/30 w-full max-w-md rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-surface)] p-8 text-center shadow-xl dark:bg-[var(--kw-dark-surface)]">
           <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
             <Loader2 className="h-8 w-8 text-[var(--kw-error)]" />
@@ -170,16 +186,19 @@ export function RouteGuard({ children }: RouteGuardProps) {
             {t('common.retry')}
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
   // 角色权限不足 - 显示403页面
   if (roleCheckFailed) {
     return (
-      <div className="min-h-screen bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]">
+      <main
+        id="main-content"
+        className="min-h-screen bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]"
+      >
         <ForbiddenState requiredRole={roleCheckFailed.requiredRole} resourceName={pathname} />
-      </div>
+      </main>
     );
   }
 
@@ -198,30 +217,39 @@ export function ManagementRouteGuard({
   redirectOnMissingSession?: boolean;
 }) {
   const globalSession = useGlobalSession();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   if (globalSession.state === 'unknown') {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <main id="main-content" className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
-      </div>
+      </main>
     );
   }
 
   if (globalSession.state === 'unavailable') {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <main id="main-content" className="flex min-h-screen items-center justify-center">
         <div className="bg-[var(--kw-rose-surface)]/80 rounded-xl border border-[var(--kw-rose-surface)] px-6 py-4 text-[var(--kw-rose-text)]">
           {globalSession.error}
         </div>
-      </div>
+      </main>
     );
   }
 
   if (globalSession.state !== 'authenticated') {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <main id="main-content" className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
-      </div>
+      </main>
     );
   }
 

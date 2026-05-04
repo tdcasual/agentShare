@@ -5,9 +5,8 @@
 :root {
   /* Fonts */
   --font-sans:
-    var(--font-nunito), var(--font-quicksand), 'PingFang SC', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', sans-serif;
-  --font-display: var(--font-quicksand), var(--font-nunito), 'PingFang SC', sans-serif;
+    'Nunito', 'Quicksand', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Quicksand', 'Nunito', 'PingFang SC', sans-serif;
 
   /* Primary accent - kept for compatibility, used purposefully */
   --kw-primary-50: #fff0f5;

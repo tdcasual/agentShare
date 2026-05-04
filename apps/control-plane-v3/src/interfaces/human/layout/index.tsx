@@ -119,9 +119,12 @@ function LoadingScreen() {
   const { t } = useI18n();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <main
+      id="main-content"
+      className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]"
+    >
       <CuteLoading text={t('common.preparingPage')} />
-    </div>
+    </main>
   );
 }
 

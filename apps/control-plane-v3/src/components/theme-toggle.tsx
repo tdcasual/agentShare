@@ -72,7 +72,10 @@ export function ThemeToggle({ className }: { className?: string }) {
             aria-pressed={isActive}
             title={label}
           >
-            <span className={cn('transition-colors', !isActive && 'text-[var(--kw-text-muted)]')}>
+            <span
+              className={cn('transition-colors', !isActive && 'text-[var(--kw-text-muted)]')}
+              aria-hidden="true"
+            >
               {icon}
             </span>
           </button>
@@ -128,6 +131,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
           'transition-opacity transition-transform duration-300',
           isDark ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'
         )}
+        aria-hidden="true"
       >
         <Moon className="h-5 w-5 text-[var(--kw-dark-primary)]" />
       </span>
@@ -136,6 +140,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
           'absolute transition-opacity transition-transform duration-300',
           !isDark ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
         )}
+        aria-hidden="true"
       >
         <Sun className="h-5 w-5 text-[var(--kw-primary-500)]" />
       </span>

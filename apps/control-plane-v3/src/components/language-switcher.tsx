@@ -39,7 +39,6 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           onClick={() => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
           aria-haspopup="listbox"
-          aria-label={t('common.switchLanguage')}
           className={cn(
             'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
             'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)]',
@@ -48,7 +47,12 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           )}
           title={`${localeFlags[locale as Locale]} ${localeLabels[locale as Locale]}`}
         >
-          <span className="text-base">{localeFlags[locale as Locale]}</span>
+          <span className="text-base" aria-hidden="true">
+            {localeFlags[locale as Locale]}
+          </span>
+          <span className="sr-only">
+            {localeLabels[locale as Locale]}, {t('common.switchLanguage')}
+          </span>
         </button>
 
         {isOpen && (
@@ -104,7 +108,6 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        aria-label={t('common.switchLanguage') || 'Switch language'}
         type="button"
         className={cn(
           'flex items-center gap-2 rounded-full px-3 py-2 transition-colors duration-200',
@@ -114,11 +117,17 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]'
         )}
       >
-        <Globe className="h-4 w-4 text-[var(--kw-primary-500)]" />
-        <span className="text-sm font-medium">
+        <Globe className="h-4 w-4 text-[var(--kw-primary-500)]" aria-hidden="true" />
+        <span className="text-sm font-medium" aria-hidden="true">
           {localeFlags[locale as Locale]} {localeLabels[locale as Locale]}
         </span>
-        <ChevronDown className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')} />
+        <ChevronDown
+          className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')}
+          aria-hidden="true"
+        />
+        <span className="sr-only">
+          {localeLabels[locale as Locale]}, {t('common.switchLanguage')}
+        </span>
       </button>
 
       {isOpen && (

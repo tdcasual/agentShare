@@ -90,7 +90,7 @@ export default function LoginPage() {
         <div className="space-y-4 sm:space-y-6 lg:space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-text)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
               <LockKeyhole className="h-4 w-4" />
               <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">
                 {t('auth.login.subtitle')}
@@ -99,9 +99,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold text-[var(--kw-text)] sm:text-4xl">
               {t('auth.login.title')}
             </h1>
-            <p className="mx-auto max-w-sm text-[var(--kw-text-muted)]">
-              {t('auth.login.description')}
-            </p>
+            <p className="mx-auto max-w-sm text-[var(--kw-text)]">{t('auth.login.description')}</p>
           </div>
 
           {/* Form */}
@@ -136,7 +134,7 @@ export default function LoginPage() {
               role="status"
               aria-live="polite"
               aria-atomic="true"
-              className="dark:bg-[var(--kw-dark-bg)]/50 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)] px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]"
+              className="dark:bg-[var(--kw-dark-bg)]/50 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)] px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]"
             >
               {error ? (
                 <span className="text-[var(--kw-error)] dark:text-[var(--kw-error)]">{error}</span>
