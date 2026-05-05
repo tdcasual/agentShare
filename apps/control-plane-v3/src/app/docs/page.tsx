@@ -1,13 +1,13 @@
 'use client';
 
 import { useMemo, useState, memo } from 'react';
-import { BookOpen, FileText, RefreshCw, Search } from 'lucide-react';
+import { BookOpen, FileText, Loader2, RefreshCw, Search } from 'lucide-react';
 import { usePublicDocs, usePublicDoc, refreshPublicDocs } from '@/domains/docs';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { useI18n } from '@/components/i18n-provider';
 
 const DocsContent = memo(function DocsContent() {
@@ -164,39 +164,44 @@ const DocsContent = memo(function DocsContent() {
         </div>
       )}
 
-      {/* Doc Detail Modal */}
-      <Modal
-        isOpen={!!selectedDoc}
-        onClose={() => setSelectedDoc(null)}
-        title={docDetailQuery.data?.title ?? docDetailQuery.data?.filename ?? t('docs.detailTitle')}
-        size="lg"
-      >
-        {docDetailQuery.isLoading ? (
-          <div className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            <span className="animate-spin">🌸</span>
-            {t('docs.loadingContent')}
+      {/* Doc Detail Panel */}
+      {selectedDoc && (
+        <div data-testid="doc-detail-panel" className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {docDetailQuery.data?.title ?? docDetailQuery.data?.filename ?? t('docs.detailTitle')}
+            </h2>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedDoc(null)}>
+              {t('common.close')}
+            </Button>
           </div>
-        ) : docDetailQuery.error instanceof Error ? (
-          <Card
-            role="alert"
-            className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
-          >
-            {docDetailQuery.error.message}
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="info">{docDetailQuery.data?.category}</Badge>
-              <Badge variant="secondary">{docDetailQuery.data?.filename}</Badge>
+          {docDetailQuery.isLoading ? (
+            <div className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              {t('docs.loadingContent')}
             </div>
-            <div className="dark:bg-[var(--kw-dark-surface)]/80 max-h-[60vh] overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
-              <pre className="whitespace-pre-wrap break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {docDetailQuery.data?.content ?? t('docs.noContent')}
-              </pre>
+          ) : docDetailQuery.error instanceof Error ? (
+            <Card
+              role="alert"
+              className="bg-[var(--kw-rose-surface)]/80 border border-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]"
+            >
+              {docDetailQuery.error.message}
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="info">{docDetailQuery.data?.category}</Badge>
+                <Badge variant="secondary">{docDetailQuery.data?.filename}</Badge>
+              </div>
+              <div className="dark:bg-[var(--kw-dark-surface)]/80 max-h-[60vh] overflow-y-auto rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+                <pre className="whitespace-pre-wrap break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {docDetailQuery.data?.content ?? t('docs.noContent')}
+                </pre>
+              </div>
             </div>
-          </div>
-        )}
-      </Modal>
+          )}
+        </div>
+      )}
     </div>
   );
 });

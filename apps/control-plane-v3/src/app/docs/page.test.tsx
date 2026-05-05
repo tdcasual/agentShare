@@ -110,7 +110,7 @@ describe('docs page', () => {
     await user.click(screen.getByText('Getting Started'));
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('doc-detail-panel')).toBeInTheDocument();
     });
   });
 
