@@ -59,7 +59,7 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 min-h-screen bg-gradient-to-br dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <div className="min-h-screen bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]">
       {/* Desktop Sidebar - 仅桌面端显示 */}
       {device.isDesktop && (
         <div className="hidden lg:block">
@@ -121,7 +121,7 @@ function LoadingScreen() {
   return (
     <main
       id="main-content"
-      className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]"
+      className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]"
     >
       <CuteLoading text={t('common.preparingPage')} />
     </main>
@@ -137,7 +137,7 @@ function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) 
   const { t } = useI18n();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]">
       <div className="w-full max-w-md rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-8 text-left shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
         <AlertCircle className="mb-4 h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
 
@@ -182,7 +182,7 @@ export function SimpleLayout({
   }
 
   return (
-    <div className="from-[var(--kw-primary-50)]/50 to-[var(--kw-purple-surface)]/30 min-h-screen bg-gradient-to-br dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <div className="min-h-screen bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]">
       {/* Desktop Sidebar */}
       {device.isDesktop && (
         <div className="hidden lg:block">

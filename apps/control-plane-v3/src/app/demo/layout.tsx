@@ -15,7 +15,7 @@ interface DemoLayoutProps {
 
 export default function DemoLayout({ children }: DemoLayoutProps) {
   return (
-    <div className="from-[var(--kw-sky-surface)]/50 to-[var(--kw-purple-surface)]/30 min-h-screen bg-gradient-to-br dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-bg)]">
+    <div className="min-h-screen bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]">
       {/* 演示模式顶部横幅 */}
       <div className="bg-[var(--kw-warning)] px-4 py-2 text-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between">

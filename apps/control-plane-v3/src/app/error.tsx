@@ -19,7 +19,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]">
       <div className="w-full max-w-md space-y-6 p-8 text-center">
         <div className="flex justify-center" aria-hidden="true">
           <AlertTriangle className="h-16 w-16 text-[var(--kw-warning)]" />
