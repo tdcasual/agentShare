@@ -726,24 +726,27 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         </Card>
       ) : null}
 
-      <AgentModal
-        isOpen={showAgentModal}
-        onClose={() => {
-          setShowAgentModal(false);
-          setEditingAgent(null);
-        }}
-        agent={editingAgent}
-        availableCapabilities={capabilities.map((capability) => ({
-          id: capability.id,
-          name: capability.name,
-        }))}
-        onSubmit={(payload) =>
-          editingAgent
-            ? handleUpdateAgent(editingAgent.id, payload)
-            : handleCreateAgent(payload as Parameters<typeof createAgent>[0])
-        }
-        isSubmitting={submittingAgent}
-      />
+      {showAgentModal && (
+        <div data-testid="agent-modal-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <AgentModal
+            onClose={() => {
+              setShowAgentModal(false);
+              setEditingAgent(null);
+            }}
+            agent={editingAgent}
+            availableCapabilities={capabilities.map((capability) => ({
+              id: capability.id,
+              name: capability.name,
+            }))}
+            onSubmit={(payload) =>
+              editingAgent
+                ? handleUpdateAgent(editingAgent.id, payload)
+                : handleCreateAgent(payload as Parameters<typeof createAgent>[0])
+            }
+            isSubmitting={submittingAgent}
+          />
+        </div>
+      )}
     </section>
   );
 });

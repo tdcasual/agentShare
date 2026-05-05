@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { Input } from '@/shared/ui-primitives/input';
 import { Button } from '@/shared/ui-primitives/button';
 import { MutationAlert } from '@/shared/mutations/mutation-alert';
@@ -23,7 +23,6 @@ export interface AgentCapabilityOption {
 }
 
 export interface AgentModalProps {
-  isOpen: boolean;
   onClose: () => void;
   agent?: OpenClawAgent | null;
   availableCapabilities: AgentCapabilityOption[];
@@ -48,7 +47,6 @@ const selectClassName =
   'w-full rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]';
 
 export function AgentModal({
-  isOpen,
   onClose,
   agent,
   availableCapabilities,
@@ -134,16 +132,15 @@ export function AgentModal({
   }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={isEdit ? t('identities.agentModal.editTitle') : t('identities.agentModal.createTitle')}
-      description={
-        isEdit ? t('identities.agentModal.editDesc') : t('identities.agentModal.createDesc')
-      }
-      size="lg"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          {isEdit ? t('identities.agentModal.editTitle') : t('identities.agentModal.createTitle')}
+        </h2>
+        <p className="text-sm text-[var(--kw-text-muted)]">
+          {isEdit ? t('identities.agentModal.editDesc') : t('identities.agentModal.createDesc')}
+        </p>
+      </div>
         <Input
           label={t('identities.agentModal.name')}
           value={form.name}
@@ -319,7 +316,6 @@ export function AgentModal({
           </Button>
         </div>
       </form>
-    </Modal>
   );
 }
 

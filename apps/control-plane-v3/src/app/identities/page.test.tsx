@@ -511,7 +511,7 @@ describe('identities page', () => {
       screen.getByRole('button', { name: t('identities.sections.createProjectAgent') })
     );
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('agent-modal-panel')).toBeInTheDocument();
     expect(screen.getByText(t('identities.agentModal.createDesc'))).toBeInTheDocument();
   });
 
@@ -591,11 +591,11 @@ describe('identities page', () => {
     );
     await user.click(screen.getByRole('button', { name: t('common.create') }));
 
-    const dialog = screen.getByRole('dialog');
+    const panel = screen.getByTestId('agent-modal-panel');
     await waitFor(() => {
-      expect(within(dialog).getByRole('alert')).toHaveTextContent('Agent workspace already exists');
+      expect(within(panel).getByRole('alert')).toHaveTextContent('Agent workspace already exists');
     });
-    expect(dialog).toBeInTheDocument();
+    expect(panel).toBeInTheDocument();
   });
 
   it('configures new agents with guided catalog selectors', async () => {
@@ -605,34 +605,34 @@ describe('identities page', () => {
 
     await user.click(screen.getByRole('button', { name: t('identities.agentModal.createTitle') }));
 
-    const dialog = screen.getByRole('dialog');
+    const panel = screen.getByTestId('agent-modal-panel');
     expect(
-      within(dialog).getByRole('combobox', { name: t('identities.agentModal.authMethod') })
+      within(panel).getByRole('combobox', { name: t('identities.agentModal.authMethod') })
     ).toHaveValue('openclaw_session');
     expect(
-      within(dialog).getByRole('option', { name: t('options.thinkingLevels.balanced') })
+      within(panel).getByRole('option', { name: t('options.thinkingLevels.balanced') })
     ).toHaveValue('balanced');
     expect(
-      within(dialog).getByRole('option', { name: t('options.sandboxModes.workspaceWrite') })
+      within(panel).getByRole('option', { name: t('options.sandboxModes.workspaceWrite') })
     ).toHaveValue('workspace-write');
     expect(
-      within(dialog).queryByPlaceholderText('capability-1, capability-2')
+      within(panel).queryByPlaceholderText('capability-1, capability-2')
     ).not.toBeInTheDocument();
 
-    await user.type(within(dialog).getByLabelText(t('identities.agentModal.name')), 'Ops Agent');
+    await user.type(within(panel).getByLabelText(t('identities.agentModal.name')), 'Ops Agent');
     await user.type(
-      within(dialog).getByLabelText(t('identities.labels.workspaceRoot')),
+      within(panel).getByLabelText(t('identities.labels.workspaceRoot')),
       '/srv/ops-agent'
     );
     await user.type(
-      within(dialog).getByLabelText(t('identities.labels.agentDirectory')),
+      within(panel).getByLabelText(t('identities.labels.agentDirectory')),
       '.openclaw/ops-agent'
     );
-    await user.click(within(dialog).getByRole('checkbox', { name: /Deploy capability/ }));
+    await user.click(within(panel).getByRole('checkbox', { name: /Deploy capability/ }));
     await user.click(
-      within(dialog).getByRole('checkbox', { name: t('options.taskTypes.configSync') })
+      within(panel).getByRole('checkbox', { name: t('options.taskTypes.configSync') })
     );
-    await user.click(within(dialog).getByRole('button', { name: t('common.create') }));
+    await user.click(within(panel).getByRole('button', { name: t('common.create') }));
 
     await waitFor(() => {
       expect(createOpenClawAgentActionMock).toHaveBeenCalledWith(
