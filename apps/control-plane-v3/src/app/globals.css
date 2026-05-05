@@ -188,65 +188,7 @@ body {
   background: var(--kw-dark-border);
 }
 
-/* Shimmer effect - subdued */
-.btn-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    /* intentional white for shimmer on primary button */ transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
 /* Animations - purposeful, not playful */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-@keyframes float-up {
-  0% {
-    transform: translateY(100vh) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-10vh) rotate(360deg);
-    opacity: 0;
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 8px var(--kw-shadow-color);
-  }
-  50% {
-    box-shadow: 0 0 14px var(--kw-shadow-color-strong);
-  }
-}
-
 @keyframes slide-up {
   from {
     opacity: 0;

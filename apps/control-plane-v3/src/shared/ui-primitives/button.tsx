@@ -29,7 +29,6 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: keyof typeof buttonVariants;
   size?: keyof typeof buttonSizes;
   loading?: boolean;
-  shimmer?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
@@ -41,7 +40,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = 'primary',
       size = 'md',
       loading,
-      shimmer = false,
       leftIcon,
       rightIcon,
       children,
@@ -68,11 +66,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         aria-disabled={disabled || loading ? 'true' : undefined}
         {...props}
       >
-        {/* Shimmer overlay */}
-        {shimmer && variant === 'primary' && (
-          <span className="btn-shimmer pointer-events-none absolute inset-0" />
-        )}
-
         {/* Content */}
         <span className="relative z-10 flex items-center gap-2">
           {loading ? (
