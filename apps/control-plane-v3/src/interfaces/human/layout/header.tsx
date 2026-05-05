@@ -83,7 +83,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
   });
 
   return (
-    <header className="safe-area-inset-top sticky top-0 z-sticky flex min-h-16 items-center justify-between border-b border-[var(--kw-border)] bg-white px-3 sm:px-6 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+    <header className="safe-area-inset-top sticky top-0 z-sticky flex min-h-16 items-center justify-between border-b border-[var(--kw-border)] bg-[var(--kw-surface)] px-3 sm:px-6 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
       {/* Left - Search */}
       <div className="max-w-[140px] flex-1 sm:max-w-xs md:max-w-xl">
         <GlobalSearch />
@@ -193,7 +193,7 @@ export function Header({ currentIdentity, onlineIdentities }: HeaderProps) {
                   ref={userMenuRef}
                   role="menu"
                   aria-label={t('common.userMenu')}
-                  className="absolute right-0 top-full z-dropdown mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+                  className="absolute right-0 top-full z-dropdown mt-2 w-56 animate-slide-up overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
                 >
                   <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
                     <p className="font-semibold text-[var(--kw-text)]">

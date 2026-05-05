@@ -282,7 +282,7 @@ function SpacesContent() {
         <section className="relative overflow-hidden rounded-3xl border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-4 sm:rounded-[2rem] sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
           <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
             <div className="max-w-3xl">
-              <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-orange-text)] sm:text-xs sm:tracking-[0.22em] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">
+              <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-[var(--kw-surface)]/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-orange-text)] sm:text-xs sm:tracking-[0.22em] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">
                 <Sparkles className="h-3.5 w-3.5" />
                 {t('spaces.hero.badge')}
               </div>
@@ -423,7 +423,7 @@ function SpacesContent() {
             />
 
             {/* Market Inventory */}
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90 sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">

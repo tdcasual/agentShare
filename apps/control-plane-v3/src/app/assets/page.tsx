@@ -86,7 +86,7 @@ function Header({
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="space-y-2">
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
           <ShieldCheck className="h-4 w-4" />
           {page.t('assets.subtitle')}
         </div>
@@ -151,7 +151,7 @@ function Metrics({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 
 function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -233,7 +233,7 @@ function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 
 function OperatorCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         <Badge variant="primary">{page.t('common.operator')}</Badge>
         <span className="dark:text-[var(--kw-dark-text)]">
@@ -407,7 +407,7 @@ const SecretCard = memo(function SecretCard({
         focus.resourceKind === 'secret' && focus.resourceId === secret.id ? 'focused' : 'default'
       }
       className={cn(
-        'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-3 sm:p-4 lg:p-5',
+        'dark:bg-[var(--kw-dark-bg)]/80 border bg-[var(--kw-surface)]/80 p-3 sm:p-4 lg:p-5',
         focus.resourceKind === 'secret' && focus.resourceId === secret.id
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
@@ -533,7 +533,7 @@ const CapabilityCard = memo(function CapabilityCard({
           : 'default'
       }
       className={cn(
-        'dark:bg-[var(--kw-dark-bg)]/80 border bg-white/80 p-3 sm:p-4 lg:p-5',
+        'dark:bg-[var(--kw-dark-bg)]/80 border bg-[var(--kw-surface)]/80 p-3 sm:p-4 lg:p-5',
         focus.resourceKind === 'capability' && focus.resourceId === capability.id
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
@@ -1012,7 +1012,7 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-bg)]/60 border border-dashed border-[var(--kw-primary-200)] bg-white/70 text-center dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-bg)]/60 border border-dashed border-[var(--kw-primary-200)] bg-[var(--kw-surface)]/70 text-center dark:border-[var(--kw-dark-border)]">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
         {icon}
       </div>
@@ -1054,7 +1054,7 @@ function CapabilityTokenCheckbox({
   }, [onToggle, token.id]);
 
   return (
-    <label className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
+    <label className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
       <input
         type="checkbox"
         checked={checked}
@@ -1087,7 +1087,7 @@ function CapabilityLabelCheckbox({
   }, [onToggle, value]);
 
   return (
-    <label className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
+    <label className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
       <input
         type="checkbox"
         checked={checked}

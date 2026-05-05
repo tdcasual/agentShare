@@ -13,7 +13,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
   switch (variant) {
     case 'review':
       return (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-2">
             {icon}
             <p className="text-xs uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
@@ -28,7 +28,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
 
     case 'marketplace':
       return (
-        <div className="dark:bg-[var(--kw-dark-bg)]/65 rounded-2xl border border-[var(--kw-border)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
+        <div className="dark:bg-[var(--kw-dark-bg)]/65 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-2 text-[var(--kw-primary-600)] dark:text-[var(--kw-dark-primary)]">
             {icon}
             <span className="text-[10px] uppercase tracking-[0.1em] sm:text-xs sm:tracking-[0.2em]">
@@ -43,7 +43,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
 
     case 'space':
       return (
-        <div className="dark:bg-[var(--kw-dark-surface-alt)]/65 rounded-2xl border border-[var(--kw-orange-surface)] bg-white/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
+        <div className="dark:bg-[var(--kw-dark-surface-alt)]/65 rounded-2xl border border-[var(--kw-orange-surface)] bg-[var(--kw-surface)]/75 px-4 py-3 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-2 text-[var(--kw-orange-text)] dark:text-[var(--kw-warning)]">
             {icon}
             <span className="text-[10px] uppercase tracking-[0.1em] sm:text-xs sm:tracking-[0.2em]">
@@ -56,7 +56,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
 
     case 'identity':
       return (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
           <p className="text-[11px] text-[var(--kw-text-muted)] sm:text-sm">{label}</p>
           <p className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">{value}</p>
           <p className="text-xs text-[var(--kw-text-muted)]">{hint}</p>
@@ -65,7 +65,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
 
     case 'asset':
       return (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
           <div className="space-y-2">
             <p className="text-[11px] text-[var(--kw-text-muted)] sm:text-sm dark:text-[var(--kw-dark-text-muted)]">
               {label}
@@ -83,7 +83,7 @@ export function MetricCard({ label, value, icon, hint, variant = 'default' }: Me
     case 'default':
     default:
       return (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-2 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
           <p className="text-[11px] uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
             {label}
           </p>

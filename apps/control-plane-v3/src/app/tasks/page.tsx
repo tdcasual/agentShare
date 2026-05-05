@@ -52,7 +52,7 @@ const TasksContent = memo(function TasksContent() {
     <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <Target className="h-4 w-4" />
             {page.t('tasks.tokenTargetedDelivery')}
           </div>
@@ -101,7 +101,7 @@ const TasksContent = memo(function TasksContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -204,7 +204,7 @@ const TasksContent = memo(function TasksContent() {
       !page.isLoading &&
       page.taskViews.length > 0 &&
       page.visibleTaskViews.length === 0 ? (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
           {page.t('tasks.supervision.noMatches')}
         </Card>
       ) : null}
@@ -256,6 +256,7 @@ const TaskCard = memo(function TaskCard({
       data-focus-state={isFocused ? 'focused' : 'default'}
       variant="kawaii"
       hover
+      role="listitem"
       className={cn(
         'cursor-pointer space-y-4',
         isFocused &&
@@ -296,7 +297,7 @@ const TaskCard = memo(function TaskCard({
           </div>
         </div>
 
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-3 py-2 sm:rounded-3xl sm:px-4 sm:py-3">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-3 py-2 sm:rounded-3xl sm:px-4 sm:py-3">
           <p className="text-xs font-medium text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             {t('tasks.feedbackSummary')}
           </p>
@@ -583,7 +584,7 @@ function TaskDetailModal({
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90">
               <p className="text-xs uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {page.t('tasks.inputPayload')}
               </p>
@@ -592,7 +593,7 @@ function TaskDetailModal({
               </pre>
             </Card>
 
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-white/90">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90">
               <p className="text-xs uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {page.t('tasks.publishingContext')}
               </p>

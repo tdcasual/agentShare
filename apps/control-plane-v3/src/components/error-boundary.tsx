@@ -60,7 +60,7 @@ function ErrorFallback({
         </div>
 
         {/* 标题 */}
-        <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('errorBoundary.title')}</h2>
+        <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('errorBoundary.title')}</h1>
 
         {/* 错误信息 */}
         <p className="mb-2 text-sm text-[var(--kw-text-muted)]">

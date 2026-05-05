@@ -95,7 +95,7 @@ export function ManagementSessionExpiredAlert({
         <span>{message}</span>
         <Link
           href="/login"
-          className="dark:hover:bg-[var(--kw-dark-error-surface)]/20 inline-flex items-center justify-center gap-2 rounded-full border border-[var(--kw-error)] bg-white px-4 py-2 text-sm font-semibold text-[var(--kw-rose-text)] transition-colors hover:bg-[var(--kw-rose-surface)] dark:border-[var(--kw-dark-error-surface)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-error)]"
+          className="dark:hover:bg-[var(--kw-dark-error-surface)]/20 inline-flex items-center justify-center gap-2 rounded-full border border-[var(--kw-error)] bg-[var(--kw-surface)] px-4 py-2 text-sm font-semibold text-[var(--kw-rose-text)] transition-colors hover:bg-[var(--kw-rose-surface)] dark:border-[var(--kw-dark-error-surface)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-error)]"
         >
           {t('auth.logout.continueToLogin')}
         </Link>

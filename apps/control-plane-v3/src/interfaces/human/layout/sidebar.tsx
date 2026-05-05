@@ -50,7 +50,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return (
       <aside
         className={cn(
-          'fixed left-0 top-0 z-drawer h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 will-change-[width] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
+          'fixed left-0 top-0 z-drawer h-screen border-r border-[var(--kw-border)] bg-[var(--kw-surface)] transition-[width] duration-300 will-change-[width] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
           collapsed ? 'w-20' : 'w-64'
         )}
       >
@@ -69,7 +69,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-drawer h-screen border-r border-[var(--kw-border)] bg-white transition-[width] duration-300 will-change-[width] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
+        'fixed left-0 top-0 z-drawer h-screen border-r border-[var(--kw-border)] bg-[var(--kw-surface)] transition-[width] duration-300 will-change-[width] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]',
         collapsed ? 'w-20' : 'w-64'
       )}
     >
@@ -84,7 +84,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
         {!collapsed && (
           <div className="ml-3 overflow-hidden">
-            <h1 className="whitespace-nowrap font-bold text-[var(--kw-text)]">
+            <h1 className="truncate whitespace-nowrap font-bold text-[var(--kw-text)]">
               {t('sidebar.appName')}
             </h1>
             <p className="text-xs text-[var(--kw-text-muted)]">{t('sidebar.appTagline')}</p>
@@ -98,7 +98,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         aria-expanded={!collapsed}
         aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
         type="button"
-        className="absolute -right-3 top-20 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--kw-border)] bg-white text-[var(--kw-text-muted)] shadow-sm transition-colors hover:border-[var(--kw-primary-300)] hover:text-[var(--kw-primary-500)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text-muted)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:text-[var(--kw-dark-primary)]"
+        className="absolute -right-3 top-20 flex h-8 w-8 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)] text-[var(--kw-text-muted)] shadow-sm transition-colors hover:border-[var(--kw-primary-300)] hover:text-[var(--kw-primary-500)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text-muted)] dark:hover:border-[var(--kw-dark-primary)] dark:hover:text-[var(--kw-dark-primary)]"
       >
         {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
       </button>

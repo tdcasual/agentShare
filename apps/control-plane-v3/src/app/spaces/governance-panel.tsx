@@ -33,7 +33,7 @@ export function GovernancePanel({
 }: GovernancePanelProps) {
   const { t } = useI18n();
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
@@ -123,7 +123,7 @@ const GovernanceReviewItem = memo(function GovernanceReviewItem({
   const governanceStatus = deriveGovernanceStatus(item);
 
   return (
-    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-medium text-[var(--kw-text)]">{item.title}</p>

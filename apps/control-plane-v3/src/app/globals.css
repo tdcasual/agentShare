@@ -15,7 +15,7 @@
   --kw-primary-300: #ffb6c1;
   --kw-primary-400: #ff69b4;
   --kw-primary-500: #ff1493;
-  --kw-primary-600: #db7093;
+  --kw-primary-600: #a03060;
 
   /* Functional accents - muted */
   --kw-mint: #98fb98;
@@ -485,6 +485,12 @@ html {
     --kw-text: #000000;
     --kw-text-muted: #333333;
     --kw-border: #000000;
+  }
+
+  .dark {
+    --kw-text: #ffffff;
+    --kw-text-muted: #cccccc;
+    --kw-border: #ffffff;
   }
 
   .card {

@@ -8,7 +8,6 @@
 
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/components/i18n-provider';
-import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { emojiCombo, emoji } from '@/lib/kawaii-emojis';
 
@@ -37,10 +36,7 @@ export default function OfflinePage() {
       id="main-content"
       className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]"
     >
-      <Card
-        variant="default"
-        className="w-full max-w-md space-y-3 p-8 text-center sm:space-y-4 lg:space-y-6"
-      >
+      <div className="w-full max-w-md space-y-3 p-8 text-center sm:space-y-4 lg:space-y-6">
         {/* 图标 */}
         <div
           className="dark:bg-[var(--kw-dark-amber-surface)]/30 mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-amber-surface)] text-4xl"
@@ -58,7 +54,7 @@ export default function OfflinePage() {
         </div>
 
         {/* 说明 */}
-        <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-xl bg-white/50 p-3 text-left sm:p-4">
+        <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-xl bg-[var(--kw-surface)]/50 p-3 text-left sm:p-4">
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex-shrink-0 text-lg">{emoji('empty')}</span>
             <div>
@@ -101,7 +97,7 @@ export default function OfflinePage() {
         <p className="text-xs text-[var(--kw-text-muted)]">
           {emoji('cosmos')} Control Plane V3 · {t('common.offline')}
         </p>
-      </Card>
+      </div>
     </main>
   );
 }

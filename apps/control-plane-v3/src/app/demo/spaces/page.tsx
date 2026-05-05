@@ -76,7 +76,7 @@ export default function DemoSpacesPage() {
           </Link>
           <Link
             href="/spaces"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
           >
             View live spaces
             <ArrowRight className="h-4 w-4" />
@@ -84,9 +84,9 @@ export default function DemoSpacesPage() {
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-260px)] gap-4">
+      <div className="flex h-[calc(100vh-260px)] flex-col gap-4 md:flex-row">
         {/* 侧边栏 - 空间列表 */}
-        <div className="w-64 flex-shrink-0 overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div className="hidden w-64 flex-shrink-0 overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] md:block dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
           <div className="border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
             <h2 className="font-semibold text-[var(--kw-text)]">Spaces</h2>
           </div>
@@ -109,7 +109,7 @@ export default function DemoSpacesPage() {
         </div>
 
         {/* 主聊天区域 */}
-        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-white dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
           {/* 头部 */}
           <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-4 dark:border-[var(--kw-dark-border)]">
             <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export default function DemoSpacesPage() {
                       : 'dark:bg-[var(--kw-dark-sky-accent-surface)]/30 bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]'
                   }`}
                 >
-                  {msg.isAgent ? '🤖' : '👤'}
+                  <span aria-hidden="true">{msg.isAgent ? '🤖' : '👤'}</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-baseline gap-2">
@@ -158,7 +158,7 @@ export default function DemoSpacesPage() {
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="输入消息…（演示模式）"
                 aria-label="Message"
-                className="flex-1 rounded-xl border border-[var(--kw-primary-200)] bg-white px-4 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
+                className="flex-1 rounded-xl border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-2 text-[var(--kw-text)] focus:outline-none focus:ring-2 focus:ring-[var(--kw-primary-400)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
               />
               <button
                 type="button"

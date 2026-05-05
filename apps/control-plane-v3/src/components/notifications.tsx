@@ -209,7 +209,7 @@ export function Notifications({ className }: NotificationsProps) {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
+                className="rounded-lg p-1 min-h-[44px] min-w-[44px] text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
                 aria-label={t('common.closeNotifications')}
               >
                 <X className="h-4 w-4" />

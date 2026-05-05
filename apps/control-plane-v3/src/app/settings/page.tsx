@@ -166,7 +166,7 @@ const SettingsContent = memo(function SettingsContent() {
     <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <ShieldCheck className="h-4 w-4" />
             {t('settings.inviteOnlyAccess')}
           </div>
@@ -209,7 +209,7 @@ const SettingsContent = memo(function SettingsContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -338,7 +338,7 @@ const SettingsContent = memo(function SettingsContent() {
               </select>
             </div>
 
-            <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('settings.inviteNotice')}
             </div>
 
@@ -350,7 +350,7 @@ const SettingsContent = memo(function SettingsContent() {
 
         <Card variant="feature" className="space-y-3 sm:space-y-4 lg:space-y-5">
           <div className="space-y-2">
-            <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
+            <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
               <UserCog className="h-4 w-4" />
               {t('settings.currentSession')}
             </div>
@@ -395,7 +395,7 @@ const SettingsContent = memo(function SettingsContent() {
             />
           </div>
 
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 sm:rounded-3xl sm:p-4 lg:p-5">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:rounded-3xl sm:p-4 lg:p-5">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]">
                 <ShieldCheck className="h-5 w-5" />
@@ -447,7 +447,7 @@ const SettingsContent = memo(function SettingsContent() {
 
       <Card variant="kawaii" className="space-y-3 sm:space-y-4 lg:space-y-5">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-3 py-1 text-xs font-medium text-[var(--kw-primary-600)]">
             <Users className="h-4 w-4" />
             {t('settings.invitedAccounts')}
           </div>
@@ -473,7 +473,7 @@ const SettingsContent = memo(function SettingsContent() {
             />
           ))}
           {visibleAccounts.length === 0 ? (
-            <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
               No accounts match the current supervision filter.
             </Card>
           ) : null}
@@ -509,7 +509,7 @@ function AccountRow({
   }, [onDisable, account.id]);
 
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -599,7 +599,7 @@ function SessionStat({
   monospace?: boolean;
 }) {
   return (
-    <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl bg-white/80 px-4 py-3">
+    <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl bg-[var(--kw-surface)]/80 px-4 py-3">
       <p className="text-xs font-medium text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {label}
       </p>

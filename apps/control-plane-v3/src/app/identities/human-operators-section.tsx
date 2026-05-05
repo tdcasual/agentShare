@@ -120,7 +120,7 @@ function AccountCard({ account, isExpanded, onToggleExpand, isFocused }: Account
     <div
       data-testid={`admin-card-${account.id}`}
       data-focus-state={isFocused ? 'focused' : 'default'}
-      className={`dark:bg-[var(--kw-dark-surface)]/90 rounded-2xl border bg-white/90 p-3 sm:p-4 ${
+      className={`dark:bg-[var(--kw-dark-surface)]/90 rounded-2xl border bg-[var(--kw-surface)]/90 p-3 sm:p-4 ${
         isFocused
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]'

@@ -38,7 +38,7 @@ export function SpacesList({
 }: SpacesListProps) {
   const { t } = useI18n();
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-5 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl">
@@ -100,7 +100,7 @@ export function SpacesList({
                 {space.timeline.slice(0, 2).map((entry) => (
                   <div
                     key={entry.id}
-                    className="dark:bg-[var(--kw-dark-surface)]/80 rounded-xl border border-white/70 bg-white/70 px-3 py-2 dark:border-[var(--kw-dark-border)]"
+                    className="dark:bg-[var(--kw-dark-surface)]/80 rounded-xl border border-white/70 bg-[var(--kw-surface)]/70 px-3 py-2 dark:border-[var(--kw-dark-border)]"
                   >
                     <p className="text-sm font-medium text-[var(--kw-text)]">{entry.summary}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-[0.18em]">

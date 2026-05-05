@@ -47,7 +47,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 loading="lazy"
                 decoding="async"
                 className={cn(
-                  'border-3 h-16 w-16 rounded-full object-cover shadow-soft',
+                  'border-2 h-16 w-16 rounded-full object-cover shadow-soft',
                   isHuman ? 'border-[var(--kw-human-accent)]' : 'border-[var(--kw-agent-accent)]',
                   identity.presence === 'online' &&
                     'shadow-[var(--kw-agent-accent)]/30 shadow-medium'
@@ -73,7 +73,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 aria-label={isHuman ? t('common.human') : t('common.agent')}
                 role="img"
               >
-                {isHuman ? '👤' : '🤖'}
+                <span aria-hidden="true">{isHuman ? '👤' : '🤖'}</span>
               </span>
             </div>
           </SparkleEffect>

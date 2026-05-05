@@ -111,7 +111,7 @@ export function TabletSidebar({
           <button
             type="button"
             onClick={toggleSidebar}
-            className="rounded-lg p-2 transition-colors hover:bg-[var(--kw-surface-alt)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+            className="rounded-lg p-2 min-h-[44px] min-w-[44px] transition-colors hover:bg-[var(--kw-surface-alt)] focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
             aria-label={isCollapsed ? t('tabletSidebar.expand') : t('tabletSidebar.collapse')}
           >
             {isCollapsed ? <Menu className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}

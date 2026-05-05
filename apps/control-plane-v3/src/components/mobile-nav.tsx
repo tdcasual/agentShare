@@ -8,6 +8,7 @@ import { useI18n } from '@/components/i18n-provider';
 import { useIsMobile } from '@/hooks/use-device-type';
 import { useRole } from '@/hooks/use-role';
 import { hasRequiredRole, type ManagementRole } from '@/lib/role-system';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { Sparkles, Settings } from 'lucide-react';
 import { getVisibleShellNavItems } from '@/lib/control-plane-links';
 
@@ -30,6 +31,7 @@ export function MobileNav() {
     icon: item.icon,
   }));
   const [showMore, setShowMore] = React.useState(false);
+  const { containerRef } = useFocusTrap({ isActive: showMore, onEscape: () => setShowMore(false) });
 
   // 仅在移动端显示
   if (!isMobile) {
@@ -104,7 +106,9 @@ export function MobileNav() {
             onClick={() => setShowMore(false)}
           />
           <div
+            ref={containerRef}
             role="dialog"
+            aria-modal="true"
             aria-label={t('common.more') || 'More'}
             className="fixed bottom-20 left-4 right-4 z-dropdown max-h-[60vh] animate-slide-up overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-2xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
           >

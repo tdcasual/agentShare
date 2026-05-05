@@ -245,7 +245,7 @@ const TokensContent = memo(function TokensContent() {
     <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <ShieldCheck className="h-4 w-4" />
             {t('tokens.remoteAccessSupervision')}
           </div>
@@ -294,7 +294,7 @@ const TokensContent = memo(function TokensContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -382,7 +382,7 @@ const TokensContent = memo(function TokensContent() {
         {visibleTokens.map((token) => (
           <Card
             key={token.id}
-            className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]"
+            className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">

@@ -195,7 +195,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             <ShieldAlert className="h-4 w-4" />
             {t('reviews.subtitle')}
           </div>
@@ -247,7 +247,7 @@ const ReviewsContent = memo(function ReviewsContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -345,7 +345,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       </Card>
 
       {/* Session Info */}
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <Badge variant="primary">
             {session?.role ? translateAccountRole(t, session.role) : t('reviews.reviewer')}
@@ -414,7 +414,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       !shouldShowSessionExpired &&
       reviewItems.length > 0 &&
       visibleItems.length === 0 ? (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-white/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
           {t('reviews.noMatches')}
         </Card>
       ) : null}
@@ -555,11 +555,11 @@ const ReviewsContent = memo(function ReviewsContent() {
       {/* Footer decoration */}
       {reviewItems.length > 0 && (
         <div className="flex justify-center gap-2 pt-4 text-2xl opacity-30 dark:opacity-20">
-          <span className="animate-float">🌸</span>
-          <span className="animate-float" style={{ animationDelay: '0.5s' }}>
+          <span aria-hidden="true" className="animate-float">🌸</span>
+          <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0.5s' }}>
             ✨
           </span>
-          <span className="animate-float" style={{ animationDelay: '1s' }}>
+          <span aria-hidden="true" className="animate-float" style={{ animationDelay: '1s' }}>
             💕
           </span>
         </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Card } from '@/shared/ui-primitives/card';
 import { useI18n } from '@/components/i18n-provider';
 import { useRole } from '@/hooks/use-role';
 import { getDefaultManagementRoute } from '@/lib/role-system';
@@ -17,7 +16,7 @@ export default function NotFound() {
       id="main-content"
       className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]"
     >
-      <Card variant="default" className="w-full max-w-md space-y-6 p-8 text-center">
+      <div className="w-full max-w-md space-y-6 p-8 text-center">
         <div
           className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-50)] text-3xl dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]"
           aria-hidden="true"
@@ -36,7 +35,7 @@ export default function NotFound() {
         >
           {emojiCombo('back', 1)} {t('common.backToHome')}
         </Link>
-      </Card>
+      </div>
     </main>
   );
 }

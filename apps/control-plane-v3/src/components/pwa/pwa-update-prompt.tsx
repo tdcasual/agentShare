@@ -39,7 +39,7 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
           <button
             type="button"
             onClick={dismissUpdate}
-            className="rounded-lg p-1 transition-colors hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+            className="rounded-lg p-1 min-h-[44px] min-w-[44px] transition-colors hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
             aria-label={t('pwa.dismiss')}
           >
             <X className="h-5 w-5 text-[var(--kw-text-muted)]" />

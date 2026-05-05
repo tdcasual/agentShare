@@ -40,8 +40,8 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           className={cn(
-            'flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-200',
-            'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)]',
+            'flex h-9 w-9 min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-colors duration-200',
+            'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 dark:border-[var(--kw-dark-border)]',
             'hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
             'text-[var(--kw-text)]'
           )}
@@ -111,7 +111,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
         type="button"
         className={cn(
           'flex items-center gap-2 rounded-full px-3 py-2 transition-colors duration-200',
-          'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)]',
+          'dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 dark:border-[var(--kw-dark-border)]',
           'hover:bg-[var(--kw-surface-alt)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
           'text-[var(--kw-text)]',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kw-primary-400)]'

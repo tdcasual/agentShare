@@ -56,7 +56,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
       </div>
 
       <div className="mx-auto max-w-7xl px-4">
-        <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-surface-alt)]/70 rounded-2xl border bg-white/80 p-4">
+        <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-surface-alt)]/70 rounded-2xl border bg-[var(--kw-surface)]/80 p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-3">
               <Compass className="mt-0.5 h-5 w-5 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />
@@ -79,14 +79,14 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
               </Link>
               <Link
                 href="/identities"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
               >
                 View live identities
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/spaces"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
               >
                 View live spaces
                 <ArrowRight className="h-4 w-4" />

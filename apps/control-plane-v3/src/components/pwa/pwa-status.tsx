@@ -53,7 +53,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
     <div className={cn('space-y-4', className)}>
       {/* 安装状态 */}
       <Card className="p-3 sm:p-4">
-        <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.appStatus')}</h3>
+        <p className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.appStatus')}</p>
         <div className="space-y-3">
           {/* 安装状态 */}
           <div className="flex items-center justify-between">
@@ -138,7 +138,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
 
       {/* 功能支持 */}
       <Card className="p-3 sm:p-4">
-        <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.deviceFeatures')}</h3>
+        <p className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.deviceFeatures')}</p>
         <div className="grid grid-cols-2 gap-3">
           {/* 分享功能 */}
           <button
@@ -214,7 +214,7 @@ export function PWAStatus({ className }: PWAStatusProps) {
 
       {/* 功能清单 */}
       <Card className="p-3 sm:p-4">
-        <h3 className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.pwaFeatures')}</h3>
+        <p className="mb-4 font-semibold text-[var(--kw-text)]">{t('pwa.pwaFeatures')}</p>
         <ul className="space-y-2">
           <FeatureItem
             label={t('pwa.featureOffline')}

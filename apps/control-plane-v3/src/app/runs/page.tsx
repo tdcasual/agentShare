@@ -155,7 +155,7 @@ const RunsContent = memo(function RunsContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('runs.loadFailed')}</h2>
+            <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('runs.loadFailed')}</h1>
             <p className="mb-4 text-[var(--kw-text-muted)]">
               {error instanceof Error ? error.message : String(error)}
             </p>
@@ -348,7 +348,7 @@ const StatusFilterButton = memo(function StatusFilterButton({
   onSelect,
 }: StatusFilterButtonProps) {
   return (
-    <Button variant={active ? 'kawaii' : 'outline'} size="sm" onClick={() => onSelect(status)}>
+    <Button variant={active ? 'kawaii' : 'outline'} size="sm" aria-pressed={active} onClick={() => onSelect(status)}>
       {label}
     </Button>
   );
@@ -367,6 +367,7 @@ const RunCard = memo(function RunCard({ run, statusLabels, onSelect }: RunCardPr
   return (
     <Card
       variant="default"
+      role="listitem"
       className="cursor-pointer transition-shadow hover:shadow-soft"
       onClick={() => onSelect(run)}
     >

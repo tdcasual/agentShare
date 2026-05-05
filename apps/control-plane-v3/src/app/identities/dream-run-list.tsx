@@ -13,11 +13,11 @@ export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
   const { t } = useI18n();
 
   return (
-    <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-white/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/60 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
+        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
           {t('identities.sections.recentDreamRunsTitle')}
-        </h3>
+        </p>
         <Badge variant="secondary">{runs.length}</Badge>
       </div>
 
@@ -30,7 +30,7 @@ export function DreamRunList({ runs, onSelectRun }: DreamRunListProps) {
           {runs.slice(0, 3).map((run) => (
             <div
               key={run.id}
-              className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 p-3 dark:border-[var(--kw-dark-border)]"
+              className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 dark:border-[var(--kw-dark-border)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <p className="font-medium text-[var(--kw-text)]">{run.objective}</p>

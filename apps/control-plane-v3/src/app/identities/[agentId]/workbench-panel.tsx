@@ -121,12 +121,12 @@ export function WorkbenchPanel({
     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
       {/* Left rail - conversation history */}
       <div className="flex-shrink-0 lg:w-72">
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
+              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
                 {t('identities.workbench.conversations')}
-              </h3>
+              </p>
               <Button variant="secondary" size="sm" onClick={() => setShowNewSession((s) => !s)}>
                 {t('identities.sessionManager.newSession')}
               </Button>
@@ -219,7 +219,7 @@ export function WorkbenchPanel({
                     className={`w-full rounded-2xl border p-3 text-left transition-colors ${
                       selectedConversationId === session.id
                         ? 'dark:bg-[var(--kw-primary-500)]/10 border-[var(--kw-primary-400)] bg-[var(--kw-primary-50)] dark:border-[var(--kw-primary-400)]'
-                        : 'dark:bg-[var(--kw-dark-surface)]/70 border-[var(--kw-border)] bg-white/70 hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)]'
+                        : 'dark:bg-[var(--kw-dark-surface)]/70 border-[var(--kw-border)] bg-[var(--kw-surface)]/70 hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -246,7 +246,7 @@ export function WorkbenchPanel({
 
       {/* Main panel */}
       <div className="flex min-h-[24rem] flex-1 flex-col lg:min-h-[32rem]">
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 flex flex-1 flex-col overflow-hidden border border-[var(--kw-border)] bg-white/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 flex flex-1 flex-col overflow-hidden border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[var(--kw-border)] px-4 py-3 dark:border-[var(--kw-dark-border)]">
             <div className="min-w-0">

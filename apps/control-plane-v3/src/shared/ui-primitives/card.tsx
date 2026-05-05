@@ -8,7 +8,7 @@ const cardVariants = {
     'bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)] border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
   elevated: 'bg-[var(--kw-surface)] shadow-medium dark:shadow-black/20',
   glass:
-    'bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80 backdrop-blur-sm border border-[var(--kw-border)]/60 dark:border-[var(--kw-dark-border)]/60',
+    'bg-[var(--kw-surface)]/95 dark:bg-[var(--kw-dark-surface)]/95 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
   gradient:
     'bg-gradient-to-br from-[var(--kw-surface-alt)]/80 to-[var(--kw-lavender)]/30 border border-[var(--kw-border)]/40 dark:from-[var(--kw-dark-surface)]/80 dark:to-[var(--kw-dark-surface-alt)]/30 dark:border-[var(--kw-dark-border)]/40',
   feature:

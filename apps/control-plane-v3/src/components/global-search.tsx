@@ -264,7 +264,7 @@ function SearchResultButton({
           getResultColors(result.kind)
         )}
       >
-        {getResultIcon(result.kind)}
+        <span aria-hidden="true">{getResultIcon(result.kind)}</span>
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-medium text-[var(--kw-text)]">{result.title}</p>

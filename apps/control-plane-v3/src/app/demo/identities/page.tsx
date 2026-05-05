@@ -142,7 +142,7 @@ function IdentitiesContent() {
             </Link>
             <Link
               href="/identities"
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-text)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)] dark:text-[var(--kw-dark-text)] dark:hover:bg-[var(--kw-dark-surface-alt)]"
             >
               View live identities
               <ArrowRight className="h-4 w-4" />
@@ -193,7 +193,7 @@ function IdentitiesContent() {
           />
         </div>
         <div className="flex gap-2">
-          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-white p-1 dark:bg-[var(--kw-dark-bg)]">
+          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] p-1 dark:bg-[var(--kw-dark-bg)]">
             <FilterButton
               active={typeFilter === 'all'}
               onClick={() => setTypeFilter('all')}
@@ -213,7 +213,7 @@ function IdentitiesContent() {
               count={agents.length}
             />
           </div>
-          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-white p-1 dark:bg-[var(--kw-dark-bg)]">
+          <div className="flex rounded-full border border-[var(--kw-primary-200)] bg-[var(--kw-surface)] p-1 dark:bg-[var(--kw-dark-bg)]">
             <button
               type="button"
               onClick={() => setViewMode('grid')}

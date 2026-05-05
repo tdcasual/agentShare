@@ -269,7 +269,7 @@ export function AgentModal({
             {availableCapabilities.map((capability) => (
               <label
                 key={capability.id}
-                className="flex items-start gap-3 rounded-xl border border-[var(--kw-border)] bg-white/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+                className="flex items-start gap-3 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
               >
                 <input
                   type="checkbox"
@@ -294,7 +294,7 @@ export function AgentModal({
             {TASK_TYPE_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex items-center gap-3 rounded-xl border border-[var(--kw-border)] bg-white/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+                className="flex items-center gap-3 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
               >
                 <input
                   type="checkbox"

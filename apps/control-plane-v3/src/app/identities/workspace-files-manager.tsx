@@ -27,9 +27,9 @@ export function WorkspaceFilesManager({ agent }: WorkspaceFilesManagerProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
+        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em]">
           {t('identities.sections.workspaceFilesTitle')}
-        </h3>
+        </p>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">{files.length}</Badge>
           <Button
@@ -60,7 +60,7 @@ export function WorkspaceFilesManager({ agent }: WorkspaceFilesManagerProps) {
             return (
               <div
                 key={file.file_name}
-                className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-white/80 dark:border-[var(--kw-dark-border)]"
+                className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 dark:border-[var(--kw-dark-border)]"
               >
                 <button
                   type="button"

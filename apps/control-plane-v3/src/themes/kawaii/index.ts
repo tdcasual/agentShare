@@ -17,7 +17,7 @@ export const kawaiiTheme: ThemeDefinition = {
     '--kw-primary-300': '#FFB6C1',
     '--kw-primary-400': '#FF69B4',
     '--kw-primary-500': '#FF1493',
-    '--kw-primary-600': '#DB7093',
+    '--kw-primary-600': '#a03060',
 
     // Secondary colors - Candy palette
     '--kw-mint': '#98FB98',
@@ -27,10 +27,10 @@ export const kawaiiTheme: ThemeDefinition = {
     '--kw-lemon': '#FFFACD',
 
     // Semantic colors
-    '--kw-success': '#90EE90',
-    '--kw-warning': '#FFD700',
-    '--kw-error': '#FF6B6B',
-    '--kw-info': '#87CEFA',
+    '--kw-success': '#22c55e',
+    '--kw-warning': '#f59e0b',
+    '--kw-error': '#ef4444',
+    '--kw-info': '#3b82f6',
 
     // Neutrals - calmer, more operational
     '--kw-bg': '#f6f5f8',
@@ -78,18 +78,18 @@ export const kawaiiTheme: ThemeDefinition = {
           'bg-gradient-to-r from-[var(--kw-sky)] to-[var(--kw-mint)] text-white shadow-medium active:scale-95 rounded-full',
       },
       sizes: {
-        sm: 'px-4 py-2 text-sm min-h-[36px]',
+        sm: 'px-4 py-2 text-sm min-h-[44px]',
         md: 'px-6 py-3 text-base min-h-[46px]',
         lg: 'px-8 py-4 text-lg min-h-[56px]',
       },
     },
 
     Card: {
-      base: 'rounded-3xl bg-white/90 backdrop-blur-sm border border-[var(--kw-border)] shadow-soft',
+      base: 'rounded-3xl bg-[var(--kw-surface)] border border-[var(--kw-border)] shadow-soft',
       variants: {
         default: '',
         elevated: 'shadow-medium hover:shadow-medium',
-        glass: 'bg-white/70 backdrop-blur-md',
+        glass: 'bg-[var(--kw-surface)]/95 border border-[var(--kw-border)]',
         gradient: 'bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-lavender)]',
       },
     },

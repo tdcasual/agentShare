@@ -477,6 +477,7 @@ const TaskTypeFilterButton = memo(function TaskTypeFilterButton({
     <button
       type="button"
       onClick={() => onSelect(type)}
+      aria-pressed={selected}
       className={`rounded-full px-3 py-1 text-sm transition-colors ${
         selected
           ? 'bg-[var(--kw-primary-100)] font-medium text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-pink-surface)] dark:text-[var(--kw-dark-primary)]'
@@ -503,6 +504,7 @@ const TagFilterButton = memo(function TagFilterButton({
     <button
       type="button"
       onClick={() => onToggle(selected ? '' : tag)}
+      aria-pressed={selected}
       className={`rounded-full px-2 py-0.5 text-xs transition-colors ${
         selected
           ? 'dark:bg-[var(--kw-dark-purple-surface)]/30 bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]'

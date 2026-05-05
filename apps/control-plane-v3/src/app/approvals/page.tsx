@@ -137,9 +137,9 @@ const ApprovalsContent = memo(function ApprovalsContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
               <XCircle className="h-8 w-8 text-[var(--kw-error)]" />
             </div>
-            <h2 className="mb-2 text-lg font-bold text-[var(--kw-text)] sm:text-xl">
+            <h1 className="mb-2 text-lg font-bold text-[var(--kw-text)] sm:text-xl">
               {t('approvals.loadFailed')}
-            </h2>
+            </h1>
             <p className="mb-4 text-[var(--kw-text-muted)]">
               {error instanceof Error ? error.message : t('common.unknownError')}
             </p>
@@ -370,6 +370,7 @@ const StatusFilterButton = memo(function StatusFilterButton({
     <button
       type="button"
       onClick={() => onSelect(value)}
+      aria-pressed={active}
       className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
         active
           ? activeColor
