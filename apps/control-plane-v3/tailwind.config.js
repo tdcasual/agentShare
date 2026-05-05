@@ -32,8 +32,8 @@ const config = {
         '4xl': '32px',
       },
       boxShadow: {
-        'soft': '0 1px 8px rgba(0, 0, 0, 0.05)',
-        'medium': '0 2px 16px rgba(0, 0, 0, 0.06)',
+        'soft': '0 1px 3px rgba(0, 0, 0, 0.04)',
+        'medium': '0 2px 8px rgba(0, 0, 0, 0.05)',
         'glow': '0 0 12px rgba(0, 0, 0, 0.06)',
       },
       zIndex: {

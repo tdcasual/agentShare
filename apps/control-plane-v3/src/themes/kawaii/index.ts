@@ -53,8 +53,8 @@ export const kawaiiTheme: ThemeDefinition = {
     '--kw-radius-full': '9999px',
 
     // Shadows - neutral, no pink tint
-    '--kw-shadow-soft': '0 1px 8px rgba(0, 0, 0, 0.05)',
-    '--kw-shadow-medium': '0 2px 16px rgba(0, 0, 0, 0.06)',
+    '--kw-shadow-soft': '0 1px 3px rgba(0, 0, 0, 0.04)',
+    '--kw-shadow-medium': '0 2px 8px rgba(0, 0, 0, 0.05)',
     '--kw-shadow-glow': '0 0 12px rgba(0, 0, 0, 0.06)',
 
     // Animation timing
