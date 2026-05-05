@@ -21,7 +21,7 @@ import {
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { usePlaybooks, useCreatePlaybook } from '@/domains/playbook/hooks';
 import { PlaybookCard } from '@/domains/playbook/components/playbook-card';
 import { PlaybookDetail } from '@/domains/playbook/components/playbook-detail';
@@ -313,11 +313,13 @@ const PlaybooksContent = memo(function PlaybooksContent() {
 
         {/* 创建表单弹窗（简化版） */}
         {showCreateForm && (
-          <CreatePlaybookModal
-            onClose={() => setShowCreateForm(false)}
-            onCreate={handleCreate}
-            isCreating={isCreating}
-          />
+          <div data-testid="create-playbook-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+            <CreatePlaybookForm
+              onClose={() => setShowCreateForm(false)}
+              onCreate={handleCreate}
+              isCreating={isCreating}
+            />
+          </div>
         )}
       </Layout>
     </ErrorBoundary>
@@ -331,7 +333,7 @@ interface CreatePlaybookModalProps {
   isCreating: boolean;
 }
 
-function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookModalProps) {
+function CreatePlaybookForm({ onClose, onCreate, isCreating }: CreatePlaybookModalProps) {
   const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -357,8 +359,7 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
   };
 
   return (
-    <Modal isOpen onClose={onClose} size="md">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
         <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
           {t('playbooks.modal.title')}
         </h2>
@@ -453,7 +454,6 @@ function CreatePlaybookModal({ onClose, onCreate, isCreating }: CreatePlaybookMo
           </Button>
         </div>
       </form>
-    </Modal>
   );
 }
 
