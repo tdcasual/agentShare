@@ -78,7 +78,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
           />
         ) : (
           <span
-            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--kw-primary-100)] to-[var(--kw-purple-surface)]"
+            className="flex h-full w-full items-center justify-center bg-[var(--kw-primary-100)]"
             role="img"
             aria-label={
               alt ||

@@ -289,7 +289,7 @@ export function WorkbenchPanel({
                     <div
                       className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                         message.role === 'user'
-                          ? 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white'
+                          ? 'bg-[var(--kw-primary-500)] text-white'
                           : 'border border-[var(--kw-border)] bg-[var(--kw-surface-alt)] text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-dark-text)]'
                       }`}
                     >
