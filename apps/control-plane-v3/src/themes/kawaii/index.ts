@@ -20,11 +20,11 @@ export const kawaiiTheme: ThemeDefinition = {
     '--kw-primary-600': '#a03060',
 
     // Secondary colors - Candy palette
-    '--kw-mint': '#98FB98',
-    '--kw-sky': '#87CEEB',
-    '--kw-lavender': '#E6E6FA',
-    '--kw-peach': '#FFDAB9',
-    '--kw-lemon': '#FFFACD',
+    '--kw-mint': '#7dd87d',
+    '--kw-sky': '#6ba8c7',
+    '--kw-lavender': '#d4d4e8',
+    '--kw-peach': '#e8c9a8',
+    '--kw-lemon': '#f0e8b8',
 
     // Semantic colors
     '--kw-success': '#22c55e',
