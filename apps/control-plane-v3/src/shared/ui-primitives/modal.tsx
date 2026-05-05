@@ -218,7 +218,7 @@ export function ConfirmModal({
               'rounded-full px-6 py-2 font-medium text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
               variant === 'danger'
                 ? 'bg-[var(--kw-error)] hover:brightness-90 focus-visible:ring-[var(--kw-error)]'
-                : 'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] hover:from-[var(--kw-primary-500)] hover:to-[var(--kw-primary-600)] focus-visible:ring-[var(--kw-primary-400)]'
+                : 'bg-[var(--kw-primary-500)] hover:bg-[var(--kw-primary-600)] focus-visible:ring-[var(--kw-primary-400)]'
             )}
           >
             {isLoading ? t('common.loading') : finalConfirmText}

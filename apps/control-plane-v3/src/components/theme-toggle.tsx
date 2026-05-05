@@ -66,7 +66,7 @@ export function ThemeToggle({ className }: { className?: string }) {
               'relative rounded-full p-2 transition-colors transition-shadow duration-200',
               'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
               isActive &&
-                'bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-500)] text-white shadow-md'
+                'bg-[var(--kw-primary-500)] text-white shadow-md'
             )}
             aria-label={label}
             aria-pressed={isActive}
