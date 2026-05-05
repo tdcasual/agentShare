@@ -8,7 +8,7 @@ import { IdentityCard } from '@/domains/identity/components/identity-card';
 import { Input } from '@/shared/ui-primitives/input';
 import { Button } from '@/shared/ui-primitives/button';
 import { Badge } from '@/shared/ui-primitives/badge';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { Card } from '@/shared/ui-primitives/card';
 import { useI18n } from '@/components/i18n-provider';
 import { Search, Plus, Grid, List, Users, Bot, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -326,42 +326,46 @@ function IdentitiesContent() {
         )}
       </div>
 
-      {/* Create Modal */}
-      <Modal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        title={t('identities.createIdentity')}
-        description={t('identities.chooseType')}
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setShowCreateModal(false)}
-            className="bg-[var(--kw-sky-surface)]/50 rounded-2xl border-2 border-[var(--kw-sky-surface)] p-6 text-center transition-colors hover:bg-[var(--kw-sky-surface)]"
-          >
-            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-sky-surface)]">
-              <Users className="h-8 w-8 text-[var(--kw-sky-text)]" />
+      {/* Create Panel */}
+      {showCreateModal && (
+        <div data-testid="create-identity-panel" className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{t('identities.createIdentity')}</h2>
+              <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.chooseType')}</p>
             </div>
-            <h2 className="mb-1 font-semibold text-[var(--kw-text)]">
-              {t('identities.type.human')}
-            </h2>
-            <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.createHumanDesc')}</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowCreateModal(false)}
-            className="bg-[var(--kw-green-surface)]/50 rounded-2xl border-2 border-[var(--kw-green-surface)] p-6 text-center transition-colors hover:bg-[var(--kw-green-surface)]"
-          >
-            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-green-surface)]">
-              <Bot className="h-8 w-8 text-[var(--kw-green-text)]" />
-            </div>
-            <h2 className="mb-1 font-semibold text-[var(--kw-text)]">
-              {t('identities.type.agent')}
-            </h2>
-            <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.createAgentDesc')}</p>
-          </button>
+            <Button variant="ghost" size="sm" onClick={() => setShowCreateModal(false)}>{t('common.close')}</Button>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(false)}
+              className="rounded-xl border-2 border-[var(--kw-sky-surface)] bg-[var(--kw-sky-surface)]/50 p-6 text-center transition-colors hover:bg-[var(--kw-sky-surface)]"
+            >
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-sky-surface)]">
+                <Users className="h-8 w-8 text-[var(--kw-sky-text)]" />
+              </div>
+              <h2 className="mb-1 font-semibold text-[var(--kw-text)]">
+                {t('identities.type.human')}
+              </h2>
+              <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.createHumanDesc')}</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(false)}
+              className="rounded-xl border-2 border-[var(--kw-green-surface)] bg-[var(--kw-green-surface)]/50 p-6 text-center transition-colors hover:bg-[var(--kw-green-surface)]"
+            >
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-green-surface)]">
+                <Bot className="h-8 w-8 text-[var(--kw-green-text)]" />
+              </div>
+              <h2 className="mb-1 font-semibold text-[var(--kw-text)]">
+                {t('identities.type.agent')}
+              </h2>
+              <p className="text-sm text-[var(--kw-text-muted)]">{t('identities.createAgentDesc')}</p>
+            </button>
+          </div>
         </div>
-      </Modal>
+      )}
     </main>
   );
 }
