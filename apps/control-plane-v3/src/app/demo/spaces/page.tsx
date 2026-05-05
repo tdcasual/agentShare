@@ -164,13 +164,13 @@ export default function DemoSpacesPage() {
                 type="button"
                 onClick={sendMessage}
                 aria-label="Send message"
-                className="rounded-xl bg-gradient-to-r from-[var(--kw-primary-400)] to-[var(--kw-primary-600)] px-4 py-2 text-white transition-shadow hover:shadow-lg"
+                className="rounded-xl bg-[var(--kw-primary-500)] px-4 py-2 text-white transition-shadow hover:shadow-lg"
               >
                 <Send className="h-4 w-4" />
               </button>
             </div>
             <p className="mt-2 text-xs text-[var(--kw-text-muted)]">
-              💡 This is demonstration data. Messages are stored in local state only.
+              This is demonstration data. Messages are stored in local state only.
             </p>
           </div>
         </div>

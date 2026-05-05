@@ -36,7 +36,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
         {/* 头部 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-purple-text)] text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kw-primary-500)] text-white">
               <Globe className="h-5 w-5" />
             </div>
             <h2 className="text-xl font-bold text-[var(--kw-text)]">

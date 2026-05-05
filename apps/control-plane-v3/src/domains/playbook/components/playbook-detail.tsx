@@ -52,7 +52,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
         {/* 头部 */}
         <div className="flex items-start justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-purple-text)] text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--kw-primary-500)] text-white">
               <BookOpen className="h-6 w-6" />
             </div>
             <div>

@@ -47,7 +47,7 @@ export function PlaybookCard({ playbook, onClick }: PlaybookCardProps) {
     >
       {/* 头部：图标和类型 */}
       <div className="mb-3 flex items-start gap-3">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--kw-primary-400)] to-[var(--kw-purple-text)] text-white">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--kw-primary-500)] text-white">
           <BookOpen className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
