@@ -391,16 +391,9 @@ const ReviewsContent = memo(function ReviewsContent() {
               {t('reviews.empty.description')}
             </p>
           </div>
-          <div className="flex justify-center gap-2 text-3xl opacity-30 dark:opacity-20">
-            <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0s' }}>
-              🌸
-            </span>
-            <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0.2s' }}>
-              ✨
-            </span>
-            <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0.4s' }}>
-              💕
-            </span>
+          <div className="flex justify-center gap-2 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            <Sparkles className="h-5 w-5" aria-hidden="true" />
+            <Heart className="h-5 w-5" aria-hidden="true" />
           </div>
         </div>
       ) : null}
@@ -550,14 +543,9 @@ const ReviewsContent = memo(function ReviewsContent() {
 
       {/* Footer decoration */}
       {reviewItems.length > 0 && (
-        <div className="flex justify-center gap-2 pt-4 text-2xl opacity-30 dark:opacity-20">
-          <span aria-hidden="true" className="animate-float">🌸</span>
-          <span aria-hidden="true" className="animate-float" style={{ animationDelay: '0.5s' }}>
-            ✨
-          </span>
-          <span aria-hidden="true" className="animate-float" style={{ animationDelay: '1s' }}>
-            💕
-          </span>
+        <div className="flex justify-center gap-2 pt-4 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          <Sparkles className="h-4 w-4" aria-hidden="true" />
+          <Heart className="h-4 w-4" aria-hidden="true" />
         </div>
       )}
     </section>
