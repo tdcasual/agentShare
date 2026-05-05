@@ -21,8 +21,8 @@ export const viewport: Viewport = {
   // 不设置 maximumScale 以允许用户自由缩放（WCAG 2.1 要求允许缩放至 200%）
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FFF5F7' },
-    { media: '(prefers-color-scheme: dark)', color: '#1A1A2E' },
+    { media: '(prefers-color-scheme: light)', color: '#f6f5f8' },
+    { media: '(prefers-color-scheme: dark)', color: '#12121a' },
   ],
 };
 

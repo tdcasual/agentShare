@@ -395,7 +395,7 @@ const SettingsContent = memo(function SettingsContent() {
             />
           </div>
 
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:rounded-3xl sm:p-4 lg:p-5">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:p-4 lg:p-5">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)]">
                 <ShieldCheck className="h-5 w-5" />

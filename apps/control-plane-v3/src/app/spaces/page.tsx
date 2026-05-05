@@ -279,7 +279,7 @@ function SpacesContent() {
     <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Hero Section */}
       {canViewAdminPanels ? (
-        <section className="relative overflow-hidden rounded-3xl border border-[var(--kw-border)] bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-4 sm:rounded-[2rem] sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.12),_transparent_35%),linear-gradient(135deg,rgba(37,37,64,0.98),rgba(26,26,46,0.96))]">
+        <section className="relative overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-4 sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[linear-gradient(135deg,rgba(37,37,64,0.98),rgba(18,18,26,0.96))]">
           <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
             <div className="max-w-3xl">
               <div className="dark:bg-[var(--kw-dark-surface-alt)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-orange-surface)] bg-[var(--kw-surface)]/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-orange-text)] sm:text-xs sm:tracking-[0.22em] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-warning)]">

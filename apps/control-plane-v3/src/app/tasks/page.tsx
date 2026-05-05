@@ -293,7 +293,7 @@ const TaskCard = memo(function TaskCard({
           </div>
         </div>
 
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-3 py-2 sm:rounded-3xl sm:px-4 sm:py-3">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-3 py-2 sm:px-4 sm:py-3">
           <p className="text-xs font-medium text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             {t('tasks.feedbackSummary')}
           </p>
@@ -479,7 +479,7 @@ function CreateTaskModal({
                 {form.t('tasks.form.targetAccessTokensDescription')}
               </p>
             </div>
-            <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-2xl border border-[var(--kw-border)] p-3 sm:rounded-3xl sm:p-4">
+            <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-xl border border-[var(--kw-border)] p-3 sm:p-4">
               {allTokens.length === 0 ? (
                 <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                   {form.t('tasks.form.noTokensAvailable')}
