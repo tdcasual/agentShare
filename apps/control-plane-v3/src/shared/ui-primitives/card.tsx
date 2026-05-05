@@ -10,9 +10,9 @@ const cardVariants = {
   glass:
     'bg-[var(--kw-surface)]/95 dark:bg-[var(--kw-dark-surface)]/95 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
   gradient:
-    'bg-gradient-to-br from-[var(--kw-surface-alt)]/80 to-[var(--kw-lavender)]/30 border border-[var(--kw-border)]/40 dark:from-[var(--kw-dark-surface)]/80 dark:to-[var(--kw-dark-surface-alt)]/30 dark:border-[var(--kw-dark-border)]/40',
+    'bg-[var(--kw-surface-alt)]/40 dark:bg-[var(--kw-dark-surface-alt)]/40 border border-[var(--kw-border)]/60 dark:border-[var(--kw-dark-border)]/60',
   feature:
-    'bg-gradient-to-br from-[var(--kw-surface-alt)]/90 to-[var(--kw-lavender)]/40 relative overflow-hidden dark:from-[var(--kw-dark-surface)]/90 dark:to-[var(--kw-dark-surface-alt)]/40',
+    'bg-[var(--kw-surface-alt)]/50 dark:bg-[var(--kw-dark-surface-alt)]/50 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]',
   kawaii:
     'bg-[var(--kw-surface)] border border-[var(--kw-border)] dark:bg-[var(--kw-dark-surface)] dark:border-[var(--kw-dark-border)]',
 } as const;

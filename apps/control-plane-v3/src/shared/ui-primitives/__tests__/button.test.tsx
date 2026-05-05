@@ -40,7 +40,7 @@ describe('Button', () => {
 
   it('renders different variants correctly', () => {
     const { rerender } = render(<Button variant="primary">Primary</Button>);
-    expect(screen.getByRole('button')).toHaveClass('bg-gradient-to-r');
+    expect(screen.getByRole('button')).toHaveClass('bg-[var(--kw-primary-500)]');
 
     rerender(<Button variant="secondary">Secondary</Button>);
     expect(screen.getByRole('button')).toHaveClass('border-2');
