@@ -107,7 +107,7 @@ describe('runs page', () => {
 
     await user.click(screen.getByText(/runs.labels.runId #87654321/i));
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('run-detail-panel')).toBeInTheDocument();
     expect(screen.getByText('runs.detailTitle')).toBeInTheDocument();
     expect(screen.getByText(/Run finished successfully/i)).toBeInTheDocument();
     expect(screen.getByText(/runs.info.taskId/i)).toBeInTheDocument();

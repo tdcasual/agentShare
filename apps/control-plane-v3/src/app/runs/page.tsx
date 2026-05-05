@@ -17,7 +17,7 @@ import {
   ManagementSessionExpiredAlert,
   useManagementPageSessionRecovery,
 } from '@/lib/management-session-recovery';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Badge } from '@/shared/ui-primitives/badge';
@@ -300,7 +300,11 @@ const RunsContent = memo(function RunsContent() {
           </div>
         </section>
 
-        {selectedRun && <RunDetailModal run={selectedRun} onClose={() => setSelectedRun(null)} />}
+        {selectedRun && (
+          <div data-testid="run-detail-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+            <RunDetailPanel run={selectedRun} onClose={() => setSelectedRun(null)} />
+          </div>
+        )}
       </Layout>
     </ErrorBoundary>
   );
@@ -411,14 +415,13 @@ interface RunDetailModalProps {
   onClose: () => void;
 }
 
-function RunDetailModal({ run, onClose }: RunDetailModalProps) {
+function RunDetailPanel({ run, onClose }: RunDetailModalProps) {
   const { t } = useI18n();
   const config = statusColors[run.status];
   const statusLabel = t(`runs.stats.${run.status}`);
 
   return (
-    <Modal isOpen onClose={onClose} size="lg" showCloseButton={false}>
-      <div className="flex max-h-[90vh] flex-col overflow-hidden">
+    <div className="flex max-h-[90vh] flex-col overflow-hidden">
         <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
             <div
@@ -485,7 +488,6 @@ function RunDetailModal({ run, onClose }: RunDetailModalProps) {
           </Button>
         </div>
       </div>
-    </Modal>
   );
 }
 
