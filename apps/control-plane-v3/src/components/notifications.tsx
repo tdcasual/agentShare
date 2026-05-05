@@ -243,10 +243,8 @@ export function Notifications({ className }: NotificationsProps) {
             )}
 
             {!isLoading && availability !== 'unavailable' && Boolean(error) && (
-              <div className="p-4 text-center sm:p-6">
-                <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
-                  <AlertCircle className="h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
-                </div>
+              <div className="p-4 text-left sm:p-6">
+                <AlertCircle className="mb-3 h-5 w-5 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
                 <p className="mb-1 text-sm text-[var(--kw-error)] dark:text-[var(--kw-error)]">
                   {t('notifications.errors.loadFailed')}
                 </p>
