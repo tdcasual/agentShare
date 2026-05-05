@@ -306,9 +306,11 @@ const PlaybooksContent = memo(function PlaybooksContent() {
           </div>
         </section>
 
-        {/* 详情弹窗 */}
+        {/* 详情面板 */}
         {selectedPlaybook && (
-          <PlaybookDetail playbook={selectedPlaybook} onClose={() => setSelectedPlaybook(null)} />
+          <div data-testid="playbook-detail-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+            <PlaybookDetail playbook={selectedPlaybook} onClose={() => setSelectedPlaybook(null)} />
+          </div>
         )}
 
         {/* 创建表单弹窗（简化版） */}

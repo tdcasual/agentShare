@@ -8,7 +8,7 @@
 
 import { Button } from '@/shared/ui-primitives/button';
 import { Badge } from '@/shared/ui-primitives/badge';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { useI18n } from '@/components/i18n-provider';
 import { translatePlaybookTaskType, translatePublicationStatus } from '@/lib/enum-labels';
 import type { Playbook } from '../types';
@@ -47,8 +47,7 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
   };
 
   return (
-    <Modal isOpen onClose={onClose} size="lg" showCloseButton={false}>
-      <div className="flex max-h-[90vh] flex-col overflow-hidden">
+    <div className="flex max-h-[90vh] flex-col overflow-hidden">
         {/* 头部 */}
         <div className="flex items-start justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-center gap-3">
@@ -132,6 +131,5 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
           </Button>
         </div>
       </div>
-    </Modal>
   );
 }

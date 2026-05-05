@@ -102,10 +102,10 @@ describe('playbooks page', () => {
 
     await user.click(screen.getByText('Deploy Edge Worker'));
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('playbook-detail-panel')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: t('common.copy') })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: t('common.close') })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: t('common.closeModal') })).toHaveLength(2);
+    expect(screen.getByRole('button', { name: t('common.closeModal') })).toBeInTheDocument();
     expect(
       screen.getByText(t('playbooks.detail.taskTypeLabel'), { exact: false })
     ).toBeInTheDocument();
