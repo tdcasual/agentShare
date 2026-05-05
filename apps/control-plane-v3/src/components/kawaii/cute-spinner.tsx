@@ -1,5 +1,6 @@
 'use client';
 
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -9,36 +10,17 @@ interface CuteSpinnerProps {
 }
 
 const sizeMap = {
-  sm: 'text-lg',
-  md: 'text-2xl',
-  lg: 'text-4xl',
+  sm: 'h-4 w-4',
+  md: 'h-6 w-6',
+  lg: 'h-8 w-8',
 };
 
 export function CuteSpinner({ size = 'md', className }: CuteSpinnerProps) {
   return (
-    <div className={cn('flex items-center gap-1', className)}>
-      <span
-        className={cn('animate-float', sizeMap[size])}
-        style={{ animationDelay: '0s' }}
-        aria-hidden="true"
-      >
-        🌸
-      </span>
-      <span
-        className={cn('animate-float', sizeMap[size])}
-        style={{ animationDelay: '0.15s' }}
-        aria-hidden="true"
-      >
-        🌸
-      </span>
-      <span
-        className={cn('animate-float', sizeMap[size])}
-        style={{ animationDelay: '0.3s' }}
-        aria-hidden="true"
-      >
-        🌸
-      </span>
-    </div>
+    <Loader2
+      className={cn('animate-spin text-[var(--kw-primary-500)]', sizeMap[size], className)}
+      aria-hidden="true"
+    />
   );
 }
 

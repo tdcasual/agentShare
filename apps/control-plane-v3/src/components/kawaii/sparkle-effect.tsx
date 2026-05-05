@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Sparkle {
@@ -76,7 +77,7 @@ export function SparkleEffect({ children, className }: SparkleEffectProps) {
             transitionDelay: `${sparkle.delay}s`,
           }}
         >
-          <span aria-hidden="true">✨</span>
+          <Sparkles className="h-4 w-4 text-[var(--kw-primary-500)]" aria-hidden="true" />
         </span>
       ))}
     </div>

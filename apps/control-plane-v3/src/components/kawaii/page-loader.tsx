@@ -1,11 +1,10 @@
 /**
- * Page Loader - 统一页面加载组件 (Kawaii 版)
+ * Page Loader - 统一页面加载组件
  */
 
 'use client';
 
 import { cn } from '@/lib/utils';
-import { emoji } from '@/lib/kawaii-emojis';
 import { Loader2 } from 'lucide-react';
 
 interface PageLoaderProps {
@@ -15,15 +14,12 @@ interface PageLoaderProps {
   fullScreen?: boolean;
   /** 自定义高度 */
   minHeight?: string;
-  /** 是否使用纯 emoji 动画 */
-  cuteMode?: boolean;
 }
 
 export function PageLoader({
   message = '加载中...',
   fullScreen = false,
   minHeight = '60vh',
-  cuteMode = true,
 }: PageLoaderProps) {
   return (
     <div
@@ -34,36 +30,14 @@ export function PageLoader({
       style={fullScreen ? undefined : { minHeight }}
     >
       <div className="flex flex-col items-center gap-4">
-        {cuteMode ? (
-          <CuteLoader />
-        ) : (
-          <Loader2
-            className={cn(
-              'animate-spin text-[var(--kw-primary-500)]',
-              fullScreen ? 'h-10 w-10' : 'h-8 w-8'
-            )}
-          />
-        )}
-        <p className="text-[var(--kw-text-muted)]">
-          {emoji('loading')} {message}
-        </p>
+        <Loader2
+          className={cn(
+            'animate-spin text-[var(--kw-primary-500)]',
+            fullScreen ? 'h-10 w-10' : 'h-8 w-8'
+          )}
+        />
+        <p className="text-[var(--kw-text-muted)]">{message}</p>
       </div>
-    </div>
-  );
-}
-
-/**
- * 可爱加载动画 - 三个浮动 emoji
- */
-function CuteLoader() {
-  const emojis = ['🌸', '✨', '💫'];
-  return (
-    <div className="flex items-center gap-2" aria-hidden="true">
-      {emojis.map((e, i) => (
-        <span key={i} className="animate-float text-2xl" style={{ animationDelay: `${i * 0.15}s` }}>
-          {e}
-        </span>
-      ))}
     </div>
   );
 }
@@ -75,11 +49,7 @@ export function InlineLoader({ message }: { message?: string }) {
   return (
     <div className="flex items-center justify-center gap-3 py-8">
       <Loader2 className="h-5 w-5 animate-spin text-[var(--kw-primary-500)]" />
-      {message && (
-        <span className="text-sm text-[var(--kw-text-muted)]">
-          {emoji('loading')} {message}
-        </span>
-      )}
+      {message && <span className="text-sm text-[var(--kw-text-muted)]">{message}</span>}
     </div>
   );
 }
