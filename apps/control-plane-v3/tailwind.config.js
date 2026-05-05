@@ -47,22 +47,12 @@ const config = {
         skip: '80',
       },
       animation: {
-        'float': 'float 4s ease-in-out infinite',
-        'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
         'slide-up': 'slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         'slide-down': 'slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         'scale-in': 'scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         'fade-in': 'fade-in 0.2s ease-out',
       },
       keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-4px)' },
-        },
-        'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 8px rgba(0, 0, 0, 0.04)' },
-          '50%': { boxShadow: '0 0 14px rgba(0, 0, 0, 0.08)' },
-        },
         'slide-up': {
           from: { opacity: '0', transform: 'translateY(12px)' },
           to: { opacity: '1', transform: 'translateY(0)' },

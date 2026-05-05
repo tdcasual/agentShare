@@ -268,7 +268,7 @@ body {
 
 /* Utility classes - neutral, operational */
 .shadow-soft {
-  box-shadow: 0 1px 8px var(--kw-shadow-color);
+  box-shadow: 0 1px 3px var(--kw-shadow-color);
 }
 
 .dark .shadow-soft {
@@ -276,7 +276,7 @@ body {
 }
 
 .shadow-medium {
-  box-shadow: 0 2px 16px var(--kw-shadow-color);
+  box-shadow: 0 2px 8px var(--kw-shadow-color);
 }
 
 .dark .shadow-medium {
