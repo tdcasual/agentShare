@@ -448,18 +448,19 @@ function SpacesContent() {
         </div>
       ) : null}
 
-      {/* Create Space Modal */}
+      {/* Create Space Panel */}
       {canManageSpaces && showCreateModal && (
-        <CreateSpaceModal
-          onClose={() => setShowCreateModal(false)}
-          onCreate={async (input) => {
-            setActionError(null);
-            setActionNotice(null);
-            clearAllAuthErrors();
+        <div data-testid="create-space-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <CreateSpaceModal
+            onClose={() => setShowCreateModal(false)}
+            onCreate={async (input) => {
+              setActionError(null);
+              setActionNotice(null);
+              clearAllAuthErrors();
 
-            try {
-              await create(input);
-              setShowCreateModal(false);
+              try {
+                await create(input);
+                setShowCreateModal(false);
               setActionNotice(t('spaces.notices.createdWorkspace', { name: input.name }));
               await spacesQuery.refresh();
             } catch (error) {
@@ -473,6 +474,7 @@ function SpacesContent() {
           }}
           isCreating={isCreating}
         />
+        </div>
       )}
     </section>
   );

@@ -7,7 +7,7 @@
 import { useId, useState } from 'react';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { Globe, X } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -31,8 +31,7 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
   };
 
   return (
-    <Modal isOpen onClose={onClose} size="md" showCloseButton={false}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
         {/* 头部 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -116,6 +115,5 @@ export function CreateSpaceModal({ onClose, onCreate, isCreating }: CreateSpaceM
           </Button>
         </div>
       </form>
-    </Modal>
   );
 }
