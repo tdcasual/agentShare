@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Identity, HumanIdentity, AgentIdentity } from '../../../shared/types';
 import { Card, CardContent } from '../../../shared/ui-primitives/card';
@@ -73,7 +74,7 @@ export function IdentityCard({ identity, onClick, className }: IdentityCardProps
                 aria-label={isHuman ? t('common.human') : t('common.agent')}
                 role="img"
               >
-                <span aria-hidden="true">{isHuman ? '👤' : '🤖'}</span>
+                {isHuman ? <User className="h-3.5 w-3.5" aria-hidden="true" /> : <Bot className="h-3.5 w-3.5" aria-hidden="true" />}
               </span>
             </div>
           </SparkleEffect>

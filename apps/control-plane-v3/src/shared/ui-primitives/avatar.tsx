@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -10,6 +11,14 @@ const avatarSizes = {
   md: 'w-12 h-12 text-base',
   lg: 'w-16 h-16 text-lg',
   xl: 'w-24 h-24 text-xl',
+} as const;
+
+const fallbackIconSizes = {
+  xs: 'h-3 w-3',
+  sm: 'h-4 w-4',
+  md: 'h-5 w-5',
+  lg: 'h-6 w-6',
+  xl: 'h-8 w-8',
 } as const;
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -33,13 +42,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       if (fallback) {
         return fallback;
       }
-      if (type === 'human') {
-        return '👤';
-      }
-      if (type === 'agent') {
-        return '🤖';
-      }
-      return '👤';
+      return null;
     };
 
     return (
@@ -86,7 +89,11 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
                   : t('common.userAvatar'))
             }
           >
-            {getFallback()}
+            {getFallback() ?? (type === 'agent' ? (
+              <Bot className={cn(fallbackIconSizes[size])} aria-hidden="true" />
+            ) : (
+              <User className={cn(fallbackIconSizes[size])} aria-hidden="true" />
+            ))}
           </span>
         )}
 
