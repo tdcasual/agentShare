@@ -43,7 +43,6 @@
   /* Shadow colors - adapt to theme */
   --kw-shadow-color: rgba(0, 0, 0, 0.04);
   --kw-shadow-color-strong: rgba(0, 0, 0, 0.06);
-  --kw-glass-bg: rgba(255, 255, 255, 0.75);
 
   --kw-human-accent: #0ea5e9;
   --kw-agent-accent: #22c55e;
@@ -73,7 +72,6 @@
   /* Dark mode shadow colors */
   --kw-dark-shadow-color: rgba(0, 0, 0, 0.25);
   --kw-dark-shadow-color-strong: rgba(0, 0, 0, 0.35);
-  --kw-dark-glass-bg: rgba(37, 37, 64, 0.75);
 
   /* Muted accent colors for dark mode */
   --kw-dark-primary: #e891c0;
@@ -125,7 +123,6 @@
   /* Shadow colors dark mode */
   --kw-shadow-color: var(--kw-dark-shadow-color);
   --kw-shadow-color-strong: var(--kw-dark-shadow-color-strong);
-  --kw-glass-bg: var(--kw-dark-glass-bg);
 }
 
 * {
@@ -289,19 +286,6 @@ body {
 
 .dark .shadow-glow {
   box-shadow: 0 0 12px var(--kw-dark-shadow-color);
-}
-
-/* Glass effect - adapts to mode, used sparingly */
-.glass {
-  background: var(--kw-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.dark .glass {
-  background: var(--kw-dark-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 /* Card hover - subtle, professional */
