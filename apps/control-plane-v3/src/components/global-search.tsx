@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useCallback, memo } from 'react';
-import { Command, Loader2, Search } from 'lucide-react';
+import { Bell, Bot, Command, Loader2, Package, Search, Sparkles, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -16,19 +16,20 @@ interface GlobalSearchProps {
 const SEARCH_GROUP_KEYS = ['identities', 'tasks', 'assets', 'skills', 'events'] as const;
 
 function getResultIcon(kind: string) {
+  const props = { className: 'h-4 w-4', 'aria-hidden': 'true' as const };
   switch (kind) {
     case 'agent':
-      return '🤖';
+      return <Bot {...props} />;
     case 'task':
-      return '📋';
+      return <Zap {...props} />;
     case 'secret':
-      return '📦';
+      return <Package {...props} />;
     case 'capability':
-      return '🧠';
+      return <Sparkles {...props} />;
     case 'event':
-      return '🔔';
+      return <Bell {...props} />;
     default:
-      return '✨';
+      return <Sparkles {...props} />;
   }
 }
 
@@ -264,7 +265,7 @@ function SearchResultButton({
           getResultColors(result.kind)
         )}
       >
-        <span aria-hidden="true">{getResultIcon(result.kind)}</span>
+        {getResultIcon(result.kind)}
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-medium text-[var(--kw-text)]">{result.title}</p>

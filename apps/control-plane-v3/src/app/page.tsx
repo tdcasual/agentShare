@@ -135,7 +135,7 @@ const HubContent = memo(function HubContent({ email, role }: { email: string; ro
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
-            <span aria-hidden="true">🌌</span> {t('hub.welcome')} {t('hub.dualCosmos')} <span aria-hidden="true">✨</span>
+            {t('hub.welcome')} {t('hub.dualCosmos')}
           </h1>
           <p className="text-[var(--kw-text-muted)]">
             {t('hub.signedInAs')} {email} {t('hub.withRole')} {translateAccountRole(t, role)}{' '}

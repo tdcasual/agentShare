@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Bell, Check, ChevronRight, Loader2, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Bell, Check, CheckCircle2, ChevronRight, Flame, Info, Loader2, Sparkles, X, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotifications, useMarkNotificationsRead } from '@/hooks/use-notifications';
 import { Button } from '@/shared/ui-primitives/button';
@@ -16,34 +16,34 @@ interface NotificationsProps {
 
 const MAX_DROPDOWN_EVENTS = 6;
 
-const severityStyles: Record<string, { icon: string; bgClass: string; textClass: string }> = {
+const severityStyles: Record<string, { icon: React.ReactNode; bgClass: string; textClass: string }> = {
   success: {
-    icon: '✅',
+    icon: <CheckCircle2 className="h-5 w-5" aria-hidden="true" />,
     bgClass: 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-green-accent-surface)]',
     textClass: 'text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]',
   },
   warning: {
-    icon: '⚠️',
+    icon: <AlertTriangle className="h-5 w-5" aria-hidden="true" />,
     bgClass: 'bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)]',
     textClass: 'text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]',
   },
   error: {
-    icon: '❌',
+    icon: <XCircle className="h-5 w-5" aria-hidden="true" />,
     bgClass: 'bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-rose-surface)]',
     textClass: 'text-[var(--kw-error)] dark:text-[var(--kw-error)]',
   },
   info: {
-    icon: 'ℹ️',
+    icon: <Info className="h-5 w-5" aria-hidden="true" />,
     bgClass: 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-sky-accent-surface)]',
     textClass: 'text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]',
   },
   critical: {
-    icon: '🔥',
+    icon: <Flame className="h-5 w-5" aria-hidden="true" />,
     bgClass: 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-accent-surface)]',
     textClass: 'text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]',
   },
   default: {
-    icon: '✨',
+    icon: <Sparkles className="h-5 w-5" aria-hidden="true" />,
     bgClass: 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-accent-surface)]',
     textClass: 'text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]',
   },
