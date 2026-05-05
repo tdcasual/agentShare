@@ -33,7 +33,7 @@ describe('console layout density', () => {
     const reviewsSource = await readSource('app/reviews/page.tsx');
 
     // Card component provides the base responsive padding
-    expect(cardSource).toContain('p-3 sm:p-4 md:p-6');
+    expect(cardSource).toContain('p-3 sm:p-4 md:p-5');
     // Metric values scale down on mobile
     expect(metricSource).toContain('text-2xl');
     expect(metricSource).toContain('sm:text-3xl');
@@ -98,7 +98,7 @@ describe('console layout density', () => {
   it('uses tighter default card spacing on mobile', async () => {
     const cardSource = await readSource('shared/ui-primitives/card.tsx');
 
-    expect(cardSource).toContain('p-3 sm:p-4 md:p-6');
+    expect(cardSource).toContain('p-3 sm:p-4 md:p-5');
     expect(cardSource).toContain('mb-3 flex flex-col gap-1 sm:mb-4 sm:gap-2');
   });
 

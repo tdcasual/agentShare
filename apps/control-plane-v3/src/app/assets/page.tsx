@@ -1017,7 +1017,7 @@ function EmptyState({
       <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
         {title}
       </h3>
-      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+      <p className="mt-2 hidden text-sm text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
         {description}
       </p>
     </div>
