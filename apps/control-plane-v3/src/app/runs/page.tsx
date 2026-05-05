@@ -278,17 +278,15 @@ const RunsContent = memo(function RunsContent() {
 
           <div className="space-y-3" role="list">
             {filteredRuns.length === 0 ? (
-              <Card variant="kawaii" className="p-12 text-center">
-                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
-                  <Terminal className="h-10 w-10 text-[var(--kw-primary-500)]" />
-                </div>
-                <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+              <div className="rounded-xl border border-dashed border-[var(--kw-border)] p-8 text-left dark:border-[var(--kw-dark-border)]">
+                <Terminal className="mb-3 h-6 w-6 text-[var(--kw-text-muted)]" />
+                <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                   {t('runs.emptyTitle')}
                 </h3>
-                <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
+                <p className="text-sm text-[var(--kw-text-muted)]">
                   {selectedStatus === 'all' ? t('runs.emptyDescAll') : t('runs.emptyDescFiltered')}
                 </p>
-              </Card>
+              </div>
             ) : (
               filteredRuns.map((run) => (
                 <RunCard

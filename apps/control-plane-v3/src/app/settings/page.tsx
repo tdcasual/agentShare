@@ -604,7 +604,7 @@ function SessionStat({
         {label}
       </p>
       <p
-        className={`mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] ${monospace ? 'truncate font-mono text-xs' : ''}`}
+        className={`mt-2 text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)] ${monospace ? 'truncate text-xs tabular-nums tracking-tight' : ''}`}
         title={monospace ? value : undefined}
       >
         {value}

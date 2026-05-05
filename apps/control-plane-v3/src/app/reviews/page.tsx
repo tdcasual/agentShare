@@ -380,18 +380,13 @@ const ReviewsContent = memo(function ReviewsContent() {
 
       {/* Empty State */}
       {!gateLoading && !isLoading && !shouldShowSessionExpired && reviewItems.length === 0 ? (
-        <Card
-          variant="feature"
-          className="space-y-3 py-8 text-center sm:space-y-4 sm:py-12 lg:space-y-6 dark:border-[var(--kw-dark-border)] dark:from-[var(--kw-dark-surface)] dark:to-[var(--kw-dark-surface-alt)]"
-        >
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-green-surface)] text-[var(--kw-green-text)] dark:bg-[var(--kw-dark-green-accent-surface)] dark:text-[var(--kw-dark-mint)]">
-            <ShieldCheck className="h-10 w-10" />
-          </div>
+        <div className="space-y-3 rounded-xl border border-dashed border-[var(--kw-border)] p-8 text-left dark:border-[var(--kw-dark-border)]">
+          <ShieldCheck className="h-6 w-6 text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]" />
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            <h2 className="text-xl font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {t('reviews.empty.title')}
             </h2>
-            <p className="mx-auto hidden max-w-md text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
+            <p className="max-w-md text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               {t('reviews.empty.description')}
             </p>
           </div>
@@ -406,7 +401,7 @@ const ReviewsContent = memo(function ReviewsContent() {
               💕
             </span>
           </div>
-        </Card>
+        </div>
       ) : null}
 
       {!gateLoading &&

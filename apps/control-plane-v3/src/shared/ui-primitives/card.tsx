@@ -43,7 +43,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'relative rounded-2xl p-3 sm:p-4 md:p-6',
+          'relative rounded-xl p-3 sm:p-4 md:p-5',
           cardVariants[variant],
           hover && 'card-kawaii cursor-pointer',
           className

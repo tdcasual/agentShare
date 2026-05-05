@@ -287,20 +287,16 @@ const PlaybooksContent = memo(function PlaybooksContent() {
           {/* 手册列表 */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {playbooks.length === 0 ? (
-              <div className="col-span-full">
-                <Card variant="kawaii" className="p-12 text-center">
-                  <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-primary-100)]">
-                    <BookOpen className="h-10 w-10 text-[var(--kw-primary-500)]" />
-                  </div>
-                  <h3 className="mb-2 text-lg font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                    {t('playbooks.emptyTitle')}
-                  </h3>
-                  <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-text-muted)]">
-                    {searchQuery || selectedTaskType !== 'all' || selectedTag
-                      ? t('playbooks.emptyDescFilter')
-                      : t('playbooks.emptyDescNoData')}
-                  </p>
-                </Card>
+              <div className="col-span-full rounded-xl border border-dashed border-[var(--kw-border)] p-8 text-left dark:border-[var(--kw-dark-border)]">
+                <BookOpen className="mb-3 h-6 w-6 text-[var(--kw-text-muted)]" />
+                <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                  {t('playbooks.emptyTitle')}
+                </h3>
+                <p className="text-sm text-[var(--kw-text-muted)]">
+                  {searchQuery || selectedTaskType !== 'all' || selectedTag
+                    ? t('playbooks.emptyDescFilter')
+                    : t('playbooks.emptyDescNoData')}
+                </p>
               </div>
             ) : (
               playbooks.map((playbook) => (

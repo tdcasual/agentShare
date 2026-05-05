@@ -60,7 +60,7 @@
   --kw-amber-text: #a16207;
 
   /* Dark Mode - Soft, no neon */
-  --kw-dark-bg: #1a1a2e;
+  --kw-dark-bg: #12121a;
   --kw-dark-surface: #252540;
   --kw-dark-surface-alt: #2d2d50;
   --kw-dark-border: #3d3d5c;
@@ -381,7 +381,7 @@ body {
 .dark .card-kawaii:hover {
   box-shadow:
     0 8px 20px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(232, 145, 192, 0.06);
+    0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* Safe area support for notched devices */

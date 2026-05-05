@@ -1012,17 +1012,15 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-bg)]/60 border border-dashed border-[var(--kw-primary-200)] bg-[var(--kw-surface)]/70 text-center dark:border-[var(--kw-dark-border)]">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
-        {icon}
-      </div>
-      <h3 className="mt-4 text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+    <div className="rounded-xl border border-dashed border-[var(--kw-border)] p-8 text-left dark:border-[var(--kw-dark-border)]">
+      <div className="mb-3 text-[var(--kw-text-muted)]">{icon}</div>
+      <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
         {title}
       </h3>
-      <p className="mt-2 hidden text-sm text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
+      <p className="mt-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         {description}
       </p>
-    </Card>
+    </div>
   );
 }
 

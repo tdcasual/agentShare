@@ -185,19 +185,15 @@ const TasksContent = memo(function TasksContent() {
       ) : null}
 
       {!page.gateLoading && !page.isLoading && page.taskViews.length === 0 ? (
-        <Card variant="feature" className="space-y-3 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)]">
-            <ClipboardList className="h-7 w-7" />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
-              {page.t('tasks.empty.title')}
-            </h2>
-            <p className="hidden text-[var(--kw-text-muted)] sm:block dark:text-[var(--kw-dark-text-muted)]">
-              {page.t('tasks.empty.description')}
-            </p>
-          </div>
-        </Card>
+        <div className="space-y-2 rounded-xl border border-dashed border-[var(--kw-border)] p-8 text-left dark:border-[var(--kw-dark-border)]">
+          <ClipboardList className="h-6 w-6 text-[var(--kw-text-muted)]" />
+          <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
+            {page.t('tasks.empty.title')}
+          </h2>
+          <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            {page.t('tasks.empty.description')}
+          </p>
+        </div>
       ) : null}
 
       {!page.gateLoading &&

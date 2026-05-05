@@ -363,19 +363,15 @@ const TokensContent = memo(function TokensContent() {
       ) : null}
 
       {!gateLoading && !isLoading && accessTokens.length === 0 ? (
-        <Card variant="feature" className="space-y-3 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-500)]">
-            <KeyRound className="h-7 w-7" />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
-              {t('tokens.empty.title')}
-            </h2>
-            <p className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('tokens.empty.description')}
-            </p>
-          </div>
-        </Card>
+        <div className="space-y-2 rounded-xl border border-dashed border-[var(--kw-border)] p-8 text-left dark:border-[var(--kw-dark-border)]">
+          <KeyRound className="h-6 w-6 text-[var(--kw-text-muted)]" />
+          <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
+            {t('tokens.empty.title')}
+          </h2>
+          <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            {t('tokens.empty.description')}
+          </p>
+        </div>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -482,7 +478,7 @@ const TokensContent = memo(function TokensContent() {
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
                 {revealedSecret.prefix}
               </p>
-              <p className="break-all font-mono text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              <p className="break-all text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                 {revealedSecret.apiKey}
               </p>
             </Card>
