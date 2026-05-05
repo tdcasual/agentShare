@@ -165,7 +165,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
   );
 
   return (
-    <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <section id="main-content" className="mx-auto max-w-6xl space-y-5 sm:space-y-8 lg:space-y-12">
       <section className="relative overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(252,231,243,0.92))] p-4 sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[linear-gradient(135deg,rgba(37,37,64,0.98),rgba(18,18,26,0.96))]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
           <div className="max-w-3xl">

@@ -380,6 +380,6 @@ function ErrorState({ message }: { message: string }) {
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl p-3 sm:rounded-3xl sm:p-5 ${className ?? ''}`}>{children}</div>
+    <div className={`rounded-2xl p-3 sm:rounded-xl sm:p-5 ${className ?? ''}`}>{children}</div>
   );
 }

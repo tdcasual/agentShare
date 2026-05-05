@@ -55,7 +55,7 @@ const DocsContent = memo(function DocsContent() {
   const docsError = docsQuery.error instanceof Error ? docsQuery.error.message : null;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <div className="mx-auto max-w-6xl space-y-3 sm:space-y-5 lg:space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>

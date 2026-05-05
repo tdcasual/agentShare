@@ -132,7 +132,7 @@ export function Modal({
         aria-labelledby={title ? 'modal-title' : undefined}
         aria-describedby={description ? 'modal-description' : undefined}
         className={cn(
-          'relative w-full overflow-hidden rounded-2xl bg-[var(--kw-surface)] shadow-2xl sm:rounded-3xl dark:bg-[var(--kw-dark-surface)]',
+          'relative w-full overflow-hidden rounded-2xl bg-[var(--kw-surface)] shadow-2xl dark:bg-[var(--kw-dark-surface)]',
           'animate-scale-in',
           modalSizes[size]
         )}

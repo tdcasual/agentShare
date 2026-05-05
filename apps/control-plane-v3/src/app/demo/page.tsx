@@ -22,7 +22,7 @@ const SANDBOX_ROUTES = [
 
 export default function DemoHubPage() {
   return (
-    <main id="main-content" className="space-y-4 sm:space-y-6 lg:space-y-8">
+    <main id="main-content" className="space-y-3 sm:space-y-5 lg:space-y-8">
       <section className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/70 overflow-hidden rounded-[2rem] border bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_42%),linear-gradient(135deg,rgba(255,251,235,0.95),rgba(255,247,237,0.9))] p-8 shadow-[0_20px_60px_-30px_rgba(180,83,9,0.35)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_38%),linear-gradient(135deg,rgba(33,24,12,0.96),rgba(49,31,12,0.92))]">
         <div className="grid gap-8 lg:grid-cols-[1.35fr_0.9fr] lg:items-end">
           <div className="space-y-4">

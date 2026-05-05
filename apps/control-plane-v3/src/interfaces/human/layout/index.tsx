@@ -138,10 +138,8 @@ function ErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) 
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[var(--kw-primary-50)] to-[var(--kw-purple-surface)] p-4 dark:from-[var(--kw-dark-bg)] dark:to-[var(--kw-dark-surface)]">
-      <div className="w-full max-w-md rounded-3xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-8 text-center shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
-        <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
-          <AlertCircle className="h-8 w-8 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
-        </div>
+      <div className="w-full max-w-md rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-8 text-left shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <AlertCircle className="mb-4 h-6 w-6 text-[var(--kw-error)] dark:text-[var(--kw-error)]" />
 
         <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
           {t('common.unexpectedErrorTitle')}

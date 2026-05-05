@@ -276,7 +276,7 @@ function SpacesContent() {
   }
 
   return (
-    <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <section id="main-content" className="mx-auto max-w-6xl space-y-5 sm:space-y-8 lg:space-y-12">
       {/* Hero Section */}
       {canViewAdminPanels ? (
         <section className="relative overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,247,237,0.94))] p-4 sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[linear-gradient(135deg,rgba(37,37,64,0.98),rgba(18,18,26,0.96))]">

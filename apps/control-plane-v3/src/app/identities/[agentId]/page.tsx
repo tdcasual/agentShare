@@ -102,7 +102,7 @@ function AgentDetailContent() {
 
   if (isLoading) {
     return (
-      <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+      <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-10">
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
           <span className="animate-spin">🌸</span>
           {t('identities.detail.loading')}
@@ -113,7 +113,7 @@ function AgentDetailContent() {
 
   if (gateError || !agent) {
     return (
-      <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+      <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-10">
         <Button
           variant="secondary"
           size="sm"
@@ -130,7 +130,7 @@ function AgentDetailContent() {
   }
 
   return (
-    <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-8">
+    <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-10">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-4">
           <Button

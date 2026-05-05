@@ -23,7 +23,7 @@ export function PWAUpdatePrompt({ className }: PWAUpdatePromptProps) {
     <Card
       className={cn(
         'fixed left-4 right-4 top-4 z-toast md:left-auto md:right-4 md:w-96',
-        'animate-slide-down border-l-4 border-l-[var(--kw-primary-500)] shadow-xl',
+        'animate-slide-down border border-[var(--kw-primary-500)] shadow-xl',
         className
       )}
     >
