@@ -282,7 +282,7 @@ export function CreateMenu({ variant = 'primary', size = 'sm' }: CreateMenuProps
 
             {/* 无结果 */}
             {filteredActions.length === 0 && (
-              <div className="px-4 py-8 text-center">
+              <div className="px-4 py-8 text-left">
                 <p className="text-sm text-[var(--kw-text-muted)]">{t('createMenu.noResults')}</p>
                 <p className="mt-1 text-xs text-[var(--kw-text-muted)]">
                   {t('createMenu.noResultsHint')}

@@ -230,7 +230,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                   <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-dark-text)]">
                     {stats.pending}
                   </p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">
+                  <p className="text-sm text-[var(--kw-orange-text)]">
                     {getApprovalStatusLabel('pending', t)}
                   </p>
                 </div>
@@ -245,7 +245,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                   <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-dark-text)]">
                     {stats.approved}
                   </p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">
+                  <p className="text-sm text-[var(--kw-green-text)]">
                     {getApprovalStatusLabel('approved', t)}
                   </p>
                 </div>
@@ -260,7 +260,7 @@ const ApprovalsContent = memo(function ApprovalsContent() {
                   <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl dark:text-[var(--kw-dark-text)]">
                     {stats.rejected}
                   </p>
-                  <p className="text-sm text-[var(--kw-text-muted)]">
+                  <p className="text-sm text-[var(--kw-rose-text)]">
                     {getApprovalStatusLabel('rejected', t)}
                   </p>
                 </div>

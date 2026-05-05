@@ -231,10 +231,8 @@ export function Notifications({ className }: NotificationsProps) {
             )}
 
             {!isLoading && availability === 'unavailable' && (
-              <div className="p-8 text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-border)]">
-                  <Bell className="h-6 w-6 text-[var(--kw-text-muted)]" />
-                </div>
+              <div className="p-8 text-left">
+                <Bell className="mb-3 h-5 w-5 text-[var(--kw-text-muted)]" />
                 <p className="text-sm text-[var(--kw-text-muted)]">
                   {t('notifications.unavailableTitle')}
                 </p>
@@ -265,10 +263,8 @@ export function Notifications({ className }: NotificationsProps) {
               availability !== 'unavailable' &&
               !error &&
               eventsToShow.length === 0 && (
-                <div className="p-8 text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-border)]">
-                    <Bell className="h-6 w-6 text-[var(--kw-text-muted)]" />
-                  </div>
+                <div className="p-8 text-left">
+                  <Bell className="mb-3 h-5 w-5 text-[var(--kw-text-muted)]" />
                   <p className="text-sm text-[var(--kw-text-muted)]">
                     {t('notifications.emptyTitle')}
                   </p>

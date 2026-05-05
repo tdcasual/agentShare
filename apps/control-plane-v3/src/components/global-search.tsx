@@ -203,7 +203,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           )}
 
           {!isLoading && !error && hasQuery && groupedResults.length === 0 && (
-            <div className="p-3 text-center text-[var(--kw-text-muted)] sm:p-4">
+            <div className="p-3 text-left text-[var(--kw-text-muted)] sm:p-4">
               <p className="text-sm">{t('globalSearch.noResults')}</p>
               <p className="mt-1 text-xs">{t('globalSearch.noResultsHint')}</p>
             </div>
