@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Bot } from 'lucide-react';
+import { ArrowLeft, Bot, Loader2 } from 'lucide-react';
 import {
   useOpenClawAgent,
   useOpenClawAgents,
@@ -104,7 +104,7 @@ function AgentDetailContent() {
     return (
       <section id="main-content" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 lg:space-y-10">
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <span className="animate-spin">🌸</span>
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           {t('identities.detail.loading')}
         </Card>
       </section>

@@ -15,6 +15,7 @@ import {
   FileText,
   Play,
   Lock,
+  Loader2,
 } from 'lucide-react';
 import { deriveGovernanceStatus, governanceStatusTranslationKey } from '@/domains/governance';
 import { Layout } from '@/interfaces/human/layout';
@@ -373,7 +374,7 @@ const ReviewsContent = memo(function ReviewsContent() {
       {/* Loading */}
       {gateLoading || isLoading ? (
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <span className="animate-spin">🌸</span>
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           {t('reviews.loading')}
         </Card>
       ) : null}

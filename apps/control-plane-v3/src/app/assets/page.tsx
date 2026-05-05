@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import { Cpu, KeyRound, LockKeyhole, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { Cpu, KeyRound, Loader2, LockKeyhole, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 import { Layout } from '@/interfaces/human/layout';
 import {
@@ -289,7 +289,7 @@ function Alerts({
 
       {page.loading ? (
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <span className="animate-spin">🌸</span>
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           {page.t('assets.loading')}
         </Card>
       ) : null}

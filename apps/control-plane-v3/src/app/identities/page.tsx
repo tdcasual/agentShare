@@ -2,7 +2,7 @@
 
 import { useMemo, useState, memo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Bot, Building2, RefreshCw, Search, ShieldCheck, Users, UserPlus } from 'lucide-react';
+import { Bot, Building2, Loader2, RefreshCw, Search, ShieldCheck, Users, UserPlus } from 'lucide-react';
 import {
   refreshAdminAccounts,
   refreshOpenClawAgents,
@@ -647,7 +647,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
 
       {isLoading ? (
         <Card className="flex items-center gap-3 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <span className="animate-spin">🌸</span>
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           {t('identities.loadingManagementIdentities')}
         </Card>
       ) : null}
