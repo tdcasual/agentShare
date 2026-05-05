@@ -15,8 +15,8 @@ export const kawaiiTheme: ThemeDefinition = {
     '--kw-primary-100': '#FFE4E1',
     '--kw-primary-200': '#FFC0CB',
     '--kw-primary-300': '#FFB6C1',
-    '--kw-primary-400': '#FF69B4',
-    '--kw-primary-500': '#FF1493',
+    '--kw-primary-400': '#f472b6',
+    '--kw-primary-500': '#db2777',
     '--kw-primary-600': '#a03060',
 
     // Secondary colors - Candy palette
