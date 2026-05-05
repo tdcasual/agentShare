@@ -22,7 +22,7 @@ import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { MetricCard } from '@/shared/ui-primitives/metric';
 import { Input } from '@/shared/ui-primitives/input';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { FilterButton } from '@/shared/ui-primitives/filter-button';
 import { cn } from '@/lib/utils';
 import { translateAccountRole, translateTokenStatus } from '@/lib/enum-labels';
@@ -70,8 +70,16 @@ const AssetsContent = memo(function AssetsContent() {
       <OperatorCard page={page} />
       <Alerts page={page} form={form} />
       <AssetGrids page={page} form={form} />
-      <SecretModal form={form} />
-      <CapabilityModal page={page} form={form} />
+      {form.showSecretModal && (
+        <div data-testid="secret-modal-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <SecretModal form={form} />
+        </div>
+      )}
+      {form.showCapabilityModal && (
+        <div data-testid="capability-modal-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <CapabilityModal page={page} form={form} />
+        </div>
+      )}
     </section>
   );
 });
@@ -636,14 +644,11 @@ function CatalogSelect({
 
 function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
   return (
-    <Modal
-      isOpen={form.showSecretModal}
-      onClose={form.closeSecretModal}
-      title={form.t('assets.secrets.modalTitle')}
-      description={form.t('assets.secrets.modalDesc')}
-      size="lg"
-    >
-      <form className="space-y-3 sm:space-y-4" onSubmit={form.handleCreateSecret}>
+    <form className="space-y-3 sm:space-y-4" onSubmit={form.handleCreateSecret}>
+      <div>
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{form.t('assets.secrets.modalTitle')}</h2>
+        <p className="text-sm text-[var(--kw-text-muted)]">{form.t('assets.secrets.modalDesc')}</p>
+      </div>
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             label={form.t('assets.secrets.displayName')}
@@ -721,7 +726,6 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
           </Button>
         </div>
       </form>
-    </Modal>
   );
 }
 
@@ -733,14 +737,11 @@ function CapabilityModal({
   form: ReturnType<typeof useAssetsForm>;
 }) {
   return (
-    <Modal
-      isOpen={form.showCapabilityModal}
-      onClose={form.closeCapabilityModal}
-      title={form.t('assets.capabilities.modalTitle')}
-      description={form.t('assets.capabilities.modalDesc')}
-      size="xl"
-    >
-      <form className="space-y-5" onSubmit={form.handleCreateCapability}>
+    <form className="space-y-5" onSubmit={form.handleCreateCapability}>
+      <div>
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{form.t('assets.capabilities.modalTitle')}</h2>
+        <p className="text-sm text-[var(--kw-text-muted)]">{form.t('assets.capabilities.modalDesc')}</p>
+      </div>
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             label={form.t('assets.capabilities.name')}
@@ -971,7 +972,6 @@ function CapabilityModal({
           </Button>
         </div>
       </form>
-    </Modal>
   );
 }
 

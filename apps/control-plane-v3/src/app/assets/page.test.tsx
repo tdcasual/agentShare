@@ -291,11 +291,11 @@ describe('assets page', () => {
     await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
     await user.click(screen.getByRole('button', { name: t('assets.secrets.create') }));
 
-    const dialog = screen.getByRole('dialog');
+    const panel = screen.getByTestId('secret-modal-panel');
     await waitFor(() => {
-      expect(within(dialog).getByRole('alert')).toHaveTextContent('Secret backend unavailable');
+      expect(within(panel).getByRole('alert')).toHaveTextContent('Secret backend unavailable');
     });
-    expect(dialog).toBeInTheDocument();
+    expect(panel).toBeInTheDocument();
   });
 
   it('keeps the capability form open and shows backend errors when capability publishing fails', async () => {
@@ -313,11 +313,11 @@ describe('assets page', () => {
     );
     await user.click(screen.getByRole('button', { name: t('assets.capabilities.create') }));
 
-    const dialog = screen.getByRole('dialog');
+    const panel = screen.getByTestId('capability-modal-panel');
     await waitFor(() => {
-      expect(within(dialog).getByRole('alert')).toHaveTextContent('Secret not found');
+      expect(within(panel).getByRole('alert')).toHaveTextContent('Secret not found');
     });
-    expect(dialog).toBeInTheDocument();
+    expect(panel).toBeInTheDocument();
   });
 
   it('shows a status message when secret publishing succeeds', async () => {
@@ -340,9 +340,9 @@ describe('assets page', () => {
     await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
     await user.click(screen.getByRole('button', { name: t('assets.secrets.create') }));
 
-    const dialog = screen.getByRole('dialog');
+    const panel = screen.getByTestId('secret-modal-panel');
     await waitFor(() => {
-      expect(within(dialog).getByRole('status')).toHaveTextContent(
+      expect(within(panel).getByRole('status')).toHaveTextContent(
         t('assets.secrets.createSuccessActive')
       );
     });
@@ -369,9 +369,9 @@ describe('assets page', () => {
     await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
     await user.click(screen.getByRole('button', { name: t('assets.secrets.create') }));
 
-    const dialog = screen.getByRole('dialog');
+    const panel = screen.getByTestId('secret-modal-panel');
     await waitFor(() => {
-      expect(within(dialog).getByRole('status')).toHaveTextContent(
+      expect(within(panel).getByRole('status')).toHaveTextContent(
         t('assets.secrets.createSuccessPendingReview')
       );
     });
@@ -384,15 +384,15 @@ describe('assets page', () => {
 
     await user.click(screen.getByRole('button', { name: t('assets.newSecret') }));
 
-    const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByRole('combobox', { name: t('assets.secrets.kind') })).toHaveValue(
+    const panel = screen.getByTestId('secret-modal-panel');
+    expect(within(panel).getByRole('combobox', { name: t('assets.secrets.kind') })).toHaveValue(
       'api_token'
     );
     expect(
-      within(dialog).getByRole('combobox', { name: t('assets.secrets.provider') })
+      within(panel).getByRole('combobox', { name: t('assets.secrets.provider') })
     ).toHaveValue('openai');
 
-    const environment = within(dialog).getByRole('combobox', {
+    const environment = within(panel).getByRole('combobox', {
       name: t('assets.secrets.environment'),
     });
     expect(environment).toHaveValue('');
@@ -407,13 +407,13 @@ describe('assets page', () => {
     render(<AssetsPage />);
 
     await user.click(screen.getByRole('button', { name: t('assets.newCapability') }));
-    const dialog = screen.getByRole('dialog');
-    await user.selectOptions(within(dialog).getByLabelText(t('assets.capabilities.bindSecret')), [
+    const panel = screen.getByTestId('capability-modal-panel');
+    await user.selectOptions(within(panel).getByLabelText(t('assets.capabilities.bindSecret')), [
       'secret-2',
     ]);
 
     expect(
-      within(dialog).getByRole('combobox', { name: t('assets.capabilities.requiredProvider') })
+      within(panel).getByRole('combobox', { name: t('assets.capabilities.requiredProvider') })
     ).toHaveValue('anthropic');
   });
 
@@ -483,14 +483,14 @@ describe('assets page', () => {
 
     await user.click(screen.getByRole('button', { name: t('assets.newCapability') }));
 
-    const dialog = screen.getByRole('dialog');
+    const panel = screen.getByTestId('capability-modal-panel');
     await user.click(
-      within(dialog).getByRole('button', { name: t('assets.capabilities.specificTokens') })
+      within(panel).getByRole('button', { name: t('assets.capabilities.specificTokens') })
     );
-    expect(within(dialog).getByText('Bootstrap Credential · Active')).toBeInTheDocument();
-    expect(within(dialog).queryByText(/· active$/)).not.toBeInTheDocument();
+    expect(within(panel).getByText('Bootstrap Credential · Active')).toBeInTheDocument();
+    expect(within(panel).queryByText(/· active$/)).not.toBeInTheDocument();
     expect(
-      within(dialog).getByRole('button', { name: t('assets.capabilities.byTokenLabel') })
+      within(panel).getByRole('button', { name: t('assets.capabilities.byTokenLabel') })
     ).toBeInTheDocument();
   });
 });
