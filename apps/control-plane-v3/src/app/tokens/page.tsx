@@ -466,32 +466,32 @@ const TokensContent = memo(function TokensContent() {
         t={t}
       />
 
-      <Modal
-        isOpen={revealedSecret !== null}
-        onClose={() => setRevealedSecret(null)}
-        title={t('tokens.secretModal.title')}
-        description={revealedSecret?.label}
-      >
-        {revealedSecret ? (
-          <div className="space-y-4">
-            <Card className="bg-[var(--kw-primary-50)]/40 space-y-3">
-              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {revealedSecret.prefix}
-              </p>
-              <p className="break-all text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {revealedSecret.apiKey}
-              </p>
-            </Card>
-            <Button
-              variant="secondary"
-              onClick={() => navigator.clipboard.writeText(revealedSecret.apiKey)}
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              {t('tokens.actions.copySecret')}
-            </Button>
+      {revealedSecret && (
+        <div data-testid="token-secret-panel" className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{t('tokens.secretModal.title')}</h2>
+              <p className="text-sm text-[var(--kw-text-muted)]">{revealedSecret.label}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setRevealedSecret(null)}>{t('common.close')}</Button>
           </div>
-        ) : null}
-      </Modal>
+          <Card className="bg-[var(--kw-primary-50)]/40 space-y-3">
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {revealedSecret.prefix}
+            </p>
+            <p className="break-all text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {revealedSecret.apiKey}
+            </p>
+          </Card>
+          <Button
+            variant="secondary"
+            onClick={() => navigator.clipboard.writeText(revealedSecret.apiKey)}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            {t('tokens.actions.copySecret')}
+          </Button>
+        </div>
+      )}
 
       {session ? (
         <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
