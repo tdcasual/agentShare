@@ -20,7 +20,7 @@ import { Button } from '@/shared/ui-primitives/button';
 import { Card } from '@/shared/ui-primitives/card';
 import { MetricCard } from '@/shared/ui-primitives/metric';
 import { Input } from '@/shared/ui-primitives/input';
-import { Modal } from '@/shared/ui-primitives/modal';
+
 import { StatDisplay } from '@/shared/ui-primitives/stat-display';
 import { translateAccountRole, translateTokenStatus } from '@/lib/enum-labels';
 
@@ -454,17 +454,20 @@ const TokensContent = memo(function TokensContent() {
         ))}
       </div>
 
-      <CreateAccessTokenModal
-        form={createTokenForm}
-        locale={locale}
-        error={error}
-        isOpen={showCreateTokenModal}
-        onClose={() => setShowCreateTokenModal(false)}
-        onSubmit={handleCreateToken}
-        onChange={setCreateTokenForm}
-        submitting={submitting}
-        t={t}
-      />
+      {showCreateTokenModal && (
+        <div data-testid="create-token-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <CreateAccessTokenForm
+            form={createTokenForm}
+            locale={locale}
+            error={error}
+            onClose={() => setShowCreateTokenModal(false)}
+            onSubmit={handleCreateToken}
+            onChange={setCreateTokenForm}
+            submitting={submitting}
+            t={t}
+          />
+        </div>
+      )}
 
       {revealedSecret && (
         <div data-testid="token-secret-panel" className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
@@ -503,11 +506,10 @@ const TokensContent = memo(function TokensContent() {
   );
 });
 
-function CreateAccessTokenModal({
+function CreateAccessTokenForm({
   form,
   locale,
   error,
-  isOpen,
   onClose,
   onSubmit,
   onChange,
@@ -524,7 +526,6 @@ function CreateAccessTokenModal({
   };
   locale: string;
   error: string | null;
-  isOpen: boolean;
   onClose: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onChange: Dispatch<
@@ -541,14 +542,7 @@ function CreateAccessTokenModal({
   t: (key: string) => string;
 }) {
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={t('tokens.actions.issueAccessToken')}
-      description={t('tokens.form.issueDescription')}
-      size="lg"
-    >
-      <form className="space-y-4" onSubmit={onSubmit}>
+    <form className="space-y-4" onSubmit={onSubmit}>
         <Input
           label={t('tokens.form.displayName')}
           value={form.display_name}
@@ -618,7 +612,6 @@ function CreateAccessTokenModal({
           </Button>
         </div>
       </form>
-    </Modal>
   );
 }
 
