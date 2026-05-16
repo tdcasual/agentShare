@@ -82,6 +82,8 @@ const AssetsContent = memo(function AssetsContent() {
       {form.showSecretModal && (
         <div
           data-testid="secret-modal-panel"
+          role="region"
+          aria-label={form.t('assets.secrets.modalTitle')}
           className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
           <SecretModal form={form} />
@@ -90,6 +92,8 @@ const AssetsContent = memo(function AssetsContent() {
       {form.showCapabilityModal && (
         <div
           data-testid="capability-modal-panel"
+          role="region"
+          aria-label={form.t('assets.capabilities.modalTitle')}
           className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
           <CapabilityModal page={page} form={form} />

@@ -220,6 +220,8 @@ const TasksContent = memo(function TasksContent() {
       {form.showCreateTaskModal && (
         <div
           data-testid="create-task-panel"
+          role="region"
+          aria-label={form.t('tasks.publishTask')}
           className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
         >
           <CreateTaskPanel form={form} allTokens={page.allTokens} />

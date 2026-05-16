@@ -147,7 +147,7 @@ test.describe('publish failure feedback', () => {
     await expect(page.getByRole('heading', { name: '资产管理' })).toBeVisible();
 
     await page.getByRole('button', { name: '新建密钥' }).click();
-    const dialog = page.getByRole('dialog', { name: '发布密钥' });
+    const dialog = page.getByTestId('secret-modal-panel');
     await dialog.getByLabel('显示名称').fill('E2E OpenAI key');
     await dialog.getByLabel('密钥值').fill('sk-test-secret');
     await dialog.getByRole('button', { name: '创建密钥' }).click();
@@ -163,7 +163,7 @@ test.describe('publish failure feedback', () => {
     await expect(page.getByRole('heading', { name: '资产管理' })).toBeVisible();
 
     await page.getByRole('button', { name: '新建能力' }).click();
-    const dialog = page.getByRole('dialog', { name: '发布 capability' });
+    const dialog = page.getByTestId('capability-modal-panel');
     await dialog.getByLabel('Capability 名称').fill('openai.e2e.failure');
     await dialog.getByLabel('绑定密钥').selectOption('secret-1');
     await dialog.getByRole('button', { name: '创建 capability' }).click();
@@ -179,7 +179,7 @@ test.describe('publish failure feedback', () => {
     await expect(page.getByRole('heading', { name: '任务编排' })).toBeVisible();
 
     await page.getByRole('button', { name: '发布任务' }).click();
-    const dialog = page.getByRole('dialog', { name: '发布任务' });
+    const dialog = page.getByTestId('create-task-panel');
     await dialog.getByLabel('标题').fill('发布失败回归任务');
     await dialog.getByText('Primary Token').click();
     await dialog.getByRole('button', { name: '发布任务' }).click();

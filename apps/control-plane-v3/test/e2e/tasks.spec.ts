@@ -15,7 +15,7 @@ test.describe('tasks management', () => {
   test('opens task creation dialog', async ({ page }) => {
     await page.goto('/tasks');
     await page.getByRole('button', { name: '发布任务' }).click();
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByTestId('create-task-panel');
     await expect(dialog).toBeVisible();
   });
 });

@@ -18,6 +18,9 @@ async function mockBootstrapInitialized(page: import('@playwright/test').Page) {
   await page.route('**/api/bootstrap/status', async (route) => {
     await fulfillJson(route, 200, { initialized: true });
   });
+  await page.route('**/api/session/me', async (route) => {
+    await fulfillJson(route, 401, { detail: 'Not authenticated' });
+  });
 }
 
 async function mockBootstrapNotInitialized(page: import('@playwright/test').Page) {
