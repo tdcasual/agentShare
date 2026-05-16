@@ -6,9 +6,14 @@ import { createCoreRuntime, initializeRuntime, RuntimeContext } from '@/core/run
 import { IdentityDomainPlugin } from '@/domains/identity/plugin';
 import { useI18n } from '@/components/i18n-provider';
 import { Loader2 } from 'lucide-react';
+import { isDemoRoute } from '@/lib/route-policy';
 
 interface RuntimeProviderProps {
   children: React.ReactNode;
+}
+
+export function shouldUseRuntimeShell(pathname: string): boolean {
+  return isDemoRoute(pathname);
 }
 
 /**

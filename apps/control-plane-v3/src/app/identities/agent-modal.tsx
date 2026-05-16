@@ -141,181 +141,181 @@ export function AgentModal({
           {isEdit ? t('identities.agentModal.editDesc') : t('identities.agentModal.createDesc')}
         </p>
       </div>
+      <Input
+        label={t('identities.agentModal.name')}
+        value={form.name}
+        onChange={(e) => updateField('name', e.target.value)}
+        placeholder={t('identities.agentModal.namePlaceholder')}
+        required
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
-          label={t('identities.agentModal.name')}
-          value={form.name}
-          onChange={(e) => updateField('name', e.target.value)}
-          placeholder={t('identities.agentModal.namePlaceholder')}
+          label={t('identities.labels.workspaceRoot')}
+          value={form.workspace_root}
+          onChange={(e) => updateField('workspace_root', e.target.value)}
+          placeholder="/workspace/agents/example"
           required
         />
+        <Input
+          label={t('identities.labels.agentDirectory')}
+          value={form.agent_dir}
+          onChange={(e) => updateField('agent_dir', e.target.value)}
+          placeholder="/app/agent"
+          required
+        />
+      </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input
-            label={t('identities.labels.workspaceRoot')}
-            value={form.workspace_root}
-            onChange={(e) => updateField('workspace_root', e.target.value)}
-            placeholder="/workspace/agents/example"
-            required
-          />
-          <Input
-            label={t('identities.labels.agentDirectory')}
-            value={form.agent_dir}
-            onChange={(e) => updateField('agent_dir', e.target.value)}
-            placeholder="/app/agent"
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <CatalogSelect
-            id="agent-model"
-            label={t('identities.labels.model')}
-            value={form.model ?? ''}
-            onChange={(value) => updateField('model', value)}
-            options={AGENT_MODEL_OPTIONS}
-            t={t}
-          />
-          <div>
-            <label
-              htmlFor="agent-thinking-level"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
-            >
-              {t('identities.labels.thinkingLevel')}
-            </label>
-            <select
-              id="agent-thinking-level"
-              className={selectClassName}
-              value={form.thinking_level}
-              onChange={(e) => updateField('thinking_level', e.target.value)}
-            >
-              {THINKING_LEVEL_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.labelKey)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="agent-sandbox-mode"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
-            >
-              {t('identities.labels.sandboxMode')}
-            </label>
-            <select
-              id="agent-sandbox-mode"
-              className={selectClassName}
-              value={form.sandbox_mode}
-              onChange={(e) => updateField('sandbox_mode', e.target.value)}
-            >
-              {SANDBOX_MODE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.labelKey)}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label
-              htmlFor="agent-risk-tier"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
-            >
-              {t('identities.agentModal.riskTier')}
-            </label>
-            <select
-              id="agent-risk-tier"
-              className={selectClassName}
-              value={form.risk_tier}
-              onChange={(e) => updateField('risk_tier', e.target.value)}
-            >
-              <option value="low">low</option>
-              <option value="medium">medium</option>
-              <option value="high">high</option>
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="agent-auth-method"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
-            >
-              {t('identities.agentModal.authMethod')}
-            </label>
-            <select
-              id="agent-auth-method"
-              className={selectClassName}
-              value={form.auth_method}
-              onChange={(e) => updateField('auth_method', e.target.value)}
-            >
-              {AUTH_METHOD_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.labelKey)}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
-          <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
-            {t('identities.labels.allowedCapabilityIds')}
-          </legend>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {availableCapabilities.map((capability) => (
-              <label
-                key={capability.id}
-                className="flex items-start gap-3 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-              >
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={(form.allowed_capability_ids ?? []).includes(capability.id)}
-                  onChange={() => toggleListValue('allowed_capability_ids', capability.id)}
-                />
-                <span>
-                  <span className="block font-medium text-[var(--kw-text)]">{capability.name}</span>
-                  <span className="block text-xs text-[var(--kw-text-muted)]">{capability.id}</span>
-                </span>
-              </label>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <CatalogSelect
+          id="agent-model"
+          label={t('identities.labels.model')}
+          value={form.model ?? ''}
+          onChange={(value) => updateField('model', value)}
+          options={AGENT_MODEL_OPTIONS}
+          t={t}
+        />
+        <div>
+          <label
+            htmlFor="agent-thinking-level"
+            className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+          >
+            {t('identities.labels.thinkingLevel')}
+          </label>
+          <select
+            id="agent-thinking-level"
+            className={selectClassName}
+            value={form.thinking_level}
+            onChange={(e) => updateField('thinking_level', e.target.value)}
+          >
+            {THINKING_LEVEL_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </option>
             ))}
-          </div>
-        </fieldset>
-
-        <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
-          <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
-            {t('identities.labels.allowedTaskTypes')}
-          </legend>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {TASK_TYPE_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className="flex items-center gap-3 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-              >
-                <input
-                  type="checkbox"
-                  className="mt-0.5"
-                  checked={(form.allowed_task_types ?? []).includes(option.value)}
-                  onChange={() => toggleListValue('allowed_task_types', option.value)}
-                />
-                <span className="font-medium text-[var(--kw-text)]">{t(option.labelKey)}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <MutationAlert error={error} success={null} />
-
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={handleClose}>
-            {t('common.cancel')}
-          </Button>
-          <Button type="submit" loading={isSubmitting}>
-            {isEdit ? t('common.save') : t('common.create')}
-          </Button>
+          </select>
         </div>
-      </form>
+        <div>
+          <label
+            htmlFor="agent-sandbox-mode"
+            className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+          >
+            {t('identities.labels.sandboxMode')}
+          </label>
+          <select
+            id="agent-sandbox-mode"
+            className={selectClassName}
+            value={form.sandbox_mode}
+            onChange={(e) => updateField('sandbox_mode', e.target.value)}
+          >
+            {SANDBOX_MODE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor="agent-risk-tier"
+            className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+          >
+            {t('identities.agentModal.riskTier')}
+          </label>
+          <select
+            id="agent-risk-tier"
+            className={selectClassName}
+            value={form.risk_tier}
+            onChange={(e) => updateField('risk_tier', e.target.value)}
+          >
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+          </select>
+        </div>
+        <div>
+          <label
+            htmlFor="agent-auth-method"
+            className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+          >
+            {t('identities.agentModal.authMethod')}
+          </label>
+          <select
+            id="agent-auth-method"
+            className={selectClassName}
+            value={form.auth_method}
+            onChange={(e) => updateField('auth_method', e.target.value)}
+          >
+            {AUTH_METHOD_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+        <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
+          {t('identities.labels.allowedCapabilityIds')}
+        </legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {availableCapabilities.map((capability) => (
+            <label
+              key={capability.id}
+              className="bg-[var(--kw-surface)]/70 flex items-start gap-3 rounded-xl border border-[var(--kw-border)] p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+            >
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={(form.allowed_capability_ids ?? []).includes(capability.id)}
+                onChange={() => toggleListValue('allowed_capability_ids', capability.id)}
+              />
+              <span>
+                <span className="block font-medium text-[var(--kw-text)]">{capability.name}</span>
+                <span className="block text-xs text-[var(--kw-text-muted)]">{capability.id}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-2 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+        <legend className="px-1 text-sm font-medium text-[var(--kw-text)]">
+          {t('identities.labels.allowedTaskTypes')}
+        </legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {TASK_TYPE_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className="bg-[var(--kw-surface)]/70 flex items-center gap-3 rounded-xl border border-[var(--kw-border)] p-3 text-sm dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={(form.allowed_task_types ?? []).includes(option.value)}
+                onChange={() => toggleListValue('allowed_task_types', option.value)}
+              />
+              <span className="font-medium text-[var(--kw-text)]">{t(option.labelKey)}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <MutationAlert error={error} success={null} />
+
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="secondary" onClick={handleClose}>
+          {t('common.cancel')}
+        </Button>
+        <Button type="submit" loading={isSubmitting}>
+          {isEdit ? t('common.save') : t('common.create')}
+        </Button>
+      </div>
+    </form>
   );
 }
 

@@ -2,7 +2,20 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, AlertTriangle, Bell, Check, CheckCircle2, ChevronRight, Flame, Info, Loader2, Sparkles, X, XCircle } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  Bell,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Flame,
+  Info,
+  Loader2,
+  Sparkles,
+  X,
+  XCircle,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotifications, useMarkNotificationsRead } from '@/hooks/use-notifications';
 import { Button } from '@/shared/ui-primitives/button';
@@ -16,7 +29,10 @@ interface NotificationsProps {
 
 const MAX_DROPDOWN_EVENTS = 6;
 
-const severityStyles: Record<string, { icon: React.ReactNode; bgClass: string; textClass: string }> = {
+const severityStyles: Record<
+  string,
+  { icon: React.ReactNode; bgClass: string; textClass: string }
+> = {
   success: {
     icon: <CheckCircle2 className="h-5 w-5" aria-hidden="true" />,
     bgClass: 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-green-accent-surface)]',
@@ -209,7 +225,7 @@ export function Notifications({ className }: NotificationsProps) {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1 min-h-[44px] min-w-[44px] text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
+                className="min-h-[44px] min-w-[44px] rounded-lg p-1 text-[var(--kw-text-muted)] transition-colors hover:bg-[var(--kw-surface-alt)] dark:text-[var(--kw-dark-text-muted)] dark:hover:bg-[var(--kw-dark-border)]"
                 aria-label={t('common.closeNotifications')}
               >
                 <X className="h-4 w-4" />

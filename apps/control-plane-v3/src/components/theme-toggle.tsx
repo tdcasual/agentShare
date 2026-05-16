@@ -26,7 +26,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     return (
       <div
         className={cn(
-          'flex h-10 w-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-full',
+          'flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
           'bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)]',
           className
         )}
@@ -65,8 +65,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             className={cn(
               'relative rounded-full p-2 transition-colors transition-shadow duration-200',
               'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
-              isActive &&
-                'bg-[var(--kw-primary-500)] text-white shadow-md'
+              isActive && 'bg-[var(--kw-primary-500)] text-white shadow-md'
             )}
             aria-label={label}
             aria-pressed={isActive}
@@ -99,7 +98,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
     return (
       <div
         className={cn(
-          'flex h-10 w-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-full',
+          'flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
           'bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)]',
           className
         )}
@@ -116,7 +115,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
-        'relative flex h-10 w-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-full',
+        'relative flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
         'dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80',
         'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
         'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',

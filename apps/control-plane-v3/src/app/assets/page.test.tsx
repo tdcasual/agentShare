@@ -388,9 +388,9 @@ describe('assets page', () => {
     expect(within(panel).getByRole('combobox', { name: t('assets.secrets.kind') })).toHaveValue(
       'api_token'
     );
-    expect(
-      within(panel).getByRole('combobox', { name: t('assets.secrets.provider') })
-    ).toHaveValue('openai');
+    expect(within(panel).getByRole('combobox', { name: t('assets.secrets.provider') })).toHaveValue(
+      'openai'
+    );
 
     const environment = within(panel).getByRole('combobox', {
       name: t('assets.secrets.environment'),

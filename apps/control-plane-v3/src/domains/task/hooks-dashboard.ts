@@ -110,10 +110,7 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     (targetAccessTokenIds.length > 0 && feedbackQuery.isLoading);
 
   const error =
-    tasksQuery.error ||
-    runsQuery.error ||
-    accessTokensQuery.error ||
-    feedbackQuery.error;
+    tasksQuery.error || runsQuery.error || accessTokensQuery.error || feedbackQuery.error;
 
   const mutate = async () => {
     await Promise.all([

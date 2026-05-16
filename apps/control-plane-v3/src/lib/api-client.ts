@@ -31,6 +31,13 @@ export class ApiError extends Error {
   }
 }
 
+function generateRequestId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 async function requestJson<T>(
   path: string,
   init: RequestInit & { timeout?: number } = {}
@@ -39,6 +46,9 @@ async function requestJson<T>(
   const headers = new Headers(rest.headers);
   if (!headers.has('Content-Type') && rest.body) {
     headers.set('Content-Type', 'application/json');
+  }
+  if (!headers.has('x-request-id')) {
+    headers.set('x-request-id', generateRequestId());
   }
 
   const controller = new AbortController();

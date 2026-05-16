@@ -52,15 +52,3 @@ export async function resolveAppEntryState(): Promise<AppEntryState> {
 }
 
 export { resetBootstrapCache };
-
-/**
- * @deprecated Use useGlobalSession from session-state instead.
- * Kept for test mock backward-compatibility.
- */
-export function useManagementSessionGate(_options?: { redirectOnMissingSession?: boolean }) {
-  // This should never be called at runtime — all consumers have been migrated.
-  // If a test mock is missing, this will throw.
-  throw new Error(
-    'useManagementSessionGate is deprecated. Use useGlobalSession from session-state instead.'
-  );
-}

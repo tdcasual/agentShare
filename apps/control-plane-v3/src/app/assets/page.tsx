@@ -1,7 +1,16 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import { Cpu, KeyRound, Loader2, LockKeyhole, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  Cpu,
+  KeyRound,
+  Loader2,
+  LockKeyhole,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 import { Layout } from '@/interfaces/human/layout';
 import {
@@ -71,12 +80,18 @@ const AssetsContent = memo(function AssetsContent() {
       <Alerts page={page} form={form} />
       <AssetGrids page={page} form={form} />
       {form.showSecretModal && (
-        <div data-testid="secret-modal-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div
+          data-testid="secret-modal-panel"
+          className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
           <SecretModal form={form} />
         </div>
       )}
       {form.showCapabilityModal && (
-        <div data-testid="capability-modal-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div
+          data-testid="capability-modal-panel"
+          className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
           <CapabilityModal page={page} form={form} />
         </div>
       )}
@@ -94,7 +109,7 @@ function Header({
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="space-y-2">
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] px-4 py-2 text-sm text-[var(--kw-primary-600)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
           <ShieldCheck className="h-4 w-4" />
           {page.t('assets.subtitle')}
         </div>
@@ -159,7 +174,7 @@ function Metrics({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 
 function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -241,7 +256,7 @@ function FilterCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
 
 function OperatorCard({ page }: { page: ReturnType<typeof useAssetsPage> }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
         <Badge variant="primary">{page.t('common.operator')}</Badge>
         <span className="dark:text-[var(--kw-dark-text)]">
@@ -415,7 +430,7 @@ const SecretCard = memo(function SecretCard({
         focus.resourceKind === 'secret' && focus.resourceId === secret.id ? 'focused' : 'default'
       }
       className={cn(
-        'dark:bg-[var(--kw-dark-bg)]/80 border bg-[var(--kw-surface)]/80 p-3 sm:p-4 lg:p-5',
+        'dark:bg-[var(--kw-dark-bg)]/80 bg-[var(--kw-surface)]/80 border p-3 sm:p-4 lg:p-5',
         focus.resourceKind === 'secret' && focus.resourceId === secret.id
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
@@ -541,7 +556,7 @@ const CapabilityCard = memo(function CapabilityCard({
           : 'default'
       }
       className={cn(
-        'dark:bg-[var(--kw-dark-bg)]/80 border bg-[var(--kw-surface)]/80 p-3 sm:p-4 lg:p-5',
+        'dark:bg-[var(--kw-dark-bg)]/80 bg-[var(--kw-surface)]/80 border p-3 sm:p-4 lg:p-5',
         focus.resourceKind === 'capability' && focus.resourceId === capability.id
           ? 'ring-[var(--kw-primary-400)]/20 border-[var(--kw-primary-400)] ring-1 dark:border-[var(--kw-primary-400)]'
           : 'border-[var(--kw-border)]/80 dark:border-[var(--kw-dark-border)]'
@@ -646,86 +661,88 @@ function SecretModal({ form }: { form: ReturnType<typeof useAssetsForm> }) {
   return (
     <form className="space-y-3 sm:space-y-4" onSubmit={form.handleCreateSecret}>
       <div>
-        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{form.t('assets.secrets.modalTitle')}</h2>
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          {form.t('assets.secrets.modalTitle')}
+        </h2>
         <p className="text-sm text-[var(--kw-text-muted)]">{form.t('assets.secrets.modalDesc')}</p>
       </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label={form.t('assets.secrets.displayName')}
-            value={form.secretForm.display_name}
-            onChange={(event) =>
-              form.setSecretForm((current) => ({ ...current, display_name: event.target.value }))
-            }
-            placeholder={form.t('assets.secrets.providerPlaceholder')}
-          />
-          <CatalogSelect
-            id="secret-kind"
-            label={form.t('assets.secrets.kind')}
-            value={form.secretForm.kind}
-            options={SECRET_KIND_OPTIONS}
-            t={form.t}
-            onChange={(value) => form.setSecretForm((current) => ({ ...current, kind: value }))}
-          />
-          <CatalogSelect
-            id="secret-provider"
-            label={form.t('assets.secrets.provider')}
-            value={form.secretForm.provider}
-            options={PROVIDER_OPTIONS}
-            t={form.t}
-            onChange={(value) => form.setSecretForm((current) => ({ ...current, provider: value }))}
-          />
-          <CatalogSelect
-            id="secret-environment"
-            label={form.t('assets.secrets.environment')}
-            value={form.secretForm.environment}
-            options={ENVIRONMENT_OPTIONS}
-            t={form.t}
-            blankLabel={form.t('common.notSpecified')}
-            onChange={(value) =>
-              form.setSecretForm((current) => ({ ...current, environment: value }))
-            }
-          />
-        </div>
+      <div className="grid gap-4 md:grid-cols-2">
         <Input
-          label={form.t('assets.secrets.value')}
-          type="password"
-          value={form.secretForm.value}
+          label={form.t('assets.secrets.displayName')}
+          value={form.secretForm.display_name}
           onChange={(event) =>
-            form.setSecretForm((current) => ({ ...current, value: event.target.value }))
+            form.setSecretForm((current) => ({ ...current, display_name: event.target.value }))
           }
-          placeholder={form.t('assets.secrets.valuePlaceholder')}
+          placeholder={form.t('assets.secrets.providerPlaceholder')}
         />
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label={form.t('assets.secrets.providerScopes')}
-            value={form.secretForm.provider_scopes}
-            onChange={(event) =>
-              form.setSecretForm((current) => ({ ...current, provider_scopes: event.target.value }))
-            }
-            placeholder={form.t('assets.secrets.scopesPlaceholder')}
-          />
-          <Input
-            label={form.t('assets.secrets.resourceSelector')}
-            value={form.secretForm.resource_selector}
-            onChange={(event) =>
-              form.setSecretForm((current) => ({
-                ...current,
-                resource_selector: event.target.value,
-              }))
-            }
-            placeholder={form.t('assets.secrets.resourceSelectorPlaceholder')}
-          />
-        </div>
-        <MutationAlert error={form.error} success={form.success} />
-        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
-          <Button type="button" variant="secondary" onClick={form.closeSecretModal}>
-            {form.t('common.cancel')}
-          </Button>
-          <Button type="submit" loading={form.submittingSecret}>
-            {form.t('assets.secrets.create')}
-          </Button>
-        </div>
-      </form>
+        <CatalogSelect
+          id="secret-kind"
+          label={form.t('assets.secrets.kind')}
+          value={form.secretForm.kind}
+          options={SECRET_KIND_OPTIONS}
+          t={form.t}
+          onChange={(value) => form.setSecretForm((current) => ({ ...current, kind: value }))}
+        />
+        <CatalogSelect
+          id="secret-provider"
+          label={form.t('assets.secrets.provider')}
+          value={form.secretForm.provider}
+          options={PROVIDER_OPTIONS}
+          t={form.t}
+          onChange={(value) => form.setSecretForm((current) => ({ ...current, provider: value }))}
+        />
+        <CatalogSelect
+          id="secret-environment"
+          label={form.t('assets.secrets.environment')}
+          value={form.secretForm.environment}
+          options={ENVIRONMENT_OPTIONS}
+          t={form.t}
+          blankLabel={form.t('common.notSpecified')}
+          onChange={(value) =>
+            form.setSecretForm((current) => ({ ...current, environment: value }))
+          }
+        />
+      </div>
+      <Input
+        label={form.t('assets.secrets.value')}
+        type="password"
+        value={form.secretForm.value}
+        onChange={(event) =>
+          form.setSecretForm((current) => ({ ...current, value: event.target.value }))
+        }
+        placeholder={form.t('assets.secrets.valuePlaceholder')}
+      />
+      <div className="grid gap-4 md:grid-cols-2">
+        <Input
+          label={form.t('assets.secrets.providerScopes')}
+          value={form.secretForm.provider_scopes}
+          onChange={(event) =>
+            form.setSecretForm((current) => ({ ...current, provider_scopes: event.target.value }))
+          }
+          placeholder={form.t('assets.secrets.scopesPlaceholder')}
+        />
+        <Input
+          label={form.t('assets.secrets.resourceSelector')}
+          value={form.secretForm.resource_selector}
+          onChange={(event) =>
+            form.setSecretForm((current) => ({
+              ...current,
+              resource_selector: event.target.value,
+            }))
+          }
+          placeholder={form.t('assets.secrets.resourceSelectorPlaceholder')}
+        />
+      </div>
+      <MutationAlert error={form.error} success={form.success} />
+      <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
+        <Button type="button" variant="secondary" onClick={form.closeSecretModal}>
+          {form.t('common.cancel')}
+        </Button>
+        <Button type="submit" loading={form.submittingSecret}>
+          {form.t('assets.secrets.create')}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -739,239 +756,241 @@ function CapabilityModal({
   return (
     <form className="space-y-5" onSubmit={form.handleCreateCapability}>
       <div>
-        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{form.t('assets.capabilities.modalTitle')}</h2>
-        <p className="text-sm text-[var(--kw-text-muted)]">{form.t('assets.capabilities.modalDesc')}</p>
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          {form.t('assets.capabilities.modalTitle')}
+        </h2>
+        <p className="text-sm text-[var(--kw-text-muted)]">
+          {form.t('assets.capabilities.modalDesc')}
+        </p>
       </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label={form.t('assets.capabilities.name')}
-            value={form.capabilityForm.name}
-            onChange={(event) =>
-              form.setCapabilityForm((current) => ({ ...current, name: event.target.value }))
-            }
-            placeholder={form.t('assets.secrets.displayNamePlaceholder')}
-          />
-          <div className="space-y-1.5">
-            <label
-              htmlFor="capability-secret"
-              className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-            >
-              {form.t('assets.capabilities.bindSecret')}
-            </label>
-            <select
-              id="capability-secret"
-              className={selectClassName}
-              value={form.capabilityForm.secret_id}
-              onChange={(event) => form.handleCapabilitySecretChange(event.target.value)}
-            >
-              <option value="">{form.t('assets.capabilities.selectSecret')}</option>
-              {page.secrets.map((secret) => (
-                <option key={secret.id} value={secret.id}>
-                  {secret.display_name} · {secret.provider}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <label
-              htmlFor="capability-risk"
-              className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-            >
-              {form.t('assets.capabilities.riskLevel')}
-            </label>
-            <select
-              id="capability-risk"
-              className={selectClassName}
-              value={form.capabilityForm.risk_level}
-              onChange={(event) =>
-                form.setCapabilityForm((current) => ({
-                  ...current,
-                  risk_level: event.target.value,
-                }))
-              }
-            >
-              <option value="low">{form.t('assets.capabilities.riskLevelLow')}</option>
-              <option value="medium">{form.t('assets.capabilities.riskLevelMedium')}</option>
-              <option value="high">{form.t('assets.capabilities.riskLevelHigh')}</option>
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <label
-              htmlFor="capability-mode"
-              className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-            >
-              {form.t('assets.capabilities.allowedMode')}
-            </label>
-            <select
-              id="capability-mode"
-              className={selectClassName}
-              value={form.capabilityForm.allowed_mode}
-              onChange={(event) =>
-                form.setCapabilityForm((current) => ({
-                  ...current,
-                  allowed_mode: event.target.value,
-                }))
-              }
-            >
-              <option value="proxy_only">{form.t('assets.capabilities.modeProxyOnly')}</option>
-              <option value="proxy_or_lease">
-                {form.t('assets.capabilities.modeProxyOrLease')}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Input
+          label={form.t('assets.capabilities.name')}
+          value={form.capabilityForm.name}
+          onChange={(event) =>
+            form.setCapabilityForm((current) => ({ ...current, name: event.target.value }))
+          }
+          placeholder={form.t('assets.secrets.displayNamePlaceholder')}
+        />
+        <div className="space-y-1.5">
+          <label
+            htmlFor="capability-secret"
+            className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+          >
+            {form.t('assets.capabilities.bindSecret')}
+          </label>
+          <select
+            id="capability-secret"
+            className={selectClassName}
+            value={form.capabilityForm.secret_id}
+            onChange={(event) => form.handleCapabilitySecretChange(event.target.value)}
+          >
+            <option value="">{form.t('assets.capabilities.selectSecret')}</option>
+            {page.secrets.map((secret) => (
+              <option key={secret.id} value={secret.id}>
+                {secret.display_name} · {secret.provider}
               </option>
-            </select>
-          </div>
-          <Input
-            label={form.t('assets.capabilities.leaseTTL')}
-            type="number"
-            value={form.capabilityForm.lease_ttl_seconds}
-            onChange={(event) =>
-              form.setCapabilityForm((current) => ({
-                ...current,
-                lease_ttl_seconds: event.target.value,
-              }))
-            }
-          />
-          <CatalogSelect
-            id="capability-required-provider"
-            label={form.t('assets.capabilities.requiredProvider')}
-            value={form.capabilityForm.required_provider}
-            options={PROVIDER_OPTIONS}
-            t={form.t}
-            blankLabel={form.t('common.notSpecified')}
-            onChange={(value) =>
-              form.setCapabilityForm((current) => ({
-                ...current,
-                required_provider: value,
-              }))
-            }
-          />
-          <Input
-            label={form.t('assets.capabilities.requiredScopes')}
-            value={form.capabilityForm.required_provider_scopes}
-            onChange={(event) =>
-              form.setCapabilityForm((current) => ({
-                ...current,
-                required_provider_scopes: event.target.value,
-              }))
-            }
-            placeholder={form.t('assets.secrets.scopesPlaceholder')}
-          />
+            ))}
+          </select>
         </div>
+        <div className="space-y-1.5">
+          <label
+            htmlFor="capability-risk"
+            className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+          >
+            {form.t('assets.capabilities.riskLevel')}
+          </label>
+          <select
+            id="capability-risk"
+            className={selectClassName}
+            value={form.capabilityForm.risk_level}
+            onChange={(event) =>
+              form.setCapabilityForm((current) => ({
+                ...current,
+                risk_level: event.target.value,
+              }))
+            }
+          >
+            <option value="low">{form.t('assets.capabilities.riskLevelLow')}</option>
+            <option value="medium">{form.t('assets.capabilities.riskLevelMedium')}</option>
+            <option value="high">{form.t('assets.capabilities.riskLevelHigh')}</option>
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <label
+            htmlFor="capability-mode"
+            className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+          >
+            {form.t('assets.capabilities.allowedMode')}
+          </label>
+          <select
+            id="capability-mode"
+            className={selectClassName}
+            value={form.capabilityForm.allowed_mode}
+            onChange={(event) =>
+              form.setCapabilityForm((current) => ({
+                ...current,
+                allowed_mode: event.target.value,
+              }))
+            }
+          >
+            <option value="proxy_only">{form.t('assets.capabilities.modeProxyOnly')}</option>
+            <option value="proxy_or_lease">{form.t('assets.capabilities.modeProxyOrLease')}</option>
+          </select>
+        </div>
+        <Input
+          label={form.t('assets.capabilities.leaseTTL')}
+          type="number"
+          value={form.capabilityForm.lease_ttl_seconds}
+          onChange={(event) =>
+            form.setCapabilityForm((current) => ({
+              ...current,
+              lease_ttl_seconds: event.target.value,
+            }))
+          }
+        />
+        <CatalogSelect
+          id="capability-required-provider"
+          label={form.t('assets.capabilities.requiredProvider')}
+          value={form.capabilityForm.required_provider}
+          options={PROVIDER_OPTIONS}
+          t={form.t}
+          blankLabel={form.t('common.notSpecified')}
+          onChange={(value) =>
+            form.setCapabilityForm((current) => ({
+              ...current,
+              required_provider: value,
+            }))
+          }
+        />
+        <Input
+          label={form.t('assets.capabilities.requiredScopes')}
+          value={form.capabilityForm.required_provider_scopes}
+          onChange={(event) =>
+            form.setCapabilityForm((current) => ({
+              ...current,
+              required_provider_scopes: event.target.value,
+            }))
+          }
+          placeholder={form.t('assets.secrets.scopesPlaceholder')}
+        />
+      </div>
 
-        <Card className="bg-[var(--kw-primary-50)]/70 dark:bg-[var(--kw-dark-bg)]/80 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {form.t('assets.capabilities.accessPolicy')}
-              </h3>
-              <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {form.t('assets.capabilities.accessPolicyDesc')}
-              </p>
+      <Card className="bg-[var(--kw-primary-50)]/70 dark:bg-[var(--kw-dark-bg)]/80 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {form.t('assets.capabilities.accessPolicy')}
+            </h3>
+            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {form.t('assets.capabilities.accessPolicyDesc')}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <PolicyButton
+              value="all_access_tokens"
+              active={form.capabilityForm.access_mode === 'all_access_tokens'}
+              onSelect={form.setAccessMode}
+              label={form.t('assets.capabilities.allTokens')}
+            />
+            <PolicyButton
+              value="specific_access_tokens"
+              active={form.capabilityForm.access_mode === 'specific_access_tokens'}
+              onSelect={form.setAccessMode}
+              label={form.t('assets.capabilities.specificTokens')}
+            />
+            <PolicyButton
+              value="access_token_label"
+              active={form.capabilityForm.access_mode === 'access_token_label'}
+              onSelect={form.setAccessMode}
+              label={form.t('assets.capabilities.byTokenLabel')}
+            />
+          </div>
+
+          {form.capabilityForm.access_mode === 'specific_access_tokens' ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {page.allTokens.length === 0 ? (
+                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                  {form.t('assets.capabilities.noTokens')}
+                </p>
+              ) : (
+                page.allTokens.map((token) => (
+                  <CapabilityTokenCheckbox
+                    key={token.id}
+                    token={token}
+                    checked={form.capabilityForm.access_token_ids.includes(token.id)}
+                    onToggle={form.toggleCapabilityAccessToken}
+                  />
+                ))
+              )}
             </div>
+          ) : null}
 
-            <div className="flex flex-wrap gap-3">
-              <PolicyButton
-                value="all_access_tokens"
-                active={form.capabilityForm.access_mode === 'all_access_tokens'}
-                onSelect={form.setAccessMode}
-                label={form.t('assets.capabilities.allTokens')}
-              />
-              <PolicyButton
-                value="specific_access_tokens"
-                active={form.capabilityForm.access_mode === 'specific_access_tokens'}
-                onSelect={form.setAccessMode}
-                label={form.t('assets.capabilities.specificTokens')}
-              />
-              <PolicyButton
-                value="access_token_label"
-                active={form.capabilityForm.access_mode === 'access_token_label'}
-                onSelect={form.setAccessMode}
-                label={form.t('assets.capabilities.byTokenLabel')}
-              />
-            </div>
-
-            {form.capabilityForm.access_mode === 'specific_access_tokens' ? (
+          {form.capabilityForm.access_mode === 'access_token_label' ? (
+            <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="token-label-key"
+                  className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+                >
+                  {form.t('assets.capabilities.labelKey')}
+                </label>
+                <select
+                  id="token-label-key"
+                  className={selectClassName}
+                  value={form.capabilityForm.label_key}
+                  onChange={(event) =>
+                    form.setCapabilityForm((current) => ({
+                      ...current,
+                      label_key: event.target.value,
+                      label_values: [],
+                    }))
+                  }
+                >
+                  <option value="">{form.t('assets.capabilities.selectLabelKey')}</option>
+                  {Object.keys(page.tokenLabelOptions).map((key) => (
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="grid gap-3 md:grid-cols-2">
-                {page.allTokens.length === 0 ? (
-                  <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                    {form.t('assets.capabilities.noTokens')}
-                  </p>
-                ) : (
-                  page.allTokens.map((token) => (
-                    <CapabilityTokenCheckbox
-                      key={token.id}
-                      token={token}
-                      checked={form.capabilityForm.access_token_ids.includes(token.id)}
-                      onToggle={form.toggleCapabilityAccessToken}
+                {form.capabilityForm.label_key &&
+                (page.tokenLabelOptions[form.capabilityForm.label_key] ?? []).length > 0 ? (
+                  page.tokenLabelOptions[form.capabilityForm.label_key].map((value) => (
+                    <CapabilityLabelCheckbox
+                      key={value}
+                      value={value}
+                      labelKey={form.capabilityForm.label_key}
+                      checked={form.capabilityForm.label_values.includes(value)}
+                      onToggle={form.toggleCapabilityLabelValue}
                     />
                   ))
+                ) : (
+                  <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+                    {Object.keys(page.tokenLabelOptions).length === 0
+                      ? form.t('assets.capabilities.noLabelsAvailable')
+                      : form.t('assets.capabilities.selectLabelKeyFirst')}
+                  </p>
                 )}
               </div>
-            ) : null}
-
-            {form.capabilityForm.access_mode === 'access_token_label' ? (
-              <div className="space-y-3 sm:space-y-4">
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="token-label-key"
-                    className="block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-                  >
-                    {form.t('assets.capabilities.labelKey')}
-                  </label>
-                  <select
-                    id="token-label-key"
-                    className={selectClassName}
-                    value={form.capabilityForm.label_key}
-                    onChange={(event) =>
-                      form.setCapabilityForm((current) => ({
-                        ...current,
-                        label_key: event.target.value,
-                        label_values: [],
-                      }))
-                    }
-                  >
-                    <option value="">{form.t('assets.capabilities.selectLabelKey')}</option>
-                    {Object.keys(page.tokenLabelOptions).map((key) => (
-                      <option key={key} value={key}>
-                        {key}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {form.capabilityForm.label_key &&
-                  (page.tokenLabelOptions[form.capabilityForm.label_key] ?? []).length > 0 ? (
-                    page.tokenLabelOptions[form.capabilityForm.label_key].map((value) => (
-                      <CapabilityLabelCheckbox
-                        key={value}
-                        value={value}
-                        labelKey={form.capabilityForm.label_key}
-                        checked={form.capabilityForm.label_values.includes(value)}
-                        onToggle={form.toggleCapabilityLabelValue}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                      {Object.keys(page.tokenLabelOptions).length === 0
-                        ? form.t('assets.capabilities.noLabelsAvailable')
-                        : form.t('assets.capabilities.selectLabelKeyFirst')}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </Card>
-
-        <MutationAlert error={form.error} success={form.success} />
-        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="secondary" onClick={form.closeCapabilityModal}>
-            {form.t('common.cancel')}
-          </Button>
-          <Button type="submit" loading={form.submittingCapability}>
-            {form.t('assets.capabilities.create')}
-          </Button>
+            </div>
+          ) : null}
         </div>
-      </form>
+      </Card>
+
+      <MutationAlert error={form.error} success={form.success} />
+      <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+        <Button type="button" variant="secondary" onClick={form.closeCapabilityModal}>
+          {form.t('common.cancel')}
+        </Button>
+        <Button type="submit" loading={form.submittingCapability}>
+          {form.t('assets.capabilities.create')}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -1052,7 +1071,7 @@ function CapabilityTokenCheckbox({
   }, [onToggle, token.id]);
 
   return (
-    <label className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
+    <label className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
       <input
         type="checkbox"
         checked={checked}
@@ -1085,7 +1104,7 @@ function CapabilityLabelCheckbox({
   }, [onToggle, value]);
 
   return (
-    <label className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
+    <label className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 flex items-start gap-3 rounded-2xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
       <input
         type="checkbox"
         checked={checked}

@@ -70,7 +70,7 @@ const DocsContent = memo(function DocsContent() {
       </div>
 
       {/* Search + Refresh */}
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
             <span className="sr-only">{t('common.search')}</span>
@@ -99,7 +99,7 @@ const DocsContent = memo(function DocsContent() {
 
       {/* Category Filters */}
       {categories.length > 0 && (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
           <div className="flex flex-wrap gap-2">
             <FilterButton
               value="all"
@@ -166,7 +166,10 @@ const DocsContent = memo(function DocsContent() {
 
       {/* Doc Detail Panel */}
       {selectedDoc && (
-        <div data-testid="doc-detail-panel" className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div
+          data-testid="doc-detail-panel"
+          className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
               {docDetailQuery.data?.title ?? docDetailQuery.data?.filename ?? t('docs.detailTitle')}
@@ -193,7 +196,7 @@ const DocsContent = memo(function DocsContent() {
                 <Badge variant="info">{docDetailQuery.data?.category}</Badge>
                 <Badge variant="secondary">{docDetailQuery.data?.filename}</Badge>
               </div>
-              <div className="dark:bg-[var(--kw-dark-surface)]/80 max-h-[60vh] overflow-y-auto rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+              <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 max-h-[60vh] overflow-y-auto rounded-xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
                 <pre className="whitespace-pre-wrap break-words text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
                   {docDetailQuery.data?.content ?? t('docs.noContent')}
                 </pre>
@@ -252,7 +255,7 @@ function DocCard({
 
 function EmptyState({ icon, message }: { icon: React.ReactNode; message: string }) {
   return (
-    <Card className="dark:bg-[var(--kw-dark-surface)]/60 flex flex-col items-center justify-center border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-8 text-center dark:border-[var(--kw-dark-border)]">
+    <Card className="dark:bg-[var(--kw-dark-surface)]/60 bg-[var(--kw-surface)]/70 flex flex-col items-center justify-center border border-dashed border-[var(--kw-border)] p-8 text-center dark:border-[var(--kw-dark-border)]">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
         {icon}
       </div>

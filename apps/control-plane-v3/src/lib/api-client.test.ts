@@ -142,7 +142,7 @@ describe('api-client', () => {
     await expect(promise).rejects.toThrow(ApiError);
     await expect(promise).rejects.toMatchObject({
       status: 0,
-      detail: '请求超时，请检查网络连接',
+      detail: '请求已取消',
     });
   });
 });

@@ -2,7 +2,16 @@
 
 import { useMemo, useState, memo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Bot, Building2, Loader2, RefreshCw, Search, ShieldCheck, Users, UserPlus } from 'lucide-react';
+import {
+  Bot,
+  Building2,
+  Loader2,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Users,
+  UserPlus,
+} from 'lucide-react';
 import {
   refreshAdminAccounts,
   refreshOpenClawAgents,
@@ -409,7 +418,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+          <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
             <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
               <Badge variant="primary">{t('common.operator')}</Badge>
               <span className="dark:text-[var(--kw-dark-text)]">
@@ -443,7 +452,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
         </div>
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <label className="flex-1">
             <span className="sr-only">{t('common.searchIdentities')}</span>
@@ -700,7 +709,7 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       ) : null}
 
       {!isLoading && !guardedError ? (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Building2 className="h-5 w-5" />
@@ -727,7 +736,10 @@ const IdentitiesContent = memo(function IdentitiesContent() {
       ) : null}
 
       {showAgentModal && (
-        <div data-testid="agent-modal-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div
+          data-testid="agent-modal-panel"
+          className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
           <AgentModal
             onClose={() => {
               setShowAgentModal(false);

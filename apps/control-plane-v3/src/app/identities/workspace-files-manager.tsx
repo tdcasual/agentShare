@@ -60,7 +60,7 @@ export function WorkspaceFilesManager({ agent }: WorkspaceFilesManagerProps) {
             return (
               <div
                 key={file.file_name}
-                className="dark:bg-[var(--kw-dark-surface)]/80 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 dark:border-[var(--kw-dark-border)]"
+                className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 rounded-2xl border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]"
               >
                 <button
                   type="button"

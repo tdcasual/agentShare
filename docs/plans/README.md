@@ -4,13 +4,8 @@ Files in this directory are execution plans, design snapshots, and historical ch
 
 They should **not** be treated as the primary source of truth for the current product framing unless a current guide points to them explicitly.
 
-Read these guides first for the current architecture position:
-
-- `docs/guides/agent-server-first.md`
-- `docs/guides/agent-quickstart.md`
-- `docs/guides/external-agent-quickstart.md`
-- `docs/guides/admin-bootstrap-and-access-token-ops.md`
-- `docs/guides/production-deployment.md`
+**Start here for the current architecture position:**
+[`docs/guides/current-architecture-authority.md`](../guides/current-architecture-authority.md)
 
 Additional reading guidance:
 

@@ -7,7 +7,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CheckCircle2, CloudOff, FileText, FolderOpen, RefreshCw, Settings } from 'lucide-react';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  CloudOff,
+  FileText,
+  FolderOpen,
+  RefreshCw,
+  Settings,
+} from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 import { Button } from '@/shared/ui-primitives/button';
 
@@ -54,9 +62,12 @@ export default function OfflinePage() {
         </div>
 
         {/* 说明 */}
-        <div className="dark:bg-[var(--kw-dark-surface)]/50 space-y-3 rounded-xl bg-[var(--kw-surface)]/50 p-3 text-left sm:p-4">
+        <div className="dark:bg-[var(--kw-dark-surface)]/50 bg-[var(--kw-surface)]/50 space-y-3 rounded-xl p-3 text-left sm:p-4">
           <div className="flex items-start gap-3">
-            <FolderOpen className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]" aria-hidden="true" />
+            <FolderOpen
+              className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--kw-text-muted)]"
+              aria-hidden="true"
+            />
             <div>
               <p className="font-medium text-[var(--kw-text)]">
                 {t('offline.availableFeaturesTitle')}
@@ -93,7 +104,7 @@ export default function OfflinePage() {
 
         {/* 状态提示 */}
         {isOnline && (
-          <p className="flex items-center justify-center gap-2 animate-fade-in text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
+          <p className="flex animate-fade-in items-center justify-center gap-2 text-sm text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]">
             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
             {t('offline.backOnline')}
           </p>

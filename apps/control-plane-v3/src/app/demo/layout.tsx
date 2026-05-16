@@ -56,7 +56,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
       </div>
 
       <div className="mx-auto max-w-7xl px-4">
-        <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-surface-alt)]/70 rounded-2xl border bg-[var(--kw-surface)]/80 p-4">
+        <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/80 dark:bg-[var(--kw-dark-surface-alt)]/70 bg-[var(--kw-surface)]/80 rounded-2xl border p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-3">
               <Compass className="mt-0.5 h-5 w-5 text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]" />

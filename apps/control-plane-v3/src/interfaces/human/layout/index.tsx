@@ -16,7 +16,7 @@ import { Header } from './header';
 import { MobileNav } from '@/components/mobile-nav';
 import { TabletSidebar } from '@/components/tablet-sidebar';
 import { useDeviceType } from '@/hooks/use-device-type';
-import { useShellIdentity } from '@/hooks/use-shell-identity';
+import { useManagementShellIdentity } from '@/hooks/use-management-shell-identity';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { AlertCircle } from 'lucide-react';
 import { CuteLoading } from '@/components/kawaii/cute-spinner';
@@ -32,21 +32,18 @@ interface LayoutProps {
 /**
  * 重构后的 Layout 组件
  *
- * 之前的问题:
- * - 直接调用 getRuntime() 和 initializeRuntime()
- * - 直接操作 registry
- * - 难以测试
- *
- * 现在的改进:
- * - 使用 useIdentities hook
- * - 清晰的加载/错误状态
- * - 更好的用户体验
+ * 改进点:
+ * 1. 通过 hooks 获取数据，不直接依赖 Runtime
+ * 2. 更好的错误处理
+ * 3. 更清晰的加载状态
+ * 4. 支持测试注入
  */
 export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tabletCollapsed, setTabletCollapsed] = useState(true);
   const device = useDeviceType();
-  const { currentIdentity, onlineIdentities, isLoading, error, refresh } = useShellIdentity();
+  const { currentIdentity, onlineIdentities, isLoading, error, refresh } =
+    useManagementShellIdentity();
 
   // 加载状态
   if (isLoading) {

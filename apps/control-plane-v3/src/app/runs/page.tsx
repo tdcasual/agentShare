@@ -301,7 +301,10 @@ const RunsContent = memo(function RunsContent() {
         </section>
 
         {selectedRun && (
-          <div data-testid="run-detail-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+          <div
+            data-testid="run-detail-panel"
+            className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+          >
             <RunDetailPanel run={selectedRun} onClose={() => setSelectedRun(null)} />
           </div>
         )}
@@ -350,7 +353,12 @@ const StatusFilterButton = memo(function StatusFilterButton({
   onSelect,
 }: StatusFilterButtonProps) {
   return (
-    <Button variant={active ? 'kawaii' : 'outline'} size="sm" aria-pressed={active} onClick={() => onSelect(status)}>
+    <Button
+      variant={active ? 'kawaii' : 'outline'}
+      size="sm"
+      aria-pressed={active}
+      onClick={() => onSelect(status)}
+    >
       {label}
     </Button>
   );
@@ -422,72 +430,72 @@ function RunDetailPanel({ run, onClose }: RunDetailModalProps) {
 
   return (
     <div className="flex max-h-[90vh] flex-col overflow-hidden">
-        <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-xl ${config.bgColor} ${config.color}`}
-            >
-              {statusIcons[run.status]}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                {t('runs.detailTitle')}
-              </h2>
-              <p className="text-sm text-[var(--kw-text-muted)]">{run.id}</p>
-            </div>
+      <div className="flex items-center justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-12 w-12 items-center justify-center rounded-xl ${config.bgColor} ${config.color}`}
+          >
+            {statusIcons[run.status]}
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label={t('common.closeModal')}>
-            <XCircle className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="flex-1 space-y-6 overflow-y-auto p-6">
-          <div className="grid grid-cols-2 gap-4">
-            <InfoItem label={t('runs.info.status')} value={statusLabel} />
-            <InfoItem label={t('runs.info.taskId')} value={run.taskId} />
-            <InfoItem label={t('runs.info.agentId')} value={run.agentId ?? '-'} />
-            <InfoItem label={t('runs.info.tokenId')} value={run.accessTokenId ?? '-'} />
-            <InfoItem label={t('runs.info.targetId')} value={run.taskTargetId ?? '-'} />
+          <div>
+            <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+              {t('runs.detailTitle')}
+            </h2>
+            <p className="text-sm text-[var(--kw-text-muted)]">{run.id}</p>
           </div>
-
-          {run.resultSummary !== null && run.resultSummary !== undefined && (
-            <div className="space-y-2">
-              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                {t('runs.info.resultSummary')}
-              </h3>
-              <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 text-sm text-[var(--kw-text)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-border)]">
-                {String(run.resultSummary)}
-              </div>
-            </div>
-          )}
-
-          {run.errorSummary !== null && run.errorSummary !== undefined && (
-            <div className="space-y-2">
-              <h3 className="font-medium text-[var(--kw-error)]">{t('runs.info.error')}</h3>
-              <div className="dark:bg-[var(--kw-dark-error-surface)]/20 rounded-lg bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]">
-                {String(run.errorSummary)}
-              </div>
-            </div>
-          )}
-
-          {run.outputPayload !== null && run.outputPayload !== undefined && (
-            <div className="space-y-2">
-              <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
-                {t('runs.info.output')}
-              </h3>
-              <pre className="max-h-48 overflow-auto rounded-lg bg-[var(--kw-dark-bg)] p-3 text-xs text-[var(--kw-surface-alt)]">
-                {JSON.stringify(run.outputPayload, null, 2)}
-              </pre>
-            </div>
-          )}
         </div>
-
-        <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
-          <Button variant="outline" onClick={onClose}>
-            {t('common.close')}
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" onClick={onClose} aria-label={t('common.closeModal')}>
+          <XCircle className="h-5 w-5" />
+        </Button>
       </div>
+
+      <div className="flex-1 space-y-6 overflow-y-auto p-6">
+        <div className="grid grid-cols-2 gap-4">
+          <InfoItem label={t('runs.info.status')} value={statusLabel} />
+          <InfoItem label={t('runs.info.taskId')} value={run.taskId} />
+          <InfoItem label={t('runs.info.agentId')} value={run.agentId ?? '-'} />
+          <InfoItem label={t('runs.info.tokenId')} value={run.accessTokenId ?? '-'} />
+          <InfoItem label={t('runs.info.targetId')} value={run.taskTargetId ?? '-'} />
+        </div>
+
+        {run.resultSummary !== null && run.resultSummary !== undefined && (
+          <div className="space-y-2">
+            <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+              {t('runs.info.resultSummary')}
+            </h3>
+            <div className="rounded-lg bg-[var(--kw-surface-alt)] p-3 text-sm text-[var(--kw-text)] dark:bg-[var(--kw-dark-surface-alt)] dark:text-[var(--kw-border)]">
+              {String(run.resultSummary)}
+            </div>
+          </div>
+        )}
+
+        {run.errorSummary !== null && run.errorSummary !== undefined && (
+          <div className="space-y-2">
+            <h3 className="font-medium text-[var(--kw-error)]">{t('runs.info.error')}</h3>
+            <div className="dark:bg-[var(--kw-dark-error-surface)]/20 rounded-lg bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] dark:text-[var(--kw-error)]">
+              {String(run.errorSummary)}
+            </div>
+          </div>
+        )}
+
+        {run.outputPayload !== null && run.outputPayload !== undefined && (
+          <div className="space-y-2">
+            <h3 className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-surface-alt)]">
+              {t('runs.info.output')}
+            </h3>
+            <pre className="max-h-48 overflow-auto rounded-lg bg-[var(--kw-dark-bg)] p-3 text-xs text-[var(--kw-surface-alt)]">
+              {JSON.stringify(run.outputPayload, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
+        <Button variant="outline" onClick={onClose}>
+          {t('common.close')}
+        </Button>
+      </div>
+    </div>
   );
 }
 

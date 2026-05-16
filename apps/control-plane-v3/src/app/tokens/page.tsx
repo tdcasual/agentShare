@@ -245,7 +245,7 @@ const TokensContent = memo(function TokensContent() {
     <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <ShieldCheck className="h-4 w-4" />
             {t('tokens.remoteAccessSupervision')}
           </div>
@@ -294,7 +294,7 @@ const TokensContent = memo(function TokensContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -378,7 +378,7 @@ const TokensContent = memo(function TokensContent() {
         {visibleTokens.map((token) => (
           <Card
             key={token.id}
-            className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]"
+            className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-4 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
@@ -455,7 +455,10 @@ const TokensContent = memo(function TokensContent() {
       </div>
 
       {showCreateTokenModal && (
-        <div data-testid="create-token-panel" className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div
+          data-testid="create-token-panel"
+          className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
           <CreateAccessTokenForm
             form={createTokenForm}
             locale={locale}
@@ -470,13 +473,20 @@ const TokensContent = memo(function TokensContent() {
       )}
 
       {revealedSecret && (
-        <div data-testid="token-secret-panel" className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
+        <div
+          data-testid="token-secret-panel"
+          className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">{t('tokens.secretModal.title')}</h2>
+              <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+                {t('tokens.secretModal.title')}
+              </h2>
               <p className="text-sm text-[var(--kw-text-muted)]">{revealedSecret.label}</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setRevealedSecret(null)}>{t('common.close')}</Button>
+            <Button variant="ghost" size="sm" onClick={() => setRevealedSecret(null)}>
+              {t('common.close')}
+            </Button>
           </div>
           <Card className="bg-[var(--kw-primary-50)]/40 space-y-3">
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
@@ -545,75 +555,75 @@ function CreateAccessTokenForm({
 }) {
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
+      <Input
+        label={t('tokens.form.displayName')}
+        value={form.display_name}
+        onChange={(event) =>
+          onChange((current) => ({ ...current, display_name: event.target.value }))
+        }
+        placeholder={t('tokens.form.displayNamePlaceholder')}
+        required
+      />
+      <div className="grid gap-4 md:grid-cols-2">
         <Input
-          label={t('tokens.form.displayName')}
-          value={form.display_name}
+          label={t('tokens.form.subjectType')}
+          value={form.subject_type}
           onChange={(event) =>
-            onChange((current) => ({ ...current, display_name: event.target.value }))
+            onChange((current) => ({ ...current, subject_type: event.target.value }))
           }
-          placeholder={t('tokens.form.displayNamePlaceholder')}
+          placeholder="automation"
           required
         />
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label={t('tokens.form.subjectType')}
-            value={form.subject_type}
-            onChange={(event) =>
-              onChange((current) => ({ ...current, subject_type: event.target.value }))
-            }
-            placeholder="automation"
-            required
-          />
-          <Input
-            label={t('tokens.form.subjectId')}
-            value={form.subject_id}
-            onChange={(event) =>
-              onChange((current) => ({ ...current, subject_id: event.target.value }))
-            }
-            placeholder={t('tokens.form.subjectIdPlaceholder')}
-            required
-          />
-        </div>
         <Input
-          label={t('tokens.form.scopes')}
-          value={form.scopes}
-          onChange={(event) => onChange((current) => ({ ...current, scopes: event.target.value }))}
-          placeholder="runtime"
-        />
-        <Input
-          label={t('tokens.form.labels')}
-          value={form.labels}
-          onChange={(event) => onChange((current) => ({ ...current, labels: event.target.value }))}
-          placeholder={t('tokens.form.labelsPlaceholder')}
-        />
-        <Input
-          type="datetime-local"
-          label={t('tokens.form.expiresAt')}
-          value={form.expires_at}
+          label={t('tokens.form.subjectId')}
+          value={form.subject_id}
           onChange={(event) =>
-            onChange((current) => ({ ...current, expires_at: event.target.value }))
+            onChange((current) => ({ ...current, subject_id: event.target.value }))
           }
-          lang={locale}
+          placeholder={t('tokens.form.subjectIdPlaceholder')}
+          required
         />
-        {error ? (
-          <div
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-            className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
-          >
-            {error}
-          </div>
-        ) : null}
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
-          <Button type="submit" loading={submitting}>
-            {t('tokens.actions.issueAccessToken')}
-          </Button>
+      </div>
+      <Input
+        label={t('tokens.form.scopes')}
+        value={form.scopes}
+        onChange={(event) => onChange((current) => ({ ...current, scopes: event.target.value }))}
+        placeholder="runtime"
+      />
+      <Input
+        label={t('tokens.form.labels')}
+        value={form.labels}
+        onChange={(event) => onChange((current) => ({ ...current, labels: event.target.value }))}
+        placeholder={t('tokens.form.labelsPlaceholder')}
+      />
+      <Input
+        type="datetime-local"
+        label={t('tokens.form.expiresAt')}
+        value={form.expires_at}
+        onChange={(event) =>
+          onChange((current) => ({ ...current, expires_at: event.target.value }))
+        }
+        lang={locale}
+      />
+      {error ? (
+        <div
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
+        >
+          {error}
         </div>
-      </form>
+      ) : null}
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="ghost" onClick={onClose}>
+          {t('common.cancel')}
+        </Button>
+        <Button type="submit" loading={submitting}>
+          {t('tokens.actions.issueAccessToken')}
+        </Button>
+      </div>
+    </form>
   );
 }
 

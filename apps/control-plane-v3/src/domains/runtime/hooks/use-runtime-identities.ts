@@ -10,7 +10,6 @@ import { useRuntime } from '@/core/runtime';
 import { IdentityRegistryServiceId } from '@/domains/identity/services/identity-registry';
 import type { Identity, IdentityType, PresenceStatus } from '@/shared/types';
 
-
 export interface UseIdentityReturn {
   identities: Identity[];
   currentIdentity: Identity | null;

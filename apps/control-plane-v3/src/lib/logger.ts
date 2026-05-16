@@ -4,15 +4,72 @@
  *
  * 自动在开发环境输出详细日志，生产环境静默
  * 支持命名空间，便于过滤
+ * 支持浏览器端错误持久化和 correlation ID
  */
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+const LOG_STORAGE_KEY = 'agentshare:error-logs';
+const MAX_STORED_LOGS = 100;
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LoggerOptions {
   namespace: string;
   level?: LogLevel;
+}
+
+interface StoredLogEntry {
+  namespace: string;
+  level: LogLevel;
+  message: string;
+  path: string;
+  correlationId: string;
+  timestamp: string;
+}
+
+function generateCorrelationId(): string {
+  return `cp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+// Memory fallback for environments where localStorage is mocked or unavailable
+let _memoryLogs: StoredLogEntry[] = [];
+
+function readStoredLogs(): StoredLogEntry[] {
+  try {
+    if (typeof window !== 'undefined' && 'localStorage' in window) {
+      const raw = localStorage.getItem(LOG_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          _memoryLogs = parsed as StoredLogEntry[];
+          return _memoryLogs;
+        }
+      }
+    }
+  } catch {
+    // fall through to memory
+  }
+  return _memoryLogs;
+}
+
+function writeStoredLogs(entries: StoredLogEntry[]): void {
+  _memoryLogs = entries;
+  try {
+    if (typeof window !== 'undefined' && 'localStorage' in window) {
+      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(entries));
+    }
+  } catch {
+    // Storage quota exceeded or private mode
+  }
+}
+
+function appendStoredLog(entry: StoredLogEntry): void {
+  const logs = readStoredLogs();
+  logs.push(entry);
+  if (logs.length > MAX_STORED_LOGS) {
+    logs.splice(0, logs.length - MAX_STORED_LOGS);
+  }
+  writeStoredLogs(logs);
 }
 
 class Logger {
@@ -58,6 +115,18 @@ class Logger {
     if (this.shouldLog('error')) {
       console.error(this.format(message), ...args);
     }
+
+    // Persist error entries with correlation ID and path context
+    const path =
+      typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+    appendStoredLog({
+      namespace: this.namespace,
+      level: 'error',
+      message,
+      path,
+      correlationId: generateCorrelationId(),
+      timestamp: new Date().toISOString(),
+    });
   }
 }
 
@@ -74,4 +143,18 @@ export const logger = {
 
 export function createLogger(namespace: string, level?: LogLevel): Logger {
   return new Logger({ namespace, level });
+}
+
+/**
+ * 读取持久化的浏览器错误日志
+ */
+export function getStoredLogs(): StoredLogEntry[] {
+  return readStoredLogs();
+}
+
+/**
+ * 清空持久化的浏览器错误日志
+ */
+export function clearStoredLogs(): void {
+  writeStoredLogs([]);
 }

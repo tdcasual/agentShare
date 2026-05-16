@@ -52,7 +52,7 @@ const TasksContent = memo(function TasksContent() {
     <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] px-4 py-2 text-sm text-[var(--kw-primary-600)]">
             <Target className="h-4 w-4" />
             {page.t('tasks.tokenTargetedDelivery')}
           </div>
@@ -101,7 +101,7 @@ const TasksContent = memo(function TasksContent() {
         />
       </div>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
@@ -200,7 +200,7 @@ const TasksContent = memo(function TasksContent() {
       !page.isLoading &&
       page.taskViews.length > 0 &&
       page.visibleTaskViews.length === 0 ? (
-        <Card className="dark:bg-[var(--kw-dark-surface)]/80 border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/80 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+        <Card className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 border border-dashed border-[var(--kw-border)] text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
           {page.t('tasks.supervision.noMatches')}
         </Card>
       ) : null}
@@ -217,9 +217,23 @@ const TasksContent = memo(function TasksContent() {
         ))}
       </div>
 
-      <CreateTaskModal form={form} allTokens={page.allTokens} />
+      {form.showCreateTaskModal && (
+        <div
+          data-testid="create-task-panel"
+          className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
+          <CreateTaskPanel form={form} allTokens={page.allTokens} />
+        </div>
+      )}
       <TaskDetailModal page={page} form={form} />
-      <FeedbackModal form={form} />
+      {form.feedbackTarget !== null && (
+        <div
+          data-testid="feedback-panel"
+          className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
+        >
+          <FeedbackPanel form={form} />
+        </div>
+      )}
     </section>
   );
 });
@@ -293,7 +307,7 @@ const TaskCard = memo(function TaskCard({
           </div>
         </div>
 
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 grid min-w-0 gap-2 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-3 py-2 sm:px-4 sm:py-3">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 grid min-w-0 gap-2 rounded-xl border border-[var(--kw-border)] px-3 py-2 sm:px-4 sm:py-3">
           <p className="text-xs font-medium text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
             {t('tasks.feedbackSummary')}
           </p>
@@ -341,7 +355,7 @@ const TaskCard = memo(function TaskCard({
   );
 });
 
-function CreateTaskModal({
+function CreateTaskPanel({
   form,
   allTokens,
 }: {
@@ -349,177 +363,177 @@ function CreateTaskModal({
   allTokens: { id: string; displayName: string; subjectId: string; trustScore?: number }[];
 }) {
   return (
-    <Modal
-      isOpen={form.showCreateTaskModal}
-      onClose={form.closeCreateTaskModal}
-      title={form.t('tasks.publishTask')}
-      description={form.t('tasks.publishTaskDescription')}
-      size="lg"
-    >
-      <form className="space-y-3 sm:space-y-4" onSubmit={form.handleCreateTask}>
-        <Input
-          label={form.t('tasks.form.title')}
-          value={form.taskForm.title}
-          onChange={(event) =>
-            form.setTaskForm((current) => ({ ...current, title: event.target.value }))
-          }
-          placeholder={form.t('tasks.form.titlePlaceholder')}
-          required
-        />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="task-type"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-            >
-              {form.t('tasks.form.taskType')}
-            </label>
-            <select
-              id="task-type"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
-              value={form.taskForm.task_type}
-              onChange={(event) =>
-                form.setTaskForm((current) => ({ ...current, task_type: event.target.value }))
-              }
-              required
-            >
-              {TASK_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {form.t(option.labelKey)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="task-priority"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-            >
-              {form.t('tasks.form.priority')}
-            </label>
-            <select
-              id="task-priority"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
-              value={form.taskForm.priority}
-              onChange={(event) =>
-                form.setTaskForm((current) => ({ ...current, priority: event.target.value }))
-              }
-            >
-              <option value="low">{form.t('tasks.priorities.low')}</option>
-              <option value="normal">{form.t('tasks.priorities.normal')}</option>
-              <option value="high">{form.t('tasks.priorities.high')}</option>
-              <option value="critical">{form.t('tasks.priorities.critical')}</option>
-            </select>
-          </div>
+    <form className="space-y-3 sm:space-y-4" onSubmit={form.handleCreateTask}>
+      <div>
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          {form.t('tasks.publishTask')}
+        </h2>
+        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          {form.t('tasks.publishTaskDescription')}
+        </p>
+      </div>
+      <Input
+        label={form.t('tasks.form.title')}
+        value={form.taskForm.title}
+        onChange={(event) =>
+          form.setTaskForm((current) => ({ ...current, title: event.target.value }))
+        }
+        placeholder={form.t('tasks.form.titlePlaceholder')}
+        required
+      />
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label
+            htmlFor="task-type"
+            className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+          >
+            {form.t('tasks.form.taskType')}
+          </label>
+          <select
+            id="task-type"
+            className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
+            value={form.taskForm.task_type}
+            onChange={(event) =>
+              form.setTaskForm((current) => ({ ...current, task_type: event.target.value }))
+            }
+            required
+          >
+            {TASK_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {form.t(option.labelKey)}
+              </option>
+            ))}
+          </select>
         </div>
+        <div>
+          <label
+            htmlFor="task-priority"
+            className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
+          >
+            {form.t('tasks.form.priority')}
+          </label>
+          <select
+            id="task-priority"
+            className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
+            value={form.taskForm.priority}
+            onChange={(event) =>
+              form.setTaskForm((current) => ({ ...current, priority: event.target.value }))
+            }
+          >
+            <option value="low">{form.t('tasks.priorities.low')}</option>
+            <option value="normal">{form.t('tasks.priorities.normal')}</option>
+            <option value="high">{form.t('tasks.priorities.high')}</option>
+            <option value="critical">{form.t('tasks.priorities.critical')}</option>
+          </select>
+        </div>
+      </div>
 
-        <Textarea
-          label={form.t('tasks.form.inputPayload')}
-          value={form.taskForm.input_json}
-          onChange={(event) =>
-            form.setTaskForm((current) => ({ ...current, input_json: event.target.value }))
-          }
-          className="min-h-[180px] font-mono text-sm"
-        />
+      <Textarea
+        label={form.t('tasks.form.inputPayload')}
+        value={form.taskForm.input_json}
+        onChange={(event) =>
+          form.setTaskForm((current) => ({ ...current, input_json: event.target.value }))
+        }
+        className="min-h-[180px] font-mono text-sm"
+      />
 
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+            {form.t('tasks.form.targetMode')}
+          </p>
+          <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+            {form.t('tasks.form.targetModeDescription')}
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => form.setTargetMode('explicit_access_tokens')}
+            aria-pressed={form.taskForm.target_mode === 'explicit_access_tokens'}
+            className={`rounded-2xl border p-3 text-left transition-colors sm:p-4 ${
+              form.taskForm.target_mode === 'explicit_access_tokens'
+                ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
+                : 'border-[var(--kw-border)] bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]'
+            }`}
+          >
+            <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {form.t('tasks.form.explicitTokens')}
+            </p>
+            <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {form.t('tasks.form.explicitTokensDesc')}
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => form.setTargetMode('broadcast')}
+            aria-pressed={form.taskForm.target_mode === 'broadcast'}
+            className={`rounded-2xl border p-3 text-left transition-colors sm:p-4 ${
+              form.taskForm.target_mode === 'broadcast'
+                ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
+                : 'border-[var(--kw-border)] bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]'
+            }`}
+          >
+            <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+              {form.t('tasks.form.broadcast')}
+            </p>
+            <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+              {form.t('tasks.form.broadcastDesc')}
+            </p>
+          </button>
+        </div>
+      </div>
+
+      {form.taskForm.target_mode === 'explicit_access_tokens' ? (
         <div className="space-y-3">
           <div>
             <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              {form.t('tasks.form.targetMode')}
+              {form.t('tasks.form.targetAccessTokens')}
             </p>
             <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {form.t('tasks.form.targetModeDescription')}
+              {form.t('tasks.form.targetAccessTokensDescription')}
             </p>
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => form.setTargetMode('explicit_access_tokens')}
-              aria-pressed={form.taskForm.target_mode === 'explicit_access_tokens'}
-              className={`rounded-2xl border p-3 text-left transition-colors sm:p-4 ${
-                form.taskForm.target_mode === 'explicit_access_tokens'
-                  ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
-                  : 'border-[var(--kw-border)] bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]'
-              }`}
-            >
-              <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {form.t('tasks.form.explicitTokens')}
-              </p>
-              <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {form.t('tasks.form.explicitTokensDesc')}
-              </p>
-            </button>
-            <button
-              type="button"
-              onClick={() => form.setTargetMode('broadcast')}
-              aria-pressed={form.taskForm.target_mode === 'broadcast'}
-              className={`rounded-2xl border p-3 text-left transition-colors sm:p-4 ${
-                form.taskForm.target_mode === 'broadcast'
-                  ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)]'
-                  : 'border-[var(--kw-border)] bg-[var(--kw-surface)] dark:bg-[var(--kw-dark-surface)]'
-              }`}
-            >
-              <p className="font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {form.t('tasks.form.broadcast')}
-              </p>
-              <p className="mt-1 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {form.t('tasks.form.broadcastDesc')}
-              </p>
-            </button>
-          </div>
-        </div>
-
-        {form.taskForm.target_mode === 'explicit_access_tokens' ? (
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {form.t('tasks.form.targetAccessTokens')}
-              </p>
+          <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-xl border border-[var(--kw-border)] p-3 sm:p-4">
+            {allTokens.length === 0 ? (
               <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                {form.t('tasks.form.targetAccessTokensDescription')}
+                {form.t('tasks.form.noTokensAvailable')}
               </p>
-            </div>
-            <div className="bg-[var(--kw-primary-50)]/30 grid max-h-64 gap-3 overflow-y-auto rounded-xl border border-[var(--kw-border)] p-3 sm:p-4">
-              {allTokens.length === 0 ? (
-                <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                  {form.t('tasks.form.noTokensAvailable')}
-                </p>
-              ) : (
-                allTokens.map((token) => (
-                  <TokenCheckbox
-                    key={token.id}
-                    token={token}
-                    checked={form.taskForm.target_access_token_ids.includes(token.id)}
-                    onToggle={form.toggleTargetToken}
-                    t={form.t}
-                  />
-                ))
-              )}
-            </div>
+            ) : (
+              allTokens.map((token) => (
+                <TokenCheckbox
+                  key={token.id}
+                  token={token}
+                  checked={form.taskForm.target_access_token_ids.includes(token.id)}
+                  onToggle={form.toggleTargetToken}
+                  t={form.t}
+                />
+              ))
+            )}
           </div>
-        ) : null}
-
-        {form.taskFormError ? (
-          <div
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-            className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
-          >
-            {form.taskFormError}
-          </div>
-        ) : null}
-
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button type="button" variant="ghost" onClick={form.closeCreateTaskModal}>
-            {form.t('common.cancel')}
-          </Button>
-          <Button type="submit" loading={form.submittingTask}>
-            {form.t('tasks.publishTask')}
-          </Button>
         </div>
-      </form>
-    </Modal>
+      ) : null}
+
+      {form.taskFormError ? (
+        <div
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
+        >
+          {form.taskFormError}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Button type="button" variant="ghost" onClick={form.closeCreateTaskModal}>
+          {form.t('common.cancel')}
+        </Button>
+        <Button type="submit" loading={form.submittingTask}>
+          {form.t('tasks.publishTask')}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -580,7 +594,7 @@ function TaskDetailModal({
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-3 border border-[var(--kw-border)]">
               <p className="text-xs uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {page.t('tasks.inputPayload')}
               </p>
@@ -589,7 +603,7 @@ function TaskDetailModal({
               </pre>
             </Card>
 
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-3 border border-[var(--kw-border)]">
               <p className="text-xs uppercase tracking-[0.1em] text-[var(--kw-text-muted)] sm:text-sm sm:tracking-[0.2em] dark:text-[var(--kw-dark-text-muted)]">
                 {page.t('tasks.publishingContext')}
               </p>
@@ -707,88 +721,85 @@ function TaskDetailModal({
   );
 }
 
-function FeedbackModal({ form }: { form: ReturnType<typeof useTasksForm> }) {
+function FeedbackPanel({ form }: { form: ReturnType<typeof useTasksForm> }) {
   return (
-    <Modal
-      isOpen={form.feedbackTarget !== null}
-      onClose={form.closeFeedbackModal}
-      title={
-        form.feedbackTarget
-          ? `${form.t('tasks.feedbackFor')} ${form.feedbackTarget.accessTokenLabel}`
-          : form.t('tasks.feedback')
-      }
-      description={
-        form.feedbackTarget
-          ? `${form.feedbackTarget.taskTitle} • ${form.feedbackTarget.targetId}`
-          : undefined
-      }
-    >
-      <form className="space-y-3 sm:space-y-4" onSubmit={form.handleSubmitFeedback}>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="feedback-score"
-              className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
-            >
-              {form.t('tasks.form.score')}
-            </label>
-            <select
-              id="feedback-score"
-              className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
-              value={form.feedbackForm.score}
-              onChange={(event) =>
-                form.setFeedbackForm((current) => ({ ...current, score: event.target.value }))
-              }
-            >
-              <option value="5">5</option>
-              <option value="4">4</option>
-              <option value="3">3</option>
-              <option value="2">2</option>
-              <option value="1">1</option>
-            </select>
-          </div>
-          <Input
-            label={form.t('tasks.form.verdict')}
-            value={form.feedbackForm.verdict}
-            onChange={(event) =>
-              form.setFeedbackForm((current) => ({ ...current, verdict: event.target.value }))
-            }
-            placeholder={form.t('tasks.form.verdictPlaceholder') || 'accepted'}
-            required
-          />
-        </div>
-
-        <Textarea
-          label={form.t('tasks.form.summary')}
-          value={form.feedbackForm.summary}
-          onChange={(event) =>
-            form.setFeedbackForm((current) => ({ ...current, summary: event.target.value }))
-          }
-          className="min-h-[80px] sm:min-h-[140px]"
-          placeholder={form.t('tasks.form.summaryPlaceholder')}
-        />
-
-        {form.feedbackFormError ? (
-          <div
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-            className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
+    <form className="space-y-3 sm:space-y-4" onSubmit={form.handleSubmitFeedback}>
+      <div>
+        <h2 className="text-xl font-bold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
+          {form.feedbackTarget
+            ? `${form.t('tasks.feedbackFor')} ${form.feedbackTarget.accessTokenLabel}`
+            : form.t('tasks.feedback')}
+        </h2>
+        <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
+          {form.feedbackTarget
+            ? `${form.feedbackTarget.taskTitle} • ${form.feedbackTarget.targetId}`
+            : ''}
+        </p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label
+            htmlFor="feedback-score"
+            className="mb-1.5 block text-sm font-medium text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]"
           >
-            {form.feedbackFormError}
-          </div>
-        ) : null}
-
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button type="button" variant="ghost" onClick={form.closeFeedbackModal}>
-            {form.t('common.cancel')}
-          </Button>
-          <Button type="submit" loading={form.submittingFeedback}>
-            {form.t('tasks.saveFeedback')}
-          </Button>
+            {form.t('tasks.form.score')}
+          </label>
+          <select
+            id="feedback-score"
+            className="w-full rounded-2xl border-2 border-[var(--kw-primary-200)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none focus:border-[var(--kw-primary-400)] focus:ring-4 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
+            value={form.feedbackForm.score}
+            onChange={(event) =>
+              form.setFeedbackForm((current) => ({ ...current, score: event.target.value }))
+            }
+          >
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+          </select>
         </div>
-      </form>
-    </Modal>
+        <Input
+          label={form.t('tasks.form.verdict')}
+          value={form.feedbackForm.verdict}
+          onChange={(event) =>
+            form.setFeedbackForm((current) => ({ ...current, verdict: event.target.value }))
+          }
+          placeholder={form.t('tasks.form.verdictPlaceholder') || 'accepted'}
+          required
+        />
+      </div>
+
+      <Textarea
+        label={form.t('tasks.form.summary')}
+        value={form.feedbackForm.summary}
+        onChange={(event) =>
+          form.setFeedbackForm((current) => ({ ...current, summary: event.target.value }))
+        }
+        className="min-h-[80px] sm:min-h-[140px]"
+        placeholder={form.t('tasks.form.summaryPlaceholder')}
+      />
+
+      {form.feedbackFormError ? (
+        <div
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
+        >
+          {form.feedbackFormError}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Button type="button" variant="ghost" onClick={form.closeFeedbackModal}>
+          {form.t('common.cancel')}
+        </Button>
+        <Button type="submit" loading={form.submittingFeedback}>
+          {form.t('tasks.saveFeedback')}
+        </Button>
+      </div>
+    </form>
   );
 }
 

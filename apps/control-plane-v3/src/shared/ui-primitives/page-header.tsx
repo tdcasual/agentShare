@@ -25,7 +25,7 @@ export function PageHeader({ title, badge, description, actions, className }: Pa
     >
       <div className={cn(badge ? 'space-y-2' : undefined)}>
         {badge ? (
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 hidden items-center gap-2 rounded-full border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-2 text-sm text-[var(--kw-primary-600)] sm:inline-flex dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+          <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 hidden items-center gap-2 rounded-full border border-[var(--kw-border)] px-4 py-2 text-sm text-[var(--kw-primary-600)] sm:inline-flex dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             {badge}
           </div>
         ) : null}

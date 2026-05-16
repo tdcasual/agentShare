@@ -70,11 +70,7 @@ export function useCreateTaskTargetFeedback() {
     // 刷新相关缓存
     await mutate('/api/tasks');
     await mutate('/api/runs');
-    await mutate(
-      (key) =>
-        Array.isArray(key) &&
-        key[0] === TASK_DASHBOARD_FEEDBACK_KEY
-    );
+    await mutate((key) => Array.isArray(key) && key[0] === TASK_DASHBOARD_FEEDBACK_KEY);
     return result;
   }, []);
 }

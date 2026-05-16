@@ -137,7 +137,7 @@ export default function SetupPage() {
             </div>
 
             {/* Steps */}
-            <div className="dark:bg-[var(--kw-dark-bg)]/80 space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:p-4 lg:p-5 dark:border-[var(--kw-dark-border)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/80 bg-[var(--kw-surface)]/80 space-y-4 rounded-xl border border-[var(--kw-border)] p-3 sm:p-4 lg:p-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-center gap-3 text-[var(--kw-text)]">
                 <UserRoundPlus className="h-5 w-5 text-[var(--kw-primary-500)]" />
                 <span className="font-semibold">{t('auth.setup.whatNext')}</span>
@@ -206,7 +206,7 @@ export default function SetupPage() {
             />
 
             {/* Status */}
-            <div className="dark:bg-[var(--kw-dark-bg)]/80 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/80 bg-[var(--kw-surface)]/80 rounded-xl border border-[var(--kw-border)] px-4 py-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
               {error ? (
                 <span
                   role="alert"

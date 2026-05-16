@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from app.config import Settings
@@ -385,10 +384,7 @@ def _request_body_for(method: str, path: str) -> dict | None:
 def test_role_endpoint_permission(tmp_path: Path, role: str, method: str, path: str, expected_status: int, expected_detail: str | None) -> None:
     with management_client_for_role(tmp_path, role) as client:
         body = _request_body_for(method, path)
-        if body is not None:
-            response = client.post(path, json=body)
-        else:
-            response = client.get(path)
+        response = client.post(path, json=body) if body is not None else client.get(path)
 
     assert response.status_code == expected_status, f"{role} {method} {path}: {response.text}"
     if expected_detail is not None:

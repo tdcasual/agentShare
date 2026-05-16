@@ -133,7 +133,11 @@ export default function DemoSpacesPage() {
                       : 'dark:bg-[var(--kw-dark-sky-accent-surface)]/30 bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]'
                   }`}
                 >
-                  {msg.isAgent ? <Bot className="h-4 w-4" aria-hidden="true" /> : <User className="h-4 w-4" aria-hidden="true" />}
+                  {msg.isAgent ? (
+                    <Bot className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <User className="h-4 w-4" aria-hidden="true" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-baseline gap-2">

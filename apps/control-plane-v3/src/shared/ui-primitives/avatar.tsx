@@ -89,11 +89,12 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
                   : t('common.userAvatar'))
             }
           >
-            {getFallback() ?? (type === 'agent' ? (
-              <Bot className={cn(fallbackIconSizes[size])} aria-hidden="true" />
-            ) : (
-              <User className={cn(fallbackIconSizes[size])} aria-hidden="true" />
-            ))}
+            {getFallback() ??
+              (type === 'agent' ? (
+                <Bot className={cn(fallbackIconSizes[size])} aria-hidden="true" />
+              ) : (
+                <User className={cn(fallbackIconSizes[size])} aria-hidden="true" />
+              ))}
           </span>
         )}
 

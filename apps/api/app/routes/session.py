@@ -41,7 +41,7 @@ def _check_csrf_origin(request: Request, settings: Settings) -> None:
         return
     source = origin or referer
     allowed = settings.csrf_allowed_origins
-    if allowed:
+    if allowed and source:
         permitted = {o.strip() for o in allowed.split(",") if o.strip()}
         if not any(source.startswith(p) for p in permitted):
             raise HTTPException(

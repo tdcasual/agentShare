@@ -48,88 +48,86 @@ export function PlaybookDetail({ playbook, onClose }: PlaybookDetailProps) {
 
   return (
     <div className="flex max-h-[90vh] flex-col overflow-hidden">
-        {/* 头部 */}
-        <div className="flex items-start justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--kw-primary-500)] text-white">
-              <BookOpen className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-[var(--kw-text)]">{playbook.title}</h2>
-              <p className="text-sm text-[var(--kw-text-muted)]">{playbook.taskType}</p>
-            </div>
+      {/* 头部 */}
+      <div className="flex items-start justify-between border-b border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--kw-primary-500)] text-white">
+            <BookOpen className="h-6 w-6" />
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="rounded-full"
-            aria-label={t('common.closeModal')}
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          <div>
+            <h2 className="text-xl font-bold text-[var(--kw-text)]">{playbook.title}</h2>
+            <p className="text-sm text-[var(--kw-text-muted)]">{playbook.taskType}</p>
+          </div>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="rounded-full"
+          aria-label={t('common.closeModal')}
+        >
+          <X className="h-5 w-5" />
+        </Button>
+      </div>
 
-        {/* 内容区域 */}
-        <div className="flex-1 space-y-6 overflow-y-auto p-6">
-          {/* 标签 */}
-          {playbook.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {playbook.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  <Tag className="mr-1 h-3 w-3" />
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* 正文 */}
-          <div className="relative">
-            <div className="absolute right-2 top-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCopyBody}
-                leftIcon={
-                  copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />
-                }
-              >
-                {copied ? t('common.copied') : t('common.copy')}
-              </Button>
-            </div>
-            <div className="bg-[var(--kw-primary-50)]/50 rounded-xl p-4 dark:bg-[var(--kw-dark-bg)]">
-              <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-[var(--kw-text)]">
-                {playbook.body}
-              </pre>
-            </div>
+      {/* 内容区域 */}
+      <div className="flex-1 space-y-6 overflow-y-auto p-6">
+        {/* 标签 */}
+        {playbook.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {playbook.tags.map((tag) => (
+              <Badge key={tag} variant="secondary">
+                <Tag className="mr-1 h-3 w-3" />
+                {tag}
+              </Badge>
+            ))}
           </div>
+        )}
 
-          {/* 元信息 */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2 text-[var(--kw-text-muted)]">
-              <BookOpen className="h-4 w-4" />
-              <span>
-                {t('playbooks.detail.taskTypeLabel')}:{' '}
-                {translatePlaybookTaskType(t, playbook.taskType)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-[var(--kw-text-muted)]">
-              <Shield className="h-4 w-4" />
-              <span>
-                {t('playbooks.detail.publicationStatusLabel')}:{' '}
-                {translatePublicationStatus(t, playbook.publicationStatus)}
-              </span>
-            </div>
+        {/* 正文 */}
+        <div className="relative">
+          <div className="absolute right-2 top-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyBody}
+              leftIcon={copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            >
+              {copied ? t('common.copied') : t('common.copy')}
+            </Button>
+          </div>
+          <div className="bg-[var(--kw-primary-50)]/50 rounded-xl p-4 dark:bg-[var(--kw-dark-bg)]">
+            <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-[var(--kw-text)]">
+              {playbook.body}
+            </pre>
           </div>
         </div>
 
-        {/* 底部 */}
-        <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
-          <Button variant="outline" onClick={onClose}>
-            {t('common.close')}
-          </Button>
+        {/* 元信息 */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-2 text-[var(--kw-text-muted)]">
+            <BookOpen className="h-4 w-4" />
+            <span>
+              {t('playbooks.detail.taskTypeLabel')}:{' '}
+              {translatePlaybookTaskType(t, playbook.taskType)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[var(--kw-text-muted)]">
+            <Shield className="h-4 w-4" />
+            <span>
+              {t('playbooks.detail.publicationStatusLabel')}:{' '}
+              {translatePublicationStatus(t, playbook.publicationStatus)}
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* 底部 */}
+      <div className="flex justify-end border-t border-[var(--kw-border)] p-6 dark:border-[var(--kw-dark-border)]">
+        <Button variant="outline" onClick={onClose}>
+          {t('common.close')}
+        </Button>
+      </div>
+    </div>
   );
 }

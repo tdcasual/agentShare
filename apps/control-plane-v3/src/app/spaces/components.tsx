@@ -11,7 +11,7 @@ export interface SectionNoticeProps {
 
 export function SectionNotice({ message }: SectionNoticeProps) {
   return (
-    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 bg-[var(--kw-surface)]/70 rounded-2xl border border-dashed border-[var(--kw-border)] p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
       {message}
     </div>
   );
@@ -26,7 +26,7 @@ export interface InventoryCardProps {
 export function InventoryCard({ icon, title, items }: InventoryCardProps) {
   const { t } = useI18n();
   return (
-    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <div className="dark:bg-[var(--kw-dark-surface-alt)]/55 bg-[var(--kw-surface)]/70 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
       <div className="flex items-center gap-2 text-sm font-semibold text-[var(--kw-text)]">
         {icon}
         {title}

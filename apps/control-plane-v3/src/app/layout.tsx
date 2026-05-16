@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
-import { RuntimeProvider } from '@/components/runtime-provider';
+import { ConditionalRuntimeProvider } from '@/components/conditional-runtime-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { RouteGuardWrapper } from '@/components/route-guard-wrapper';
 import { KawaiiBackground } from '@/components/kawaii/kawaii-background';
@@ -95,7 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           disableTransitionOnChange={false}
         >
           <I18nProvider initialLocale={locale}>
-            <RuntimeProvider>
+            <ConditionalRuntimeProvider>
               <ErrorBoundary>
                 <RouteGuardWrapper>
                   <KawaiiBackground />
@@ -112,7 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <PWAOfflineIndicator />
                 </RouteGuardWrapper>
               </ErrorBoundary>
-            </RuntimeProvider>
+            </ConditionalRuntimeProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>

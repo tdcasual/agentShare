@@ -228,55 +228,6 @@ export function useRuntimeOptional(): CoreRuntime | null {
   return React.useContext(RuntimeContext);
 }
 
-// ============================================
-// 向后兼容的全局单例（标记为 deprecated）
-// ============================================
-
-let globalRuntime: CoreRuntime | null = null;
-
-/**
- * @deprecated 使用 RuntimeContext + useRuntime() 替代
- * 将在 v2.0 中移除
- */
-export function getRuntime(): CoreRuntime {
-  if (!globalRuntime) {
-    globalRuntime = createCoreRuntime();
-  }
-  return globalRuntime;
-}
-
-/**
- * @deprecated 使用 createCoreRuntime({ plugins: [...] }) 替代
- * 将在 v2.0 中移除
- */
-export function setRuntime(runtime: CoreRuntime): void {
-  globalRuntime = runtime;
-}
-
-// 向后兼容的初始化函数（自动注册 Identity 插件）
-/**
- * @deprecated 使用 initializeRuntime(runtime, plugins) 替代
- * 将在 v2.0 中移除
- */
-export async function initializeRuntimeLegacy(
-  runtime: CoreRuntime = getRuntime()
-): Promise<CoreRuntime> {
-  // 动态导入以避免循环依赖
-  const { IdentityDomainPlugin } = await import('../domains/identity/plugin');
-
-  const identityPluginId = 'domain.identity';
-
-  if (!runtime.plugin.get(identityPluginId)) {
-    runtime.plugin.register(new IdentityDomainPlugin());
-  }
-
-  if (!runtime.plugin.isActive(identityPluginId)) {
-    await runtime.plugin.activatePlugin(identityPluginId);
-  }
-
-  return runtime;
-}
-
 // Typed event bus for domain events
 export function createTypedEventBus(runtime: CoreRuntime) {
   return new TypedEventBus<DomainEvents>(runtime.event);

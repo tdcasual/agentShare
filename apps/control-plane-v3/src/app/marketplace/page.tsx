@@ -169,7 +169,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
       <section className="relative overflow-hidden rounded-2xl border border-[var(--kw-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(252,231,243,0.92))] p-4 sm:p-6 lg:p-8 dark:border-[var(--kw-dark-border)] dark:bg-[linear-gradient(135deg,rgba(37,37,64,0.98),rgba(18,18,26,0.96))]">
         <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
           <div className="max-w-3xl">
-            <div className="dark:bg-[var(--kw-dark-bg)]/70 inline-flex items-center gap-2 rounded-full border border-[var(--kw-primary-200)] bg-[var(--kw-surface)]/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-primary-600)] sm:text-xs sm:tracking-[0.22em] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
+            <div className="dark:bg-[var(--kw-dark-bg)]/70 bg-[var(--kw-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-primary-200)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-primary-600)] sm:text-xs sm:tracking-[0.22em] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
               <Store className="h-3.5 w-3.5" />
               {t('marketplace.tagline')}
             </div>
@@ -204,7 +204,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
         </div>
 
         {focusedMarketplaceItem ? (
-          <div className="border-[var(--kw-primary-200)]/70 dark:bg-[var(--kw-dark-bg)]/70 mt-6 rounded-xl border bg-[var(--kw-surface)]/75 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+          <div className="border-[var(--kw-primary-200)]/70 dark:bg-[var(--kw-dark-bg)]/70 bg-[var(--kw-surface)]/75 mt-6 rounded-xl border p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--kw-primary-600)] sm:text-xs sm:tracking-[0.24em] dark:text-[var(--kw-dark-primary)]">
@@ -226,7 +226,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
         ) : null}
       </section>
 
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
+      <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
         <div className="flex flex-wrap gap-3">
           {reviewFilterItems.map((item) => (
             <FilterButton
@@ -246,7 +246,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
 
       <div className="grid gap-3 sm:gap-4 lg:gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         {showReviewPanel ? (
-          <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
+          <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-3 border border-[var(--kw-border)] sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
@@ -348,7 +348,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
 
         <div className="space-y-3 sm:space-y-4 lg:space-y-6">
           {showPublishedPanel ? (
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-3 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-3 border border-[var(--kw-border)] sm:space-y-4 lg:space-y-5 dark:border-[var(--kw-dark-border)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
@@ -418,7 +418,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
               ) : null}
             </Card>
           ) : (
-            <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
+            <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-4 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
                   {t('marketplace.publishedTitle')}
@@ -431,7 +431,7 @@ const MarketplaceContent = memo(function MarketplaceContent() {
             </Card>
           )}
 
-          <Card className="dark:bg-[var(--kw-dark-surface)]/90 space-y-4 border border-[var(--kw-border)] bg-[var(--kw-surface)]/90 dark:border-[var(--kw-dark-border)]">
+          <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-4 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
                 <Sparkles className="h-5 w-5" />
@@ -473,7 +473,7 @@ function SectionNotice({ tone, message }: { tone: 'default' | 'error'; message: 
       className={
         tone === 'error'
           ? 'bg-[var(--kw-rose-surface)]/80 dark:border-[var(--kw-dark-error-surface)]/50 dark:bg-[var(--kw-dark-error-surface)]/20 rounded-2xl border border-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)] sm:p-4 dark:text-[var(--kw-error)]'
-          : 'dark:bg-[var(--kw-dark-bg)]/55 rounded-2xl border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]'
+          : 'dark:bg-[var(--kw-dark-bg)]/55 bg-[var(--kw-surface)]/70 rounded-2xl border border-dashed border-[var(--kw-border)] p-3 text-sm text-[var(--kw-text-muted)] sm:p-4 dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]'
       }
     >
       {message}
@@ -514,7 +514,7 @@ function CatalogSection({
           <div
             key={item.id}
             className={cn(
-              'dark:bg-[var(--kw-dark-bg)]/55 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]',
+              'dark:bg-[var(--kw-dark-bg)]/55 bg-[var(--kw-surface)]/70 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]',
               item.highlighted
                 ? 'dark:ring-[var(--kw-primary-400)]/60 ring-2 ring-[var(--kw-primary-300)]'
                 : null

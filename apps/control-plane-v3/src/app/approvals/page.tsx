@@ -43,13 +43,17 @@ const ApprovalsContent = memo(function ApprovalsContent() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
-  const { approvals: allApprovals, isLoading, error, refresh } = useApprovals(
-    undefined,
-    { revalidateOnFocus: true }
-  );
+  const {
+    approvals: allApprovals,
+    isLoading,
+    error,
+    refresh,
+  } = useApprovals(undefined, { revalidateOnFocus: true });
 
   const approvals = useMemo(() => {
-    if (statusFilter === 'all') return allApprovals;
+    if (statusFilter === 'all') {
+      return allApprovals;
+    }
     return allApprovals.filter((a) => a.status === statusFilter);
   }, [allApprovals, statusFilter]);
 

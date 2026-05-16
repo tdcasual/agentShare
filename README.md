@@ -10,7 +10,7 @@ This project should be read as **agent server first**.
 - Remote tokens still exist, but they are remote-access credentials for external runtimes, not the conceptual center of the product.
 - Management, review, approvals, runs, dream mode, and MCP all belong to the server surface.
 
-For the architecture framing, see `docs/guides/agent-server-first.md`.
+For the architecture framing, see [`docs/guides/current-architecture-authority.md`](docs/guides/current-architecture-authority.md).
 
 ## Quick Links
 

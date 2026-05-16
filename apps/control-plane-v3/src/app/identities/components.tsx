@@ -13,7 +13,7 @@ export interface CoverageMetricProps {
 
 export function CoverageMetric({ label, value, hint }: CoverageMetricProps) {
   return (
-    <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/60 dark:bg-[var(--kw-dark-amber-surface)]/10 rounded-2xl border bg-[var(--kw-surface)]/70 px-4 py-3">
+    <div className="border-[var(--kw-amber-surface)]/80 dark:border-[var(--kw-dark-amber-surface)]/60 dark:bg-[var(--kw-dark-amber-surface)]/10 bg-[var(--kw-surface)]/70 rounded-2xl border px-4 py-3">
       <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--kw-amber-text)] sm:text-xs sm:tracking-[0.2em] dark:text-[var(--kw-warning)]">
         {label}
       </p>
@@ -36,7 +36,7 @@ export interface EmptyStateProps {
 
 export function EmptyState({ icon, message, actionLabel, onAction }: EmptyStateProps) {
   return (
-    <div className="dark:bg-[var(--kw-dark-surface)]/60 rounded-2xl border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-6 text-center dark:border-[var(--kw-dark-border)]">
+    <div className="dark:bg-[var(--kw-dark-surface)]/60 bg-[var(--kw-surface)]/70 rounded-2xl border border-dashed border-[var(--kw-border)] p-6 text-center dark:border-[var(--kw-dark-border)]">
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
         {icon}
       </div>
@@ -56,7 +56,7 @@ export interface SectionLoadingProps {
 
 export function SectionLoading({ message }: SectionLoadingProps) {
   return (
-    <div className="dark:bg-[var(--kw-dark-surface)]/60 rounded-2xl border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/70 p-6 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
+    <div className="dark:bg-[var(--kw-dark-surface)]/60 bg-[var(--kw-surface)]/70 rounded-2xl border border-dashed border-[var(--kw-border)] p-6 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
       {message}
     </div>
   );
@@ -99,7 +99,7 @@ export interface IdentityDetailsGridProps {
 
 export function IdentityDetailsGrid({ items }: IdentityDetailsGridProps) {
   return (
-    <dl className="dark:bg-[var(--kw-dark-surface-alt)]/60 mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/60 p-3 sm:grid-cols-2 sm:p-4 dark:border-[var(--kw-dark-border)]">
+    <dl className="dark:bg-[var(--kw-dark-surface-alt)]/60 bg-[var(--kw-surface)]/60 mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-dashed border-[var(--kw-border)] p-3 sm:grid-cols-2 sm:p-4 dark:border-[var(--kw-dark-border)]">
       {items.map(([label, value]) => (
         <div key={label} className="min-w-0">
           <dt className="text-[10px] uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-xs sm:tracking-wide">

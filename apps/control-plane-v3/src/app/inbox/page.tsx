@@ -175,7 +175,7 @@ const InboxContent = memo(function InboxContent() {
       )}
 
       {!isLoading && !error && events.length === 0 && (
-        <div className="dark:bg-[var(--kw-dark-surface)]/60 flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--kw-border)] bg-[var(--kw-surface)]/70 py-10 text-center sm:py-16 dark:border-[var(--kw-dark-border)]">
+        <div className="dark:bg-[var(--kw-dark-surface)]/60 bg-[var(--kw-surface)]/70 flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--kw-border)] py-10 text-center sm:py-16 dark:border-[var(--kw-dark-border)]">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-primary-100)] text-[var(--kw-primary-600)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-primary)]">
             <Inbox className="h-8 w-8" />
           </div>

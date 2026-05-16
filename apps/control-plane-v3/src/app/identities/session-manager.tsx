@@ -108,7 +108,7 @@ export function SessionManager({
       ) : null}
 
       {showCreate && canManage ? (
-        <div className="dark:bg-[var(--kw-dark-surface)]/80 space-y-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
+        <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 space-y-3 rounded-2xl border border-[var(--kw-border)] p-3 sm:p-4 dark:border-[var(--kw-dark-border)]">
           <Input
             label={t('identities.sessionManager.sessionKey')}
             value={createForm.session_key}
@@ -161,7 +161,7 @@ export function SessionManager({
           {sortedSessions.map((session) => (
             <div
               key={session.id}
-              className="dark:bg-[var(--kw-dark-surface)]/80 flex items-start justify-between gap-3 rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)]/80 p-3 dark:border-[var(--kw-dark-border)]"
+              className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 flex items-start justify-between gap-3 rounded-2xl border border-[var(--kw-border)] p-3 dark:border-[var(--kw-dark-border)]"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-[var(--kw-text)]">{session.display_name}</p>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useRuntime } from '@/core/runtime';
+import { useRuntimeOptional } from '@/core/runtime';
 import type { Identity } from '@/domains/identity/types';
 import {
   IdentityRegistryServiceId,
@@ -102,7 +102,7 @@ export function buildShellIdentityState({
 
 export function useShellIdentity() {
   const pathname = usePathname() ?? '/';
-  const runtime = useRuntime();
+  const runtime = useRuntimeOptional();
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [runtimeState, setRuntimeState] = useState<RuntimeShellIdentityState>({
     currentIdentity: null,
@@ -141,7 +141,11 @@ export function useShellIdentity() {
     }));
 
     try {
-      const registry = runtimeRef.current.di.resolve(IdentityRegistryServiceId);
+      const activeRuntime = runtimeRef.current;
+      if (!activeRuntime) {
+        throw new Error('Demo runtime is unavailable for this route');
+      }
+      const registry = activeRuntime.di.resolve(IdentityRegistryServiceId);
       const syncRuntimeIdentity = () => {
         if (!mounted) {
           return;
