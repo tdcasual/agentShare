@@ -1,5 +1,6 @@
 from conftest import TEST_ACCESS_TOKEN_ID
 
+
 def _create_openclaw_agent(management_client):
     response = management_client.post(
         "/api/openclaw/agents",

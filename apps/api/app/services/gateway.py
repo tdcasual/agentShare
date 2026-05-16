@@ -15,8 +15,8 @@ from app.observability import record_capability_invoke
 from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
 from app.repositories.task_target_repo import TaskTargetRepository
-from app.services.adapters.registry import get_adapter
 from app.services.access_policy import ensure_runtime_access_allowed
+from app.services.adapters.registry import get_adapter
 from app.services.approval_service import ApprovalRequiredError, require_runtime_approval
 from app.services.audit_service import write_audit_event
 from app.services.capability_service import get_capability

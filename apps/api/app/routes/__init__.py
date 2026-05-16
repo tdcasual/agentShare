@@ -3,11 +3,13 @@
 from fastapi import APIRouter, FastAPI
 
 from app.mcp.server import router as mcp_router
-from app.routes.admin_accounts import router as admin_accounts_router
 from app.routes.access_tokens import router as access_tokens_router
+from app.routes.admin_accounts import router as admin_accounts_router
 from app.routes.approvals import router as approvals_router
+from app.routes.bootstrap import router as bootstrap_router
 from app.routes.capabilities import router as capabilities_router
 from app.routes.catalog import router as catalog_router
+from app.routes.events import router as events_router
 from app.routes.intake_catalog import router as intake_catalog_router
 from app.routes.invoke import router as invoke_router
 from app.routes.leases import router as leases_router
@@ -18,18 +20,17 @@ from app.routes.openclaw_memory import router as openclaw_memory_router
 from app.routes.openclaw_sessions import router as openclaw_sessions_router
 from app.routes.openclaw_workbench import router as openclaw_workbench_router
 from app.routes.playbooks import router as playbooks_router
-from app.routes.runs import router as runs_router
+from app.routes.public_docs import router as public_docs_router
 from app.routes.reviews import router as reviews_router
+from app.routes.runs import router as runs_router
 from app.routes.runtime import router as runtime_router
+from app.routes.search import router as search_router
 from app.routes.secrets import router as secrets_router
 from app.routes.session import router as session_router
-from app.routes.search import router as search_router
 from app.routes.spaces import router as spaces_router
-from app.routes.tasks import router as tasks_router, task_targets_router
+from app.routes.tasks import router as tasks_router
+from app.routes.tasks import task_targets_router
 from app.routes.token_feedback import router as token_feedback_router
-from app.routes.bootstrap import router as bootstrap_router
-from app.routes.events import router as events_router
-from app.routes.public_docs import router as public_docs_router
 
 
 def get_default_routers(*, include_mcp: bool = True) -> tuple[APIRouter, ...]:

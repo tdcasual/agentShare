@@ -1,3 +1,10 @@
+from conftest import (
+    BOOTSTRAP_OWNER_KEY,
+    TEST_AGENT_KEY,
+    _run_alembic_upgrade,
+    bootstrap_owner_account,
+    login_management_account,
+)
 from fastapi.testclient import TestClient
 
 from app.config import Settings
@@ -6,7 +13,6 @@ from app.orm.pending_secret_material import PendingSecretMaterialModel
 from app.orm.secret import SecretModel
 from app.repositories.audit_repo import AuditEventRepository
 from app.services.secret_backend import InMemorySecretBackend
-from conftest import BOOTSTRAP_OWNER_KEY, TEST_AGENT_KEY, _run_alembic_upgrade, bootstrap_owner_account, login_management_account
 
 
 def test_create_secret_returns_reference_only(management_client):

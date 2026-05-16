@@ -29,6 +29,27 @@ from app.services.session_service import (
 router = APIRouter(prefix="/api/session")
 
 
+def _check_csrf_origin(request: Request, settings: Settings) -> None:
+    origin = request.headers.get("origin")
+    referer = request.headers.get("referer")
+    if not origin and not referer:
+        if settings.is_production_like():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Origin or Referer header required",
+            )
+        return
+    source = origin or referer
+    allowed = settings.csrf_allowed_origins
+    if allowed:
+        permitted = {o.strip() for o in allowed.split(",") if o.strip()}
+        if not any(source.startswith(p) for p in permitted):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Request origin not allowed",
+            )
+
+
 @router.post(
     "/login",
     response_model=ManagementSessionResponse,
@@ -43,6 +64,7 @@ def login_management_session(
     session: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
+    _check_csrf_origin(request, settings)
     rate_limit_key = build_auth_rate_limit_key(
         bucket="management-login",
         client_host=request.client.host if request.client else None,

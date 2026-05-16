@@ -1,12 +1,12 @@
+import pytest
+from conftest import _run_alembic_upgrade
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import pytest
 
 from app.config import Settings
 from app.factory import create_app
 from app.routes import register_routes
 from app.runtime import build_runtime
-from conftest import _run_alembic_upgrade
 
 
 def test_create_app_registers_core_routes():

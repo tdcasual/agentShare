@@ -3,20 +3,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 import app.repositories as repositories
-from app.orm.base import Base
-from app.orm.secret import SecretModel
 from app.orm.access_token import AccessTokenModel
 from app.orm.audit_event import AuditEventModel
+from app.orm.base import Base
 from app.orm.event import EventModel
 from app.orm.openclaw_agent import OpenClawAgentModel
+from app.orm.openclaw_agent_file import OpenClawAgentFileModel
 from app.orm.openclaw_dream_run import OpenClawDreamRunModel
 from app.orm.openclaw_dream_step import OpenClawDreamStepModel
 from app.orm.openclaw_memory_note import OpenClawMemoryNoteModel
-from app.orm.openclaw_agent_file import OpenClawAgentFileModel
 from app.orm.openclaw_session import OpenClawSessionModel
 from app.orm.openclaw_tool_binding import OpenClawToolBindingModel
+from app.orm.secret import SecretModel
 from app.orm.task import TaskModel
-from app.repositories.secret_repo import SecretRepository
 from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.audit_repo import AuditEventRepository
 from app.repositories.event_repo import EventRepository
@@ -26,6 +25,7 @@ from app.repositories.openclaw_dream_run_repo import OpenClawDreamRunRepository
 from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepository
 from app.repositories.openclaw_memory_repo import OpenClawMemoryRepository
 from app.repositories.openclaw_session_repo import OpenClawSessionRepository
+from app.repositories.secret_repo import SecretRepository
 from app.repositories.task_repo import TaskRepository
 from app.services.openclaw_session_key_service import hash_openclaw_session_key
 

@@ -15,8 +15,8 @@ from app import db as db_module
 from app.config import Settings
 from app.errors import DomainError
 from app.observability import build_request_log_event, record_http_request
-from app.runtime import AppRuntime, build_runtime
 from app.routes import register_routes
+from app.runtime import AppRuntime, build_runtime
 from app.services.demo_seed_service import seed_demo_fixture_data
 from app.services.secret_backend import validate_secret_backend_settings
 
@@ -145,7 +145,7 @@ def add_runtime_openapi_customizer(app: FastAPI) -> None:
         app.openapi_schema = schema
         return schema
 
-    setattr(app, "openapi", custom_openapi)
+    app.openapi = custom_openapi  # type: ignore[method-assign]
 
 
 def create_app(

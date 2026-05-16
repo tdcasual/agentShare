@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from app.auth import ManagementIdentity, require_management_action
 from app.db import get_db
 from app.errors import ConflictError, NotFoundError
-from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.orm.openclaw_session import OpenClawSessionModel
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.openclaw_session_repo import OpenClawSessionRepository
 from app.schemas.openclaw_sessions import (
     OpenClawSessionCreate,

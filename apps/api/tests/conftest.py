@@ -6,21 +6,21 @@ from pathlib import Path
 
 import fakeredis
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.db import get_db
 from app.factory import create_app
+from app.observability import reset_metrics
 from app.orm import Base  # noqa: F401 — import triggers all model registration
 from app.orm.access_token import AccessTokenModel
 from app.orm.openclaw_agent import OpenClawAgentModel
 from app.runtime import AppRuntime
-from app.observability import reset_metrics
 from app.services.access_token_service import hash_access_token, mint_access_token
-from app.services.secret_backend import InMemorySecretBackend
 from app.services.auth_rate_limit import reset_auth_rate_limits
+from app.services.secret_backend import InMemorySecretBackend
 
 ROOT = Path(__file__).resolve().parents[3]
 API_ROOT = ROOT / "apps/api"

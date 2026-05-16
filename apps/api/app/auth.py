@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import cast
+
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import APIKeyCookie
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -19,8 +20,6 @@ from app.services.access_token_service import (
     touch_access_token,
 )
 from app.services.openclaw_runtime_service import build_runtime_principal
-from typing import cast
-
 from app.services.policy_service import ManagementAction, ensure_management_action_allowed
 from app.services.session_service import authenticate_management_session_token
 
@@ -198,12 +197,15 @@ def require_management_or_agent(
 def require_admin_management_or_agent(
     actor: AuthenticatedActor = Depends(require_management_or_agent),
 ) -> AuthenticatedActor:
-    if actor.actor_type == "human" and actor.role is not None:
-        if MANAGEMENT_ROLE_LEVELS[actor.role] < MANAGEMENT_ROLE_LEVELS["admin"]:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="admin role required",
-            )
+    if (
+        actor.actor_type == "human"
+        and actor.role is not None
+        and MANAGEMENT_ROLE_LEVELS[actor.role] < MANAGEMENT_ROLE_LEVELS["admin"]
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="admin role required",
+        )
     return actor
 
 

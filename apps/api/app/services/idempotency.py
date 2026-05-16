@@ -152,11 +152,8 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         if response.headers.get("content-length") is None:
             return False
 
-        header_names = {key.lower() for key in response.headers.keys()}
-        if header_names & self._UNSAFE_HEADERS:
-            return False
-
-        return True
+        header_names = {key.lower() for key in response.headers}
+        return not (header_names & self._UNSAFE_HEADERS)
 
     def _response_content_length(self, response: Response) -> int:
         raw_value = response.headers.get("content-length")

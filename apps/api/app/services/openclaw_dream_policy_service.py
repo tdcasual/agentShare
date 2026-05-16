@@ -3,7 +3,6 @@ from __future__ import annotations
 from app.errors import AuthorizationError, ConflictError
 from app.models.runtime_principal import RuntimePrincipal
 
-
 DEFAULT_DREAM_POLICY = {
     "enabled": False,
     "max_steps_per_run": 3,

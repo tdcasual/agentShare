@@ -1,4 +1,5 @@
 from conftest import TEST_ACCESS_TOKEN_ID, TEST_ACCESS_TOKEN_KEY
+
 from app.orm.access_token import AccessTokenModel
 
 

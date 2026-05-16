@@ -163,9 +163,7 @@ def _matches(rule: PolicyRule, context: PolicyContext) -> bool:
         return False
     if rule.environments and context.environment not in rule.environments:
         return False
-    if rule.task_types and context.task_type not in rule.task_types:
-        return False
-    return True
+    return not (rule.task_types and context.task_type not in rule.task_types)
 
 
 def _first_with_decision(rules: list[PolicyRule], decision: str) -> PolicyRule | None:

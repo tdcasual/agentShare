@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
-from app.config import Settings
 from app.schemas.bootstrap import (
     BootstrapOwnerSetupRequest,
     BootstrapOwnerSetupResponse,
@@ -84,7 +84,6 @@ def setup_owner(
         "account_id": account.id,
         "email": account.email,
     })
-    session.commit()
     return {
         "initialized": True,
         "account": {

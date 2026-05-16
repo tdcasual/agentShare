@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
 from app.config import Settings
-from app.services.operator_identity_provider import build_operator_identity_provider
 from app.services.operator_identity_local import LocalOperatorIdentityProvider
+from app.services.operator_identity_provider import build_operator_identity_provider
 from app.services.session_service import authenticate_management_operator
 
 

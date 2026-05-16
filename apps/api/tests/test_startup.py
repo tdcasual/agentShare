@@ -3,7 +3,6 @@ import importlib
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect, text
 
-
 CURRENT_ALEMBIC_HEAD = "20260424_02"
 
 

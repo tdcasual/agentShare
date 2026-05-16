@@ -21,7 +21,7 @@ class AuthRateLimitExceeded(Exception):
     retry_after_seconds: int
 
 
-def _get_redis_or_none(settings: Settings) -> "redis.Redis | None":
+def _get_redis_or_none(settings: Settings) -> redis.Redis | None:
     try:
         from app.services.redis_client import get_redis
 
@@ -121,7 +121,7 @@ def _memory_active_attempts(key: str, window_started_at: float) -> list[float]:
 
 
 def _redis_active_attempts(
-    r: "redis.Redis",
+    r: redis.Redis,
     key: str,
     window_started_at: float,
     window_seconds: int,
@@ -137,7 +137,7 @@ def _redis_active_attempts(
 
 
 def _redis_record_failure(
-    r: "redis.Redis",
+    r: redis.Redis,
     key: str,
     now: float,
     window_seconds: int,

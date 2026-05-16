@@ -5,10 +5,9 @@ import hashlib
 import hmac
 import json
 import time
-from datetime import datetime, timezone
-from uuid import uuid4
-
+from datetime import UTC, datetime
 from typing import cast
+from uuid import uuid4
 
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -179,9 +178,9 @@ def _decode_component(raw: str) -> bytes:
 
 
 def _timestamp_to_datetime(timestamp: int) -> datetime:
-    return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    return datetime.fromtimestamp(timestamp, tz=UTC)
 
 
 def _datetime_to_timestamp(value: datetime) -> int:
-    normalized = value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+    normalized = value if value.tzinfo is not None else value.replace(tzinfo=UTC)
     return int(normalized.timestamp())

@@ -3,7 +3,12 @@ import logging
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
-from app.auth import AuthenticatedActor, ManagementIdentity, require_admin_management_session, require_admin_management_or_agent
+from app.auth import (
+    AuthenticatedActor,
+    ManagementIdentity,
+    require_admin_management_or_agent,
+    require_admin_management_session,
+)
 from app.config import Settings
 from app.db import get_db
 from app.dependencies import get_settings
@@ -16,9 +21,9 @@ from app.services.pending_secret_service import (
     new_pending_secret_id,
     stage_secret_material,
 )
+from app.services.review_service import publication_status_for_actor
 from app.services.secret_backend import get_secret_backend
 from app.services.secret_scope_service import build_secret_scope
-from app.services.review_service import publication_status_for_actor
 
 router = APIRouter(prefix="/api/secrets")
 logger = logging.getLogger(__name__)
@@ -89,8 +94,6 @@ def create_secret(
             "backend_ref": backend_ref,
             **actor_payload(actor),
         })
-        if external_secret_written:
-            session.commit()
         return _to_secret_response(model)
     except Exception:
         session.rollback()

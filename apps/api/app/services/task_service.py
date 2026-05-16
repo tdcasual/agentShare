@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import time
-
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -10,6 +9,7 @@ from app.auth import SYSTEM_ACTOR, ensure_task_type_allowed
 from app.config import Settings
 from app.errors import AuthorizationError, BadRequestError, ConflictError, NotFoundError
 from app.models.runtime_principal import RuntimePrincipal
+from app.observability import record_task_claim, record_task_completion
 from app.orm.approval_request import ApprovalRequestModel
 from app.orm.run import RunModel
 from app.orm.task import TaskModel
@@ -21,7 +21,6 @@ from app.repositories.run_repo import RunRepository
 from app.repositories.task_repo import TaskRepository
 from app.repositories.task_target_repo import TaskTargetRepository
 from app.schemas.tasks import TaskCreate
-from app.observability import record_task_claim, record_task_completion
 from app.services.identifiers import new_resource_id
 from app.services.redis_client import acquire_lock, release_lock
 from app.services.review_service import publication_status_for_actor
@@ -246,7 +245,7 @@ def claim_task_target(
         target.status = "claimed"
         target.claimed_by_access_token_id = agent.token_id
         target.claimed_by_agent_id = agent.id
-        target.claimed_at = datetime.now(timezone.utc)
+        target.claimed_at = datetime.now(UTC)
         target_repo.update(target)
         _sync_task_under_lock(task, target_repo, task_repo, settings)
         record_task_claim()
@@ -290,7 +289,7 @@ def complete_task_target(
             raise NotFoundError("Task not found")
 
         target.status = "completed"
-        target.completed_at = datetime.now(timezone.utc)
+        target.completed_at = datetime.now(UTC)
         _expire_task_approvals(
             session,
             task.id,
@@ -446,7 +445,7 @@ def _expire_task_approvals(
     if not approvals:
         return
 
-    current_time = datetime.now(timezone.utc)
+    current_time = datetime.now(UTC)
     for approval in approvals:
         approval.status = "expired"
         approval.expires_at = current_time

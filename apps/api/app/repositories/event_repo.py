@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import desc, or_
 from sqlalchemy.orm import Session
@@ -51,7 +51,7 @@ class EventRepository:
         if event is None:
             return None
         if event.read_at is None:
-            event.read_at = datetime.now(timezone.utc)
+            event.read_at = datetime.now(UTC)
         self.session.add(event)
         self.session.flush()
         return event

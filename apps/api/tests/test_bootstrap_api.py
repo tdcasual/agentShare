@@ -6,7 +6,6 @@ from sqlalchemy.exc import IntegrityError
 from app.config import Settings
 from app.factory import create_app
 
-
 BOOTSTRAP_KEY = "bootstrap-test-token"
 
 

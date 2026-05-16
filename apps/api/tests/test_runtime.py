@@ -1,15 +1,11 @@
-import hashlib
 import importlib
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import FastAPI
-from fastapi import Depends, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
-
-from conftest import TEST_ACCESS_TOKEN_ID
 
 from app.config import Settings
 from app.db import get_db
@@ -105,7 +101,6 @@ def test_create_app_lifespan_uses_runtime_from_app_state(tmp_path):
 
 
 def test_runtime_database_supports_bootstrap_token_target_feedback_flow(tmp_path):
-    import hashlib
 
     db_path = tmp_path / "runtime-flow.db"
     settings = Settings(

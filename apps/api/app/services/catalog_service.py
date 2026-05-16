@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.exc import IntegrityError
@@ -108,7 +108,7 @@ def _resource_copy(resource_kind: str, model: Any) -> tuple[str, str | None]:
 
 
 def _resource_released_at(model: Any) -> datetime:
-    return model.reviewed_at or model.updated_at or model.created_at or datetime.now(timezone.utc)
+    return model.reviewed_at or model.updated_at or model.created_at or datetime.now(UTC)
 
 
 def _serialize_release(release: CatalogReleaseModel, *, prior_versions: int) -> dict:

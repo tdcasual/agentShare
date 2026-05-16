@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -52,7 +52,7 @@ def seed_demo_fixture_data(settings: Settings, session_factory) -> None:
             provider="openai",
             publication_status="active",
             reviewed_by_actor_id=owner.id,
-            reviewed_at=datetime.now(timezone.utc),
+            reviewed_at=datetime.now(UTC),
         )
         _ensure_demo_secret(
             session,
@@ -71,7 +71,7 @@ def seed_demo_fixture_data(settings: Settings, session_factory) -> None:
             required_provider="openai",
             publication_status="active",
             reviewed_by_actor_id=owner.id,
-            reviewed_at=datetime.now(timezone.utc),
+            reviewed_at=datetime.now(UTC),
         )
         _ensure_demo_capability(
             session,

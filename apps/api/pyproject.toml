@@ -17,10 +17,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.4.1",
+  "pytest-cov>=6.0",
   "fakeredis[lua]",
   "mypy>=1.0",
   "bandit>=1.7",
   "pip-audit>=2.0",
+  "ruff>=0.11",
 ]
 
 [build-system]
@@ -37,6 +39,15 @@ warn_unused_ignores = true
 ignore_missing_imports = true
 exclude = ["tests/"]
 
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501", "B008"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+addopts = "--cov=app --cov-fail-under=80"

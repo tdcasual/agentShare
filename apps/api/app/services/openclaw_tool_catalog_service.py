@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 OPENCLAW_TOOL_CATALOG: dict[str, dict[str, Any]] = {
     "tasks.list": {
         "description": "List visible tasks for the current runtime session.",

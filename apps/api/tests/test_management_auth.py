@@ -1,6 +1,6 @@
-from app.services.session_service import revoke_management_session
-
 from conftest import BOOTSTRAP_OWNER_KEY, TEST_ACCESS_TOKEN_KEY
+
+from app.services.session_service import revoke_management_session
 
 
 def _auth_header(key: str) -> dict[str, str]:

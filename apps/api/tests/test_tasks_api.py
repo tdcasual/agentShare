@@ -3,10 +3,10 @@ from conftest import (
     TEST_ACCESS_TOKEN_KEY,
     TEST_SETTINGS,
 )
-from app.repositories.approval_repo import ApprovalRequestRepository
-from app.services.approval_service import approve_request, require_runtime_approval
 
 from app.errors import ServiceUnavailableError
+from app.repositories.approval_repo import ApprovalRequestRepository
+from app.services.approval_service import approve_request, require_runtime_approval
 
 
 def test_agent_can_claim_eligible_task(client, management_client):

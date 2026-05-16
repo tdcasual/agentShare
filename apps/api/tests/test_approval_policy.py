@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 from uuid import UUID
 
@@ -6,19 +6,19 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
+from app.models.runtime_principal import RuntimePrincipal
 from app.repositories.approval_repo import ApprovalRequestRepository
+from app.schemas.tasks import TaskCreate
 from app.services.approval_service import (
     APPROVAL_TTL_SECONDS,
-    approve_request,
     approval_required,
+    approve_request,
     expire_request_if_needed,
     list_approval_requests,
     reject_request,
     require_runtime_approval,
 )
-from app.schemas.tasks import TaskCreate
 from app.services.task_service import claim_task, complete_task, create_task
-from app.models.runtime_principal import RuntimePrincipal
 
 
 def test_approval_required_only_when_task_or_capability_manual():
@@ -153,7 +153,7 @@ def test_approve_and_reject_update_status_and_metadata(db_session):
     assert approved.status == "approved"
     assert approved.decided_by == "management"
     assert approved.expires_at is not None
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     assert approved.expires_at >= now + timedelta(seconds=APPROVAL_TTL_SECONDS - 3)
     assert approved.expires_at <= now + timedelta(seconds=APPROVAL_TTL_SECONDS + 3)
 
@@ -195,14 +195,14 @@ def test_expire_request_if_needed_marks_stale_approval_as_expired(db_session):
         session=db_session,
         approval_id=pending.id,
         decided_by="management",
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        now=datetime(2026, 1, 1, tzinfo=UTC),
     )
     assert approved.status == "approved"
 
     expired = expire_request_if_needed(
         session=db_session,
         approval=approved,
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+        now=datetime(2026, 1, 1, tzinfo=UTC) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
     )
 
     assert expired.status == "expired"
@@ -224,18 +224,18 @@ def test_list_approval_requests_materializes_expired_status_before_filtering(db_
         session=db_session,
         approval_id=pending.id,
         decided_by="management",
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        now=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
     approved_items = list_approval_requests(
         session=db_session,
         status="approved",
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+        now=datetime(2026, 1, 1, tzinfo=UTC) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
     )
     expired_items = list_approval_requests(
         session=db_session,
         status="expired",
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+        now=datetime(2026, 1, 1, tzinfo=UTC) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
     )
 
     assert approved_items == []
@@ -259,7 +259,7 @@ def test_list_approval_requests_handles_reloaded_expiry_timestamps(db_session):
         session=db_session,
         approval_id=pending.id,
         decided_by="management",
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        now=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
     approval_id = pending.id
@@ -268,7 +268,7 @@ def test_list_approval_requests_handles_reloaded_expiry_timestamps(db_session):
     expired_items = list_approval_requests(
         session=db_session,
         status="expired",
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+        now=datetime(2026, 1, 1, tzinfo=UTC) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
     )
 
     assert [item.id for item in expired_items] == [approval_id]
@@ -310,12 +310,12 @@ def test_require_runtime_approval_replaces_rejected_and_expired_records(db_sessi
         session=db_session,
         approval_id=after_reject.id,
         decided_by="management",
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        now=datetime(2026, 1, 1, tzinfo=UTC),
     )
     expired = expire_request_if_needed(
         session=db_session,
         approval=approved,
-        now=datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
+        now=datetime(2026, 1, 1, tzinfo=UTC) + timedelta(seconds=APPROVAL_TTL_SECONDS + 1),
     )
     assert expired.status == "expired"
 
@@ -335,7 +335,7 @@ def test_require_runtime_approval_replaces_rejected_and_expired_records(db_sessi
 
 def test_list_approval_requests_uses_id_tiebreaker_for_same_timestamp_records(db_session):
     repo = ApprovalRequestRepository(db_session)
-    fixed_time = datetime(2026, 1, 2, tzinfo=timezone.utc)
+    fixed_time = datetime(2026, 1, 2, tzinfo=UTC)
 
     with patch(
         "app.services.approval_service.uuid4",

@@ -1,9 +1,8 @@
 import pytest
-
-from app.services.scope_policy import ensure_binding_compatible
-from app.orm.secret import SecretModel
-
 from conftest import TEST_AGENT_KEY
+
+from app.orm.secret import SecretModel
+from app.services.scope_policy import ensure_binding_compatible
 
 
 def _auth_header(key: str) -> dict[str, str]:

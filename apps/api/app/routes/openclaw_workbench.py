@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, status
@@ -252,7 +252,7 @@ def create_workbench_session(
     agent = _require_openclaw_agent(agent_id, session)
     capability = _resolve_workbench_capability(session=session, agent=agent, capability_id=payload.capability_id)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     title = (payload.title or "").strip() or _DEFAULT_WORKBENCH_TITLE
     session_model = OpenClawWorkbenchSessionModel(
         id=new_resource_id("openclaw-workbench-session"),
@@ -397,7 +397,7 @@ def create_workbench_message(
     )
     message_repo.create(assistant_message)
 
-    workbench_session.last_message_at = datetime.now(timezone.utc)
+    workbench_session.last_message_at = datetime.now(UTC)
     if workbench_session.title == _DEFAULT_WORKBENCH_TITLE:
         workbench_session.title = _title_from_content(content)
     session_repo.update(workbench_session)

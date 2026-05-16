@@ -10,8 +10,8 @@ from app.schemas.approvals import (
     ApprovalResponse,
 )
 from app.services.approval_service import (
-    approve_request,
     approval_to_dict,
+    approve_request,
     list_approval_requests,
     reject_request,
 )

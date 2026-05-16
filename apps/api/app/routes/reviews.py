@@ -15,7 +15,6 @@ from app.schemas.review_queue import (
     ReviewQueueResponse,
 )
 from app.services.audit_service import write_audit_event
-from app.services.secret_backend import get_secret_backend_for_ref
 from app.services.review_service import (
     acquire_review_lock,
     approve_review,
@@ -23,6 +22,7 @@ from app.services.review_service import (
     reject_review,
     release_review_lock,
 )
+from app.services.secret_backend import get_secret_backend_for_ref
 
 router = APIRouter(prefix="/api/reviews")
 logger = logging.getLogger(__name__)
@@ -86,7 +86,6 @@ def approve_review_route(
             "actor_id": manager.id,
             "reason": (payload.reason or "").strip(),
         })
-        session.commit()
     except Exception:
         session.rollback()
         if cleanup_backend_ref is not None:
@@ -139,7 +138,6 @@ def reject_review_route(
             "actor_id": manager.id,
             "reason": (payload.reason or "").strip(),
         })
-        session.commit()
         return reviewed
     except Exception:
         session.rollback()

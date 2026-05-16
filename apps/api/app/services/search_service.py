@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from app.config import ManagementRole
-from app.repositories.catalog_release_repo import CatalogReleaseRepository
 from app.repositories.capability_repo import CapabilityRepository
+from app.repositories.catalog_release_repo import CatalogReleaseRepository
 from app.repositories.event_repo import EventRepository
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.secret_repo import SecretRepository

@@ -49,11 +49,12 @@ class Settings(BaseSettings):
             "CONTROL_PLANE_DEMO_SEED_ENABLED",
         ),
     )
+    csrf_allowed_origins: str = ""
 
     @model_validator(mode="after")
     def validate_secret_backend_for_environment(self) -> "Settings":
         if (not self.openbao_token) and self.openbao_token_file:
-            with open(self.openbao_token_file, "r", encoding="utf-8") as token_file:
+            with open(self.openbao_token_file, encoding="utf-8") as token_file:
                 self.openbao_token = token_file.read().strip() or None
 
         if self._requires_explicit_app_env():

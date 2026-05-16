@@ -1,7 +1,7 @@
-from concurrent.futures import ThreadPoolExecutor
 import json
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import fakeredis
 import pytest
@@ -142,7 +142,7 @@ def idempotent_app(fake_redis_client):
             counters["stream_bg"] += 1
 
         response = StreamingResponse(
-            content=iter([f"stream-{value}".encode("utf-8")]),
+            content=iter([f"stream-{value}".encode()]),
             media_type="text/plain",
             background=BackgroundTask(on_done),
         )

@@ -9,8 +9,8 @@ from app.orm.openclaw_dream_run import OpenClawDreamRunModel
 from app.orm.openclaw_dream_step import OpenClawDreamStepModel
 from app.repositories.openclaw_dream_run_repo import OpenClawDreamRunRepository
 from app.repositories.openclaw_dream_step_repo import OpenClawDreamStepRepository
-from app.services.identifiers import new_resource_id
 from app.services.event_service import record_event
+from app.services.identifiers import new_resource_id
 from app.services.openclaw_dream_policy_service import (
     ensure_dream_mode_enabled,
     ensure_followup_budget_remaining,

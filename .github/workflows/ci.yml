@@ -33,5 +33,21 @@ jobs:
         working-directory: apps/api
         run: ../../.venv/bin/python -m alembic upgrade head
 
+      - name: Lint Python (ruff)
+        working-directory: apps/api
+        run: ../../.venv/bin/ruff check app/ tests/
+
+      - name: Type check Python (mypy)
+        working-directory: apps/api
+        run: ../../.venv/bin/mypy app/
+
+      - name: Security scan (bandit)
+        working-directory: apps/api
+        run: ../../.venv/bin/bandit -r app/ -ll
+
+      - name: Dependency audit (pip-audit)
+        working-directory: apps/api
+        run: ../../.venv/bin/pip-audit --desc 2>&1 || true
+
       - name: Run unified control plane verification
         run: ./scripts/ops/verify-control-plane.sh

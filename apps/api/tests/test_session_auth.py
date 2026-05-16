@@ -1,3 +1,9 @@
+from conftest import (
+    BOOTSTRAP_OWNER_KEY,
+    OWNER_EMAIL,
+    bootstrap_owner_account,
+    login_management_account,
+)
 from fastapi.testclient import TestClient
 
 from app.config import Settings
@@ -5,12 +11,6 @@ from app.factory import create_app
 from app.repositories.audit_repo import AuditEventRepository
 from app.repositories.management_session_repo import ManagementSessionRepository
 from app.services.session_service import revoke_management_session
-from conftest import (
-    BOOTSTRAP_OWNER_KEY,
-    OWNER_EMAIL,
-    bootstrap_owner_account,
-    login_management_account,
-)
 
 
 def test_management_login_sets_cookie_and_allows_session_introspection(anonymous_client):

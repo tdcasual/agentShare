@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
-import pytest
 import httpx
+import pytest
 
 from app.services.adapters.base import CapabilityAdapter
 from app.services.adapters.generic_http import GenericHttpAdapter

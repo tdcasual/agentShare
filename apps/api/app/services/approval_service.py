@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from time import time_ns
 from typing import Literal
 from uuid import uuid4
@@ -10,12 +10,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import ConflictError
-from app.orm.approval_request import ApprovalRequestModel
 from app.observability import record_approval_decision, record_approval_requested
+from app.orm.approval_request import ApprovalRequestModel
 from app.repositories.approval_repo import ApprovalRequestRepository
 from app.services.audit_service import write_audit_event
 from app.services.policy_service import PolicyContext, evaluate_policy
-from app.schemas.approvals import ApprovalActionType, ApprovalStatus
 from app.services.redis_client import acquire_lock, release_lock
 
 logger = logging.getLogger(__name__)
@@ -446,8 +445,8 @@ def _normalize_reason(reason: str) -> str:
 
 def _normalize_datetime(value: datetime) -> datetime:
     if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 def _new_approval_id() -> str:
@@ -463,4 +462,4 @@ def _write_audit_event_best_effort(session: Session, event_type: str, payload: d
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)

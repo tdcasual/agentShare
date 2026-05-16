@@ -11,7 +11,6 @@ from sqlalchemy import create_engine, inspect, text
 
 from app import db as db_module
 
-
 ROOT = Path(__file__).resolve().parents[3]
 CURRENT_ALEMBIC_HEAD = "20260424_02"
 

@@ -11,6 +11,16 @@ if [ ! -x "${VENV_PYTEST}" ]; then
 fi
 
 (
+  cd "${ROOT_DIR}/apps/api"
+  PYTHONPATH=. ../../.venv/bin/mypy app/
+)
+
+(
+  cd "${ROOT_DIR}"
+  PYTHONPATH=apps/api .venv/bin/ruff check apps/api/app apps/api/tests
+)
+
+(
   cd "${ROOT_DIR}"
   PYTHONPATH=apps/api "${VENV_PYTEST}" apps/api/tests tests/ops -q
 )

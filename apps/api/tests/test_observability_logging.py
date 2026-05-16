@@ -4,8 +4,8 @@ import logging
 from fastapi import APIRouter
 from fastapi.testclient import TestClient
 
-from app.config import Settings
 from app import factory as factory_module
+from app.config import Settings
 from app.factory import create_app
 
 

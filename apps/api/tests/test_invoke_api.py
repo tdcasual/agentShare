@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 from conftest import TEST_SETTINGS
@@ -784,7 +784,7 @@ def test_approved_request_past_expiry_is_blocked_again(mock_post, client, manage
 
     repo = ApprovalRequestRepository(db_session)
     approval = repo.get(approval_id)
-    approval.expires_at = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    approval.expires_at = datetime(2000, 1, 1, tzinfo=UTC)
     repo.update(approval)
 
     expired_response = client.post(

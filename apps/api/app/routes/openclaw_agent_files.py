@@ -7,8 +7,8 @@ from app.auth import ManagementIdentity, require_management_action
 from app.db import get_db
 from app.errors import NotFoundError
 from app.orm.openclaw_agent_file import OpenClawAgentFileModel
-from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.openclaw_agent_file_repo import OpenClawAgentFileRepository
+from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.schemas.openclaw_agents import OpenClawAgentFileListResponse, OpenClawAgentFileSummary, OpenClawAgentFileUpdate
 from app.services.audit_service import write_audit_event
 

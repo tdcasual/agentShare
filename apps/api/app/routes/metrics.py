@@ -10,7 +10,6 @@ from app.config import Settings
 from app.dependencies import get_settings
 from app.observability import HttpRequestMetric, snapshot_metrics
 
-
 router = APIRouter(tags=["Observability"])
 
 

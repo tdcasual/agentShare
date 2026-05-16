@@ -2,17 +2,16 @@ import os
 from collections.abc import Generator
 from pathlib import Path
 
-from alembic import command
 from alembic.config import Config
 from alembic.util.exc import CommandError
 from fastapi import Request
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session, sessionmaker
 
+from alembic import command
 from app.config import Settings
 from app.dependencies import get_attached_runtime
 from app.runtime import AppRuntime, build_runtime
-
 
 _default_runtime: AppRuntime | None = None
 ALEMBIC_INI_PATH = Path(__file__).resolve().parents[1] / "alembic.ini"
@@ -144,7 +143,7 @@ def migrate_db(
             raise
 
         if database_path is None:
-            raise RuntimeError("database_path should not be None after recovery check")
+            raise RuntimeError("database_path should not be None after recovery check") from None
         backup_path = _backup_stale_local_dev_database(database_path)
         command.upgrade(_build_alembic_config(resolved_database_url), "head")
         return backup_path

@@ -5,7 +5,6 @@ import hashlib
 import hmac
 import os
 
-
 SCRYPT_N = 2**14
 SCRYPT_R = 8
 SCRYPT_P = 1
@@ -22,10 +21,7 @@ def hash_password(password: str) -> str:
         p=SCRYPT_P,
         dklen=SCRYPT_DKLEN,
     )
-    return "scrypt$%s$%s" % (
-        base64.urlsafe_b64encode(salt).decode(),
-        base64.urlsafe_b64encode(digest).decode(),
-    )
+    return f"scrypt${base64.urlsafe_b64encode(salt).decode()}${base64.urlsafe_b64encode(digest).decode()}"
 
 
 def verify_password(password: str, hashed_password: str) -> bool:

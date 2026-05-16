@@ -5,7 +5,6 @@ import typing
 
 import pytest
 
-
 MODULES_WITH_RUNTIME_PRINCIPAL_ANNOTATIONS = [
     "app.routes.invoke",
     "app.routes.runtime",

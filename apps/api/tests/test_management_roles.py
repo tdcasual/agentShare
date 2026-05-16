@@ -3,12 +3,13 @@ from __future__ import annotations
 from contextlib import contextmanager
 from pathlib import Path
 
+import pytest
+
 from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
-from app.services.access_token_service import hash_access_token, mint_access_token
-
+from app.services.access_token_service import mint_access_token
 
 BOOTSTRAP_OWNER_KEY = "bootstrap-test-token"
 OWNER_EMAIL = "owner@example.com"
@@ -328,3 +329,67 @@ def test_admin_can_manage_tokens_but_cannot_disable_owner(tmp_path: Path) -> Non
 
     assert disable_owner.status_code == 409
     assert disable_owner.json()["detail"] == "Owner accounts cannot be disabled"
+
+
+ROLE_ENDPOINT_MATRIX = [
+    # (role, method, path, expected_status, expected_detail)
+    pytest.param("viewer", "GET", "/api/approvals", 403, "operator role required", id="viewer-get-approvals"),
+    pytest.param("viewer", "GET", "/api/tasks", 200, None, id="viewer-get-tasks"),
+    pytest.param("viewer", "POST", "/api/tasks", 403, "operator role required", id="viewer-post-tasks"),
+    pytest.param("viewer", "GET", "/api/capabilities", 200, None, id="viewer-get-capabilities"),
+    pytest.param("viewer", "POST", "/api/capabilities", 403, "admin role required", id="viewer-post-capabilities"),
+    pytest.param("viewer", "GET", "/api/secrets", 403, "admin role required", id="viewer-get-secrets"),
+    pytest.param("viewer", "POST", "/api/secrets", 403, "admin role required", id="viewer-post-secrets"),
+    pytest.param("viewer", "GET", "/api/access-tokens", 403, "admin role required", id="viewer-get-tokens"),
+    pytest.param("viewer", "GET", "/api/reviews", 403, "operator role required", id="viewer-get-reviews"),
+    pytest.param("viewer", "POST", "/api/admin-accounts", 403, "admin role required", id="viewer-post-accounts"),
+    pytest.param("operator", "GET", "/api/approvals", 200, None, id="operator-get-approvals"),
+    pytest.param("operator", "GET", "/api/tasks", 200, None, id="operator-get-tasks"),
+    pytest.param("operator", "POST", "/api/tasks", 201, None, id="operator-post-tasks"),
+    pytest.param("operator", "GET", "/api/capabilities", 200, None, id="operator-get-capabilities"),
+    pytest.param("operator", "POST", "/api/capabilities", 403, "admin role required", id="operator-post-capabilities"),
+    pytest.param("operator", "POST", "/api/secrets", 403, "admin role required", id="operator-post-secrets"),
+    pytest.param("operator", "GET", "/api/access-tokens", 403, "admin role required", id="operator-get-tokens"),
+    pytest.param("operator", "GET", "/api/reviews", 200, None, id="operator-get-reviews"),
+    pytest.param("admin", "POST", "/api/secrets", 201, None, id="admin-post-secrets"),
+    pytest.param("admin", "POST", "/api/access-tokens", 201, None, id="admin-post-tokens"),
+    pytest.param("admin", "GET", "/api/access-tokens", 200, None, id="admin-get-tokens"),
+    pytest.param("admin", "GET", "/api/reviews", 200, None, id="admin-get-reviews"),
+    pytest.param("admin", "POST", "/api/admin-accounts", 201, None, id="admin-post-accounts"),
+]
+
+_TASK_PAYLOAD = {"title": "Param task", "task_type": "prompt_run", "input": {"prompt": "test"}}
+_SECRET_PAYLOAD = {"display_name": "Param secret", "kind": "api_token", "value": "s", "provider": "openai", "metadata": {}}
+_TOKEN_PAYLOAD = {"display_name": "Param token", "subject_type": "automation", "subject_id": "runner", "scopes": ["runtime"]}
+_CAPABILITY_PAYLOAD = {"name": "param.cap", "secret_id": "fake", "risk_level": "low", "required_provider": "openai"}
+_ACCOUNT_PAYLOAD = {"email": "new@example.com", "display_name": "New", "password": "secure-password-123", "role": "viewer"}
+
+
+def _request_body_for(method: str, path: str) -> dict | None:
+    if method != "POST":
+        return None
+    if "/tasks" in path:
+        return _TASK_PAYLOAD
+    if "/secrets" in path:
+        return _SECRET_PAYLOAD
+    if "/access-tokens" in path and "/revoke" not in path:
+        return _TOKEN_PAYLOAD
+    if "/capabilities" in path:
+        return _CAPABILITY_PAYLOAD
+    if "/admin-accounts" in path:
+        return _ACCOUNT_PAYLOAD
+    return {}
+
+
+@pytest.mark.parametrize(("role", "method", "path", "expected_status", "expected_detail"), ROLE_ENDPOINT_MATRIX)
+def test_role_endpoint_permission(tmp_path: Path, role: str, method: str, path: str, expected_status: int, expected_detail: str | None) -> None:
+    with management_client_for_role(tmp_path, role) as client:
+        body = _request_body_for(method, path)
+        if body is not None:
+            response = client.post(path, json=body)
+        else:
+            response = client.get(path)
+
+    assert response.status_code == expected_status, f"{role} {method} {path}: {response.text}"
+    if expected_detail is not None:
+        assert response.json()["detail"] == expected_detail

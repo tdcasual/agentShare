@@ -1,5 +1,4 @@
-import hashlib
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -138,7 +137,7 @@ def test_expired_management_session_record_is_rejected(db_session):
     repo = ManagementSessionRepository(db_session)
     record = repo.get(payload.session_id)
     assert record is not None
-    record.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+    record.expires_at = datetime.now(UTC) - timedelta(seconds=1)
     repo.update(record)
 
     with pytest.raises(ManagementSessionError, match="expired"):

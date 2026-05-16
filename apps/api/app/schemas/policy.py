@@ -2,7 +2,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 PolicyDecision = Literal["allow", "manual", "deny"]
 PolicyActionType = Literal["invoke", "lease"]
 

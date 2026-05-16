@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -13,7 +13,6 @@ from app.orm.access_token import AccessTokenModel
 from app.repositories.access_token_repo import AccessTokenRepository
 from app.services.identifiers import new_resource_id
 from app.services.secret_backend import get_secret_backend, get_secret_backend_for_ref
-
 
 logger = logging.getLogger(__name__)
 
@@ -77,12 +76,12 @@ def is_access_token_active(token: AccessTokenModel) -> bool:
         return True
     expires_at = token.expires_at
     if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    return expires_at > datetime.now(timezone.utc)
+        expires_at = expires_at.replace(tzinfo=UTC)
+    return expires_at > datetime.now(UTC)
 
 
 def touch_access_token(session: Session, token: AccessTokenModel) -> AccessTokenModel:
-    token.last_used_at = datetime.now(timezone.utc)
+    token.last_used_at = datetime.now(UTC)
     return AccessTokenRepository(session).update(token)
 
 

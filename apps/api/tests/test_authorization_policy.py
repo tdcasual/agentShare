@@ -1,10 +1,8 @@
 import pytest
-
-from app.repositories.access_token_repo import AccessTokenRepository
-from app.services import policy_service
-from app.services.access_token_service import hash_access_token, mint_access_token
-
 from conftest import TEST_ACCESS_TOKEN_KEY
+
+from app.services import policy_service
+from app.services.access_token_service import mint_access_token
 
 
 def _auth_header(key: str) -> dict[str, str]:

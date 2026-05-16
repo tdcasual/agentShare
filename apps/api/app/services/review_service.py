@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.exc import IntegrityError
@@ -16,14 +16,13 @@ from app.orm.task import TaskModel
 from app.orm.task_target import TaskTargetModel
 from app.repositories.access_token_repo import AccessTokenRepository
 from app.repositories.task_target_repo import TaskTargetRepository
+from app.services.catalog_service import ensure_catalog_release
+from app.services.identifiers import new_resource_id
 from app.services.pending_secret_service import (
     discard_pending_secret_material,
     promote_pending_secret_material,
 )
-from app.services.catalog_service import ensure_catalog_release
-from app.services.identifiers import new_resource_id
 from app.services.redis_client import acquire_lock, release_lock
-from app.services.secret_backend import get_secret_backend_for_ref
 from app.services.space_service import project_review_decision_to_spaces
 
 REVIEW_PENDING = "pending_review"
@@ -96,7 +95,7 @@ def approve_review(
         )
     model.publication_status = REVIEW_ACTIVE
     model.reviewed_by_actor_id = reviewer_id
-    model.reviewed_at = datetime.now(timezone.utc)
+    model.reviewed_at = datetime.now(UTC)
     model.review_reason = normalized_reason
     if resource_kind == "task":
         _materialize_reviewed_task_targets(session, model)
@@ -130,7 +129,7 @@ def reject_review(
         discard_pending_secret_material(session, secret_id=model.id)
     model.publication_status = REVIEW_REJECTED
     model.reviewed_by_actor_id = reviewer_id
-    model.reviewed_at = datetime.now(timezone.utc)
+    model.reviewed_at = datetime.now(UTC)
     model.review_reason = normalized_reason
     session.flush()
     project_review_decision_to_spaces(

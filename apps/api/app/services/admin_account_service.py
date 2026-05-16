@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -25,7 +25,7 @@ def authenticate_admin_account(
     if account is None or account.status != "active" or not verify_password(password, account.password_hash):
         raise AuthorizationError("Invalid email or password")
 
-    account.last_login_at = datetime.now(timezone.utc)
+    account.last_login_at = datetime.now(UTC)
     HumanAccountRepository(session).update(account)
     return account
 

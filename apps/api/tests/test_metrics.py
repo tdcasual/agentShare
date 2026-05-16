@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from conftest import BOOTSTRAP_OWNER_KEY, bootstrap_owner_account, login_management_account
 from fastapi.testclient import TestClient
 
 from app.config import Settings
@@ -12,8 +13,6 @@ from app.services.idempotency import IdempotencyMiddleware
 from app.services.openclaw_session_key_service import hash_openclaw_session_key
 from app.services.policy_service import PolicyContext
 from app.services.redis_client import get_redis
-from conftest import BOOTSTRAP_OWNER_KEY, TEST_AGENT_KEY, bootstrap_owner_account, login_management_account
-
 
 ROOT = Path(__file__).resolve().parents[3]
 

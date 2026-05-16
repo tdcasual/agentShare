@@ -4,7 +4,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_serializer, model_validator
 
-
 CapabilityAccessPolicyMode = Literal["all_access_tokens", "selectors"]
 CapabilityAccessSelectorKind = Literal["access_token", "access_token_label"]
 
@@ -16,7 +15,7 @@ class CapabilityAccessSelector(BaseModel):
     values: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def normalize(self) -> "CapabilityAccessSelector":
+    def normalize(self) -> CapabilityAccessSelector:
         if self.kind == "access_token":
             self.key = None
             self.values = []
@@ -52,7 +51,7 @@ class CapabilityAccessPolicy(BaseModel):
     selectors: list[CapabilityAccessSelector] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def normalize(self) -> "CapabilityAccessPolicy":
+    def normalize(self) -> CapabilityAccessPolicy:
         if self.mode == "all_access_tokens":
             self.selectors = []
             return self

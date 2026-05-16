@@ -1,8 +1,9 @@
 from __future__ import annotations
+
+from json import JSONDecodeError
 from typing import Any, Protocol, runtime_checkable
 
 import httpx
-from json import JSONDecodeError
 
 
 @runtime_checkable

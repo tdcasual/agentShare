@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -28,7 +28,7 @@ class ManagementSessionRepository:
         model = self.get(session_id)
         if model is None:
             return None
-        model.revoked_at = revoked_at or datetime.now(timezone.utc)
+        model.revoked_at = revoked_at or datetime.now(UTC)
         self.session.flush()
         return model
 

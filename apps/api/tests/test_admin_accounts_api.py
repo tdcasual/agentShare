@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 from app.config import Settings
 from app.factory import create_app
 
-
 BOOTSTRAP_KEY = "bootstrap-test-token"
 OWNER_EMAIL = "owner@example.com"
 OWNER_PASSWORD = "correct horse battery staple"

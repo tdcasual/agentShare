@@ -46,7 +46,7 @@ class ApprovalRequestRepository:
             )
         )
         self.session.flush()
-        return result.rowcount
+        return int(result.rowcount)  # type: ignore[attr-defined]
 
     def get_latest_for_scope(
         self,
