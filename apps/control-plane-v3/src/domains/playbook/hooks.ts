@@ -114,8 +114,12 @@ export function useCreatePlaybook() {
 
       try {
         const result = await createPlaybook(input);
-        // 刷新列表缓存
-        await mutate('/api/playbooks/search');
+        // 刷新列表缓存（含带查询参数的数组 key）
+        await mutate(
+          (key: unknown) =>
+            (typeof key === 'string' && key === '/api/playbooks/search') ||
+            (Array.isArray(key) && key.length > 0 && key[0] === '/api/playbooks/search')
+        );
         return toPlaybookModel(result);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('创建失败'));

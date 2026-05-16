@@ -161,6 +161,7 @@ export function useAssetsForm({
     setCapabilityForm((current) => ({
       ...current,
       name: '',
+      secret_id: '',
       risk_level: 'medium',
       allowed_mode: 'proxy_or_lease',
       lease_ttl_seconds: '120',

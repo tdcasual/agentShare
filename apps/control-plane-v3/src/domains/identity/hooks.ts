@@ -54,7 +54,7 @@ export function useSession(options?: SWRConfiguration) {
 export function useLogin() {
   return useCallback(async (payload: LoginInput) => {
     const result = await api.login(payload);
-    await mutate('/api/session/me', result, false);
+    await mutate('/api/session/me');
     return result;
   }, []);
 }

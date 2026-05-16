@@ -8,7 +8,7 @@ import { staticConfig } from '@/lib/swr-config';
  * 获取空间列表
  */
 export function useSpaces(options?: { agentId?: string | null }) {
-  const key = options?.agentId ? `/api/spaces?agent_id=${options.agentId}` : '/spaces';
+  const key = options?.agentId ? `/api/spaces?agent_id=${options.agentId}` : '/api/spaces';
   const { data, error, isLoading, mutate } = useSWR(key, () => listSpaces(options), staticConfig);
 
   return {
@@ -53,7 +53,7 @@ export function useCreateSpace() {
       try {
         const result = await createSpace(input);
         // 刷新列表
-        await mutate('/spaces');
+        await mutate('/api/spaces');
         return result;
       } catch (err) {
         setError(err instanceof Error ? err : new Error('创建失败'));
@@ -89,7 +89,7 @@ export function useAddSpaceMember(spaceId: string, options?: { agentId?: string 
         const result = await addSpaceMember(spaceId, input);
         // 刷新空间详情和列表
         await mutate(`/spaces/${spaceId}`);
-        await mutate('/spaces');
+        await mutate('/api/spaces');
         if (options?.agentId) {
           await mutate(`/api/spaces?agent_id=${options.agentId}`);
         }

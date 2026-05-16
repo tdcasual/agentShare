@@ -14,7 +14,6 @@ import * as taskApi from './api';
 import * as identityApi from '../identity/api';
 import type { Task, Run, AccessToken, AccessTokenFeedback, TaskTargetView } from './types';
 
-export const TASK_DASHBOARD_TOKENS_KEY = 'bulk:task-dashboard-tokens';
 export const TASK_DASHBOARD_FEEDBACK_KEY = 'bulk:task-dashboard-feedback';
 
 export interface TaskView {
@@ -49,16 +48,13 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     { ...pollingConfig, ...options }
   );
 
-  const tokensQuery = useSWR<Record<string, AccessToken>>(
-    accessTokensQuery.data?.items.length ? [TASK_DASHBOARD_TOKENS_KEY] : null,
-    async () => {
-      const allTokens = (await identityApi.getAccessTokens()).items;
-      return Object.fromEntries(allTokens.map((token) => [token.id, token]));
-    },
-    { ...pollingConfig, ...options, revalidateOnFocus: false }
-  );
-
-  const tokensById = tokensQuery.data;
+  const tokensById = useMemo<Record<string, AccessToken>>(() => {
+    const items = accessTokensQuery.data?.items;
+    if (!items?.length) {
+      return {};
+    }
+    return Object.fromEntries(items.map((token) => [token.id, token]));
+  }, [accessTokensQuery.data?.items]);
 
   const tasks = tasksQuery.data?.items;
   const targetAccessTokenIds = useMemo(() => {
@@ -111,14 +107,12 @@ export function useTaskDashboard(options?: SWRConfiguration) {
     tasksQuery.isLoading ||
     runsQuery.isLoading ||
     accessTokensQuery.isLoading ||
-    (Boolean(accessTokensQuery.data?.items.length) && tokensQuery.isLoading) ||
     (targetAccessTokenIds.length > 0 && feedbackQuery.isLoading);
 
   const error =
     tasksQuery.error ||
     runsQuery.error ||
     accessTokensQuery.error ||
-    tokensQuery.error ||
     feedbackQuery.error;
 
   const mutate = async () => {
@@ -126,7 +120,6 @@ export function useTaskDashboard(options?: SWRConfiguration) {
       tasksQuery.mutate(),
       runsQuery.mutate(),
       accessTokensQuery.mutate(),
-      tokensQuery.mutate(),
       feedbackQuery.mutate(),
     ]);
   };

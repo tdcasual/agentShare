@@ -37,7 +37,10 @@ export function useApproveReview() {
   return useCallback(
     async (resourceKind: string, resourceId: string, payload?: ApproveReviewInput) => {
       const result = await api.approveReview(resourceKind, resourceId, payload);
-      await Promise.all([mutate('/api/reviews'), mutate('/api/catalog')]);
+      await Promise.all([
+        mutate('/api/reviews'),
+        mutate((key: unknown) => typeof key === 'string' && key.startsWith('/api/catalog')),
+      ]);
       return result;
     },
     []

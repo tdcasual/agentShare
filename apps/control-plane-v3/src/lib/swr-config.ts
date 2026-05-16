@@ -2,14 +2,13 @@
  * SWR 全局配置
  *
  * 提供：
- * - 统一的 fetcher
  * - 默认配置
  * - 错误重试策略
  */
 
 import { SWRConfiguration } from 'swr';
 import { useEffect, useState } from 'react';
-import { api, ApiError } from './api';
+import { ApiError } from './api';
 
 /**
  * 全局 SWR 配置
@@ -33,39 +32,6 @@ export const swrConfig: SWRConfiguration = {
 
   // 缓存策略
   provider: () => new Map(),
-};
-
-/**
- * 带认证的 fetcher
- */
-export const fetcher = async <T>(url: string): Promise<T> => {
-  // 根据 URL 映射到对应的 API 方法
-  const methodMap: Record<string, () => Promise<T>> = {
-    '/api/access-tokens': () => api.getAccessTokens() as Promise<T>,
-    '/api/tasks': () => api.getTasks() as Promise<T>,
-    '/api/runs': () => api.getRuns() as Promise<T>,
-  };
-
-  const method = methodMap[url];
-  if (!method) {
-    throw new Error(`Unknown API endpoint: ${url}`);
-  }
-
-  return method();
-};
-
-/**
- * 带参数的 fetcher
- */
-export const fetcherWithParams = async <T, P extends Record<string, unknown>>(
-  url: string,
-  params: P
-): Promise<T> => {
-  if (url === '/api/access-token-feedback' && 'accessTokenId' in params) {
-    return api.getAccessTokenFeedback(params.accessTokenId as string) as Promise<T>;
-  }
-
-  throw new Error(`Unknown API endpoint: ${url}`);
 };
 
 /**

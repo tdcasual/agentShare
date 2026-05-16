@@ -48,6 +48,18 @@ async function requestJson<T>(
     externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
   }
 
+  let externallyAborted = false;
+  if (externalSignal) {
+    externallyAborted = externalSignal.aborted;
+    externalSignal.addEventListener(
+      'abort',
+      () => {
+        externallyAborted = true;
+      },
+      { once: true }
+    );
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...rest,
@@ -86,6 +98,9 @@ async function requestJson<T>(
     };
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
+      if (externallyAborted) {
+        throw new ApiError(0, '请求已取消');
+      }
       throw new ApiError(0, '请求超时，请检查网络连接');
     }
     throw error;

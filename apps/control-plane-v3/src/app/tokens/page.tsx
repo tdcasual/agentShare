@@ -488,7 +488,9 @@ const TokensContent = memo(function TokensContent() {
           </Card>
           <Button
             variant="secondary"
-            onClick={() => navigator.clipboard.writeText(revealedSecret.apiKey)}
+            onClick={() => {
+              navigator.clipboard.writeText(revealedSecret.apiKey).catch(() => {});
+            }}
           >
             <Copy className="mr-2 h-4 w-4" />
             {t('tokens.actions.copySecret')}

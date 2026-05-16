@@ -43,10 +43,17 @@ const ApprovalsContent = memo(function ApprovalsContent() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
-  const { approvals, total, isLoading, error, refresh } = useApprovals(
-    statusFilter === 'all' ? undefined : { status: statusFilter },
+  const { approvals: allApprovals, isLoading, error, refresh } = useApprovals(
+    undefined,
     { revalidateOnFocus: true }
   );
+
+  const approvals = useMemo(() => {
+    if (statusFilter === 'all') return allApprovals;
+    return allApprovals.filter((a) => a.status === statusFilter);
+  }, [allApprovals, statusFilter]);
+
+  const total = allApprovals.length;
 
   const { approve, reject, isProcessing: isActionProcessing } = useApprovalActions();
   const {
@@ -57,14 +64,14 @@ const ApprovalsContent = memo(function ApprovalsContent() {
     consumeUnauthorized,
   } = useManagementPageSessionRecovery(error);
 
-  // 统计
+  // 统计（基于全量数据，不受筛选影响）
   const stats = useMemo(() => {
     return {
-      pending: approvals.filter((a) => a.status === 'pending').length,
-      approved: approvals.filter((a) => a.status === 'approved').length,
-      rejected: approvals.filter((a) => a.status === 'rejected').length,
+      pending: allApprovals.filter((a) => a.status === 'pending').length,
+      approved: allApprovals.filter((a) => a.status === 'approved').length,
+      rejected: allApprovals.filter((a) => a.status === 'rejected').length,
     };
-  }, [approvals]);
+  }, [allApprovals]);
 
   // 处理批准
   const handleApprove = async (id: string) => {

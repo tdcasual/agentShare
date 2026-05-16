@@ -1,7 +1,8 @@
 /**
- * Identity 领域 Hooks - 解耦 UI 与 Runtime
+ * Runtime-scoped identity hooks.
  *
- * 提供 React 友好的 API，隐藏 Runtime 复杂性
+ * These hooks depend on the demo/runtime context and should only be imported
+ * from runtime or sandbox surfaces.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -11,24 +12,16 @@ import type { Identity, IdentityType, PresenceStatus } from '@/shared/types';
 
 
 export interface UseIdentityReturn {
-  // 数据
   identities: Identity[];
   currentIdentity: Identity | null;
   onlineIdentities: Identity[];
-
-  // 加载状态
   isLoading: boolean;
   error: Error | null;
-
-  // 操作
   setPresence: (identityId: string, status: PresenceStatus) => void;
   refresh: () => void;
 }
 
-/**
- * 获取所有身份列表
- */
-export function useIdentities(): UseIdentityReturn {
+export function useRuntimeIdentities(): UseIdentityReturn {
   const runtime = useRuntime();
   const registry = useMemo(() => runtime.di.resolve(IdentityRegistryServiceId), [runtime]);
 
@@ -48,8 +41,8 @@ export function useIdentities(): UseIdentityReturn {
         setError(null);
 
         const all = registry.getAll();
-        const online = all.filter((i) => i.presence === 'online');
-        const firstHuman = all.find((i) => i.type === 'human') || null;
+        const online = all.filter((identity) => identity.presence === 'online');
+        const firstHuman = all.find((identity) => identity.type === 'human') || null;
 
         if (mounted) {
           setIdentities(all);
@@ -65,13 +58,16 @@ export function useIdentities(): UseIdentityReturn {
       }
     }
 
-    load();
+    void load();
 
-    // 订阅在线状态变化
-    const unsubscribe = registry.onPresenceChanged((id, status) => {
+    const unsubscribe = registry.onPresenceChanged((identityId, status) => {
       if (mounted) {
-        setIdentities((prev) => prev.map((i) => (i.id === id ? { ...i, presence: status } : i)));
-        setOnlineIdentities(registry.getAll().filter((i) => i.presence === 'online'));
+        setIdentities((current) =>
+          current.map((identity) =>
+            identity.id === identityId ? { ...identity, presence: status } : identity
+          )
+        );
+        setOnlineIdentities(registry.getAll().filter((identity) => identity.presence === 'online'));
       }
     });
 
@@ -89,7 +85,7 @@ export function useIdentities(): UseIdentityReturn {
   );
 
   const refresh = useCallback(() => {
-    setRefreshNonce((n) => n + 1);
+    setRefreshNonce((current) => current + 1);
   }, []);
 
   return {
@@ -103,10 +99,7 @@ export function useIdentities(): UseIdentityReturn {
   };
 }
 
-/**
- * 获取单个身份
- */
-export function useIdentity(identityId: string | null) {
+export function useRuntimeIdentity(identityId: string | null) {
   const runtime = useRuntime();
   const registry = runtime.di.resolve(IdentityRegistryServiceId);
 
@@ -127,6 +120,7 @@ export function useIdentity(identityId: string | null) {
       if (!identityId) {
         return;
       }
+
       const found = registry.getById(identityId);
       if (mounted) {
         setIdentity(found || null);
@@ -134,12 +128,11 @@ export function useIdentity(identityId: string | null) {
       }
     }
 
-    load();
+    void load();
 
-    // 订阅该身份的变化
-    const unsubscribe = registry.onPresenceChanged((id, status) => {
-      if (mounted && id === identityId) {
-        setIdentity((prev) => (prev ? { ...prev, presence: status } : null));
+    const unsubscribe = registry.onPresenceChanged((changedId, status) => {
+      if (mounted && changedId === identityId) {
+        setIdentity((current) => (current ? { ...current, presence: status } : null));
       }
     });
 
@@ -152,33 +145,12 @@ export function useIdentity(identityId: string | null) {
   return { identity, isLoading };
 }
 
-/**
- * 按类型筛选身份
- */
-export function useIdentitiesByType(type: IdentityType) {
-  const { identities, isLoading, error } = useIdentities();
-
-  const filtered = identities.filter((i) => i.type === type);
+export function useRuntimeIdentitiesByType(type: IdentityType) {
+  const { identities, isLoading, error } = useRuntimeIdentities();
 
   return {
-    identities: filtered,
+    identities: identities.filter((identity) => identity.type === type),
     isLoading,
     error,
-  };
-}
-
-/**
- * Mock hook 用于测试/Storybook
- */
-export function useMockIdentities(mockData: Partial<UseIdentityReturn> = {}): UseIdentityReturn {
-  return {
-    identities: [],
-    currentIdentity: null,
-    onlineIdentities: [],
-    isLoading: false,
-    error: null,
-    setPresence: () => {},
-    refresh: () => {},
-    ...mockData,
   };
 }

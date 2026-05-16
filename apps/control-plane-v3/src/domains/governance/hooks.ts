@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import useSWR, { mutate, SWRConfiguration } from 'swr';
 
 import { swrConfig } from '@/lib/swr-config';
@@ -35,19 +36,19 @@ export function useCapabilities(options?: SWRConfiguration) {
 }
 
 export function useCreateSecret() {
-  return async (payload: SecretCreateInput) => {
+  return useCallback(async (payload: SecretCreateInput) => {
     const result = await api.createSecret(payload);
     await mutate('/api/secrets');
     return result;
-  };
+  }, []);
 }
 
 export function useCreateCapability() {
-  return async (payload: CapabilityCreateInput) => {
+  return useCallback(async (payload: CapabilityCreateInput) => {
     const result = await api.createCapability(payload);
     await Promise.all([mutate('/api/capabilities'), mutate('/api/secrets')]);
     return result;
-  };
+  }, []);
 }
 
 export function refreshGovernance() {

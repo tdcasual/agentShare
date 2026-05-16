@@ -1,19 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { swrConfig, fetcher, fetcherWithParams, pollingConfig, staticConfig } from './swr-config';
-import { api, ApiError } from './api';
-
-vi.mock('./api', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./api')>();
-  return {
-    ...actual,
-    api: {
-      getAccessTokens: vi.fn(),
-      getTasks: vi.fn(),
-      getRuns: vi.fn(),
-      getAccessTokenFeedback: vi.fn(),
-    },
-  };
-});
+import { describe, it, expect } from 'vitest';
+import { swrConfig, pollingConfig, staticConfig } from './swr-config';
+import { ApiError } from './api';
 
 describe('swr-config', () => {
   it('exports expected config objects', () => {
@@ -50,46 +37,6 @@ describe('swr-config', () => {
 
     it('retries on generic errors', () => {
       expect(shouldRetry(new Error('random'))).toBe(true);
-    });
-  });
-
-  describe('fetcher', () => {
-    it('calls getAccessTokens for /api/access-tokens', async () => {
-      vi.mocked(api.getAccessTokens).mockResolvedValue({ items: [] });
-      const result = await fetcher('/api/access-tokens');
-      expect(api.getAccessTokens).toHaveBeenCalled();
-      expect(result).toEqual({ items: [] });
-    });
-
-    it('calls getTasks for /api/tasks', async () => {
-      vi.mocked(api.getTasks).mockResolvedValue({ items: [] });
-      await fetcher('/api/tasks');
-      expect(api.getTasks).toHaveBeenCalled();
-    });
-
-    it('calls getRuns for /api/runs', async () => {
-      vi.mocked(api.getRuns).mockResolvedValue({ items: [] });
-      await fetcher('/api/runs');
-      expect(api.getRuns).toHaveBeenCalled();
-    });
-
-    it('throws on unknown endpoint', async () => {
-      await expect(fetcher('/api/unknown')).rejects.toThrow('Unknown API endpoint');
-    });
-  });
-
-  describe('fetcherWithParams', () => {
-    it('calls getAccessTokenFeedback for /api/access-token-feedback', async () => {
-      vi.mocked(api.getAccessTokenFeedback).mockResolvedValue({ items: [] });
-      const result = await fetcherWithParams('/api/access-token-feedback', {
-        accessTokenId: 't1',
-      });
-      expect(api.getAccessTokenFeedback).toHaveBeenCalledWith('t1');
-      expect(result).toEqual({ items: [] });
-    });
-
-    it('throws on unknown endpoint', async () => {
-      await expect(fetcherWithParams('/api/unknown', {})).rejects.toThrow('Unknown API endpoint');
     });
   });
 });

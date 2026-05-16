@@ -88,7 +88,11 @@ export function useApprovalActions() {
       try {
         const result = await approveRequest(approvalId, input);
         // 刷新列表缓存
-        await mutate('/api/approvals');
+        await mutate(
+          (key: unknown) =>
+            (typeof key === 'string' && key === '/api/approvals') ||
+            (Array.isArray(key) && key.length > 0 && key[0] === '/api/approvals')
+        );
         return result;
       } catch (err) {
         setError(err instanceof Error ? err : new Error('批准失败'));
@@ -110,8 +114,12 @@ export function useApprovalActions() {
 
       try {
         const result = await rejectRequest(approvalId, input);
-        // 刷新列表缓存
-        await mutate('/api/approvals');
+        // 刷新列表缓存（含带查询参数的数组 key）
+        await mutate(
+          (key: unknown) =>
+            (typeof key === 'string' && key === '/api/approvals') ||
+            (Array.isArray(key) && key.length > 0 && key[0] === '/api/approvals')
+        );
         return result;
       } catch (err) {
         setError(err instanceof Error ? err : new Error('拒绝失败'));

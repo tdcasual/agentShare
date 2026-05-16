@@ -12,7 +12,7 @@ import { swrConfig, pollingConfig, usePageVisible } from '@/lib/swr-config';
 import * as api from './api';
 import type { Task, Run, AccessTokenFeedback } from './types';
 import type { TaskCreateInput, AccessTokenFeedbackCreateInput } from '@/lib/api-client';
-import { TASK_DASHBOARD_FEEDBACK_KEY, TASK_DASHBOARD_TOKENS_KEY } from './hooks-dashboard';
+import { TASK_DASHBOARD_FEEDBACK_KEY } from './hooks-dashboard';
 
 // ============================================
 // Tasks
@@ -73,7 +73,7 @@ export function useCreateTaskTargetFeedback() {
     await mutate(
       (key) =>
         Array.isArray(key) &&
-        (key[0] === TASK_DASHBOARD_FEEDBACK_KEY || key[0] === TASK_DASHBOARD_TOKENS_KEY)
+        key[0] === TASK_DASHBOARD_FEEDBACK_KEY
     );
     return result;
   }, []);

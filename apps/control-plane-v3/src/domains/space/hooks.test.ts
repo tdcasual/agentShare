@@ -63,7 +63,7 @@ describe('space hooks', () => {
     });
 
     expect(mutateMock).toHaveBeenCalledWith('/spaces/space-1');
-    expect(mutateMock).toHaveBeenCalledWith('/spaces');
+    expect(mutateMock).toHaveBeenCalledWith('/api/spaces');
     expect(mutateMock).toHaveBeenCalledWith('/api/spaces?agent_id=test-agent');
   });
 });
