@@ -22,14 +22,14 @@ class OpenClawAgentCreate(BaseModel):
         },
     })
 
-    name: str = Field(description="Human-readable OpenClaw agent name.")
-    workspace_root: str = Field(description="Root workspace path controlled by this agent.")
-    agent_dir: str = Field(description="Agent-local configuration directory relative to the workspace root.")
-    model: str | None = Field(default=None, description="Optional default model for the agent runtime.")
-    thinking_level: str = Field(default="balanced", description="Reasoning depth preset for the agent runtime.")
-    sandbox_mode: str = Field(default="workspace-write", description="OpenClaw-style sandbox mode for this agent.")
-    risk_tier: str = Field(default="medium", description="Risk tier preserved for policy and management summaries.")
-    auth_method: str = Field(default="openclaw_session", description="Primary runtime auth method for this agent.")
+    name: str = Field(max_length=255, description="Human-readable OpenClaw agent name.")
+    workspace_root: str = Field(max_length=512, description="Root workspace path controlled by this agent.")
+    agent_dir: str = Field(max_length=512, description="Agent-local configuration directory relative to the workspace root.")
+    model: str | None = Field(default=None, max_length=128, description="Optional default model for the agent runtime.")
+    thinking_level: str = Field(default="balanced", max_length=32, description="Reasoning depth preset for the agent runtime.")
+    sandbox_mode: str = Field(default="workspace-write", max_length=64, description="OpenClaw-style sandbox mode for this agent.")
+    risk_tier: str = Field(default="medium", max_length=32, description="Risk tier preserved for policy and management summaries.")
+    auth_method: str = Field(default="openclaw_session", max_length=64, description="Primary runtime auth method for this agent.")
     tools_policy: dict = Field(default_factory=dict, description="Declarative tool allow/deny policy.")
     skills_policy: dict = Field(default_factory=dict, description="Declarative skill allow/deny policy.")
     dream_policy: dict = Field(default_factory=dict, description="Bounded autonomy policy for Dream Mode.")
@@ -80,3 +80,16 @@ class OpenClawAgentFileSummary(BaseModel):
 
 class OpenClawAgentFileUpdate(BaseModel):
     content: str = Field(description="Full file content for an OpenClaw workspace bootstrap file.")
+
+
+class OpenClawAgentListResponse(BaseModel):
+    items: list[OpenClawAgentSummary] = Field(default_factory=list)
+
+
+class OpenClawAgentDeleteResponse(BaseModel):
+    id: str
+    status: str
+
+
+class OpenClawAgentFileListResponse(BaseModel):
+    items: list[OpenClawAgentFileSummary] = Field(default_factory=list)

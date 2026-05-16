@@ -9,7 +9,7 @@ from app.errors import NotFoundError
 from app.orm.openclaw_agent_file import OpenClawAgentFileModel
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.repositories.openclaw_agent_file_repo import OpenClawAgentFileRepository
-from app.schemas.openclaw_agents import OpenClawAgentFileUpdate
+from app.schemas.openclaw_agents import OpenClawAgentFileListResponse, OpenClawAgentFileSummary, OpenClawAgentFileUpdate
 from app.services.audit_service import write_audit_event
 
 router = APIRouter()
@@ -22,6 +22,7 @@ def _require_openclaw_agent(agent_id: str, session: Session) -> None:
 
 @router.get(
     "/{agent_id}/files",
+    response_model=OpenClawAgentFileListResponse,
     tags=["Management"],
     summary="List OpenClaw workspace files",
     description="List stored workspace bootstrap files for an OpenClaw agent.",
@@ -43,6 +44,7 @@ def list_openclaw_agent_files(
 
 @router.put(
     "/{agent_id}/files/{file_name}",
+    response_model=OpenClawAgentFileSummary,
     tags=["Management"],
     summary="Upsert an OpenClaw workspace file",
     description="Create or update a stored OpenClaw workspace bootstrap file such as AGENTS.md.",

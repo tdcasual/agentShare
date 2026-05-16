@@ -13,7 +13,7 @@ class OpenClawDreamRunCreate(BaseModel):
         },
     })
 
-    objective: str = Field(description="Explicit objective for the bounded dream run.")
+    objective: str = Field(max_length=2000, description="Explicit objective for the bounded dream run.")
     task_id: str | None = Field(default=None, description="Optional parent task that motivated the run.")
     step_budget: int | None = Field(default=None, description="Optional run-specific step budget override.")
 
@@ -50,8 +50,8 @@ class OpenClawDreamStepCreate(BaseModel):
         },
     })
 
-    step_type: str = Field(description="Plan, reflect, propose_task, stop, or other explicit step type.")
-    status: str = Field(default="completed", description="Recorded status for this step.")
+    step_type: str = Field(max_length=64, description="Plan, reflect, propose_task, stop, or other explicit step type.")
+    status: str = Field(default="completed", max_length=32, description="Recorded status for this step.")
     input_payload: dict[str, Any] = Field(default_factory=dict)
     output_payload: dict[str, Any] = Field(default_factory=dict)
     token_usage: dict[str, Any] = Field(default_factory=dict)
@@ -81,8 +81,8 @@ class OpenClawDreamRunDetail(OpenClawDreamRunSummary):
 
 
 class OpenClawDreamRunStop(BaseModel):
-    stop_reason: str = Field(description="Explicit reason for stopping the run.")
+    stop_reason: str = Field(max_length=1000, description="Explicit reason for stopping the run.")
 
 
 class OpenClawDreamRunPause(BaseModel):
-    reason: str = Field(description="Explicit reason for pausing the run.")
+    reason: str = Field(max_length=1000, description="Explicit reason for pausing the run.")

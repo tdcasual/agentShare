@@ -31,6 +31,15 @@ class TaskTargetRepository:
             .all()
         )
 
+    def list_by_tasks(self, task_ids: list[str]) -> dict[str, list[TaskTargetModel]]:
+        if not task_ids:
+            return {}
+        rows = self.session.query(TaskTargetModel).filter(TaskTargetModel.task_id.in_(task_ids)).all()
+        result: dict[str, list[TaskTargetModel]] = {}
+        for row in rows:
+            result.setdefault(row.task_id, []).append(row)
+        return result
+
     def find_by_task_and_access_token(
         self,
         task_id: str,

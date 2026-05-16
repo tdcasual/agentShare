@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.config import ManagementRole
+
 
 class RuntimePrincipal(BaseModel):
     actor_type: str = "openclaw_agent"
@@ -13,6 +15,7 @@ class RuntimePrincipal(BaseModel):
     auth_method: str
     status: str = "active"
     token_id: str | None = None
+    role: ManagementRole | None = None
     token_prefix: str | None = None
     subject_type: str | None = None
     subject_id: str | None = None

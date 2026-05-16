@@ -38,3 +38,9 @@ class OpenClawSessionListResponse(BaseModel):
 
 class OpenClawSessionCreateResponse(OpenClawSessionSummary):
     session_key: str
+
+
+class OpenClawSessionRevokeResponse(BaseModel):
+    id: str
+    agent_id: str
+    status: str

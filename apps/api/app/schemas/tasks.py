@@ -30,8 +30,8 @@ class TaskCreate(BaseModel):
         },
     })
 
-    title: str = Field(description="Short human-readable task title.")
-    task_type: str = Field(description="Normalized task type used by agent allowlists.")
+    title: str = Field(max_length=255, description="Short human-readable task title.")
+    task_type: str = Field(max_length=128, description="Normalized task type used by agent allowlists.")
     input: dict[str, Any] = Field(default_factory=dict, description="Opaque task input payload.")
     required_capability_ids: list[str] = Field(
         default_factory=list,
@@ -53,7 +53,7 @@ class TaskCreate(BaseModel):
         default_factory=list,
         description="Optional policy rules evaluated before falling back to approval_mode.",
     )
-    priority: str = Field(default="normal", description="Relative scheduling priority.")
+    priority: str = Field(default="normal", max_length=32, description="Relative scheduling priority.")
     target_access_token_ids: list[str] = Field(
         default_factory=list,
         description="Concrete token ids that should receive this task when target_mode is explicit_access_tokens.",
@@ -82,5 +82,32 @@ class TaskComplete(BaseModel):
         },
     })
 
-    result_summary: str = Field(description="Short summary of the completed work.")
+    result_summary: str = Field(max_length=2000, description="Short summary of the completed work.")
     output_payload: dict[str, Any] = Field(default_factory=dict, description="Structured task output payload.")
+
+
+class TaskResponse(BaseModel):
+    id: str
+    title: str
+    task_type: str
+    input: dict[str, Any] = Field(default_factory=dict)
+    required_capability_ids: list[str] = Field(default_factory=list)
+    playbook_ids: list[str] = Field(default_factory=list)
+    lease_allowed: bool = False
+    approval_mode: Literal["auto", "manual"] = "auto"
+    approval_rules: list[dict[str, Any]] = Field(default_factory=list)
+    priority: str = "normal"
+    target_mode: str = "broadcast"
+    status: str
+    created_by: str
+    created_by_actor_type: str | None = None
+    created_by_actor_id: str | None = None
+    created_via_token_id: str | None = None
+    publication_status: str
+    claimed_by: str | None = None
+    target_ids: list[str] = Field(default_factory=list)
+    target_access_token_ids: list[str] = Field(default_factory=list)
+
+
+class TaskListResponse(BaseModel):
+    items: list[TaskResponse] = Field(default_factory=list)

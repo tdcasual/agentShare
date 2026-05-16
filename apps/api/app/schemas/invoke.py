@@ -11,7 +11,7 @@ class InvokeRequest(BaseModel):
         },
     })
 
-    task_id: str = Field(description="Claimed task being executed.")
+    task_id: str = Field(max_length=128, description="Claimed task being executed.")
     parameters: dict[str, Any] = Field(default_factory=dict, description="Capability-specific runtime parameters.")
 
 
@@ -23,5 +23,5 @@ class LeaseRequest(BaseModel):
         },
     })
 
-    task_id: str = Field(description="Claimed task requesting the lease.")
-    purpose: str = Field(description="Why proxy mode is insufficient and a lease is required.")
+    task_id: str = Field(max_length=128, description="Claimed task requesting the lease.")
+    purpose: str = Field(max_length=1000, description="Why proxy mode is insufficient and a lease is required.")

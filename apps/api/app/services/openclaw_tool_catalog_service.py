@@ -46,13 +46,3 @@ def canonical_tool_name(name: str) -> str | None:
     if name in OPENCLAW_TOOL_CATALOG:
         return name
     return None
-
-
-def list_openclaw_tool_catalog() -> list[dict[str, Any]]:
-    return [
-        {
-            "name": name,
-            "description": config["description"],
-        }
-        for name, config in OPENCLAW_TOOL_CATALOG.items()
-    ]

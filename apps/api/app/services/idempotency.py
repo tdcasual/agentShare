@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     _MAX_CACHEABLE_RESPONSE_BYTES = 64 * 1024
     _LOCK_POLL_INTERVAL_SECONDS = 0.01
-    _REPLAY_SAFE_HEADERS = {
-        "content-type",
-        "content-length",
+    _UNSAFE_HEADERS = {
+        "set-cookie",
+        "location",
+        "etag",
     }
 
     def __init__(self, app: Any, redis_client: redis.Redis, ttl_seconds: int = 300) -> None:
@@ -152,7 +153,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             return False
 
         header_names = {key.lower() for key in response.headers.keys()}
-        if not header_names.issubset(self._REPLAY_SAFE_HEADERS):
+        if header_names & self._UNSAFE_HEADERS:
             return False
 
         return True

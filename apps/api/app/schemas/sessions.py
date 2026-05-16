@@ -11,8 +11,8 @@ class ManagementLoginRequest(BaseModel):
         },
     })
 
-    email: str = Field(description="Persisted human account email used for management login.")
-    password: str = Field(description="Password for the persisted human account.")
+    email: str = Field(max_length=320, min_length=1, description="Persisted human account email used for management login.")
+    password: str = Field(min_length=1, max_length=128, description="Password for the persisted human account.")
 
 
 class ManagementSessionResponse(BaseModel):
@@ -68,3 +68,7 @@ class ManagementSessionPayload(BaseModel):
         if self.exp <= self.iat:
             raise ValueError("Management session expiry must be later than issue time.")
         return self
+
+
+class ManagementLogoutResponse(BaseModel):
+    status: str

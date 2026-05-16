@@ -86,10 +86,19 @@ def touch_access_token(session: Session, token: AccessTokenModel) -> AccessToken
     return AccessTokenRepository(session).update(token)
 
 
-def revoke_access_token(session: Session, token_id: str) -> AccessTokenModel:
+def revoke_access_token(session: Session, token_id: str, *, settings: Settings | None = None) -> AccessTokenModel:
     token = AccessTokenRepository(session).revoke(token_id)
     if token is None:
         raise NotFoundError("Access token not found")
+    if token.token_secret_backend_ref:
+        try:
+            backend = get_secret_backend_for_ref(token.token_secret_backend_ref, settings)
+            backend.delete_secret(token.id, token.token_secret_backend_ref)
+        except Exception:
+            logger.exception(
+                "Failed to delete access token secret from backend during revocation",
+                extra={"token_id": token_id},
+            )
     return token
 
 

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
+
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.orm.approval_request import ApprovalRequestModel
@@ -18,14 +21,32 @@ class ApprovalRequestRepository:
         return self.session.get(ApprovalRequestModel, approval_id)
 
     def list_all(self) -> list[ApprovalRequestModel]:
-        return list(self.session.query(ApprovalRequestModel).all())
+        return list(
+            self.session.query(ApprovalRequestModel)
+            .order_by(ApprovalRequestModel.created_at.desc(), ApprovalRequestModel.id.desc())
+            .all()
+        )
 
     def list_by_status(self, status: str) -> list[ApprovalRequestModel]:
         return list(
             self.session.query(ApprovalRequestModel)
             .filter(ApprovalRequestModel.status == status)
+            .order_by(ApprovalRequestModel.created_at.desc(), ApprovalRequestModel.id.desc())
             .all()
         )
+
+    def bulk_expire_approved_before(self, cutoff: datetime) -> int:
+        result = (
+            self.session.execute(
+                update(ApprovalRequestModel)
+                .where(ApprovalRequestModel.status == "approved")
+                .where(ApprovalRequestModel.expires_at.isnot(None))
+                .where(ApprovalRequestModel.expires_at < cutoff)
+                .values(status="expired")
+            )
+        )
+        self.session.flush()
+        return result.rowcount
 
     def get_latest_for_scope(
         self,

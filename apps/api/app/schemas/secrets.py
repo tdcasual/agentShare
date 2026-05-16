@@ -18,12 +18,13 @@ class SecretCreate(BaseModel):
         },
     })
 
-    display_name: str = Field(description="Human-readable label for the stored credential.")
-    kind: str = Field(description="Credential kind such as api_token, cookie, or refresh_token.")
-    value: str = Field(description="Plaintext credential value to store in the secret backend.")
-    provider: str = Field(description="Normalized upstream provider identifier, such as openai or github.")
+    display_name: str = Field(max_length=255, description="Human-readable label for the stored credential.")
+    kind: str = Field(max_length=64, description="Credential kind such as api_token, cookie, or refresh_token.")
+    value: str = Field(max_length=10000, description="Plaintext credential value to store in the secret backend.")
+    provider: str = Field(max_length=128, description="Normalized upstream provider identifier, such as openai or github.")
     environment: str | None = Field(
         default=None,
+        max_length=64,
         description="Optional environment label used for compatibility checks, such as production or staging.",
     )
     provider_scopes: list[str] = Field(
@@ -32,6 +33,7 @@ class SecretCreate(BaseModel):
     )
     resource_selector: str | None = Field(
         default=None,
+        max_length=512,
         description="Optional provider-specific resource selector such as repo:agent-share.",
     )
     metadata: dict[str, Any] = Field(
@@ -77,3 +79,7 @@ class SecretResponse(BaseModel):
     created_via_token_id: str | None = None
     reviewed_at: datetime | None = None
     review_reason: str = ""
+
+
+class SecretListResponse(BaseModel):
+    items: list[SecretResponse] = Field(default_factory=list)

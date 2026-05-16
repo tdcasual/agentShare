@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -19,6 +20,7 @@ from app.services.gateway import GatewayConfigurationError, GatewayExecutionErro
 from .tools import ToolExecutionError, execute_tool, list_tool_definitions
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class McpRequest(BaseModel):
@@ -149,6 +151,8 @@ def mcp_endpoint(
     except ValueError as exc:
         return _jsonrpc_result(payload.id, _tool_error(409, str(exc)))
     except GatewayExecutionError as exc:
+        logger.error("gateway execution error: %s", exc)
         return _jsonrpc_result(payload.id, _tool_error(502, str(exc)))
     except GatewayConfigurationError as exc:
+        logger.error("gateway configuration error: %s", exc)
         return _jsonrpc_result(payload.id, _tool_error(500, str(exc)))

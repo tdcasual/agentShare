@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
+from app.auth import SYSTEM_ACTOR
 from app.errors import NotFoundError
 from app.orm.playbook import PlaybookModel
 from app.repositories.playbook_repo import PlaybookRepository
@@ -21,7 +22,7 @@ class PlaybookSearchResult:
 
 def create_playbook(session: Session, payload: PlaybookCreate, *, actor=None) -> dict:
     if actor is None:
-        actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
+        actor = SYSTEM_ACTOR
     repo = PlaybookRepository(session)
     playbook_id = new_resource_id("playbook")
     model = PlaybookModel(
@@ -32,7 +33,7 @@ def create_playbook(session: Session, payload: PlaybookCreate, *, actor=None) ->
         tags=payload.tags,
         created_by_actor_type=actor.actor_type,
         created_by_actor_id=actor.id,
-        created_via_token_id=getattr(actor, "token_id", None),
+        created_via_token_id=actor.token_id,
         publication_status=publication_status_for_actor(actor.actor_type),
     )
     repo.create(model)

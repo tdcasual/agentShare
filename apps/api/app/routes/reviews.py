@@ -64,13 +64,14 @@ def approve_review_route(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     reviewed: dict | None = None
+    cleanup_backend_ref: str | None = None
     lock_key, lock_token = acquire_review_lock(
         resource_kind=resource_kind,
         resource_id=resource_id,
         settings=settings,
     )
     try:
-        reviewed = approve_review(
+        reviewed, cleanup_backend_ref = approve_review(
             session,
             resource_kind=resource_kind,
             resource_id=resource_id,
@@ -88,7 +89,6 @@ def approve_review_route(
         session.commit()
     except Exception:
         session.rollback()
-        cleanup_backend_ref = reviewed.get("_cleanup_secret_backend_ref") if reviewed else None
         if cleanup_backend_ref is not None:
             try:
                 backend = get_secret_backend_for_ref(cleanup_backend_ref, settings)

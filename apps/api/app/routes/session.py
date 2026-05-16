@@ -9,7 +9,7 @@ from app.db import get_db
 from app.dependencies import get_settings
 from app.errors import AuthorizationError, ConflictError
 from app.observability import record_management_session_login, record_management_session_logout
-from app.schemas.sessions import ManagementLoginRequest, ManagementSessionResponse
+from app.schemas.sessions import ManagementLoginRequest, ManagementLogoutResponse, ManagementSessionResponse
 from app.services.audit_service import write_audit_event
 from app.services.auth_rate_limit import (
     AuthRateLimitExceeded,
@@ -111,6 +111,7 @@ def login_management_session(
 
 @router.post(
     "/logout",
+    response_model=ManagementLogoutResponse,
     tags=["Management"],
     summary="Log out of the management console",
     description="Clear the current management session cookie.",

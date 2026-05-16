@@ -15,13 +15,12 @@ from app.observability import record_approval_decision, record_approval_requeste
 from app.repositories.approval_repo import ApprovalRequestRepository
 from app.services.audit_service import write_audit_event
 from app.services.policy_service import PolicyContext, evaluate_policy
+from app.schemas.approvals import ApprovalActionType, ApprovalStatus
 from app.services.redis_client import acquire_lock, release_lock
 
 logger = logging.getLogger(__name__)
 
 ApprovalMode = Literal["auto", "manual"]
-ApprovalActionType = Literal["invoke", "lease"]
-ApprovalStatus = Literal["pending", "approved", "rejected", "expired"]
 
 APPROVAL_TTL_SECONDS = 900
 
@@ -224,19 +223,12 @@ def list_approval_requests(
     if status is not None:
         _validate_status(status)
 
-    items = [
-        expire_request_if_needed(session=session, approval=model, now=now)
-        for model in repo.list_all()
-    ]
-    if status is not None:
-        items = [model for model in items if model.status == status]
+    current_time = _normalize_datetime(_utc_now() if now is None else now)
+    repo.bulk_expire_approved_before(current_time)
 
-    # Ensure deterministic newest-first ordering for management list views.
-    return sorted(
-        items,
-        key=_approval_sort_key,
-        reverse=True,
-    )
+    if status is not None:
+        return repo.list_by_status(status)
+    return repo.list_all()
 
 
 def approval_to_dict(model: ApprovalRequestModel) -> dict:
@@ -450,10 +442,6 @@ def _require_pending_state(approval: ApprovalRequestModel, *, operation: str) ->
 
 def _normalize_reason(reason: str) -> str:
     return reason.strip()
-
-
-def _approval_sort_key(model: ApprovalRequestModel) -> tuple[datetime, str]:
-    return _normalize_datetime(model.created_at), model.id
 
 
 def _normalize_datetime(value: datetime) -> datetime:

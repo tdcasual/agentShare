@@ -114,8 +114,9 @@ def revoke_access_token_route(
     token_id: str,
     manager: ManagementIdentity = Depends(require_management_action("tokens:revoke")),
     session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
 ) -> dict:
-    token = revoke_access_token(session, token_id)
+    token = revoke_access_token(session, token_id, settings=settings)
     write_audit_event(session, "access_token_revoked", {
         "token_id": token.id,
         "actor_type": manager.actor_type,

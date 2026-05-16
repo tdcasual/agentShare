@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from app.auth import SYSTEM_ACTOR
 from app.errors import BadRequestError, NotFoundError
 from app.orm.capability import CapabilityModel
 from app.repositories.capability_repo import CapabilityRepository
@@ -17,7 +18,7 @@ from app.services.scope_policy import ensure_binding_compatible
 
 def create_capability(session: Session, payload: CapabilityCreate, secret, *, actor=None) -> dict:
     if actor is None:
-        actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
+        actor = SYSTEM_ACTOR
     repo = CapabilityRepository(session)
     access_policy = validate_capability_access_policy(session, payload.access_policy)
     try:
@@ -43,7 +44,7 @@ def create_capability(session: Session, payload: CapabilityCreate, secret, *, ac
         adapter_config=payload.adapter_config,
         created_by_actor_type=actor.actor_type,
         created_by_actor_id=actor.id,
-        created_via_token_id=getattr(actor, "token_id", None),
+        created_via_token_id=actor.token_id,
         publication_status=publication_status_for_actor(actor.actor_type),
     )
     repo.create(model)

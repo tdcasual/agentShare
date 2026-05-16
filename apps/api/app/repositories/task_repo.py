@@ -63,3 +63,9 @@ class TaskRepository:
         merged = self.session.merge(model)
         self.session.flush()
         return merged
+
+    def get_many(self, task_ids: list[str]) -> dict[str, TaskModel]:
+        if not task_ids:
+            return {}
+        rows = self.session.query(TaskModel).filter(TaskModel.id.in_(task_ids)).all()
+        return {row.id: row for row in rows}

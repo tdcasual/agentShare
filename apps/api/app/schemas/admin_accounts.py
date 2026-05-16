@@ -20,9 +20,9 @@ class AdminAccountCreate(BaseModel):
         },
     })
 
-    email: str = Field(description="Unique email used for management login.")
-    display_name: str = Field(description="Human-readable name displayed in the control plane.")
-    password: str = Field(min_length=12, description="Initial password for the invited management account.")
+    email: str = Field(max_length=320, description="Unique email used for management login.")
+    display_name: str = Field(max_length=255, description="Human-readable name displayed in the control plane.")
+    password: str = Field(min_length=12, max_length=128, description="Initial password for the invited management account.")
     role: InvitedManagementRole = Field(description="Granted management role for the invited account.")
 
 

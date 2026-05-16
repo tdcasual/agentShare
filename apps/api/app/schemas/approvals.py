@@ -15,7 +15,7 @@ class ApprovalDecisionRequest(BaseModel):
         },
     })
 
-    reason: str = Field(default="", description="Optional operator note for this decision.")
+    reason: str = Field(default="", max_length=2000, description="Optional operator note for this decision.")
 
     @field_validator("reason")
     @classmethod
@@ -30,7 +30,7 @@ class ApprovalRejectionRequest(BaseModel):
         },
     })
 
-    reason: str = Field(description="Human-readable operator note explaining the rejection.")
+    reason: str = Field(max_length=2000, description="Human-readable operator note explaining the rejection.")
 
     @field_validator("reason")
     @classmethod

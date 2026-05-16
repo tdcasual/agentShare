@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.errors import NotFoundError
 from app.orm.catalog_release import CatalogReleaseModel
 from app.repositories.catalog_release_repo import CatalogReleaseRepository
 from app.services.identifiers import new_resource_id
@@ -72,7 +72,7 @@ def get_catalog_release_history(session: Session, *, resource_kind: str, resourc
     repo = CatalogReleaseRepository(session)
     releases = repo.list_by_resource(resource_kind=resource_kind, resource_id=resource_id)
     if not releases:
-        raise HTTPException(status_code=404, detail="Catalog release history not found")
+        raise NotFoundError("Catalog release history not found")
 
     current_release = releases[0]
     return {
@@ -87,7 +87,9 @@ def get_catalog_release_history(session: Session, *, resource_kind: str, resourc
 def _latest_releases(releases: list[CatalogReleaseModel]) -> dict[tuple[str, str], CatalogReleaseModel]:
     latest: dict[tuple[str, str], CatalogReleaseModel] = {}
     for release in releases:
-        latest.setdefault((release.resource_kind, release.resource_id), release)
+        key = (release.resource_kind, release.resource_id)
+        if key not in latest or release.released_at > latest[key].released_at:
+            latest[key] = release
     return latest
 
 

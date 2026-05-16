@@ -10,8 +10,8 @@ from app.orm.openclaw_agent import OpenClawAgentModel
 from app.repositories.openclaw_agent_repo import OpenClawAgentRepository
 from app.schemas.openclaw_agents import (
     OpenClawAgentCreate,
-    OpenClawAgentFileSummary,
-    OpenClawAgentFileUpdate,
+    OpenClawAgentDeleteResponse,
+    OpenClawAgentListResponse,
     OpenClawAgentSummary,
     OpenClawAgentUpdate,
 )
@@ -48,6 +48,7 @@ def _serialize_agent(model: OpenClawAgentModel) -> dict:
 
 @router.get(
     "",
+    response_model=OpenClawAgentListResponse,
     tags=["Management"],
     summary="List OpenClaw agents",
     description="Return OpenClaw-native agent workspace and runtime configuration records.",
@@ -64,6 +65,7 @@ def list_openclaw_agents(
 
 @router.get(
     "/{agent_id}",
+    response_model=OpenClawAgentSummary,
     tags=["Management"],
     summary="Get one OpenClaw agent",
     description="Read one OpenClaw-native agent with its runtime defaults and workspace configuration.",
@@ -84,6 +86,7 @@ def get_openclaw_agent(
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
+    response_model=OpenClawAgentSummary,
     tags=["Management"],
     summary="Create an OpenClaw agent",
     description="Create an OpenClaw-native agent with workspace, policy, and runtime defaults.",
@@ -118,6 +121,7 @@ def create_openclaw_agent(
 
 @router.patch(
     "/{agent_id}",
+    response_model=OpenClawAgentSummary,
     tags=["Management"],
     summary="Update an OpenClaw agent",
     description="Update the OpenClaw agent runtime defaults, policy, or workspace configuration.",
@@ -142,6 +146,7 @@ def update_openclaw_agent(
 
 @router.delete(
     "/{agent_id}",
+    response_model=OpenClawAgentDeleteResponse,
     tags=["Management"],
     summary="Delete an OpenClaw agent",
     description="Delete an OpenClaw agent configuration record.",

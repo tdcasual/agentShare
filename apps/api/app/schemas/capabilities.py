@@ -40,9 +40,9 @@ class CapabilityCreate(BaseModel):
         },
     })
 
-    name: str = Field(description="Stable capability name that agents reference at runtime.")
-    secret_id: str = Field(description="Stored secret backing this capability.")
-    risk_level: str = Field(description="Risk tier used for review and policy decisions.")
+    name: str = Field(max_length=255, description="Stable capability name that agents reference at runtime.")
+    secret_id: str = Field(max_length=128, description="Stored secret backing this capability.")
+    risk_level: str = Field(max_length=32, description="Risk tier used for review and policy decisions.")
     allowed_mode: str = Field(
         default="proxy_only",
         description="proxy_only keeps the secret behind the gateway; proxy_or_lease allows short-lived leases.",
@@ -79,7 +79,7 @@ class CapabilityCreate(BaseModel):
         default_factory=list,
         description="Allowed secret environments for this capability, such as production or staging.",
     )
-    adapter_type: str = Field(default="generic_http", description="Gateway adapter used for proxy execution.")
+    adapter_type: str = Field(default="generic_http", max_length=64, description="Gateway adapter used for proxy execution.")
     adapter_config: dict[str, Any] = Field(
         default_factory=dict,
         description="Adapter-specific proxy configuration.",
@@ -126,7 +126,7 @@ class CapabilityResponse(BaseModel):
     allowed_mode: str
     lease_ttl_seconds: int
     approval_mode: Literal["auto", "manual"]
-    approval_rules: list[ApprovalRule]
+    approval_rules: list[dict[str, Any]]
     allowed_audience: list[str]
     access_policy: CapabilityAccessPolicy
     required_provider: str | None
@@ -139,3 +139,7 @@ class CapabilityResponse(BaseModel):
     created_by_actor_id: str | None = None
     created_via_token_id: str | None = None
     reviewed_at: datetime | None = None
+
+
+class CapabilityListResponse(BaseModel):
+    items: list[CapabilityResponse] = Field(default_factory=list)

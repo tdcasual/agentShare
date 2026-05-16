@@ -27,6 +27,7 @@ def _get_redis_or_none(settings: Settings) -> "redis.Redis | None":
 
         return get_redis(settings)
     except Exception:
+        logger.warning("Redis unavailable for auth rate limiting, falling back to in-memory")
         return None
 
 

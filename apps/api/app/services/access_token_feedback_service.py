@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.errors import ConflictError, NotFoundError
+from app.errors import BadRequestError, ConflictError, NotFoundError
 from app.orm.access_token_feedback import AccessTokenFeedbackModel
 from app.repositories.access_token_feedback_repo import AccessTokenFeedbackRepository
 from app.repositories.access_token_repo import AccessTokenRepository
@@ -26,6 +26,8 @@ def create_access_token_feedback(
         raise NotFoundError("Task target not found")
     if target.status != "completed" or not target.last_run_id:
         raise ConflictError("Task target is not ready for feedback")
+    if not 1 <= score <= 5:
+        raise BadRequestError("Score must be between 1 and 5")
     if AccessTokenFeedbackRepository(session).get_by_task_target(task_target_id) is not None:
         raise ConflictError("Feedback already exists for this task target")
 
@@ -101,7 +103,7 @@ def _recompute_access_token_aggregates(session: Session, access_token_id: str) -
     token.completed_runs = len(completed_targets)
     token.successful_runs = sum(1 for item in feedback if _is_success(item.verdict, item.score))
     token.success_rate = (
-        token.successful_runs / token.completed_runs
+        min(token.successful_runs / token.completed_runs, 1.0)
         if token.completed_runs
         else 0.0
     )

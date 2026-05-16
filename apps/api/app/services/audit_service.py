@@ -14,10 +14,10 @@ def write_audit_event(session: Session, event_type: str, payload: dict) -> Audit
 
 def actor_payload(actor) -> dict:
     payload = {
-        "actor_type": getattr(actor, "actor_type", "unknown"),
-        "actor_id": getattr(actor, "id", "unknown"),
+        "actor_type": actor.actor_type,
+        "actor_id": actor.id,
     }
-    token_id = getattr(actor, "token_id", None)
+    token_id = actor.token_id
     if token_id:
         payload["via_token_id"] = token_id
     return payload

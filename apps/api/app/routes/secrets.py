@@ -9,7 +9,7 @@ from app.db import get_db
 from app.dependencies import get_settings
 from app.orm.secret import SecretModel
 from app.repositories.secret_repo import SecretRepository
-from app.schemas.secrets import SecretCreate, SecretResponse
+from app.schemas.secrets import SecretCreate, SecretListResponse, SecretResponse
 from app.services.audit_service import actor_payload, write_audit_event
 from app.services.pending_secret_service import (
     build_pending_secret_ref,
@@ -107,6 +107,7 @@ def create_secret(
 
 @router.get(
     "",
+    response_model=SecretListResponse,
     tags=["Management"],
     summary="List stored secret references",
     description="Return redacted secret inventory for the management console. Plaintext values are never returned. Requires an admin-or-higher management role.",

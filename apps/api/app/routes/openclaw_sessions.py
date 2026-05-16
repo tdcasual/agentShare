@@ -13,6 +13,8 @@ from app.repositories.openclaw_session_repo import OpenClawSessionRepository
 from app.schemas.openclaw_sessions import (
     OpenClawSessionCreate,
     OpenClawSessionCreateResponse,
+    OpenClawSessionListResponse,
+    OpenClawSessionRevokeResponse,
     OpenClawSessionSummary,
 )
 from app.services.audit_service import write_audit_event
@@ -85,6 +87,7 @@ def create_openclaw_session(
 
 @agent_sessions_router.get(
     "/{agent_id}/sessions",
+    response_model=OpenClawSessionListResponse,
     tags=["Management"],
     summary="List OpenClaw sessions for one agent",
     description="List OpenClaw runtime sessions that belong to one agent.",
@@ -107,6 +110,7 @@ def list_openclaw_sessions_for_agent(
 
 @router.get(
     "",
+    response_model=OpenClawSessionListResponse,
     tags=["Management"],
     summary="List OpenClaw sessions",
     description="List OpenClaw runtime sessions across all agents.",
@@ -123,6 +127,7 @@ def list_openclaw_sessions(
 
 @router.get(
     "/{session_id}",
+    response_model=OpenClawSessionSummary,
     tags=["Management"],
     summary="Get one OpenClaw session",
     description="Read one OpenClaw session record by id.",
@@ -142,6 +147,7 @@ def get_openclaw_session(
 
 @router.post(
     "/{session_id}/revoke",
+    response_model=OpenClawSessionRevokeResponse,
     tags=["Management"],
     summary="Revoke one OpenClaw session",
     description="Delete one OpenClaw runtime session record so its session key can no longer authenticate.",

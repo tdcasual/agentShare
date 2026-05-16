@@ -12,7 +12,7 @@ from app.db import get_db
 from app.dependencies import get_settings
 from app.models.runtime_principal import RuntimePrincipal
 from app.schemas.task_targets import TaskTargetListResponse, TaskTargetResponse
-from app.schemas.tasks import TaskComplete, TaskCreate
+from app.schemas.tasks import TaskComplete, TaskCreate, TaskListResponse, TaskResponse
 from app.services.audit_service import actor_payload, write_audit_event
 from app.services.event_service import record_event
 from app.services.review_service import publication_status_for_actor
@@ -33,6 +33,7 @@ task_targets_router = APIRouter(prefix="/api/task-targets")
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
+    response_model=TaskResponse,
     tags=["Management", "Agent Runtime"],
     summary="Publish or submit a task",
     description=(
@@ -59,6 +60,7 @@ def create_task_route(
 
 @router.get(
     "",
+    response_model=TaskListResponse,
     tags=["Knowledge"],
     summary="List available tasks",
     description="Authenticated task queue listing for runtime agents and management sessions.",
@@ -158,6 +160,7 @@ def complete_task_target_route(
 
 @router.post(
     "/{task_id}/claim",
+    response_model=TaskResponse,
     tags=["Agent Runtime"],
     summary="Claim a task",
     description="Authenticate as an agent, verify the task type is allowed, and atomically claim the task.",
@@ -175,6 +178,7 @@ def claim_task_route(
 
 @router.post(
     "/{task_id}/complete",
+    response_model=TaskResponse,
     tags=["Agent Runtime"],
     summary="Complete a task",
     description="Mark a claimed task complete and persist the resulting run record.",

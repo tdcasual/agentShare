@@ -10,6 +10,7 @@ router = APIRouter(prefix="/api/runtime")
 
 @router.get(
     "/me",
+    response_model=RuntimePrincipal,
     tags=["Agent Runtime"],
     summary="Inspect the current runtime principal",
     description="Authenticate with a session key or access token and return the normalized runtime principal.",

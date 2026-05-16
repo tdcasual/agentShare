@@ -21,7 +21,7 @@ class ApprovalRule(BaseModel):
     })
 
     decision: PolicyDecision
-    reason: str = Field(description="Human-readable explanation for the rule match.")
+    reason: str = Field(max_length=2000, description="Human-readable explanation for the rule match.")
     action_types: list[PolicyActionType] = Field(default_factory=list)
     risk_levels: list[str] = Field(default_factory=list)
     providers: list[str] = Field(default_factory=list)

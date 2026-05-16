@@ -4,12 +4,14 @@ from sqlalchemy.orm import Session
 from app.auth import require_management_session
 from app.db import get_db
 from app.repositories.run_repo import RunRepository
+from app.schemas.runs import RunListResponse
 
 router = APIRouter(prefix="/api/runs")
 
 
 @router.get(
     "",
+    response_model=RunListResponse,
     tags=["Observability"],
     summary="List recorded runs",
     description="Return persisted task run history for the management console.",

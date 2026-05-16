@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import time
+
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.auth import ensure_task_type_allowed
+from app.auth import SYSTEM_ACTOR, ensure_task_type_allowed
 from app.config import Settings
 from app.errors import AuthorizationError, BadRequestError, ConflictError, NotFoundError
 from app.models.runtime_principal import RuntimePrincipal
@@ -27,7 +29,7 @@ from app.services.review_service import publication_status_for_actor
 
 def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
     if actor is None:
-        actor = type("SystemActor", (), {"actor_type": "human", "id": "system", "token_id": None})()
+        actor = SYSTEM_ACTOR
     _ensure_actor_can_submit_task(session, payload, actor=actor)
     _ensure_playbooks_exist(session, payload.playbook_ids)
     repo = TaskRepository(session)
@@ -48,7 +50,7 @@ def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
         created_by=actor.actor_type,
         created_by_actor_type=actor.actor_type,
         created_by_actor_id=actor.id,
-        created_via_token_id=getattr(actor, "token_id", None),
+        created_via_token_id=actor.token_id,
         publication_status=publication_status_for_actor(actor.actor_type),
     )
     repo.create(model)
@@ -58,21 +60,24 @@ def create_task(session: Session, payload: TaskCreate, *, actor=None) -> dict:
 
 def list_tasks(session: Session, *, actor=None, limit: int = 100, offset: int = 0) -> list[dict]:
     target_repo = TaskTargetRepository(session)
+    task_repo = TaskRepository(session)
     if _uses_access_token_assignments(actor):
+        targets = target_repo.list_assigned(actor.token_id)
+        active_targets = [t for t in targets if t.status != "completed"]
+        task_ids = list({t.task_id for t in active_targets})
+        task_map = task_repo.get_many(task_ids)
         items: list[dict] = []
-        for target in target_repo.list_assigned(actor.token_id):
-            if target.status == "completed":
-                continue
-            task = TaskRepository(session).get(target.task_id)
+        for target in active_targets:
+            task = task_map.get(target.task_id)
             if task is None or task.publication_status != "active":
                 continue
             items.append(_task_to_dict(task, targets=[target]))
         return items[offset: offset + limit]
 
-    return [
-        _task_to_dict(model, targets=target_repo.list_by_task(model.id))
-        for model in TaskRepository(session).list_active(limit=limit, offset=offset)
-    ]
+    tasks = task_repo.list_active(limit=limit, offset=offset)
+    task_ids = [t.id for t in tasks]
+    targets_map = target_repo.list_by_tasks(task_ids)
+    return [_task_to_dict(model, targets=targets_map.get(model.id, [])) for model in tasks]
 
 
 def list_assigned_task_targets(session: Session, agent: RuntimePrincipal) -> list[dict]:
@@ -374,11 +379,15 @@ def _sync_task_under_lock(
     settings: Settings | None,
 ) -> None:
     lock_key = f"task:{task.id}:sync"
-    lock_token = acquire_lock(lock_key, ttl_seconds=5, settings=settings)
+    lock_token = None
+    for attempt in range(3):
+        lock_token = acquire_lock(lock_key, ttl_seconds=5, settings=settings)
+        if lock_token:
+            break
+        if attempt < 2:
+            time.sleep(0.1 * (2 ** attempt))
     if not lock_token:
-        _sync_task_state_from_targets(task, target_repo.list_by_task(task.id))
-        task_repo.update(task)
-        return
+        raise ConflictError("Task sync is being processed by another operator, please retry")
     try:
         _sync_task_state_from_targets(task, target_repo.list_by_task(task.id))
         task_repo.update(task)
@@ -479,10 +488,10 @@ def _resolve_target_access_token_ids(session: Session, payload: TaskCreate) -> l
 
 
 def _ensure_actor_can_submit_task(session: Session, payload: TaskCreate, *, actor) -> None:
-    if getattr(actor, "actor_type", None) == "human":
+    if actor.actor_type == "human":
         return
 
-    if getattr(actor, "actor_type", None) == "openclaw_agent":
+    if actor.actor_type == "openclaw_agent":
         agent_model = OpenClawAgentRepository(session).get(actor.id)
         if agent_model is None or agent_model.status != "active":
             raise AuthorizationError("Agent is not active")
@@ -495,7 +504,7 @@ def _ensure_actor_can_submit_task(session: Session, payload: TaskCreate, *, acto
                     issuer="openclaw",
                     auth_method=agent_model.auth_method,
                     status=agent_model.status,
-                    token_id=getattr(actor, "token_id", None),
+                    token_id=actor.token_id,
                     allowed_task_types=agent_model.allowed_task_types or [],
                     allowed_capability_ids=agent_model.allowed_capability_ids or [],
                     risk_tier=agent_model.risk_tier,
@@ -518,4 +527,4 @@ def _ensure_actor_can_submit_task(session: Session, payload: TaskCreate, *, acto
 
 
 def _uses_access_token_assignments(actor) -> bool:
-    return getattr(actor, "auth_method", None) == "access_token" and bool(getattr(actor, "token_id", None))
+    return actor.auth_method == "access_token" and bool(actor.token_id)

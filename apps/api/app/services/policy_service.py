@@ -4,9 +4,8 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from app.config import ManagementRole
+from app.schemas.policy import PolicyDecision
 
-
-PolicyDecision = Literal["allow", "manual", "deny"]
 PolicySource = Literal["task", "capability", "default"]
 ManagementAction = Literal[
     "admin_accounts:list",

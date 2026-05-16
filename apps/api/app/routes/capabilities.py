@@ -10,7 +10,7 @@ from app.auth import (
 from app.db import get_db
 from app.errors import NotFoundError
 from app.repositories.secret_repo import SecretRepository
-from app.schemas.capabilities import CapabilityCreate, CapabilityResponse
+from app.schemas.capabilities import CapabilityCreate, CapabilityListResponse, CapabilityResponse
 from app.services.audit_service import actor_payload, write_audit_event
 from app.services.capability_service import create_capability, list_capabilities
 from app.services.review_service import publication_status_for_actor
@@ -54,6 +54,7 @@ def create_capability_route(
 
 @router.get(
     "",
+    response_model=CapabilityListResponse,
     tags=["Management"],
     summary="List capability bindings",
     description="Return the management view of capabilities and their normalized secret-scope contracts.",

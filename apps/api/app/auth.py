@@ -40,12 +40,24 @@ MANAGEMENT_ROLE_LEVELS: dict[ManagementRole, int] = {
 }
 
 
+class _SystemActor:
+    actor_type: str = "human"
+    id: str = "system"
+    token_id: str | None = None
+    auth_method: str | None = "system"
+    role: ManagementRole | None = None
+
+
+SYSTEM_ACTOR = _SystemActor()
+
+
 class ManagementIdentity(BaseModel):
     id: str
     email: str
     role: ManagementRole
     actor_type: str = "human"
     auth_method: str = "session"
+    token_id: str | None = None
     session_id: str
     issued_at: int
     expires_at: int
@@ -153,6 +165,7 @@ def require_management_or_agent(
     settings: Settings = Depends(get_settings),
     _documented_session_token: str | None = Depends(management_security),
 ) -> AuthenticatedActor:
+    # Try bearer token first
     if credentials is not None:
         agent = resolve_runtime_principal(credentials.credentials, session)
         if agent is not None:
@@ -164,7 +177,8 @@ def require_management_or_agent(
                 token_id=agent.token_id,
             )
 
-    if request.cookies.get(settings.management_session_cookie_name) is not None:
+    # Try management session cookie
+    try:
         identity = _resolve_management_identity(request, session, settings)
         return AuthenticatedActor(
             actor_type=identity.actor_type,
@@ -172,17 +186,13 @@ def require_management_or_agent(
             auth_method=identity.auth_method,
             role=identity.role,
         )
+    except HTTPException:
+        pass
 
+    # Both failed — report the more specific error
     if credentials is not None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown agent")
-
-    identity = _resolve_management_identity(request, session, settings)
-    return AuthenticatedActor(
-        actor_type=identity.actor_type,
-        id=identity.id,
-        auth_method=identity.auth_method,
-        role=identity.role,
-    )
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing management session")
 
 
 def require_admin_management_or_agent(
@@ -239,7 +249,12 @@ def require_management_or_agent_action(action: str):
     def dependency(
         actor: AuthenticatedActor = Depends(require_management_or_agent),
     ) -> AuthenticatedActor:
-        if actor.actor_type == "human" and actor.role is not None:
+        if actor.actor_type == "human":
+            if actor.role is None:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Human actor has no management role assigned",
+                )
             try:
                 ensure_management_action_allowed(actor.role, cast(ManagementAction, action))
             except PermissionError as exc:
