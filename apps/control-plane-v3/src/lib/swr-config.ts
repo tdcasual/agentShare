@@ -8,7 +8,7 @@
 
 import { SWRConfiguration } from 'swr';
 import { useEffect, useState } from 'react';
-import { ApiError } from './api';
+import { ApiError } from './vaultgate-api';
 
 /**
  * 全局 SWR 配置

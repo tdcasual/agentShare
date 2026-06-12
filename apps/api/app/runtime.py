@@ -16,6 +16,10 @@ class AppRuntime:
 
 
 def build_runtime(settings: Settings) -> AppRuntime:
+    # Initialize encryption service early with the configured key
+    from app.services.encryption import get_encryption_service
+    get_encryption_service(encryption_key=settings.encryption_key)
+
     is_sqlite = settings.database_url.startswith("sqlite")
     engine_kwargs: dict[str, object] = {
         "echo": False,

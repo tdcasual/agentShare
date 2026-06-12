@@ -1,88 +1,58 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useCallback, memo } from 'react';
-import { Bell, Bot, Command, Loader2, Package, Search, Sparkles, Zap } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { Command, Key, Search, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useDebounce } from '@/hooks/use-debounce';
-import { useGlobalSearch } from '@/domains/search';
-import type { SearchResultItem } from '@/domains/search';
 import { useI18n } from '@/components/i18n-provider';
 
 interface GlobalSearchProps {
   className?: string;
 }
 
-const SEARCH_GROUP_KEYS = ['identities', 'tasks', 'assets', 'skills', 'events'] as const;
-
-function getResultIcon(kind: string) {
-  const props = { className: 'h-4 w-4', 'aria-hidden': 'true' as const };
-  switch (kind) {
-    case 'agent':
-      return <Bot {...props} />;
-    case 'task':
-      return <Zap {...props} />;
-    case 'secret':
-      return <Package {...props} />;
-    case 'capability':
-      return <Sparkles {...props} />;
-    case 'event':
-      return <Bell {...props} />;
-    default:
-      return <Sparkles {...props} />;
-  }
+interface QuickLink {
+  id: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: React.ReactNode;
 }
 
-function getResultColors(kind: string) {
-  switch (kind) {
-    case 'agent':
-      return 'bg-[var(--kw-green-surface)] dark:bg-[var(--kw-dark-green-accent-surface)] text-[var(--kw-green-text)] dark:text-[var(--kw-dark-mint)]';
-    case 'task':
-      return 'bg-[var(--kw-amber-surface)] dark:bg-[var(--kw-dark-amber-surface)] text-[var(--kw-amber-text)] dark:text-[var(--kw-warning)]';
-    case 'secret':
-      return 'bg-[var(--kw-sky-surface)] dark:bg-[var(--kw-dark-sky-accent-surface)] text-[var(--kw-sky-text)] dark:text-[var(--kw-dark-sky)]';
-    case 'capability':
-      return 'bg-[var(--kw-purple-surface)] dark:bg-[var(--kw-dark-purple-accent-surface)] text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]';
-    case 'event':
-      return 'bg-[var(--kw-rose-surface)] dark:bg-[var(--kw-dark-rose-surface)] text-[var(--kw-rose-text)] dark:text-[var(--kw-dark-primary)]';
-    default:
-      return 'bg-[var(--kw-surface-alt)] dark:bg-[var(--kw-dark-border)] text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text)]';
-  }
+function useQuickLinks(): QuickLink[] {
+  const { t } = useI18n();
+  return useMemo(
+    () => [
+      {
+        id: 'secrets',
+        title: t('navigation.secrets'),
+        subtitle: t('secrets.description'),
+        href: '/secrets',
+        icon: <Shield className="h-4 w-4" />,
+      },
+      {
+        id: 'tokens',
+        title: t('navigation.tokens'),
+        subtitle: t('tokens.description'),
+        href: '/tokens',
+        icon: <Key className="h-4 w-4" />,
+      },
+    ],
+    [t]
+  );
 }
 
 export function GlobalSearch({ className }: GlobalSearchProps) {
   const { t } = useI18n();
   const router = useRouter();
-  const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const debouncedQuery = useDebounce(query, 250);
-  const { results, isLoading, error, hasQuery } = useGlobalSearch(debouncedQuery);
+  const quickLinks = useQuickLinks();
 
-  const groupedResults = useMemo(
-    () =>
-      SEARCH_GROUP_KEYS.map((key) => ({
-        key,
-        label: t(`globalSearch.groups.${key}`),
-        items: results[key],
-      })).filter((group) => group.items.length > 0),
-    [results, t]
-  );
-
-  const flatResults = useMemo(
-    () => groupedResults.flatMap((group) => group.items),
-    [groupedResults]
-  );
-
-  const resultIndexMap = useMemo(() => {
-    const map = new Map<string, number>();
-    flatResults.forEach((item, index) => {
-      map.set(`${item.kind}-${item.id}`, index);
-    });
-    return map;
-  }, [flatResults]);
+  const filteredLinks = useMemo(() => {
+    return quickLinks;
+  }, [quickLinks]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,12 +61,10 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
         setIsOpen(true);
         inputRef.current?.focus();
       }
-
       if (e.key === 'Escape') {
         setIsOpen(false);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
@@ -107,36 +75,30 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleNavigate = useCallback(
-    (result: SearchResultItem) => {
-      router.push(result.href);
+    (href: string) => {
+      router.push(href);
       setIsOpen(false);
-      setQuery('');
     },
     [router]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown' && flatResults.length > 0) {
+    if (e.key === 'ArrowDown' && filteredLinks.length > 0) {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev + 1) % flatResults.length);
-    } else if (e.key === 'ArrowUp' && flatResults.length > 0) {
+      setSelectedIndex((prev) => (prev + 1) % filteredLinks.length);
+    } else if (e.key === 'ArrowUp' && filteredLinks.length > 0) {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev - 1 + flatResults.length) % flatResults.length);
-    } else if (e.key === 'Enter' && flatResults[selectedIndex]) {
+      setSelectedIndex((prev) => (prev - 1 + filteredLinks.length) % filteredLinks.length);
+    } else if (e.key === 'Enter' && filteredLinks[selectedIndex]) {
       e.preventDefault();
-      handleNavigate(flatResults[selectedIndex]);
+      handleNavigate(filteredLinks[selectedIndex].href);
     }
   };
-
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [debouncedQuery]);
 
   return (
     <div ref={containerRef} className={cn('relative', className)}>
@@ -148,11 +110,6 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
         <input
           ref={inputRef}
           type="search"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-          }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={t('globalSearch.placeholder')}
@@ -167,110 +124,33 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
 
       {isOpen && (
         <div className="absolute left-0 right-0 top-full z-dropdown mt-2 max-h-[50vh] overflow-hidden overflow-y-auto rounded-2xl border border-[var(--kw-border)] bg-[var(--kw-surface)] shadow-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]">
-          {isLoading && (
-            <div className="flex items-center justify-center gap-2 p-3 text-[var(--kw-text-muted)] sm:p-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">{t('globalSearch.searching')}</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="p-3 text-sm text-[var(--kw-error)] sm:p-4 dark:text-[var(--kw-error)]">
-              {error instanceof Error ? error.message : t('globalSearch.searchFailed')}
-            </div>
-          )}
-
-          {!isLoading && !error && groupedResults.length > 0 && (
-            <div className="py-2">
-              {groupedResults.map((group) => (
-                <div key={group.key} className="px-2 pb-2">
-                  <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--kw-text-muted)] sm:text-[11px] sm:tracking-[0.18em]">
-                    {group.label}
-                  </p>
-                  {group.items.map((result) => {
-                    const itemIndex = resultIndexMap.get(`${result.kind}-${result.id}`) ?? -1;
-                    return (
-                      <ResultRow
-                        key={`${group.key}-${result.id}`}
-                        result={result}
-                        selected={itemIndex === selectedIndex}
-                        onNavigate={handleNavigate}
-                      />
-                    );
-                  })}
+          <div className="py-2">
+            {filteredLinks.map((link, index) => (
+              <button
+                key={link.id}
+                type="button"
+                onClick={() => handleNavigate(link.href)}
+                className={cn(
+                  'flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors',
+                  index === selectedIndex && 'bg-[var(--kw-primary-50)] dark:bg-[var(--kw-dark-border)]',
+                  'hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50'
+                )}
+              >
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)] dark:bg-[var(--kw-dark-sky-accent-surface)] dark:text-[var(--kw-dark-sky)]">
+                  {link.icon}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {!isLoading && !error && hasQuery && groupedResults.length === 0 && (
-            <div className="p-3 text-left text-[var(--kw-text-muted)] sm:p-4">
-              <p className="text-sm">{t('globalSearch.noResults')}</p>
-              <p className="mt-1 text-xs">{t('globalSearch.noResultsHint')}</p>
-            </div>
-          )}
-
-          {!hasQuery && (
-            <div className="p-3 text-sm text-[var(--kw-text-muted)] sm:p-4">
-              <p className="mb-1 font-medium">{t('globalSearch.searchTipsTitle')}</p>
-              <ul className="space-y-1 text-xs">
-                <li>• {t('globalSearch.searchTip1')}</li>
-                <li>• {t('globalSearch.searchTip2')}</li>
-                <li>• {t('globalSearch.searchTip3')}</li>
-              </ul>
-            </div>
-          )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-[var(--kw-text)]">{link.title}</p>
+                  <p className="truncate text-sm text-[var(--kw-text-muted)]">{link.subtitle}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="border-t border-[var(--kw-border)] p-3 text-sm text-[var(--kw-text-muted)] dark:border-[var(--kw-dark-border)]">
+            <p>{t('globalSearch.searchTipsTitle')}</p>
+          </div>
         </div>
       )}
     </div>
-  );
-}
-
-const ResultRow = memo(function ResultRow({
-  result,
-  selected,
-  onNavigate,
-}: {
-  result: SearchResultItem;
-  selected: boolean;
-  onNavigate: (result: SearchResultItem) => void;
-}) {
-  return (
-    <SearchResultButton result={result} selected={selected} onSelect={() => onNavigate(result)} />
-  );
-});
-
-function SearchResultButton({
-  result,
-  selected,
-  onSelect,
-}: {
-  result: SearchResultItem;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        'flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors',
-        selected && 'bg-[var(--kw-primary-50)] dark:bg-[var(--kw-dark-border)]',
-        'hover:bg-[var(--kw-primary-50)]/50 dark:hover:bg-[var(--kw-dark-surface-alt)]/50'
-      )}
-    >
-      <div
-        className={cn(
-          'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
-          getResultColors(result.kind)
-        )}
-      >
-        {getResultIcon(result.kind)}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-medium text-[var(--kw-text)]">{result.title}</p>
-        <p className="truncate text-sm text-[var(--kw-text-muted)]">{result.subtitle}</p>
-      </div>
-    </button>
   );
 }

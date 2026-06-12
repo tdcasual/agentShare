@@ -1,59 +1,63 @@
 /**
- * API Proxy Route Handler
+ * API Proxy Route Handler for VaultGate
  *
- * 将所有 /api/* 请求代理到后端服务器
- * 解决跨域问题和凭证传递
+ * Proxies all /api/* requests to the backend server
+ * Handles CORS and credential forwarding
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { buildBackendApiUrl } from '@/lib/backend-api-url';
-import { logger } from '@/lib/logger';
-import { resolveApiBaseUrl } from '@/lib/proxy-api-url';
+
+const API_BASE_URL = process.env.VAULTGATE_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+
+// Headers that should be forwarded to the backend
+const FORWARD_HEADERS = [
+  'content-type',
+  'authorization',
+  'cookie',
+  'accept',
+  'x-request-id',
+];
 
 type RouteParams = {
   params: Promise<{ path: string[] }>;
 };
 
 async function handleRequest(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
-  const apiBaseUrl = resolveApiBaseUrl();
   const { path: pathSegments } = await params;
   const path = pathSegments.join('/');
   const url = new URL(request.url);
   const searchParams = url.searchParams.toString();
 
-  const targetUrl = `${buildBackendApiUrl(apiBaseUrl, path)}${searchParams ? `?${searchParams}` : ''}`;
+  const targetUrl = `${API_BASE_URL}/api/${path}${searchParams ? `?${searchParams}` : ''}`;
 
   try {
-    // 获取请求体
+    // Get request body
     let body: string | undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       body = await request.text();
     }
 
-    // 构建 headers
+    // Build headers with whitelist
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
-      // 跳过 host 和一些不需要的 headers
-      if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
+      if (FORWARD_HEADERS.includes(key.toLowerCase())) {
         headers[key] = value;
       }
     });
 
-    // 转发请求到后端
+    // Forward request to backend
     const response = await fetch(targetUrl, {
       method: request.method,
       headers,
       body,
-      // 重要：转发 cookies
       credentials: 'include',
     });
 
-    // 构建响应
+    // Build response
     const responseBody = await response.text();
     const responseHeaders: Record<string, string> = {};
 
     response.headers.forEach((value, key) => {
-      // 跳过一次性的 headers
       if (!['content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
         responseHeaders[key] = value;
       }
@@ -65,20 +69,19 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
       headers: responseHeaders,
     });
   } catch (error) {
-    logger.api.error(`Proxy Error: ${targetUrl}`, error);
+    console.error('Proxy error:', error instanceof Error ? error.message : 'Unknown error');
 
     return NextResponse.json(
       {
         error: 'backend_unavailable',
-        message: '后端服务不可用',
-        detail: error instanceof Error ? error.message : '未知错误',
+        message: 'Backend service unavailable',
       },
       { status: 503 }
     );
   }
 }
 
-// 支持所有 HTTP 方法
+// Support all HTTP methods
 export const GET = handleRequest;
 export const POST = handleRequest;
 export const PUT = handleRequest;

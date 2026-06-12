@@ -21,5 +21,17 @@ agent_share_playwright_*.db
 *.db-journal
 *.tsbuildinfo
 *.backup
+.env
 .env.local
+.env.production
+*.pem
+*.key
+*.p12
+*.jks
+backups/
+*.dump
+*.rdb
 coverage/
+.coverage
+vaultgate*.db
+vaultgate*.db-*

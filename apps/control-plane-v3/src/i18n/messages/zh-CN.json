@@ -172,44 +172,14 @@
   },
   "auth": {
     "login": {
-      "checking": "正在检查引导状态和会话...",
-      "description": "管理员登录",
+      "title": "登录",
+      "subtitle": "输入凭据以访问VaultGate",
       "email": "邮箱",
-      "failedToLoad": "加载登录状态失败",
-      "loginFailed": "登录失败",
       "password": "密码",
       "signIn": "登录",
-      "subtitle": "邀请制访问",
-      "title": "管理登录",
-      "emailPlaceholder": "owner@example.com"
-    },
-    "logout": {
-      "continueToLogin": "继续登录",
-      "failed": "退出登录失败",
-      "signingOut": "正在退出..."
-    },
-    "setup": {
-      "bootstrapKey": "引导密钥",
-      "bootstrapKeyPlaceholder": "changeme-bootstrap-key",
-      "createAccount": "创建所有者账户",
-      "creating": "创建中",
-      "description": "初始化系统并创建所有者账户",
-      "displayName": "显示名称",
-      "displayNamePlaceholder": "创始所有者",
-      "failedToBootstrap": "引导所有者失败",
-      "failedToLoad": "加载引导状态失败",
-      "ownerEmail": "所有者邮箱",
-      "password": "密码",
-      "passwordPlaceholder": "至少 12 个字符",
-      "step1": "所有者引导将系统切换到初始化模式",
-      "step2": "普通管理访问切换到邮箱和密码",
-      "step3": "新的人类账户只能从管理控制台创建",
-      "checkingStatus": "正在检查状态...",
-      "systemNotInitialized": "系统尚未初始化。完成引导后即可解锁登录。",
-      "subtitle": "首次引导",
-      "title": "创建创始所有者账户",
-      "whatNext": "下一步",
-      "emailPlaceholder": "owner@example.com"
+      "signingIn": "登录中...",
+      "failed": "登录失败，请检查凭据。",
+      "pageTitle": "VaultGate - 安全密钥存储与Token签发"
     }
   },
   "common": {
@@ -854,7 +824,10 @@
     "spaces": "空间",
     "tasks": "任务",
     "tokens": "远程接入",
-    "docs": "文档"
+    "docs": "文档",
+    "dashboard": "仪表板",
+    "secrets": "密钥",
+    "audit": "审计"
   },
   "playbooks": {
     "createFailed": "创建手册失败",
@@ -1466,160 +1439,28 @@
     "minutesAgo": "{n}分钟前"
   },
   "tokens": {
-    "actions": {
-      "createAgent": "注册远程智能体",
-      "copySecret": "复制访问令牌",
-      "issueAccessToken": "签发访问令牌",
-      "mintToken": "签发访问令牌",
-      "refresh": "刷新",
-      "revoke": "撤销",
-      "viewSecret": "查看访问令牌"
-    },
-    "agent": {
-      "authMethod": "认证方式",
-      "createFirst": "从此控制台签发第一个远程访问令牌。",
-      "noAgents": "还没有远程访问主体",
-      "noTokens": "此远程主体还没有活跃的访问令牌。",
-      "riskBadge": "{tier} 风险",
-      "riskTier": "风险等级"
-    },
-    "description": "签发并监管远程访问令牌",
-    "errors": {
-      "clipboardBlocked": "剪贴板访问被阻止。请手动从展示卡片中复制访问令牌。",
-      "loadDataFailed": "加载数据失败",
-      "loadFailed": "加载访问令牌失败",
-      "mintTokenFailed": "签发访问令牌失败",
-      "noAgentSelected": "请先选择远程主体再签发令牌",
-      "refreshFailed": "刷新远程接入令牌失败",
-      "revealTokenFailed": "查看访问令牌失败",
-      "registerAgentFailed": "注册远程智能体失败",
-      "revokeTokenFailed": "撤销访问令牌失败"
-    },
-    "form": {
-      "agentName": "远程智能体名称",
-      "agentNamePlaceholder": "deploy-bot",
-      "allowedTaskTypes": "允许的任务类型",
-      "allowedTaskTypesHelper": "使用逗号分隔。若留空，则在策略 UI 完善前保持开放白名单。",
-      "allowedTaskTypesPlaceholder": "config_sync, account_read",
-      "displayName": "显示名称",
-      "displayNamePlaceholder": "Staging worker token",
-      "expiresAt": "过期时间",
-      "issueDescription": "供远程调用方使用的独立凭证",
-      "labels": "标签",
-      "labelsHelper": "使用逗号分隔的 key=value 标签。",
-      "labelsPlaceholder": "environment=staging, pool=blue",
-      "scopes": "权限范围",
-      "scopesHelper": "使用逗号分隔的权限标签。",
-      "scopesPlaceholder": "runtime",
-      "subjectId": "主体 ID",
-      "subjectIdPlaceholder": "github-actions",
-      "subjectType": "主体类型"
-    },
-    "labels": {
-      "id": "ID",
-      "issuedBy": "签发者",
-      "lastUsedAt": "最后使用",
-      "scopes": "权限范围",
-      "tokenPrefix": "令牌前缀"
-    },
-    "metrics": {
-      "activeAgents": "远程智能体",
-      "activeTokens": "活跃访问令牌",
-      "averageTrust": "平均信任分",
-      "feedbackCoverage": "反馈覆盖",
-      "needsFeedback": "待反馈",
-      "averageTrustHint": "反馈",
-      "tokensWithFeedback": "有反馈的令牌",
-      "tokensWithFeedbackHint": "已审核",
-      "totalHint": "总计 {count}"
-    },
-    "hints": {
-      "activeTokens": "",
-      "averageTrust": "",
-      "feedbackCoverage": "",
-      "needsFeedback": ""
-    },
-    "riskTiers": {
-      "critical": "严重",
-      "high": "高",
-      "low": "低",
-      "medium": "中"
-    },
-    "workflow": {
-      "badge": "远程接入工作流",
-      "description": "这个页面是连接“完成接入”和“开始执行”的桥梁。先看文档，确认谁应该执行，再签发凭证并直接进入任务投递。",
-      "title": "管理远程接入时不丢主线",
-      "steps": {
-        "docs": {
-          "cta": "打开文档",
-          "description": "先查看公开操作文档，让人类和外部智能体遵循同一套说明。",
-          "title": "从共享文档开始"
-        },
-        "identities": {
-          "cta": "查看身份",
-          "description": "在签发外部接入前，先确认哪些人类和项目内智能体已经连接到系统。",
-          "title": "确认参与方"
-        },
-        "tasks": {
-          "cta": "前往任务页",
-          "description": "令牌准备好后，直接进入任务发布，而不是再回头翻导航找下一步。",
-          "title": "继续投递工作"
-        }
-      }
-    },
-    "sessionExpired": "您的管理会话已过期。请重新登录以继续使用实时远程接入数据。",
-    "sessionForbidden": "您没有权限管理远程访问凭证。请使用管理员会话继续。",
-    "status": {
-      "revoked": "已撤销"
-    },
-    "subtitle": "供外部智能体使用的远程接入",
-    "title": "远程访问令牌",
-    "token": {
-      "completedRuns": "已完成运行",
-      "copyToken": "复制访问令牌",
-      "issuer": "发行者",
-      "lastFeedback": "最后反馈",
-      "lastUsed": "最后使用",
-      "oneTimeReveal": "一次性展示",
-      "prefix": "前缀",
-      "successRate": "成功率",
-      "successfulRuns": "成功运行",
-      "trustScore": "信任分数"
-    },
-    "values": {
-      "notYet": "尚无"
-    },
-    "empty": {
-      "title": "尚未签发任何访问令牌",
-      "description": "签发首个访问令牌"
-    },
-    "loading": "正在加载访问令牌清单...",
-    "neverUsed": "从未使用",
-    "noFeedback": "暂无反馈",
-    "none": "无",
-    "secretModal": {
-      "title": "访问令牌"
-    },
-    "unknownIssuer": "未知签发者",
-    "remoteAccessSupervision": "远程访问监管",
-    "remoteAccessSupervisionDesc": "当外部机器和项目外智能体使用的访问令牌仍需要反馈或低于信任阈值时，人工操作员可以快速将其隔离。",
-    "operator": "操作员",
-    "loadingAgents": "正在加载远程主体和访问令牌...",
-    "createAgentModalDesc": "注册一个远程主体并签发其第一个访问令牌。",
-    "createTokenModalDesc": "为现有远程主体再签发一个访问令牌。",
-    "riskTier": "风险等级",
-    "remoteAgent": "远程智能体",
-    "selectRemoteAgent": "选择一个远程智能体",
-    "filters": {
-      "allTokens": "全部令牌",
-      "needsFeedback": "需要反馈",
-      "lowTrust": "低信任"
-    },
-    "badge": {
-      "needsFeedback": "{count} 个令牌需要反馈",
-      "lowTrust": "{count} 个低信任令牌"
-    },
-    "secretLabel": "{name} 主令牌"
+    "title": "访问Token",
+    "description": "管理Agent访问密钥的Token",
+    "newToken": "新建Token",
+    "loading": "加载Token中...",
+    "loadFailed": "加载Token失败",
+    "emptyTitle": "暂无Token",
+    "emptyDesc": "创建Token以授权Agent访问密钥",
+    "about": "关于访问Token",
+    "aboutDesc": "Token允许Agent在配置的权限范围内访问密钥。每个Token仅在创建时显示一次。",
+    "revokeConfirm": "撤销Token \"{name}\"？此操作不可撤销。",
+    "revokeFailed": "撤销Token失败",
+    "copied": "已复制",
+    "copy": "复制",
+    "scopes": "权限范围",
+    "revoke": "撤销",
+    "apiUsage": "API使用",
+    "expires": "过期时间",
+    "never": "永不",
+    "lastUsed": "最后使用",
+    "active": "活跃",
+    "revoked": "已撤销",
+    "expired": "已过期"
   },
   "options": {
     "agentModels": {
@@ -1702,5 +1543,72 @@
   },
   "header": {
     "userMenuAriaLabel": "用户菜单：{name}"
+  },
+  "dashboard": {
+    "title": "VaultGate",
+    "subtitle": "简易密钥保管与Token签发服务",
+    "manageTokens": "管理Token",
+    "ready": "VaultGate 已就绪",
+    "readyDesc": "安全密钥存储服务正在运行。创建密钥、签发Token，并通过审计日志监控访问。",
+    "totalSecrets": "密钥总数",
+    "activeTokens": "活跃Token",
+    "recentActivity": "近期活动 (24小时)",
+    "quickActions": "快捷操作",
+    "createSecret": "创建密钥",
+    "createSecretDesc": "添加密码或API密钥",
+    "createToken": "创建Token",
+    "createTokenDesc": "签发新的访问Token",
+    "viewAudit": "查看审计日志",
+    "viewAuditDesc": "检查访问历史",
+    "browse": "浏览",
+    "secrets": "密钥",
+    "tokens": "Token",
+    "auditLogs": "审计日志",
+    "apiDocs": "API文档",
+    "apiReference": "API快速参考",
+    "publicEndpoints": "公开端点（无需认证）：",
+    "agentAccess": "Agent访问（需要Bearer Token）：",
+    "healthCheck": "健康检查",
+    "apiDocumentation": "API文档 (Swagger)",
+    "openapiSchema": "OpenAPI schema",
+    "listSecrets": "列出可访问的密钥",
+    "getSecret": "获取密钥（字段过滤）",
+    "getSecretValue": "仅获取密钥值"
+  },
+  "secrets": {
+    "title": "密钥",
+    "description": "管理密码、API密钥和其他敏感数据",
+    "newSecret": "新建密钥",
+    "loading": "加载密钥中...",
+    "loadFailed": "加载密钥失败",
+    "emptyTitle": "暂无密钥",
+    "emptyDesc": "创建第一个密钥开始使用",
+    "deleteConfirm": "删除密钥 \"{name}\"？此操作不可撤销。",
+    "deleteFailed": "删除密钥失败",
+    "tags": "标签：",
+    "noUrl": "无URL",
+    "view": "查看",
+    "edit": "编辑"
+  },
+  "audit": {
+    "title": "审计日志",
+    "description": "查看所有密钥访问尝试和Token操作",
+    "filters": "筛选：",
+    "all": "全部",
+    "granted": "已授权",
+    "denied": "已拒绝",
+    "totalEvents": "总事件数",
+    "grantedAccess": "已授权访问",
+    "deniedAccess": "已拒绝访问",
+    "valueReads": "值读取",
+    "time": "时间",
+    "token": "Token",
+    "secret": "密钥",
+    "action": "操作",
+    "status": "状态",
+    "loading": "加载审计日志中...",
+    "loadFailed": "加载审计日志失败",
+    "emptyTitle": "暂无审计事件",
+    "emptyDesc": "访问尝试将显示在此处"
   }
 }

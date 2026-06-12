@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { ApiError } from '@/lib/api-client';
+import { ApiError } from '@/lib/vaultgate-api';
 import { useMutationFeedback } from './use-mutation-feedback';
 
 describe('useMutationFeedback', () => {

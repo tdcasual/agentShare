@@ -1,253 +1,56 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { translateMessage } from '@/test-utils/i18n-mock';
-import HubPage from './page';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import VaultGateDashboard from './page';
 
-const t = translateMessage;
-const useEventsMock = vi.fn();
-const useAdminAccountsMock = vi.fn();
-const useOpenClawAgentsMock = vi.fn();
-const useAccessTokensMock = vi.fn();
-const useReviewsMock = vi.fn();
-
-let mockGlobalSession: Record<string, unknown>;
-
-vi.mock('next/link', () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
-}));
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    replace: vi.fn(),
+// Mock the domain hooks
+vi.mock('@/domains/secret', () => ({
+  useSecrets: () => ({
+    secrets: [
+      { id: '1', name: 'Test Key', type: 'api_key', url: '', tags: [], created_at: '2026-01-01' },
+    ],
+    isLoading: false,
+    error: null,
   }),
 }));
 
-vi.mock('../interfaces/human/layout', () => ({
-  Layout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
-vi.mock('@/components/i18n-provider', () => ({
-  useI18n: () => ({
-    locale: 'en',
-    t: translateMessage,
+vi.mock('@/domains/token', () => ({
+  useTokens: () => ({
+    tokens: [
+      { id: '1', name: 'CI Token', status: 'active', key_prefix: 'vg_abc', created_at: '2026-01-01', expires_at: null, last_used_at: null },
+    ],
+    isLoading: false,
+    error: null,
   }),
 }));
 
-vi.mock('@/lib/session-state', () => ({
-  useGlobalSession: () => mockGlobalSession,
+vi.mock('@/domains/audit', () => ({
+  useAuditStats: () => ({
+    stats: { recent: 5, total: 100, granted: 90, denied: 10 },
+    isLoading: false,
+    error: null,
+  }),
 }));
 
-vi.mock('@/domains/event', () => ({
-  useEvents: () => useEventsMock(),
-}));
-
-vi.mock('@/domains/identity', () => ({
-  useAdminAccounts: () => useAdminAccountsMock(),
-  useOpenClawAgents: () => useOpenClawAgentsMock(),
-  useAccessTokens: () => useAccessTokensMock(),
-}));
-
-vi.mock('@/domains/review', () => ({
-  useReviews: () => useReviewsMock(),
-}));
-
-describe('hub page', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    mockGlobalSession = {
-      state: 'authenticated',
-      email: 'owner@example.com',
-      role: 'owner',
-      sessionId: 'session-1',
-      lastLoadedAt: Date.now(),
-    };
-
-    useEventsMock.mockReturnValue({
-      events: [
-        {
-          id: 'event-1',
-          actor_id: 'bootstrap',
-          actor_type: 'agent',
-          event_type: 'task_completed',
-          subject_type: 'task',
-          subject_id: 'task-1',
-          summary: 'Bootstrap Credential completed Sync Config',
-          details: 'Published follow-up feedback',
-          created_at: '2026-03-31T00:00:00.000Z',
-          updated_at: '2026-03-31T00:00:00.000Z',
-          severity: 'success',
-        },
-      ],
-    });
-
-    useAdminAccountsMock.mockReturnValue({
-      data: {
-        items: [
-          {
-            id: 'admin-owner',
-            email: 'owner@example.com',
-            display_name: 'Founding Owner',
-            role: 'owner',
-            status: 'active',
-            created_at: '2026-03-31T00:00:00.000Z',
-            updated_at: '2026-03-31T00:00:00.000Z',
-          },
-          {
-            id: 'admin-operator',
-            email: 'alice@example.com',
-            display_name: 'Alice Operator',
-            role: 'operator',
-            status: 'active',
-            created_at: '2026-03-31T00:00:00.000Z',
-            updated_at: '2026-03-31T00:00:00.000Z',
-          },
-        ],
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    useOpenClawAgentsMock.mockReturnValue({
-      data: {
-        items: [
-          {
-            id: 'bootstrap',
-            name: 'Bootstrap Credential',
-            risk_tier: 'high',
-            auth_method: 'openclaw_session',
-            status: 'active',
-            workspace_root: '/srv/openclaw/bootstrap',
-            agent_dir: '.openclaw/agents/bootstrap',
-            model: 'gpt-5',
-            thinking_level: 'high',
-            sandbox_mode: 'workspace-write',
-            dream_policy: {
-              enabled: true,
-              max_steps_per_run: 4,
-              max_followup_tasks: 1,
-              allow_task_proposal: true,
-              allow_memory_write: true,
-              max_context_tokens: 4096,
-            },
-            tools_policy: {},
-            skills_policy: {},
-            allowed_task_types: [],
-            allowed_capability_ids: [],
-          },
-        ],
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    useAccessTokensMock.mockReturnValue({
-      data: {
-        items: [
-          {
-            id: 'token-1',
-            displayName: 'Bootstrap Primary',
-            tokenPrefix: 'cp_tok_123',
-            subjectType: 'openclaw_agent',
-            subjectId: 'bootstrap',
-            trustScore: 0.94,
-            status: 'active',
-            scopes: [],
-            labels: {},
-            policy: {},
-          },
-          {
-            id: 'token-2',
-            displayName: 'Bootstrap Backup',
-            tokenPrefix: 'cp_tok_456',
-            subjectType: 'openclaw_agent',
-            subjectId: 'bootstrap',
-            trustScore: 0.88,
-            status: 'active',
-            scopes: [],
-            labels: {},
-            policy: {},
-          },
-        ],
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    useReviewsMock.mockReturnValue({
-      data: {
-        items: [
-          {
-            resource_kind: 'capability',
-            resource_id: 'capability-1',
-            title: 'agent.market.capability',
-            publication_status: 'pending_review',
-            created_by_actor_type: 'agent',
-            created_by_actor_id: 'bootstrap',
-          },
-        ],
-      },
-      isLoading: false,
-      error: null,
-    });
+describe('VaultGateDashboard', () => {
+  it('renders the dashboard title', () => {
+    render(<VaultGateDashboard />);
+    expect(screen.getByText('dashboard.title')).toBeInTheDocument();
   });
 
-  it('renders backend-backed management identities and review snapshot on the hub', async () => {
-    render(<HubPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Founding Owner')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Alice Operator')).toBeInTheDocument();
-    expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
-    expect(screen.getByText('Bootstrap Primary')).toBeInTheDocument();
-    expect(screen.getByText('agent.market.capability')).toBeInTheDocument();
-    expect(screen.getByText('Bootstrap Credential completed Sync Config')).toBeInTheDocument();
-    expect(screen.getByText(t('hub.snapshotDataSource'))).toBeInTheDocument();
-    expect(screen.getAllByText(/^Owner$/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/^Active$/).length).toBeGreaterThan(0);
-    expect(screen.queryByText(/^owner$/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/^active$/)).not.toBeInTheDocument();
+  it('renders quick action links', () => {
+    render(<VaultGateDashboard />);
+    expect(screen.getByText('dashboard.createSecret')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.createToken')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.viewAudit')).toBeInTheDocument();
   });
 
-  it('keeps the hub focused on live console data instead of an always-visible workflow guide', async () => {
-    render(<HubPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Founding Owner')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Bootstrap Credential')).toBeInTheDocument();
-    expect(screen.getByText('agent.market.capability')).toBeInTheDocument();
-    expect(screen.getByText(t('hub.snapshotDataSource'))).toBeInTheDocument();
-    expect(screen.getByText(t('hub.openTokenOps')).closest('a')).toHaveAttribute('href', '/tokens');
-    expect(screen.queryByText(t('hub.workflow.title'))).not.toBeInTheDocument();
-    expect(screen.queryByText(t('hub.workflow.description'))).not.toBeInTheDocument();
+  it('renders browse section', () => {
+    render(<VaultGateDashboard />);
+    expect(screen.getByText('dashboard.browse')).toBeInTheDocument();
   });
 
-  it('shows primary operation actions for agents, assets, tasks, and reviews', async () => {
-    render(<HubPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Founding Owner')).toBeInTheDocument();
-    });
-
-    expect(screen.getByRole('link', { name: t('hub.primaryActions.createAgent') })).toHaveAttribute(
-      'href',
-      '/identities'
-    );
-    expect(
-      screen.getByRole('link', { name: t('hub.primaryActions.configureCapability') })
-    ).toHaveAttribute('href', '/assets');
-    expect(screen.getByRole('link', { name: t('hub.primaryActions.publishTask') })).toHaveAttribute(
-      'href',
-      '/tasks'
-    );
-    expect(
-      screen.getByRole('link', { name: t('hub.primaryActions.reviewPending') })
-    ).toHaveAttribute('href', '/reviews');
+  it('renders API reference section', () => {
+    render(<VaultGateDashboard />);
+    expect(screen.getByText('dashboard.apiReference')).toBeInTheDocument();
   });
 });

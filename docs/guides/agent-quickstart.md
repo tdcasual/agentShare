@@ -1,362 +1,180 @@
-# Agent Quickstart
+# VaultGate Agent Quickstart
 
-This guide is for local development and day-to-day agent workflow discovery. For production deployment and operations, use `docs/guides/production-deployment.md` and `docs/guides/production-operations.md`.
+This guide is for agents and scripts that need to retrieve secrets from VaultGate using Bearer token authentication.
 
-This guide is the shortest path from "I have a management session" to "I can provision an OpenClaw-backed agent server runtime and complete a task safely".
+## Overview
 
-The runtime model described here is the project's primary `agent server first` path. For the architectural framing, read `docs/guides/agent-server-first.md`. If you are an external remote agent using a standalone Access Token instead of an OpenClaw session key, use `docs/guides/external-agent-quickstart.md` instead of this guide.
+VaultGate is a secrets management service. Agents authenticate with Bearer tokens and can:
+- List accessible secrets (metadata only)
+- Get a specific secret's metadata
+- Get a secret's decrypted value
+- Batch-fetch multiple secrets in one request
 
-## Preconditions
+## Prerequisites
 
-- API base URL available at `http://127.0.0.1:8000`
-- A persisted management operator account for session login
-- An OpenClaw runtime session key for task claim, invoke, MCP, dream mode, and complete flows
+- A VaultGate instance running (see `deployment-manual.md`)
+- A Bearer token created by an admin via the web UI or API
+- The token must have scopes granting access to the secrets you need
 
-## Route Policy At A Glance
+## Authentication
 
-- Public:
-  - `GET /healthz`
-  - `/docs` and `/openapi.json`
-- OpenClaw session-authenticated runtime:
-  - `GET /api/runtime/me`
-  - `GET /api/tasks`
-  - `POST /api/tasks/{task_id}/claim`
-  - `POST /api/tasks/{task_id}/complete`
-  - `POST /api/openclaw/dream-runs`
-  - `POST /api/openclaw/dream-runs/{run_id}/steps`
-  - `POST /api/openclaw/dream-runs/{run_id}/stop`
-  - `GET /api/openclaw/memory`
-  - `POST /api/openclaw/memory`
-  - `POST /api/capabilities/{capability_id}/invoke`
-  - `POST /api/capabilities/{capability_id}/lease`
-  - `POST /mcp`
-- Management login:
-  - `POST /api/session/login`
-- Management-session protected:
-  - Any management role:
-    `GET /api/session/me`, `POST /api/session/logout`, `GET /api/capabilities`, `POST /api/tasks`, `GET /api/runs`, `POST /api/playbooks`, `GET /api/playbooks/search`, `GET /api/playbooks/{playbook_id}`
-  - `operator+`:
-    `GET /api/approvals`, `POST /api/approvals/{approval_id}/approve`, `POST /api/approvals/{approval_id}/reject`
-  - `admin+`:
-    `POST/GET /api/secrets`, `POST /api/capabilities`, `GET/POST /api/access-tokens`, `GET/POST /api/openclaw/agents`, `GET /api/openclaw/sessions`
-  - `owner`:
-    `DELETE /api/openclaw/agents/{agent_id}`
-
-## 1. Start A Management Session
-
-```bash
-export ACP_BASE_URL=http://127.0.0.1:8000
-export ACP_COOKIE_JAR="$(mktemp -t acp-management-cookie.XXXXXX)"
-export ACP_ADMIN_EMAIL=owner@example.com
-export ACP_ADMIN_PASSWORD=changeme-owner-password
-
-curl -sS \
-  -c "$ACP_COOKIE_JAR" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"$ACP_ADMIN_EMAIL\",\"password\":\"$ACP_ADMIN_PASSWORD\"}" \
-  "$ACP_BASE_URL/api/session/login"
-```
-
-Expected: `200 OK`, `status=authenticated`, a non-empty `session_id`, and a `management_session` cookie written into `ACP_COOKIE_JAR`.
-
-That cookie is not the only source of truth. The API now persists each management session server-side, so logout or incident-driven revocation can invalidate the cookie before its TTL expires.
-
-## 2. Create An OpenClaw Agent Workspace (Admin Management Path)
+All vault API requests require a Bearer token in the `Authorization` header:
 
 ```bash
 curl -sS \
-  -b "$ACP_COOKIE_JAR" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name":"cli-agent",
-    "workspace_root":"/srv/openclaw/cli-agent",
-    "agent_dir":".openclaw/agents/cli-agent",
-    "model":"gpt-5",
-    "thinking_level":"balanced",
-    "sandbox_mode":"workspace-write",
-    "risk_tier":"medium",
-    "allowed_capability_ids":[],
-    "allowed_task_types":["prompt_run","account_read"]
-  }' \
-  "$ACP_BASE_URL/api/openclaw/agents"
+  -H "Authorization: Bearer vg_your_token_here" \
+  http://localhost:8000/api/vault/secrets
 ```
 
-Save the returned agent id as `OPENCLAW_AGENT_ID`.
+Tokens are prefixed with `vg_` and contain 512 bits of entropy. They are shown only once at creation time — store them securely.
 
-## 3. Create A Runtime Session Key (Admin Management Path)
+## API Endpoints
 
-```bash
-export OPENCLAW_AGENT_ID=replace-me
-export ACP_SESSION_KEY=sess_cli_agent_primary
+### List Secrets
 
-curl -sS \
-  -b "$ACP_COOKIE_JAR" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"session_key\":\"$ACP_SESSION_KEY\",
-    \"display_name\":\"CLI Primary Session\",
-    \"channel\":\"chat\",
-    \"subject\":\"local quickstart\"
-  }" \
-  "$ACP_BASE_URL/api/openclaw/agents/$OPENCLAW_AGENT_ID/sessions"
-```
-
-## 4. Verify Agent Identity (Runtime Path)
+Returns metadata for all secrets the token has access to (no values).
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
-  "$ACP_BASE_URL/api/runtime/me"
+  -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/vault/secrets
 ```
 
-Expected: `200 OK`, with agent identity, session metadata, workspace hints, and allowlists.
-
-## 5. Create One Secret And One Capability (Admin Management Path)
-
-```bash
-curl -sS \
-  -b "$ACP_COOKIE_JAR" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "display_name":"OpenAI prod key",
-    "kind":"api_token",
-    "value":"sk-live-example",
-    "provider":"openai",
-    "environment":"production",
-    "provider_scopes":["responses.read","responses.write"],
-    "resource_selector":"org:core",
-    "metadata":{"owner":"platform"}
-  }' \
-  "$ACP_BASE_URL/api/secrets"
-```
-
-```bash
-curl -sS \
-  -b "$ACP_COOKIE_JAR" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name":"openai.chat.invoke",
-    "secret_id":"secret-1",
-    "risk_level":"medium",
-    "allowed_mode":"proxy_or_lease",
-    "approval_mode":"manual",
-    "lease_ttl_seconds":120,
-    "required_provider":"openai",
-    "required_provider_scopes":["responses.read"],
-    "allowed_environments":["production"]
-  }' \
-  "$ACP_BASE_URL/api/capabilities"
-```
-
-Replace `secret-1` with the secret id returned by the first call, and save the returned capability id as `CAPABILITY_ID`.
-
-If you are binding a GitHub token instead, set:
-
-- `required_provider` to `github`
-- `adapter_type` to `github`
-- `adapter_config` to a narrow REST path such as `{"method":"GET","path":"/repos/{owner}/{repo}/issues"}`
-
-## 6. Publish One Task That Uses The Capability (Management Path)
-
-```bash
-curl -sS \
-  -b "$ACP_COOKIE_JAR" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title":"Manual approval smoke test",
-    "task_type":"prompt_run",
-    "input":{"provider":"openai"},
-    "required_capability_ids":["capability-1"],
-    "lease_allowed":false,
-    "approval_mode":"auto"
-  }' \
-  "$ACP_BASE_URL/api/tasks"
-```
-
-Replace `capability-1` with your real capability id, then save the returned task id as `TASK_ID`.
-
-This example keeps the task on `approval_mode="auto"` and makes the capability manual, which is enough to force a human approval at runtime. Setting the task to `manual` would create the same approval boundary.
-
-## 7. Claim The Task (Runtime)
-
-```bash
-curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
-  -X POST \
-  "$ACP_BASE_URL/api/tasks/$TASK_ID/claim"
-```
-
-Expected: `200 OK`, task moves to `claimed`, `claimed_by` is your agent.
-
-## 8. Invoke Capability Or Request Lease (Runtime)
-
-Proxy invoke:
-
-```bash
-curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"task_id":"task-1","parameters":{"prompt":"hello"}}' \
-  "$ACP_BASE_URL/api/capabilities/$CAPABILITY_ID/invoke"
-```
-
-Replace the literal `task-1` in the JSON examples with the task you claimed in step 6.
-
-If the task or capability is manual, expect a `409 Conflict` body shaped like this:
-
+Response:
 ```json
 {
-  "detail": {
-    "code": "approval_required",
-    "approval_request_id": "approval-123",
-    "status": "pending",
-    "action_type": "invoke"
-  }
+  "items": [
+    {
+      "id": "secret-uuid",
+      "name": "OpenAI API Key",
+      "type": "api_key",
+      "url": "https://api.openai.com",
+      "tags": ["production", "ai"],
+      "created_at": "2026-06-10T12:00:00Z"
+    }
+  ]
 }
 ```
 
-When you receive `409 approval_required`, stop retrying and wait for an operator decision. The gateway has not fetched the secret or contacted the upstream adapter yet.
-
-Lease request (only when policy allows):
+### Get Secret Metadata
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"task_id":"task-1","purpose":"git cli access"}' \
-  "$ACP_BASE_URL/api/capabilities/$CAPABILITY_ID/lease"
+  -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/vault/secrets/$SECRET_ID
 ```
 
-Current lease behavior: the response is an explicit metadata placeholder. It confirms the lease decision and expiry window, but does not return raw secret material or a derived session artifact.
+### Get Secret Value
 
-## 9. Review And Approve The Pending Request (Operator+ Management Path)
-
-List the current queue:
+Returns the decrypted secret value. Only works if the token has an allowed scope for this secret.
 
 ```bash
 curl -sS \
-  -b "$ACP_COOKIE_JAR" \
-  "$ACP_BASE_URL/api/approvals?status=pending"
+  -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/vault/secrets/$SECRET_ID/value
 ```
 
-Approve the request:
-
-```bash
-export APPROVAL_ID=approval-123
-
-curl -sS \
-  -b "$ACP_COOKIE_JAR" \
-  -H "Content-Type: application/json" \
-  -d '{"reason":"Approved for this task"}' \
-  "$ACP_BASE_URL/api/approvals/$APPROVAL_ID/approve"
+Response:
+```json
+{
+  "value": "sk-live-abc123..."
+}
 ```
 
-Replace `approval-123` with the request id returned by the pending-approvals list or the runtime `409` response body.
+### Batch Get Secrets
 
-The same queue is available in the web console at `/approvals` after logging in through `/login`.
-
-## 10. Retry The Same Runtime Action
-
-After approval, retry the exact invoke or lease call. A successful approval converts the manual boundary into a temporary allow decision for that task, capability, and action type.
-
-Successful invoke responses now include:
-
-- `adapter_type`
-- `upstream_status`
-- `result`
-
-Management sessions are intentionally short-lived. Every successful login mints a fresh `session_id`, and retries after expiry should start with a new `/api/session/login` exchange instead of assuming a stale cookie can be reused. The same is true after logout or explicit operator revocation: a previously issued cookie is expected to stop authorizing immediately.
-
-Management routes may also enforce role boundaries. `operator` can review approvals, `admin` can manage secrets and agent inventory, and `owner` is required for destructive agent-management actions such as deletion.
-
-That keeps adapter behavior explicit without leaking the secret or raw credential material.
-
-## 11. Complete Task (Runtime)
+Fetch multiple secrets in one request. Returns both results and denials.
 
 ```bash
 curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"result_summary":"Completed","output_payload":{"ok":true}}' \
   -X POST \
-  "$ACP_BASE_URL/api/tasks/$TASK_ID/complete"
-```
-
-## 12. Optional: Start A Bounded Dream Run
-
-Dream Mode is a bounded autonomy loop for OpenClaw runtimes. It is controlled by each agent's `dream_policy` and does not create a hidden background daemon.
-
-Start a run:
-
-```bash
-curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"objective":"Inspect config drift and suggest a follow-up task"}' \
-  "$ACP_BASE_URL/api/openclaw/dream-runs"
-```
-
-Record one step:
-
-```bash
-export DREAM_RUN_ID=replace-me
-
-curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "step_type":"plan",
-    "status":"completed",
-    "input_payload":{"prompt":"What should I do next?"},
-    "output_payload":{"summary":"Search playbooks first"},
-    "token_usage":{"input":12,"output":6}
+    "requests": [
+      {"secret_id": "id-1", "fields": ["name", "value"]},
+      {"secret_id": "id-2", "fields": ["name", "type", "url"]}
+    ]
   }' \
-  "$ACP_BASE_URL/api/openclaw/dream-runs/$DREAM_RUN_ID/steps"
+  http://localhost:8000/api/vault/batch
 ```
 
-Write one explicit memory note:
+Response:
+```json
+{
+  "results": [
+    {"secret_id": "id-1", "name": "OpenAI Key", "value": "sk-..."},
+    {"secret_id": "id-2", "name": "GitHub Token", "type": "bearer_token", "url": "https://github.com"}
+  ],
+  "denied": []
+}
+```
+
+Available fields: `name`, `type`, `url`, `username`, `value`, `tags`, `metadata`, `created_at`, `updated_at`
+
+## Error Handling
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| 401 | Missing or invalid token | Check token format and validity |
+| 403 | Token doesn't have scope for this secret | Request scope grant from admin |
+| 404 | Secret not found (or no scope — returns 403) | Check secret ID |
+| 422 | Invalid request body | Fix JSON schema |
+| 429 | Rate limited | Wait and retry |
+
+## Rate Limiting
+
+- Login endpoint: 5 attempts per 5 minutes per IP
+- Vault API: No rate limiting (token auth is sufficient)
+
+## Token Management
+
+Tokens are managed by admins via the web UI at `/tokens` or via the API:
 
 ```bash
+# Create token (requires session cookie auth)
 curl -sS \
-  -H "Authorization: Bearer $ACP_SESSION_KEY" \
+  -X POST \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
-  -d '{
-    "scope":"agent",
-    "kind":"working_note",
-    "importance":"medium",
-    "tags":["config","drift"],
-    "content":"Config drift usually starts in the staging overlay."
-  }' \
-  "$ACP_BASE_URL/api/openclaw/memory"
+  -d '{"name": "CI Pipeline", "expires_at_days": 90}' \
+  http://localhost:8000/api/tokens
+
+# Grant scope (requires session cookie auth)
+curl -sS \
+  -X POST \
+  -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -d '{"secret_ids": ["secret-id-1", "secret-id-2"]}' \
+  http://localhost:8000/api/tokens/$TOKEN_ID/scopes
 ```
 
-Dream Mode also appears in MCP as:
+## Python Example
 
-- `dream.runs.start`
-- `dream.runs.record_step`
-- `dream.runs.stop`
-- `dream.memory.search`
-- `dream.memory.write`
-- `dream.tasks.propose_followup`
+```python
+import requests
 
-When `dream.tasks.propose_followup` is blocked by follow-up budget or by policy, the control plane returns a structured MCP error, stops the run with an explicit `stop_reason`, and writes an operator-visible event that can be reviewed from `/inbox` or `/api/events`.
+VAULTGATE_URL = "http://localhost:8000"
+TOKEN = "vg_your_token_here"
 
-## Common Failure Codes
+headers = {"Authorization": f"Bearer {TOKEN}"}
 
-- `401`: Missing/invalid OpenClaw session key or missing/invalid management session cookie.
-- `403`: Authenticated but outside policy scope (task type, capability allowlist, ownership, management route boundary, or lease restrictions).
-- `404`: Referenced task/capability/secret not found.
-- `409`: State conflict, usually task claim/completion races or `approval_required` for manual approval boundaries.
-- `500`: Control-plane misconfiguration such as an unknown adapter type or invalid adapter config.
-- `502`: Capability adapter or upstream runtime dependency failed; retry only after fixing the adapter/backend issue.
+# List secrets
+secrets = requests.get(f"{VAULTGATE_URL}/api/vault/secrets", headers=headers).json()
+for secret in secrets["items"]:
+    print(f"{secret['name']} ({secret['type']})")
 
-## Source Of Truth For Schema
+# Get a specific secret value
+secret_id = secrets["items"][0]["id"]
+value = requests.get(
+    f"{VAULTGATE_URL}/api/vault/secrets/{secret_id}/value",
+    headers=headers
+).json()
+print(f"Value: {value['value']}")
+```
 
-- Swagger UI: `http://127.0.0.1:8000/docs`
-- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+## OpenAPI Documentation
 
-Treat these two as authoritative for request and response schema details.
-
-## MCP Alternative
-
-When the agent should discover tools dynamically instead of issuing direct HTTP calls, switch to `docs/guides/mcp-quickstart.md`.
+Full API schema is available at:
+- Swagger UI: `http://localhost:8000/docs`
+- OpenAPI JSON: `http://localhost:8000/openapi.json`

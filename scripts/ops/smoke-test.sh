@@ -10,22 +10,22 @@ json_escape() {
 }
 
 create_metrics_cookie_jar() {
-	if [ -n "${ACP_COOKIE_JAR:-}" ]; then
-		if [ ! -f "${ACP_COOKIE_JAR}" ]; then
-			echo "ACP_COOKIE_JAR points to a missing file: ${ACP_COOKIE_JAR}" >&2
+	if [ -n "${VAULTGATE_COOKIE_JAR:-}" ]; then
+		if [ ! -f "${VAULTGATE_COOKIE_JAR}" ]; then
+			echo "VAULTGATE_COOKIE_JAR points to a missing file: ${VAULTGATE_COOKIE_JAR}" >&2
 			exit 1
 		fi
-		printf '%s' "${ACP_COOKIE_JAR}"
+		printf '%s' "${VAULTGATE_COOKIE_JAR}"
 		return 0
 	fi
 
-	: "${ACP_ADMIN_EMAIL:?ACP_ADMIN_EMAIL or ACP_COOKIE_JAR is required for authenticated /metrics smoke checks}"
-	: "${ACP_ADMIN_PASSWORD:?ACP_ADMIN_PASSWORD or ACP_COOKIE_JAR is required for authenticated /metrics smoke checks}"
+	: "${VAULTGATE_ADMIN_EMAIL:?VAULTGATE_ADMIN_EMAIL or VAULTGATE_COOKIE_JAR is required for authenticated /metrics smoke checks}"
+	: "${VAULTGATE_ADMIN_PASSWORD:?VAULTGATE_ADMIN_PASSWORD or VAULTGATE_COOKIE_JAR is required for authenticated /metrics smoke checks}"
 
 	cookie_jar="$(mktemp)"
 	login_payload="$(printf '{"email":"%s","password":"%s"}' \
-		"$(json_escape "${ACP_ADMIN_EMAIL}")" \
-		"$(json_escape "${ACP_ADMIN_PASSWORD}")")"
+		"$(json_escape "${VAULTGATE_ADMIN_EMAIL}")" \
+		"$(json_escape "${VAULTGATE_ADMIN_PASSWORD}")")"
 
 	if printf '%s' "${APP_BASE_URL}" | grep -q '^https://'; then
 		curl --fail --silent --show-error --location \
@@ -73,7 +73,7 @@ check_metrics_signal() {
 	metrics_file="$(mktemp)"
 	cookie_jar="$(create_metrics_cookie_jar)"
 	cleanup_cookie_jar=0
-	if [ "${cookie_jar}" != "${ACP_COOKIE_JAR:-}" ]; then
+	if [ "${cookie_jar}" != "${VAULTGATE_COOKIE_JAR:-}" ]; then
 		cleanup_cookie_jar=1
 	fi
 	cleanup_metrics_signal() {
@@ -96,11 +96,8 @@ check_metrics_signal() {
 			"${APP_BASE_URL}/metrics" >"${metrics_file}"
 	fi
 
-	grep -q 'agent_control_plane_http_requests_total{' "${metrics_file}"
-	grep -q 'agent_control_plane_http_errors_total' "${metrics_file}"
-	grep -q 'agent_control_plane_management_session_logins_total' "${metrics_file}"
-	grep -q 'agent_control_plane_management_session_logouts_total' "${metrics_file}"
-	grep -q 'agent_control_plane_approval_approvals_total' "${metrics_file}"
+	grep -q 'http_requests_total' "${metrics_file}"
+	grep -q 'http_errors_total' "${metrics_file}"
 	cleanup_metrics_signal
 	trap - EXIT INT TERM
 }

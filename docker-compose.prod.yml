@@ -19,6 +19,11 @@ services:
     networks:
       - edge
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
 
   web:
     image: ${WEB_IMAGE:?WEB_IMAGE is required}
@@ -26,10 +31,8 @@ services:
       api:
         condition: service_healthy
     environment:
-      AGENT_CONTROL_PLANE_API_URL: ${AGENT_CONTROL_PLANE_API_URL:-http://api:8000}
-      MANAGEMENT_SESSION_COOKIE_NAME: ${MANAGEMENT_SESSION_COOKIE_NAME:-management_session}
+      VAULTGATE_API_URL: ${VAULTGATE_API_URL:-http://api:8000}
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL is required}
-      AGENT_CONTROL_PLANE_DEMO_MODE: ${AGENT_CONTROL_PLANE_DEMO_MODE:-false}
     expose:
       - "3000"
     healthcheck:
@@ -40,27 +43,25 @@ services:
     networks:
       - edge
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/nextjs/.next/cache
+    security_opt:
+      - no-new-privileges:true
 
   api:
     image: ${API_IMAGE:?API_IMAGE is required}
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
-      APP_ENV: ${APP_ENV:-production}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agent_share}}
-      REDIS_URL: ${REDIS_URL:?REDIS_URL is required}
-      SECRET_BACKEND: ${SECRET_BACKEND:-openbao}
-      OPENBAO_ADDR: ${SECRET_BACKEND_URL:?SECRET_BACKEND_URL is required}
-      OPENBAO_TOKEN: ${SECRET_BACKEND_TOKEN:?SECRET_BACKEND_TOKEN is required}
-      OPENBAO_MOUNT: ${OPENBAO_MOUNT:-secret}
-      OPENBAO_PREFIX: ${OPENBAO_PREFIX:-agent-share}
-      BOOTSTRAP_OWNER_KEY: ${BOOTSTRAP_OWNER_KEY:?BOOTSTRAP_OWNER_KEY is required}
-      MANAGEMENT_SESSION_SECRET: ${MANAGEMENT_SESSION_SECRET:?MANAGEMENT_SESSION_SECRET is required}
-      MANAGEMENT_SESSION_COOKIE_NAME: ${MANAGEMENT_SESSION_COOKIE_NAME:-management_session}
-      MANAGEMENT_SESSION_SECURE: ${MANAGEMENT_SESSION_SECURE:-true}
+      APP_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-vaultgate}}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is required}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      SESSION_SECURE: "true"
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
       METRICS_ENABLED: ${METRICS_ENABLED:-true}
     expose:
       - "8000"
@@ -73,37 +74,43 @@ services:
       - edge
       - data
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
 
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-agent_share}
+      POSTGRES_DB: ${POSTGRES_DB:-vaultgate}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agent_share}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vaultgate}"]
       interval: 5s
       timeout: 3s
       retries: 5
     networks:
       - data
     restart: unless-stopped
-
-  redis:
-    image: redis:7
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - data
-    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
 
 networks:
   edge:
@@ -113,4 +120,3 @@ volumes:
   caddy-data:
   caddy-config:
   postgres-data:
-  redis-data:

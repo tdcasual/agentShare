@@ -1,16 +1,15 @@
 import os
-from collections.abc import Generator
+from collections.abc import Generator, AsyncGenerator
 from pathlib import Path
 
 from alembic.config import Config
 from alembic.util.exc import CommandError
-from fastapi import Request
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 from alembic import command
 from app.config import Settings
-from app.dependencies import get_attached_runtime
 from app.runtime import AppRuntime, build_runtime
 
 _default_runtime: AppRuntime | None = None
@@ -149,8 +148,10 @@ def migrate_db(
         return backup_path
 
 
-def get_db(request: Request) -> Generator[Session, None, None]:
+def get_db(request) -> Generator[Session, None, None]:
     """FastAPI dependency that yields a DB session per request."""
+    from fastapi import Request as _Request  # noqa: F811
+    from app.dependencies import get_attached_runtime
     session_factory: sessionmaker[Session] = get_attached_runtime(request).session_factory
     session = session_factory()
     try:
@@ -161,3 +162,72 @@ def get_db(request: Request) -> Generator[Session, None, None]:
         raise
     finally:
         session.close()
+
+
+# Async database support for VaultGate
+_async_engine: Engine | None = None
+_async_session_factory: async_sessionmaker[AsyncSession] | None = None
+
+
+def _get_async_database_url(database_url: str) -> str:
+    """Convert sync database URL to async URL."""
+    if database_url.startswith("sqlite://"):
+        return database_url.replace("sqlite://", "sqlite+aiosqlite://")
+    elif database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+asyncpg://")
+    return database_url
+
+
+def get_async_engine(database_url: str | None = None) -> Engine:
+    """Get or create async database engine."""
+    global _async_engine, _async_session_factory
+
+    if _async_engine is None:
+        resolved_url = database_url or _get_default_runtime().settings.database_url
+        async_url = _get_async_database_url(resolved_url)
+
+        is_sqlite = async_url.startswith("sqlite+aiosqlite://")
+        engine_kwargs = {"echo": False}
+        if is_sqlite:
+            engine_kwargs["connect_args"] = {"check_same_thread": False}
+        else:
+            engine_kwargs.update({
+                "pool_pre_ping": True,
+                "pool_size": 10,
+                "max_overflow": 20,
+                "pool_recycle": 1800,
+            })
+
+        _async_engine = create_async_engine(async_url, **engine_kwargs)
+        _async_session_factory = async_sessionmaker(
+            bind=_async_engine,
+            expire_on_commit=False,
+            class_=AsyncSession,
+        )
+
+    return _async_engine
+
+
+def reset_async_engine() -> None:
+    """Reset the async engine singleton (for testing)."""
+    global _async_engine, _async_session_factory
+    _async_engine = None
+    _async_session_factory = None
+
+
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    """FastAPI dependency that yields an async DB session per request."""
+    engine = get_async_engine()
+
+    if _async_session_factory is None:
+        raise RuntimeError("Async session factory not initialized")
+
+    async with _async_session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()

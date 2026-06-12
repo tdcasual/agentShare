@@ -1,3 +1,7 @@
+"""VaultGate application factory.
+
+This module creates and configures the FastAPI application for VaultGate.
+"""
 import json
 import logging
 import uuid
@@ -17,8 +21,6 @@ from app.errors import DomainError
 from app.observability import build_request_log_event, record_http_request
 from app.routes import register_routes
 from app.runtime import AppRuntime, build_runtime
-from app.services.demo_seed_service import seed_demo_fixture_data
-from app.services.secret_backend import validate_secret_backend_settings
 
 request_logger = logging.getLogger("app.request")
 startup_logger = logging.getLogger("app.startup")
@@ -67,28 +69,83 @@ def add_request_logging_middleware(app: FastAPI) -> None:
         return response
 
 
-def add_idempotency_middleware(app: FastAPI, settings: Settings) -> None:
-    # Idempotency middleware — only acts when Idempotency-Key header is present.
-    try:
-        from app.services.idempotency import IdempotencyMiddleware
-        from app.services.redis_client import get_redis
-
-        app.add_middleware(
-            IdempotencyMiddleware,
-            redis_client=get_redis(settings),
-            ttl_seconds=300,
-        )
-    except Exception as exc:
-        message = f"Idempotency middleware disabled because Redis initialization failed: {exc}"
-        if settings.is_production_like():
-            raise RuntimeError(message) from exc
-        startup_logger.warning(message)
-
-
 def register_core_routes(app: FastAPI) -> None:
     @app.get("/healthz", tags=["Bootstrap"], summary="Health check", description="Lightweight liveness probe.")
     def healthcheck() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/version", tags=["Bootstrap"], summary="Version info", description="Application version information.")
+    def version() -> dict[str, str]:
+        return {
+            "version": "1.0.0",
+            "name": "VaultGate",
+            "description": "极简易密钥保管与Token签发服务",
+        }
+
+
+def add_security_headers_middleware(app: FastAPI, settings: Settings) -> None:
+    """Add security response headers (CSP, HSTS, X-Content-Type-Options, etc.)."""
+
+    @app.middleware("http")
+    async def inject_security_headers(request: Request, call_next):
+        response = await call_next(request)
+
+        # X-Content-Type-Options: prevent MIME-type sniffing
+        response.headers["x-content-type-options"] = "nosniff"
+
+        # X-Frame-Options: prevent clickjacking
+        response.headers["x-frame-options"] = "DENY"
+
+        # Referrer-Policy: minimize referrer leakage
+        response.headers["referrer-policy"] = "strict-origin-when-cross-origin"
+
+        # Permissions-Policy: disable unnecessary browser features
+        response.headers["permissions-policy"] = "camera=(), microphone=(), geolocation=()"
+
+        # HSTS: only in production (requires HTTPS)
+        if settings.is_production_like():
+            response.headers["strict-transport-security"] = (
+                f"max-age={settings.hsts_max_age}; includeSubDomains; preload"
+            )
+
+        # Content-Security-Policy
+        csp = _build_csp(settings)
+        if settings.csp_report_only:
+            response.headers["content-security-policy-report-only"] = csp
+        else:
+            response.headers["content-security-policy"] = csp
+
+        return response
+
+
+def _build_csp(settings: Settings) -> str:
+    """Build Content-Security-Policy header value based on environment."""
+    # In development: allow inline scripts/styles for hot-reload DX
+    if not settings.is_production_like():
+        return (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "font-src 'self' data:; "
+            "connect-src 'self' http://localhost:* ws://localhost:*; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+
+    # Production: strict CSP
+    return (
+        "default-src 'none'; "
+        "script-src 'self'; "
+        "style-src 'self'; "
+        "img-src 'self'; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    )
 
 
 def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
@@ -100,15 +157,87 @@ def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
         allow_origins=allowed_origins,
         allow_credentials=settings.cors_allow_credentials,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["*"],
+        allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
         max_age=600,
     )
 
 
+# Methods that change server state and require Origin validation
+_CSRF_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+# Paths that accept requests without cookies (machine-to-machine) and skip CSRF
+_CSRF_EXEMPT_PREFIXES = ("/healthz", "/version", "/docs", "/openapi.json", "/redoc")
+
+
+def add_csrf_middleware(app: FastAPI, settings: Settings) -> None:
+    """Validate Origin/Referer header on state-changing requests from authenticated sessions.
+
+    Protects against CSRF attacks by ensuring the Origin or Referer header matches
+    a configured allowed origin.  Requests without a session cookie (machine-to-machine
+    bearer-token calls) are not checked — CSRF is a browser-specific attack vector.
+    """
+
+    allowed_origins = frozenset(
+        origin.strip().rstrip("/")
+        for origin in settings.cors_allowed_origins.split(",")
+        if origin.strip()
+    )
+
+    @app.middleware("http")
+    async def enforce_csrf_origin(request: Request, call_next):
+        # 1) Safe methods always pass through
+        if request.method in _CSRF_SAFE_METHODS:
+            return await call_next(request)
+
+        # 2) Exempt public paths (health, docs)
+        path = request.url.path
+        if any(path.startswith(prefix) for prefix in _CSRF_EXEMPT_PREFIXES):
+            return await call_next(request)
+
+        # 3) Only check requests that carry a session cookie (browser-initiated)
+        session_cookie = request.cookies.get(settings.session_cookie_name)
+        if not session_cookie:
+            # No session cookie → machine-to-machine (Bearer token); CSRF doesn't apply
+            return await call_next(request)
+
+        # 4) Extract Origin (preferred) or fall back to Referer
+        origin = request.headers.get("origin") or ""
+        if not origin:
+            referer = request.headers.get("referer") or ""
+            # Referer is a full URL; extract the origin part
+            if referer:
+                try:
+                    from urllib.parse import urlparse
+                    parsed = urlparse(referer)
+                    origin = f"{parsed.scheme}://{parsed.netloc}"
+                except Exception:
+                    origin = ""
+
+        # 5) In development with no CORS configured, allow through with a warning
+        if not allowed_origins:
+            if not settings.is_production_like():
+                return await call_next(request)
+            # Production with no configured origins is a misconfiguration
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "CSRF check failed: no allowed origins configured"},
+            )
+
+        # 6) Validate origin against allowed list
+        normalized = origin.rstrip("/")
+        if normalized not in allowed_origins:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "CSRF check failed: invalid origin"},
+            )
+
+        return await call_next(request)
+
+
 def configure_default_app(app: FastAPI, settings: Settings) -> None:
     add_cors_middleware(app, settings)
+    add_csrf_middleware(app, settings)
+    add_security_headers_middleware(app, settings)
     add_request_logging_middleware(app)
-    add_idempotency_middleware(app, settings)
     add_domain_error_handlers(app)
     add_runtime_openapi_customizer(app)
     register_core_routes(app)
@@ -139,9 +268,6 @@ def add_runtime_openapi_customizer(app: FastAPI) -> None:
             routes=app.routes,
             tags=app.openapi_tags,
         )
-        management_scheme = schema.get("components", {}).get("securitySchemes", {}).get("ManagementSession")
-        if management_scheme is not None:
-            management_scheme["name"] = app.state.settings.management_session_cookie_name
         app.openapi_schema = schema
         return schema
 
@@ -155,6 +281,17 @@ def create_app(
     app_configurers: Iterable[AppConfigurer] | None = None,
     route_registrar: RouteRegistrar | None = register_routes,
 ) -> FastAPI:
+    """Create VaultGate FastAPI application.
+
+    Args:
+        settings: Application settings
+        runtime: Application runtime
+        app_configurers: Optional configurers
+        route_registrar: Route registrar function
+
+    Returns:
+        Configured FastAPI application
+    """
     if settings is not None and runtime is not None and runtime.settings != settings:
         raise ValueError("create_app settings and runtime must describe the same configuration")
 
@@ -170,28 +307,25 @@ def create_app(
     async def lifespan(app_instance: FastAPI):
         settings = app_instance.state.settings
 
-        validate_secret_backend_settings(settings)
-        # Ephemeral SQLite app starts do not go through the container entrypoint,
-        # so they still need an in-process migration step before bootstrap seeding.
+        # Ephemeral SQLite app starts need in-process migration
         if _uses_embedded_sqlite(settings.database_url):
             db_module.migrate_db(settings.database_url)
-        seed_demo_fixture_data(settings, app_instance.state.runtime.session_factory)
         yield
 
     app = FastAPI(
-        title="Agent Control Plane",
+        title="VaultGate",
         description=(
-            "Coordinate humans, agents, secrets, and lightweight tasks through a single control plane usable by new agents without source diving. "
-            "Humans should exchange the bootstrap credential once for a short-lived management session cookie, then use that cookie on management routes. "
-            "Agents should self-discover request details from /docs and /openapi.json, then authenticate "
-            "with bearer API keys on runtime routes."
+            "极简易密钥保管与Token签发服务。"
+            "存储账号、密码、API密钥等敏感信息，签发和管理访问Token。"
+            "API文档公开访问，Agent通过Bearer Token获取权限内的密钥信息。"
         ),
         openapi_tags=[
-            {"name": "Bootstrap", "description": "Health and login/bootstrap surfaces needed to start the system."},
-            {"name": "Management", "description": "Cookie-authenticated human management routes used by the console."},
-            {"name": "Agent Runtime", "description": "Agent-authenticated runtime routes for claiming work and using capabilities."},
-            {"name": "Knowledge", "description": "Reusable playbooks that agents may search without management credentials."},
-            {"name": "Observability", "description": "Run history and audit-friendly state for operators."},
+            {"name": "Bootstrap", "description": "健康检查和公开API文档。"},
+            {"name": "Authentication", "description": "用户登录和会话管理。"},
+            {"name": "Secrets", "description": "密钥CRUD操作（Web UI使用）。"},
+            {"name": "Tokens", "description": "Token管理和权限配置。"},
+            {"name": "Vault", "description": "运行时API（Agent通过Bearer Token访问）。"},
+            {"name": "Runtime", "description": "Token验证端点。"},
         ],
         lifespan=lifespan,
     )

@@ -1,23 +1,23 @@
 /**
- * Session State - 集中式会话状态管理
+ * Session State - Centralized session state management
  *
- * 提供：
- * - 标准化的会话状态模型
- * - 会话解析和验证
- * - 会话刷新和注销
+ * Provides:
+ * - Standardized session state model
+ * - Session resolution and validation
+ * - Session refresh and logout
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ManagementSessionSummary, ManagementRole } from '@/shared/types';
-import { ApiError, apiFetch } from './api-client';
+import { ApiError, apiFetch } from './vaultgate-api';
 
 export type SessionState =
-  | 'unknown' // 初始状态，正在解析
-  | 'anonymous' // 未登录
-  | 'authenticated' // 已认证
-  | 'expired' // 会话过期
-  | 'forbidden' // 无权限
-  | 'unavailable'; // 服务不可用
+  | 'unknown' // Initial state, resolving
+  | 'anonymous' // Not logged in
+  | 'authenticated' // Authenticated
+  | 'expired' // Session expired
+  | 'forbidden' // No permission
+  | 'unavailable'; // Service unavailable
 
 export interface SessionData {
   state: SessionState;
@@ -41,7 +41,7 @@ function sessionSummaryToSessionData(session: ManagementSessionSummary): Session
   };
 }
 
-// 全局会话状态（用于非React上下文）
+// Global session state (for non-React contexts)
 let globalSession: SessionData = { state: 'unknown' };
 let sessionListeners: ((session: SessionData) => void)[] = [];
 
@@ -66,7 +66,7 @@ export function subscribeToSession(listener: (session: SessionData) => void) {
 }
 
 /**
- * 解析当前会话状态
+ * Resolve current session state
  */
 export async function resolveSession(): Promise<SessionData> {
   try {
@@ -93,48 +93,14 @@ export async function resolveSession(): Promise<SessionData> {
 
     return {
       state: 'unavailable',
-      error: error instanceof Error ? error.message : '会话解析失败',
+      error: error instanceof Error ? error.message : 'Session resolution failed',
       lastLoadedAt: Date.now(),
     };
   }
 }
 
 /**
- * 登录
- */
-export async function login(email: string, password: string): Promise<SessionData> {
-  try {
-    const response = await apiFetch<ManagementSessionSummary>('/session/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    const session = sessionSummaryToSessionData(response);
-    setGlobalSession(session);
-    return session;
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      return {
-        state: 'anonymous',
-        error: '凭据无效',
-        lastLoadedAt: Date.now(),
-      };
-    }
-
-    if (error instanceof ApiError && error.status === 403) {
-      return {
-        state: 'forbidden',
-        error: error.detail,
-        lastLoadedAt: Date.now(),
-      };
-    }
-
-    throw error;
-  }
-}
-
-/**
- * 注销
+ * Logout
  */
 export async function logout(): Promise<void> {
   try {
@@ -151,8 +117,8 @@ export async function logout(): Promise<void> {
 }
 
 /**
- * React Hook: 读取全局会话状态（不触发API调用）
- * 订阅 globalSession 变化，适合在 RouteGuard 已经解析过会话的页面使用。
+ * React Hook: Read global session state (does not trigger API calls)
+ * Subscribes to globalSession changes, suitable for pages where RouteGuard has already resolved the session.
  */
 export function useGlobalSession() {
   const [session, setSession] = useState<SessionData>(getGlobalSession);
@@ -166,7 +132,7 @@ export function useGlobalSession() {
 }
 
 /**
- * React Hook: 使用会话状态
+ * React Hook: Use session state with automatic resolution
  */
 export function useSession() {
   const [session, setSession] = useState<SessionData>(getGlobalSession());
@@ -177,10 +143,10 @@ export function useSession() {
     mountedRef.current = true;
     const initialSession = getGlobalSession();
 
-    // 订阅全局会话变化
+    // Subscribe to global session changes
     const unsubscribe = subscribeToSession(setSession);
 
-    // 初始解析（如果未知状态）
+    // Initial resolution (if unknown state)
     if (initialSession.state === 'unknown') {
       setIsLoading(true);
       resolveSession().then((newSession) => {
@@ -210,18 +176,6 @@ export function useSession() {
     }
   }, []);
 
-  const doLogin = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const result = await login(email, password);
-      return result;
-    } finally {
-      if (mountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
-
   const doLogout = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -237,7 +191,6 @@ export function useSession() {
     session,
     isLoading,
     refresh,
-    login: doLogin,
     logout: doLogout,
   };
 }

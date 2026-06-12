@@ -2,411 +2,100 @@
 
 ## Scope
 
-This manual is the operator-facing deployment handbook for the current `v1` stack.
+This manual covers deploying VaultGate in production.
 
-It covers:
+## Prerequisites
 
-- first-time deployment on Coolify
-- first-time deployment with plain `docker compose`
-- required environment values
-- post-deploy smoke checks
-- upgrade and rollback flow
-- common troubleshooting steps
+- Docker and Docker Compose v2+
+- A domain name with DNS configured (for production with TLS)
+- PostgreSQL 16 (or use the bundled Docker Compose service)
 
-For the simplest public production path under Coolify, use `docker-compose.coolify.yml`.
-For the hardened standalone single-host baseline, use `docker-compose.prod.yml`.
-
-## Choose The Right Deployment Path
-
-Pick one path before you start copying env files or attaching domains:
-
-| Path | Use when | Compose file | Public ingress/TLS |
-|------|----------|--------------|--------------------|
-| Coolify-managed public deployment | Coolify is the orchestrator and should own ingress plus TLS | `docker-compose.coolify.yml` | Coolify |
-| Self-hosted compose with external ingress already handled elsewhere | another reverse proxy, load balancer, or private network already fronts the stack | `docker-compose.coolify.yml` | external to this repository |
-| Hardened standalone public single-host baseline | this repository should provide the public ingress stack itself | `docker-compose.prod.yml` | in-repo `caddy` |
-
-Important boundary:
-
-- `docker-compose.coolify.yml` is not, by itself, the repository's hardened public-TLS stack when Coolify is absent.
-- If you run `docker-compose.coolify.yml` with plain `docker compose`, you must already have ingress/TLS handled elsewhere or you must intentionally expose host ports yourself.
-- If you want the repository-owned public ingress path, use `docker-compose.prod.yml`.
-
-## Recommended Topology
-
-For a self-hosted public production deployment, the recommended stack is:
-
-- `web`
-- `api`
-- `postgres`
-- `redis`
-- `openbao`
-
-This topology is intentionally simple:
-
-- Coolify handles ingress and TLS
-- application services stay in one compose stack
-- OpenBao runs in persistent integrated-storage mode
-- the API runs database migrations automatically on startup
-
-## Required Inputs
-
-Start from [ops/compose/coolify.env.example](/Users/lvxiaoer/Documents/codeWork/agentShare/ops/compose/coolify.env.example).
-
-Replace these values before production use:
-
-- `PUBLIC_HOST`
-- `APP_BASE_URL`
-- `NEXT_PUBLIC_API_BASE_URL`
-- `POSTGRES_PASSWORD`
-- `BOOTSTRAP_OWNER_KEY`
-- `MANAGEMENT_SESSION_SECRET`
-
-Usually you will also set at least one LLM provider key:
-
-- `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `DEEPSEEK_API_KEY`
-- `GOOGLE_API_KEY`
-
-Keep these defaults unless you know you need different wiring:
-
-- `APP_ENV=production`
-- `SECRET_BACKEND=openbao`
-- `OPENBAO_ADDR=http://openbao:8200`
-- `OPENBAO_TOKEN_FILE=/openbao/bootstrap/root-token`
-- `OPENBAO_MOUNT=secret`
-- `OPENBAO_PREFIX=agent-share`
-- `REDIS_URL=redis://redis:6379/0`
-- `API_BIND_HOST=127.0.0.1`
-- `WEB_BIND_HOST=127.0.0.1`
-
-Those bind-host defaults keep the raw `api` and `web` ports on loopback so Coolify can front them without also publishing them directly on the server's public interface. Only switch either bind host to `0.0.0.0` if you intentionally want direct host-port exposure.
-
-## Preparation Checklist
-
-Before the first deploy, confirm:
-
-1. The target host can run Docker Compose workloads.
-2. The public domain already points to the Coolify instance or deployment host.
-3. You have generated strong production secrets for:
-   - database password
-   - bootstrap owner key
-   - management session secret
-4. You know whether the API needs a public domain in addition to the web domain.
-5. You have chosen one of the three deployment paths above and are using the matching env template.
-
-Suggested secret generation commands:
+## Quick Start (Development)
 
 ```bash
-openssl rand -hex 24
-openssl rand -hex 32
+cp .env.example .env
+# Edit .env with your values
+docker compose up -d --build
 ```
 
-## First-Time Deploy On Coolify
+- Web UI: `http://localhost:3000`
+- API: `http://localhost:8000`
+- API Docs: `http://localhost:8000/docs`
 
-### 1. Create the application
+## Production Deployment
 
-In Coolify:
-
-1. Create a new Docker Compose application.
-2. Point it at this repository.
-3. Set the compose file to `docker-compose.coolify.yml`.
-
-### 2. Add environment variables
-
-Paste the contents of `ops/compose/coolify.env.example` into the shared environment section, then replace the production values listed above.
-
-Minimum real values:
-
-- `PUBLIC_HOST`
-- `APP_BASE_URL`
-- `NEXT_PUBLIC_API_BASE_URL`
-- `POSTGRES_PASSWORD`
-- `BOOTSTRAP_OWNER_KEY`
-- `MANAGEMENT_SESSION_SECRET`
-
-### 3. Configure domains
-
-Attach:
-
-- the public app domain to the `web` service
-
-Optional:
-
-- a second public domain to the `api` service if you want direct external access to `/docs`, `/openapi.json`, or `/mcp`
-
-If you do not expose the API publicly, the web app still talks to it through the internal compose network.
-
-### 4. Deploy
-
-Start the stack from Coolify.
-
-Expected startup flow:
-
-1. `postgres`, `redis`, and `openbao` start first
-2. `openbao` initializes itself on the first boot
-3. the API reads the generated root token from `/openbao/bootstrap/root-token`
-4. the API runs `alembic upgrade head`
-5. the web service starts after the API healthcheck passes
-
-### 5. Bootstrap the owner account
-
-After the stack is healthy:
-
-1. open `APP_BASE_URL`
-2. complete the first-owner bootstrap flow
-3. store the owner credentials securely
-
-## Self-Hosted Compose Without Coolify
-
-Use this path only when `docker-compose.coolify.yml` is still the right stack shape but ingress/TLS are already handled outside this repository, or when the deployment is private/internal.
-
-This is not the repository's hardened public-internet baseline.
-
-### 1. Prepare the env file
+### 1. Prepare Environment
 
 ```bash
-cp ops/compose/coolify.env.example .env.coolify
+cp .env.production.example .env.production
+# Edit .env.production with strong values:
+# - ENCRYPTION_KEY: generate with `python3 -c "import secrets,base64; print(base64.b64encode(secrets.token_bytes(32)).decode())"`
+# - SESSION_SECRET: generate with `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
+# - POSTGRES_PASSWORD: strong password
+# - PUBLIC_HOST: your domain
+# - ACME_EMAIL: your email for Let's Encrypt
 ```
 
-Edit `.env.coolify` and replace the real production values.
-
-If you need direct host-port exposure without Coolify, set `API_BIND_HOST` or `WEB_BIND_HOST` to `0.0.0.0` intentionally and front those ports with your own reverse proxy or private network controls.
-
-### 2. Start the stack
+### 2. Build and Deploy
 
 ```bash
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 ```
 
-### 3. Verify service state
+### 3. Initialize
+
+After the stack is healthy, create the first user:
 
 ```bash
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml ps
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml logs api --tail=100
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml logs web --tail=100
+curl -X POST https://YOUR_DOMAIN/api/bootstrap/init \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "password": "YourStr0ng!Pass"}'
 ```
 
-### 4. Open the application
-
-Visit:
-
-- `APP_BASE_URL`
-- the `api` service's own public domain plus `/docs` if you attached a separate public domain directly to the API service
-
-## First-Time Deploy With Hardened Production Compose
-
-Use this path when you want the repository-owned public ingress baseline with `caddy`, private `api` and `web` services, and an external secret backend.
-
-### 1. Prepare the env file
+### 4. Verify
 
 ```bash
-cp ops/compose/prod.env.example .env.production
-```
-
-Edit `.env.production` and replace the required production values:
-
-- `PUBLIC_HOST`
-- `ACME_EMAIL`
-- `POSTGRES_PASSWORD`
-- `SECRET_BACKEND_URL`
-- `SECRET_BACKEND_TOKEN`
-- `BOOTSTRAP_OWNER_KEY`
-- `MANAGEMENT_SESSION_SECRET`
-- `API_IMAGE`
-- `WEB_IMAGE`
-
-For the default same-stack Postgres wiring, prefer leaving `DATABASE_URL` blank so compose can derive it from `POSTGRES_*`.
-
-### 2. Validate and start the stack
-
-```bash
-docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null
-docker compose --env-file .env.production -f docker-compose.prod.yml pull
-docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
-```
-
-### 3. Verify service state
-
-```bash
-docker compose --env-file .env.production -f docker-compose.prod.yml ps
-docker compose --env-file .env.production -f docker-compose.prod.yml logs api --tail=100
-docker compose --env-file .env.production -f docker-compose.prod.yml logs web --tail=100
-docker compose --env-file .env.production -f docker-compose.prod.yml logs caddy --tail=100
-```
-
-### 4. Run the authenticated smoke checks
-
-```bash
-export PUBLIC_HOST=agentshare.example.com
-export APP_BASE_URL=https://agentshare.example.com
-export ACP_ADMIN_EMAIL=owner@example.com
-export ACP_ADMIN_PASSWORD=replace-with-owner-password
 ./scripts/ops/smoke-test.sh
 ```
 
-The smoke script checks `/`, `/healthz`, the presence of `x-request-id`, and authenticated `/metrics`.
+## Environment Variables
 
-### 5. Open the application
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ENCRYPTION_KEY` | Yes | 32-byte base64-encoded AES-256 key |
+| `SESSION_SECRET` | Yes | Secret for signing session cookies |
+| `POSTGRES_PASSWORD` | Yes | Database password |
+| `PUBLIC_HOST` | Yes (prod) | Domain name |
+| `ACME_EMAIL` | Yes (prod) | Email for Let's Encrypt |
+| `CORS_ALLOWED_ORIGINS` | Yes (prod) | Comma-separated allowed origins |
+| `SESSION_SECURE` | Yes (prod) | Set to `true` for HTTPS |
 
-Visit:
-
-- `APP_BASE_URL`
-- `APP_BASE_URL/docs` if you want the FastAPI docs through `caddy`
-
-## Post-Deploy Smoke Checks
-
-Run these checks after every first deploy and every upgrade.
-
-Preferred operator check:
+## Upgrading
 
 ```bash
-export PUBLIC_HOST=agentshare.example.com
-export APP_BASE_URL=https://agentshare.example.com
-export ACP_ADMIN_EMAIL=owner@example.com
-export ACP_ADMIN_PASSWORD=replace-with-owner-password
+# Pull latest images
+docker compose -f docker-compose.prod.yml pull
+
+# Restart with zero downtime
+docker compose -f docker-compose.prod.yml up -d
+
+# Verify
 ./scripts/ops/smoke-test.sh
 ```
 
-If you already have a cookie jar for an authenticated owner or admin session, you can use `ACP_COOKIE_JAR` instead of `ACP_ADMIN_EMAIL` and `ACP_ADMIN_PASSWORD`.
-
-### Public endpoints
+## Backup
 
 ```bash
-curl -I "$APP_BASE_URL"
+./scripts/ops/backup-postgres.sh
 ```
 
-Notes:
-
-- `NEXT_PUBLIC_API_BASE_URL` may still point at the web domain so browser traffic can use the `/api/*` proxy path; do not assume it is always the same thing as a direct public API domain
-- if the API has its own direct public domain, run `curl "https://your-api-domain.example.com/healthz"`
-- if the API is not public, run the API health check from inside the host or container network instead, for example:
-
-```bash
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml exec api \
-  python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"
-```
-
-- on Coolify, prefer the web domain as the primary user-facing health check
-- on the hardened production baseline, prefer the smoke script because it matches the same `/metrics` and header expectations used by the deploy workflow
-
-### Container health
-
-```bash
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml ps
-```
-
-Confirm all services are `running` and health checks are passing.
-
-### Functional checks
-
-Confirm manually:
-
-1. login page loads
-2. owner bootstrap works on a fresh deployment
-3. dashboard pages render
-4. task listing loads
-5. token listing loads
-
-## Upgrade Procedure
-
-For regular upgrades:
-
-1. pull the latest repository version or update the tracked revision in Coolify
-2. review any environment variable changes
-3. redeploy the compose application
-4. wait for the API migration step to complete
-5. run the post-deploy smoke checks
-
-The API container runs migrations automatically, so there is no separate migration job for this path.
-
-For the hardened `docker-compose.prod.yml` path, the manual upgrade sequence is:
-
-1. update `API_IMAGE` and `WEB_IMAGE` in `.env.production`
-2. run `docker compose --env-file .env.production -f docker-compose.prod.yml pull`
-3. run `docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans`
-4. rerun `./scripts/ops/smoke-test.sh`
-
-## Rollback Procedure
-
-If a new release must be rolled back:
-
-1. redeploy the previously known-good Git revision or image version
-2. keep the same production environment file unless the rollback specifically requires config rollback
-3. confirm `api` returns healthy status
-4. repeat the smoke checks
-
-Because `postgres`, `redis`, and `openbao` data are persisted in volumes, a rollback normally means reverting application code, not deleting data volumes.
-
-## Backup Expectations
-
-This simple stack still needs backups outside the deployment itself.
-
-Minimum expectations:
-
-- back up Postgres regularly
-- protect the OpenBao persisted volume or export strategy
-- capture Redis according to your tolerance for cache/session loss
-- store production env values securely outside the host
+Backups are saved to `./backups/postgres/` with timestamps.
 
 ## Troubleshooting
 
-Before chasing application code, check whether the failure is one of the known deployment-environment issues below. They have been more common than actual app regressions.
-
-### API cannot start
-
-Check:
-
-```bash
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml logs api --tail=200
-```
-
-Common causes:
-
-- invalid `DATABASE_URL`
-- missing `POSTGRES_PASSWORD`
-- invalid `BOOTSTRAP_OWNER_KEY`
-- invalid `MANAGEMENT_SESSION_SECRET`
-- OpenBao not healthy yet
-
-### OpenBao issues
-
-Check:
-
-```bash
-docker compose --env-file .env.coolify -f docker-compose.coolify.yml logs openbao --tail=200
-```
-
-Confirm:
-
-- `openbao-data` volume exists
-- `openbao-bootstrap` volume exists
-- the root token file is available to the API container
-
-### Web is up but data pages fail
-
-Check:
-
-- `AGENT_CONTROL_PLANE_API_URL`
-- `NEXT_PUBLIC_API_BASE_URL`
-- API health status
-- browser console/network errors
-
-### Deployment starts but bootstrap/login fails
-
-Check:
-
-- `MANAGEMENT_SESSION_SECRET`
-- `MANAGEMENT_SESSION_SECURE`
-- public domain and HTTPS configuration in Coolify
-- whether `APP_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL` match the real public URL
-- whether an explicit `DATABASE_URL` override still matches the intended database host and current `POSTGRES_*` values
-
-If the API container fails during `alembic upgrade head` with `password authentication failed for user "postgres"`, the usual cause is environment drift: `POSTGRES_PASSWORD` was rotated or the database host changed while `DATABASE_URL` still points at stale credentials.
-
-## Related Documents
-
-- [Coolify Deployment](/Users/lvxiaoer/Documents/codeWork/agentShare/docs/guides/coolify-deployment.md)
-- [Production Deployment](/Users/lvxiaoer/Documents/codeWork/agentShare/docs/guides/production-deployment.md)
-- [README](/Users/lvxiaoer/Documents/codeWork/agentShare/README.md)
+| Issue | Solution |
+|-------|----------|
+| API won't start | Check `ENCRYPTION_KEY` is valid base64 32-byte key |
+| Session cookie not set | Ensure `SESSION_SECURE=true` matches your HTTPS setup |
+| Migration fails | Check database connectivity and `DATABASE_URL` |
+| CORS errors | Verify `CORS_ALLOWED_ORIGINS` includes your frontend URL |

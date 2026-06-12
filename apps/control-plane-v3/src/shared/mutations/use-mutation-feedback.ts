@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ApiError } from '@/lib/api-client';
+import { ApiError } from '@/lib/vaultgate-api';
 
 export interface MutationMessages {
   fallbackError: string;

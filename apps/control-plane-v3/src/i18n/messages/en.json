@@ -172,44 +172,14 @@
   },
   "auth": {
     "login": {
-      "checking": "Checking bootstrap and session state...",
-      "description": "Admin login",
+      "title": "Sign In",
+      "subtitle": "Enter your credentials to access VaultGate",
       "email": "Email",
-      "failedToLoad": "Failed to load login state",
-      "loginFailed": "Login failed",
       "password": "Password",
       "signIn": "Sign In",
-      "subtitle": "Invite-only access",
-      "title": "Management Login",
-      "emailPlaceholder": "owner@example.com"
-    },
-    "logout": {
-      "continueToLogin": "Continue to login",
-      "failed": "Failed to sign out",
-      "signingOut": "Signing out..."
-    },
-    "setup": {
-      "bootstrapKey": "Bootstrap Key",
-      "bootstrapKeyPlaceholder": "changeme-bootstrap-key",
-      "createAccount": "Create Owner Account",
-      "creating": "Creating",
-      "description": "Initialize system and create owner account",
-      "displayName": "Display Name",
-      "displayNamePlaceholder": "Founding Owner",
-      "failedToBootstrap": "Failed to bootstrap owner",
-      "failedToLoad": "Failed to load bootstrap status",
-      "ownerEmail": "Owner Email",
-      "password": "Password",
-      "passwordPlaceholder": "At least 12 characters",
-      "step1": "Owner bootstrap flips the system into initialized mode",
-      "step2": "Normal management access switches to email and password",
-      "step3": "New human accounts can only be created from the admin console",
-      "checkingStatus": "Checking status...",
-      "systemNotInitialized": "System not initialized yet. Complete bootstrap to unlock login.",
-      "subtitle": "First-run bootstrap",
-      "title": "Create the Founding Owner Account",
-      "whatNext": "What Next",
-      "emailPlaceholder": "owner@example.com"
+      "signingIn": "Signing in...",
+      "failed": "Login failed. Please check your credentials.",
+      "pageTitle": "VaultGate - Secure Key Storage & Token Issuance"
     }
   },
   "common": {
@@ -854,7 +824,10 @@
     "spaces": "Spaces",
     "tasks": "Tasks",
     "tokens": "Remote Access",
-    "docs": "Docs"
+    "docs": "Docs",
+    "dashboard": "Dashboard",
+    "secrets": "Secrets",
+    "audit": "Audit"
   },
   "playbooks": {
     "createFailed": "Failed to create playbook",
@@ -1466,160 +1439,28 @@
     "minutesAgo": "{n}m ago"
   },
   "tokens": {
-    "actions": {
-      "createAgent": "Register Remote Agent",
-      "copySecret": "Copy Access Token",
-      "issueAccessToken": "Issue Access Token",
-      "mintToken": "Mint Access Token",
-      "refresh": "Refresh",
-      "revoke": "Revoke",
-      "viewSecret": "View Access Token"
-    },
-    "agent": {
-      "authMethod": "Auth method",
-      "createFirst": "Issue the first remote access token from this console.",
-      "noAgents": "No remote access subjects yet",
-      "noTokens": "No active access tokens for this remote subject yet.",
-      "riskBadge": "{tier} risk",
-      "riskTier": "Risk tier"
-    },
-    "description": "Issue and supervise remote access tokens",
-    "errors": {
-      "clipboardBlocked": "Clipboard access was blocked. Copy the access token manually from the reveal card.",
-      "loadDataFailed": "Failed to load data",
-      "loadFailed": "Failed to load access tokens",
-      "mintTokenFailed": "Failed to mint access token",
-      "noAgentSelected": "Choose a remote subject before minting a token",
-      "refreshFailed": "Failed to refresh remote access tokens",
-      "revealTokenFailed": "Failed to reveal access token",
-      "registerAgentFailed": "Failed to register remote agent",
-      "revokeTokenFailed": "Failed to revoke access token"
-    },
-    "form": {
-      "agentName": "Remote agent name",
-      "agentNamePlaceholder": "deploy-bot",
-      "allowedTaskTypes": "Allowed task types",
-      "allowedTaskTypesHelper": "Comma-separated. Leave blank to keep the allowlist open until policy UI expands.",
-      "allowedTaskTypesPlaceholder": "config_sync, account_read",
-      "displayName": "Display name",
-      "displayNamePlaceholder": "Staging worker token",
-      "expiresAt": "Expires at",
-      "issueDescription": "Standalone credentials for remote callers",
-      "labels": "Labels",
-      "labelsHelper": "Comma-separated key=value labels.",
-      "labelsPlaceholder": "environment=staging, pool=blue",
-      "scopes": "Scopes",
-      "scopesHelper": "Comma-separated scope labels.",
-      "scopesPlaceholder": "runtime",
-      "subjectId": "Subject ID",
-      "subjectIdPlaceholder": "github-actions",
-      "subjectType": "Subject type"
-    },
-    "labels": {
-      "id": "ID",
-      "issuedBy": "Issued by",
-      "lastUsedAt": "Last used",
-      "scopes": "Scopes",
-      "tokenPrefix": "Token prefix"
-    },
-    "metrics": {
-      "activeAgents": "Remote agents",
-      "activeTokens": "Active access tokens",
-      "averageTrust": "Average trust",
-      "feedbackCoverage": "Feedback coverage",
-      "needsFeedback": "Needs feedback",
-      "averageTrustHint": "feedback",
-      "tokensWithFeedback": "Tokens with feedback",
-      "tokensWithFeedbackHint": "reviewed",
-      "totalHint": "{count} total"
-    },
-    "hints": {
-      "activeTokens": "",
-      "averageTrust": "",
-      "feedbackCoverage": "",
-      "needsFeedback": ""
-    },
-    "riskTiers": {
-      "critical": "critical",
-      "high": "high",
-      "low": "low",
-      "medium": "medium"
-    },
-    "workflow": {
-      "badge": "Remote access workflow",
-      "description": "This page is the bridge between setup and execution. Check the docs, confirm who should act, then issue credentials and continue straight into task delivery.",
-      "title": "Operate remote access without losing the thread",
-      "steps": {
-        "docs": {
-          "cta": "Open docs",
-          "description": "Review the public operating guide so humans and external agents follow the same instructions.",
-          "title": "Start from shared docs"
-        },
-        "identities": {
-          "cta": "Review identities",
-          "description": "Confirm which humans and in-project agents are already connected before minting external access.",
-          "title": "Verify participants"
-        },
-        "tasks": {
-          "cta": "Go to tasks",
-          "description": "Once a token is ready, move directly into task publication instead of hunting through the navigation.",
-          "title": "Continue to delivery"
-        }
-      }
-    },
-    "sessionExpired": "Your management session has expired. Sign in again to keep working with live remote access data.",
-    "sessionForbidden": "You do not have permission to manage remote access credentials. Use an admin management session to continue.",
-    "status": {
-      "revoked": "Revoked"
-    },
-    "subtitle": "Remote access for external agents",
-    "title": "Remote Access Tokens",
-    "token": {
-      "completedRuns": "Completed runs",
-      "copyToken": "Copy Access Token",
-      "issuer": "Issuer",
-      "lastFeedback": "Last feedback",
-      "lastUsed": "Last used",
-      "oneTimeReveal": "One-time reveal",
-      "prefix": "Prefix",
-      "successRate": "Success rate",
-      "successfulRuns": "Successful runs",
-      "trustScore": "Trust score"
-    },
-    "values": {
-      "notYet": "Not yet"
-    },
-    "empty": {
-      "title": "No access tokens issued yet",
-      "description": "Issue your first access token"
-    },
-    "loading": "Loading access token inventory...",
-    "neverUsed": "Never used",
-    "noFeedback": "No feedback yet",
-    "none": "None",
-    "secretModal": {
-      "title": "Access token"
-    },
-    "unknownIssuer": "Unknown issuer",
-    "remoteAccessSupervision": "Remote access supervision",
-    "remoteAccessSupervisionDesc": "Human operators can quickly isolate access tokens used by external machines and off-project agents when they still need feedback or fall below the trust threshold.",
-    "operator": "Operator",
-    "loadingAgents": "Loading remote subjects and access tokens...",
-    "createAgentModalDesc": "Register a remote subject and mint its first access token.",
-    "createTokenModalDesc": "Issue another access token for an existing remote subject.",
-    "riskTier": "Risk tier",
-    "remoteAgent": "Remote agent",
-    "selectRemoteAgent": "Select a remote agent",
-    "filters": {
-      "allTokens": "All tokens",
-      "needsFeedback": "Needs feedback",
-      "lowTrust": "Low trust"
-    },
-    "badge": {
-      "needsFeedback": "{count} token{suffix} need{verbSuffix} feedback",
-      "lowTrust": "{count} low-trust token{suffix}"
-    },
-    "secretLabel": "{name} primary token"
+    "title": "Access Tokens",
+    "description": "Manage tokens for agent access to your secrets",
+    "newToken": "New Token",
+    "loading": "Loading tokens...",
+    "loadFailed": "Failed to load tokens",
+    "emptyTitle": "No tokens yet",
+    "emptyDesc": "Create a token to grant agents access to your secrets",
+    "about": "About Access Tokens",
+    "aboutDesc": "Tokens allow agents to access secrets within their configured scopes. Each token is shown only once at creation time.",
+    "revokeConfirm": "Revoke token \"{name}\"? This action cannot be undone.",
+    "revokeFailed": "Failed to revoke token",
+    "copied": "Copied",
+    "copy": "Copy",
+    "scopes": "Scopes",
+    "revoke": "Revoke",
+    "apiUsage": "API Usage",
+    "expires": "Expires",
+    "never": "Never",
+    "lastUsed": "Last used",
+    "active": "Active",
+    "revoked": "Revoked",
+    "expired": "Expired"
   },
   "options": {
     "agentModels": {
@@ -1702,5 +1543,72 @@
   },
   "header": {
     "userMenuAriaLabel": "User menu for {name}"
+  },
+  "dashboard": {
+    "title": "VaultGate",
+    "subtitle": "Simple secrets management and token issuance service",
+    "manageTokens": "Manage Tokens",
+    "ready": "VaultGate is Ready",
+    "readyDesc": "Your secure key storage service is running. Create secrets, issue tokens, and monitor access through the audit log.",
+    "totalSecrets": "Total Secrets",
+    "activeTokens": "Active Tokens",
+    "recentActivity": "Recent Activity (24h)",
+    "quickActions": "Quick Actions",
+    "createSecret": "Create Secret",
+    "createSecretDesc": "Add a new password or API key",
+    "createToken": "Create Token",
+    "createTokenDesc": "Issue a new access token",
+    "viewAudit": "View Audit Log",
+    "viewAuditDesc": "Check access history",
+    "browse": "Browse",
+    "secrets": "Secrets",
+    "tokens": "Tokens",
+    "auditLogs": "Audit Logs",
+    "apiDocs": "API Documentation",
+    "apiReference": "API Quick Reference",
+    "publicEndpoints": "Public endpoints (no authentication):",
+    "agentAccess": "Agent access (Bearer token required):",
+    "healthCheck": "Health check",
+    "apiDocumentation": "API documentation (Swagger)",
+    "openapiSchema": "OpenAPI schema",
+    "listSecrets": "List accessible secrets",
+    "getSecret": "Get secret with field filtering",
+    "getSecretValue": "Get only secret value"
+  },
+  "secrets": {
+    "title": "Secrets",
+    "description": "Manage your passwords, API keys, and other sensitive data",
+    "newSecret": "New Secret",
+    "loading": "Loading secrets...",
+    "loadFailed": "Failed to load secrets",
+    "emptyTitle": "No secrets yet",
+    "emptyDesc": "Create your first secret to get started",
+    "deleteConfirm": "Delete secret \"{name}\"? This action cannot be undone.",
+    "deleteFailed": "Failed to delete secret",
+    "tags": "Tags:",
+    "noUrl": "No URL",
+    "view": "View",
+    "edit": "Edit"
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "description": "View all secret access attempts and token operations",
+    "filters": "Filters:",
+    "all": "All",
+    "granted": "Granted",
+    "denied": "Denied",
+    "totalEvents": "Total Events",
+    "grantedAccess": "Granted Access",
+    "deniedAccess": "Denied Access",
+    "valueReads": "Value Reads",
+    "time": "Time",
+    "token": "Token",
+    "secret": "Secret",
+    "action": "Action",
+    "status": "Status",
+    "loading": "Loading audit logs...",
+    "loadFailed": "Failed to load audit logs",
+    "emptyTitle": "No audit events yet",
+    "emptyDesc": "Access attempts will appear here"
   }
 }

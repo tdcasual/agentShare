@@ -1,17 +1,20 @@
 [project]
-name = "agent-control-plane-api"
-version = "0.1.0"
-description = "FastAPI control plane for agents, secrets, and lightweight tasks"
+name = "vaultgate-api"
+version = "1.0.0"
+description = "VaultGate: Simple key storage and token issuance service"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.116.0",
-  "httpx>=0.28.1",
+  "pydantic>=2.0",
   "pydantic-settings>=2.10.1",
   "uvicorn>=0.35.0",
   "sqlalchemy>=2.0",
   "alembic",
   "psycopg2-binary",
-  "redis>=5.0",
+  "aiosqlite>=0.19.0",
+  "asyncpg>=0.29.0",
+  "bcrypt>=4.0.0",
+  "cryptography>=42.0.0",
 ]
 
 [project.optional-dependencies]
@@ -31,6 +34,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["app*"]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/vaultgate"
+Documentation = "https://github.com/yourusername/vaultgate/blob/main/VAULTGATE_SETUP.md"
 
 [tool.mypy]
 python_version = "3.12"

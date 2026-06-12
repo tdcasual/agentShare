@@ -1,92 +1,42 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { logger } from '@/lib/logger';
-import { Event } from '@/domains/event/types';
-import type { SWRConfiguration } from 'swr';
-import { EVENTS_FEED_KEY, useEvents, useMarkEventRead } from '@/domains/event';
+import useSWR from 'swr';
 
-export type Notification = Event;
-
-export type NotificationsSource =
-  | { kind: 'backend'; endpoint: string }
-  | { kind: 'unavailable'; reason: string };
-
-export type NotificationsAvailability = NotificationsSource['kind'];
-
-export const NOTIFICATIONS_KEY = EVENTS_FEED_KEY;
-const NOTIFICATIONS_SOURCE: NotificationsSource = { kind: 'backend', endpoint: NOTIFICATIONS_KEY };
-
-type FetchLike = typeof fetch;
+export interface Notification {
+  id: string;
+  type: string;
+  summary: string;
+  read: boolean;
+  created_at: string;
+}
 
 interface UseNotificationsResult {
-  availability: NotificationsAvailability;
-  unavailableReason: string | null;
   notifications: Notification[];
   isLoading: boolean;
   error: unknown;
   mutate: () => Promise<unknown>;
 }
 
-export function getNotificationsSource(): NotificationsSource {
-  return NOTIFICATIONS_SOURCE;
-}
-
-export function getNotificationsSWRKey(source: NotificationsSource): string | null {
-  return source.kind === 'backend' ? source.endpoint : null;
-}
-
-export async function loadNotifications(
-  source: NotificationsSource,
-  fetchImpl: FetchLike = fetch
-): Promise<Notification[]> {
-  if (source.kind === 'unavailable') {
-    logger.notifications.info(source.reason);
-    return [];
-  }
-
-  try {
-    const response = await fetchImpl(source.endpoint, {
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      if (response.status === 404 || response.status === 501) {
-        logger.notifications.info('Backend not available, returning empty list');
-        return [];
+export function useNotifications(): UseNotificationsResult {
+  const { data, isLoading, error, mutate } = useSWR<{ items: Notification[] }>(
+    '/api/events',
+    async (url: string) => {
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) {
+        // Events endpoint may not exist; return empty list
+        return { items: [] };
       }
-      throw new Error(`Failed to fetch notifications: ${response.status}`);
+      return response.json();
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
     }
-
-    const payload = await response.json();
-    return (payload?.items as Notification[]) ?? [];
-  } catch (error) {
-    logger.notifications.error('Fetch error:', error);
-    return [];
-  }
-}
-
-export async function markAllNotificationsReadForSource(
-  source: NotificationsSource,
-  fetchImpl: FetchLike = fetch
-): Promise<void> {
-  if (source.kind === 'unavailable') {
-    logger.notifications.info('Notifications unavailable; skipping mark-all-read');
-    return;
-  }
-
-  await fetchImpl(source.endpoint, {
-    credentials: 'include',
-  });
-}
-
-export function useNotifications(options?: SWRConfiguration): UseNotificationsResult {
-  const { events, isLoading, error, mutate } = useEvents(options);
+  );
 
   return {
-    availability: 'backend',
-    unavailableReason: null,
-    notifications: events,
+    notifications: data?.items ?? [],
     isLoading,
     error,
     mutate,
@@ -94,28 +44,21 @@ export function useNotifications(options?: SWRConfiguration): UseNotificationsRe
 }
 
 export function useMarkNotificationsRead() {
-  const markEventRead = useMarkEventRead();
   const [isMarking, setIsMarking] = useState(false);
 
-  const markAllRead = useCallback(
-    async (eventIds: string[]) => {
-      if (eventIds.length === 0) {
-        return;
-      }
+  const markAllRead = useCallback(async (_eventIds: string[]) => {
+    // No-op: events endpoint not available in VaultGate
+    setIsMarking(true);
+    setIsMarking(false);
+  }, []);
 
-      setIsMarking(true);
-      try {
-        await Promise.all(eventIds.map((id) => markEventRead(id)));
-      } finally {
-        setIsMarking(false);
-      }
-    },
-    [markEventRead]
-  );
+  const markOneRead = useCallback(async (_id: string) => {
+    // No-op: events endpoint not available in VaultGate
+  }, []);
 
   return {
     markAllRead,
-    markOneRead: markEventRead,
+    markOneRead,
     isMarking,
   };
 }

@@ -1,15 +1,19 @@
 import type { Metadata, Viewport } from 'next';
+import dynamic from 'next/dynamic';
 import { cookies } from 'next/headers';
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
-import { ConditionalRuntimeProvider } from '@/components/conditional-runtime-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { RouteGuardWrapper } from '@/components/route-guard-wrapper';
-import { KawaiiBackground } from '@/components/kawaii/kawaii-background';
-import { ServiceWorkerRegister } from '@/components/service-worker-register';
-import { PWAInstallPrompt } from '@/components/pwa/pwa-install-prompt';
-import { PWAUpdatePrompt, PWAOfflineIndicator } from '@/components/pwa/pwa-update-prompt';
 import { defaultLocale, locales, type Locale } from '@/i18n/config';
+
+// Dynamic imports for non-critical components
+const KawaiiBackground = dynamic(() => import('@/components/kawaii/kawaii-background'), { ssr: false });
+const ServiceWorkerRegister = dynamic(() => import('@/components/service-worker-register'), { ssr: false });
+const PWAUpdatePrompt = dynamic(() => import('@/components/pwa/pwa-update-prompt').then(m => m.PWAUpdatePrompt), { ssr: false });
+const PWAOfflineIndicator = dynamic(() => import('@/components/pwa/pwa-update-prompt').then(m => m.PWAOfflineIndicator), { ssr: false });
+
+// Load only the messages for the current locale at build time
 import zhCN from '@/i18n/messages/zh-CN.json';
 import en from '@/i18n/messages/en.json';
 
@@ -74,9 +78,9 @@ export async function generateMetadata(): Promise<Metadata> {
       startupImage: [{ url: '/icons/icon-512x512.png', media: '(device-width: 768px)' }],
     },
     applicationName: localizedMetadata.appName,
-    authors: [{ name: 'Agent Control Plane Team' }],
+    authors: [{ name: 'VaultGate' }],
     generator: 'Next.js',
-    keywords: ['PWA', 'control plane', 'agents', 'management', 'offline'],
+    keywords: ['secrets', 'vault', 'tokens', 'management'],
   };
 }
 
@@ -95,24 +99,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           disableTransitionOnChange={false}
         >
           <I18nProvider initialLocale={locale}>
-            <ConditionalRuntimeProvider>
-              <ErrorBoundary>
-                <RouteGuardWrapper>
-                  <KawaiiBackground />
-                  <a
-                    href="#main-content"
-                    className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-[var(--kw-primary-500)] focus:px-4 focus:py-2 focus:text-white"
-                  >
-                    {skipLinkLabel}
-                  </a>
-                  {children}
-                  <ServiceWorkerRegister />
-                  <PWAInstallPrompt />
-                  <PWAUpdatePrompt />
-                  <PWAOfflineIndicator />
-                </RouteGuardWrapper>
-              </ErrorBoundary>
-            </ConditionalRuntimeProvider>
+            <ErrorBoundary>
+              <RouteGuardWrapper>
+                <KawaiiBackground />
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-[var(--kw-primary-500)] focus:px-4 focus:py-2 focus:text-white"
+                >
+                  {skipLinkLabel}
+                </a>
+                {children}
+                <ServiceWorkerRegister />
+                <PWAUpdatePrompt />
+                <PWAOfflineIndicator />
+              </RouteGuardWrapper>
+            </ErrorBoundary>
           </I18nProvider>
         </ThemeProvider>
       </body>

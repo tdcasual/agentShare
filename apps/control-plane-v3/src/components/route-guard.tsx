@@ -214,7 +214,6 @@ export function ManagementRouteGuard({
   children,
 }: {
   children: React.ReactNode;
-  redirectOnMissingSession?: boolean;
 }) {
   const globalSession = useGlobalSession();
   const [mounted, setMounted] = useState(false);

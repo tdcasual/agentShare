@@ -1,44 +1,49 @@
+"""VaultGate test configuration.
+
+Provides fixtures for testing VaultGate API endpoints using an in-memory SQLite
+database with async support.
+"""
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
-from contextlib import contextmanager
 from pathlib import Path
 
-import fakeredis
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    create_async_engine,
+    async_sessionmaker,
+)
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings
-from app.db import get_db
+from app.db import get_db, get_async_db
 from app.factory import create_app
 from app.observability import reset_metrics
-from app.orm import Base  # noqa: F401 — import triggers all model registration
-from app.orm.access_token import AccessTokenModel
-from app.orm.openclaw_agent import OpenClawAgentModel
-from app.runtime import AppRuntime
-from app.services.access_token_service import hash_access_token, mint_access_token
-from app.services.auth_rate_limit import reset_auth_rate_limits
-from app.services.secret_backend import InMemorySecretBackend
+from app.orm import Base  # triggers all model registration
+from app.runtime import AppRuntime, build_runtime
 
-ROOT = Path(__file__).resolve().parents[3]
-API_ROOT = ROOT / "apps/api"
-
-TEST_AGENT_KEY = TEST_ACCESS_TOKEN_KEY = "access-test-token"
-TEST_ACCESS_TOKEN_ID = "access-token-test-agent"
-BOOTSTRAP_OWNER_KEY = "bootstrap-test-token"
-OWNER_EMAIL = "owner@example.com"
-OWNER_PASSWORD = "correct horse battery staple"
-ADMIN_EMAIL = "admin@example.com"
-ADMIN_PASSWORD = "admin-password-123"
-TEST_SETTINGS = Settings(
-    database_url="sqlite:///./pytest-placeholder.db",
-    bootstrap_owner_key=BOOTSTRAP_OWNER_KEY,
+# Suppress encryption key requirement in test environment
+os.environ.setdefault(
+    "ENCRYPTION_KEY",
+    "ZGV2LW9ubHktMzItYnl0ZS1lbmNyeXB0aW9uLWtleSE=",
 )
+
+API_ROOT = Path(__file__).resolve().parents[1]
+
+
+# ---------------------------------------------------------------------------
+# Database fixtures
+# ---------------------------------------------------------------------------
 
 
 def _run_alembic_upgrade(database_url: str) -> None:
+    """Run Alembic migration against the given database URL."""
     env = os.environ.copy()
     env["DATABASE_URL"] = database_url
 
@@ -54,34 +59,30 @@ def _run_alembic_upgrade(database_url: str) -> None:
     )
 
 
-def _build_test_app(
-    engine,
-    session_factory,
-    settings: Settings,
-):
-    runtime = AppRuntime(
-        settings=settings,
-        engine=engine,
-        session_factory=session_factory,
-    )
-    return create_app(settings, runtime=runtime)
-
-
 @pytest.fixture
-def test_database_url(tmp_path):
-    db_path = tmp_path / "pytest.db"
+def test_database_url(tmp_path: Path) -> str:
+    """Create a temporary SQLite database with VaultGate schema."""
+    db_path = tmp_path / "vaultgate_test.db"
     database_url = f"sqlite:///{db_path}"
     _run_alembic_upgrade(database_url)
     return database_url
 
 
 @pytest.fixture
-def test_settings(test_database_url):
-    return TEST_SETTINGS.model_copy(update={"database_url": test_database_url})
+def test_settings(test_database_url: str) -> Settings:
+    """Provide Settings configured for testing."""
+    return Settings(
+        database_url=test_database_url,
+        encryption_key="ZGV2LW9ubHktMzItYnl0ZS1lbmNyeXB0aW9uLWtleSE=",
+        session_secret="test-session-secret-for-pytest-only",
+        session_secure=False,
+        cors_allowed_origins="http://localhost:3000",
+    )
 
 
 @pytest.fixture
-def test_engine(test_database_url):
+def test_engine(test_database_url: str):
+    """Provide a synchronous SQLAlchemy engine for tests."""
     engine = create_engine(
         test_database_url,
         connect_args={"check_same_thread": False},
@@ -94,13 +95,13 @@ def test_engine(test_database_url):
 
 @pytest.fixture
 def test_session_factory(test_engine):
+    """Provide a session factory bound to the test engine."""
     return sessionmaker(bind=test_engine, expire_on_commit=False)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def db_session(test_session_factory):
-    InMemorySecretBackend.reset_store()
-    reset_auth_rate_limits()
+    """Provide a single database session for a test."""
     session = test_session_factory()
     try:
         yield session
@@ -108,228 +109,51 @@ def db_session(test_session_factory):
         session.close()
 
 
-@pytest.fixture(autouse=True)
-def reset_observability_metrics():
-    reset_metrics()
-
-
 @pytest.fixture
-def seeded_app(db_session, test_engine, test_session_factory, test_settings):
-    app = _build_test_app(test_engine, test_session_factory, test_settings)
+def test_app(test_engine, test_session_factory, test_settings: Settings):
+    """Create a VaultGate FastAPI app wired to the test database."""
+    from app.services.encryption import reset_encryption_service
+    reset_encryption_service()
 
-    db_session.add(OpenClawAgentModel(
-        id="test-agent",
-        name="Test Agent",
-        status="active",
-        auth_method="openclaw_session",
-        workspace_root="/tmp/test-agent",
-        agent_dir=".openclaw/agents/test-agent",
-        model="gpt-5.4",
-        thinking_level="balanced",
-        sandbox_mode="workspace-write",
-        tools_policy={},
-        skills_policy={},
-        dream_policy={},
-        allowed_capability_ids=[],
-        allowed_task_types=["config_sync", "account_read", "prompt_run"],
-        risk_tier="medium",
-    ))
-    db_session.add(AccessTokenModel(
-        id=TEST_ACCESS_TOKEN_ID,
-        display_name="Test access token",
-        token_hash=hash_access_token(TEST_ACCESS_TOKEN_KEY),
-        token_prefix=TEST_ACCESS_TOKEN_KEY[:10],
-        status="active",
-        subject_type="agent",
-        subject_id="test-agent",
-        issued_by_actor_type="system",
-        issued_by_actor_id="test-fixture",
-        scopes=["runtime"],
-        labels={},
-        policy={},
-    ))
-    db_session.commit()
+    runtime = AppRuntime(
+        settings=test_settings,
+        engine=test_engine,
+        session_factory=test_session_factory,
+    )
+    app = create_app(test_settings, runtime=runtime)
 
     def _override_get_db():
         try:
             yield db_session
         finally:
             pass
-    app.dependency_overrides[get_db] = _override_get_db
+
+    # Use a module-level db_session via the session factory
+    session = test_session_factory()
+
+    def _override_sync_db():
+        try:
+            yield session
+        finally:
+            session.close()
+
+    app.dependency_overrides[get_db] = _override_sync_db
+
     try:
         yield app
     finally:
         app.dependency_overrides.clear()
+        reset_encryption_service()
 
 
 @pytest.fixture
-def client(seeded_app):
-    with TestClient(seeded_app) as test_client:
-        yield test_client
-
-
-@pytest.fixture
-def mint_standalone_access_token(db_session):
-    def _mint(
-        *,
-        subject_type: str = "agent",
-        subject_id: str = "test-agent",
-        display_name: str = "Test access token",
-        scopes: list[str] | None = None,
-        labels: dict[str, str] | None = None,
-        policy: dict | None = None,
-        issued_by_actor_type: str = "system",
-        issued_by_actor_id: str = "test-fixture",
-    ) -> dict:
-        token, raw_token = mint_access_token(
-            db_session,
-            subject_type=subject_type,
-            subject_id=subject_id,
-            display_name=display_name,
-            issued_by_actor_type=issued_by_actor_type,
-            issued_by_actor_id=issued_by_actor_id,
-            scopes=scopes or ["runtime"],
-            labels=labels or {},
-            policy=policy or {},
-        )
-        db_session.commit()
-        return {
-            "id": token.id,
-            "api_key": raw_token,
-            "display_name": token.display_name,
-            "subject_type": token.subject_type,
-            "subject_id": token.subject_id,
-        }
-
-    return _mint
-
-
-def bootstrap_owner_account(client: TestClient) -> dict:
-    status_response = client.get("/api/bootstrap/status")
-    assert status_response.status_code == 200, status_response.text
-    if status_response.json()["initialized"]:
-        return {"initialized": True}
-
-    response = client.post(
-        "/api/bootstrap/setup-owner",
-        json={
-            "bootstrap_key": BOOTSTRAP_OWNER_KEY,
-            "email": OWNER_EMAIL,
-            "display_name": "Founding Owner",
-            "password": OWNER_PASSWORD,
-        },
-    )
-    assert response.status_code == 201, response.text
-    return response.json()
-
-
-def login_management_account(
-    client: TestClient,
-    *,
-    email: str = OWNER_EMAIL,
-    password: str = OWNER_PASSWORD,
-):
-    return client.post(
-        "/api/session/login",
-        json={"email": email, "password": password},
-    )
-
-
-@pytest.fixture
-def anonymous_client(client):
-    return client
-
-
-@pytest.fixture
-def management_client(seeded_app):
-    """Log in to the management UI and return a client with the session cookie."""
-    with TestClient(seeded_app) as test_client:
-        bootstrap_owner_account(test_client)
-        owner_login_response = login_management_account(test_client)
-        assert owner_login_response.status_code == 200, owner_login_response.text
-        create_response = test_client.post(
-            "/api/admin-accounts",
-            json={
-                "email": ADMIN_EMAIL,
-                "display_name": "Admin User",
-                "password": ADMIN_PASSWORD,
-                "role": "admin",
-            },
-        )
-        assert create_response.status_code in {201, 409}, create_response.text
-        logout_response = test_client.post("/api/session/logout")
-        assert logout_response.status_code == 200, logout_response.text
-        login_response = login_management_account(
-            test_client,
-            email=ADMIN_EMAIL,
-            password=ADMIN_PASSWORD,
-        )
-        assert login_response.status_code == 200, login_response.text
-        assert login_response.cookies, "management login should issue a cookie"
-        yield test_client
-
-
-@pytest.fixture
-def management_client_for_role(db_session):
-    @contextmanager
-    def _client(role: str):
-        engine = db_session.get_bind()
-        settings = TEST_SETTINGS.model_copy(
-            update={
-                "database_url": str(engine.url),
-            }
-        )
-        session_factory = sessionmaker(bind=engine, expire_on_commit=False)
-        app = _build_test_app(engine, session_factory, settings)
-
-        def _override_get_db():
-            try:
-                yield db_session
-            finally:
-                pass
-
-        app.dependency_overrides[get_db] = _override_get_db
-        try:
-            with TestClient(app) as test_client:
-                bootstrap_owner_account(test_client)
-                login_response = login_management_account(test_client)
-                assert login_response.status_code == 200, login_response.text
-                assert login_response.cookies, "management login should issue a cookie"
-                if role != "owner":
-                    create_response = test_client.post(
-                        "/api/admin-accounts",
-                        json={
-                            "email": f"{role}@example.com",
-                            "display_name": role.title(),
-                            "password": f"{role}-password-123",
-                            "role": role,
-                        },
-                    )
-                    assert create_response.status_code in {201, 409}, create_response.text
-                    logout_response = test_client.post("/api/session/logout")
-                    assert logout_response.status_code == 200, logout_response.text
-                    role_login_response = login_management_account(
-                        test_client,
-                        email=f"{role}@example.com",
-                        password=f"{role}-password-123",
-                    )
-                    assert role_login_response.status_code == 200, role_login_response.text
-                yield test_client
-        finally:
-            app.dependency_overrides.clear()
-
-    return _client
-
-
-@pytest.fixture
-def owner_management_client(management_client_for_role):
-    with management_client_for_role("owner") as test_client:
-        yield test_client
+def client(test_app):
+    """Provide a TestClient wired to the test app."""
+    with TestClient(test_app) as c:
+        yield c
 
 
 @pytest.fixture(autouse=True)
-def fake_redis_for_all(monkeypatch):
-    """Ensure all tests use fakeredis instead of real Redis."""
-    fake = fakeredis.FakeRedis(decode_responses=True)
-    monkeypatch.setattr("app.services.redis_client._redis_clients", {TEST_SETTINGS.redis_url: fake})
-    yield fake
+def reset_observability_metrics():
+    """Reset observability metrics between tests."""
+    reset_metrics()

@@ -1,7 +1,7 @@
 'use client';
 
 import type { BootstrapStatus, ManagementSessionSummary } from '@/shared/types';
-import { api } from '@/lib/api';
+import { getCurrentUser } from '@/lib/vaultgate-api';
 import { resolveEntryStateFast, resetBootstrapCache } from '@/lib/entry-state';
 import { setGlobalSession } from '@/lib/session-state';
 
@@ -41,10 +41,35 @@ function syncGlobalSession(entryState: AppEntryState) {
   });
 }
 
+async function getBootstrapStatus() {
+  // VaultGate always requires login; no separate bootstrap status
+  return { initialized: true };
+}
+
+async function getSession() {
+  try {
+    const user = await getCurrentUser();
+    return {
+      status: 'active',
+      actor_type: 'human',
+      actor_id: user.id,
+      role: user.role || 'admin',
+      auth_method: 'session',
+      session_id: '',
+      email: user.email,
+      expires_in: 43200,
+      issued_at: 0,
+      expires_at: 43200,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function resolveAppEntryState(): Promise<AppEntryState> {
   const entryState = await resolveEntryStateFast({
-    getBootstrapStatus: api.getBootstrapStatus,
-    getSession: api.getSession,
+    getBootstrapStatus,
+    getSession,
   });
 
   syncGlobalSession(entryState);

@@ -2,70 +2,37 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useI18n } from '@/components/i18n-provider';
-import { LockKeyhole, Mail, Sparkles, Loader2 } from 'lucide-react';
-import { api, ApiError } from '@/lib/api';
-import { getDefaultManagementRoute } from '@/lib/role-system';
+import { LockKeyhole, Mail, Sparkles, Loader2, Shield } from 'lucide-react';
+import { login, type LoginInput } from '@/lib/vaultgate-api';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
+import { useI18n } from '@/components/i18n-provider';
 
 export default function LoginPage() {
-  const t = useI18n().t;
+  const { t } = useI18n();
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ email: '', password: '' });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const bootstrap = await api.getBootstrapStatus();
-        if (cancelled) {
-          return;
-        }
-
-        if (!bootstrap.initialized) {
-          router.replace('/setup');
-          return;
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : t('auth.login.failedToLoad'));
-        }
-      } finally {
-        if (!cancelled) {
-          setChecking(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-    // t 不需要作为依赖，bootstrap 检查只在挂载时执行一次
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
     try {
-      const session = await api.login(form);
-      const target = getDefaultManagementRoute(session.role);
-      window.location.href = target;
+      const input: LoginInput = { email: form.email, password: form.password };
+      await login(input);
+      router.push('/');
+      router.refresh();
     } catch (submitError) {
-      if (submitError instanceof ApiError) {
-        setError(submitError.detail);
+      if (submitError instanceof Error) {
+        setError(submitError.message);
       } else {
-        setError(submitError instanceof Error ? submitError.message : t('auth.login.loginFailed'));
+        setError(t('auth.login.failed'));
       }
     } finally {
       setIsSubmitting(false);
@@ -90,16 +57,18 @@ export default function LoginPage() {
         <div className="space-y-3 sm:space-y-5 lg:space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-primary-50)] px-4 py-2 text-sm font-medium text-[var(--kw-text)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]">
-              <LockKeyhole className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)]">
+              <Shield className="h-4 w-4" />
               <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">
-                {t('auth.login.subtitle')}
+                VaultGate v1.0
               </span>
             </div>
             <h1 className="text-3xl font-bold text-[var(--kw-text)] sm:text-4xl">
               {t('auth.login.title')}
             </h1>
-            <p className="mx-auto max-w-sm text-[var(--kw-text)]">{t('auth.login.description')}</p>
+            <p className="mx-auto max-w-sm text-[var(--kw-text-muted)]">
+              {t('auth.login.subtitle')}
+            </p>
           </div>
 
           {/* Form */}
@@ -113,8 +82,9 @@ export default function LoginPage() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, email: event.target.value }))
               }
-              placeholder={t('auth.login.emailPlaceholder')}
+              placeholder="your@email.com"
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
+              required
             />
             <Input
               label={t('auth.login.password')}
@@ -127,32 +97,25 @@ export default function LoginPage() {
               }
               placeholder="••••••••••••"
               className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
+              required
             />
 
             {/* Status message */}
-            <div
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              className="dark:bg-[var(--kw-dark-bg)]/50 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface-alt)] px-4 py-3 text-sm text-[var(--kw-text)] dark:border-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text)]"
-            >
-              {error ? (
-                <span className="text-[var(--kw-error)] dark:text-[var(--kw-error)]">{error}</span>
-              ) : checking ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {t('auth.login.checking')}
-                </span>
-              ) : (
-                <span>{t('auth.login.description')}</span>
-              )}
-            </div>
+            {error && (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="rounded-xl border border-[var(--kw-red-surface)] bg-[var(--kw-red-surface)] px-4 py-3 text-sm text-[var(--kw-red-text)]"
+              >
+                {error}
+              </div>
+            )}
 
             <Button className="w-full" type="submit" loading={isSubmitting}>
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {t('auth.login.signIn')}...
+                  {t('auth.login.signingIn')}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -162,6 +125,11 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          {/* Footer info */}
+          <div className="text-center text-xs text-[var(--kw-text-muted)]">
+            <p>{t('auth.login.pageTitle')}</p>
+          </div>
         </div>
       </Card>
     </main>

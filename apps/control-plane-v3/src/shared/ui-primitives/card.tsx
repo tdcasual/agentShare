@@ -31,7 +31,8 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              onClick(event as unknown as React.MouseEvent<HTMLDivElement>);
+              // Trigger click via DOM to get a proper MouseEvent
+              event.currentTarget.click();
             }
           },
         }

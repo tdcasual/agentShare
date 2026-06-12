@@ -1,676 +1,222 @@
 'use client';
 
-import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useMemo, useState } from 'react';
-import { Copy, KeyRound, Plus, RefreshCw, ShieldCheck, Star } from 'lucide-react';
-import { useI18n } from '@/components/i18n-provider';
-import { Layout } from '@/interfaces/human/layout';
-import {
-  useAccessTokens,
-  useCreateAccessToken,
-  useRevealAccessToken,
-  useRevokeAccessToken,
-} from '@/domains/identity';
-import { ApiError, type AccessTokenCreateInput } from '@/lib/api-client';
-import {
-  ManagementPageAlerts,
-  useManagementPageSessionRecovery,
-} from '@/lib/management-session-recovery';
-import { Badge } from '@/shared/ui-primitives/badge';
-import { Button } from '@/shared/ui-primitives/button';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useTokens, revokeToken } from '@/domains/token';
 import { Card } from '@/shared/ui-primitives/card';
-import { MetricCard } from '@/shared/ui-primitives/metric';
-import { Input } from '@/shared/ui-primitives/input';
-
-import { StatDisplay } from '@/shared/ui-primitives/stat-display';
-import { translateAccountRole, translateTokenStatus } from '@/lib/enum-labels';
+import { Button } from '@/shared/ui-primitives/button';
+import { Badge } from '@/shared/ui-primitives/badge';
+import { ConfirmModal } from '@/shared/ui-primitives/modal';
+import {
+  Plus,
+  Key,
+  Copy,
+  Check,
+  Settings,
+  Trash2,
+} from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 
 export default function TokensPage() {
-  return (
-    <Layout>
-      <TokensContent />
-    </Layout>
-  );
-}
+  const { t } = useI18n();
+  const { tokens, isLoading, error, refresh } = useTokens();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isRevoking, setIsRevoking] = useState(false);
+  const [revokeError, setRevokeError] = useState<string | null>(null);
 
-const TOKENS_POLLING_CONFIG = { refreshInterval: 10_000 };
+  const handleCopy = async (keyPrefix: string, id: string) => {
+    await navigator.clipboard.writeText(keyPrefix);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
-const TokensContent = memo(function TokensContent() {
-  const { locale, t } = useI18n();
-  const { data, isLoading, error: dataError, mutate } = useAccessTokens(TOKENS_POLLING_CONFIG);
-  const {
-    session,
-    loading: gateLoading,
-    error: gateError,
-    shouldShowForbidden,
-    shouldShowSessionExpired,
-    clearAllAuthErrors,
-    consumeUnauthorized,
-  } = useManagementPageSessionRecovery(dataError);
-
-  const createAccessToken = useCreateAccessToken();
-  const revealAccessToken = useRevealAccessToken();
-  const revokeAccessToken = useRevokeAccessToken();
-
-  const [error, setError] = useState<string | null>(null);
-  const [refreshError, setRefreshError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showCreateTokenModal, setShowCreateTokenModal] = useState(false);
-  const [selectedHealthFilter, setSelectedHealthFilter] = useState<
-    'all' | 'needs_feedback' | 'low_trust'
-  >('all');
-  const [revealingTokenId, setRevealingTokenId] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [revealedSecret, setRevealedSecret] = useState<{
-    label: string;
-    prefix: string;
-    apiKey: string;
-  } | null>(null);
-  const [createTokenForm, setCreateTokenForm] = useState({
-    display_name: '',
-    subject_type: 'automation',
-    subject_id: '',
-    scopes: 'runtime',
-    labels: '',
-    expires_at: '',
-  });
-
-  const accessTokens = useMemo(() => data?.items ?? [], [data?.items]);
-  const activeTokens = useMemo(
-    () => accessTokens.filter((token) => token.status === 'active').length,
-    [accessTokens]
-  );
-  const averageTrust = useMemo(
-    () =>
-      accessTokens.length > 0
-        ? accessTokens.reduce((total, token) => total + (token.trustScore ?? 0), 0) /
-          accessTokens.length
-        : 0,
-    [accessTokens]
-  );
-  const tokensWithFeedback = useMemo(
-    () => accessTokens.filter((token) => token.lastFeedbackAt).length,
-    [accessTokens]
-  );
-  const tokensNeedingFeedback = useMemo(
-    () => accessTokens.filter((token) => !token.lastFeedbackAt).length,
-    [accessTokens]
-  );
-  const lowTrustTokens = useMemo(
-    () => accessTokens.filter((token) => (token.trustScore ?? 0) < 0.6).length,
-    [accessTokens]
-  );
-
-  const visibleTokens = useMemo(() => {
-    return accessTokens.filter((token) => {
-      if (selectedHealthFilter === 'needs_feedback') {
-        return !token.lastFeedbackAt;
-      }
-      if (selectedHealthFilter === 'low_trust') {
-        return (token.trustScore ?? 0) < 0.6;
-      }
-      return true;
-    });
-  }, [accessTokens, selectedHealthFilter]);
-
-  async function handleRefresh() {
-    setIsRefreshing(true);
-    setRefreshError(null);
-    clearAllAuthErrors();
-
+  const handleRevokeConfirm = async () => {
+    if (!revokeTarget) return;
+    setIsRevoking(true);
+    setRevokeError(null);
     try {
-      await mutate();
-    } catch (refreshFailure) {
-      if (consumeUnauthorized(refreshFailure)) {
-        return;
-      }
-
-      setRefreshError(
-        refreshFailure instanceof Error ? refreshFailure.message : t('tokens.errors.refreshFailed')
-      );
+      await revokeToken(revokeTarget.id);
+      setRevokeTarget(null);
+      refresh();
+    } catch (err) {
+      setRevokeError(err instanceof Error ? err.message : t('tokens.revokeFailed'));
     } finally {
-      setIsRefreshing(false);
+      setIsRevoking(false);
     }
-  }
+  };
 
-  async function handleCreateToken(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    clearAllAuthErrors();
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return t('tokens.never');
+    return new Date(dateStr).toLocaleDateString();
+  };
 
-    try {
-      const payload: AccessTokenCreateInput = {
-        display_name: createTokenForm.display_name.trim(),
-        subject_type: createTokenForm.subject_type.trim() || 'automation',
-        subject_id: createTokenForm.subject_id.trim(),
-        scopes: parseCommaSeparatedList(createTokenForm.scopes),
-        labels: parseLabels(createTokenForm.labels),
-        expires_at: createTokenForm.expires_at
-          ? new Date(createTokenForm.expires_at).toISOString()
-          : null,
-      };
-      const created = await createAccessToken(payload);
-      setRevealedSecret({
-        label: created.display_name,
-        prefix: created.token_prefix,
-        apiKey: created.api_key ?? '',
-      });
-      setCreateTokenForm({
-        display_name: '',
-        subject_type: 'automation',
-        subject_id: '',
-        scopes: 'runtime',
-        labels: '',
-        expires_at: '',
-      });
-      setShowCreateTokenModal(false);
-    } catch (submitError) {
-      if (consumeUnauthorized(submitError)) {
-        return;
-      }
-
-      if (submitError instanceof ApiError) {
-        setError(submitError.detail);
-      } else {
-        setError(
-          submitError instanceof Error ? submitError.message : t('tokens.errors.mintTokenFailed')
-        );
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  const handleRevokeToken = useCallback(
-    async (tokenId: string) => {
-      setError(null);
-      clearAllAuthErrors();
-
-      try {
-        await revokeAccessToken(tokenId);
-      } catch (revokeError) {
-        if (consumeUnauthorized(revokeError)) {
-          return;
-        }
-
-        if (revokeError instanceof ApiError) {
-          setError(revokeError.detail);
-        } else {
-          setError(
-            revokeError instanceof Error
-              ? revokeError.message
-              : t('tokens.errors.revokeTokenFailed')
-          );
-        }
-      }
-    },
-    [clearAllAuthErrors, consumeUnauthorized, revokeAccessToken, t]
-  );
-
-  const handleRevealToken = useCallback(
-    async (token: { id: string; displayName: string; tokenPrefix: string; status: string }) => {
-      setError(null);
-      clearAllAuthErrors();
-      setRevealingTokenId(token.id);
-
-      try {
-        const revealed = await revealAccessToken(token.id);
-        setRevealedSecret({
-          label: token.displayName,
-          prefix: token.tokenPrefix,
-          apiKey: revealed.api_key,
-        });
-      } catch (revealError) {
-        if (consumeUnauthorized(revealError)) {
-          return;
-        }
-
-        if (revealError instanceof ApiError) {
-          setError(revealError.detail);
-        } else {
-          setError(
-            revealError instanceof Error
-              ? revealError.message
-              : t('tokens.errors.revealTokenFailed')
-          );
-        }
-      } finally {
-        setRevealingTokenId(null);
-      }
-    },
-    [clearAllAuthErrors, consumeUnauthorized, revealAccessToken, t]
-  );
+  const isExpired = (expiresAt: string | null) => {
+    if (!expiresAt) return false;
+    return new Date(expiresAt) < new Date();
+  };
 
   return (
-    <section id="main-content" className="space-y-3 sm:space-y-4 lg:space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="space-y-2">
-          <div className="dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80 inline-flex items-center gap-2 rounded-full border border-[var(--kw-border)] px-4 py-2 text-sm text-[var(--kw-primary-600)]">
-            <ShieldCheck className="h-4 w-4" />
-            {t('tokens.remoteAccessSupervision')}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl dark:text-[var(--kw-dark-text)]">
-              {t('tokens.title')}
-            </h1>
-            <p className="mt-1 text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('tokens.remoteAccessSupervisionDesc')}
-            </p>
-          </div>
+    <main id="main-content" className="space-y-6 p-4 sm:p-6 lg:p-8">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
+            {t('tokens.title')}
+          </h1>
+          <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
+            {t('tokens.description')}
+          </p>
         </div>
-
-        <div className="flex flex-wrap gap-3">
-          <Button variant="secondary" onClick={handleRefresh} loading={isRefreshing}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            {t('tokens.actions.refresh')}
+        <Link href="/tokens/new">
+          <Button
+            variant="primary"
+            size="sm"
+            leftIcon={<Plus className="h-4 w-4" />}
+          >
+            {t('tokens.newToken')}
           </Button>
-          <Button onClick={() => setShowCreateTokenModal(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('tokens.actions.issueAccessToken')}
-          </Button>
-        </div>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <MetricCard
-          label={t('tokens.metrics.activeTokens')}
-          value={activeTokens.toString()}
-          hint={t('tokens.hints.activeTokens')}
-        />
-        <MetricCard
-          label={t('tokens.metrics.feedbackCoverage')}
-          value={tokensWithFeedback.toString()}
-          hint={t('tokens.hints.feedbackCoverage')}
-        />
-        <MetricCard
-          label={t('tokens.metrics.needsFeedback')}
-          value={tokensNeedingFeedback.toString()}
-          hint={t('tokens.hints.needsFeedback')}
-        />
-        <MetricCard
-          label={t('tokens.metrics.averageTrust')}
-          value={averageTrust.toFixed(2)}
-          hint={t('tokens.hints.averageTrust')}
-        />
-      </div>
-
-      <Card className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]">
-        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              {t('tokens.remoteAccessSupervision')}
-            </h2>
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {t('tokens.remoteAccessSupervisionDesc')}
+      {/* Info Card */}
+      <Card className="border border-[var(--kw-blue-surface)] bg-[var(--kw-blue-surface)] p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-blue-surface)]">
+            <Key className="h-4 w-4 text-[var(--kw-blue-text)]" />
+          </div>
+          <div className="flex-1 text-sm">
+            <p className="font-medium text-[var(--kw-blue-text)]">
+              {t('tokens.about')}
             </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            <Badge variant="secondary">
-              {t('tokens.badge.needsFeedback', {
-                count: tokensNeedingFeedback,
-                suffix: tokensNeedingFeedback === 1 ? '' : 's',
-                verbSuffix: tokensNeedingFeedback === 1 ? '' : 's',
-              })}
-            </Badge>
-            <Badge variant="info">
-              {t('tokens.badge.lowTrust', {
-                count: lowTrustTokens,
-                suffix: lowTrustTokens === 1 ? '' : 's',
-              })}
-            </Badge>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <FilterButton
-              active={selectedHealthFilter === 'all'}
-              aria-pressed={selectedHealthFilter === 'all'}
-              label={t('tokens.filters.allTokens')}
-              onClick={() => setSelectedHealthFilter('all')}
-            />
-            <FilterButton
-              active={selectedHealthFilter === 'needs_feedback'}
-              aria-pressed={selectedHealthFilter === 'needs_feedback'}
-              label={t('tokens.filters.needsFeedback')}
-              onClick={() => setSelectedHealthFilter('needs_feedback')}
-            />
-            <FilterButton
-              active={selectedHealthFilter === 'low_trust'}
-              aria-pressed={selectedHealthFilter === 'low_trust'}
-              label={t('tokens.filters.lowTrust')}
-              onClick={() => setSelectedHealthFilter('low_trust')}
-            />
+            <p className="mt-1 text-[var(--kw-blue-text)]">
+              {t('tokens.aboutDesc')}
+            </p>
           </div>
         </div>
       </Card>
 
-      <ManagementPageAlerts
-        shouldShowSessionExpired={shouldShowSessionExpired}
-        shouldShowForbidden={shouldShowForbidden}
-        refreshError={refreshError}
-        gateError={gateError}
-        error={error}
-        dataError={dataError}
-        sessionExpiredMessage={t('tokens.sessionExpired')}
-        forbiddenMessage={t('tokens.sessionForbidden')}
-        dataErrorMessage={t('tokens.errors.loadFailed')}
-      />
-
-      {gateLoading || isLoading ? (
-        <Card className="text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          {t('tokens.loading')}
-        </Card>
-      ) : null}
-
-      {!gateLoading && !isLoading && accessTokens.length === 0 ? (
-        <div className="space-y-2 rounded-xl border border-dashed border-[var(--kw-border)] p-8 text-left dark:border-[var(--kw-dark-border)]">
-          <KeyRound className="h-6 w-6 text-[var(--kw-text-muted)]" />
-          <h2 className="text-lg font-semibold text-[var(--kw-text)] sm:text-xl dark:text-[var(--kw-dark-text)]">
-            {t('tokens.empty.title')}
-          </h2>
-          <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-            {t('tokens.empty.description')}
-          </p>
-        </div>
-      ) : null}
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {visibleTokens.map((token) => (
-          <Card
-            key={token.id}
-            className="dark:bg-[var(--kw-dark-surface)]/90 bg-[var(--kw-surface)]/90 space-y-4 border border-[var(--kw-border)] dark:border-[var(--kw-dark-border)]"
+      {/* Revoke Error */}
+      {revokeError && (
+        <div className="rounded-lg border border-[var(--kw-red-surface)] bg-[var(--kw-red-surface)] p-3 text-sm text-[var(--kw-red-text)]">
+          {revokeError}
+          <button
+            type="button"
+            onClick={() => setRevokeError(null)}
+            className="ml-2 underline"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={token.status === 'active' ? 'success' : 'warning'}>
-                    {translateTokenStatus(t, token.status)}
-                  </Badge>
-                  <Badge variant="secondary">{token.subjectType}</Badge>
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                    {token.displayName}
-                  </h2>
-                  <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-                    {token.subjectId}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={token.status !== 'active' || revealingTokenId === token.id}
-                  loading={revealingTokenId === token.id}
-                  onClick={() => handleRevealToken(token)}
-                >
-                  {t('tokens.actions.viewSecret')}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={token.status !== 'active'}
-                  onClick={() => handleRevokeToken(token.id)}
-                >
-                  {t('tokens.actions.revoke')}
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              <StatDisplay
-                icon={<Star className="h-4 w-4" />}
-                label={t('tokens.metrics.averageTrust')}
-                value={(token.trustScore ?? 0).toFixed(2)}
-              />
-              <StatDisplay
-                icon={<KeyRound className="h-4 w-4" />}
-                label={t('tokens.metrics.feedbackCoverage')}
-                value={(token.completedRuns ?? 0).toString()}
-              />
-              <StatDisplay
-                icon={<ShieldCheck className="h-4 w-4" />}
-                label={t('tokens.metrics.activeTokens')}
-                value={token.lastFeedbackAt ? t('common.active') : t('tokens.noFeedback')}
-              />
-            </div>
-
-            <div className="space-y-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              <p>
-                {t('tokens.labels.tokenPrefix')}: {token.tokenPrefix}
-              </p>
-              <p>
-                {t('tokens.labels.scopes')}: {token.scopes.join(', ') || t('tokens.none')}
-              </p>
-              <p>
-                {t('tokens.labels.lastUsedAt')}: {token.lastUsedAt ?? t('tokens.neverUsed')}
-              </p>
-              <p>
-                {t('tokens.labels.issuedBy')}: {token.issuedByActorId ?? t('tokens.unknownIssuer')}
-              </p>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {showCreateTokenModal && (
-        <div
-          data-testid="create-token-panel"
-          className="rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-        >
-          <CreateAccessTokenForm
-            form={createTokenForm}
-            locale={locale}
-            error={error}
-            onClose={() => setShowCreateTokenModal(false)}
-            onSubmit={handleCreateToken}
-            onChange={setCreateTokenForm}
-            submitting={submitting}
-            t={t}
-          />
+            {t('common.close')}
+          </button>
         </div>
       )}
 
-      {revealedSecret && (
-        <div
-          data-testid="token-secret-panel"
-          className="space-y-4 rounded-xl border border-[var(--kw-border)] bg-[var(--kw-surface)] p-4 sm:p-5 dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-                {t('tokens.secretModal.title')}
-              </h2>
-              <p className="text-sm text-[var(--kw-text-muted)]">{revealedSecret.label}</p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setRevealedSecret(null)}>
-              {t('common.close')}
-            </Button>
+      {/* Tokens List */}
+      <Card className="overflow-hidden">
+        {isLoading ? (
+          <div className="p-8 text-center text-sm text-[var(--kw-text-muted)]">
+            {t('tokens.loading')}
           </div>
-          <Card className="bg-[var(--kw-primary-50)]/40 space-y-3">
-            <p className="text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-              {revealedSecret.prefix}
+        ) : error ? (
+          <div className="p-8 text-center text-sm text-[var(--kw-red-text)]">
+            {t('tokens.loadFailed')}: {error.message}
+          </div>
+        ) : tokens.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)]">
+              <Key className="h-6 w-6 text-[var(--kw-text-muted)]" />
+            </div>
+            <h3 className="mb-2 font-semibold text-[var(--kw-text)]">{t('tokens.emptyTitle')}</h3>
+            <p className="mb-4 text-sm text-[var(--kw-text-muted)]">
+              {t('tokens.emptyDesc')}
             </p>
-            <p className="break-all text-sm text-[var(--kw-text)] dark:text-[var(--kw-dark-text)]">
-              {revealedSecret.apiKey}
-            </p>
-          </Card>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              navigator.clipboard.writeText(revealedSecret.apiKey).catch(() => {});
-            }}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            {t('tokens.actions.copySecret')}
-          </Button>
+            <Link href="/tokens/new">
+              <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />}>
+                {t('tokens.newToken')}
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--kw-border)]">
+            {tokens.map((token) => {
+              const expired = isExpired(token.expires_at);
+              return (
+                <div
+                  key={token.id}
+                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate font-medium text-[var(--kw-text)]">
+                        {token.name}
+                      </h3>
+                      <Badge
+                        variant={token.status === 'active' && !expired ? 'success' : 'warning'}
+                      >
+                        {expired ? t('tokens.expired') : token.status}
+                      </Badge>
+                    </div>
+                    <div className="mt-1 flex items-center gap-3 text-xs text-[var(--kw-text-muted)]">
+                      <span className="font-mono">{token.key_prefix}***</span>
+                      <span>{formatDate(token.created_at)}</span>
+                      {token.expires_at && (
+                        <span>{t('tokens.expires')}: {formatDate(token.expires_at)}</span>
+                      )}
+                      {token.last_used_at && (
+                        <span>{t('tokens.lastUsed')}: {formatDate(token.last_used_at)}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 sm:flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={copiedId === token.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      onClick={() => handleCopy(token.key_prefix, token.id)}
+                    >
+                      {copiedId === token.id ? t('tokens.copied') : t('tokens.copy')}
+                    </Button>
+                    <Link href={`/tokens/${token.id}`}>
+                      <Button variant="ghost" size="sm" leftIcon={<Settings className="h-4 w-4" />}>
+                        {t('tokens.scopes')}
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={<Trash2 className="h-4 w-4" />}
+                      onClick={() => setRevokeTarget({ id: token.id, name: token.name })}
+                      disabled={token.status !== 'active'}
+                      className="text-[var(--kw-red-text)] hover:text-[var(--kw-red-text)]"
+                    >
+                      {t('tokens.revoke')}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      {/* API Usage Guide */}
+      <Card className="p-4">
+        <h3 className="mb-3 font-semibold text-[var(--kw-text)]">{t('tokens.apiUsage')}</h3>
+        <div className="space-y-2 text-sm text-[var(--kw-text-muted)]">
+          <p>curl -H &quot;Authorization: Bearer YOUR_TOKEN&quot; http://localhost:8000/api/vault</p>
         </div>
-      )}
+      </Card>
 
-      {session ? (
-        <div className="flex items-center gap-2 text-sm text-[var(--kw-text-muted)] dark:text-[var(--kw-dark-text-muted)]">
-          <Star className="h-4 w-4" />
-          {translateAccountRole(t, session.role)}
-        </div>
-      ) : null}
-    </section>
+      {/* Revoke Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!revokeTarget}
+        onClose={() => setRevokeTarget(null)}
+        onConfirm={handleRevokeConfirm}
+        title={t('tokens.revoke')}
+        message={revokeTarget ? t('tokens.revokeConfirm', { name: revokeTarget.name }) : ''}
+        confirmText={t('tokens.revoke')}
+        variant="danger"
+        isLoading={isRevoking}
+      />
+    </main>
   );
-});
-
-function CreateAccessTokenForm({
-  form,
-  locale,
-  error,
-  onClose,
-  onSubmit,
-  onChange,
-  submitting,
-  t,
-}: {
-  form: {
-    display_name: string;
-    subject_type: string;
-    subject_id: string;
-    scopes: string;
-    labels: string;
-    expires_at: string;
-  };
-  locale: string;
-  error: string | null;
-  onClose: () => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onChange: Dispatch<
-    SetStateAction<{
-      display_name: string;
-      subject_type: string;
-      subject_id: string;
-      scopes: string;
-      labels: string;
-      expires_at: string;
-    }>
-  >;
-  submitting: boolean;
-  t: (key: string) => string;
-}) {
-  return (
-    <form className="space-y-4" onSubmit={onSubmit}>
-      <Input
-        label={t('tokens.form.displayName')}
-        value={form.display_name}
-        onChange={(event) =>
-          onChange((current) => ({ ...current, display_name: event.target.value }))
-        }
-        placeholder={t('tokens.form.displayNamePlaceholder')}
-        required
-      />
-      <div className="grid gap-4 md:grid-cols-2">
-        <Input
-          label={t('tokens.form.subjectType')}
-          value={form.subject_type}
-          onChange={(event) =>
-            onChange((current) => ({ ...current, subject_type: event.target.value }))
-          }
-          placeholder="automation"
-          required
-        />
-        <Input
-          label={t('tokens.form.subjectId')}
-          value={form.subject_id}
-          onChange={(event) =>
-            onChange((current) => ({ ...current, subject_id: event.target.value }))
-          }
-          placeholder={t('tokens.form.subjectIdPlaceholder')}
-          required
-        />
-      </div>
-      <Input
-        label={t('tokens.form.scopes')}
-        value={form.scopes}
-        onChange={(event) => onChange((current) => ({ ...current, scopes: event.target.value }))}
-        placeholder="runtime"
-      />
-      <Input
-        label={t('tokens.form.labels')}
-        value={form.labels}
-        onChange={(event) => onChange((current) => ({ ...current, labels: event.target.value }))}
-        placeholder={t('tokens.form.labelsPlaceholder')}
-      />
-      <Input
-        type="datetime-local"
-        label={t('tokens.form.expiresAt')}
-        value={form.expires_at}
-        onChange={(event) =>
-          onChange((current) => ({ ...current, expires_at: event.target.value }))
-        }
-        lang={locale}
-      />
-      {error ? (
-        <div
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-          className="rounded-2xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
-        >
-          {error}
-        </div>
-      ) : null}
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="ghost" onClick={onClose}>
-          {t('common.cancel')}
-        </Button>
-        <Button type="submit" loading={submitting}>
-          {t('tokens.actions.issueAccessToken')}
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-function FilterButton({
-  active,
-  'aria-pressed': ariaPressed,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  'aria-pressed'?: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={ariaPressed ?? active}
-      className={`rounded-full border px-3 py-1.5 text-sm transition ${
-        active
-          ? 'border-[var(--kw-primary-300)] bg-[var(--kw-primary-50)] text-[var(--kw-primary-700)]'
-          : 'border-[var(--kw-border)] bg-[var(--kw-surface)] text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-surface)]'
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function parseCommaSeparatedList(raw: string): string[] {
-  return raw
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function parseLabels(raw: string): Record<string, string> {
-  return raw
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .reduce<Record<string, string>>((labels, item) => {
-      const [key, value] = item.split(':').map((part) => part.trim());
-      if (key && value) {
-        labels[key] = value;
-      }
-      return labels;
-    }, {});
 }

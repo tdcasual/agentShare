@@ -25,3 +25,13 @@ docker compose --env-file "${COMPOSE_ENV_FILE}" -f "${COMPOSE_FILE}" exec -T "${
   > "${backup_file}"
 
 echo "Postgres backup written to ${backup_file}"
+
+# Rotate old backups - keep last 30
+: "${BACKUP_RETENTION_COUNT:=30}"
+backup_count=$(find "${BACKUP_DIR}" -name "postgres-*.dump" -type f | wc -l)
+if [ "${backup_count}" -gt "${BACKUP_RETENTION_COUNT}" ]; then
+  find "${BACKUP_DIR}" -name "postgres-*.dump" -type f -printf '%T@ %p\n' | \
+    sort -n | head -n $((backup_count - BACKUP_RETENTION_COUNT)) | \
+    awk '{print $2}' | xargs rm -f
+  echo "Rotated old backups, keeping last ${BACKUP_RETENTION_COUNT}"
+fi

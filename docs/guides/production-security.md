@@ -1,66 +1,47 @@
 # Production Security
 
-This guide covers the security controls that live inside this repository. It complements the deployment and operations guides and assumes the production stack already runs behind `caddy`.
-
-For the platform-owned boundary around SSO, external secret backend operations, centralized alerting, and incident escalation, see `docs/guides/platform-handoff-checklist.md`, `docs/guides/platform-ownership-matrix.md`, and `docs/guides/platform-incident-escalation.md`.
-For the app-owned management permission boundary, see `docs/guides/operator-policy-matrix.md`.
-
-For P3 secret and identity hardening runbooks, also see:
-
-- `docs/guides/secret-backend-rotation-runbook.md`
-- `docs/guides/secret-backend-recovery-runbook.md`
-- `docs/guides/operator-identity-runbook.md`
-
 ## Ingress Security
 
-- `ops/caddy/Caddyfile` is the source of truth for public entrypoint behavior.
-- The production stack serves traffic through Caddy only; `api`, `web`, `postgres`, and `redis` are not published directly.
-- `/metrics` is intentionally limited to host-local or private-network callers so raw operational counters are not exposed on the public internet.
-- Caddy applies baseline security headers:
-  - `Strict-Transport-Security`
-  - `X-Content-Type-Options`
-  - `X-Frame-Options`
-  - `Referrer-Policy`
-  - `Permissions-Policy`
+- Caddy is the only public entrypoint on ports 80/443.
+- API, Web, and PostgreSQL are not published directly.
+- Caddy applies security headers: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.
+
+## Application Security
+
+- **Encryption**: Secrets are encrypted at rest with AES-256-GCM.
+- **Session cookies**: HMAC-SHA256 signed, httponly, samesite=lax, configurable secure flag.
+- **CSRF protection**: Origin/Referer validation on state-changing requests.
+- **Rate limiting**: Login endpoint is rate-limited (5 attempts per 5 minutes).
+- **Password policy**: Minimum 12 characters, mixed case, digits, and special characters.
+- **Token security**: Tokens stored as SHA-256 hashes, shown only once at creation.
 
 ## Secret Rotation
 
-- Rotate `DEPLOY_ENV_FILE` whenever production app secrets, domains, or database credentials change.
-- The deploy workflow rewrites `.env.production` on every run, so rotation changes are not silently ignored.
-- Rotate `SECRET_BACKEND_TOKEN` in the external secret backend according to the provider's least-privilege policy.
-- Rotate `BOOTSTRAP_OWNER_KEY` and `MANAGEMENT_SESSION_SECRET` whenever operator trust changes or after an incident.
-- Rehearse secret rotation and operator session revocation before each supervised trial run so responders know which secrets, cookies, and deploy inputs must change first.
-- When an operator session should stop immediately, revoke the session server-side or force a fresh login. Browser cookie deletion alone is not the source of truth anymore.
+Rotate these values periodically and after any suspected compromise:
+
+- `ENCRYPTION_KEY`: Generate with `python3 -c "import secrets,base64; print(base64.b64encode(secrets.token_bytes(32)).decode())"`
+- `SESSION_SECRET`: Generate with `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
+- `POSTGRES_PASSWORD`: Use a strong random password
 
 ## Fail-Fast Configuration
 
-- Production and staging must replace the placeholder values `changeme-bootstrap-key` and `changeme-management-session-secret` before the API can boot.
-- Production and staging must set `MANAGEMENT_SESSION_SECURE=true` so browser session cookies are always marked secure.
-- Management sessions are intentionally short-lived, persisted server-side, and carry a distinct `session_id` for audit correlation. Treat each new login as a fresh operator session, not a renewable long-lived admin credential.
-- `OPERATOR_IDENTITY_PROVIDER=local` is the default management login mode in this repository and delegates browser login to the persisted human-account password flow.
-- The operator identity provider is now an explicit seam, so future SSO or external identity-provider work can replace the local credential check without rewriting session issuance, cookie policy, or audit semantics.
-- Keep a written rotation rehearsal for the local operator identity flow until external SSO replaces it; trial-run responders should know how to revoke operator sessions and reissue access without guessing.
-- If you customize operator identity through `MANAGEMENT_OPERATOR_ID` or `MANAGEMENT_OPERATOR_ROLE`, keep those values stable and human-readable so audit trails remain legible.
-- Supported management roles are `viewer`, `operator`, `admin`, and `owner`.
-- Use `viewer` for read-only management visibility such as capability inventory, runs, and playbook search.
-- Use `operator` for approval review and decision-making without secret or agent inventory changes.
-- Use `admin` for secret inventory, capability creation, and agent creation/listing.
-- Use `owner` when the session must also be able to delete agent identities.
-- If Redis-backed idempotency middleware cannot initialize, development logs the reason explicitly and production fails fast instead of silently degrading.
-- Redis-backed runtime coordination now protects task claim, capability invoke, and capability lease. Development may log a deliberate local-only fallback while Redis is unavailable, but staging and production fail closed with `503` responses until coordination is restored.
-- `SECRET_BACKEND=openbao` now requires real `OPENBAO_ADDR` and `OPENBAO_TOKEN` values in every environment. For local-only work, use the explicit `SECRET_BACKEND=memory` mode instead of relying on implicit fallback behavior.
+Production settings enforce:
 
-## Container Security Scan
+- `ENCRYPTION_KEY` must not be the default development key
+- `SESSION_SECRET` must not be the default development secret
+- `SESSION_SECURE` must be `true`
+- `APP_ENV` must be `production` or `staging`
 
-- `.github/workflows/security.yml` runs a Trivy security scan against the published `ghcr.io` images.
-- The workflow supports both scheduled execution and manual `workflow_dispatch`.
-- Treat `CRITICAL` and `HIGH` findings as release blockers until they are triaged or fixed.
+## Container Security
 
-## Incident Entry Points
+- `.github/workflows/security.yml` runs Trivy scans weekly.
+- `CRITICAL` and `HIGH` findings are release blockers.
+- All containers run as non-root users.
+- Production compose uses `read_only: true` and `no-new-privileges`.
 
-- Start with the deployment smoke check, `/healthz`, and `/metrics`.
-- Use `agent_control_plane_http_requests_total{method,path,status}` on the host-local `/metrics` endpoint to narrow down which routes are failing before you rotate credentials or restart services.
-- A cluster of `503` responses on task claim or capability runtime routes usually means Redis coordination is down or partitioned; restore Redis before retrying agents.
-- Use the response `x-request-id` header to correlate operator reports with API request logs.
-- Review the latest deploy logs and the Trivy scan output before assuming the issue is application-only.
-- If a secret compromise is suspected, rotate the external secret backend token first, then redeploy with updated `DEPLOY_ENV_FILE`.
+## Incident Response
+
+1. Check `/healthz` and `/metrics` endpoints.
+2. Use `x-request-id` header to correlate requests with logs.
+3. Review audit logs via the web UI at `/audit`.
+4. If secret compromise is suspected, rotate `ENCRYPTION_KEY` and `SESSION_SECRET`, then redeploy.

@@ -1,97 +1,93 @@
+"""VaultGate configuration.
+
+This module defines VaultGate application settings.
+"""
 import os
 from typing import Literal
 
 from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DEFAULT_BOOTSTRAP_OWNER_KEY = "changeme-bootstrap-key"
-DEFAULT_MANAGEMENT_SESSION_SECRET = "changeme-management-session-secret"
-ManagementRole = Literal["viewer", "operator", "admin", "owner"]
+# Defaults - MUST be changed in production
+# Valid base64-encoded 32-byte key for AES-256-GCM (development only)
+DEFAULT_ENCRYPTION_KEY = "ZGV2LW9ubHktMzItYnl0ZS1lbmNyeXB0aW9uLWtleSE="  # DO NOT use in production
+DEFAULT_SESSION_SECRET = "changeme-session-secret-for-cookies"
 
 
 class Settings(BaseSettings):
+    """VaultGate application settings."""
+
     model_config = SettingsConfigDict(populate_by_name=True, extra="forbid")
 
+    # Environment
     app_env: Literal["development", "staging", "production"] = "development"
-    database_url: str = "sqlite:///./agent_share.db"
-    redis_url: str = "redis://localhost:6379/0"
-    secret_backend: str = "memory"
-    openbao_addr: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("openbao_addr", "OPENBAO_ADDR", "secret_backend_url", "SECRET_BACKEND_URL"),
-    )
-    openbao_token: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("openbao_token", "OPENBAO_TOKEN", "secret_backend_token", "SECRET_BACKEND_TOKEN"),
-    )
-    openbao_token_file: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("openbao_token_file", "OPENBAO_TOKEN_FILE"),
-    )
-    openbao_mount: str = "secret"
-    openbao_prefix: str = "agent-share"
-    bootstrap_owner_key: str = DEFAULT_BOOTSTRAP_OWNER_KEY
-    management_session_secret: str = DEFAULT_MANAGEMENT_SESSION_SECRET
-    management_session_cookie_name: str = "management_session"
-    management_session_ttl_seconds: int = 60 * 60 * 12
-    management_session_secure: bool = False
-    auth_rate_limit_max_attempts: int = 5
-    auth_rate_limit_window_seconds: int = 300
-    operator_identity_provider: Literal["local"] = "local"
+
+    # Database
+    database_url: str = "sqlite:///./vaultgate.db"
+
+    # Encryption - AES-256-GCM key (32 bytes base64-encoded = 44 chars)
+    encryption_key: str = DEFAULT_ENCRYPTION_KEY
+
+    # Session - for web UI authentication cookies
+    session_secret: str = DEFAULT_SESSION_SECRET
+    session_cookie_name: str = "vaultgate_session"
+    session_ttl_seconds: int = 60 * 60 * 12  # 12 hours
+    session_secure: bool = False  # Set True in production with HTTPS
+
+    # CORS
     cors_allowed_origins: str = ""
     cors_allow_credentials: bool = True
+
+    # Rate limiting
+    auth_rate_limit_max_attempts: int = 5
+    auth_rate_limit_window_seconds: int = 300
+
+    # Token defaults
+    token_default_ttl_days: int = 30
+    token_max_ttl_days: int = 365
+
+    # Security headers
+    hsts_max_age: int = 31536000  # 1 year — only active in production
+    csp_report_only: bool = False  # Set True to report violations without blocking
+
+    # Observability
     metrics_enabled: bool = True
-    demo_seed_enabled: bool = Field(
-        default=False,
-        validation_alias=AliasChoices(
-            "demo_seed_enabled",
-            "DEMO_SEED_ENABLED",
-            "CONTROL_PLANE_DEMO_SEED_ENABLED",
-        ),
-    )
-    csrf_allowed_origins: str = ""
 
     @model_validator(mode="after")
-    def validate_secret_backend_for_environment(self) -> "Settings":
-        if (not self.openbao_token) and self.openbao_token_file:
-            with open(self.openbao_token_file, encoding="utf-8") as token_file:
-                self.openbao_token = token_file.read().strip() or None
-
+    def validate_settings_for_environment(self) -> "Settings":
+        """Validate settings based on environment."""
         if self._requires_explicit_app_env():
             raise ValueError(
                 "APP_ENV must be set explicitly for non-local deployments instead of relying on the development default."
             )
 
-        if self.secret_backend == "memory" and self.is_production_like():
-            raise ValueError("APP_ENV staging/production does not allow SECRET_BACKEND=memory.")
+        if self.is_production_like():
+            # Validate encryption key
+            if self.encryption_key == DEFAULT_ENCRYPTION_KEY:
+                raise ValueError(
+                    "Production settings must use a strong ENCRYPTION_KEY. "
+                    "Generate with: python -c 'import secrets, base64; print(base64.b64encode(secrets.token_bytes(32)).decode())'"
+                )
 
-        if (
-            self.secret_backend == "openbao"
-            and self.is_production_like()
-            and (not self.openbao_addr or not self.openbao_token)
-        ):
-            raise ValueError(
-                "OpenBao credentials are required in staging/production when SECRET_BACKEND=openbao."
-            )
+            # Validate session secret
+            if self.session_secret == DEFAULT_SESSION_SECRET:
+                raise ValueError(
+                    "Production settings must use a strong SESSION_SECRET. "
+                    "Generate with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+                )
 
-        if self.is_production_like() and self.bootstrap_owner_key == DEFAULT_BOOTSTRAP_OWNER_KEY:
-            raise ValueError("Production settings must not use the default bootstrap owner key.")
-
-        if self.is_production_like() and self.management_session_secret == DEFAULT_MANAGEMENT_SESSION_SECRET:
-            raise ValueError("Production settings must not use the default management session secret.")
-
-        if self.is_production_like() and not self.management_session_secure:
-            raise ValueError("Production settings require secure management session cookies.")
-
-        if self.is_production_like() and self.demo_seed_enabled:
-            raise ValueError("Demo seed mode is only allowed in development.")
+            # Validate secure cookies
+            if not self.session_secure:
+                raise ValueError("Production settings require secure session cookies (SESSION_SECURE=true).")
 
         return self
 
     def is_production_like(self) -> bool:
+        """Check if running in production-like environment."""
         return self.app_env in {"staging", "production"}
 
     def _requires_explicit_app_env(self) -> bool:
+        """Check if APP_ENV must be explicitly set."""
         if self.is_production_like():
             return False
         if "app_env" in self.model_fields_set:

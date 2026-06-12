@@ -1,15 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  getGlobalSession,
-  setGlobalSession,
-  subscribeToSession,
-  resolveSession,
-  login,
-  logout,
-} from './session-state';
-import { apiFetch } from './api-client';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { getGlobalSession, setGlobalSession, subscribeToSession, resolveSession, logout } from './session-state';
 
-vi.mock('./api-client', () => ({
+// Mock the API module
+vi.mock('@/lib/vaultgate-api', () => ({
   apiFetch: vi.fn(),
   ApiError: class ApiError extends Error {
     status: number;
@@ -18,129 +11,121 @@ vi.mock('./api-client', () => ({
       super(detail);
       this.status = status;
       this.detail = detail;
+      this.name = 'ApiError';
     }
   },
 }));
 
+vi.mock('@/store/role-store', () => ({
+  useRoleStore: {
+    getState: () => ({
+      clearRole: vi.fn(),
+    }),
+  },
+}));
+
+import { apiFetch } from '@/lib/vaultgate-api';
+const mockedApiFetch = vi.mocked(apiFetch);
+
 describe('session-state', () => {
   beforeEach(() => {
+    // Reset global session to unknown
     setGlobalSession({ state: 'unknown' });
     vi.clearAllMocks();
   });
 
-  describe('global session', () => {
-    it('starts as unknown', () => {
-      expect(getGlobalSession()).toEqual({ state: 'unknown' });
+  describe('getGlobalSession / setGlobalSession', () => {
+    it('returns initial unknown state', () => {
+      const session = getGlobalSession();
+      expect(session.state).toBe('unknown');
     });
 
-    it('updates global session and notifies listeners', () => {
-      const listener = vi.fn();
-      subscribeToSession(listener);
-
-      setGlobalSession({ state: 'authenticated', email: 'a@b.com', role: 'admin' });
-
-      expect(getGlobalSession()).toEqual({
-        state: 'authenticated',
-        email: 'a@b.com',
-        role: 'admin',
-      });
-      expect(listener).toHaveBeenCalledWith({
-        state: 'authenticated',
-        email: 'a@b.com',
-        role: 'admin',
-      });
+    it('updates global session', () => {
+      setGlobalSession({ state: 'authenticated', email: 'test@test.com', role: 'admin' });
+      const session = getGlobalSession();
+      expect(session.state).toBe('authenticated');
+      expect(session.email).toBe('test@test.com');
     });
+  });
 
-    it('unsubscribes listeners', () => {
+  describe('subscribeToSession', () => {
+    it('notifies listeners on session change', () => {
       const listener = vi.fn();
       const unsubscribe = subscribeToSession(listener);
-      unsubscribe();
 
       setGlobalSession({ state: 'anonymous' });
+
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining({ state: 'anonymous' }));
+
+      unsubscribe();
+    });
+
+    it('stops notifying after unsubscribe', () => {
+      const listener = vi.fn();
+      const unsubscribe = subscribeToSession(listener);
+
+      unsubscribe();
+      setGlobalSession({ state: 'anonymous' });
+
       expect(listener).not.toHaveBeenCalled();
     });
   });
 
   describe('resolveSession', () => {
-    it('returns authenticated data on success', async () => {
-      vi.mocked(apiFetch).mockResolvedValue({
-        email: 'a@b.com',
+    it('returns authenticated session on success', async () => {
+      mockedApiFetch.mockResolvedValueOnce({
+        status: 'active',
+        actor_type: 'human',
+        actor_id: '123',
         role: 'admin',
-        session_id: 'sess-1',
+        auth_method: 'session',
+        session_id: 'sess_1',
+        email: 'test@test.com',
+        expires_in: 43200,
+        issued_at: 0,
+        expires_at: 43200,
       });
 
-      const result = await resolveSession();
-      expect(result.state).toBe('authenticated');
-      expect(result.email).toBe('a@b.com');
-      expect(result.role).toBe('admin');
-      expect(result.sessionId).toBe('sess-1');
-      expect(result.lastLoadedAt).toBeTypeOf('number');
+      const session = await resolveSession();
+
+      expect(session.state).toBe('authenticated');
+      expect(session.email).toBe('test@test.com');
     });
 
     it('returns anonymous on 401', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(
-        new (await import('./api-client')).ApiError(401, 'Unauthorized')
-      );
+      const { ApiError } = await import('@/lib/vaultgate-api');
+      mockedApiFetch.mockRejectedValueOnce(new ApiError(401, 'Unauthorized'));
 
-      const result = await resolveSession();
-      expect(result.state).toBe('anonymous');
+      const session = await resolveSession();
+
+      expect(session.state).toBe('anonymous');
     });
 
     it('returns forbidden on 403', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(
-        new (await import('./api-client')).ApiError(403, 'Forbidden')
-      );
+      const { ApiError } = await import('@/lib/vaultgate-api');
+      mockedApiFetch.mockRejectedValueOnce(new ApiError(403, 'Forbidden'));
 
-      const result = await resolveSession();
-      expect(result.state).toBe('forbidden');
-      expect(result.error).toBe('Forbidden');
+      const session = await resolveSession();
+
+      expect(session.state).toBe('forbidden');
     });
 
-    it('returns unavailable on network error', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(new Error('Network failure'));
+    it('returns unavailable on other errors', async () => {
+      mockedApiFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await resolveSession();
-      expect(result.state).toBe('unavailable');
-      expect(result.error).toBe('Network failure');
-    });
-  });
+      const session = await resolveSession();
 
-  describe('login', () => {
-    it('sets global session on success', async () => {
-      vi.mocked(apiFetch).mockResolvedValue({
-        email: 'a@b.com',
-        role: 'admin',
-        session_id: 'sess-1',
-      });
-
-      const result = await login('a@b.com', 'pw');
-      expect(result.state).toBe('authenticated');
-      expect(getGlobalSession().state).toBe('authenticated');
-    });
-
-    it('returns anonymous on 401', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(
-        new (await import('./api-client')).ApiError(401, 'Nope')
-      );
-
-      const result = await login('a@b.com', 'pw');
-      expect(result.state).toBe('anonymous');
-    });
-
-    it('throws on 500', async () => {
-      vi.mocked(apiFetch).mockRejectedValue(
-        new (await import('./api-client')).ApiError(500, 'Oops')
-      );
-      await expect(login('a@b.com', 'pw')).rejects.toThrow();
+      expect(session.state).toBe('unavailable');
     });
   });
 
   describe('logout', () => {
-    it('clears session even if api call fails', async () => {
-      setGlobalSession({ state: 'authenticated' });
-      vi.mocked(apiFetch).mockRejectedValue(new Error('network'));
+    it('calls logout endpoint and clears session', async () => {
+      mockedApiFetch.mockResolvedValueOnce({ status: 'logged_out' });
 
-      await expect(logout()).rejects.toThrow('network');
+      await logout();
+
+      expect(mockedApiFetch).toHaveBeenCalledWith('/session/logout', { method: 'POST' });
       expect(getGlobalSession().state).toBe('anonymous');
     });
   });
