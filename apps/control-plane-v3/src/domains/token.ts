@@ -9,13 +9,11 @@
 import useSWR, { mutate } from 'swr';
 import {
   listTokens as apiListTokens,
-  getToken as apiGetToken,
   createToken as apiCreateToken,
   revokeToken as apiRevokeToken,
   listScopes as apiListScopes,
   createScopes as apiCreateScopes,
   deleteScope as apiDeleteScope,
-  type Token,
   type TokenCreateInput,
   type TokenCreateResponse,
   type Scope,
@@ -41,19 +39,6 @@ export function useTokens() {
     isLoading,
     error,
     refresh: mutate,
-  };
-}
-
-export function useToken(id: string | null) {
-  const { data, error, isLoading } = useSWR(
-    id ? `${TOKEN_CACHE_KEY}/${id}` : null,
-    () => (id ? apiGetToken(id) : Promise.reject(new Error('No ID provided')))
-  );
-
-  return {
-    token: data,
-    isLoading,
-    error,
   };
 }
 

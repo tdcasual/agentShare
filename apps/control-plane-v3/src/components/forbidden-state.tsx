@@ -11,7 +11,7 @@ import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 
 import { useI18n } from '@/components/i18n-provider';
-import { useRole } from '@/hooks/use-role';
+import { useGlobalSession } from '@/lib/session-state';
 import { getDefaultManagementRoute, type ManagementRole } from '@/lib/role-system';
 import { Lock, ArrowLeft, Home } from 'lucide-react';
 
@@ -38,10 +38,10 @@ export function ForbiddenState({
 }: ForbiddenStateProps) {
   const router = useRouter();
   const { t } = useI18n();
-  const { role, isLoading } = useRole();
-  const homeTarget = getDefaultManagementRoute(role);
+  const session = useGlobalSession();
+  const homeTarget = getDefaultManagementRoute(session.role);
 
-  if (isLoading) {
+  if (session.state === 'unknown') {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex animate-pulse flex-col items-center gap-4">
@@ -81,7 +81,7 @@ export function ForbiddenState({
         <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <div className="rounded-full bg-[var(--kw-surface-alt)] px-4 py-2 text-sm text-[var(--kw-text-muted)] dark:bg-[var(--kw-dark-border)] dark:text-[var(--kw-dark-text-muted)]">
             {t('forbiddenState.currentRole')}:{' '}
-            {role ? getRoleLabel(t, role) : t('forbiddenState.notLoggedIn')}
+            {session.role ? getRoleLabel(t, session.role) : t('forbiddenState.notLoggedIn')}
           </div>
           <span className="text-[var(--kw-text-muted)]">→</span>
           <div className="dark:bg-[var(--kw-dark-purple-surface)]/30 rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)] dark:text-[var(--kw-dark-primary)]">

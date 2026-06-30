@@ -1,1 +1,1 @@
-"""Agent control plane API package."""
+"""VaultGate API package."""

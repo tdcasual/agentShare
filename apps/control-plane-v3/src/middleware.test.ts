@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { NextRequest } from 'next/server';
 import { middleware } from './middleware';
 
-const initialManagementSessionCookieName = process.env.MANAGEMENT_SESSION_COOKIE_NAME;
+const initialSessionCookieName = process.env.SESSION_COOKIE_NAME;
 
 function buildManagementSessionToken(role: 'viewer' | 'operator' | 'admin' | 'owner') {
   const payload = Buffer.from(
@@ -20,7 +20,7 @@ function buildManagementSessionToken(role: 'viewer' | 'operator' | 'admin' | 'ow
   return `${payload}.${signature}`;
 }
 
-function buildRequest(pathname: string, token?: string, cookieName = 'management_session') {
+function buildRequest(pathname: string, token?: string, cookieName = 'vg_session') {
   const headers = new Headers();
   if (token) {
     headers.set('cookie', `${cookieName}=${token}`);
@@ -30,40 +30,42 @@ function buildRequest(pathname: string, token?: string, cookieName = 'management
 
 describe('middleware', () => {
   afterEach(() => {
-    if (initialManagementSessionCookieName === undefined) {
-      delete process.env.MANAGEMENT_SESSION_COOKIE_NAME;
+    if (initialSessionCookieName === undefined) {
+      delete process.env.SESSION_COOKIE_NAME;
       return;
     }
 
-    process.env.MANAGEMENT_SESSION_COOKIE_NAME = initialManagementSessionCookieName;
+    process.env.SESSION_COOKIE_NAME = initialSessionCookieName;
   });
 
-  it('marks viewer as forbidden for admin routes when using a two-part management session token', () => {
+  it('lets public routes pass without auth headers', () => {
+    const response = middleware(buildRequest('/login'));
+
+    expect(response.headers.get('x-auth-required')).toBeNull();
+  });
+
+  it('marks protected routes as auth-required when no session cookie is present', () => {
+    const response = middleware(buildRequest('/tokens'));
+
+    expect(response.headers.get('x-auth-required')).toBe('true');
+  });
+
+  it('does not parse cookie contents or propagate role headers for security', () => {
     const token = buildManagementSessionToken('viewer');
     const response = middleware(buildRequest('/tokens', token));
 
-    expect(response.headers.get('x-forbidden')).toBe('true');
-    expect(response.headers.get('x-required-role')).toBe('admin');
-    expect(response.headers.get('x-current-role')).toBe('viewer');
-  });
-
-  it('uses the shared route role policy for /tasks (admin required)', () => {
-    const token = buildManagementSessionToken('operator');
-    const response = middleware(buildRequest('/tasks', token));
-
-    expect(response.headers.get('x-forbidden')).toBe('true');
-    expect(response.headers.get('x-required-role')).toBe('admin');
-    expect(response.headers.get('x-current-role')).toBe('operator');
+    expect(response.headers.get('x-auth-required')).toBeNull();
+    expect(response.headers.get('x-forbidden')).toBeNull();
+    expect(response.headers.get('x-required-role')).toBeNull();
+    expect(response.headers.get('x-current-role')).toBeNull();
   });
 
   it('honors a custom management session cookie name from env', () => {
-    process.env.MANAGEMENT_SESSION_COOKIE_NAME = 'ops_session';
+    process.env.SESSION_COOKIE_NAME = 'ops_session';
 
     const token = buildManagementSessionToken('viewer');
     const response = middleware(buildRequest('/tokens', token, 'ops_session'));
 
-    expect(response.headers.get('x-forbidden')).toBe('true');
-    expect(response.headers.get('x-required-role')).toBe('admin');
-    expect(response.headers.get('x-current-role')).toBe('viewer');
+    expect(response.headers.get('x-auth-required')).toBeNull();
   });
 });

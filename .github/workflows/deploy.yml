@@ -5,8 +5,7 @@ on:
     inputs:
       image_tag:
         description: Docker image tag to deploy
-        required: false
-        default: latest
+        required: true
       environment:
         description: GitHub environment name for this deployment
         required: false
@@ -34,11 +33,7 @@ jobs:
         shell: bash
         run: |
           echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.image_tag }}" ]; then
-            echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "image_tag=latest" >> "$GITHUB_OUTPUT"
-          fi
+          echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
 
       - name: Prepare release image env
         shell: bash
@@ -61,46 +56,43 @@ jobs:
 
       - name: Pull and restart remote stack
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_ENV_FILE: ${{ secrets.DEPLOY_ENV_FILE }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
           script_stop: true
+          envs: DEPLOY_ENV_FILE,GHCR_TOKEN,GHCR_USERNAME,DEPLOY_PATH
           script: |
             set -euo pipefail
-            mkdir -p "${{ secrets.DEPLOY_PATH }}"
-            cd "${{ secrets.DEPLOY_PATH }}"
+            mkdir -p "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
             mkdir -p ops/caddy ops/compose scripts/ops
 
-            if [ -z "${{ secrets.DEPLOY_ENV_FILE }}" ]; then
+            if [ -z "$DEPLOY_ENV_FILE" ]; then
               echo "DEPLOY_ENV_FILE secret is required."
               exit 1
             fi
 
-            cat > .env.production <<'EOF'
-            ${{ secrets.DEPLOY_ENV_FILE }}
-            EOF
+            printf '%s\n' "$DEPLOY_ENV_FILE" > .env.production
 
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            printf '%s\n' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             set -a
             . ./.env.production
             . ./.release.env
             set +a
 
-            if [ -z "${{ secrets.ACP_ADMIN_EMAIL }}" ] || [ -z "${{ secrets.ACP_ADMIN_PASSWORD }}" ]; then
-              echo "ACP_ADMIN_EMAIL and ACP_ADMIN_PASSWORD secrets are required for authenticated smoke checks."
-              exit 1
-            fi
-            export ACP_ADMIN_EMAIL="${{ secrets.ACP_ADMIN_EMAIL }}"
-            export ACP_ADMIN_PASSWORD="${{ secrets.ACP_ADMIN_PASSWORD }}"
-
             docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null
             docker compose --env-file .env.production -f docker-compose.prod.yml pull
             docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
 
             chmod +x scripts/ops/smoke-test.sh
-            echo "Running smoke checks through caddy (/healthz, /metrics, x-request-id)..."
+            echo "Running smoke checks through caddy (/healthz, /readyz, x-request-id)..."
             ./scripts/ops/smoke-test.sh
             docker image prune -f

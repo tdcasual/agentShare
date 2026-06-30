@@ -11,14 +11,13 @@ from time import monotonic
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from sqlalchemy.engine import make_url
 
 from app import db as db_module
 from app.config import Settings
-from app.errors import DomainError
-from app.observability import build_request_log_event, record_http_request
+from app.observability import build_request_log_event
 from app.routes import register_routes
 from app.runtime import AppRuntime, build_runtime
 
@@ -58,7 +57,6 @@ def add_request_logging_middleware(app: FastAPI) -> None:
 
         duration_ms = round((monotonic() - started_at) * 1000, 3)
         response.headers["x-request-id"] = request_id
-        record_http_request(request.method, request.url.path, status_code)
         request_logger.info(json.dumps(build_request_log_event(
             request_id=request_id,
             method=request.method,
@@ -74,6 +72,42 @@ def register_core_routes(app: FastAPI) -> None:
     def healthcheck() -> dict[str, str]:
         return {"status": "ok"}
 
+    @app.get("/readyz", response_model=None, tags=["Bootstrap"], summary="Readiness probe", description="Deep health check verifying database and encryption service.")
+    def readiness_check(request: Request) -> JSONResponse | dict[str, str]:
+        """Verify all critical dependencies are available.
+
+        Returns 200 if the service is ready to accept traffic, 503 otherwise.
+        Checks: database connectivity, encryption key availability.
+        """
+        checks: dict[str, str] = {}
+
+        # Check database connectivity
+        try:
+            runtime: AppRuntime = request.app.state.runtime
+            with runtime.engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            checks["database"] = "ok"
+        except Exception as exc:
+            startup_logger.exception("Readiness check: database failed")
+            checks["database"] = f"error: {exc}"
+
+        # Check encryption service
+        try:
+            from app.services.encryption import get_encryption_service
+            svc = get_encryption_service()
+            svc.encrypt("healthcheck")  # round-trip test
+            checks["encryption"] = "ok"
+        except Exception as exc:
+            startup_logger.exception("Readiness check: encryption failed")
+            checks["encryption"] = f"error: {exc}"
+
+        if all(v == "ok" for v in checks.values()):
+            return {"status": "ok", **checks}
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", **checks},
+        )
+
     @app.get("/version", tags=["Bootstrap"], summary="Version info", description="Application version information.")
     def version() -> dict[str, str]:
         return {
@@ -84,7 +118,7 @@ def register_core_routes(app: FastAPI) -> None:
 
 
 def add_security_headers_middleware(app: FastAPI, settings: Settings) -> None:
-    """Add security response headers (CSP, HSTS, X-Content-Type-Options, etc.)."""
+    """Add core security response headers."""
 
     @app.middleware("http")
     async def inject_security_headers(request: Request, call_next):
@@ -99,53 +133,7 @@ def add_security_headers_middleware(app: FastAPI, settings: Settings) -> None:
         # Referrer-Policy: minimize referrer leakage
         response.headers["referrer-policy"] = "strict-origin-when-cross-origin"
 
-        # Permissions-Policy: disable unnecessary browser features
-        response.headers["permissions-policy"] = "camera=(), microphone=(), geolocation=()"
-
-        # HSTS: only in production (requires HTTPS)
-        if settings.is_production_like():
-            response.headers["strict-transport-security"] = (
-                f"max-age={settings.hsts_max_age}; includeSubDomains; preload"
-            )
-
-        # Content-Security-Policy
-        csp = _build_csp(settings)
-        if settings.csp_report_only:
-            response.headers["content-security-policy-report-only"] = csp
-        else:
-            response.headers["content-security-policy"] = csp
-
         return response
-
-
-def _build_csp(settings: Settings) -> str:
-    """Build Content-Security-Policy header value based on environment."""
-    # In development: allow inline scripts/styles for hot-reload DX
-    if not settings.is_production_like():
-        return (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data: blob:; "
-            "font-src 'self' data:; "
-            "connect-src 'self' http://localhost:* ws://localhost:*; "
-            "frame-ancestors 'none'; "
-            "base-uri 'self'; "
-            "form-action 'self'"
-        )
-
-    # Production: strict CSP
-    return (
-        "default-src 'none'; "
-        "script-src 'self'; "
-        "style-src 'self'; "
-        "img-src 'self'; "
-        "font-src 'self'; "
-        "connect-src 'self'; "
-        "frame-ancestors 'none'; "
-        "base-uri 'self'; "
-        "form-action 'self'"
-    )
 
 
 def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
@@ -238,40 +226,7 @@ def configure_default_app(app: FastAPI, settings: Settings) -> None:
     add_csrf_middleware(app, settings)
     add_security_headers_middleware(app, settings)
     add_request_logging_middleware(app)
-    add_domain_error_handlers(app)
-    add_runtime_openapi_customizer(app)
     register_core_routes(app)
-
-
-def add_domain_error_handlers(app: FastAPI) -> None:
-    @app.exception_handler(DomainError)
-    async def handle_domain_error(request: Request, exc: DomainError) -> JSONResponse:
-        response = JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail},
-        )
-        request_id = getattr(request.state, "request_id", None)
-        if request_id:
-            response.headers["x-request-id"] = request_id
-        return response
-
-
-def add_runtime_openapi_customizer(app: FastAPI) -> None:
-    def custom_openapi():
-        if app.openapi_schema is not None:
-            return app.openapi_schema
-
-        schema = get_openapi(
-            title=app.title,
-            version=app.version,
-            description=app.description,
-            routes=app.routes,
-            tags=app.openapi_tags,
-        )
-        app.openapi_schema = schema
-        return schema
-
-    app.openapi = custom_openapi  # type: ignore[method-assign]
 
 
 def create_app(
@@ -306,11 +261,27 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app_instance: FastAPI):
         settings = app_instance.state.settings
+        startup_logger.info("VaultGate starting (env=%s)", settings.app_env)
 
         # Ephemeral SQLite app starts need in-process migration
         if _uses_embedded_sqlite(settings.database_url):
             db_module.migrate_db(settings.database_url)
+
         yield
+
+        # Graceful shutdown: dispose engines and release connections
+        startup_logger.info("VaultGate shutting down — disposing database engines")
+        runtime_obj: AppRuntime = app_instance.state.runtime
+        try:
+            runtime_obj.engine.dispose()
+        except Exception:
+            startup_logger.exception("Error disposing sync engine during shutdown")
+        try:
+            from app.db import dispose_async_engine
+            await dispose_async_engine()
+        except Exception:
+            startup_logger.exception("Error disposing async engine during shutdown")
+        startup_logger.info("VaultGate shutdown complete")
 
     app = FastAPI(
         title="VaultGate",

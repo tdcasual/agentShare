@@ -1,5 +1,4 @@
 """Tests for security middleware: CSP/HSTS headers and CSRF Origin validation."""
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -7,10 +6,7 @@ from app.config import Settings
 from app.factory import (
     add_csrf_middleware,
     add_security_headers_middleware,
-    configure_default_app,
-    create_app,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -85,65 +81,6 @@ class TestSecurityHeaders:
         resp = client.get("/healthz")
         assert resp.headers["referrer-policy"] == "strict-origin-when-cross-origin"
 
-    def test_permissions_policy(self):
-        client = _client_with_security_headers()
-        resp = client.get("/healthz")
-        assert "camera=()" in resp.headers["permissions-policy"]
-        assert "microphone=()" in resp.headers["permissions-policy"]
-        assert "geolocation=()" in resp.headers["permissions-policy"]
-
-    def test_no_hsts_in_development(self):
-        settings = Settings(app_env="development")
-        client = _client_with_security_headers(settings)
-        resp = client.get("/healthz")
-        assert "strict-transport-security" not in resp.headers
-
-    def test_hsts_in_production(self):
-        settings = Settings(
-            app_env="production",
-            encryption_key="a" * 44,
-            session_secret="a" * 32,
-            session_secure=True,
-        )
-        client = _client_with_security_headers(settings)
-        resp = client.get("/healthz")
-        hsts = resp.headers.get("strict-transport-security", "")
-        assert "max-age=31536000" in hsts
-        assert "includeSubDomains" in hsts
-        assert "preload" in hsts
-
-    def test_csp_header_present_in_dev(self):
-        client = _client_with_security_headers()
-        resp = client.get("/healthz")
-        csp = resp.headers.get("content-security-policy", "")
-        assert "default-src 'self'" in csp
-        # Dev allows unsafe-inline for hot-reload
-        assert "'unsafe-inline'" in csp
-
-    def test_strict_csp_in_production(self):
-        settings = Settings(
-            app_env="production",
-            encryption_key="a" * 44,
-            session_secret="a" * 32,
-            session_secure=True,
-        )
-        client = _client_with_security_headers(settings)
-        resp = client.get("/healthz")
-        csp = resp.headers.get("content-security-policy", "")
-        assert "default-src 'none'" in csp
-        # Production should NOT have unsafe-inline/unsafe-eval
-        assert "'unsafe-inline'" not in csp
-        assert "'unsafe-eval'" not in csp
-
-    def test_csp_report_only_mode(self):
-        settings = Settings(csp_report_only=True)
-        client = _client_with_security_headers(settings)
-        resp = client.get("/healthz")
-        # Should use report-only header instead of enforcement
-        assert "content-security-policy-report-only" in resp.headers
-        assert "content-security-policy" not in resp.headers or \
-               resp.headers.get("content-security-policy") is None
-
     def test_all_headers_present_on_every_response(self):
         client = _client_with_security_headers()
         resp = client.get("/healthz")
@@ -151,8 +88,6 @@ class TestSecurityHeaders:
             "x-content-type-options",
             "x-frame-options",
             "referrer-policy",
-            "permissions-policy",
-            "content-security-policy",
         ]
         for header in mandatory:
             assert header in resp.headers, f"Missing header: {header}"

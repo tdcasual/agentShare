@@ -4,13 +4,14 @@ This module provides the bootstrap endpoint for creating the initial user.
 """
 from __future__ import annotations
 
-import bcrypt
 import re
 import uuid
+
+import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_async_db
 from app.orm.user import User
@@ -99,8 +100,11 @@ async def bootstrap_init(
     """
     # Validate password strength
     validate_password_strength(body.password)
-    # Check if any users exist
-    result = await db.execute(select(User).limit(1))
+
+    # Check if any users exist (with row-level lock to prevent race condition)
+    # The FOR UPDATE lock prevents concurrent bootstrap requests from both
+    # seeing zero users and creating duplicate admin accounts.
+    result = await db.execute(select(User).limit(1).with_for_update())
     existing_user = result.scalar_one_or_none()
 
     if existing_user:

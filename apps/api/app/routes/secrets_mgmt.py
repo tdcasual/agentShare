@@ -5,15 +5,20 @@ This module provides API endpoints for secret CRUD operations via web UI.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_async_db
 from app.dependencies import get_current_user_from_session
 from app.orm.secret import Secret
 from app.orm.user import User
+from app.schemas.vault import (
+    PaginationParams,
+    VaultSecretCreate,
+    VaultSecretResponse,
+    VaultSecretUpdate,
+)
 from app.services.encryption import get_encryption_service
-from app.schemas.vault import VaultSecretCreate, VaultSecretUpdate, VaultSecretResponse, VaultSecretListResponse, PaginationParams
 
 router = APIRouter(prefix="/api/secrets")
 
@@ -56,6 +61,7 @@ async def list_secrets(
             "name": secret.name,
             "type": secret.type,
             "url": secret.url,
+            "description": secret.description,
             "tags": secret.tags,
             "created_at": secret.created_at.isoformat(),
         })
@@ -87,6 +93,7 @@ async def create_secret(
         name=secret_data.name,
         url=secret_data.url,
         username=secret_data.username,
+        description=secret_data.description,
         value_encrypted=encrypted_value,
         tags=secret_data.tags,
         secret_metadata=secret_data.metadata,
@@ -102,6 +109,7 @@ async def create_secret(
         "type": new_secret.type,
         "url": new_secret.url,
         "username": new_secret.username,
+        "description": new_secret.description,
         "tags": new_secret.tags,
         "metadata": new_secret.secret_metadata,
         "created_at": new_secret.created_at.isoformat(),
@@ -139,6 +147,7 @@ async def get_secret(
         "type": secret.type,
         "url": secret.url,
         "username": secret.username,
+        "description": secret.description,
         "tags": secret.tags,
         "metadata": secret.secret_metadata,
         "created_at": secret.created_at.isoformat(),
@@ -180,6 +189,8 @@ async def update_secret(
         secret.url = secret_data.url
     if secret_data.username is not None:
         secret.username = secret_data.username
+    if secret_data.description is not None:
+        secret.description = secret_data.description
     if secret_data.tags is not None:
         secret.tags = secret_data.tags
     if secret_data.metadata is not None:
@@ -197,6 +208,7 @@ async def update_secret(
         "type": secret.type,
         "url": secret.url,
         "username": secret.username,
+        "description": secret.description,
         "tags": secret.tags,
         "metadata": secret.secret_metadata,
         "created_at": secret.created_at.isoformat(),

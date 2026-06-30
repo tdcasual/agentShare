@@ -78,7 +78,7 @@ async function requestJson<T>(
     return payload as T;
   } catch (error) {
     clearTimeout(timeoutId);
-    if (error instanceof ApiError) throw error;
+    if (error instanceof ApiError) {throw error;}
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError(0, 'Request timeout');
     }
@@ -115,6 +115,7 @@ export interface Secret {
   name: string;
   url?: string;
   username?: string;
+  description?: string;
   tags: string[];
   metadata: Record<string, unknown>;
   created_at: string;
@@ -138,6 +139,7 @@ export interface SecretCreateInput {
   name: string;
   url?: string;
   username?: string;
+  description?: string;
   value: string;
   tags?: string[];
   metadata?: Record<string, unknown>;
@@ -147,6 +149,7 @@ export interface SecretUpdateInput {
   name?: string;
   url?: string;
   username?: string;
+  description?: string;
   value?: string;
   tags?: string[];
   metadata?: Record<string, unknown>;
@@ -165,13 +168,14 @@ export interface Token {
 
 export interface TokenCreateInput {
   name: string;
-  expires_at_days?: number;
+  description?: string;
+  expires_at?: string | null;
 }
 
 export interface TokenCreateResponse {
   id: string;
   name: string;
-  key: string; // Only shown once
+  token: string; // Only shown once
   key_prefix: string;
   status: string;
   expires_at: string | null;
@@ -233,10 +237,6 @@ export async function listSecrets(): Promise<{ items: Secret[]; total: number }>
   return requestJson('/secrets');
 }
 
-export async function getSecret(id: string): Promise<Secret> {
-  return requestJson(`/secrets/${id}`);
-}
-
 export async function createSecret(input: SecretCreateInput): Promise<Secret> {
   return requestJson('/secrets', {
     method: 'POST',
@@ -263,10 +263,6 @@ export async function deleteSecret(id: string): Promise<{ message: string }> {
 
 export async function listTokens(): Promise<{ items: Token[]; total: number }> {
   return requestJson('/tokens');
-}
-
-export async function getToken(id: string): Promise<Token> {
-  return requestJson(`/tokens/${id}`);
 }
 
 export async function createToken(input: TokenCreateInput): Promise<TokenCreateResponse> {
@@ -322,11 +318,11 @@ export async function listAuditLogs(query: AuditLogsQuery = {}): Promise<{
   offset: number;
 }> {
   const params = new URLSearchParams();
-  if (query.limit) params.set('limit', query.limit.toString());
-  if (query.offset) params.set('offset', query.offset.toString());
-  if (query.token_id) params.set('token_id', query.token_id);
-  if (query.secret_id) params.set('secret_id', query.secret_id);
-  if (query.action) params.set('action', query.action);
+  if (query.limit) {params.set('limit', query.limit.toString());}
+  if (query.offset) {params.set('offset', query.offset.toString());}
+  if (query.token_id) {params.set('token_id', query.token_id);}
+  if (query.secret_id) {params.set('secret_id', query.secret_id);}
+  if (query.action) {params.set('action', query.action);}
 
   const queryString = params.toString();
   return requestJson(`/audit-logs${queryString ? `?${queryString}` : ''}`);

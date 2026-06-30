@@ -12,17 +12,15 @@ async function readComponentSource(relativePath: string) {
 }
 
 describe('icon button accessibility', () => {
-  it('labels theme toggle buttons and exposes their pressed state', async () => {
+  it('labels theme toggle buttons and exposes their state', async () => {
     const source = await readComponentSource('theme-toggle.tsx');
 
     expect(source).toMatch(/useI18n/);
-    expect(source).toMatch(/getThemeLabelKey\('light'\)/);
-    expect(source).toMatch(/getThemeLabelKey\('dark'\)/);
-    expect(source).toMatch(/getThemeLabelKey\('system'\)/);
-    expect(source).toMatch(/aria-label=\{label\}/);
-    expect(source).toMatch(/aria-pressed=\{isActive\}/);
     expect(source).toMatch(
-      /aria-label=\{\s*isDark \? t\('settings\.theme\.switchToLight'\) : t\('settings\.theme\.switchToDark'\)\s*\}/
+      /aria-label=\{isDark \? t\('settings\.theme\.switchToLight'\) : t\('settings\.theme\.switchToDark'\)\}/
+    );
+    expect(source).toMatch(
+      /title=\{isDark \? t\('settings\.theme\.switchToLight'\) : t\('settings\.theme\.switchToDark'\)\}/
     );
   });
 });

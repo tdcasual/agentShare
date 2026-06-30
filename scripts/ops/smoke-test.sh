@@ -5,50 +5,19 @@ set -eu
 : "${PUBLIC_HOST:?PUBLIC_HOST is required}"
 APP_BASE_URL="${APP_BASE_URL:-${PUBLIC_BASE_URL:-https://${PUBLIC_HOST}}}"
 
-json_escape() {
-	printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
-}
-
-create_metrics_cookie_jar() {
-	if [ -n "${VAULTGATE_COOKIE_JAR:-}" ]; then
-		if [ ! -f "${VAULTGATE_COOKIE_JAR}" ]; then
-			echo "VAULTGATE_COOKIE_JAR points to a missing file: ${VAULTGATE_COOKIE_JAR}" >&2
-			exit 1
-		fi
-		printf '%s' "${VAULTGATE_COOKIE_JAR}"
-		return 0
-	fi
-
-	: "${VAULTGATE_ADMIN_EMAIL:?VAULTGATE_ADMIN_EMAIL or VAULTGATE_COOKIE_JAR is required for authenticated /metrics smoke checks}"
-	: "${VAULTGATE_ADMIN_PASSWORD:?VAULTGATE_ADMIN_PASSWORD or VAULTGATE_COOKIE_JAR is required for authenticated /metrics smoke checks}"
-
-	cookie_jar="$(mktemp)"
-	login_payload="$(printf '{"email":"%s","password":"%s"}' \
-		"$(json_escape "${VAULTGATE_ADMIN_EMAIL}")" \
-		"$(json_escape "${VAULTGATE_ADMIN_PASSWORD}")")"
-
+_check_health() {
 	if printf '%s' "${APP_BASE_URL}" | grep -q '^https://'; then
 		curl --fail --silent --show-error --location \
 			--resolve "${PUBLIC_HOST}:443:127.0.0.1" \
-			--cookie-jar "${cookie_jar}" \
-			-H 'Content-Type: application/json' \
-			-X POST \
-			-d "${login_payload}" \
-			"${APP_BASE_URL}/api/session/login" >/dev/null
+			"${APP_BASE_URL}/healthz" >/dev/null
 	else
 		curl --fail --silent --show-error --location \
 			-H "Host: ${PUBLIC_HOST}" \
-			--cookie-jar "${cookie_jar}" \
-			-H 'Content-Type: application/json' \
-			-X POST \
-			-d "${login_payload}" \
-			"${APP_BASE_URL}/api/session/login" >/dev/null
+			"${APP_BASE_URL}/healthz" >/dev/null
 	fi
-
-	printf '%s' "${cookie_jar}"
 }
 
-check_health_headers() {
+_check_request_id_header() {
 	headers_file="$(mktemp)"
 	trap 'rm -f "${headers_file}"' EXIT INT TERM
 
@@ -69,53 +38,35 @@ check_health_headers() {
 	trap - EXIT INT TERM
 }
 
-check_metrics_signal() {
-	metrics_file="$(mktemp)"
-	cookie_jar="$(create_metrics_cookie_jar)"
-	cleanup_cookie_jar=0
-	if [ "${cookie_jar}" != "${VAULTGATE_COOKIE_JAR:-}" ]; then
-		cleanup_cookie_jar=1
-	fi
-	cleanup_metrics_signal() {
-		rm -f "${metrics_file}"
-		if [ "${cleanup_cookie_jar}" -eq 1 ]; then
-			rm -f "${cookie_jar}"
-		fi
-	}
-	trap 'cleanup_metrics_signal' EXIT INT TERM
-
+_check_readyz() {
 	if printf '%s' "${APP_BASE_URL}" | grep -q '^https://'; then
 		curl --fail --silent --show-error --location \
 			--resolve "${PUBLIC_HOST}:443:127.0.0.1" \
-			--cookie "${cookie_jar}" \
-			"${APP_BASE_URL}/metrics" >"${metrics_file}"
+			"${APP_BASE_URL}/readyz" >/dev/null
 	else
 		curl --fail --silent --show-error --location \
 			-H "Host: ${PUBLIC_HOST}" \
-			--cookie "${cookie_jar}" \
-			"${APP_BASE_URL}/metrics" >"${metrics_file}"
+			"${APP_BASE_URL}/readyz" >/dev/null
 	fi
-
-	grep -q 'http_requests_total' "${metrics_file}"
-	grep -q 'http_errors_total' "${metrics_file}"
-	cleanup_metrics_signal
-	trap - EXIT INT TERM
 }
 
-check_once() {
-	check_health_headers
-	check_metrics_signal
-
+_check_homepage() {
 	if printf '%s' "${APP_BASE_URL}" | grep -q '^https://'; then
 		curl --fail --silent --show-error --location \
 			--resolve "${PUBLIC_HOST}:443:127.0.0.1" \
 			"${APP_BASE_URL}/" >/dev/null
-		return 0
+	else
+		curl --fail --silent --show-error --location \
+			-H "Host: ${PUBLIC_HOST}" \
+			"${APP_BASE_URL}/" >/dev/null
 	fi
+}
 
-	curl --fail --silent --show-error --location \
-		-H "Host: ${PUBLIC_HOST}" \
-		"${APP_BASE_URL}/" >/dev/null
+check_once() {
+	_check_health
+	_check_request_id_header
+	_check_readyz
+	_check_homepage
 }
 
 attempt=1

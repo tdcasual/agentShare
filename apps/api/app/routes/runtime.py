@@ -5,13 +5,13 @@ This module provides the /api/me endpoint for Bearer token verification.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_async_db
 from app.dependencies import get_token_from_bearer
-from app.orm.token import Token
 from app.orm.scope import Scope
+from app.orm.token import Token
 
 router = APIRouter(prefix="/api")
 
@@ -30,11 +30,10 @@ async def get_token_info(
 
     Returns basic token info including the number of accessible secrets (scopes).
     """
-    # Count allowed scopes
+    # Count scopes
     result = await db.execute(
         select(Scope.id)
         .where(Scope.token_id == token.id)
-        .where(Scope.allowed.is_(True))
     )
     scopes_count = len(result.all())
 

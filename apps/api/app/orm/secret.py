@@ -4,9 +4,9 @@ This module defines the Secret model for storing encrypted credentials.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING
 import uuid
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy import orm as so
@@ -14,8 +14,8 @@ from sqlalchemy import orm as so
 from .base import Base
 
 if TYPE_CHECKING:
-    from .user import User
     from .scope import Scope
+    from .user import User
 
 
 class SecretType:
@@ -76,6 +76,7 @@ class Secret(Base):
     name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
     url: so.Mapped[str | None] = so.mapped_column(sa.Text, nullable=True)
     username: so.Mapped[str | None] = so.mapped_column(sa.String(255), nullable=True)
+    description: so.Mapped[str | None] = so.mapped_column(sa.Text, nullable=True)
     value_encrypted: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
     tags: so.Mapped[list[str]] = so.mapped_column(
         sa.JSON,
@@ -85,13 +86,13 @@ class Secret(Base):
     secret_metadata: so.Mapped[dict] = so.mapped_column("metadata", sa.JSON, default=dict, nullable=False)
     created_at: so.Mapped[datetime] = so.mapped_column(
         sa.DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
     updated_at: so.Mapped[datetime] = so.mapped_column(
         sa.DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
         nullable=False,
     )
 

@@ -4,20 +4,20 @@ This module provides API endpoints for token management.
 """
 from __future__ import annotations
 
-import secrets
 import hashlib
+import secrets
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
 from app.db import get_async_db
 from app.dependencies import get_current_user_from_session
-from app.orm.user import User
-from app.orm.token import Token, TokenStatus
-from app.orm.secret import Secret
 from app.orm.scope import Scope
-from app.schemas.vault import PaginationParams
-from app.schemas.vault import VaultTokenCreate, VaultTokenResponse, VaultTokenDetailResponse, VaultScopeCreate, VaultScopeBatchCreate
+from app.orm.secret import Secret
+from app.orm.token import Token, TokenStatus
+from app.orm.user import User
+from app.schemas.vault import PaginationParams, VaultScopeCreate, VaultTokenCreate, VaultTokenDetailResponse
 
 router = APIRouter(prefix="/api/tokens")
 
@@ -134,7 +134,6 @@ async def list_tokens(
         scope_result = await db.execute(
             select(Scope.token_id, func.count(Scope.id))
             .where(Scope.token_id.in_(token_ids))
-            .where(Scope.allowed.is_(True))
             .group_by(Scope.token_id)
         )
         for row in scope_result.all():
@@ -171,10 +170,10 @@ async def get_token(
 ) -> dict:
     """Get token details with scopes."""
     # Verify ownership
-    token = await db.execute(
+    token_result = await db.execute(
         select(Token).where(Token.id == token_id).where(Token.user_id == user.id)
     )
-    token = token.scalar_one_or_none()
+    token = token_result.scalar_one_or_none()
 
     if not token:
         raise HTTPException(
@@ -199,7 +198,6 @@ async def get_token(
             "secret_name": secret_name,
             "secret_type": secret_type,
             "secret_url": secret_url,
-            "allowed": scope.allowed,
             "created_at": scope.created_at.isoformat(),
         })
 
@@ -230,10 +228,10 @@ async def revoke_token(
 ) -> dict:
     """Revoke a token."""
     # Verify ownership
-    token = await db.execute(
+    token_result = await db.execute(
         select(Token).where(Token.id == token_id).where(Token.user_id == user.id)
     )
-    token = token.scalar_one_or_none()
+    token = token_result.scalar_one_or_none()
 
     if not token:
         raise HTTPException(
@@ -261,10 +259,10 @@ async def list_token_scopes(
 ) -> dict:
     """List scopes for a token."""
     # Verify ownership
-    token = await db.execute(
+    token_result = await db.execute(
         select(Token).where(Token.id == token_id).where(Token.user_id == user.id)
     )
-    token = token.scalar_one_or_none()
+    token = token_result.scalar_one_or_none()
 
     if not token:
         raise HTTPException(
@@ -283,7 +281,6 @@ async def list_token_scopes(
         items.append({
             "id": scope.id,
             "secret_id": scope.secret_id,
-            "allowed": scope.allowed,
             "created_at": scope.created_at.isoformat(),
         })
 
@@ -294,7 +291,7 @@ async def list_token_scopes(
     "/{token_id}/scopes",
     tags=["Tokens"],
     summary="Grant a scope",
-    description="Grant or deny access to a secret for this token.",
+    description="Grant access to a secret for this token.",
 )
 async def create_scope(
     token_id: str,
@@ -304,10 +301,10 @@ async def create_scope(
 ) -> dict:
     """Create a scope (permission) for a token."""
     # Verify token ownership
-    token = await db.execute(
+    token_result = await db.execute(
         select(Token).where(Token.id == token_id).where(Token.user_id == user.id)
     )
-    token = token.scalar_one_or_none()
+    token = token_result.scalar_one_or_none()
 
     if not token:
         raise HTTPException(
@@ -316,10 +313,10 @@ async def create_scope(
         )
 
     # Verify secret ownership
-    secret = await db.execute(
+    secret_result = await db.execute(
         select(Secret).where(Secret.id == scope_data.secret_id).where(Secret.user_id == user.id)
     )
-    secret = secret.scalar_one_or_none()
+    secret = secret_result.scalar_one_or_none()
 
     if not secret:
         raise HTTPException(
@@ -334,14 +331,12 @@ async def create_scope(
     existing_scope = existing.scalar_one_or_none()
 
     if existing_scope:
-        # Update existing scope
-        existing_scope.allowed = scope_data.allowed
+        # Scope already exists; return it unchanged
         await db.commit()
         return {
             "id": existing_scope.id,
             "token_id": existing_scope.token_id,
             "secret_id": existing_scope.secret_id,
-            "allowed": existing_scope.allowed,
             "created_at": existing_scope.created_at.isoformat(),
         }
 
@@ -349,7 +344,6 @@ async def create_scope(
     new_scope = Scope(
         token_id=token_id,
         secret_id=scope_data.secret_id,
-        allowed=scope_data.allowed,
     )
 
     db.add(new_scope)
@@ -360,70 +354,7 @@ async def create_scope(
         "id": new_scope.id,
         "token_id": new_scope.token_id,
         "secret_id": new_scope.secret_id,
-        "allowed": new_scope.allowed,
         "created_at": new_scope.created_at.isoformat(),
-    }
-
-
-@router.post(
-    "/{token_id}/scopes/batch",
-    tags=["Tokens"],
-    summary="Batch grant scopes",
-    description="Grant multiple scopes at once.",
-)
-async def create_scopes_batch(
-    token_id: str,
-    batch_data: VaultScopeBatchCreate,
-    user: User = Depends(get_current_user_from_session),
-    db: AsyncSession = Depends(get_async_db),
-) -> dict:
-    """Create multiple scopes in a single request."""
-    # Verify token ownership
-    token = await db.execute(
-        select(Token).where(Token.id == token_id).where(Token.user_id == user.id)
-    )
-    token = token.scalar_one_or_none()
-
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Token not found",
-        )
-
-    created = []
-    for grant_data in batch_data.grants:
-        # Verify secret ownership
-        secret = await db.execute(
-            select(Secret).where(Secret.id == grant_data.secret_id).where(Secret.user_id == user.id)
-        )
-        secret = secret.scalar_one_or_none()
-
-        if not secret:
-            continue
-
-        # Check if scope already exists
-        existing = await db.execute(
-            select(Scope).where(Scope.token_id == token_id).where(Scope.secret_id == grant_data.secret_id)
-        )
-        existing_scope = existing.scalar_one_or_none()
-
-        if existing_scope:
-            existing_scope.allowed = grant_data.allowed
-            created.append(existing_scope)
-        else:
-            new_scope = Scope(
-                token_id=token_id,
-                secret_id=grant_data.secret_id,
-                allowed=grant_data.allowed,
-            )
-            db.add(new_scope)
-            created.append(new_scope)
-
-    await db.commit()
-
-    return {
-        "created": len(created),
-        "scopes": [{"id": s.id, "secret_id": s.secret_id, "allowed": s.allowed} for s in created],
     }
 
 
@@ -441,10 +372,10 @@ async def delete_scope(
 ) -> dict:
     """Delete a scope."""
     # Verify token ownership
-    token = await db.execute(
+    token_result = await db.execute(
         select(Token).where(Token.id == token_id).where(Token.user_id == user.id)
     )
-    token = token.scalar_one_or_none()
+    token = token_result.scalar_one_or_none()
 
     if not token:
         raise HTTPException(

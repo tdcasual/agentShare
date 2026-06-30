@@ -41,31 +41,3 @@ export function PageLoader({
     </div>
   );
 }
-
-/**
- * 内联加载器（用于卡片/小区域）
- */
-export function InlineLoader({ message }: { message?: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3 py-8">
-      <Loader2 className="h-5 w-5 animate-spin text-[var(--kw-primary-500)]" />
-      {message && <span className="text-sm text-[var(--kw-text-muted)]">{message}</span>}
-    </div>
-  );
-}
-
-/**
- * 骨架屏加载（用于列表）
- */
-export function SkeletonLoader({ count = 3 }: { count?: number }) {
-  return (
-    <div className="space-y-4">
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="bg-[var(--kw-border)]/50 dark:bg-[var(--kw-dark-border)]/30 h-20 animate-pulse rounded-xl"
-        />
-      ))}
-    </div>
-  );
-}

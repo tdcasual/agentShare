@@ -7,7 +7,7 @@
  * - Session refresh and logout
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ManagementSessionSummary, ManagementRole } from '@/shared/types';
 import { ApiError, apiFetch } from './vaultgate-api';
 
@@ -129,68 +129,4 @@ export function useGlobalSession() {
   }, []);
 
   return session;
-}
-
-/**
- * React Hook: Use session state with automatic resolution
- */
-export function useSession() {
-  const [session, setSession] = useState<SessionData>(getGlobalSession());
-  const [isLoading, setIsLoading] = useState(session.state === 'unknown');
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    const initialSession = getGlobalSession();
-
-    // Subscribe to global session changes
-    const unsubscribe = subscribeToSession(setSession);
-
-    // Initial resolution (if unknown state)
-    if (initialSession.state === 'unknown') {
-      setIsLoading(true);
-      resolveSession().then((newSession) => {
-        if (mountedRef.current) {
-          setGlobalSession(newSession);
-          setIsLoading(false);
-        }
-      });
-      return () => {
-        mountedRef.current = false;
-        unsubscribe();
-      };
-    }
-
-    return () => {
-      mountedRef.current = false;
-      unsubscribe();
-    };
-  }, []);
-
-  const refresh = useCallback(async () => {
-    setIsLoading(true);
-    const newSession = await resolveSession();
-    if (mountedRef.current) {
-      setGlobalSession(newSession);
-      setIsLoading(false);
-    }
-  }, []);
-
-  const doLogout = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await logout();
-    } finally {
-      if (mountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
-
-  return {
-    session,
-    isLoading,
-    refresh,
-    logout: doLogout,
-  };
 }

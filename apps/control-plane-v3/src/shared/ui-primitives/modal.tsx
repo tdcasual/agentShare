@@ -23,7 +23,7 @@ const modalSizes = {
   xl: 'max-w-full sm:max-w-2xl lg:max-w-4xl',
 };
 
-export function Modal({
+function Modal({
   isOpen,
   onClose,
   title,

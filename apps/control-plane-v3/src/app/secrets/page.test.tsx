@@ -15,6 +15,7 @@ vi.mock('@/domains/secret', () => ({
     error: null,
     refresh: mockRefresh,
   })),
+  createSecret: vi.fn(),
   deleteSecret: vi.fn(),
 }));
 

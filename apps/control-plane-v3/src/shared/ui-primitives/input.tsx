@@ -67,47 +67,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input';
 
-const Textarea = React.forwardRef<
-  HTMLTextAreaElement,
-  React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string }
->(({ className, label, error, id: idProp, ...props }, ref) => {
-  const generatedId = React.useId();
-  const id = idProp ?? generatedId;
-  const errorId = error ? `${id}-error` : undefined;
-  const describedBy = errorId || undefined;
-
-  return (
-    <div className="w-full">
-      {label && (
-        <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]">
-          {label}
-        </label>
-      )}
-      <textarea
-        id={id}
-        className={cn(
-          'w-full resize-none rounded-2xl border-2 bg-[var(--kw-surface)] px-4 py-3 text-base outline-none transition-colors transition-shadow duration-[var(--kw-duration-fast)] dark:bg-[var(--kw-dark-surface)]',
-          'placeholder:text-[var(--kw-text-muted)]',
-          'focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)]',
-          error &&
-            'border-[var(--kw-error)] focus:border-[var(--kw-error)] focus:ring-[var(--kw-rose-surface)]',
-          !error && 'border-[var(--kw-border)]',
-          className
-        )}
-        ref={ref}
-        aria-describedby={describedBy}
-        aria-invalid={error ? 'true' : undefined}
-        {...props}
-      />
-      {error && (
-        <p id={errorId} className="mt-1.5 text-sm text-[var(--kw-error)]">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-});
-
-Textarea.displayName = 'Textarea';
-
-export { Input, Textarea };
+export { Input };

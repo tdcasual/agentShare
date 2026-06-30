@@ -6,7 +6,7 @@ set -euo pipefail
 
 if [ "${RUN_DB_MIGRATIONS_ON_STARTUP:-true}" = "true" ] && [ -n "${DATABASE_URL:-}" ]; then
     echo "[entrypoint] Running Alembic migration..."
-    alembic -c /srv/agentShare/apps/api/alembic.ini upgrade head || {
+    alembic -c /srv/vaultgate/apps/api/alembic.ini upgrade head || {
         echo "[entrypoint] FATAL: Alembic migration failed. Exiting." >&2
         exit 1
     }

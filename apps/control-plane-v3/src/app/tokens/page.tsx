@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useTokens, revokeToken } from '@/domains/token';
+import { useTokens, createToken, revokeToken } from '@/domains/token';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
+import { Input } from '@/shared/ui-primitives/input';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { ConfirmModal } from '@/shared/ui-primitives/modal';
 import {
@@ -12,10 +12,12 @@ import {
   Key,
   Copy,
   Check,
-  Settings,
   Trash2,
 } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
+
+const EXPIRATION_OPTIONS = ['never', '7', '30', '90'] as const;
+type ExpirationOption = (typeof EXPIRATION_OPTIONS)[number];
 
 export default function TokensPage() {
   const { t } = useI18n();
@@ -25,14 +27,50 @@ export default function TokensPage() {
   const [isRevoking, setIsRevoking] = useState(false);
   const [revokeError, setRevokeError] = useState<string | null>(null);
 
+  const [showCreate, setShowCreate] = useState(false);
+  const [name, setName] = useState('');
+  const [expiration, setExpiration] = useState<ExpirationOption>('30');
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createdToken, setCreatedToken] = useState<Awaited<ReturnType<typeof createToken>> | null>(null);
+  const [tokenCopied, setTokenCopied] = useState(false);
+
   const handleCopy = async (keyPrefix: string, id: string) => {
     await navigator.clipboard.writeText(keyPrefix);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleCopyToken = async () => {
+    if (!createdToken) {return;}
+    await navigator.clipboard.writeText(createdToken.token);
+    setTokenCopied(true);
+    setTimeout(() => setTokenCopied(false), 2000);
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {return;}
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      const expires_at =
+        expiration === 'never' ? null : new Date(Date.now() + Number(expiration) * 86_400_000).toISOString();
+      const response = await createToken({ name: name.trim(), expires_at });
+      setCreatedToken(response);
+      setName('');
+      setExpiration('30');
+      setShowCreate(false);
+      refresh();
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : t('tokens.createForm.saveFailed'));
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const handleRevokeConfirm = async () => {
-    if (!revokeTarget) return;
+    if (!revokeTarget) {return;}
     setIsRevoking(true);
     setRevokeError(null);
     try {
@@ -47,12 +85,12 @@ export default function TokensPage() {
   };
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return t('tokens.never');
+    if (!dateStr) {return t('tokens.never');}
     return new Date(dateStr).toLocaleDateString();
   };
 
   const isExpired = (expiresAt: string | null) => {
-    if (!expiresAt) return false;
+    if (!expiresAt) {return false;}
     return new Date(expiresAt) < new Date();
   };
 
@@ -68,37 +106,136 @@ export default function TokensPage() {
             {t('tokens.description')}
           </p>
         </div>
-        <Link href="/tokens/new">
-          <Button
-            variant="primary"
-            size="sm"
-            leftIcon={<Plus className="h-4 w-4" />}
-          >
-            {t('tokens.newToken')}
-          </Button>
-        </Link>
+        <Button
+          variant="primary"
+          size="sm"
+          leftIcon={<Plus className="h-4 w-4" />}
+          onClick={() => {
+            setCreateError(null);
+            setShowCreate((v) => !v);
+          }}
+        >
+          {t('tokens.newToken')}
+        </Button>
       </div>
 
+      {/* Created Token (shown once) */}
+      {createdToken && (
+        <Card className="border border-[var(--kw-amber-surface)] bg-[var(--kw-amber-surface)] p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-amber-surface)]">
+              <Key className="h-4 w-4 text-[var(--kw-amber-text)]" />
+            </div>
+            <div className="flex-1 text-sm">
+              <p className="font-medium text-[var(--kw-amber-text)]">{t('tokens.created.title')}</p>
+              <p className="mt-1 text-[var(--kw-amber-text)]">{t('tokens.created.warning')}</p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                <code className="block flex-1 break-all rounded-lg bg-[var(--kw-surface)] px-3 py-2 font-mono text-xs text-[var(--kw-text)]">
+                  {createdToken.token}
+                </code>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={tokenCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  onClick={handleCopyToken}
+                >
+                  {tokenCopied ? t('tokens.copied') : t('tokens.created.copyToken')}
+                </Button>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setCreatedToken(null)}>
+                  {t('tokens.created.done')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Info Card */}
-      <Card className="border border-[var(--kw-blue-surface)] bg-[var(--kw-blue-surface)] p-4">
+      <Card className="border border-[var(--kw-sky-surface)] bg-[var(--kw-sky-surface)] p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-blue-surface)]">
-            <Key className="h-4 w-4 text-[var(--kw-blue-text)]" />
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-sky-surface)]">
+            <Key className="h-4 w-4 text-[var(--kw-sky-text)]" />
           </div>
           <div className="flex-1 text-sm">
-            <p className="font-medium text-[var(--kw-blue-text)]">
+            <p className="font-medium text-[var(--kw-sky-text)]">
               {t('tokens.about')}
             </p>
-            <p className="mt-1 text-[var(--kw-blue-text)]">
+            <p className="mt-1 text-[var(--kw-sky-text)]">
               {t('tokens.aboutDesc')}
             </p>
           </div>
         </div>
       </Card>
 
+      {/* Create Form */}
+      {showCreate && (
+        <Card className="p-4 sm:p-6">
+          <h2 className="mb-4 text-lg font-semibold text-[var(--kw-text)]">
+            {t('tokens.createForm.title')}
+          </h2>
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <Input
+              label={t('tokens.createForm.name')}
+              placeholder={t('tokens.createForm.namePlaceholder')}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <div className="w-full">
+              <label
+                htmlFor="token-expiration"
+                className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+              >
+                {t('tokens.createForm.expiration')}
+              </label>
+              <select
+                id="token-expiration"
+                value={expiration}
+                onChange={(e) => setExpiration(e.target.value as ExpirationOption)}
+                className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none transition-colors focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
+              >
+                {EXPIRATION_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt === 'never' ? t('tokens.createForm.never') : t('tokens.createForm.days', { count: opt })}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {createError && (
+              <div
+                role="alert"
+                className="rounded-lg border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)]"
+              >
+                {createError}
+              </div>
+            )}
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setShowCreate(false);
+                  setCreateError(null);
+                  setName('');
+                  setExpiration('30');
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button variant="primary" size="sm" type="submit" loading={isCreating}>
+                {t('common.create')}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
       {/* Revoke Error */}
       {revokeError && (
-        <div className="rounded-lg border border-[var(--kw-red-surface)] bg-[var(--kw-red-surface)] p-3 text-sm text-[var(--kw-red-text)]">
+        <div className="rounded-lg border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)]">
           {revokeError}
           <button
             type="button"
@@ -117,7 +254,7 @@ export default function TokensPage() {
             {t('tokens.loading')}
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-[var(--kw-red-text)]">
+          <div className="p-8 text-center text-sm text-[var(--kw-rose-text)]">
             {t('tokens.loadFailed')}: {error.message}
           </div>
         ) : tokens.length === 0 ? (
@@ -129,11 +266,17 @@ export default function TokensPage() {
             <p className="mb-4 text-sm text-[var(--kw-text-muted)]">
               {t('tokens.emptyDesc')}
             </p>
-            <Link href="/tokens/new">
-              <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />}>
-                {t('tokens.newToken')}
-              </Button>
-            </Link>
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => {
+                setCreateError(null);
+                setShowCreate(true);
+              }}
+            >
+              {t('tokens.newToken')}
+            </Button>
           </div>
         ) : (
           <div className="divide-y divide-[var(--kw-border)]">
@@ -175,18 +318,13 @@ export default function TokensPage() {
                     >
                       {copiedId === token.id ? t('tokens.copied') : t('tokens.copy')}
                     </Button>
-                    <Link href={`/tokens/${token.id}`}>
-                      <Button variant="ghost" size="sm" leftIcon={<Settings className="h-4 w-4" />}>
-                        {t('tokens.scopes')}
-                      </Button>
-                    </Link>
                     <Button
                       variant="ghost"
                       size="sm"
                       leftIcon={<Trash2 className="h-4 w-4" />}
                       onClick={() => setRevokeTarget({ id: token.id, name: token.name })}
                       disabled={token.status !== 'active'}
-                      className="text-[var(--kw-red-text)] hover:text-[var(--kw-red-text)]"
+                      className="text-[var(--kw-rose-text)] hover:text-[var(--kw-rose-text)]"
                     >
                       {t('tokens.revoke')}
                     </Button>

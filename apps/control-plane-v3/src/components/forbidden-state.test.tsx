@@ -5,7 +5,7 @@ import { ForbiddenState } from './forbidden-state';
 
 const pushMock = vi.fn();
 const backMock = vi.fn();
-const useRoleMock = vi.fn();
+const useGlobalSessionMock = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -18,7 +18,7 @@ vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
     t: (key: string) =>
       (
-        ({
+        {
           'common.back': 'Back',
           'common.backToHome': 'Back to home',
           'forbiddenState.title': 'Forbidden',
@@ -31,21 +31,21 @@ vi.mock('@/components/i18n-provider', () => ({
           'settings.roles.viewer': 'Viewer',
           'settings.roles.admin': 'Admin',
           'settings.roles.owner': 'Owner',
-        }) as Record<string, string>
+        } as Record<string, string>
       )[key] ?? key,
   }),
 }));
 
-vi.mock('@/hooks/use-role', () => ({
-  useRole: () => useRoleMock(),
+vi.mock('@/lib/session-state', () => ({
+  useGlobalSession: () => useGlobalSessionMock(),
 }));
 
 describe('ForbiddenState', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useRoleMock.mockReturnValue({
+    useGlobalSessionMock.mockReturnValue({
+      state: 'authenticated',
       role: 'viewer',
-      isLoading: false,
     });
   });
 
@@ -61,6 +61,6 @@ describe('ForbiddenState', () => {
 
     await user.click(screen.getByRole('button', { name: 'Back to home' }));
 
-    expect(pushMock).toHaveBeenCalledWith('/playbooks');
+    expect(pushMock).toHaveBeenCalledWith('/');
   });
 });

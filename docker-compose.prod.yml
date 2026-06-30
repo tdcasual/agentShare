@@ -62,7 +62,6 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
       SESSION_SECURE: "true"
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
-      METRICS_ENABLED: ${METRICS_ENABLED:-true}
     expose:
       - "8000"
     healthcheck:

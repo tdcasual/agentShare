@@ -5,7 +5,7 @@ This module defines VaultGate application settings.
 import os
 from typing import Literal
 
-from pydantic import AliasChoices, Field, model_validator
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Defaults - MUST be changed in production
@@ -41,17 +41,6 @@ class Settings(BaseSettings):
     # Rate limiting
     auth_rate_limit_max_attempts: int = 5
     auth_rate_limit_window_seconds: int = 300
-
-    # Token defaults
-    token_default_ttl_days: int = 30
-    token_max_ttl_days: int = 365
-
-    # Security headers
-    hsts_max_age: int = 31536000  # 1 year — only active in production
-    csp_report_only: bool = False  # Set True to report violations without blocking
-
-    # Observability
-    metrics_enabled: bool = True
 
     @model_validator(mode="after")
     def validate_settings_for_environment(self) -> "Settings":

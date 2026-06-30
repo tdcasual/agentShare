@@ -1,22 +1,36 @@
 /**
  * API Proxy Route Handler for VaultGate
  *
- * Proxies all /api/* requests to the backend server
- * Handles CORS and credential forwarding
+ * Proxies all /api/* requests to the backend server.
+ * Uses a strict header whitelist to prevent credential leakage.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.VAULTGATE_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.VAULTGATE_API_URL || 'http://localhost:8000';
 
-// Headers that should be forwarded to the backend
-const FORWARD_HEADERS = [
+// Only forward these request headers to the backend (no cookie/authorization)
+const FORWARD_REQUEST_HEADERS = [
   'content-type',
-  'authorization',
-  'cookie',
   'accept',
   'x-request-id',
 ];
+
+// Only forward these response headers back to the client
+const FORWARD_RESPONSE_HEADERS = [
+  'content-type',
+  'set-cookie',
+  'cache-control',
+  'x-request-id',
+];
+
+// Allowed backend URL schemes (prevent SSRF to non-HTTP services)
+function validateBackendUrl(url: string): void {
+  const parsed = new URL(url);
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(`Invalid backend URL scheme: ${parsed.protocol}`);
+  }
+}
 
 type RouteParams = {
   params: Promise<{ path: string[] }>;
@@ -31,16 +45,18 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
   const targetUrl = `${API_BASE_URL}/api/${path}${searchParams ? `?${searchParams}` : ''}`;
 
   try {
+    validateBackendUrl(targetUrl);
+
     // Get request body
     let body: string | undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       body = await request.text();
     }
 
-    // Build headers with whitelist
+    // Build headers with strict whitelist (no cookie/authorization forwarding)
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
-      if (FORWARD_HEADERS.includes(key.toLowerCase())) {
+      if (FORWARD_REQUEST_HEADERS.includes(key.toLowerCase())) {
         headers[key] = value;
       }
     });
@@ -50,15 +66,14 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
       method: request.method,
       headers,
       body,
-      credentials: 'include',
     });
 
-    // Build response
+    // Build response with whitelisted headers only
     const responseBody = await response.text();
     const responseHeaders: Record<string, string> = {};
 
     response.headers.forEach((value, key) => {
-      if (!['content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
+      if (FORWARD_RESPONSE_HEADERS.includes(key.toLowerCase())) {
         responseHeaders[key] = value;
       }
     });

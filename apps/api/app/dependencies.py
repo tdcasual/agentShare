@@ -1,20 +1,22 @@
 """VaultGate authentication dependencies.
 
 This module provides shared dependency injection functions for authentication.
-Session cookies are HMAC-signed to prevent tampering.
+Session cookies use HMAC-signed tokens with a per-session random nonce
+to prevent session fixation attacks.
 """
 from __future__ import annotations
 
 import hashlib
 import hmac
-from fastapi import Depends, HTTPException, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+import secrets
 
-from app.config import Settings
+from fastapi import Depends, HTTPException, Request, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db import get_async_db
-from app.orm.user import User
 from app.orm.token import Token
+from app.orm.user import User
 from app.runtime import AppRuntime
 
 RUNTIME_MISSING_MESSAGE = (
@@ -29,14 +31,6 @@ def get_attached_runtime(request: Request) -> AppRuntime:
     return runtime
 
 
-def get_runtime(request: Request) -> AppRuntime:
-    return get_attached_runtime(request)
-
-
-def get_settings(runtime: AppRuntime = Depends(get_runtime)) -> Settings:
-    return runtime.settings
-
-
 # ---------------------------------------------------------------------------
 # HMAC-signed session cookie helpers
 # ---------------------------------------------------------------------------
@@ -44,18 +38,25 @@ def get_settings(runtime: AppRuntime = Depends(get_runtime)) -> Settings:
 def _sign_session_value(user_id: str, secret: str) -> str:
     """Create HMAC-SHA256 signature for a session cookie value.
 
-    Returns: ``{user_id}:{hex_hmac}``
+    Includes a per-session random nonce to prevent session fixation.
+    Returns: ``{user_id}:{nonce}:{hex_hmac}``
     """
-    mac = hmac.new(secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()
-    return f"{user_id}:{mac}"
+    nonce = secrets.token_hex(16)
+    mac = hmac.new(
+        secret.encode(), f"{user_id}:{nonce}".encode(), hashlib.sha256
+    ).hexdigest()
+    return f"{user_id}:{nonce}:{mac}"
 
 
 def _verify_session_value(cookie_value: str, secret: str) -> str | None:
     """Verify HMAC-signed cookie and return the user_id, or None if invalid."""
-    if ":" not in cookie_value:
+    parts = cookie_value.split(":")
+    if len(parts) != 3:
         return None
-    user_id, mac = cookie_value.rsplit(":", 1)
-    expected = hmac.new(secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()
+    user_id, nonce, mac = parts
+    expected = hmac.new(
+        secret.encode(), f"{user_id}:{nonce}".encode(), hashlib.sha256
+    ).hexdigest()
     if hmac.compare_digest(mac, expected):
         return user_id
     return None
@@ -146,20 +147,15 @@ async def get_token_from_bearer(
 
     # Check token status and expiration
     if not token.is_valid():
-        if token.status == "revoked":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked",
-            )
-        elif token.is_expired():
+        if token.is_expired():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired",
             )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token is invalid",
-            )
+        # Any other invalid state is a revoked token
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+        )
 
     return token

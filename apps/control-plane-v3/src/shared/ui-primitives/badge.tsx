@@ -33,10 +33,11 @@ const badgeVariants = {
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: keyof typeof badgeVariants;
+  leftIcon?: React.ReactNode;
 }
 
 const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
-  ({ className, variant = 'default', ...props }, ref) => {
+  ({ className, variant = 'default', leftIcon, children, ...props }, ref) => {
     return (
       <span
         ref={ref}
@@ -46,7 +47,10 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
           className
         )}
         {...props}
-      />
+      >
+        {leftIcon}
+        {children}
+      </span>
     );
   }
 );

@@ -4,9 +4,9 @@ This module defines the Token model for API access control.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING
 import uuid
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy import orm as so
@@ -14,8 +14,8 @@ from sqlalchemy import orm as so
 from .base import Base
 
 if TYPE_CHECKING:
-    from .user import User
     from .scope import Scope
+    from .user import User
 
 
 class TokenStatus:
@@ -23,11 +23,10 @@ class TokenStatus:
 
     ACTIVE = "active"
     REVOKED = "revoked"
-    EXPIRED = "expired"
 
     @classmethod
     def all_values(cls) -> list[str]:
-        return [cls.ACTIVE, cls.REVOKED, cls.EXPIRED]
+        return [cls.ACTIVE, cls.REVOKED]
 
 
 class Token(Base):
@@ -74,7 +73,7 @@ class Token(Base):
     )
     created_at: so.Mapped[datetime] = so.mapped_column(
         sa.DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -89,7 +88,7 @@ class Token(Base):
         """Check if token is expired."""
         if self.expires_at is None:
             return False
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     def is_valid(self) -> bool:
         """Check if token is valid (active and not expired)."""

@@ -9,6 +9,8 @@ services:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vaultgate}"]
       interval: 5s
@@ -47,6 +49,8 @@ services:
       dockerfile: apps/control-plane-v3/Dockerfile
     ports:
       - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    security_opt:
+      - no-new-privileges:true
     environment:
       VAULTGATE_API_URL: ${VAULTGATE_API_URL:-http://api:8000}
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}

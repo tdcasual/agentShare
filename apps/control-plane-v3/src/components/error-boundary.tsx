@@ -10,8 +10,8 @@ import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { useI18n } from '@/components/i18n-provider';
-import { useRole } from '@/hooks/use-role';
-import { getDefaultManagementRoute, type ManagementRole } from '@/lib/role-system';
+import { useGlobalSession } from '@/lib/session-state';
+import { getDefaultManagementRoute } from '@/lib/role-system';
 import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -29,10 +29,6 @@ interface ErrorBoundaryInnerProps extends Props {
 interface State {
   hasError: boolean;
   error?: Error;
-}
-
-export function getErrorBoundaryHomeTarget(role: ManagementRole | null | undefined): string {
-  return getDefaultManagementRoute(role);
 }
 
 function ErrorFallback({
@@ -138,7 +134,7 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, State> {
 }
 
 export function ErrorBoundary(props: Props) {
-  const { role } = useRole();
+  const session = useGlobalSession();
 
-  return <ErrorBoundaryInner {...props} homeTarget={getErrorBoundaryHomeTarget(role)} />;
+  return <ErrorBoundaryInner {...props} homeTarget={getDefaultManagementRoute(session.role)} />;
 }

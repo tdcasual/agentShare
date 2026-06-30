@@ -13,6 +13,6 @@ test.describe('tokens management', () => {
 
   test('displays token list', async ({ page }) => {
     await page.goto('/tokens');
-    await expect(page.getByText('Primary Token')).toBeVisible();
+    await expect(page.getByText('CI/CD Token')).toBeVisible();
   });
 });

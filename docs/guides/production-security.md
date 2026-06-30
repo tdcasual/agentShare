@@ -41,7 +41,7 @@ Production settings enforce:
 
 ## Incident Response
 
-1. Check `/healthz` and `/metrics` endpoints.
+1. Check `/healthz` and `/readyz` endpoints.
 2. Use `x-request-id` header to correlate requests with logs.
 3. Review audit logs via the web UI at `/audit`.
 4. If secret compromise is suspected, rotate `ENCRYPTION_KEY` and `SESSION_SECRET`, then redeploy.

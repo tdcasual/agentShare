@@ -9,7 +9,6 @@
 import useSWR from 'swr';
 import {
   listAuditLogs as apiListAuditLogs,
-  type AuditLog,
   type AuditLogsQuery,
 } from '@/lib/vaultgate-api';
 
@@ -23,11 +22,11 @@ const AUDIT_CACHE_KEY = '/api/audit-logs';
 export function useAuditLogs(query: AuditLogsQuery = {}) {
   // Build cache key from query
   const params = new URLSearchParams();
-  if (query.limit) params.set('limit', query.limit.toString());
-  if (query.offset) params.set('offset', query.offset.toString());
-  if (query.token_id) params.set('token_id', query.token_id);
-  if (query.secret_id) params.set('secret_id', query.secret_id);
-  if (query.action) params.set('action', query.action);
+  if (query.limit) {params.set('limit', query.limit.toString());}
+  if (query.offset) {params.set('offset', query.offset.toString());}
+  if (query.token_id) {params.set('token_id', query.token_id);}
+  if (query.secret_id) {params.set('secret_id', query.secret_id);}
+  if (query.action) {params.set('action', query.action);}
   const cacheKey = `${AUDIT_CACHE_KEY}?${params.toString()}`;
 
   const { data, error, isLoading } = useSWR(

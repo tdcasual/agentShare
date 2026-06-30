@@ -1,6 +1,5 @@
 """Tests for VaultGate application factory."""
 import pytest
-from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app

@@ -1,13 +1,12 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LockKeyhole, Mail, Sparkles, Loader2, Shield } from 'lucide-react';
 import { login, type LoginInput } from '@/lib/vaultgate-api';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
 import { Input } from '@/shared/ui-primitives/input';
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -46,7 +45,6 @@ export default function LoginPage() {
     >
       {/* Header controls */}
       <div className="safe-area-inset-top fixed right-4 top-4 z-toast flex items-center gap-3">
-        <LanguageSwitcher />
         <SimpleThemeToggle />
       </div>
 
@@ -105,7 +103,7 @@ export default function LoginPage() {
               <div
                 role="alert"
                 aria-live="polite"
-                className="rounded-xl border border-[var(--kw-red-surface)] bg-[var(--kw-red-surface)] px-4 py-3 text-sm text-[var(--kw-red-text)]"
+                className="rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
               >
                 {error}
               </div>

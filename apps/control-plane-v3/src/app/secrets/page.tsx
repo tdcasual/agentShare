@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useSecrets, deleteSecret } from '@/domains/secret';
+import { useSecrets, createSecret, deleteSecret } from '@/domains/secret';
 import { useTokens } from '@/domains/token';
 import { Card } from '@/shared/ui-primitives/card';
 import { Button } from '@/shared/ui-primitives/button';
+import { Input } from '@/shared/ui-primitives/input';
 import { Badge } from '@/shared/ui-primitives/badge';
 import { ConfirmModal } from '@/shared/ui-primitives/modal';
 import {
@@ -14,13 +14,24 @@ import {
   Globe,
   Shield,
   Trash2,
-  Edit,
-  Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
 type SecretType = 'password' | 'api_key' | 'basic_auth' | 'bearer_token' | 'api_key_header' | 'oauth_token' | 'certificate' | 'ssh_key' | 'database_url' | 'custom';
+
+const SECRET_TYPES: SecretType[] = [
+  'password',
+  'api_key',
+  'basic_auth',
+  'bearer_token',
+  'api_key_header',
+  'oauth_token',
+  'certificate',
+  'ssh_key',
+  'database_url',
+  'custom',
+];
 
 const SECRET_TYPE_ICONS: Record<SecretType, React.ReactNode> = {
   password: <Key className="h-4 w-4" />,
@@ -48,6 +59,15 @@ const SECRET_TYPE_COLORS: Record<SecretType, string> = {
   custom: 'bg-[var(--kw-surface)] text-[var(--kw-text)]',
 };
 
+const EMPTY_FORM = {
+  name: '',
+  type: 'password' as SecretType,
+  value: '',
+  url: '',
+  username: '',
+  description: '',
+};
+
 export default function SecretsPage() {
   const { t } = useI18n();
   const { secrets, isLoading, error, refresh } = useSecrets();
@@ -56,8 +76,42 @@ export default function SecretsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const openCreate = () => {
+    setCreateError(null);
+    setShowCreate((v) => !v);
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.value) {return;}
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      await createSecret({
+        type: form.type,
+        name: form.name.trim(),
+        value: form.value,
+        url: form.url.trim() || undefined,
+        username: form.username.trim() || undefined,
+        description: form.description.trim() || undefined,
+      });
+      setForm(EMPTY_FORM);
+      setShowCreate(false);
+      refresh();
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : t('secrets.createForm.saveFailed'));
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {return;}
     setIsDeleting(true);
     setDeleteError(null);
     try {
@@ -83,16 +137,114 @@ export default function SecretsPage() {
             {t('secrets.description')}
           </p>
         </div>
-        <Link href="/secrets/new">
-          <Button
-            variant="primary"
-            size="sm"
-            leftIcon={<Plus className="h-4 w-4" />}
-          >
-            {t('secrets.newSecret')}
-          </Button>
-        </Link>
+        <Button
+          variant="primary"
+          size="sm"
+          leftIcon={<Plus className="h-4 w-4" />}
+          onClick={openCreate}
+        >
+          {t('secrets.newSecret')}
+        </Button>
       </div>
+
+      {/* Create Form */}
+      {showCreate && (
+        <Card className="p-4 sm:p-6">
+          <h2 className="mb-4 text-lg font-semibold text-[var(--kw-text)]">
+            {t('secrets.createForm.title')}
+          </h2>
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="w-full">
+                <label
+                  htmlFor="secret-type"
+                  className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+                >
+                  {t('secrets.createForm.type')}
+                </label>
+                <select
+                  id="secret-type"
+                  value={form.type}
+                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as SecretType }))}
+                  className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none transition-colors focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
+                >
+                  {SECRET_TYPES.map((secretType) => (
+                    <option key={secretType} value={secretType}>
+                      {secretType}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Input
+                label={t('secrets.createForm.name')}
+                placeholder={t('secrets.createForm.namePlaceholder')}
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="w-full">
+              <label
+                htmlFor="secret-value"
+                className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
+              >
+                {t('secrets.createForm.value')}
+              </label>
+              <textarea
+                id="secret-value"
+                placeholder={t('secrets.createForm.valuePlaceholder')}
+                value={form.value}
+                onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
+                required
+                rows={3}
+                className="w-full resize-y rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none transition-colors placeholder:text-[var(--kw-text-muted)] focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                label={t('secrets.createForm.url')}
+                value={form.url}
+                onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+              />
+              <Input
+                label={t('secrets.createForm.username')}
+                value={form.username}
+                onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+              />
+            </div>
+            <Input
+              label={t('secrets.createForm.description')}
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            />
+            {createError && (
+              <div
+                role="alert"
+                className="rounded-lg border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)]"
+              >
+                {createError}
+              </div>
+            )}
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setShowCreate(false);
+                  setCreateError(null);
+                  setForm(EMPTY_FORM);
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button variant="primary" size="sm" type="submit" loading={isCreating}>
+                {t('common.save')}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -108,7 +260,7 @@ export default function SecretsPage() {
 
       {/* Delete Error */}
       {deleteError && (
-        <div className="rounded-lg border border-[var(--kw-red-surface)] bg-[var(--kw-red-surface)] p-3 text-sm text-[var(--kw-red-text)]">
+        <div className="rounded-lg border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)]">
           {deleteError}
           <button
             type="button"
@@ -127,7 +279,7 @@ export default function SecretsPage() {
             {t('secrets.loading')}
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-[var(--kw-red-text)]">
+          <div className="p-8 text-center text-sm text-[var(--kw-rose-text)]">
             {t('secrets.loadFailed')}: {error.message}
           </div>
         ) : secrets.length === 0 ? (
@@ -139,11 +291,9 @@ export default function SecretsPage() {
             <p className="mb-4 text-sm text-[var(--kw-text-muted)]">
               {t('secrets.emptyDesc')}
             </p>
-            <Link href="/secrets/new">
-              <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />}>
-                {t('secrets.newSecret')}
-              </Button>
-            </Link>
+            <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+              {t('secrets.newSecret')}
+            </Button>
           </div>
         ) : (
           <div className="divide-y divide-[var(--kw-border)]">
@@ -186,22 +336,12 @@ export default function SecretsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 sm:flex-shrink-0">
-                  <Link href={`/secrets/${secret.id}`}>
-                    <Button variant="ghost" size="sm" leftIcon={<Eye className="h-4 w-4" />}>
-                      {t('secrets.view')}
-                    </Button>
-                  </Link>
-                  <Link href={`/secrets/${secret.id}/edit`}>
-                    <Button variant="ghost" size="sm" leftIcon={<Edit className="h-4 w-4" />}>
-                      {t('secrets.edit')}
-                    </Button>
-                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
                     leftIcon={<Trash2 className="h-4 w-4" />}
                     onClick={() => setDeleteTarget({ id: secret.id, name: secret.name })}
-                    className="text-[var(--kw-red-text)] hover:text-[var(--kw-red-text)]"
+                    className="text-[var(--kw-rose-text)] hover:text-[var(--kw-rose-text)]"
                   >
                     {t('common.delete')}
                   </Button>

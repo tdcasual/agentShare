@@ -9,9 +9,9 @@ Create Date: 2026-06-10
 """
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "20260610_01"
 down_revision = None
@@ -101,7 +101,7 @@ def upgrade() -> None:
         ),
         sa.UniqueConstraint("key_hash", name="uq_tokens_key_hash"),
         sa.CheckConstraint(
-            "status IN ('active', 'revoked', 'expired')",
+            "status IN ('active', 'revoked')",
             name="check_token_status",
         ),
     )
@@ -125,7 +125,6 @@ def upgrade() -> None:
             sa.ForeignKey("secrets.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("allowed", sa.Boolean(), nullable=False, server_default="true"),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

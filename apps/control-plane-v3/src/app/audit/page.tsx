@@ -90,7 +90,7 @@ export default function AuditPage() {
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isDeniedActive
-                  ? 'bg-[var(--kw-red-surface)] text-[var(--kw-red-text)]'
+                  ? 'bg-[var(--kw-rose-surface)] text-[var(--kw-rose-text)]'
                   : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)] hover:bg-[var(--kw-surface)]'
               )}
             >
@@ -113,7 +113,7 @@ export default function AuditPage() {
           <div className="text-xs text-[var(--kw-text-muted)]">{t('audit.grantedAccess')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-[var(--kw-red-text)]">
+          <div className="text-xl font-bold text-[var(--kw-rose-text)]">
             {logs.filter((l) => !l.granted).length}
           </div>
           <div className="text-xs text-[var(--kw-text-muted)]">{t('audit.deniedAccess')}</div>
@@ -133,7 +133,7 @@ export default function AuditPage() {
             {t('audit.loading')}
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-[var(--kw-red-text)]">
+          <div className="p-8 text-center text-sm text-[var(--kw-rose-text)]">
             {t('audit.loadFailed')}: {error.message}
           </div>
         ) : logs.length === 0 ? (

@@ -9,10 +9,10 @@ from fastapi import APIRouter, FastAPI
 # VaultGate routes
 from app.routes.auth import router as auth_router
 from app.routes.bootstrap import router as bootstrap_router
+from app.routes.runtime import router as runtime_router
 from app.routes.secrets_mgmt import router as secrets_mgmt_router
 from app.routes.tokens import router as tokens_router
 from app.routes.vault import router as vault_router
-from app.routes.runtime import router as runtime_router
 
 
 def get_vaultgate_routers() -> tuple[APIRouter, ...]:

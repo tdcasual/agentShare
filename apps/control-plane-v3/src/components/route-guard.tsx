@@ -10,9 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getRoutePolicy, isRouteAllowed } from '@/lib/route-policy';
 import { resolveAppEntryState } from '@/lib/session';
-import { useGlobalSession } from '@/lib/session-state';
 import {
   getDefaultManagementRoute,
   getRequiredRoleForPath,
@@ -26,6 +24,12 @@ import { useI18n } from '@/components/i18n-provider';
 
 interface RouteGuardProps {
   children: React.ReactNode;
+}
+
+const PUBLIC_PATHS = new Set(['/login', '/setup', '/logout', '/docs']);
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.has(pathname) || pathname.startsWith('/docs/');
 }
 
 /**
@@ -80,13 +84,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
-    const sessionState = entryState.kind === 'authenticated_ready' ? 'authenticated' : 'anonymous';
-    const allowed = isRouteAllowed(pathname, sessionState);
-    const routePolicy = getRoutePolicy(pathname);
+    const isPublic = isPublicPath(pathname);
 
     // 引导状态特殊处理
     if (entryState.kind === 'bootstrap_required') {
-      if (routePolicy?.mode === 'public') {
+      if (isPublic) {
         setRoleCheckFailed(null);
         return;
       }
@@ -113,15 +115,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
     }
 
     // 未认证用户访问需要认证的页面 — 重定向到登录页
-    if (entryState.kind === 'login_required' && !allowed.allowed) {
+    if (entryState.kind === 'login_required' && !isPublic) {
       if (pathname !== '/login') {
         router.replace('/login');
       }
-      return;
-    }
-
-    if (!allowed.allowed && allowed.redirect) {
-      router.replace(allowed.redirect);
       return;
     }
 
@@ -203,54 +200,5 @@ export function RouteGuard({ children }: RouteGuardProps) {
   }
 
   // 正常渲染子内容
-  return <>{children}</>;
-}
-
-/**
- * 管理路由守卫 - 仅允许认证用户访问
- * 读取全局会话状态，不触发独立API调用。
- */
-export function ManagementRouteGuard({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const globalSession = useGlobalSession();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
-  if (globalSession.state === 'unknown') {
-    return (
-      <main id="main-content" className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
-      </main>
-    );
-  }
-
-  if (globalSession.state === 'unavailable') {
-    return (
-      <main id="main-content" className="flex min-h-screen items-center justify-center">
-        <div className="bg-[var(--kw-rose-surface)]/80 rounded-xl border border-[var(--kw-rose-surface)] px-6 py-4 text-[var(--kw-rose-text)]">
-          {globalSession.error}
-        </div>
-      </main>
-    );
-  }
-
-  if (globalSession.state !== 'authenticated') {
-    return (
-      <main id="main-content" className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--kw-primary-500)]" />
-      </main>
-    );
-  }
-
   return <>{children}</>;
 }

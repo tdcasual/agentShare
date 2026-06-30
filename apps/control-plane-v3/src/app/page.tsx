@@ -11,7 +11,6 @@ import {
   Key,
   Shield,
   Activity,
-  Plus,
   ArrowRight,
   Sparkles,
 } from 'lucide-react';
@@ -106,13 +105,13 @@ export default function VaultGateDashboard() {
         <h2 className="mb-4 text-lg font-semibold text-[var(--kw-text)]">{t('dashboard.quickActions')}</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <ActionButton
-            href="/secrets/new"
+            href="/secrets"
             icon={<Key className="h-4 w-4" />}
             label={t('dashboard.createSecret')}
             description={t('dashboard.createSecretDesc')}
           />
           <ActionButton
-            href="/tokens/new"
+            href="/tokens"
             icon={<Shield className="h-4 w-4" />}
             label={t('dashboard.createToken')}
             description={t('dashboard.createTokenDesc')}
@@ -133,7 +132,6 @@ export default function VaultGateDashboard() {
           <QuickLink href="/secrets" label={t('dashboard.secrets')} count={totalSecrets} />
           <QuickLink href="/tokens" label={t('dashboard.tokens')} count={activeTokens} />
           <QuickLink href="/audit" label={t('dashboard.auditLogs')} />
-          <QuickLink href="/docs" label={t('dashboard.apiDocs')} external />
         </div>
       </Card>
 

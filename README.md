@@ -7,13 +7,13 @@ Simple key storage and token issuance service.
 VaultGate is a minimal vault for storing secrets (accounts, passwords, API keys) and issuing scoped bearer tokens that agents use to retrieve authorized secrets at runtime.
 
 ```
-FastAPI (Python) + PostgreSQL + Next.js + OpenBao
+FastAPI (Python) + PostgreSQL + Next.js
 ```
 
 - **API** -- FastAPI backend at `apps/api/`
 - **Web** -- Next.js management console at `apps/control-plane-v3/`
 - **Database** -- PostgreSQL (SQLite for local dev)
-- **Secret backend** -- OpenBao (in-memory fallback for development)
+- **Encryption** -- AES-256-GCM in application layer
 
 ## Core Features
 
@@ -29,7 +29,6 @@ FastAPI (Python) + PostgreSQL + Next.js + OpenBao
 | API | Python 3.12, FastAPI, SQLAlchemy 2, Pydantic v2 |
 | Web | Next.js, React, Tailwind CSS |
 | Database | PostgreSQL (production), SQLite (local dev) |
-| Secret backend | OpenBao KV v2 (production), in-memory (dev) |
 | Encryption | AES-256-GCM (ENCRYPTION_KEY) |
 | Containerization | Docker, Docker Compose |
 
@@ -123,7 +122,7 @@ cd apps/control-plane-v3 && npm run build
 For production, use `docker-compose.prod.yml` with a properly configured `.env.production`:
 
 ```bash
-cp .env.production.example .env.production
+cp ops/compose/prod.env.example .env.production
 # edit .env.production with strong keys and production URLs
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ```

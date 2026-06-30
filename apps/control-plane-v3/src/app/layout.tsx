@@ -1,17 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import dynamic from 'next/dynamic';
 import { cookies } from 'next/headers';
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { RouteGuardWrapper } from '@/components/route-guard-wrapper';
 import { defaultLocale, locales, type Locale } from '@/i18n/config';
-
-// Dynamic imports for non-critical components
-const KawaiiBackground = dynamic(() => import('@/components/kawaii/kawaii-background'), { ssr: false });
-const ServiceWorkerRegister = dynamic(() => import('@/components/service-worker-register'), { ssr: false });
-const PWAUpdatePrompt = dynamic(() => import('@/components/pwa/pwa-update-prompt').then(m => m.PWAUpdatePrompt), { ssr: false });
-const PWAOfflineIndicator = dynamic(() => import('@/components/pwa/pwa-update-prompt').then(m => m.PWAOfflineIndicator), { ssr: false });
 
 // Load only the messages for the current locale at build time
 import zhCN from '@/i18n/messages/zh-CN.json';
@@ -57,26 +50,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: localizedMetadata.title,
     description: localizedMetadata.description,
-    manifest: '/manifest.json',
-    icons: {
-      icon: [
-        { url: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png' },
-        { url: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png' },
-        { url: '/icons/icon-128x128.png', sizes: '128x128', type: 'image/png' },
-        { url: '/icons/icon-144x144.png', sizes: '144x144', type: 'image/png' },
-        { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
-        { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-        { url: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
-        { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
-      ],
-      apple: [{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' }],
-    },
-    appleWebApp: {
-      capable: true,
-      statusBarStyle: 'default',
-      title: localizedMetadata.appName,
-      startupImage: [{ url: '/icons/icon-512x512.png', media: '(device-width: 768px)' }],
-    },
     applicationName: localizedMetadata.appName,
     authors: [{ name: 'VaultGate' }],
     generator: 'Next.js',
@@ -101,7 +74,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <I18nProvider initialLocale={locale}>
             <ErrorBoundary>
               <RouteGuardWrapper>
-                <KawaiiBackground />
                 <a
                   href="#main-content"
                   className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-[var(--kw-primary-500)] focus:px-4 focus:py-2 focus:text-white"
@@ -109,9 +81,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {skipLinkLabel}
                 </a>
                 {children}
-                <ServiceWorkerRegister />
-                <PWAUpdatePrompt />
-                <PWAOfflineIndicator />
               </RouteGuardWrapper>
             </ErrorBoundary>
           </I18nProvider>

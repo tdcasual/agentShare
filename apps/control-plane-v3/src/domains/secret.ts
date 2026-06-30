@@ -9,7 +9,6 @@
 import useSWR, { mutate } from 'swr';
 import {
   listSecrets as apiListSecrets,
-  getSecret as apiGetSecret,
   createSecret as apiCreateSecret,
   updateSecret as apiUpdateSecret,
   deleteSecret as apiDeleteSecret,
@@ -36,19 +35,6 @@ export function useSecrets() {
     isLoading,
     error,
     refresh: mutate,
-  };
-}
-
-export function useSecret(id: string | null) {
-  const { data, error, isLoading } = useSWR(
-    id ? `${SECRET_CACHE_KEY}/${id}` : null,
-    () => (id ? apiGetSecret(id) : Promise.reject(new Error('No ID provided')))
-  );
-
-  return {
-    secret: data,
-    isLoading,
-    error,
   };
 }
 
