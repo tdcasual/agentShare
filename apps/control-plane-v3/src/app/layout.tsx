@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { RouteGuardWrapper } from '@/components/route-guard-wrapper';
+import { Toaster } from '@/components/ui/sonner';
 import { defaultLocale, locales, type Locale } from '@/i18n/config';
 
 // Load only the messages for the current locale at build time
@@ -76,11 +77,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <RouteGuardWrapper>
                 <a
                   href="#main-content"
-                  className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-[var(--kw-primary-500)] focus:px-4 focus:py-2 focus:text-white"
+                  className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
                 >
                   {skipLinkLabel}
                 </a>
                 {children}
+                <Toaster richColors position="top-right" />
               </RouteGuardWrapper>
             </ErrorBoundary>
           </I18nProvider>
