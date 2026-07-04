@@ -10,19 +10,10 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_BASE_URL = process.env.VAULTGATE_API_URL || 'http://localhost:8000';
 
 // Only forward these request headers to the backend (no cookie/authorization)
-const FORWARD_REQUEST_HEADERS = [
-  'content-type',
-  'accept',
-  'x-request-id',
-];
+const FORWARD_REQUEST_HEADERS = ['content-type', 'accept', 'x-request-id'];
 
 // Only forward these response headers back to the client
-const FORWARD_RESPONSE_HEADERS = [
-  'content-type',
-  'set-cookie',
-  'cache-control',
-  'x-request-id',
-];
+const FORWARD_RESPONSE_HEADERS = ['content-type', 'set-cookie', 'cache-control', 'x-request-id'];
 
 // Allowed backend URL schemes (prevent SSRF to non-HTTP services)
 function validateBackendUrl(url: string): void {

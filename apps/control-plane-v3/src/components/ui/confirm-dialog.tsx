@@ -57,7 +57,9 @@ export function ConfirmDialog({
           <AlertDialogDescription>{message ?? ''}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>{cancelText ?? t('modal.cancel')}</AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>
+            {cancelText ?? t('modal.cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -65,7 +67,8 @@ export function ConfirmDialog({
             }}
             disabled={isLoading}
             className={cn(
-              variant === 'danger' && 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+              variant === 'danger' &&
+                'bg-destructive text-destructive-foreground hover:bg-destructive/90'
             )}
           >
             {isLoading ? t('common.loading') : (confirmText ?? t('modal.confirm'))}

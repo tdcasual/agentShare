@@ -17,8 +17,6 @@ describe('not found page', () => {
     });
 
     expect(homeLink).toHaveAttribute('href', '/');
-    expect(
-      screen.queryByRole('button', { name: 'common.backToHome' })
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'common.backToHome' })).toBeNull();
   });
 });

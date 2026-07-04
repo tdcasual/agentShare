@@ -3,22 +3,35 @@
 import { useState } from 'react';
 import { useSecrets, createSecret, deleteSecret } from '@/domains/secret';
 import { useTokens } from '@/domains/token';
-import { Card } from '@/shared/ui-primitives/card';
-import { Button } from '@/shared/ui-primitives/button';
-import { Input } from '@/shared/ui-primitives/input';
-import { Badge } from '@/shared/ui-primitives/badge';
-import { ConfirmModal } from '@/shared/ui-primitives/modal';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
-  Plus,
-  Key,
-  Globe,
-  Shield,
-  Trash2,
-} from 'lucide-react';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Plus, Key, Globe, Shield, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
-type SecretType = 'password' | 'api_key' | 'basic_auth' | 'bearer_token' | 'api_key_header' | 'oauth_token' | 'certificate' | 'ssh_key' | 'database_url' | 'custom';
+type SecretType =
+  | 'password'
+  | 'api_key'
+  | 'basic_auth'
+  | 'bearer_token'
+  | 'api_key_header'
+  | 'oauth_token'
+  | 'certificate'
+  | 'ssh_key'
+  | 'database_url'
+  | 'custom';
 
 const SECRET_TYPES: SecretType[] = [
   'password',
@@ -47,16 +60,16 @@ const SECRET_TYPE_ICONS: Record<SecretType, React.ReactNode> = {
 };
 
 const SECRET_TYPE_COLORS: Record<SecretType, string> = {
-  password: 'bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)]',
-  api_key: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)]',
-  basic_auth: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]',
-  bearer_token: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]',
-  api_key_header: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)]',
-  oauth_token: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]',
-  certificate: 'bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)]',
-  ssh_key: 'bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)]',
-  database_url: 'bg-[var(--kw-sky-surface)] text-[var(--kw-sky-text)]',
-  custom: 'bg-[var(--kw-surface)] text-[var(--kw-text)]',
+  password: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  api_key: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+  basic_auth: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  bearer_token: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  api_key_header: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+  oauth_token: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  certificate: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  ssh_key: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  database_url: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+  custom: 'bg-muted text-foreground',
 };
 
 const EMPTY_FORM = {
@@ -88,7 +101,9 @@ export default function SecretsPage() {
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.value) {return;}
+    if (!form.name.trim() || !form.value) {
+      return;
+    }
     setIsCreating(true);
     setCreateError(null);
     try {
@@ -111,7 +126,9 @@ export default function SecretsPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteTarget) {return;}
+    if (!deleteTarget) {
+      return;
+    }
     setIsDeleting(true);
     setDeleteError(null);
     try {
@@ -130,19 +147,10 @@ export default function SecretsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
-            {t('secrets.title')}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-            {t('secrets.description')}
-          </p>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t('secrets.title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('secrets.description')}</p>
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          leftIcon={<Plus className="h-4 w-4" />}
-          onClick={openCreate}
-        >
+        <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
           {t('secrets.newSecret')}
         </Button>
       </div>
@@ -150,77 +158,81 @@ export default function SecretsPage() {
       {/* Create Form */}
       {showCreate && (
         <Card className="p-4 sm:p-6">
-          <h2 className="mb-4 text-lg font-semibold text-[var(--kw-text)]">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">
             {t('secrets.createForm.title')}
           </h2>
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="w-full">
-                <label
-                  htmlFor="secret-type"
-                  className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
-                >
-                  {t('secrets.createForm.type')}
-                </label>
-                <select
-                  id="secret-type"
+              <div className="w-full space-y-2">
+                <Label htmlFor="secret-type">{t('secrets.createForm.type')}</Label>
+                <Select
                   value={form.type}
-                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as SecretType }))}
-                  className="w-full rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none transition-colors focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
+                  onValueChange={(value) => setForm((f) => ({ ...f, type: value as SecretType }))}
                 >
-                  {SECRET_TYPES.map((secretType) => (
-                    <option key={secretType} value={secretType}>
-                      {secretType}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="secret-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SECRET_TYPES.map((secretType) => (
+                      <SelectItem key={secretType} value={secretType}>
+                        {secretType}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Input
-                label={t('secrets.createForm.name')}
-                placeholder={t('secrets.createForm.namePlaceholder')}
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                required
-              />
+              <div className="space-y-2">
+                <Label htmlFor="secret-name">{t('secrets.createForm.name')}</Label>
+                <Input
+                  id="secret-name"
+                  placeholder={t('secrets.createForm.namePlaceholder')}
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  required
+                />
+              </div>
             </div>
-            <div className="w-full">
-              <label
-                htmlFor="secret-value"
-                className="mb-1.5 block text-sm font-medium text-[var(--kw-text)]"
-              >
-                {t('secrets.createForm.value')}
-              </label>
-              <textarea
+            <div className="w-full space-y-2">
+              <Label htmlFor="secret-value">{t('secrets.createForm.value')}</Label>
+              <Textarea
                 id="secret-value"
                 placeholder={t('secrets.createForm.valuePlaceholder')}
                 value={form.value}
                 onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
                 required
                 rows={3}
-                className="w-full resize-y rounded-2xl border-2 border-[var(--kw-border)] bg-[var(--kw-surface)] px-4 py-3 text-base outline-none transition-colors placeholder:text-[var(--kw-text-muted)] focus:border-[var(--kw-primary-400)] focus:ring-2 focus:ring-[var(--kw-primary-100)] dark:bg-[var(--kw-dark-surface)]"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="secret-url">{t('secrets.createForm.url')}</Label>
+                <Input
+                  id="secret-url"
+                  value={form.url}
+                  onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secret-username">{t('secrets.createForm.username')}</Label>
+                <Input
+                  id="secret-username"
+                  value={form.username}
+                  onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secret-description">{t('secrets.createForm.description')}</Label>
               <Input
-                label={t('secrets.createForm.url')}
-                value={form.url}
-                onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-              />
-              <Input
-                label={t('secrets.createForm.username')}
-                value={form.username}
-                onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+                id="secret-description"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               />
             </div>
-            <Input
-              label={t('secrets.createForm.description')}
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            />
             {createError && (
               <div
                 role="alert"
-                className="rounded-lg border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)]"
+                className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
               >
                 {createError}
               </div>
@@ -238,7 +250,7 @@ export default function SecretsPage() {
               >
                 {t('common.cancel')}
               </Button>
-              <Button variant="primary" size="sm" type="submit" loading={isCreating}>
+              <Button size="sm" type="submit" loading={isCreating}>
                 {t('common.save')}
               </Button>
             </div>
@@ -249,24 +261,20 @@ export default function SecretsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-[var(--kw-text)]">{secrets.length}</div>
-          <div className="text-xs text-[var(--kw-text-muted)]">{t('dashboard.totalSecrets')}</div>
+          <div className="text-xl font-bold text-foreground">{secrets.length}</div>
+          <div className="text-xs text-muted-foreground">{t('dashboard.totalSecrets')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-[var(--kw-text)]">{tokens.length}</div>
-          <div className="text-xs text-[var(--kw-text-muted)]">{t('dashboard.activeTokens')}</div>
+          <div className="text-xl font-bold text-foreground">{tokens.length}</div>
+          <div className="text-xs text-muted-foreground">{t('dashboard.activeTokens')}</div>
         </Card>
       </div>
 
       {/* Delete Error */}
       {deleteError && (
-        <div className="rounded-lg border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] p-3 text-sm text-[var(--kw-rose-text)]">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
           {deleteError}
-          <button
-            type="button"
-            onClick={() => setDeleteError(null)}
-            className="ml-2 underline"
-          >
+          <button type="button" onClick={() => setDeleteError(null)} className="ml-2 underline">
             {t('common.close')}
           </button>
         </div>
@@ -275,28 +283,26 @@ export default function SecretsPage() {
       {/* Secrets List */}
       <Card className="overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-[var(--kw-text-muted)]">
+          <div className="p-8 text-center text-sm text-muted-foreground">
             {t('secrets.loading')}
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-[var(--kw-rose-text)]">
+          <div className="p-8 text-center text-sm text-destructive">
             {t('secrets.loadFailed')}: {error.message}
           </div>
         ) : secrets.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)]">
-              <Key className="h-6 w-6 text-[var(--kw-text-muted)]" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <Key className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mb-2 font-semibold text-[var(--kw-text)]">{t('secrets.emptyTitle')}</h3>
-            <p className="mb-4 text-sm text-[var(--kw-text-muted)]">
-              {t('secrets.emptyDesc')}
-            </p>
-            <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+            <h3 className="mb-2 font-semibold text-foreground">{t('secrets.emptyTitle')}</h3>
+            <p className="mb-4 text-sm text-muted-foreground">{t('secrets.emptyDesc')}</p>
+            <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
               {t('secrets.newSecret')}
             </Button>
           </div>
         ) : (
-          <div className="divide-y divide-[var(--kw-border)]">
+          <div className="divide-y divide-border">
             {secrets.map((secret) => (
               <div
                 key={secret.id}
@@ -304,18 +310,16 @@ export default function SecretsPage() {
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="truncate font-medium text-[var(--kw-text)]">
-                      {secret.name}
-                    </h3>
+                    <h3 className="truncate font-medium text-foreground">{secret.name}</h3>
                     <Badge
-                      variant="info"
+                      variant="secondary"
                       className={cn('flex items-center gap-1', SECRET_TYPE_COLORS[secret.type])}
                     >
                       {SECRET_TYPE_ICONS[secret.type]}
                       <span className="text-xs">{secret.type}</span>
                     </Badge>
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--kw-text-muted)]">
+                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
                     {secret.url && (
                       <span className="flex items-center gap-1">
                         <Globe className="h-3 w-3" />
@@ -329,7 +333,7 @@ export default function SecretsPage() {
                       </span>
                     )}
                     {secret.tags.length > 0 && (
-                      <span className="text-[var(--kw-text-muted)]">
+                      <span>
                         {t('secrets.tags')} {secret.tags.join(', ')}
                       </span>
                     )}
@@ -341,7 +345,7 @@ export default function SecretsPage() {
                     size="sm"
                     leftIcon={<Trash2 className="h-4 w-4" />}
                     onClick={() => setDeleteTarget({ id: secret.id, name: secret.name })}
-                    className="text-[var(--kw-rose-text)] hover:text-[var(--kw-rose-text)]"
+                    className="text-destructive hover:text-destructive"
                   >
                     {t('common.delete')}
                   </Button>
@@ -352,8 +356,8 @@ export default function SecretsPage() {
         )}
       </Card>
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}

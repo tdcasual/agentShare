@@ -25,9 +25,8 @@ const SECRET_CACHE_KEY = '/api/secrets';
 // ============================================
 
 export function useSecrets() {
-  const { data, error, isLoading, mutate } = useSWR(
-    SECRET_CACHE_KEY,
-    () => apiListSecrets().then((res) => res.items)
+  const { data, error, isLoading, mutate } = useSWR(SECRET_CACHE_KEY, () =>
+    apiListSecrets().then((res) => res.items)
   );
 
   return {

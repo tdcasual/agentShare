@@ -6,8 +6,24 @@ import AuditPage from './page';
 vi.mock('@/domains/audit', () => ({
   useAuditLogs: () => ({
     logs: [
-      { id: '1', timestamp: '2026-01-01T12:00:00Z', token_id: 'tok_123', secret_id: 'sec_456', action: 'read_value', granted: true, requested_field_count: 1 },
-      { id: '2', timestamp: '2026-01-01T13:00:00Z', token_id: 'tok_789', secret_id: 'sec_012', action: 'read_value', granted: false, requested_field_count: 1 },
+      {
+        id: '1',
+        timestamp: '2026-01-01T12:00:00Z',
+        token_id: 'tok_123',
+        secret_id: 'sec_456',
+        action: 'read_value',
+        granted: true,
+        requested_field_count: 1,
+      },
+      {
+        id: '2',
+        timestamp: '2026-01-01T13:00:00Z',
+        token_id: 'tok_789',
+        secret_id: 'sec_012',
+        action: 'read_value',
+        granted: false,
+        requested_field_count: 1,
+      },
     ],
     total: 2,
     isLoading: false,

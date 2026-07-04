@@ -69,11 +69,6 @@ const config = {
         '3xl': '24px',
         '4xl': '32px',
       },
-      boxShadow: {
-        soft: '0 1px 3px rgba(0, 0, 0, 0.04)',
-        medium: '0 2px 8px rgba(0, 0, 0, 0.05)',
-        glow: '0 0 12px rgba(0, 0, 0, 0.06)',
-      },
       zIndex: {
         background: '-10',
         base: '0',

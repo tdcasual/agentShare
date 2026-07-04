@@ -29,9 +29,8 @@ const SCOPE_CACHE_KEY = (tokenId: string) => `/api/tokens/${tokenId}/scopes`;
 // ============================================
 
 export function useTokens() {
-  const { data, error, isLoading, mutate } = useSWR(
-    TOKEN_CACHE_KEY,
-    () => apiListTokens().then((res) => res.items)
+  const { data, error, isLoading, mutate } = useSWR(TOKEN_CACHE_KEY, () =>
+    apiListTokens().then((res) => res.items)
   );
 
   return {

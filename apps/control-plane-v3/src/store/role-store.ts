@@ -57,5 +57,3 @@ export const useRoleStore = create<RoleState>()((set, get) => ({
     return role === 'owner';
   },
 }));
-
-

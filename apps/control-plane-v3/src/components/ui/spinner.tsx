@@ -13,7 +13,5 @@ export interface SpinnerProps {
 }
 
 export function Spinner({ size = 'md', className }: SpinnerProps) {
-  return (
-    <Loader2 aria-hidden="true" className={cn('animate-spin', sizeMap[size], className)} />
-  );
+  return <Loader2 aria-hidden="true" className={cn('animate-spin', sizeMap[size], className)} />;
 }

@@ -78,7 +78,9 @@ async function requestJson<T>(
     return payload as T;
   } catch (error) {
     clearTimeout(timeoutId);
-    if (error instanceof ApiError) {throw error;}
+    if (error instanceof ApiError) {
+      throw error;
+    }
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError(0, 'Request timeout');
     }
@@ -212,7 +214,9 @@ export interface LoginInput {
 // Authentication API
 // ============================================
 
-export async function login(input: LoginInput): Promise<{ message: string; user_id: string; email: string }> {
+export async function login(
+  input: LoginInput
+): Promise<{ message: string; user_id: string; email: string }> {
   return requestJson('/session/login', {
     method: 'POST',
     body: JSON.stringify(input),
@@ -286,7 +290,10 @@ export async function listScopes(tokenId: string): Promise<{ items: Scope[]; tot
   return requestJson(`/tokens/${tokenId}/scopes`);
 }
 
-export async function createScopes(tokenId: string, input: ScopeCreateInput): Promise<{ items: Scope[] }> {
+export async function createScopes(
+  tokenId: string,
+  input: ScopeCreateInput
+): Promise<{ items: Scope[] }> {
   return requestJson(`/tokens/${tokenId}/scopes`, {
     method: 'POST',
     body: JSON.stringify(input),
@@ -318,11 +325,21 @@ export async function listAuditLogs(query: AuditLogsQuery = {}): Promise<{
   offset: number;
 }> {
   const params = new URLSearchParams();
-  if (query.limit) {params.set('limit', query.limit.toString());}
-  if (query.offset) {params.set('offset', query.offset.toString());}
-  if (query.token_id) {params.set('token_id', query.token_id);}
-  if (query.secret_id) {params.set('secret_id', query.secret_id);}
-  if (query.action) {params.set('action', query.action);}
+  if (query.limit) {
+    params.set('limit', query.limit.toString());
+  }
+  if (query.offset) {
+    params.set('offset', query.offset.toString());
+  }
+  if (query.token_id) {
+    params.set('token_id', query.token_id);
+  }
+  if (query.secret_id) {
+    params.set('secret_id', query.secret_id);
+  }
+  if (query.action) {
+    params.set('action', query.action);
+  }
 
   const queryString = params.toString();
   return requestJson(`/audit-logs${queryString ? `?${queryString}` : ''}`);

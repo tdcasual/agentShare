@@ -18,7 +18,7 @@ vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           'common.back': 'Back',
           'common.backToHome': 'Back to home',
           'forbiddenState.title': 'Forbidden',
@@ -31,7 +31,7 @@ vi.mock('@/components/i18n-provider', () => ({
           'settings.roles.viewer': 'Viewer',
           'settings.roles.admin': 'Admin',
           'settings.roles.owner': 'Owner',
-        } as Record<string, string>
+        }) as Record<string, string>
       )[key] ?? key,
   }),
 }));

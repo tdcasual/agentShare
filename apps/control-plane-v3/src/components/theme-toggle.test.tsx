@@ -12,10 +12,10 @@ vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
     t: (key: string) =>
       (
-        {
+        ({
           'settings.theme.switchToDark': 'Switch to dark mode',
           'settings.theme.switchToLight': 'Switch to light mode',
-        } as Record<string, string>
+        }) as Record<string, string>
       )[key] ?? key,
   }),
 }));

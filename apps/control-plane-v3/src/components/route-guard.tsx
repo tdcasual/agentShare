@@ -19,6 +19,7 @@ import {
   isValidRole,
 } from '@/lib/role-system';
 import { ForbiddenState } from './forbidden-state';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -148,11 +149,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
     return (
       <main
         id="main-content"
-        className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]"
+        className="flex min-h-screen items-center justify-center bg-background"
       >
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-[var(--kw-primary-500)]" />
-          <p className="text-[var(--kw-text)]">{t('common.initializing')}</p>
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-foreground">{t('common.initializing')}</p>
         </div>
       </main>
     );
@@ -163,25 +164,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
     return (
       <main
         id="main-content"
-        className="flex min-h-screen items-center justify-center bg-[var(--kw-bg)] p-4 dark:bg-[var(--kw-dark-bg)]"
+        className="flex min-h-screen items-center justify-center bg-background p-4"
       >
-        <div className="dark:border-[var(--kw-dark-error-surface)]/30 w-full max-w-md rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-surface)] p-8 text-center shadow-xl dark:bg-[var(--kw-dark-surface)]">
-          <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
-            <Loader2 className="h-8 w-8 text-[var(--kw-error)]" />
+        <div className="w-full max-w-md rounded-xl border border-destructive/20 bg-card p-8 text-center shadow-xl">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+            <Loader2 className="h-8 w-8 text-destructive" />
           </div>
-          <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">
+          <h1 className="mb-2 text-xl font-bold text-foreground">
             {t('common.serviceUnavailable')}
           </h1>
-          <p className="mb-6 text-[var(--kw-text-muted)]">
-            {t('common.serviceUnavailableDescription')}
-          </p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="rounded-full bg-[var(--kw-primary-500)] px-6 py-3 font-medium text-white transition-colors hover:bg-[var(--kw-primary-600)]"
-          >
-            {t('common.retry')}
-          </button>
+          <p className="mb-6 text-muted-foreground">{t('common.serviceUnavailableDescription')}</p>
+          <Button onClick={() => window.location.reload()}>{t('common.retry')}</Button>
         </div>
       </main>
     );
@@ -190,10 +183,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   // 角色权限不足 - 显示403页面
   if (roleCheckFailed) {
     return (
-      <main
-        id="main-content"
-        className="min-h-screen bg-[var(--kw-bg)] dark:bg-[var(--kw-dark-bg)]"
-      >
+      <main id="main-content" className="min-h-screen bg-background">
         <ForbiddenState requiredRole={roleCheckFailed.requiredRole} resourceName={pathname} />
       </main>
     );

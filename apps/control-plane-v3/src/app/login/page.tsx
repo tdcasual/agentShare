@@ -2,11 +2,12 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LockKeyhole, Mail, Sparkles, Loader2, Shield } from 'lucide-react';
+import { LockKeyhole, Mail, Sparkles, Shield } from 'lucide-react';
 import { login, type LoginInput } from '@/lib/vaultgate-api';
-import { Card } from '@/shared/ui-primitives/card';
-import { Button } from '@/shared/ui-primitives/button';
-import { Input } from '@/shared/ui-primitives/input';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -48,84 +49,84 @@ export default function LoginPage() {
         <SimpleThemeToggle />
       </div>
 
-      <Card
-        variant="default"
-        className="relative z-10 w-full max-w-xl dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-surface)]"
-      >
-        <div className="space-y-3 sm:space-y-5 lg:space-y-8">
+      <Card className="relative z-10 w-full max-w-xl">
+        <div className="space-y-3 p-6 sm:space-y-5 sm:p-8 lg:space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--kw-purple-surface)] px-4 py-2 text-sm font-medium text-[var(--kw-purple-text)]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground">
               <Shield className="h-4 w-4" />
               <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">
                 VaultGate v1.0
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-[var(--kw-text)] sm:text-4xl">
+            <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
               {t('auth.login.title')}
             </h1>
-            <p className="mx-auto max-w-sm text-[var(--kw-text-muted)]">
-              {t('auth.login.subtitle')}
-            </p>
+            <p className="mx-auto max-w-sm text-muted-foreground">{t('auth.login.subtitle')}</p>
           </div>
 
           {/* Form */}
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <Input
-              label={t('auth.login.email')}
-              type="email"
-              autoComplete="email"
-              icon={<Mail className="h-4 w-4" />}
-              value={form.email}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, email: event.target.value }))
-              }
-              placeholder="your@email.com"
-              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-              required
-            />
-            <Input
-              label={t('auth.login.password')}
-              type="password"
-              autoComplete="current-password"
-              icon={<LockKeyhole className="h-4 w-4" />}
-              value={form.password}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, password: event.target.value }))
-              }
-              placeholder="••••••••••••"
-              className="dark:border-[var(--kw-dark-border)] dark:bg-[var(--kw-dark-bg)] dark:text-[var(--kw-dark-text)]"
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('auth.login.email')}</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, email: event.target.value }))
+                  }
+                  placeholder="your@email.com"
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('auth.login.password')}</Label>
+              <div className="relative">
+                <LockKeyhole className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, password: event.target.value }))
+                  }
+                  placeholder="••••••••••••"
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
 
             {/* Status message */}
             {error && (
               <div
                 role="alert"
                 aria-live="polite"
-                className="rounded-xl border border-[var(--kw-rose-surface)] bg-[var(--kw-rose-surface)] px-4 py-3 text-sm text-[var(--kw-rose-text)]"
+                className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
               >
                 {error}
               </div>
             )}
 
-            <Button className="w-full" type="submit" loading={isSubmitting}>
-              {isSubmitting ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {t('auth.login.signingIn')}
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  {t('auth.login.signIn')}
-                </span>
-              )}
+            <Button
+              className="w-full"
+              type="submit"
+              loading={isSubmitting}
+              leftIcon={<Sparkles className="h-4 w-4" />}
+            >
+              {t('auth.login.signIn')}
             </Button>
           </form>
 
           {/* Footer info */}
-          <div className="text-center text-xs text-[var(--kw-text-muted)]">
+          <div className="text-center text-xs text-muted-foreground">
             <p>{t('auth.login.pageTitle')}</p>
           </div>
         </div>

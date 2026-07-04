@@ -3,9 +3,7 @@
 @tailwind utilities;
 
 /*
- * shadcn/ui design tokens (v2). Additive layer; the legacy --kw-* tokens defined
- * further below remain in place until the old ui-primitives are removed (cleanup
- * phase). HSL channel triples consumed as hsl(var(--*)).
+ * shadcn/ui design tokens (v2). HSL channel triples consumed as hsl(var(--*)).
  */
 @layer base {
   :root {
@@ -80,115 +78,6 @@
   --font-display:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC',
     'Microsoft YaHei', sans-serif;
-
-  /* Primary accent - kept for compatibility, used purposefully */
-  --kw-primary-50: #fff0f5;
-  --kw-primary-100: #ffe4e1;
-  --kw-primary-200: #ffc0cb;
-  --kw-primary-300: #ffb6c1;
-  --kw-primary-400: #f472b6;
-  --kw-primary-500: #db2777;
-  --kw-primary-600: #a03060;
-
-  /* Functional accents - muted */
-  --kw-sky: #6ba8c7;
-
-  --kw-success: #22c55e;
-  --kw-warning: #f59e0b;
-  --kw-error: #ef4444;
-  --kw-info: #3b82f6;
-
-  /* Surfaces - neutral, calm, operational */
-  --kw-bg: #f6f5f8;
-  --kw-surface: #ffffff;
-  --kw-surface-alt: #f4f4f7;
-  --kw-border: #e4e4ef;
-  --kw-text: #2d2d3a;
-  --kw-text-muted: #6b6b7b;
-
-  /* Shadow colors - adapt to theme */
-  --kw-shadow-color: rgba(0, 0, 0, 0.04);
-
-  /* Motion */
-  --kw-duration-fast: 150ms;
-
-  --kw-human-accent: #0ea5e9;
-  --kw-agent-accent: #22c55e;
-
-  /* Semantic surface backgrounds for light mode */
-  --kw-sky-surface: #e0f2fe;
-  --kw-sky-text: #0369a1;
-  --kw-green-surface: #dcfce7;
-  --kw-green-text: #15803d;
-  --kw-purple-surface: #f3e8ff;
-  --kw-purple-text: #7e22ce;
-  --kw-orange-surface: #ffedd5;
-  --kw-orange-text: #c2410c;
-  --kw-rose-surface: #ffe4e6;
-  --kw-rose-text: #be123c;
-  --kw-amber-surface: #fef3c7;
-  --kw-amber-text: #a16207;
-
-  /* Dark Mode - Soft, no neon */
-  --kw-dark-bg: #12121a;
-  --kw-dark-surface: #252540;
-  --kw-dark-surface-alt: #2d2d50;
-  --kw-dark-border: #3d3d5c;
-  --kw-dark-text: #e8e8ec;
-  --kw-dark-text-muted: #9ca3af;
-
-  /* Dark mode shadow colors */
-  --kw-dark-shadow-color: rgba(0, 0, 0, 0.25);
-
-  /* Muted accent colors for dark mode */
-  --kw-dark-primary: #e891c0;
-  --kw-dark-mint: #90ee90;
-  --kw-dark-sky: #6b9ac4;
-
-  /* Semantic dark surface backgrounds for badges and icons */
-  --kw-dark-success-surface: #1a3d2a;
-  --kw-dark-warning-surface: #3d3d1a;
-  --kw-dark-error-surface: #3d1a1a;
-  --kw-dark-info-surface: #1a2a3d;
-  --kw-dark-pink-surface: #3d1a3d;
-  --kw-dark-purple-surface: #2d1a3d;
-  --kw-dark-rose-surface: #4a2d40;
-  --kw-dark-amber-surface: #4a3d2d;
-  --kw-dark-green-accent-surface: #2d4a3d;
-  --kw-dark-sky-accent-surface: #2d4a5d;
-  --kw-dark-purple-accent-surface: #3d2d4a;
-}
-
-.dark {
-  --kw-bg: var(--kw-dark-bg);
-  --kw-surface: var(--kw-dark-surface);
-  --kw-surface-alt: var(--kw-dark-surface-alt);
-  --kw-border: var(--kw-dark-border);
-  --kw-text: var(--kw-dark-text);
-  --kw-text-muted: var(--kw-dark-text-muted);
-
-  /* Semantic surface dark mappings */
-  --kw-sky-surface: #1a2a3d;
-  --kw-sky-text: #6b9ac4;
-  --kw-green-surface: #1a3d2a;
-  --kw-green-text: #90ee90;
-  --kw-purple-surface: #2d1a3d;
-  --kw-purple-text: #c4a5e6;
-  --kw-orange-surface: #3d2d1a;
-  --kw-orange-text: #f5b070;
-  --kw-rose-surface: #3d1a2a;
-  --kw-rose-text: #e891b0;
-  --kw-amber-surface: #3d3d1a;
-  --kw-amber-text: #f5d070;
-
-  /* Functional accents dark mode */
-  --kw-success: #4ade80;
-  --kw-warning: #fbbf24;
-  --kw-error: #f87171;
-  --kw-info: #60a5fa;
-
-  /* Shadow colors dark mode */
-  --kw-shadow-color: var(--kw-dark-shadow-color);
 }
 
 * {
@@ -197,6 +86,8 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -216,20 +107,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--kw-border);
+  background: hsl(var(--border));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--kw-text-muted);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: var(--kw-dark-border);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--kw-dark-text-muted);
+  background: hsl(var(--muted-foreground));
 }
 
 /* Animations - purposeful, not playful */
@@ -291,67 +174,6 @@ body {
   animation: fade-in 0.2s ease-out forwards;
 }
 
-/* Respect user motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Utility classes - neutral, operational */
-.shadow-soft {
-  box-shadow: 0 1px 3px var(--kw-shadow-color);
-}
-
-.dark .shadow-soft {
-  box-shadow: 0 1px 8px var(--kw-dark-shadow-color);
-}
-
-.shadow-medium {
-  box-shadow: 0 2px 8px var(--kw-shadow-color);
-}
-
-.dark .shadow-medium {
-  box-shadow: 0 2px 16px var(--kw-dark-shadow-color);
-}
-
-.shadow-glow {
-  box-shadow: 0 0 12px var(--kw-shadow-color);
-}
-
-.dark .shadow-glow {
-  box-shadow: 0 0 12px var(--kw-dark-shadow-color);
-}
-
-/* Card hover - subtle, professional */
-.card-kawaii {
-  transition:
-    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  background: var(--kw-surface);
-}
-
-.dark .card-kawaii {
-  background: var(--kw-dark-surface);
-}
-
-.card-kawaii:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.06),
-    0 0 0 1px rgba(0, 0, 0, 0.03);
-}
-
-.dark .card-kawaii:hover {
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
 /* Safe area support for notched devices */
 .safe-area-inset-top {
   padding-top: env(safe-area-inset-top);
@@ -399,13 +221,7 @@ body {
   outline: none;
 }
 
-/* Text size adjust for mobile */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-/* Reduced motion support */
+/* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -418,8 +234,7 @@ html {
   .animate-slide-up,
   .animate-slide-down,
   .animate-scale-in,
-  .animate-fade-in,
-  .btn-shimmer {
+  .animate-fade-in {
     animation: none !important;
   }
 }
@@ -427,20 +242,20 @@ html {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
-    --kw-primary-500: #c71585;
-    --kw-text: #000000;
-    --kw-text-muted: #333333;
-    --kw-border: #000000;
+    --primary: 330 81% 60%;
+    --foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 20%;
+    --border: 0 0% 0%;
   }
 
   .dark {
-    --kw-text: #ffffff;
-    --kw-text-muted: #cccccc;
-    --kw-border: #ffffff;
+    --foreground: 0 0% 100%;
+    --muted-foreground: 0 0% 80%;
+    --border: 0 0% 100%;
   }
 
   .card {
-    border: 2px solid var(--kw-border);
+    border: 2px solid hsl(var(--border));
   }
 
   button {
