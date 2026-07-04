@@ -12,6 +12,9 @@ interface PageLoaderProps {
 export function PageLoader({ message, fullScreen = false, minHeight = '60vh' }: PageLoaderProps) {
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
       className={cn('flex items-center justify-center', fullScreen && 'min-h-screen bg-background')}
       style={fullScreen ? undefined : { minHeight }}
     >

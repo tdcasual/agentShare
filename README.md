@@ -27,7 +27,7 @@ FastAPI (Python) + PostgreSQL + Next.js
 | Layer | Technology |
 |-------|------------|
 | API | Python 3.12, FastAPI, SQLAlchemy 2, Pydantic v2 |
-| Web | Next.js, React, Tailwind CSS |
+| Web | Next.js 15, React 19, Tailwind CSS, shadcn/ui |
 | Database | PostgreSQL (production), SQLite (local dev) |
 | Encryption | AES-256-GCM (ENCRYPTION_KEY) |
 | Containerization | Docker, Docker Compose |
