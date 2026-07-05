@@ -57,12 +57,3 @@ export const useRoleStore = create<RoleState>()((set, get) => ({
     return role === 'owner';
   },
 }));
-
-// 非hook版本（用于非React上下文）
-export function getCurrentRole(): ManagementRole | null {
-  return useRoleStore.getState().role;
-}
-
-export function checkRole(required: ManagementRole): boolean {
-  return useRoleStore.getState().hasRole(required);
-}

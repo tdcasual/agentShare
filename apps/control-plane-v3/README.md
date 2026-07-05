@@ -1,59 +1,48 @@
-# Control Plane V3
+# VaultGate Web Console
 
-Next.js 15 web surface for the AgentShare control plane. This package is the frontend for the repository's agent-server-first stack and should be read together with the root `README.md`.
+Next.js 15 management console for VaultGate. Provides the web UI for secret storage, token management, and audit log review.
 
 ## What This README Covers
 
-- frontend-specific architecture
-- local development commands
-- browser-to-backend API contract
-- current release posture for the web layer
+- Frontend-specific architecture
+- Local development commands
+- Browser-to-backend API contract
+- Verification checklist
 
 For deployment, backend routes, and operations runbooks, use the root `README.md` plus `docs/guides/*`.
 
-## Current Product Shape
-
-- Management routes use persisted backend data through same-origin `/api/*`.
-- Demo and runtime-oriented routes still use a browser-side runtime and plugin model.
-- The current visual direction intentionally keeps a `kawaii` and soft-operational tone. Treat that as a product requirement, not accidental design drift.
-
-## Dual-Track Frontend Architecture
+## Architecture
 
 ```text
 Browser
-├─ Management shell
-│  ├─ domain APIs + SWR hooks
-│  ├─ same-origin /api/*
-│  ├─ Next.js proxy route
-│  └─ FastAPI management API + management_session cookie
-└─ Demo/runtime shell
-   ├─ RuntimeProvider
-   ├─ createCoreRuntime() + initializeRuntime()
-   ├─ IdentityDomainPlugin and local registry services
-   └─ in-browser state, event bus, and theme/i18n runtime
+└─ Next.js App Router (src/app/)
+   ├─ domain hooks (src/domains/*)
+   ├─ same-origin /api/* proxy route
+   └─ FastAPI management API + management_session cookie
 ```
 
-### Management track
-
-- Browser code calls business paths without an `/api` prefix.
+- Browser code calls logical backend paths without an `/api` prefix.
 - `src/app/api/[...path]/route.ts` proxies those requests to the backend and forwards headers plus cookies.
-- `src/domains/*/hooks.ts` uses SWR for session-aware reads and writes.
-- `src/lib/control-plane-links.ts` is the shared navigation schema for mobile, tablet, and desktop shells.
+- `src/domains/*` uses SWR for session-aware reads and writes.
+- UI components live in `src/components/ui/` and are based on [shadcn/ui](https://ui.shadcn.com).
 
-### Runtime/demo track
+## Tech Stack
 
-- `src/components/runtime-provider.tsx` creates the browser runtime and installs domain plugins.
-- `src/core/runtime.ts` provides the local plugin registry, event bus, DI container, state container, theme engine, and i18n engine.
-- `src/hooks/use-shell-identity.ts` switches between session-backed management identity and runtime-backed demo identity based on the current route.
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| UI Library | React 19 |
+| Styling | Tailwind CSS 3.4 |
+| Components | shadcn/ui |
+| State / Data | SWR, custom domain hooks |
+| Internationalization | Custom i18n provider |
+| Testing | Vitest + React Testing Library + Playwright (E2E) |
 
 ## API Contract
 
-- Browser code should call logical paths such as `/session/me` or `/openclaw/agents`.
-- The frontend proxy normalizes `BACKEND_API_URL` and `AGENT_CONTROL_PLANE_API_URL`.
-- Both `http://localhost:8000` and `http://localhost:8000/api` are valid backend base URLs.
-- The final backend target must contain exactly one `/api` prefix.
-
-More endpoint detail lives in `docs/api-endpoints.md`.
+- Browser code should call logical paths such as `/session/me` or `/secrets`.
+- The frontend proxy normalizes `VAULTGATE_API_URL` and falls back to the same-origin default.
+- Management routes require a valid `management_session` cookie.
 
 ## Local Development
 
@@ -66,19 +55,7 @@ npm install
 Run the frontend against a local API:
 
 ```bash
-BACKEND_API_URL=http://127.0.0.1:8000 npm run dev
-```
-
-Equivalent fallback env:
-
-```bash
-AGENT_CONTROL_PLANE_API_URL=http://127.0.0.1:8000 npm run dev
-```
-
-If you want the full local demo stack with seeded backend data, run this from the repository root:
-
-```bash
-./scripts/ops/start-control-plane-demo.sh
+VAULTGATE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
 ## Verification
@@ -86,29 +63,19 @@ If you want the full local demo stack with seeded backend data, run this from th
 Frontend-only checks:
 
 ```bash
-npm run check
-npm test -- --run
-npm run build
+npm run check      # typecheck + lint + format:check
+npm test -- --run  # unit tests
+npm run build      # production build
 ```
 
-Canonical repository verification:
+Canonical repository verification (from repository root):
 
 ```bash
 ./scripts/ops/verify-control-plane.sh
 ```
 
-## Current Release Posture
+## UI Conventions
 
-- The frontend is suitable for internal demos, operator dogfooding, and supervised trial-run deployments with the current backend and runbooks.
-- It is not the sole architecture authority for deployment or enterprise readiness; the repository root posture still applies.
-- The recent convergence pass focused on calmer visual hierarchy, shared primitive cleanup, centralized shell navigation, and safer system-state presentation without changing routing or backend contracts.
-
-## Key References
-
-- `src/app/api/[...path]/route.ts`
-- `src/components/runtime-provider.tsx`
-- `src/core/runtime.ts`
-- `src/hooks/use-shell-identity.ts`
-- `src/lib/control-plane-links.ts`
-- `docs/api-endpoints.md`
-- `../../docs/plans/2026-04-21-frontend-convergence-kimi-plan.md`
+- Use components from `@/components/ui` for all new UI.
+- Prefer semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`) over raw colors.
+- Keep components accessible: associate labels with inputs, use `aria-live` for status, and respect `prefers-reduced-motion`.

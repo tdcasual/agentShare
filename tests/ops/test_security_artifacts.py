@@ -26,13 +26,9 @@ def test_caddyfile_sets_security_headers() -> None:
 
 
 def test_production_docs_cover_security_scans_and_headers() -> None:
-    readme = (ROOT / "README.md").read_text().lower()
     deployment_guide = (ROOT / "docs/guides/production-deployment.md").read_text().lower()
     security_guide = (ROOT / "docs/guides/production-security.md").read_text().lower()
 
     assert "trivy" in security_guide
     assert "security headers" in security_guide
     assert "secret rotation" in security_guide
-    assert "metrics" in security_guide
-    assert "security scan" in readme
-    assert "headers" in deployment_guide

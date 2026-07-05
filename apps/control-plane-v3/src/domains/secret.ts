@@ -9,7 +9,6 @@
 import useSWR, { mutate } from 'swr';
 import {
   listSecrets as apiListSecrets,
-  getSecret as apiGetSecret,
   createSecret as apiCreateSecret,
   updateSecret as apiUpdateSecret,
   deleteSecret as apiDeleteSecret,
@@ -26,9 +25,8 @@ const SECRET_CACHE_KEY = '/api/secrets';
 // ============================================
 
 export function useSecrets() {
-  const { data, error, isLoading, mutate } = useSWR(
-    SECRET_CACHE_KEY,
-    () => apiListSecrets().then((res) => res.items)
+  const { data, error, isLoading, mutate } = useSWR(SECRET_CACHE_KEY, () =>
+    apiListSecrets().then((res) => res.items)
   );
 
   return {
@@ -36,19 +34,6 @@ export function useSecrets() {
     isLoading,
     error,
     refresh: mutate,
-  };
-}
-
-export function useSecret(id: string | null) {
-  const { data, error, isLoading } = useSWR(
-    id ? `${SECRET_CACHE_KEY}/${id}` : null,
-    () => (id ? apiGetSecret(id) : Promise.reject(new Error('No ID provided')))
-  );
-
-  return {
-    secret: data,
-    isLoading,
-    error,
   };
 }
 

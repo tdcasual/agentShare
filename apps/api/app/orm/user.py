@@ -4,9 +4,9 @@ This module defines the User model for VaultGate's simplified authentication sys
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING
 import uuid
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy import orm as so
@@ -34,7 +34,7 @@ class User(Base):
     password_hash: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
     created_at: so.Mapped[datetime] = so.mapped_column(
         sa.DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 

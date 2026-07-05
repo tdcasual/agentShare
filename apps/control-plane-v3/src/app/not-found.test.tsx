@@ -1,18 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { translateMessage } from '@/test-utils/i18n-mock';
 import NotFound from './not-found';
-
-vi.mock('@/hooks/use-role', () => ({
-  useRole: () => ({
-    role: 'viewer',
-    isLoading: false,
-  }),
-}));
 
 vi.mock('@/components/i18n-provider', () => ({
   useI18n: () => ({
-    t: translateMessage,
+    t: (key: string) => key,
   }),
 }));
 
@@ -21,12 +13,10 @@ describe('not found page', () => {
     render(<NotFound />);
 
     const homeLink = screen.getByRole('link', {
-      name: new RegExp(translateMessage('common.backToHome')),
+      name: /common\.backToHome/,
     });
 
-    expect(homeLink).toHaveAttribute('href', '/playbooks');
-    expect(
-      screen.queryByRole('button', { name: translateMessage('common.backToHome') })
-    ).toBeNull();
+    expect(homeLink).toHaveAttribute('href', '/');
+    expect(screen.queryByRole('button', { name: 'common.backToHome' })).toBeNull();
   });
 });

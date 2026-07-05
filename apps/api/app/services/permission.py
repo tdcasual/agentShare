@@ -5,13 +5,14 @@ This module provides access control logic for token-secret permissions.
 from __future__ import annotations
 
 from typing import Literal
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.orm.token import Token, TokenStatus
-from app.orm.secret import Secret
-from app.orm.scope import Scope
 from app.orm.audit_log import AuditLog
+from app.orm.scope import Scope
+from app.orm.secret import Secret
+from app.orm.token import Token, TokenStatus
 
 
 class PermissionService:
@@ -31,8 +32,7 @@ class PermissionService:
 
         Follows the default-deny principle:
         - No scope = denied
-        - Scope with allowed=false = denied
-        - Scope with allowed=true = allowed
+        - Scope record exists = allowed
 
         Args:
             db: Database session
@@ -93,7 +93,7 @@ class PermissionService:
             )
             return False
 
-        # Step 4: Check scope
+        # Step 4: Check scope exists
         result = await db.execute(
             select(Scope).where(Scope.token_id == token.id).where(Scope.secret_id == secret_id)
         )
@@ -114,23 +114,8 @@ class PermissionService:
             )
             return False
 
-        # Step 5: Check allowed flag
-        if not scope.allowed:
-            await self._log_denied(
-                db=db,
-                token_id=token.id,
-                token_prefix=token.key_prefix,
-                secret_id=secret_id,
-                action=action,
-                reason="explicit_deny",
-                ip_address=ip_address,
-                user_agent=user_agent,
-                requested_field_count=requested_field_count,
-            )
-            return False
-
-        # Step 6: Log successful access
-        await self._log_success(
+        # Step 5: Log successful access
+        await self.log_success(
             db=db,
             token_id=token.id,
             token_prefix=token.key_prefix,
@@ -174,7 +159,7 @@ class PermissionService:
         db: AsyncSession,
         token_id: str,
         token_prefix: str | None,
-        secret_id: str,
+        secret_id: str | None,
         action: str,
         ip_address: str | None = None,
         user_agent: str | None = None,

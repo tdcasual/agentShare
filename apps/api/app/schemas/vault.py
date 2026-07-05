@@ -1,11 +1,9 @@
 """VaultGate schemas for API requests and responses."""
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Generic, Optional, TypeVar
 from datetime import datetime
 
-T = TypeVar("T")
+from pydantic import BaseModel, Field, field_validator
 
 
 class PaginationParams(BaseModel):
@@ -15,22 +13,14 @@ class PaginationParams(BaseModel):
     offset: int = Field(default=0, ge=0, description="Number of items to skip")
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
-    """Paginated response wrapper."""
-
-    items: list[T]
-    total: int
-    limit: int
-    offset: int
-
-
 class VaultSecretBase(BaseModel):
     """Base secret schema."""
 
     name: str = Field(..., min_length=1, max_length=255, description="Secret display name")
     type: str = Field(..., description="Secret type")
-    url: Optional[str] = Field(None, description="Associated URL")
-    username: Optional[str] = Field(None, max_length=255, description="Username (for password/basic_auth types)")
+    url: str | None = Field(None, description="Associated URL")
+    username: str | None = Field(None, max_length=255, description="Username (for password/basic_auth types)")
+    description: str | None = Field(None, description="Usage instructions or documentation for this secret")
     tags: list[str] = Field(default_factory=list, description="Tags for grouping")
     metadata: dict = Field(default_factory=dict, description="Additional metadata")
 
@@ -51,19 +41,20 @@ class VaultSecretBase(BaseModel):
 class VaultSecretCreate(VaultSecretBase):
     """Schema for creating a new secret."""
 
-    value: str = Field(..., min_length=1, description="Secret value (will be encrypted)")
+    value: str = Field(..., min_length=1, max_length=65536, description="Secret value (will be encrypted)")
 
 
 class VaultSecretUpdate(BaseModel):
     """Schema for updating a secret."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    type: Optional[str] = None
-    url: Optional[str] = None
-    username: Optional[str] = Field(None, max_length=255)
-    value: Optional[str] = Field(None, min_length=1)
-    tags: Optional[list[str]] = None
-    metadata: Optional[dict] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    type: str | None = None
+    url: str | None = None
+    username: str | None = Field(None, max_length=255)
+    description: str | None = None
+    value: str | None = Field(None, min_length=1, max_length=65536)
+    tags: list[str] | None = None
+    metadata: dict | None = None
 
     @field_validator("type")
     @classmethod
@@ -87,8 +78,9 @@ class VaultSecretResponse(BaseModel):
     id: str
     name: str
     type: str
-    url: Optional[str]
-    username: Optional[str]
+    url: str | None
+    username: str | None
+    description: str | None
     tags: list[str]
     metadata: dict
     created_at: str
@@ -101,7 +93,8 @@ class VaultSecretListItem(BaseModel):
     id: str
     name: str
     type: str
-    url: Optional[str]
+    url: str | None
+    description: str | None
     tags: list[str]
     created_at: str
 
@@ -116,8 +109,8 @@ class VaultTokenCreate(BaseModel):
     """Schema for creating a new token."""
 
     name: str = Field(..., min_length=1, max_length=255, description="Token display name")
-    description: Optional[str] = Field(None, description="Token description")
-    expires_at: Optional[datetime] = Field(None, description="Token expiration time")
+    description: str | None = Field(None, description="Token description")
+    expires_at: datetime | None = Field(None, description="Token expiration time")
 
 
 class VaultTokenResponse(BaseModel):
@@ -125,11 +118,11 @@ class VaultTokenResponse(BaseModel):
 
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     status: str
     key_prefix: str
-    expires_at: Optional[str]
-    last_used_at: Optional[str]
+    expires_at: str | None
+    last_used_at: str | None
     created_at: str
     scopes_count: int
 
@@ -143,29 +136,4 @@ class VaultTokenDetailResponse(VaultTokenResponse):
 class VaultScopeCreate(BaseModel):
     """Schema for creating a scope."""
 
-    secret_id: str = Field(..., description="Secret ID to grant/deny access to")
-    allowed: bool = Field(default=True, description="Whether to allow or deny access")
-
-
-class VaultScopeBatchCreate(BaseModel):
-    """Schema for batch creating scopes."""
-
-    grants: list[VaultScopeCreate]
-
-
-class VaultBatchSecretRequest(BaseModel):
-    """Schema for a single item in a batch secret fetch request."""
-
-    secret_id: str = Field(..., min_length=1, description="Secret ID to fetch")
-    fields: list[str] = Field(
-        default_factory=lambda: ["name", "type"],
-        description="Fields to return (e.g., name, type, url, username, value, tags, metadata)",
-    )
-
-
-class VaultBatchSecretBatchRequest(BaseModel):
-    """Schema for batch secret fetch request body."""
-
-    requests: list[VaultBatchSecretRequest] = Field(..., min_length=1, max_length=50, description="List of secret fetch requests")
-
-
+    secret_id: str = Field(..., description="Secret ID to grant access to")

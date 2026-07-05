@@ -1,7 +1,7 @@
 """VaultGate test configuration.
 
 Provides fixtures for testing VaultGate API endpoints using an in-memory SQLite
-database with async support.
+database.
 """
 from __future__ import annotations
 
@@ -13,20 +13,13 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    create_async_engine,
-    async_sessionmaker,
-)
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
+from app import db as db_module
 from app.config import Settings
-from app.db import get_db, get_async_db
 from app.factory import create_app
-from app.observability import reset_metrics
-from app.orm import Base  # triggers all model registration
-from app.runtime import AppRuntime, build_runtime
+from app.orm import Base  # noqa: F401  # triggers all model registration
+from app.runtime import AppRuntime
 
 # Suppress encryption key requirement in test environment
 os.environ.setdefault(
@@ -65,6 +58,11 @@ def test_database_url(tmp_path: Path) -> str:
     db_path = tmp_path / "vaultgate_test.db"
     database_url = f"sqlite:///{db_path}"
     _run_alembic_upgrade(database_url)
+    # Ensure the default async engine used by get_async_db points at the
+    # migrated test database, not the default vaultgate.db file.
+    os.environ["DATABASE_URL"] = database_url
+    db_module.reset_default_runtime()
+    db_module.reset_async_engine()
     return database_url
 
 
@@ -100,19 +98,16 @@ def test_session_factory(test_engine):
 
 
 @pytest.fixture
-def db_session(test_session_factory):
-    """Provide a single database session for a test."""
-    session = test_session_factory()
-    try:
-        yield session
-    finally:
-        session.close()
-
-
-@pytest.fixture
 def test_app(test_engine, test_session_factory, test_settings: Settings):
-    """Create a VaultGate FastAPI app wired to the test database."""
+    """Create a VaultGate FastAPI app wired to the test database.
+
+    NOTE: get_async_db is NOT overridden. Routes that use it will go through
+    the real async engine path, which TestClient handles correctly via its
+    internal event loop. The async engine picks up DATABASE_URL from the
+    default runtime settings (env var or default).
+    """
     from app.services.encryption import reset_encryption_service
+
     reset_encryption_service()
 
     runtime = AppRuntime(
@@ -122,27 +117,9 @@ def test_app(test_engine, test_session_factory, test_settings: Settings):
     )
     app = create_app(test_settings, runtime=runtime)
 
-    def _override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
-
-    # Use a module-level db_session via the session factory
-    session = test_session_factory()
-
-    def _override_sync_db():
-        try:
-            yield session
-        finally:
-            session.close()
-
-    app.dependency_overrides[get_db] = _override_sync_db
-
     try:
         yield app
     finally:
-        app.dependency_overrides.clear()
         reset_encryption_service()
 
 
@@ -151,9 +128,3 @@ def client(test_app):
     """Provide a TestClient wired to the test app."""
     with TestClient(test_app) as c:
         yield c
-
-
-@pytest.fixture(autouse=True)
-def reset_observability_metrics():
-    """Reset observability metrics between tests."""
-    reset_metrics()

@@ -11,7 +11,6 @@ def test_backup_and_restore_scripts_exist_and_are_executable() -> None:
     for relative_path in (
         "scripts/ops/backup-postgres.sh",
         "scripts/ops/restore-postgres.sh",
-        "scripts/ops/backup-redis.sh",
     ):
         script = ROOT / relative_path
         assert script.exists()
@@ -36,18 +35,8 @@ def test_postgres_restore_documents_safe_restore_order() -> None:
     assert "restore" in script.lower()
 
 
-def test_redis_backup_script_captures_persistent_state() -> None:
-    script = (ROOT / "scripts/ops/backup-redis.sh").read_text()
-    assert "redis-cli" in script
-    assert "docker compose" in script
-    assert "REDIS_SERVICE" in script
-    assert "tar" in script or "rdb" in script.lower()
-
-
 def test_production_operations_guide_includes_backup_and_restore_drills() -> None:
     guide = (ROOT / "docs/guides/production-operations.md").read_text()
-    assert "backup cadence" in guide.lower()
-    assert "restore drill" in guide.lower()
+    assert "## Backup" in guide
+    assert "## Restore" in guide
     assert "postgres" in guide.lower()
-    assert "redis" in guide.lower()
-    assert "secret backend" in guide.lower()

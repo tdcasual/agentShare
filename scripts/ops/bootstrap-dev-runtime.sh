@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 VENV_DIR="${ROOT_DIR}/.venv"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 PLAYWRIGHT_BIN="${ROOT_DIR}/apps/control-plane-v3/node_modules/.bin/playwright"
-DEV_DATABASE_URL="${DEV_DATABASE_URL:-sqlite:///./agent_share.db}"
+DEV_DATABASE_URL="${DEV_DATABASE_URL:-sqlite:///./vaultgate.db}"
 
 if [ ! -d "${VENV_DIR}" ]; then
   "${PYTHON_BIN}" -m venv "${VENV_DIR}"

@@ -1,3 +1,9 @@
+/**
+ * Shared E2E test fixtures for VaultGate control plane.
+ *
+ * Only includes mock data for features that exist in the current VaultGate app.
+ * Legacy Agent Control Plane fixtures (agents, spaces, tasks, etc.) have been removed.
+ */
 import { type Page, type Route } from '@playwright/test';
 
 export const sessionSummary = {
@@ -13,159 +19,36 @@ export const sessionSummary = {
   expires_at: 1_777_003_600,
 };
 
-export const adminAccount = {
-  id: 'admin-1',
-  email: 'owner@example.com',
-  role: 'owner',
-  status: 'active',
-  created_at: '2024-01-01T00:00:00Z',
-};
-
-export const agent = {
-  id: 'agent-1',
-  name: 'Test Agent',
-  status: 'active',
-  presence: 'online',
-  actor_type: 'openclaw_agent',
-  created_at: '2024-01-01T00:00:00Z',
-  workspace_root: '/workspace/agent-1',
-  agent_dir: '/workspace/agent-1/.agent',
-  auth_method: 'api_key',
-  risk_tier: 'low',
-  model: 'gpt-4',
-  thinking_level: 'standard',
-  sandbox_mode: 'isolated',
-  dream_policy: { enabled: false, max_runs: 3, cooldown_seconds: 60 },
-  allowed_task_types: ['config_sync'],
-  allowed_capability_ids: ['capability-1'],
-};
-
-export const accessToken = {
-  id: 'token-1',
-  display_name: 'Primary Token',
-  token_prefix: 'cp_tok_123',
-  subject_type: 'openclaw_agent',
-  subject_id: 'agent-1',
-  status: 'active',
-  scopes: [],
-  labels: {},
-  policy: {},
-  trust_score: 0.82,
-};
-
-export const secret = {
+// VaultGate mock data — matches the actual backend API schemas
+export const vaultgateSecret = {
   id: 'secret-1',
-  display_name: 'OpenAI production key',
-  kind: 'api_token',
-  provider: 'openai',
-  environment: 'production',
-  provider_scopes: ['responses.read'],
-  resource_selector: 'project:agent-share',
-  metadata: {},
-  backend_ref: 'demo/secret-1',
-  publication_status: 'active',
+  name: 'Database credentials',
+  type: 'password',
+  url: 'https://db.example.com',
+  tags: ['production'],
+  created_at: '2024-01-01T00:00:00Z',
 };
 
-export const capability = {
-  id: 'capability-1',
-  name: 'openai.config.bootstrap',
+export const vaultgateToken = {
+  id: 'token-1',
+  name: 'CI/CD Token',
+  description: 'Token for automated deployments',
+  status: 'active',
+  key_prefix: 'vg_abc123',
+  expires_at: null,
+  last_used_at: '2024-01-15T12:00:00Z',
+  created_at: '2024-01-01T00:00:00Z',
+  scopes_count: 2,
+};
+
+export const vaultgateAuditLog = {
+  id: 'audit-1',
+  action: 'read',
+  status: 'granted',
+  token_prefix: 'vg_abc123',
   secret_id: 'secret-1',
-  risk_level: 'medium',
-  allowed_mode: 'proxy_or_lease',
-  lease_ttl_seconds: 120,
-  approval_mode: 'manual',
-  approval_rules: [],
-  allowed_audience: [],
-  access_policy: { mode: 'all_access_tokens', selectors: [] },
-  required_provider: 'openai',
-  required_provider_scopes: ['responses.read'],
-  allowed_environments: [],
-  adapter_type: 'openai',
-  adapter_config: {},
-  publication_status: 'active',
-};
-
-export const task = {
-  id: 'task-1',
-  title: 'Test Task',
-  task_type: 'config_sync',
-  priority: 'normal',
-  status: 'pending',
-  publication_status: 'active',
-  target_mode: 'explicit_access_tokens',
-  input: {},
-  target_ids: ['target-1'],
-  target_access_token_ids: ['token-1'],
-  created_by_actor_type: 'human',
-  created_by_actor_id: 'owner',
-};
-
-export const event = {
-  id: 'event-1',
-  event_type: 'agent.completed',
-  actor_type: 'agent',
-  actor_id: 'agent-1',
-  summary: 'Agent completed a task',
-  created_at: '2024-01-01T00:00:00Z',
-};
-
-export const space = {
-  id: 'space-1',
-  name: 'Test Space',
-  description: 'A test collaboration space',
-  members: [
-    {
-      member_type: 'agent',
-      member_id: 'agent-1',
-      role: 'viewer',
-      created_at: '2024-01-01T00:00:00Z',
-    },
-  ],
-  timeline: [
-    {
-      id: 'tl-1',
-      summary: 'Agent joined',
-      entry_type: 'member_joined',
-      created_at: '2024-01-01T00:00:00Z',
-    },
-  ],
-  created_at: '2024-01-01T00:00:00Z',
-};
-
-export const review = {
-  id: 'review-1',
-  resource_kind: 'secret',
-  resource_id: 'secret-1',
-  publication_status: 'pending_review',
-  submitted_by: 'owner',
-  submitted_at: '2024-01-01T00:00:00Z',
-};
-
-export const playbook = {
-  id: 'playbook-1',
-  title: 'Test Playbook',
-  body: 'A test playbook body',
-  task_type: 'config_sync',
-  tags: [],
-  publication_status: 'active',
-};
-
-export const run = {
-  id: 'run-1',
-  task_id: 'task-1',
-  status: 'completed',
-  output: {},
-  started_at: '2024-01-01T00:00:00Z',
-  completed_at: '2024-01-01T00:01:00Z',
-};
-
-export const approval = {
-  id: 'approval-1',
-  resource_kind: 'secret',
-  resource_id: 'secret-1',
-  status: 'pending',
-  requested_by: 'owner',
-  requested_at: '2024-01-01T00:00:00Z',
+  ip_address: '127.0.0.1',
+  created_at: '2024-01-15T12:00:00Z',
 };
 
 export async function fulfillJson(route: Route, status: number, body: unknown) {
@@ -188,38 +71,13 @@ export async function mockSession(page: Page, role = 'owner') {
       return;
     }
 
-    const singleResponses: Record<string, unknown> = {
-      '/openclaw/agents/agent-1': agent,
-    };
-
-    const singleMatch = Object.keys(singleResponses).find(
-      (p) => path === p || path.startsWith(`${p}/`)
-    );
-    if (singleMatch) {
-      await fulfillJson(route, 200, singleResponses[singleMatch]);
-      return;
-    }
-
     const listResponses: Record<string, unknown> = {
       '/bootstrap/status': { initialized: true },
       '/session/me': { ...sessionSummary, role },
-      '/events': { items: [event] },
-      '/openclaw/agents': { items: [agent] },
-      '/openclaw/dream-runs': { items: [] },
-      '/openclaw/sessions': { items: [] },
-      '/admin-accounts': { items: [adminAccount] },
-      '/access-tokens': { items: [accessToken] },
-      '/secrets': { items: [secret] },
-      '/capabilities': { items: [capability] },
-      '/tasks': { items: [task] },
-      '/runs': { items: [run] },
-      '/spaces': { items: [space] },
-      '/reviews': { items: [review] },
-      '/approvals': { items: [approval] },
-      '/playbooks/search': {
-        items: [playbook],
-        meta: { total: 1, items_count: 1, applied_filters: {} },
-      },
+      '/session/logout': { status: 'logged_out' },
+      '/secrets': { items: [vaultgateSecret], total: 1 },
+      '/tokens': { items: [vaultgateToken], total: 1 },
+      '/audit-logs': { items: [vaultgateAuditLog], total: 1 },
     };
 
     await fulfillJson(route, 200, listResponses[path] ?? { items: [] });

@@ -11,14 +11,15 @@ output/
 dist/
 build/
 .DS_Store
-agent_share.db
-agent_share_demo.db
 agent_share_demo.db-*
 agent_share_playwright_*.db
+# Legacy patterns above can be removed after next commit
 .worktrees/
-*.db-wal
-*.db-shm
-*.db-journal
+# Catch all SQLite databases at any depth (including nested apps/)
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/*.db-journal
 *.tsbuildinfo
 *.backup
 .env

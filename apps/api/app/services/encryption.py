@@ -4,9 +4,8 @@ This module provides AES-256-GCM encryption for secret values.
 """
 from __future__ import annotations
 
-import os
 import base64
-import struct
+import os
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -18,59 +17,42 @@ class EncryptionService:
     - AES-256-GCM algorithm
     - Random 12-byte IV per encryption
     - 16-byte authentication tag
-    - Key version support for rotation
+    - Single configured encryption key
 
-    Storage format: base64(key_version + iv + ciphertext + tag)
-    - key_version: 1 byte
+    Storage format: base64(iv + ciphertext + tag)
     - iv: 12 bytes
     - ciphertext: variable length
     - tag: 16 bytes
     """
 
-    # Key version header size
-    KEY_VERSION_SIZE = 1
     IV_SIZE = 12
     TAG_SIZE = 16
 
     def __init__(self, encryption_key: str | None = None) -> None:
-        """Initialize encryption service with configured keys.
+        """Initialize encryption service with configured key.
 
         Args:
             encryption_key: Base64-encoded 32-byte key (from Settings.encryption_key).
-                            If None, falls back to ENCRYPTION_KEY / ENCRYPTION_KEY_V1 env var.
+                            If None, falls back to ENCRYPTION_KEY env var.
         """
-        self._keys = self._load_keys(encryption_key)
-        if not self._keys:
-            raise ValueError("No encryption keys configured. Set ENCRYPTION_KEY environment variable.")
+        key = self._load_key(encryption_key)
+        if key is None:
+            raise ValueError("No encryption key configured. Set ENCRYPTION_KEY environment variable.")
+        self._key = key
 
-    def _load_keys(self, primary_key: str | None = None) -> dict[int, bytes]:
-        """Load encryption keys from Settings or environment.
-
-        Priority:
-        1. Versioned env vars (ENCRYPTION_KEY_V2, V3, ...) for key rotation
-        2. Primary key from Settings (base64-encoded) or ENCRYPTION_KEY env var as V1
+    def _load_key(self, primary_key: str | None = None) -> bytes | None:
+        """Load encryption key from Settings or environment.
 
         Args:
             primary_key: Key from Settings.encryption_key (base64-encoded 32 bytes).
 
         Returns:
-            Dict mapping version number to 32-byte key material.
+            32-byte key material, or None if not configured.
         """
-        keys = {}
-
-        # Load versioned keys from env (V2 and above for rotation)
-        for v in range(2, 256):
-            env_var = f"ENCRYPTION_KEY_V{v}"
-            key_str = os.environ.get(env_var)
-            if key_str:
-                keys[v] = self._decode_key(key_str, env_var)
-
-        # Load V1: prefer explicit primary_key (from Settings), then ENCRYPTION_KEY env var
-        v1_key = primary_key or os.environ.get("ENCRYPTION_KEY")
-        if v1_key:
-            keys[1] = self._decode_key(v1_key, "ENCRYPTION_KEY")
-
-        return keys
+        key_str = primary_key or os.environ.get("ENCRYPTION_KEY")
+        if key_str:
+            return self._decode_key(key_str, "ENCRYPTION_KEY")
+        return None
 
     @staticmethod
     def _decode_key(key_str: str, source: str) -> bytes:
@@ -103,49 +85,37 @@ class EncryptionService:
         except ValueError as e:
             raise ValueError(f"Invalid {source}: expected base64 or hex encoded 32-byte key — {e}") from e
 
-    def get_current_key_version(self) -> int:
-        """Get the current (highest) key version."""
-        return max(self._keys.keys()) if self._keys else 0
-
     def encrypt(self, plaintext: str | bytes) -> str:
-        """Encrypt plaintext using the current encryption key.
+        """Encrypt plaintext using the configured encryption key.
 
         Args:
             plaintext: The data to encrypt (string or bytes).
 
         Returns:
-            Base64-encoded string containing: key_version + iv + ciphertext + tag
+            Base64-encoded string containing: iv + ciphertext + tag
 
         Raises:
-            ValueError: If no encryption keys are configured.
+            ValueError: If no encryption key is configured.
         """
-        if not self._keys:
-            raise ValueError("No encryption keys configured")
+        if self._key is None:
+            raise ValueError("No encryption key configured")
 
         # Convert to bytes if string
-        if isinstance(plaintext, str):
-            plaintext_bytes = plaintext.encode("utf-8")
-        else:
-            plaintext_bytes = plaintext
-
-        # Get current key
-        key_version = self.get_current_key_version()
-        key = self._keys[key_version]
+        plaintext_bytes = plaintext.encode("utf-8") if isinstance(plaintext, str) else plaintext
 
         # Generate random IV
         iv = os.urandom(self.IV_SIZE)
 
         # Encrypt with AES-256-GCM
-        aesgcm = AESGCM(key)
+        aesgcm = AESGCM(self._key)
         ciphertext_with_tag = aesgcm.encrypt(iv, plaintext_bytes, None)
 
         # Split ciphertext and tag (tag is last 16 bytes)
         ciphertext = ciphertext_with_tag[:-self.TAG_SIZE]
         tag = ciphertext_with_tag[-self.TAG_SIZE:]
 
-        # Pack: key_version (1 byte) + iv (12 bytes) + ciphertext + tag (16 bytes)
-        key_version_byte = struct.pack("B", key_version)
-        packed = key_version_byte + iv + ciphertext + tag
+        # Pack: iv (12 bytes) + ciphertext + tag (16 bytes)
+        packed = iv + ciphertext + tag
 
         # Return base64 encoded
         return base64.b64encode(packed).decode("ascii")
@@ -160,32 +130,25 @@ class EncryptionService:
             Decrypted plaintext string.
 
         Raises:
-            ValueError: If encrypted data is invalid or key not found.
+            ValueError: If encrypted data is invalid.
         """
         try:
             # Decode base64
             packed = base64.b64decode(encrypted_b64)
 
-            # Unpack: key_version (1 byte) + iv (12 bytes) + ciphertext + tag (16 bytes)
-            if len(packed) < self.KEY_VERSION_SIZE + self.IV_SIZE + self.TAG_SIZE:
+            # Unpack: iv (12 bytes) + ciphertext + tag (16 bytes)
+            if len(packed) < self.IV_SIZE + self.TAG_SIZE:
                 raise ValueError("Encrypted data too short")
 
-            key_version = struct.unpack("B", packed[:self.KEY_VERSION_SIZE])[0]
-            iv = packed[self.KEY_VERSION_SIZE:self.KEY_VERSION_SIZE + self.IV_SIZE]
+            iv = packed[:self.IV_SIZE]
             tag = packed[-self.TAG_SIZE:]
-            ciphertext = packed[self.KEY_VERSION_SIZE + self.IV_SIZE:-self.TAG_SIZE]
-
-            # Get key for version
-            if key_version not in self._keys:
-                raise ValueError(f"Key version {key_version} not available")
-
-            key = self._keys[key_version]
+            ciphertext = packed[self.IV_SIZE:-self.TAG_SIZE]
 
             # Reconstruct ciphertext_with_tag for decryption
             ciphertext_with_tag = ciphertext + tag
 
             # Decrypt
-            aesgcm = AESGCM(key)
+            aesgcm = AESGCM(self._key)
             plaintext_bytes = aesgcm.decrypt(iv, ciphertext_with_tag, None)
 
             return plaintext_bytes.decode("utf-8")

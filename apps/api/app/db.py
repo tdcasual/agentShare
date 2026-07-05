@@ -1,12 +1,14 @@
+import asyncio
+import contextlib
 import os
-from collections.abc import Generator, AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
+from typing import Any
 
 from alembic.config import Config
 from alembic.util.exc import CommandError
-from sqlalchemy.engine import Engine, make_url
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.engine import make_url
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from alembic import command
 from app.config import Settings
@@ -14,7 +16,7 @@ from app.runtime import AppRuntime, build_runtime
 
 _default_runtime: AppRuntime | None = None
 ALEMBIC_INI_PATH = Path(__file__).resolve().parents[1] / "alembic.ini"
-DEFAULT_LOCAL_DEV_DATABASE_NAME = "agent_share.db"
+DEFAULT_LOCAL_DEV_DATABASE_NAME = "vaultgate.db"
 
 
 def _get_default_runtime() -> AppRuntime:
@@ -24,23 +26,21 @@ def _get_default_runtime() -> AppRuntime:
     return _default_runtime
 
 
-def __getattr__(name: str):
-    if name == "engine":
-        return _get_default_runtime().engine
-    if name == "SessionLocal":
-        return _get_default_runtime().session_factory
-    raise AttributeError(name)
+def reset_default_runtime() -> None:
+    """Reset the default runtime singleton, disposing its sync engine.
 
-
-def init_db(target_engine: Engine | None = None) -> None:
-    from app.orm import Base  # Imported lazily so model registration happens before create_all.
-    engine_to_use = target_engine or _get_default_runtime().engine
-
-    Base.metadata.create_all(bind=engine_to_use)
+    Disposing the engine prevents unclosed-database warnings when the singleton
+    is replaced between tests.
+    """
+    global _default_runtime
+    runtime = _default_runtime
+    _default_runtime = None
+    if runtime is not None:
+        runtime.engine.dispose()
 
 
 def _iter_alembic_root_candidates() -> Generator[Path, None, None]:
-    explicit_root = os.environ.get("AGENT_SHARE_ALEMBIC_ROOT")
+    explicit_root = os.environ.get("VAULTGATE_ALEMBIC_ROOT")
     seen: set[Path] = set()
 
     for candidate in (
@@ -48,7 +48,7 @@ def _iter_alembic_root_candidates() -> Generator[Path, None, None]:
         ALEMBIC_INI_PATH.parent,
         Path.cwd().resolve(),
         (Path.cwd() / "apps/api").resolve(),
-        Path("/srv/agentShare/apps/api"),
+        Path("/srv/vaultgate/apps/api"),
     ):
         if candidate is None:
             continue
@@ -65,7 +65,7 @@ def _resolve_alembic_root() -> Path:
             return candidate
 
     raise FileNotFoundError(
-        "Could not locate Alembic configuration. Set AGENT_SHARE_ALEMBIC_ROOT or run from the repository root."
+        "Could not locate Alembic configuration. Set VAULTGATE_ALEMBIC_ROOT or run from the repository root."
     )
 
 
@@ -148,24 +148,8 @@ def migrate_db(
         return backup_path
 
 
-def get_db(request) -> Generator[Session, None, None]:
-    """FastAPI dependency that yields a DB session per request."""
-    from fastapi import Request as _Request  # noqa: F811
-    from app.dependencies import get_attached_runtime
-    session_factory: sessionmaker[Session] = get_attached_runtime(request).session_factory
-    session = session_factory()
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
-
-
 # Async database support for VaultGate
-_async_engine: Engine | None = None
+_async_engine: AsyncEngine | None = None
 _async_session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
@@ -178,7 +162,7 @@ def _get_async_database_url(database_url: str) -> str:
     return database_url
 
 
-def get_async_engine(database_url: str | None = None) -> Engine:
+def get_async_engine(database_url: str | None = None) -> AsyncEngine:
     """Get or create async database engine."""
     global _async_engine, _async_session_factory
 
@@ -187,7 +171,7 @@ def get_async_engine(database_url: str | None = None) -> Engine:
         async_url = _get_async_database_url(resolved_url)
 
         is_sqlite = async_url.startswith("sqlite+aiosqlite://")
-        engine_kwargs = {"echo": False}
+        engine_kwargs: dict[str, Any] = {"echo": False}
         if is_sqlite:
             engine_kwargs["connect_args"] = {"check_same_thread": False}
         else:
@@ -209,15 +193,37 @@ def get_async_engine(database_url: str | None = None) -> Engine:
 
 
 def reset_async_engine() -> None:
-    """Reset the async engine singleton (for testing)."""
+    """Reset the async engine singleton, disposing connections when possible.
+
+    Intended for sync test fixtures. aiosqlite connections each own their event
+    loop, so disposing on a fresh loop (via asyncio.run) closes them correctly
+    regardless of which loop created the engine. Use dispose_async_engine() from
+    async contexts such as the application lifespan.
+    """
     global _async_engine, _async_session_factory
+    engine = _async_engine
     _async_engine = None
     _async_session_factory = None
+    if engine is not None:
+        # A running event loop may be present (e.g. called from async code);
+        # in that case the owner is responsible for disposing the engine.
+        with contextlib.suppress(RuntimeError):
+            asyncio.run(engine.dispose())
+
+
+async def dispose_async_engine() -> None:
+    """Dispose and reset the async engine from an async context (e.g. lifespan)."""
+    global _async_engine, _async_session_factory
+    engine = _async_engine
+    _async_engine = None
+    _async_session_factory = None
+    if engine is not None:
+        await engine.dispose()
 
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency that yields an async DB session per request."""
-    engine = get_async_engine()
+    get_async_engine()  # ensures engine and session factory are initialized
 
     if _async_session_factory is None:
         raise RuntimeError("Async session factory not initialized")
@@ -225,9 +231,6 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     async with _async_session_factory() as session:
         try:
             yield session
-            await session.commit()
         except Exception:
             await session.rollback()
             raise
-        finally:
-            await session.close()

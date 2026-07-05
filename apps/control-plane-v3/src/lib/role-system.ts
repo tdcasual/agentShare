@@ -16,10 +16,12 @@ export const ROLE_LEVELS: Record<ManagementRole, number> = {
 };
 
 export function hasRequiredRole(
-  userRole: ManagementRole | undefined,
-  requiredRole: ManagementRole,
+  userRole: ManagementRole | null | undefined,
+  requiredRole: ManagementRole
 ): boolean {
-  if (!userRole) return false;
+  if (!userRole) {
+    return false;
+  }
   return (ROLE_LEVELS[userRole] ?? 0) >= (ROLE_LEVELS[requiredRole] ?? 0);
 }
 

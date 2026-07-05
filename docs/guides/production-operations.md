@@ -4,9 +4,9 @@
 
 After each deployment:
 
-1. Run `scripts/ops/smoke-test.sh` to verify health, headers, and metrics.
+1. Run `scripts/ops/smoke-test.sh` to verify health, headers, and readiness.
 2. Confirm `/healthz` returns `{"status": "ok"}` with an `x-request-id` header.
-3. Authenticate and check `/metrics` for `http_requests_total` and `http_errors_total`.
+3. Confirm `/readyz` returns `{"status": "ok"}` and that database and encryption checks pass.
 
 ## Backup
 
@@ -30,7 +30,7 @@ After each deployment:
 ## Incident Response
 
 1. Check deploy logs if a release just completed.
-2. Verify `/healthz` and `/metrics` endpoints.
+2. Verify `/healthz` and `/readyz` endpoints.
 3. Check database connectivity.
 4. Review recent audit logs via the web UI at `/audit`.
 5. If needed, restore from backup and re-run smoke checks.
@@ -38,5 +38,5 @@ After each deployment:
 ## Monitoring
 
 - **Health**: `GET /healthz` — returns `{"status": "ok"}`
-- **Metrics**: `GET /metrics` — requires session cookie, returns request counts and error rates
+- **Readiness**: `GET /readyz` — returns `{"status": "ok"}` when database and encryption are operational
 - **Request IDs**: All responses include `x-request-id` header for log correlation

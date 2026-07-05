@@ -1,5 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { getGlobalSession, setGlobalSession, subscribeToSession, resolveSession, logout } from './session-state';
+import {
+  getGlobalSession,
+  setGlobalSession,
+  subscribeToSession,
+  resolveSession,
+  logout,
+} from './session-state';
 
 // Mock the API module
 vi.mock('@/lib/vaultgate-api', () => ({

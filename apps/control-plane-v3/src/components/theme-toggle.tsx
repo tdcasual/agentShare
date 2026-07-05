@@ -2,89 +2,10 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
-type Theme = 'light' | 'dark' | 'system';
-
-function getThemeLabelKey(theme: Theme) {
-  return `settings.theme.${theme}` as const;
-}
-
-export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
-  const { t } = useI18n();
-  const [mounted, setMounted] = useState(false);
-
-  // 避免 hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div
-        className={cn(
-          'flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
-          'bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)]',
-          className
-        )}
-      >
-        <div className="h-5 w-5 animate-pulse rounded-full bg-[var(--kw-border)]" />
-      </div>
-    );
-  }
-
-  const themes: { value: Theme; icon: React.ReactNode; label: string }[] = [
-    { value: 'light', icon: <Sun className="h-4 w-4" />, label: t(getThemeLabelKey('light')) },
-    { value: 'dark', icon: <Moon className="h-4 w-4" />, label: t(getThemeLabelKey('dark')) },
-    {
-      value: 'system',
-      icon: <Monitor className="h-4 w-4" />,
-      label: t(getThemeLabelKey('system')),
-    },
-  ];
-
-  return (
-    <div
-      className={cn(
-        'flex items-center gap-1 rounded-full p-1',
-        'dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80',
-        'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-        className
-      )}
-    >
-      {themes.map(({ value, icon, label }) => {
-        const isActive = theme === value;
-        return (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setTheme(value)}
-            className={cn(
-              'relative rounded-full p-2 transition-colors transition-shadow duration-200',
-              'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
-              isActive && 'bg-[var(--kw-primary-500)] text-white shadow-md'
-            )}
-            aria-label={label}
-            aria-pressed={isActive}
-            title={label}
-          >
-            <span
-              className={cn('transition-colors', !isActive && 'text-[var(--kw-text-muted)]')}
-              aria-hidden="true"
-            >
-              {icon}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// 简化的主题切换按钮（只在 light/dark 之间切换）
 export function SimpleThemeToggle({ className }: { className?: string }) {
   const { setTheme, resolvedTheme } = useTheme();
   const { t } = useI18n();
@@ -99,11 +20,11 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       <div
         className={cn(
           'flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
-          'bg-[var(--kw-surface)]/80 dark:bg-[var(--kw-dark-surface)]/80 border border-[var(--kw-primary-200)]',
+          'border border-primary/20 bg-card/80',
           className
         )}
       >
-        <div className="h-5 w-5 animate-pulse rounded-full bg-[var(--kw-border)]" />
+        <div className="h-5 w-5 animate-pulse rounded-full bg-border" />
       </div>
     );
   }
@@ -116,9 +37,8 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
         'relative flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
-        'dark:bg-[var(--kw-dark-surface)]/80 bg-[var(--kw-surface)]/80',
-        'border border-[var(--kw-primary-200)] dark:border-[var(--kw-dark-border)]',
-        'hover:bg-[var(--kw-primary-50)] dark:hover:bg-[var(--kw-dark-surface-alt)]',
+        'border border-primary/20 bg-card/80',
+        'hover:bg-primary/10',
         'transition-colors duration-300',
         className
       )}
@@ -132,7 +52,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         )}
         aria-hidden="true"
       >
-        <Moon className="h-5 w-5 text-[var(--kw-dark-primary)]" />
+        <Moon className="h-5 w-5 text-primary" />
       </span>
       <span
         className={cn(
@@ -141,7 +61,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         )}
         aria-hidden="true"
       >
-        <Sun className="h-5 w-5 text-[var(--kw-primary-500)]" />
+        <Sun className="h-5 w-5 text-primary" />
       </span>
     </button>
   );

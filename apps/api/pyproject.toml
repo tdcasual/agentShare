@@ -21,7 +21,6 @@ dependencies = [
 dev = [
   "pytest>=8.4.1",
   "pytest-cov>=6.0",
-  "fakeredis[lua]",
   "mypy>=1.0",
   "bandit>=1.7",
   "pip-audit>=2.0",
@@ -36,8 +35,8 @@ build-backend = "setuptools.build_meta"
 include = ["app*"]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/vaultgate"
-Documentation = "https://github.com/yourusername/vaultgate/blob/main/VAULTGATE_SETUP.md"
+Homepage = "https://github.com/tdcasual/vaultgate"
+Documentation = "https://github.com/tdcasual/vaultgate/blob/main/README.md"
 
 [tool.mypy]
 python_version = "3.12"

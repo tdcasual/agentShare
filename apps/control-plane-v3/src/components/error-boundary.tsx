@@ -7,11 +7,11 @@
 'use client';
 
 import { Component, type ReactNode, type ErrorInfo } from 'react';
-import { Card } from '@/shared/ui-primitives/card';
-import { Button } from '@/shared/ui-primitives/button';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useI18n } from '@/components/i18n-provider';
-import { useRole } from '@/hooks/use-role';
-import { getDefaultManagementRoute, type ManagementRole } from '@/lib/role-system';
+import { useGlobalSession } from '@/lib/session-state';
+import { getDefaultManagementRoute } from '@/lib/role-system';
 import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -31,10 +31,6 @@ interface State {
   error?: Error;
 }
 
-export function getErrorBoundaryHomeTarget(role: ManagementRole | null | undefined): string {
-  return getDefaultManagementRoute(role);
-}
-
 function ErrorFallback({
   error,
   onReload,
@@ -48,28 +44,23 @@ function ErrorFallback({
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">
-      <Card
-        variant="default"
-        className="w-full max-w-lg text-center"
-        role="alert"
-        aria-live="assertive"
-      >
+      <Card className="w-full max-w-lg text-center" role="alert" aria-live="assertive">
         {/* 错误图标 */}
-        <div className="dark:bg-[var(--kw-dark-error-surface)]/20 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--kw-rose-surface)]">
-          <AlertTriangle className="h-10 w-10 text-[var(--kw-error)]" />
+        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
+          <AlertTriangle className="h-10 w-10 text-destructive" />
         </div>
 
         {/* 标题 */}
-        <h1 className="mb-2 text-xl font-bold text-[var(--kw-text)]">{t('errorBoundary.title')}</h1>
+        <h1 className="mb-2 text-xl font-bold text-foreground">{t('errorBoundary.title')}</h1>
 
         {/* 错误信息 */}
-        <p className="mb-2 text-sm text-[var(--kw-text-muted)]">
+        <p className="mb-2 text-sm text-muted-foreground">
           {error?.message || t('common.unknownError')}
         </p>
 
         {/* 技术详情（开发环境显示） */}
         {process.env.NODE_ENV === 'development' && error?.stack && (
-          <pre className="dark:bg-[var(--kw-dark-error-surface)]/10 mb-4 max-h-40 overflow-auto rounded-lg bg-[var(--kw-rose-surface)] p-3 text-left text-xs text-[var(--kw-error)] dark:text-[var(--kw-error)]">
+          <pre className="mb-4 max-h-40 overflow-auto rounded-lg bg-destructive/10 p-3 text-left text-xs text-destructive">
             {error.stack}
           </pre>
         )}
@@ -85,9 +76,7 @@ function ErrorFallback({
         </div>
 
         {/* 提示 */}
-        <p className="mt-4 text-xs text-[var(--kw-text-muted)]">
-          {t('errorBoundary.contactSupport')}
-        </p>
+        <p className="mt-4 text-xs text-muted-foreground">{t('errorBoundary.contactSupport')}</p>
       </Card>
     </div>
   );
@@ -138,7 +127,7 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, State> {
 }
 
 export function ErrorBoundary(props: Props) {
-  const { role } = useRole();
+  const session = useGlobalSession();
 
-  return <ErrorBoundaryInner {...props} homeTarget={getErrorBoundaryHomeTarget(role)} />;
+  return <ErrorBoundaryInner {...props} homeTarget={getDefaultManagementRoute(session.role)} />;
 }

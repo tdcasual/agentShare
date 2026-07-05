@@ -4,11 +4,14 @@ This module provides API endpoints for user authentication (login/logout).
 """
 from __future__ import annotations
 
+from typing import Any
+
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_async_db
 from app.dependencies import get_attached_runtime, get_current_user_from_session, sign_session_cookie
@@ -27,6 +30,7 @@ class LoginRequest(BaseModel):
 
 @router.post(
     "/login",
+    response_model=None,
     tags=["Authentication"],
     summary="User login",
     description="Authenticate with email and password to receive a session cookie.",
@@ -36,7 +40,7 @@ async def login(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> dict:
+) -> JSONResponse | dict[str, Any]:
     """Login with email and password."""
     settings = get_attached_runtime(request).settings
 
@@ -70,12 +74,12 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
             )
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as exc:
         record_failed_attempt(request, rate_config)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
-        )
+        ) from exc
 
     # Clear failed attempts on successful login
     clear_attempts(request)
@@ -103,13 +107,14 @@ async def login(
     "/logout",
     tags=["Authentication"],
     summary="User logout",
-    description="Clear the session cookie.",
+    description="Clear the session cookie. Requires authentication.",
 )
 async def logout(
     request: Request,
     response: Response,
+    _user: User = Depends(get_current_user_from_session),
 ) -> dict:
-    """Logout and clear session."""
+    """Logout and clear session. Requires a valid session cookie."""
     settings = get_attached_runtime(request).settings
     response.delete_cookie(
         key=settings.session_cookie_name,

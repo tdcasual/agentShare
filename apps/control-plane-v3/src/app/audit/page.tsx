@@ -2,15 +2,17 @@
 
 import { useState } from 'react';
 import { useAuditLogs } from '@/domains/audit';
-import { Card } from '@/shared/ui-primitives/card';
-import { Badge } from '@/shared/ui-primitives/badge';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
-  Shield,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Filter,
-} from 'lucide-react';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Shield, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -40,12 +42,8 @@ export default function AuditPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
-            {t('audit.title')}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--kw-text-muted)]">
-            {t('audit.description')}
-          </p>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t('audit.title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('audit.description')}</p>
         </div>
       </div>
 
@@ -53,8 +51,8 @@ export default function AuditPage() {
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-[var(--kw-text-muted)]" />
-            <span className="text-sm font-medium text-[var(--kw-text)]">{t('audit.filters')}</span>
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">{t('audit.filters')}</span>
           </div>
           <div className="flex flex-wrap gap-2" role="group" aria-label={t('audit.filters')}>
             <button
@@ -64,8 +62,8 @@ export default function AuditPage() {
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isAllActive
-                  ? 'bg-[var(--kw-primary-500)] text-white'
-                  : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)] hover:bg-[var(--kw-surface)]'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               )}
             >
               {t('audit.all')}
@@ -77,8 +75,8 @@ export default function AuditPage() {
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isGrantedActive
-                  ? 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]'
-                  : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)] hover:bg-[var(--kw-surface)]'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               )}
             >
               {t('audit.granted')}
@@ -90,8 +88,8 @@ export default function AuditPage() {
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isDeniedActive
-                  ? 'bg-[var(--kw-red-surface)] text-[var(--kw-red-text)]'
-                  : 'bg-[var(--kw-surface-alt)] text-[var(--kw-text)] hover:bg-[var(--kw-surface)]'
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               )}
             >
               {t('audit.denied')}
@@ -103,111 +101,104 @@ export default function AuditPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-[var(--kw-text)]">{total}</div>
-          <div className="text-xs text-[var(--kw-text-muted)]">{t('audit.totalEvents')}</div>
+          <div className="text-xl font-bold text-foreground">{total}</div>
+          <div className="text-xs text-muted-foreground">{t('audit.totalEvents')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-[var(--kw-green-text)]">
+          <div className="text-xl font-bold text-green-600 dark:text-green-400">
             {logs.filter((l) => l.granted).length}
           </div>
-          <div className="text-xs text-[var(--kw-text-muted)]">{t('audit.grantedAccess')}</div>
+          <div className="text-xs text-muted-foreground">{t('audit.grantedAccess')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-[var(--kw-red-text)]">
+          <div className="text-xl font-bold text-red-600 dark:text-red-400">
             {logs.filter((l) => !l.granted).length}
           </div>
-          <div className="text-xs text-[var(--kw-text-muted)]">{t('audit.deniedAccess')}</div>
+          <div className="text-xs text-muted-foreground">{t('audit.deniedAccess')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-[var(--kw-text)]">
+          <div className="text-xl font-bold text-foreground">
             {logs.filter((l) => l.action === 'read_value').length}
           </div>
-          <div className="text-xs text-[var(--kw-text-muted)]">{t('audit.valueReads')}</div>
+          <div className="text-xs text-muted-foreground">{t('audit.valueReads')}</div>
         </Card>
       </div>
 
       {/* Logs List */}
       <Card className="overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-[var(--kw-text-muted)]">
-            {t('audit.loading')}
-          </div>
+          <div className="p-8 text-center text-sm text-muted-foreground">{t('audit.loading')}</div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-[var(--kw-red-text)]">
+          <div className="p-8 text-center text-sm text-destructive">
             {t('audit.loadFailed')}: {error.message}
           </div>
         ) : logs.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--kw-surface-alt)]">
-              <Shield className="h-6 w-6 text-[var(--kw-text-muted)]" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <Shield className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mb-2 font-semibold text-[var(--kw-text)]">{t('audit.emptyTitle')}</h3>
-            <p className="text-sm text-[var(--kw-text-muted)]">
-              {t('audit.emptyDesc')}
-            </p>
+            <h3 className="mb-2 font-semibold text-foreground">{t('audit.emptyTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('audit.emptyDesc')}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-[var(--kw-surface-alt)]">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-[var(--kw-text-muted)]">{t('audit.time')}</th>
-                  <th className="px-4 py-3 font-medium text-[var(--kw-text-muted)]">{t('audit.token')}</th>
-                  <th className="px-4 py-3 font-medium text-[var(--kw-text-muted)]">{t('audit.secret')}</th>
-                  <th className="px-4 py-3 font-medium text-[var(--kw-text-muted)]">{t('audit.action')}</th>
-                  <th className="px-4 py-3 font-medium text-[var(--kw-text-muted)]">{t('audit.status')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--kw-border)]">
-                {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[var(--kw-surface-alt)]/50">
-                    <td className="px-4 py-3 whitespace-nowrap text-[var(--kw-text-muted)]">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3 w-3" />
-                        {formatDate(log.timestamp)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-[var(--kw-text)]">
-                      {log.token_id ? `${log.token_id.slice(0, 8)}...` : 'System'}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-[var(--kw-text)]">
-                      {log.secret_id ? `${log.secret_id.slice(0, 8)}...` : 'N/A'}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--kw-text)]">
-                      {log.action.replace(/_/g, ' ')}
-                    </td>
-                    <td className="px-4 py-3">
-                      {log.granted ? (
-                        <Badge variant="success" leftIcon={<CheckCircle className="h-3 w-3" />}>
-                          {t('audit.granted')}
-                        </Badge>
-                      ) : (
-                        <Badge variant="error" leftIcon={<XCircle className="h-3 w-3" />}>
-                          {t('audit.denied')}
-                        </Badge>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('audit.time')}</TableHead>
+                <TableHead>{t('audit.token')}</TableHead>
+                <TableHead>{t('audit.secret')}</TableHead>
+                <TableHead>{t('audit.action')}</TableHead>
+                <TableHead>{t('audit.status')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {logs.map((log) => (
+                <TableRow key={log.id}>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
+                      {formatDate(log.timestamp)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-mono text-foreground">
+                    {log.token_id ? `${log.token_id.slice(0, 8)}...` : 'System'}
+                  </TableCell>
+                  <TableCell className="font-mono text-foreground">
+                    {log.secret_id ? `${log.secret_id.slice(0, 8)}...` : 'N/A'}
+                  </TableCell>
+                  <TableCell className="text-foreground">{log.action.replace(/_/g, ' ')}</TableCell>
+                  <TableCell>
+                    {log.granted ? (
+                      <Badge
+                        variant="default"
+                        className="gap-1 bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300"
+                      >
+                        <CheckCircle className="h-3 w-3" />
+                        {t('audit.granted')}
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="gap-1">
+                        <XCircle className="h-3 w-3" />
+                        {t('audit.denied')}
+                      </Badge>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </Card>
 
       {/* Info Card */}
-      <Card className="border border-[var(--kw-orange-surface)] bg-[var(--kw-orange-surface)] p-4">
+      <Card className="border border-orange-200 bg-orange-50 p-4 dark:border-orange-900/50 dark:bg-orange-950/20">
         <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-orange-surface)]">
-            <Shield className="h-4 w-4 text-[var(--kw-orange-text)]" />
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
+            <Shield className="h-4 w-4 text-orange-700 dark:text-orange-300" />
           </div>
           <div className="flex-1 text-sm">
-            <p className="font-medium text-[var(--kw-orange-text)]">
-              {t('audit.title')}
-            </p>
-            <p className="mt-1 text-[var(--kw-orange-text)]">
-              {t('audit.description')}
-            </p>
+            <p className="font-medium text-orange-800 dark:text-orange-200">{t('audit.title')}</p>
+            <p className="mt-1 text-orange-700 dark:text-orange-300">{t('audit.description')}</p>
           </div>
         </div>
       </Card>

@@ -24,9 +24,18 @@ class RateLimitConfig(NamedTuple):
 class _RateLimitStore:
     """Thread-safe in-memory store tracking failed attempts per IP."""
 
+    _MAX_TRACKED_IPS = 10_000
+
     def __init__(self) -> None:
         # ip -> list of failure timestamps
         self._failures: dict[str, list[float]] = defaultdict(list)
+
+    def _prune_stale_ips(self) -> None:
+        """Remove IPs with empty attempt lists to bound memory."""
+        if len(self._failures) > self._MAX_TRACKED_IPS:
+            self._failures = defaultdict(
+                list, {k: v for k, v in self._failures.items() if v}
+            )
 
     def record_failure(self, ip: str, window_seconds: int) -> int:
         """Record a failed attempt and return the current count within the window."""
@@ -36,6 +45,7 @@ class _RateLimitStore:
         # Prune old entries outside the window
         self._failures[ip] = [t for t in attempts if t > cutoff]
         self._failures[ip].append(now)
+        self._prune_stale_ips()
         return len(self._failures[ip])
 
     def get_attempt_count(self, ip: str, window_seconds: int) -> int:

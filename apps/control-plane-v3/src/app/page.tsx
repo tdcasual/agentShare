@@ -4,23 +4,16 @@ import Link from 'next/link';
 import { useSecrets } from '@/domains/secret';
 import { useTokens } from '@/domains/token';
 import { useAuditStats } from '@/domains/audit';
-import { Card } from '@/shared/ui-primitives/card';
-import { Button } from '@/shared/ui-primitives/button';
-import { Badge } from '@/shared/ui-primitives/badge';
-import {
-  Key,
-  Shield,
-  Activity,
-  Plus,
-  ArrowRight,
-  Sparkles,
-} from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Key, Shield, Activity, ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
-const KeyIcon = <Key className="h-6 w-6 text-[var(--kw-purple-text)]" />;
-const ShieldIcon = <Shield className="h-6 w-6 text-[var(--kw-green-text)]" />;
-const ActivityIcon = <Activity className="h-6 w-6 text-[var(--kw-orange-text)]" />;
+const KeyIcon = <Key className="h-6 w-6 text-purple-600 dark:text-purple-400" />;
+const ShieldIcon = <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />;
+const ActivityIcon = <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />;
 
 export default function VaultGateDashboard() {
   const { t } = useI18n();
@@ -38,18 +31,16 @@ export default function VaultGateDashboard() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[var(--kw-text)] sm:text-3xl">
+            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
               {t('dashboard.title')}
             </h1>
-            <Badge variant="info">v1.0</Badge>
+            <Badge variant="secondary">v1.0</Badge>
           </div>
-          <p className="text-sm text-[var(--kw-text-muted)]">
-            {t('dashboard.subtitle')}
-          </p>
+          <p className="text-sm text-muted-foreground">{t('dashboard.subtitle')}</p>
         </div>
         <Link href="/tokens">
           <Button
-            variant="primary"
+            variant="default"
             size="sm"
             className="shrink-0 whitespace-nowrap md:h-11 md:px-8 md:text-base"
             leftIcon={<Sparkles className="h-4 w-4 md:h-5 md:w-5" />}
@@ -60,18 +51,16 @@ export default function VaultGateDashboard() {
       </div>
 
       {/* Info Banner */}
-      <Card className="border border-[var(--kw-purple-surface)] bg-[var(--kw-purple-surface)] p-4">
+      <Card className="border border-purple-200 bg-purple-50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
         <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--kw-purple-surface)]">
-            <Shield className="h-4 w-4 text-[var(--kw-purple-text)]" />
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
+            <Shield className="h-4 w-4 text-purple-700 dark:text-purple-300" />
           </div>
           <div className="flex-1 text-sm">
-            <p className="font-medium text-[var(--kw-purple-text)]">
+            <p className="font-medium text-purple-800 dark:text-purple-200">
               {t('dashboard.ready')}
             </p>
-            <p className="mt-1 text-[var(--kw-purple-text)]">
-              {t('dashboard.readyDesc')}
-            </p>
+            <p className="mt-1 text-purple-700 dark:text-purple-300">{t('dashboard.readyDesc')}</p>
           </div>
         </div>
       </Card>
@@ -103,16 +92,18 @@ export default function VaultGateDashboard() {
 
       {/* Quick Actions */}
       <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--kw-text)]">{t('dashboard.quickActions')}</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">
+          {t('dashboard.quickActions')}
+        </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <ActionButton
-            href="/secrets/new"
+            href="/secrets"
             icon={<Key className="h-4 w-4" />}
             label={t('dashboard.createSecret')}
             description={t('dashboard.createSecretDesc')}
           />
           <ActionButton
-            href="/tokens/new"
+            href="/tokens"
             icon={<Shield className="h-4 w-4" />}
             label={t('dashboard.createToken')}
             description={t('dashboard.createTokenDesc')}
@@ -128,33 +119,49 @@ export default function VaultGateDashboard() {
 
       {/* Quick Links */}
       <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-[var(--kw-text)]">{t('dashboard.browse')}</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">{t('dashboard.browse')}</h2>
         <div className="grid gap-2 sm:grid-cols-2">
           <QuickLink href="/secrets" label={t('dashboard.secrets')} count={totalSecrets} />
           <QuickLink href="/tokens" label={t('dashboard.tokens')} count={activeTokens} />
           <QuickLink href="/audit" label={t('dashboard.auditLogs')} />
-          <QuickLink href="/docs" label={t('dashboard.apiDocs')} external />
         </div>
       </Card>
 
       {/* API Quick Reference */}
       <Card className="p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold text-[var(--kw-text)]">{t('dashboard.apiReference')}</h3>
-          <Badge variant="info">v1.0</Badge>
+          <h3 className="font-semibold text-foreground">{t('dashboard.apiReference')}</h3>
+          <Badge variant="secondary">v1.0</Badge>
         </div>
-        <div className="space-y-2 text-sm text-[var(--kw-text-muted)]">
+        <div className="space-y-2 text-sm text-muted-foreground">
           <p>{t('dashboard.publicEndpoints')}</p>
-          <ul className="list-inside list-disc space-y-1 ml-2">
-            <li><code className="font-mono text-xs">GET /healthz</code> - {t('dashboard.healthCheck')}</li>
-            <li><code className="font-mono text-xs">GET /docs</code> - {t('dashboard.apiDocumentation')}</li>
-            <li><code className="font-mono text-xs">GET /openapi.json</code> - {t('dashboard.openapiSchema')}</li>
+          <ul className="ml-2 list-inside list-disc space-y-1">
+            <li>
+              <code className="font-mono text-xs">GET /healthz</code> - {t('dashboard.healthCheck')}
+            </li>
+            <li>
+              <code className="font-mono text-xs">GET /docs</code> -{' '}
+              {t('dashboard.apiDocumentation')}
+            </li>
+            <li>
+              <code className="font-mono text-xs">GET /openapi.json</code> -{' '}
+              {t('dashboard.openapiSchema')}
+            </li>
           </ul>
           <p className="mt-3">{t('dashboard.agentAccess')}</p>
-          <ul className="list-inside list-disc space-y-1 ml-2">
-            <li><code className="font-mono text-xs">GET /api/vault</code> - {t('dashboard.listSecrets')}</li>
-            <li><code className="font-mono text-xs">GET /api/vault/:id?fields=value</code> - {t('dashboard.getSecret')}</li>
-            <li><code className="font-mono text-xs">GET /api/vault/:id/value</code> - {t('dashboard.getSecretValue')}</li>
+          <ul className="ml-2 list-inside list-disc space-y-1">
+            <li>
+              <code className="font-mono text-xs">GET /api/vault</code> -{' '}
+              {t('dashboard.listSecrets')}
+            </li>
+            <li>
+              <code className="font-mono text-xs">GET /api/vault/:id?fields=value</code> -{' '}
+              {t('dashboard.getSecret')}
+            </li>
+            <li>
+              <code className="font-mono text-xs">GET /api/vault/:id/value</code> -{' '}
+              {t('dashboard.getSecretValue')}
+            </li>
           </ul>
         </div>
       </Card>
@@ -176,13 +183,13 @@ const StatCard = function StatCard({
   isLoading?: boolean;
 }) {
   const colorClasses = {
-    purple: 'bg-[var(--kw-purple-surface)] text-[var(--kw-purple-text)]',
-    green: 'bg-[var(--kw-green-surface)] text-[var(--kw-green-text)]',
-    orange: 'bg-[var(--kw-orange-surface)] text-[var(--kw-orange-text)]',
+    purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+    green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    orange: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
   };
 
   return (
-    <Card className="flex items-center gap-3 p-3 transition-shadow hover:shadow-medium sm:gap-4 sm:p-4">
+    <Card className="flex items-center gap-3 p-3 transition-shadow hover:shadow-md sm:gap-4 sm:p-4">
       <div
         className={cn(
           'flex h-9 w-9 items-center justify-center rounded-lg sm:h-12 sm:w-12 sm:rounded-xl [&>svg]:h-4 [&>svg]:w-4 [&>svg]:sm:h-6 [&>svg]:sm:w-6',
@@ -192,10 +199,8 @@ const StatCard = function StatCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xl font-bold text-[var(--kw-text)] sm:text-2xl">
-          {isLoading ? '...' : value}
-        </p>
-        <p className="truncate text-xs text-[var(--kw-text-muted)] sm:text-sm">{label}</p>
+        <p className="text-xl font-bold text-foreground sm:text-2xl">{isLoading ? '...' : value}</p>
+        <p className="truncate text-xs text-muted-foreground sm:text-sm">{label}</p>
       </div>
     </Card>
   );
@@ -215,13 +220,13 @@ const ActionButton = function ActionButton({
   return (
     <Link
       href={href}
-      className="flex flex-col gap-2 rounded-lg border border-[var(--kw-border)] p-4 transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)]"
+      className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent hover:text-accent-foreground"
     >
       <div className="flex items-center gap-2">
-        <span className="text-[var(--kw-primary-500)]">{icon}</span>
-        <span className="font-medium text-[var(--kw-text)]">{label}</span>
+        <span className="text-primary">{icon}</span>
+        <span className="font-medium text-foreground">{label}</span>
       </div>
-      <p className="text-xs text-[var(--kw-text-muted)]">{description}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
     </Link>
   );
 };
@@ -242,16 +247,16 @@ const QuickLink = function QuickLink({
       href={href}
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
-      className="flex items-center justify-between rounded-lg border border-[var(--kw-border)] px-4 py-3 transition-colors hover:bg-[var(--kw-surface-alt)] dark:border-[var(--kw-dark-border)]"
+      className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-accent hover:text-accent-foreground"
     >
-      <span className="font-medium text-[var(--kw-text)]">{label}</span>
+      <span className="font-medium text-foreground">{label}</span>
       <div className="flex items-center gap-2">
         {count !== undefined && (
-          <Badge variant="info" className="text-xs">
+          <Badge variant="secondary" className="text-xs">
             {count}
           </Badge>
         )}
-        <ArrowRight className="h-4 w-4 text-[var(--kw-text-muted)]" />
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </div>
     </Link>
   );

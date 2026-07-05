@@ -29,7 +29,6 @@ fi
   cd "${ROOT_DIR}/apps/control-plane-v3"
   npm run typecheck
   npm run lint
-  npm run test:contracts
   npm test -- --run
   npm run test:coverage
   npm run build

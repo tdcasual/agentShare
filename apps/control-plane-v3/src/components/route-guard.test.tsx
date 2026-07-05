@@ -52,7 +52,7 @@ describe('RouteGuard', () => {
     );
 
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith('/playbooks');
+      expect(replaceMock).toHaveBeenCalledWith('/');
     });
   });
 

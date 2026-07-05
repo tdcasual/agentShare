@@ -14,9 +14,9 @@ def test_deploy_workflow_validates_remote_stack_and_runs_smoke_checks() -> None:
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in workflow
     assert "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans" in workflow
-    assert 'ACP_ADMIN_EMAIL="${{ secrets.ACP_ADMIN_EMAIL }}"' in workflow
-    assert 'ACP_ADMIN_PASSWORD="${{ secrets.ACP_ADMIN_PASSWORD }}"' in workflow
     assert "./scripts/ops/smoke-test.sh" in workflow
+    assert "VAULTGATE_ADMIN_EMAIL" not in workflow
+    assert "VAULTGATE_ADMIN_PASSWORD" not in workflow
 
 
 def test_smoke_script_supports_public_base_url_alias() -> None:
@@ -26,9 +26,8 @@ def test_smoke_script_supports_public_base_url_alias() -> None:
     assert 'APP_BASE_URL="${APP_BASE_URL:-${PUBLIC_BASE_URL:-https://${PUBLIC_HOST}}}"' in script
 
 
-def test_production_deployment_guide_matches_private_metrics_smoke_contract() -> None:
+def test_production_deployment_guide_matches_smoke_contract() -> None:
     deployment_guide = (ROOT / "docs/guides/production-deployment.md").read_text().lower()
 
     assert "caddy" in deployment_guide
-    assert "/metrics" in deployment_guide
-    assert "host-local" in deployment_guide or "private-network" in deployment_guide
+    assert "smoke" in deployment_guide

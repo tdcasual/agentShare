@@ -1,6 +1,6 @@
 'use client';
 
-import { PageLoader } from '@/components/kawaii/page-loader';
+import { PageLoader } from '@/components/ui/page-loader';
 import { useI18n } from '@/components/i18n-provider';
 
 export default function RootLoading() {

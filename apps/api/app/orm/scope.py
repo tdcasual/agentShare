@@ -4,13 +4,12 @@ This module defines the Scope model for token-secret permissions.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import uuid
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy import orm as so
-
-from typing import TYPE_CHECKING
 
 from .base import Base
 
@@ -23,8 +22,7 @@ class Scope(Base):
     """VaultGate permission scope.
 
     Scopes define which tokens have access to which secrets.
-    A scope with allowed=true grants access, allowed=false denies it.
-    Missing scope means no access (default deny).
+    A scope record grants access; missing scope means no access (default deny).
     """
 
     __tablename__ = "scopes"
@@ -45,7 +43,6 @@ class Scope(Base):
         sa.ForeignKey("secrets.id", ondelete="CASCADE"),
         nullable=False,
     )
-    allowed: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=True, nullable=False)
 
     # Relationships
     token: so.Mapped[Token] = so.relationship(back_populates="scopes")
@@ -53,9 +50,9 @@ class Scope(Base):
 
     created_at: so.Mapped[datetime] = so.mapped_column(
         sa.DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
     def __repr__(self) -> str:
-        return f"<Scope(token_id={self.token_id!r}, secret_id={self.secret_id!r}, allowed={self.allowed!r})>"
+        return f"<Scope(token_id={self.token_id!r}, secret_id={self.secret_id!r})>"

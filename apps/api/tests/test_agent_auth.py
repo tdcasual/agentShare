@@ -1,7 +1,5 @@
 """Tests for Bearer token authentication on the runtime API."""
 
-import pytest
-
 
 def test_runtime_request_requires_bearer_token(client):
     """GET /api/me without a token should return 401."""

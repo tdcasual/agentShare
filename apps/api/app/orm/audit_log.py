@@ -4,8 +4,8 @@ This module defines the AuditLog model for security auditing.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import uuid
+from datetime import UTC, datetime
 
 import sqlalchemy as sa
 from sqlalchemy import orm as so
@@ -47,7 +47,7 @@ class AuditLog(Base):
     log_metadata: so.Mapped[dict] = so.mapped_column("metadata", sa.JSON, default=dict, nullable=False)
     created_at: so.Mapped[datetime] = so.mapped_column(
         sa.DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
