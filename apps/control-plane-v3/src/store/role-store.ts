@@ -1,8 +1,7 @@
 /**
  * Role Store - 角色状态管理
  *
- * 使用 Zustand 管理全局角色状态
- * 不持久化到 localStorage，避免登出/切换账号时出现 stale role flash
+ * VaultGate 使用单一 admin 角色。此 store 保留为兼容性 shim。
  */
 
 import { create } from 'zustand';
@@ -19,10 +18,7 @@ interface RoleState {
 
   // Queries
   hasRole: (required: ManagementRole) => boolean;
-  isViewer: () => boolean;
-  isOperator: () => boolean;
   isAdmin: () => boolean;
-  isOwner: () => boolean;
 }
 
 export const useRoleStore = create<RoleState>()((set, get) => ({
@@ -37,23 +33,8 @@ export const useRoleStore = create<RoleState>()((set, get) => ({
     return hasRequiredRole(role, required);
   },
 
-  isViewer: () => {
-    const { role } = get();
-    return role === 'viewer' || role === 'operator' || role === 'admin' || role === 'owner';
-  },
-
-  isOperator: () => {
-    const { role } = get();
-    return ['operator', 'admin', 'owner'].includes(role ?? '');
-  },
-
   isAdmin: () => {
     const { role } = get();
-    return ['admin', 'owner'].includes(role ?? '');
-  },
-
-  isOwner: () => {
-    const { role } = get();
-    return role === 'owner';
+    return role === 'admin';
   },
 }));

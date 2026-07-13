@@ -33,6 +33,7 @@ services:
     environment:
       VAULTGATE_API_URL: ${VAULTGATE_API_URL:-http://api:8000}
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL is required}
+      NEXT_PUBLIC_SESSION_COOKIE_NAME: ${NEXT_PUBLIC_SESSION_COOKIE_NAME:-vaultgate_session}
     expose:
       - "3000"
     healthcheck:

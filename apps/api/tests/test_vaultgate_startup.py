@@ -273,4 +273,6 @@ class TestTokenManagement:
             json={"secret_id": sec["id"]},
         )
         assert resp.status_code == 200
-        assert resp.json()["secret_id"] == sec["id"]
+        items = resp.json()["items"]
+        assert len(items) == 1
+        assert items[0]["secret_id"] == sec["id"]

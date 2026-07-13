@@ -290,8 +290,8 @@ async def list_token_scopes(
 @router.post(
     "/{token_id}/scopes",
     tags=["Tokens"],
-    summary="Grant a scope",
-    description="Grant access to a secret for this token.",
+    summary="Grant scopes",
+    description="Grant access to one or more secrets for this token.",
 )
 async def create_scope(
     token_id: str,
@@ -299,7 +299,7 @@ async def create_scope(
     user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
-    """Create a scope (permission) for a token."""
+    """Create one or more scopes (permissions) for a token."""
     # Verify token ownership
     token_result = await db.execute(
         select(Token).where(Token.id == token_id).where(Token.user_id == user.id)
@@ -312,49 +312,61 @@ async def create_scope(
             detail="Token not found",
         )
 
-    # Verify secret ownership
-    secret_result = await db.execute(
-        select(Secret).where(Secret.id == scope_data.secret_id).where(Secret.user_id == user.id)
-    )
-    secret = secret_result.scalar_one_or_none()
+    # Normalize to a list of secret IDs (support both legacy single field and new batch field)
+    secret_ids = list(scope_data.secret_ids) if scope_data.secret_ids else []
+    if scope_data.secret_id:
+        secret_ids.append(scope_data.secret_id)
 
-    if not secret:
+    if not secret_ids:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Secret not found",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No secret IDs provided",
         )
 
-    # Check if scope already exists
-    existing = await db.execute(
-        select(Scope).where(Scope.token_id == token_id).where(Scope.secret_id == scope_data.secret_id)
+    # Verify all secrets are owned by the current user
+    secret_result = await db.execute(
+        select(Secret).where(Secret.id.in_(secret_ids)).where(Secret.user_id == user.id)
     )
-    existing_scope = existing.scalar_one_or_none()
+    owned_secrets = {secret.id: secret for secret in secret_result.scalars().all()}
 
-    if existing_scope:
-        # Scope already exists; return it unchanged
-        await db.commit()
-        return {
-            "id": existing_scope.id,
-            "token_id": existing_scope.token_id,
-            "secret_id": existing_scope.secret_id,
-            "created_at": existing_scope.created_at.isoformat(),
-        }
+    missing_secret_ids = [sid for sid in secret_ids if sid not in owned_secrets]
+    if missing_secret_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Secret(s) not found: {', '.join(missing_secret_ids)}",
+        )
 
-    # Create new scope
-    new_scope = Scope(
-        token_id=token_id,
-        secret_id=scope_data.secret_id,
+    # Find existing scopes to avoid duplicates
+    existing_result = await db.execute(
+        select(Scope).where(Scope.token_id == token_id).where(Scope.secret_id.in_(secret_ids))
     )
+    existing_scopes = {scope.secret_id: scope for scope in existing_result.scalars().all()}
 
-    db.add(new_scope)
+    created_scopes = []
+    for secret_id in secret_ids:
+        existing_scope = existing_scopes.get(secret_id)
+        if existing_scope:
+            created_scopes.append(existing_scope)
+            continue
+
+        new_scope = Scope(token_id=token_id, secret_id=secret_id)
+        db.add(new_scope)
+        created_scopes.append(new_scope)
+
     await db.commit()
-    await db.refresh(new_scope)
+    for scope in created_scopes:
+        await db.refresh(scope)
 
     return {
-        "id": new_scope.id,
-        "token_id": new_scope.token_id,
-        "secret_id": new_scope.secret_id,
-        "created_at": new_scope.created_at.isoformat(),
+        "items": [
+            {
+                "id": scope.id,
+                "token_id": scope.token_id,
+                "secret_id": scope.secret_id,
+                "created_at": scope.created_at.isoformat(),
+            }
+            for scope in created_scopes
+        ],
     }
 
 

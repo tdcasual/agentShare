@@ -75,8 +75,8 @@ def test_dev_compose_builds_local_app_services_without_pulling_fake_local_tags()
     compose = (ROOT / "docker-compose.yml").read_text()
     assert "dockerfile: apps/api/Dockerfile" in compose
     assert "dockerfile: apps/control-plane-v3/Dockerfile" in compose
-    assert "agentshare-api:local" not in compose
-    assert "agentshare-web:local" not in compose
+    assert "vaultgate-api:local" not in compose
+    assert "vaultgate-web:local" not in compose
 
 
 def test_dev_compose_binds_exposed_services_to_loopback_only() -> None:

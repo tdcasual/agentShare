@@ -54,6 +54,7 @@ services:
     environment:
       VAULTGATE_API_URL: ${VAULTGATE_API_URL:-http://api:8000}
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+      NEXT_PUBLIC_SESSION_COOKIE_NAME: ${NEXT_PUBLIC_SESSION_COOKIE_NAME:-vaultgate_session}
     depends_on:
       api:
         condition: service_healthy

@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ steps.vars.outputs.owner_lc }}/agentshare-${{ matrix.name }}
+          images: ghcr.io/${{ steps.vars.outputs.owner_lc }}/vaultgate-${{ matrix.name }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag

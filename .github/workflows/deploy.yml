@@ -39,8 +39,8 @@ jobs:
         shell: bash
         run: |
           cat > .release.env <<EOF
-          API_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/agentshare-api:${{ steps.vars.outputs.image_tag }}
-          WEB_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/agentshare-web:${{ steps.vars.outputs.image_tag }}
+          API_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/vaultgate-api:${{ steps.vars.outputs.image_tag }}
+          WEB_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/vaultgate-web:${{ steps.vars.outputs.image_tag }}
           EOF
 
       - name: Copy deployment assets to server

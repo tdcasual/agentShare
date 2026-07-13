@@ -28,6 +28,12 @@ async def update_token_last_used(token: Token, db: AsyncSession) -> None:
     # NOTE: do NOT commit here — the calling route owns the transaction.
 
 
+async def _commit_vault_access(db: AsyncSession, token: Token) -> None:
+    """Persist token usage and any audit logs added during the request."""
+    await update_token_last_used(token, db)
+    await db.commit()
+
+
 @router.get(
     "",
     response_model=VaultSecretListResponse,
@@ -48,16 +54,28 @@ async def list_secrets(
     Only returns secrets where the token has a scope.
     Returns metadata only (no value field).
     """
-    # Update token last used timestamp
-    await update_token_last_used(token, db)
-    await db.commit()
-
     # Get accessible secret IDs
     result = await db.execute(
         select(Scope.secret_id)
         .where(Scope.token_id == token.id)
     )
     accessible_secret_ids = {row[0] for row in result.all()}
+
+    # Log the list action
+    permission_svc = get_permission_service()
+    await permission_svc.log_success(
+        db=db,
+        token_id=token.id,
+        token_prefix=token.key_prefix,
+        secret_id=None,
+        action="list",
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        requested_field_count=0,  # List doesn't count as requesting value fields
+    )
+
+    # Persist token usage and audit log
+    await _commit_vault_access(db, token)
 
     if not accessible_secret_ids:
         return {"items": []}
@@ -80,19 +98,6 @@ async def list_secrets(
 
     secrets_result = await db.execute(query)
     secrets = secrets_result.scalars().all()
-
-    # Log the list action
-    permission_svc = get_permission_service()
-    await permission_svc.log_success(
-        db=db,
-        token_id=token.id,
-        token_prefix=token.key_prefix,
-        secret_id=None,
-        action="list",
-        ip_address=request.client.host if request.client else None,
-        user_agent=request.headers.get("user-agent"),
-        requested_field_count=0,  # List doesn't count as requesting value fields
-    )
 
     # Build response
     items = []
@@ -153,6 +158,9 @@ async def get_secret(
             detail="Access denied",
         )
 
+    # Persist token usage and audit log
+    await _commit_vault_access(db, token)
+
     return {
         "id": secret.id,
         "name": secret.name,
@@ -212,5 +220,8 @@ async def get_secret_value(
     # Decrypt value
     encryption_svc = get_encryption_service()
     value = encryption_svc.decrypt(secret.value_encrypted)
+
+    # Persist token usage and audit log
+    await _commit_vault_access(db, token)
 
     return {"value": value}

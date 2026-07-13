@@ -300,8 +300,8 @@ export async function createScopes(
   });
 }
 
-export async function deleteScope(tokenId: string, secretId: string): Promise<{ message: string }> {
-  return requestJson(`/tokens/${tokenId}/scopes/${secretId}`, {
+export async function deleteScope(tokenId: string, scopeId: string): Promise<{ message: string }> {
+  return requestJson(`/tokens/${tokenId}/scopes/${scopeId}`, {
     method: 'DELETE',
   });
 }

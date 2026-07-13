@@ -76,6 +76,21 @@ class BootstrapRequest(BaseModel):
 router = APIRouter(prefix="/api/bootstrap")
 
 
+@router.get(
+    "/status",
+    tags=["Bootstrap"],
+    summary="Get bootstrap status",
+    description="Check whether VaultGate has been initialized with a first user.",
+)
+async def bootstrap_status(
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    """Return whether VaultGate has been initialized."""
+    result = await db.execute(select(User).limit(1))
+    existing_user = result.scalar_one_or_none()
+    return {"initialized": existing_user is not None}
+
+
 @router.post(
     "/init",
     tags=["Bootstrap"],

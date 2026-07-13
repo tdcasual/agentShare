@@ -24,8 +24,8 @@ jobs:
       fail-fast: false
       matrix:
         image_name:
-          - agentshare-api
-          - agentshare-web
+          - vaultgate-api
+          - vaultgate-web
 
     steps:
       - name: Check out repository

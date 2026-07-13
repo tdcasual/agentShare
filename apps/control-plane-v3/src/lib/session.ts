@@ -4,7 +4,6 @@ import type { BootstrapStatus, ManagementSessionSummary } from '@/shared/types';
 import { getCurrentUser } from '@/lib/vaultgate-api';
 import { resolveEntryStateFast, resetBootstrapCache } from '@/lib/entry-state';
 import { setGlobalSession } from '@/lib/session-state';
-import { isValidRole } from '@/lib/role-system';
 
 export type AppEntryState =
   | { kind: 'bootstrap_required'; bootstrap: BootstrapStatus }
@@ -50,12 +49,11 @@ async function getBootstrapStatus() {
 async function getSession(): Promise<ManagementSessionSummary | null> {
   try {
     const user = await getCurrentUser();
-    const role = user.role || 'admin';
     return {
       status: 'active',
       actor_type: 'human',
       actor_id: user.id,
-      role: isValidRole(role) ? role : 'admin',
+      role: 'admin',
       auth_method: 'session',
       session_id: '',
       email: user.email,

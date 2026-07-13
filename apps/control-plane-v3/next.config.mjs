@@ -2,12 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
-      },
-    ],
+    unoptimized: true,
   },
   // Next.js build-time ESLint detection does not recognize ESLint 9 flat config
   // (eslint.config.mjs). We run `npm run lint` in CI, so disabling build-time
@@ -32,7 +27,7 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https://api.dicebear.com",
+              "img-src 'self' data:",
               "font-src 'self'",
               "connect-src 'self'",
               "frame-ancestors 'none'",

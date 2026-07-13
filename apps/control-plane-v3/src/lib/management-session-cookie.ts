@@ -6,7 +6,7 @@
  * falling back to the VaultGate default.
  */
 
-const DEFAULT_COOKIE_NAME = 'vg_session';
+const DEFAULT_COOKIE_NAME = 'vaultgate_session';
 
 export function resolveManagementSessionCookieName(): string {
   // Prefer the server-side-only var; fall back to the public var for

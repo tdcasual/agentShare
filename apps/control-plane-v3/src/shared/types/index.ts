@@ -23,5 +23,5 @@ export interface ManagementSessionSummary {
   expires_at: number;
 }
 
-/** Role union shared between DTO and domain model */
-export type ManagementRole = 'viewer' | 'operator' | 'admin' | 'owner';
+/** VaultGate uses a single admin role for all authenticated users. */
+export type ManagementRole = 'admin';

@@ -91,8 +91,8 @@ export async function addScopes(tokenId: string, input: ScopeCreateInput): Promi
   return response.items;
 }
 
-export async function removeScope(tokenId: string, secretId: string): Promise<void> {
-  await apiDeleteScope(tokenId, secretId);
+export async function removeScope(tokenId: string, scopeId: string): Promise<void> {
+  await apiDeleteScope(tokenId, scopeId);
   // Refresh the scopes list
   mutate(SCOPE_CACHE_KEY(tokenId));
 }

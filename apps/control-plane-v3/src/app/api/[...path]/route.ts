@@ -9,8 +9,18 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE_URL = process.env.VAULTGATE_API_URL || 'http://localhost:8000';
 
-// Only forward these request headers to the backend (no cookie/authorization)
-const FORWARD_REQUEST_HEADERS = ['content-type', 'accept', 'x-request-id'];
+// Only forward these request headers to the backend.
+// cookie: required so backend session cookies authenticate management requests.
+// authorization: required for runtime endpoints that use Bearer tokens.
+const FORWARD_REQUEST_HEADERS = [
+  'content-type',
+  'accept',
+  'x-request-id',
+  'cookie',
+  'authorization',
+  'origin',
+  'referer',
+];
 
 // Only forward these response headers back to the client
 const FORWARD_RESPONSE_HEADERS = ['content-type', 'set-cookie', 'cache-control', 'x-request-id'];
@@ -44,7 +54,7 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
       body = await request.text();
     }
 
-    // Build headers with strict whitelist (no cookie/authorization forwarding)
+    // Build headers with strict whitelist
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
       if (FORWARD_REQUEST_HEADERS.includes(key.toLowerCase())) {

@@ -134,6 +134,7 @@ class VaultTokenDetailResponse(VaultTokenResponse):
 
 
 class VaultScopeCreate(BaseModel):
-    """Schema for creating a scope."""
+    """Schema for creating one or more scopes."""
 
-    secret_id: str = Field(..., description="Secret ID to grant access to")
+    secret_id: str | None = Field(None, description="Single secret ID to grant access to (legacy)")
+    secret_ids: list[str] = Field(default_factory=list, description="List of secret IDs to grant access to")

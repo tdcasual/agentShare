@@ -1,9 +1,8 @@
 /**
  * Route Guard - 路由守卫
  *
- * 强制执行路由访问策略
- * 支持四级角色权限检查：viewer < operator < admin < owner
- * 统一的入口状态解析和重定向
+ * 处理引导、认证两层检查。VaultGate 使用单一 admin 角色，
+ * 所有受保护页面对任何已认证用户开放。
  */
 
 'use client';
@@ -11,14 +10,6 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { resolveAppEntryState } from '@/lib/session';
-import {
-  getDefaultManagementRoute,
-  getRequiredRoleForPath,
-  hasRequiredRole,
-  type ManagementRole,
-  isValidRole,
-} from '@/lib/role-system';
-import { ForbiddenState } from './forbidden-state';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
@@ -35,7 +26,7 @@ function isPublicPath(pathname: string): boolean {
 
 /**
  * 全局路由守卫
- * 处理引导、认证、角色权限三层检查
+ * 处理引导和认证检查
  */
 export function RouteGuard({ children }: RouteGuardProps) {
   const { t } = useI18n();
@@ -44,9 +35,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const [entryState, setEntryState] = useState<Awaited<
     ReturnType<typeof resolveAppEntryState>
   > | null>(null);
-  const [roleCheckFailed, setRoleCheckFailed] = useState<{ requiredRole: ManagementRole } | null>(
-    null
-  );
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -90,7 +78,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
     // 引导状态特殊处理
     if (entryState.kind === 'bootstrap_required') {
       if (isPublic) {
-        setRoleCheckFailed(null);
         return;
       }
       if (pathname !== '/setup') {
@@ -101,17 +88,15 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     // 服务不可用
     if (entryState.kind === 'unavailable') {
-      setRoleCheckFailed(null);
       return;
     }
 
-    // 已认证用户访问登录页 — 重定向到管理首页
+    // 已认证用户访问登录/设置页 — 重定向到管理首页
     if (
       entryState.kind === 'authenticated_ready' &&
       (pathname === '/login' || pathname === '/setup')
     ) {
-      const userRole = isValidRole(entryState.session.role) ? entryState.session.role : null;
-      router.replace(getDefaultManagementRoute(userRole));
+      router.replace('/');
       return;
     }
 
@@ -122,21 +107,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
       }
       return;
     }
-
-    // 角色权限检查（仅认证后）
-    if (entryState.kind === 'authenticated_ready') {
-      const requiredRole = getRequiredRoleForPath(pathname);
-      const userRoleStr = entryState.session.role;
-      const userRole = isValidRole(userRoleStr) ? userRoleStr : null;
-
-      if (requiredRole && !hasRequiredRole(userRole, requiredRole)) {
-        setRoleCheckFailed({ requiredRole });
-        return;
-      }
-    }
-
-    // 通过所有检查
-    setRoleCheckFailed(null);
   }, [entryState, pathname, router]);
 
   // 避免 hydration mismatch：SSR 和初始 hydrate 渲染 children
@@ -176,15 +146,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
           <p className="mb-6 text-muted-foreground">{t('common.serviceUnavailableDescription')}</p>
           <Button onClick={() => window.location.reload()}>{t('common.retry')}</Button>
         </div>
-      </main>
-    );
-  }
-
-  // 角色权限不足 - 显示403页面
-  if (roleCheckFailed) {
-    return (
-      <main id="main-content" className="min-h-screen bg-background">
-        <ForbiddenState requiredRole={roleCheckFailed.requiredRole} resourceName={pathname} />
       </main>
     );
   }

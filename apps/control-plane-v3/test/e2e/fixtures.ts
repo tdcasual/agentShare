@@ -9,11 +9,11 @@ import { type Page, type Route } from '@playwright/test';
 export const sessionSummary = {
   status: 'active',
   actor_type: 'human',
-  actor_id: 'owner',
-  role: 'owner',
+  actor_id: 'admin',
+  role: 'admin',
   auth_method: 'local_password',
   session_id: 'session-e2e',
-  email: 'owner@example.com',
+  email: 'admin@example.com',
   expires_in: 3600,
   issued_at: 1_777_000_000,
   expires_at: 1_777_003_600,
@@ -44,11 +44,13 @@ export const vaultgateToken = {
 export const vaultgateAuditLog = {
   id: 'audit-1',
   action: 'read',
-  status: 'granted',
+  result: 'success',
+  granted: true,
+  token_id: 'token-1',
   token_prefix: 'vg_abc123',
   secret_id: 'secret-1',
   ip_address: '127.0.0.1',
-  created_at: '2024-01-15T12:00:00Z',
+  timestamp: '2024-01-15T12:00:00Z',
 };
 
 export async function fulfillJson(route: Route, status: number, body: unknown) {
@@ -59,7 +61,7 @@ export async function fulfillJson(route: Route, status: number, body: unknown) {
   });
 }
 
-export async function mockSession(page: Page, role = 'owner') {
+export async function mockSession(page: Page, role = 'admin') {
   await page.route('**/api/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());

@@ -24,10 +24,6 @@ vi.mock('@/components/i18n-provider', () => ({
   }),
 }));
 
-vi.mock('./forbidden-state', () => ({
-  ForbiddenState: () => <div>forbidden</div>,
-}));
-
 describe('RouteGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,8 +35,8 @@ describe('RouteGuard', () => {
       kind: 'authenticated_ready',
       bootstrap: { initialized: true },
       session: {
-        email: 'viewer@example.com',
-        role: 'viewer',
+        email: 'admin@example.com',
+        role: 'admin',
         session_id: 'session-1',
       },
     });
