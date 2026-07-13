@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { NextRequest } from 'next/server';
-import { middleware } from './middleware';
+import { proxy } from './proxy';
 
 const initialSessionCookieName = process.env.SESSION_COOKIE_NAME;
 
@@ -28,7 +28,7 @@ function buildRequest(pathname: string, token?: string, cookieName = 'vaultgate_
   return new NextRequest(`http://localhost${pathname}`, { headers });
 }
 
-describe('middleware', () => {
+describe('proxy', () => {
   afterEach(() => {
     if (initialSessionCookieName === undefined) {
       delete process.env.SESSION_COOKIE_NAME;
@@ -39,20 +39,20 @@ describe('middleware', () => {
   });
 
   it('lets public routes pass without auth headers', () => {
-    const response = middleware(buildRequest('/login'));
+    const response = proxy(buildRequest('/login'));
 
     expect(response.headers.get('x-auth-required')).toBeNull();
   });
 
   it('marks protected routes as auth-required when no session cookie is present', () => {
-    const response = middleware(buildRequest('/tokens'));
+    const response = proxy(buildRequest('/tokens'));
 
     expect(response.headers.get('x-auth-required')).toBe('true');
   });
 
   it('does not parse cookie contents or propagate role headers for security', () => {
     const token = buildManagementSessionToken();
-    const response = middleware(buildRequest('/tokens', token));
+    const response = proxy(buildRequest('/tokens', token));
 
     expect(response.headers.get('x-auth-required')).toBeNull();
     expect(response.headers.get('x-forbidden')).toBeNull();
@@ -64,7 +64,7 @@ describe('middleware', () => {
     process.env.SESSION_COOKIE_NAME = 'ops_session';
 
     const token = buildManagementSessionToken();
-    const response = middleware(buildRequest('/tokens', token, 'ops_session'));
+    const response = proxy(buildRequest('/tokens', token, 'ops_session'));
 
     expect(response.headers.get('x-auth-required')).toBeNull();
   });

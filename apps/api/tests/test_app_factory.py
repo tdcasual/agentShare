@@ -5,9 +5,22 @@ from app.config import Settings
 from app.factory import create_app
 
 
+def _collect_route_paths(app) -> set[str]:
+    """Collect paths from both direct routes and included routers."""
+    paths: set[str] = set()
+    for route in app.routes:
+        if hasattr(route, "path"):
+            paths.add(route.path)
+        elif hasattr(route, "original_router"):
+            for sub_route in route.original_router.routes:
+                if hasattr(sub_route, "path"):
+                    paths.add(sub_route.path)
+    return paths
+
+
 def test_create_app_registers_core_routes():
     app = create_app(Settings())
-    route_paths = {route.path for route in app.routes}
+    route_paths = _collect_route_paths(app)
 
     assert "/healthz" in route_paths
     assert "/version" in route_paths
@@ -15,7 +28,7 @@ def test_create_app_registers_core_routes():
 
 def test_create_app_registers_vaultgate_routes():
     app = create_app(Settings())
-    route_paths = {route.path for route in app.routes}
+    route_paths = _collect_route_paths(app)
 
     # Auth routes
     assert "/api/session/login" in route_paths
@@ -45,7 +58,7 @@ def test_create_app_accepts_custom_route_registrar():
 
     app = create_app(Settings(), route_registrar=custom_registrar)
     # Only core routes (healthz, version) + no vaultgate routes
-    route_paths = {route.path for route in app.routes}
+    route_paths = _collect_route_paths(app)
     assert "/healthz" in route_paths
     assert "/version" in route_paths
 

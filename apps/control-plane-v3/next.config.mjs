@@ -4,12 +4,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Next.js build-time ESLint detection does not recognize ESLint 9 flat config
-  // (eslint.config.mjs). We run `npm run lint` in CI, so disabling build-time
-  // checks avoids the false-positive plugin-missing warning.
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // Build-time lint is handled by `npm run lint` / `npm run check` in CI.
   poweredByHeader: false,
   devIndicators: false,
   async headers() {
