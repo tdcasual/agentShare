@@ -45,6 +45,38 @@ const config = {
           DEFAULT: 'hsl(var(--info))',
           foreground: 'hsl(var(--info-foreground))',
         },
+        status: {
+          success: {
+            DEFAULT: 'hsl(var(--status-success))',
+            foreground: 'hsl(var(--status-success-foreground))',
+            subtle: 'hsl(var(--status-success-subtle))',
+            'subtle-foreground': 'hsl(var(--status-success-subtle-foreground))',
+          },
+          warning: {
+            DEFAULT: 'hsl(var(--status-warning))',
+            foreground: 'hsl(var(--status-warning-foreground))',
+            subtle: 'hsl(var(--status-warning-subtle))',
+            'subtle-foreground': 'hsl(var(--status-warning-subtle-foreground))',
+          },
+          info: {
+            DEFAULT: 'hsl(var(--status-info))',
+            foreground: 'hsl(var(--status-info-foreground))',
+            subtle: 'hsl(var(--status-info-subtle))',
+            'subtle-foreground': 'hsl(var(--status-info-subtle-foreground))',
+          },
+          danger: {
+            DEFAULT: 'hsl(var(--status-danger))',
+            foreground: 'hsl(var(--status-danger-foreground))',
+            subtle: 'hsl(var(--status-danger-subtle))',
+            'subtle-foreground': 'hsl(var(--status-danger-subtle-foreground))',
+          },
+          brand: {
+            DEFAULT: 'hsl(var(--status-brand))',
+            foreground: 'hsl(var(--status-brand-foreground))',
+            subtle: 'hsl(var(--status-brand-subtle))',
+            'subtle-foreground': 'hsl(var(--status-brand-subtle-foreground))',
+          },
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',

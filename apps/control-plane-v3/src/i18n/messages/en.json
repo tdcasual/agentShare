@@ -58,7 +58,9 @@
     "unknownError": "Unknown error",
     "skipToContent": "Skip to main content",
     "refreshPage": "Refresh page",
-    "tryAgainLater": "Please try again later"
+    "tryAgainLater": "Please try again later",
+    "unexpectedErrorTitle": "Something went wrong",
+    "unexpectedErrorDescription": "An unexpected error occurred. Please try again."
   },
   "metadata": {
     "appName": "VaultGate",
@@ -159,6 +161,18 @@
     "listSecrets": "List accessible secrets",
     "getSecret": "Get secret with field filtering",
     "getSecretValue": "Get only secret value"
+  },
+  "docs": {
+    "title": "Documentation",
+    "subtitle": "VaultGate API documentation and quick start guide.",
+    "apiReference": "API Reference",
+    "apiReferenceDesc": "VaultGate provides OpenAPI/Swagger docs once the backend is running:",
+    "swagger": "Swagger UI",
+    "openapi": "OpenAPI schema",
+    "quickStart": "Quick Start",
+    "step1": "Open the Dashboard to create Secrets.",
+    "step2": "Go to the Tokens page to create an access token and grant scopes.",
+    "step3": "Use the token with Bearer auth to call the Runtime API:"
   },
   "secrets": {
     "title": "Secrets",

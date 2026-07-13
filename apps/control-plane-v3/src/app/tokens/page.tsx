@@ -132,16 +132,16 @@ export default function TokensPage() {
 
       {/* Created Token (shown once) */}
       {createdToken && (
-        <Card className="border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
+        <Card className="border border-status-warning/20 bg-status-warning-subtle p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-              <Key className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-status-warning/10">
+              <Key className="h-4 w-4 text-status-warning" />
             </div>
             <div className="flex-1 text-sm">
-              <p className="font-medium text-amber-800 dark:text-amber-200">
+              <p className="font-medium text-status-warning-subtle-foreground">
                 {t('tokens.created.title')}
               </p>
-              <p className="mt-1 text-amber-700 dark:text-amber-300">
+              <p className="mt-1 text-status-warning-subtle-foreground/80">
                 {t('tokens.created.warning')}
               </p>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -170,14 +170,14 @@ export default function TokensPage() {
       )}
 
       {/* Info Card */}
-      <Card className="border border-sky-200 bg-sky-50 p-4 dark:border-sky-900/50 dark:bg-sky-950/20">
+      <Card className="border border-status-info/20 bg-status-info-subtle p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/30">
-            <Key className="h-4 w-4 text-sky-700 dark:text-sky-300" />
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-status-info/10">
+            <Key className="h-4 w-4 text-status-info" />
           </div>
           <div className="flex-1 text-sm">
-            <p className="font-medium text-sky-800 dark:text-sky-200">{t('tokens.about')}</p>
-            <p className="mt-1 text-sky-700 dark:text-sky-300">{t('tokens.aboutDesc')}</p>
+            <p className="font-medium text-status-info-subtle-foreground">{t('tokens.about')}</p>
+            <p className="mt-1 text-status-info-subtle-foreground/80">{t('tokens.aboutDesc')}</p>
           </div>
         </div>
       </Card>
@@ -301,8 +301,8 @@ export default function TokensPage() {
                         variant="secondary"
                         className={
                           token.status === 'active' && !expired
-                            ? 'bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300'
-                            : 'bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300'
+                            ? 'bg-status-success-subtle text-status-success-subtle-foreground hover:bg-status-success-subtle'
+                            : 'bg-status-warning-subtle text-status-warning-subtle-foreground hover:bg-status-warning-subtle'
                         }
                       >
                         {expired ? t('tokens.expired') : token.status}

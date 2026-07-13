@@ -26,9 +26,12 @@ export default function GlobalError({
         </div>
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-            {t('common.unexpectedErrorTitle')}
+            {t('common.unexpectedErrorTitle') || 'Something went wrong'}
           </h1>
-          <p className="text-muted-foreground">{t('common.unexpectedErrorDescription')}</p>
+          <p className="text-muted-foreground">
+            {t('common.unexpectedErrorDescription') ||
+              'An unexpected error occurred. Please try again.'}
+          </p>
         </div>
         <Button onClick={reset} className="w-full">
           <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />

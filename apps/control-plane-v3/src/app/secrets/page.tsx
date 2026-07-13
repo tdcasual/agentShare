@@ -60,15 +60,15 @@ const SECRET_TYPE_ICONS: Record<SecretType, React.ReactNode> = {
 };
 
 const SECRET_TYPE_COLORS: Record<SecretType, string> = {
-  password: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  api_key: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
-  basic_auth: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  bearer_token: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  api_key_header: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
-  oauth_token: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  certificate: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  ssh_key: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  database_url: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+  password: 'bg-status-brand-subtle text-status-brand-subtle-foreground',
+  api_key: 'bg-status-info-subtle text-status-info-subtle-foreground',
+  basic_auth: 'bg-status-success-subtle text-status-success-subtle-foreground',
+  bearer_token: 'bg-status-warning-subtle text-status-warning-subtle-foreground',
+  api_key_header: 'bg-status-info-subtle text-status-info-subtle-foreground',
+  oauth_token: 'bg-status-success-subtle text-status-success-subtle-foreground',
+  certificate: 'bg-status-brand-subtle text-status-brand-subtle-foreground',
+  ssh_key: 'bg-status-brand-subtle text-status-brand-subtle-foreground',
+  database_url: 'bg-status-info-subtle text-status-info-subtle-foreground',
   custom: 'bg-muted text-foreground',
 };
 

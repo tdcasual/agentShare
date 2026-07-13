@@ -47,7 +47,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
     >
       <span
         className={cn(
-          'transition-opacity transition-transform duration-300',
+          'transition-[opacity,transform] duration-300',
           isDark ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'
         )}
         aria-hidden="true"
@@ -56,7 +56,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       </span>
       <span
         className={cn(
-          'absolute transition-opacity transition-transform duration-300',
+          'absolute transition-[opacity,transform] duration-300',
           !isDark ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
         )}
         aria-hidden="true"

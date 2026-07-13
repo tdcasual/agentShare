@@ -33,6 +33,28 @@
     --input: 214 32% 91%;
     --ring: 222 83% 53%;
     --radius: 0.5rem;
+
+    /* Semantic status tokens (subtle backgrounds + solid text) */
+    --status-success: 142 71% 45%;
+    --status-success-foreground: 0 0% 100%;
+    --status-success-subtle: 142 76% 95%;
+    --status-success-subtle-foreground: 142 71% 30%;
+    --status-warning: 38 92% 50%;
+    --status-warning-foreground: 0 0% 100%;
+    --status-warning-subtle: 48 100% 95%;
+    --status-warning-subtle-foreground: 38 80% 30%;
+    --status-info: 199 89% 48%;
+    --status-info-foreground: 0 0% 100%;
+    --status-info-subtle: 199 89% 95%;
+    --status-info-subtle-foreground: 199 89% 30%;
+    --status-danger: 0 72% 51%;
+    --status-danger-foreground: 0 0% 100%;
+    --status-danger-subtle: 0 93% 95%;
+    --status-danger-subtle-foreground: 0 72% 35%;
+    --status-brand: 262 83% 58%;
+    --status-brand-foreground: 0 0% 100%;
+    --status-brand-subtle: 259 94% 95%;
+    --status-brand-subtle-foreground: 262 83% 40%;
   }
 
   .dark {
@@ -61,6 +83,18 @@
     --border: 217 33% 20%;
     --input: 217 33% 20%;
     --ring: 224 76% 60%;
+
+    /* Semantic status tokens (dark mode) */
+    --status-success-subtle: 142 64% 16%;
+    --status-success-subtle-foreground: 142 76% 80%;
+    --status-warning-subtle: 38 80% 16%;
+    --status-warning-subtle-foreground: 38 92% 75%;
+    --status-info-subtle: 199 80% 16%;
+    --status-info-subtle-foreground: 199 89% 75%;
+    --status-danger-subtle: 0 70% 16%;
+    --status-danger-subtle-foreground: 0 93% 80%;
+    --status-brand-subtle: 262 50% 18%;
+    --status-brand-subtle-foreground: 259 94% 85%;
   }
 }
 

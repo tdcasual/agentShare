@@ -58,7 +58,9 @@
     "unknownError": "未知错误",
     "skipToContent": "跳转到主内容",
     "refreshPage": "刷新页面",
-    "tryAgainLater": "请稍后重试"
+    "tryAgainLater": "请稍后重试",
+    "unexpectedErrorTitle": "出错了",
+    "unexpectedErrorDescription": "发生了意外错误，请重试。"
   },
   "metadata": {
     "appName": "VaultGate",
@@ -159,6 +161,18 @@
     "listSecrets": "列出可访问的密钥",
     "getSecret": "获取密钥（字段过滤）",
     "getSecretValue": "仅获取密钥值"
+  },
+  "docs": {
+    "title": "文档",
+    "subtitle": "VaultGate API 文档与快速入门指南。",
+    "apiReference": "API 参考",
+    "apiReferenceDesc": "启动后端服务后，可访问 VaultGate 提供的 OpenAPI/Swagger 文档：",
+    "swagger": "Swagger UI",
+    "openapi": "OpenAPI schema",
+    "quickStart": "快速入门",
+    "step1": "访问仪表板创建密钥（Secrets）。",
+    "step2": "在 Token 页面创建访问 Token 并授权可访问范围。",
+    "step3": "使用 Token 通过 Bearer 认证调用 Runtime API："
   },
   "secrets": {
     "title": "密钥",

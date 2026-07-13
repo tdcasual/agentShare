@@ -11,9 +11,9 @@ import { Key, Shield, Activity, ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
-const KeyIcon = <Key className="h-6 w-6 text-purple-600 dark:text-purple-400" />;
-const ShieldIcon = <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />;
-const ActivityIcon = <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />;
+const KeyIcon = <Key className="h-6 w-6 text-status-brand" />;
+const ShieldIcon = <Shield className="h-6 w-6 text-status-success" />;
+const ActivityIcon = <Activity className="h-6 w-6 text-status-warning" />;
 
 export default function VaultGateDashboard() {
   const { t } = useI18n();
@@ -51,16 +51,18 @@ export default function VaultGateDashboard() {
       </div>
 
       {/* Info Banner */}
-      <Card className="border border-purple-200 bg-purple-50 p-4 dark:border-purple-900/50 dark:bg-purple-950/20">
+      <Card className="border border-status-brand/20 bg-status-brand-subtle p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
-            <Shield className="h-4 w-4 text-purple-700 dark:text-purple-300" />
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-status-brand/10">
+            <Shield className="h-4 w-4 text-status-brand" />
           </div>
           <div className="flex-1 text-sm">
-            <p className="font-medium text-purple-800 dark:text-purple-200">
+            <p className="font-medium text-status-brand-subtle-foreground">
               {t('dashboard.ready')}
             </p>
-            <p className="mt-1 text-purple-700 dark:text-purple-300">{t('dashboard.readyDesc')}</p>
+            <p className="mt-1 text-status-brand-subtle-foreground/80">
+              {t('dashboard.readyDesc')}
+            </p>
           </div>
         </div>
       </Card>
@@ -183,9 +185,9 @@ const StatCard = function StatCard({
   isLoading?: boolean;
 }) {
   const colorClasses = {
-    purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-    green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-    orange: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    purple: 'bg-status-brand-subtle text-status-brand-subtle-foreground',
+    green: 'bg-status-success-subtle text-status-success-subtle-foreground',
+    orange: 'bg-status-warning-subtle text-status-warning-subtle-foreground',
   };
 
   return (
