@@ -61,7 +61,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : 'button';
     const content = loading ? (
-      <Spinner size="sm" />
+      <>
+        <Spinner size="sm" />
+        <span className="sr-only">{children}</span>
+      </>
     ) : (
       <>
         {leftIcon}
@@ -75,6 +78,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         aria-busy={loading || undefined}
+        aria-live="polite"
         {...props}
       >
         {asChild ? children : content}

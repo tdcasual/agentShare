@@ -5,6 +5,7 @@ import { useSecrets } from '@/domains/secret';
 import { useTokens } from '@/domains/token';
 import { useAuditStats } from '@/domains/audit';
 import { Card } from '@/components/ui/card';
+import { Callout } from '@/components/ui/callout';
 import { ArrowRight, Plus, Shield } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -29,19 +30,10 @@ export default function VaultGateDashboard() {
       </div>
 
       {/* Info Banner */}
-      <Card className="border-l-4 border-l-status-brand bg-status-brand-subtle p-4">
-        <div className="flex items-start gap-3">
-          <Shield className="mt-0.5 h-4 w-4 flex-shrink-0 text-status-brand" />
-          <div className="text-sm">
-            <p className="font-medium text-status-brand-subtle-foreground">
-              {t('dashboard.ready')}
-            </p>
-            <p className="mt-1 text-status-brand-subtle-foreground/80">
-              {t('dashboard.readyDesc')}
-            </p>
-          </div>
-        </div>
-      </Card>
+      <Callout icon={<Shield className="h-4 w-4 text-status-brand" aria-hidden="true" />}>
+        <p className="font-medium text-status-brand-subtle-foreground">{t('dashboard.ready')}</p>
+        <p className="mt-1 text-status-brand-subtle-foreground">{t('dashboard.readyDesc')}</p>
+      </Callout>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">

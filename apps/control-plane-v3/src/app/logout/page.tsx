@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { logout } from '@/lib/session-state';
 import { resetBootstrapCache } from '@/lib/entry-state';
 import { useI18n } from '@/components/i18n-provider';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { PageLoader } from '@/components/ui/page-loader';
 
 export default function LogoutPage() {
   const { t } = useI18n();
@@ -37,25 +40,23 @@ export default function LogoutPage() {
 
   if (error) {
     return (
-      <main id="main-content" className="flex min-h-screen items-center justify-center px-6">
-        <div role="alert" aria-live="assertive" className="max-w-md text-center">
-          <p>{error}</p>
-          <button
-            type="button"
+      <main
+        id="main-content"
+        className="flex min-h-screen items-center justify-center bg-background p-4"
+      >
+        <Card className="w-full max-w-md p-8 text-center" role="alert" aria-live="assertive">
+          <p className="mb-6 text-destructive">{error}</p>
+          <Button
             onClick={() => {
               window.location.href = '/login';
             }}
           >
             {t('auth.logout.continueToLogin')}
-          </button>
-        </div>
+          </Button>
+        </Card>
       </main>
     );
   }
 
-  return (
-    <main id="main-content" className="flex min-h-screen items-center justify-center px-6">
-      <p>{t('auth.logout.signingOut')}</p>
-    </main>
-  );
+  return <PageLoader fullScreen message={t('auth.logout.signingOut')} />;
 }

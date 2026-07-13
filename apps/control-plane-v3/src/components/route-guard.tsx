@@ -11,7 +11,8 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { resolveAppEntryState } from '@/lib/session';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
 interface RouteGuardProps {
@@ -136,16 +137,16 @@ export function RouteGuard({ children }: RouteGuardProps) {
         id="main-content"
         className="flex min-h-screen items-center justify-center bg-background p-4"
       >
-        <div className="w-full max-w-md rounded-xl border border-destructive/20 bg-card p-8 text-center shadow-xl">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-            <Loader2 className="h-8 w-8 text-destructive" />
+        <Card className="w-full max-w-md p-8 text-center">
+          <div className="mb-4 flex justify-center text-destructive" aria-hidden="true">
+            <AlertTriangle className="h-10 w-10" aria-hidden="true" />
           </div>
           <h1 className="mb-2 text-xl font-bold text-foreground">
             {t('common.serviceUnavailable')}
           </h1>
           <p className="mb-6 text-muted-foreground">{t('common.serviceUnavailableDescription')}</p>
           <Button onClick={() => window.location.reload()}>{t('common.retry')}</Button>
-        </div>
+        </Card>
       </main>
     );
   }

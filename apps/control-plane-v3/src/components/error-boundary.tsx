@@ -46,8 +46,8 @@ function ErrorFallback({
     <div className="flex min-h-[60vh] items-center justify-center p-4">
       <Card className="w-full max-w-lg text-center" role="alert" aria-live="assertive">
         {/* 错误图标 */}
-        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
-          <AlertTriangle className="h-10 w-10 text-destructive" />
+        <div className="mb-4 flex justify-center text-destructive" aria-hidden="true">
+          <AlertTriangle className="h-10 w-10" />
         </div>
 
         {/* 标题 */}

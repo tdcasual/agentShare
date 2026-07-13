@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Key, Copy, Check, Trash2 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Callout } from '@/components/ui/callout';
 import { useI18n } from '@/components/i18n-provider';
 
 const EXPIRATION_OPTIONS = ['never', '7', '30', '90'] as const;
@@ -38,6 +40,10 @@ export default function TokensPage() {
     null
   );
   const [tokenCopied, setTokenCopied] = useState(false);
+  const [apiCopied, setApiCopied] = useState(false);
+
+  const API_USAGE_COMMAND =
+    'curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8000/api/vault';
 
   const handleCopy = async (keyPrefix: string, id: string) => {
     await navigator.clipboard.writeText(keyPrefix);
@@ -52,6 +58,12 @@ export default function TokensPage() {
     await navigator.clipboard.writeText(createdToken.token);
     setTokenCopied(true);
     setTimeout(() => setTokenCopied(false), 2000);
+  };
+
+  const handleCopyApi = async () => {
+    await navigator.clipboard.writeText(API_USAGE_COMMAND);
+    setApiCopied(true);
+    setTimeout(() => setApiCopied(false), 2000);
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -132,55 +144,45 @@ export default function TokensPage() {
 
       {/* Created Token (shown once) */}
       {createdToken && (
-        <Card className="border border-status-warning/20 bg-status-warning-subtle p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-status-warning/10">
-              <Key className="h-4 w-4 text-status-warning" />
-            </div>
-            <div className="flex-1 text-sm">
-              <p className="font-medium text-status-warning-subtle-foreground">
-                {t('tokens.created.title')}
-              </p>
-              <p className="mt-1 text-status-warning-subtle-foreground/80">
-                {t('tokens.created.warning')}
-              </p>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-                <code className="block flex-1 break-all rounded-lg bg-card px-3 py-2 font-mono text-xs text-foreground">
-                  {createdToken.token}
-                </code>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={
-                    tokenCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />
-                  }
-                  onClick={handleCopyToken}
-                >
-                  {tokenCopied ? t('tokens.copied') : t('tokens.created.copyToken')}
-                </Button>
-              </div>
-              <div className="mt-3 flex justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setCreatedToken(null)}>
-                  {t('tokens.created.done')}
-                </Button>
-              </div>
-            </div>
+        <Callout
+          variant="warning"
+          icon={<Key className="h-4 w-4 text-status-warning" aria-hidden="true" />}
+        >
+          <p className="font-medium text-status-warning-subtle-foreground">
+            {t('tokens.created.title')}
+          </p>
+          <p className="mt-1 text-status-warning-subtle-foreground">
+            {t('tokens.created.warning')}
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <code className="block flex-1 break-all rounded-lg bg-card px-3 py-2 font-mono text-xs text-foreground">
+              {createdToken.token}
+            </code>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={tokenCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              onClick={handleCopyToken}
+            >
+              {tokenCopied ? t('tokens.copied') : t('tokens.created.copyToken')}
+            </Button>
           </div>
-        </Card>
+          <div className="mt-3 flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setCreatedToken(null)}>
+              {t('tokens.created.done')}
+            </Button>
+          </div>
+        </Callout>
       )}
 
       {/* Info Card */}
-      <Card className="border border-status-info/20 bg-status-info-subtle p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-status-info/10">
-            <Key className="h-4 w-4 text-status-info" />
-          </div>
-          <div className="flex-1 text-sm">
-            <p className="font-medium text-status-info-subtle-foreground">{t('tokens.about')}</p>
-            <p className="mt-1 text-status-info-subtle-foreground/80">{t('tokens.aboutDesc')}</p>
-          </div>
-        </div>
-      </Card>
+      <Callout
+        variant="info"
+        icon={<Key className="h-4 w-4 text-status-info" aria-hidden="true" />}
+      >
+        <p className="font-medium text-status-info-subtle-foreground">{t('tokens.about')}</p>
+        <p className="mt-1 text-status-info-subtle-foreground">{t('tokens.aboutDesc')}</p>
+      </Callout>
 
       {/* Create Form */}
       {showCreate && (
@@ -268,23 +270,23 @@ export default function TokensPage() {
             {t('tokens.loadFailed')}: {error.message}
           </div>
         ) : tokens.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Key className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="mb-2 font-semibold text-foreground">{t('tokens.emptyTitle')}</h3>
-            <p className="mb-4 text-sm text-muted-foreground">{t('tokens.emptyDesc')}</p>
-            <Button
-              size="sm"
-              leftIcon={<Plus className="h-4 w-4" />}
-              onClick={() => {
-                setCreateError(null);
-                setShowCreate(true);
-              }}
-            >
-              {t('tokens.newToken')}
-            </Button>
-          </div>
+          <EmptyState
+            title={t('tokens.emptyTitle')}
+            description={t('tokens.emptyDesc')}
+            icon={<Key className="h-6 w-6" />}
+            action={
+              <Button
+                size="sm"
+                leftIcon={<Plus className="h-4 w-4" />}
+                onClick={() => {
+                  setCreateError(null);
+                  setShowCreate(true);
+                }}
+              >
+                {t('tokens.newToken')}
+              </Button>
+            }
+          />
         ) : (
           <div className="divide-y divide-border">
             {tokens.map((token) => {
@@ -358,12 +360,20 @@ export default function TokensPage() {
 
       {/* API Usage Guide */}
       <Card className="p-4">
-        <h3 className="mb-3 font-semibold text-foreground">{t('tokens.apiUsage')}</h3>
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            curl -H &quot;Authorization: Bearer YOUR_TOKEN&quot; http://localhost:8000/api/vault
-          </p>
+        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="font-semibold text-foreground">{t('tokens.apiUsage')}</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={apiCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            onClick={handleCopyApi}
+          >
+            {apiCopied ? t('tokens.copied') : t('tokens.copy')}
+          </Button>
         </div>
+        <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-sm text-foreground">
+          <code className="font-mono text-xs">{API_USAGE_COMMAND}</code>
+        </pre>
       </Card>
 
       {/* Revoke Confirmation Dialog */}

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, Code, Shield } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 
 export function DocsContent() {
@@ -26,19 +26,14 @@ export function DocsContent() {
 
       {/* API Reference */}
       <Card className="p-4 sm:p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">{t('docs.apiReference')}</h2>
-        </div>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">{t('docs.apiReference')}</h2>
         <p className="mb-4 text-sm text-muted-foreground">{t('docs.apiReferenceDesc')}</p>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-center gap-2">
-            <Code className="h-4 w-4" />
             <code className="rounded bg-muted px-2 py-1 font-mono text-xs">GET /docs</code>
             <span>— {t('docs.swagger')}</span>
           </li>
           <li className="flex items-center gap-2">
-            <Code className="h-4 w-4" />
             <code className="rounded bg-muted px-2 py-1 font-mono text-xs">GET /openapi.json</code>
             <span>— {t('docs.openapi')}</span>
           </li>
@@ -47,10 +42,7 @@ export function DocsContent() {
 
       {/* Quick Start */}
       <Card className="p-4 sm:p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">{t('docs.quickStart')}</h2>
-        </div>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">{t('docs.quickStart')}</h2>
         <div className="space-y-4 text-sm text-muted-foreground">
           <ol className="list-inside list-decimal space-y-2">
             <li>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuditLogs } from '@/domains/audit';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Shield, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -36,6 +37,23 @@ export default function AuditPage() {
   const isAllActive = !filter.action && !filter.granted;
   const isGrantedActive = filter.granted === true;
   const isDeniedActive = filter.granted === false;
+
+  const { grantedCount, deniedCount, valueReadCount } = useMemo(() => {
+    return logs.reduce(
+      (acc, log) => {
+        if (log.granted) {
+          acc.grantedCount += 1;
+        } else {
+          acc.deniedCount += 1;
+        }
+        if (log.action === 'read_value') {
+          acc.valueReadCount += 1;
+        }
+        return acc;
+      },
+      { grantedCount: 0, deniedCount: 0, valueReadCount: 0 }
+    );
+  }, [logs]);
 
   return (
     <main id="main-content" className="space-y-6 p-4 sm:p-6 lg:p-8">
@@ -105,21 +123,15 @@ export default function AuditPage() {
           <div className="text-xs text-muted-foreground">{t('audit.totalEvents')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-status-success">
-            {logs.filter((l) => l.granted).length}
-          </div>
+          <div className="text-xl font-bold text-status-success">{grantedCount}</div>
           <div className="text-xs text-muted-foreground">{t('audit.grantedAccess')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-status-danger">
-            {logs.filter((l) => !l.granted).length}
-          </div>
+          <div className="text-xl font-bold text-status-danger">{deniedCount}</div>
           <div className="text-xs text-muted-foreground">{t('audit.deniedAccess')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-foreground">
-            {logs.filter((l) => l.action === 'read_value').length}
-          </div>
+          <div className="text-xl font-bold text-foreground">{valueReadCount}</div>
           <div className="text-xs text-muted-foreground">{t('audit.valueReads')}</div>
         </Card>
       </div>
@@ -133,13 +145,11 @@ export default function AuditPage() {
             {t('audit.loadFailed')}: {error.message}
           </div>
         ) : logs.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Shield className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="mb-2 font-semibold text-foreground">{t('audit.emptyTitle')}</h3>
-            <p className="text-sm text-muted-foreground">{t('audit.emptyDesc')}</p>
-          </div>
+          <EmptyState
+            title={t('audit.emptyTitle')}
+            description={t('audit.emptyDesc')}
+            icon={<Shield className="h-6 w-6" />}
+          />
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -192,21 +202,6 @@ export default function AuditPage() {
             </Table>
           </div>
         )}
-      </Card>
-
-      {/* Info Card */}
-      <Card className="border border-status-warning/20 bg-status-warning-subtle p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-status-warning/10">
-            <Shield className="h-4 w-4 text-status-warning" />
-          </div>
-          <div className="flex-1 text-sm">
-            <p className="font-medium text-status-warning-subtle-foreground">{t('audit.title')}</p>
-            <p className="mt-1 text-status-warning-subtle-foreground/80">
-              {t('audit.description')}
-            </p>
-          </div>
-        </div>
       </Card>
     </main>
   );

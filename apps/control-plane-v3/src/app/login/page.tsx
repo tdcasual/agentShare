@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LockKeyhole, Mail, Sparkles, Shield } from 'lucide-react';
+import { LockKeyhole, Mail } from 'lucide-react';
 import { login, type LoginInput } from '@/lib/vaultgate-api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,12 +53,6 @@ export default function LoginPage() {
         <div className="space-y-3 p-6 sm:space-y-5 sm:p-8 lg:space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground">
-              <Shield className="h-4 w-4" />
-              <span className="text-xs uppercase tracking-[0.1em] sm:text-sm sm:tracking-wider">
-                VaultGate v1.0
-              </span>
-            </div>
             <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
               {t('auth.login.title')}
             </h1>
@@ -70,7 +64,10 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">{t('auth.login.email')}</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="email"
                   type="email"
@@ -88,7 +85,10 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">{t('auth.login.password')}</Label>
               <div className="relative">
-                <LockKeyhole className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <LockKeyhole
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="password"
                   type="password"
@@ -115,12 +115,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button
-              className="w-full"
-              type="submit"
-              loading={isSubmitting}
-              leftIcon={<Sparkles className="h-4 w-4" />}
-            >
+            <Button className="w-full" type="submit" loading={isSubmitting}>
               {t('auth.login.signIn')}
             </Button>
           </form>

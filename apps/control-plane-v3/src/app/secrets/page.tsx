@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Key, Globe, Shield, Trash2 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
 
@@ -291,16 +292,16 @@ export default function SecretsPage() {
             {t('secrets.loadFailed')}: {error.message}
           </div>
         ) : secrets.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Key className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="mb-2 font-semibold text-foreground">{t('secrets.emptyTitle')}</h3>
-            <p className="mb-4 text-sm text-muted-foreground">{t('secrets.emptyDesc')}</p>
-            <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-              {t('secrets.newSecret')}
-            </Button>
-          </div>
+          <EmptyState
+            title={t('secrets.emptyTitle')}
+            description={t('secrets.emptyDesc')}
+            icon={<Key className="h-6 w-6" />}
+            action={
+              <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+                {t('secrets.newSecret')}
+              </Button>
+            }
+          />
         ) : (
           <div className="divide-y divide-border">
             {secrets.map((secret) => (
