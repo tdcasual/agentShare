@@ -3,7 +3,7 @@ import { mockSession } from './fixtures';
 
 test.describe('documentation', () => {
   test.beforeEach(async ({ page }) => {
-    await mockSession(page, 'owner');
+    await mockSession(page, 'admin');
   });
 
   test('displays docs page', async ({ page }) => {
