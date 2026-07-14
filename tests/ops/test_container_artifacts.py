@@ -221,6 +221,7 @@ def test_repo_verification_runs_browser_flows() -> None:
     script = (ROOT / "scripts/ops/verify-control-plane.sh").read_text()
 
     assert "npm run test:e2e" in script
+    assert script.index("npm run build") < script.index("npm run test:e2e")
 
 
 def test_operations_docs_reference_request_ids_for_incident_tracing() -> None:

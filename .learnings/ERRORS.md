@@ -36,6 +36,38 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260714-010] clean-ci-e2e-build-order
+
+**Logged**: 2026-07-14T06:31:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: tests
+
+### Summary
+E2E passed locally only because a previous production build left `.next/standalone` behind.
+
+### Error
+
+```text
+Next standalone server not found: .next/standalone/server.js
+```
+
+### Context
+- GitHub CI ran the unified verification script from a clean checkout.
+- The script invoked Playwright before `next build`, while Playwright starts the standalone server.
+
+### Suggested Fix
+Build the frontend before E2E and add an operations contract test for the ordering.
+
+### Resolution
+The unified verification script now runs `npm run build` before `npm run test:e2e`.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `scripts/ops/verify-control-plane.sh`, `tests/ops/test_container_artifacts.py`
+
+---
+
 ## [ERR-20260714-009] reserved-password-postgres-smoke
 
 **Logged**: 2026-07-14T06:12:00Z

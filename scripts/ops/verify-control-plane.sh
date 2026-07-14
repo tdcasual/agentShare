@@ -31,8 +31,8 @@ fi
   npm run lint
   npm test -- --run
   npm run test:coverage
-  npm run test:e2e
   npm run build
+  npm run test:e2e
 )
 
 (
