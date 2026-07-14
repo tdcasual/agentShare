@@ -87,9 +87,9 @@ def register_core_routes(app: FastAPI) -> None:
             async with runtime.engine.connect() as conn:
                 await conn.execute(text("SELECT 1"))
             checks["database"] = "ok"
-        except Exception as exc:
+        except Exception:
             startup_logger.exception("Readiness check: database failed")
-            checks["database"] = f"error: {exc}"
+            checks["database"] = "unavailable"
 
         # Check encryption service
         try:
@@ -97,9 +97,9 @@ def register_core_routes(app: FastAPI) -> None:
             svc = get_encryption_service()
             svc.encrypt("healthcheck")  # round-trip test
             checks["encryption"] = "ok"
-        except Exception as exc:
+        except Exception:
             startup_logger.exception("Readiness check: encryption failed")
-            checks["encryption"] = f"error: {exc}"
+            checks["encryption"] = "unavailable"
 
         if all(v == "ok" for v in checks.values()):
             return {"status": "ok", **checks}

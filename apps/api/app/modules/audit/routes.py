@@ -65,4 +65,7 @@ async def audit_stats(
 ) -> dict[str, int]:
     total = await db.scalar(select(func.count(AuditLog.id)))
     denied = await db.scalar(select(func.count(AuditLog.id)).where(AuditLog.result == "denied"))
-    return {"total": total or 0, "denied": denied or 0}
+    value_reads = await db.scalar(
+        select(func.count(AuditLog.id)).where(AuditLog.action == "secret.value.read")
+    )
+    return {"total": total or 0, "denied": denied or 0, "value_reads": value_reads or 0}

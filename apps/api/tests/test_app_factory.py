@@ -119,3 +119,24 @@ def test_readiness_endpoint_checks_database_and_encryption(client):
         "database": "ok",
         "encryption": "ok",
     }
+
+
+def test_readiness_endpoint_does_not_expose_dependency_errors(client):
+    class BrokenEngine:
+        def connect(self):
+            raise RuntimeError("postgresql://admin:secret-password@internal-db/vaultgate")
+
+    runtime = client.app.state.runtime
+    client.app.state.runtime = type("BrokenRuntime", (), {"engine": BrokenEngine()})()
+    try:
+        response = client.get("/readyz")
+    finally:
+        client.app.state.runtime = runtime
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "degraded",
+        "database": "unavailable",
+        "encryption": "ok",
+    }
+    assert "secret-password" not in response.text

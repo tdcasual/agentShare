@@ -10,6 +10,7 @@ vi.mock('@/domains/secret', () => ({
     ],
     isLoading: false,
     error: null,
+    total: 73,
   }),
 }));
 
@@ -24,6 +25,7 @@ vi.mock('@/domains/agent', () => ({
     ],
     isLoading: false,
     error: null,
+    total: 54,
   }),
 }));
 
@@ -56,5 +58,11 @@ describe('VaultGateDashboard', () => {
   it('renders API reference section', () => {
     render(<VaultGateDashboard />);
     expect(screen.getByText('dashboard.apiReference')).toBeInTheDocument();
+  });
+
+  it('uses server totals instead of the current page length', () => {
+    render(<VaultGateDashboard />);
+    expect(screen.getAllByText('73')).toHaveLength(2);
+    expect(screen.getAllByText('54')).toHaveLength(2);
   });
 });

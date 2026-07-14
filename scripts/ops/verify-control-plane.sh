@@ -31,13 +31,13 @@ fi
   npm run lint
   npm test -- --run
   npm run test:coverage
-  npm run test:e2e
   npm run build
+  npm run test:e2e
 )
 
 (
   cd "${ROOT_DIR}"
-  docker compose config >/dev/null
+  ENCRYPTION_KEY="verification-only-not-a-production-key" docker compose config >/dev/null
 )
 
 printf 'Control plane verification passed in %s\n' "${ROOT_DIR}"

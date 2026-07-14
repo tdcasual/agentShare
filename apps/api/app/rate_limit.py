@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from hashlib import sha256
 from ipaddress import ip_address
+from threading import RLock
 from time import monotonic
 from typing import NamedTuple
 
@@ -23,42 +25,51 @@ class RateLimitConfig(NamedTuple):
 
 
 class _RateLimitStore:
-    """Thread-safe in-memory store tracking failed attempts per IP."""
+    """Process-local, thread-safe store for recent authentication failures."""
 
     _MAX_TRACKED_IPS = 10_000
 
     def __init__(self) -> None:
         # ip -> list of failure timestamps
         self._failures: dict[str, list[float]] = defaultdict(list)
+        self._lock = RLock()
 
-    def _prune_stale_ips(self) -> None:
-        """Remove IPs with empty attempt lists to bound memory."""
-        if len(self._failures) > self._MAX_TRACKED_IPS:
-            self._failures = defaultdict(
-                list, {k: v for k, v in self._failures.items() if v}
-            )
+    def _prune_stale_keys(self, cutoff: float) -> None:
+        """Remove expired and oldest buckets to enforce the memory bound."""
+        active = {
+            key: [timestamp for timestamp in attempts if timestamp > cutoff]
+            for key, attempts in self._failures.items()
+        }
+        active = {key: attempts for key, attempts in active.items() if attempts}
+        if len(active) > self._MAX_TRACKED_IPS:
+            oldest_first = sorted(active, key=lambda key: active[key][-1])
+            for key in oldest_first[: len(active) - self._MAX_TRACKED_IPS]:
+                del active[key]
+        self._failures = defaultdict(list, active)
 
     def record_failure(self, ip: str, window_seconds: int) -> int:
         """Record a failed attempt and return the current count within the window."""
-        now = monotonic()
-        cutoff = now - window_seconds
-        attempts = self._failures[ip]
-        # Prune old entries outside the window
-        self._failures[ip] = [t for t in attempts if t > cutoff]
-        self._failures[ip].append(now)
-        self._prune_stale_ips()
-        return len(self._failures[ip])
+        with self._lock:
+            now = monotonic()
+            cutoff = now - window_seconds
+            attempts = self._failures[ip]
+            self._failures[ip] = [timestamp for timestamp in attempts if timestamp > cutoff]
+            self._failures[ip].append(now)
+            self._prune_stale_keys(cutoff)
+            return len(self._failures[ip])
 
     def get_attempt_count(self, ip: str, window_seconds: int) -> int:
         """Get the number of recent failed attempts within the window."""
-        now = monotonic()
-        cutoff = now - window_seconds
-        attempts = self._failures.get(ip, [])
-        return sum(1 for t in attempts if t > cutoff)
+        with self._lock:
+            now = monotonic()
+            cutoff = now - window_seconds
+            attempts = self._failures.get(ip, [])
+            return sum(1 for timestamp in attempts if timestamp > cutoff)
 
     def clear(self, ip: str) -> None:
         """Clear all recorded failures for an IP (e.g., after successful login)."""
-        self._failures.pop(ip, None)
+        with self._lock:
+            self._failures.pop(ip, None)
 
 
 # Module-level singleton
@@ -91,7 +102,8 @@ def _rate_limit_key(request: Request, identifier: str | None) -> str:
     client_ip = _get_client_ip(request)
     if identifier is None:
         return client_ip
-    return f"{client_ip}|{identifier.strip().lower()}"
+    identifier_hash = sha256(identifier.strip().lower().encode()).hexdigest()
+    return f"{client_ip}|{identifier_hash}"
 
 
 def check_rate_limit(
@@ -109,7 +121,7 @@ def check_rate_limit(
     if attempt_count >= config.max_attempts:
         logger.warning(
             "Rate limit exceeded for IP %s: %d attempts in %d seconds",
-            key, attempt_count, config.window_seconds,
+            _get_client_ip(request), attempt_count, config.window_seconds,
         )
         return JSONResponse(
             status_code=429,
@@ -128,7 +140,12 @@ def record_failed_attempt(
     """Record a failed login attempt and return the current count."""
     key = _rate_limit_key(request, identifier)
     count = _store.record_failure(key, config.window_seconds)
-    logger.info("Failed login attempt for %s (%d/%d)", key, count, config.max_attempts)
+    logger.info(
+        "Failed login attempt from IP %s (%d/%d)",
+        _get_client_ip(request),
+        count,
+        config.max_attempts,
+    )
     return count
 
 

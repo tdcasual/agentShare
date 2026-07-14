@@ -10,10 +10,17 @@ import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+
+const PAGE_SIZE = 25;
 
 export default function AgentsPage() {
   const { t } = useI18n();
-  const { agents, isLoading, error, refresh } = useAgents();
+  const [offset, setOffset] = useState(0);
+  const { agents, total, isLoading, error, refresh } = useAgents({
+    limit: PAGE_SIZE,
+    offset,
+  });
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -29,6 +36,7 @@ export default function AgentsPage() {
       setName('');
       setDescription('');
       setShowCreate(false);
+      setOffset(0);
       await refresh();
     } catch (submitError) {
       setFormError(submitError instanceof Error ? submitError.message : t('agents.createFailed'));
@@ -130,6 +138,12 @@ export default function AgentsPage() {
           ))}
         </div>
       )}
+      <PaginationControls
+        offset={offset}
+        limit={PAGE_SIZE}
+        total={total}
+        onOffsetChange={setOffset}
+      />
     </main>
   );
 }

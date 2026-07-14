@@ -11,12 +11,13 @@ import { useI18n } from '@/components/i18n-provider';
 
 export default function VaultGateDashboard() {
   const { t } = useI18n();
-  const { secrets, isLoading: secretsLoading } = useSecrets();
-  const { agents, isLoading: agentsLoading } = useAgents();
+  const { total: totalSecrets, isLoading: secretsLoading } = useSecrets({ limit: 1 });
+  const { total: activeAgents, isLoading: agentsLoading } = useAgents({
+    limit: 1,
+    status: 'active',
+  });
   const { stats, isLoading: statsLoading } = useAuditStats();
 
-  const totalSecrets = secrets.length;
-  const activeAgents = agents.filter((agent) => agent.status === 'active').length;
   const recentActivity = stats?.total ?? 0;
 
   return (

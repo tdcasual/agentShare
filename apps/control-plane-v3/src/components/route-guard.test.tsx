@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteGuard } from './route-guard';
 
@@ -87,5 +87,26 @@ describe('RouteGuard', () => {
     });
 
     expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it('renders persistent navigation on authenticated application pages', async () => {
+    pathnameMock.mockReturnValue('/secrets');
+    resolveAppEntryStateMock.mockResolvedValue({
+      kind: 'authenticated',
+      session: { email: 'admin@example.com', id: 'admin-1', auth_type: 'session' },
+    });
+
+    render(
+      <RouteGuard>
+        <div>protected content</div>
+      </RouteGuard>
+    );
+
+    expect(await screen.findByRole('navigation', { name: 'navigation.label' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'navigation.dashboard' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'navigation.secrets' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
   });
 });

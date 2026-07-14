@@ -7,6 +7,7 @@ from typing import Literal
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import URL
 
 # Defaults - MUST be changed in production
 # Valid base64-encoded 32-byte key for AES-256-GCM (development only)
@@ -23,6 +24,11 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "sqlite:///./vaultgate.db"
+    postgres_host: str = ""
+    postgres_port: int = 5432
+    postgres_db: str = "vaultgate"
+    postgres_user: str = "postgres"
+    postgres_password: str = ""
 
     # Encryption - AES-256-GCM key (32 bytes base64-encoded = 44 chars)
     encryption_key: str = DEFAULT_ENCRYPTION_KEY
@@ -31,6 +37,9 @@ class Settings(BaseSettings):
     session_cookie_name: str = "vaultgate_session"
     session_ttl_seconds: int = 60 * 60 * 12  # 12 hours
     session_secure: bool = False  # Set True in production with HTTPS
+
+    # One-time deployment credential required before the first administrator exists.
+    bootstrap_token: str = ""
 
     # CORS
     cors_allowed_origins: str = ""
@@ -44,6 +53,20 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_settings_for_environment(self) -> "Settings":
         """Validate settings based on environment."""
+        if not self.database_url:
+            if not self.postgres_host or not self.postgres_password:
+                raise ValueError(
+                    "DATABASE_URL or POSTGRES_HOST and POSTGRES_PASSWORD must be configured."
+                )
+            self.database_url = URL.create(
+                "postgresql",
+                username=self.postgres_user,
+                password=self.postgres_password,
+                host=self.postgres_host,
+                port=self.postgres_port,
+                database=self.postgres_db,
+            ).render_as_string(hide_password=False)
+
         if self._requires_explicit_app_env():
             raise ValueError(
                 "APP_ENV must be set explicitly for non-local deployments instead of relying on the development default."
@@ -60,6 +83,11 @@ class Settings(BaseSettings):
             # Validate secure cookies
             if not self.session_secure:
                 raise ValueError("Production settings require secure session cookies (SESSION_SECURE=true).")
+
+            if len(self.bootstrap_token) < 32:
+                raise ValueError(
+                    "Production settings require a BOOTSTRAP_TOKEN of at least 32 characters."
+                )
 
         return self
 

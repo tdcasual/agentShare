@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_async_db
 from app.modules.admin_auth.routes import get_admin_principal
 from app.modules.admin_auth.service import AdminPrincipal
+from app.modules.audit.service import add_admin_audit
 from app.modules.secrets.schemas import SecretCreate, SecretUpdate
 from app.modules.secrets.service import serialize_secret
 from app.orm import Secret
@@ -53,6 +54,7 @@ async def list_secrets(
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_secret(
     body: SecretCreate,
+    request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
@@ -68,6 +70,16 @@ async def create_secret(
         secret_metadata=body.metadata,
     )
     db.add(secret)
+    await db.flush()
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="secret.create",
+        resource_type="secret",
+        resource_id=secret.id,
+        resource_label=secret.name,
+    )
     await db.commit()
     await db.refresh(secret)
     return serialize_secret(secret)
@@ -85,11 +97,22 @@ async def get_secret(
 @router.get("/{secret_id}/value")
 async def reveal_secret(
     secret_id: str,
+    request: Request,
     response: Response,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict[str, str]:
     secret = await _owned_secret(db, principal.user.id, secret_id)
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="secret.value.read",
+        resource_type="secret",
+        resource_id=secret.id,
+        resource_label=secret.name,
+    )
+    await db.commit()
     response.headers["Cache-Control"] = "no-store"
     return {"value": get_encryption_service().decrypt(secret.value_encrypted)}
 
@@ -98,6 +121,7 @@ async def reveal_secret(
 async def update_secret(
     secret_id: str,
     body: SecretUpdate,
+    request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
@@ -109,6 +133,15 @@ async def update_secret(
         secret.value_encrypted = get_encryption_service().encrypt(changes.pop("value"))
     for field, value in changes.items():
         setattr(secret, field, value)
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="secret.update",
+        resource_type="secret",
+        resource_id=secret.id,
+        resource_label=secret.name,
+    )
     await db.commit()
     await db.refresh(secret)
     return serialize_secret(secret)
@@ -117,9 +150,19 @@ async def update_secret(
 @router.delete("/{secret_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_secret(
     secret_id: str,
+    request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> None:
     secret = await _owned_secret(db, principal.user.id, secret_id)
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="secret.delete",
+        resource_type="secret",
+        resource_id=secret.id,
+        resource_label=secret.name,
+    )
     await db.delete(secret)
     await db.commit()

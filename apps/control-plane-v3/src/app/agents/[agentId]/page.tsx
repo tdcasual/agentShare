@@ -12,8 +12,7 @@ import {
   useAgent,
   useTokenGrants,
 } from '@/domains/agent';
-import { useSecrets } from '@/domains/secret';
-import type { AgentToken, IssuedAgentToken, Secret } from '@/lib/vaultgate-api';
+import type { AgentToken, IssuedAgentToken } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,23 +20,31 @@ import { Callout } from '@/components/ui/callout';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { useSecrets } from '@/domains/secret';
+
+const SECRET_PAGE_SIZE = 25;
 
 export default function AgentDetailPage() {
   const { t } = useI18n();
   const params = useParams<{ agentId: string }>();
   const { agent, isLoading, error, refresh } = useAgent(params.agentId);
-  const { secrets } = useSecrets();
   const [tokenName, setTokenName] = useState('');
   const [issued, setIssued] = useState<IssuedAgentToken | null>(null);
   const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [statusSaving, setStatusSaving] = useState(false);
 
   async function createToken(event: FormEvent) {
     event.preventDefault();
+    setActionError(null);
     setSaving(true);
     try {
       setIssued(await issueToken(params.agentId, { name: tokenName.trim() }));
       setTokenName('');
       await refresh();
+    } catch (caught) {
+      setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
     } finally {
       setSaving(false);
     }
@@ -72,15 +79,30 @@ export default function AgentDetailPage() {
         </div>
         <Button
           variant="secondary"
+          loading={statusSaving}
           leftIcon={<ShieldOff className="h-4 w-4" />}
           onClick={async () => {
-            await setAgentStatus(agent.id, agent.status === 'active' ? 'disabled' : 'active');
-            await refresh();
+            setActionError(null);
+            setStatusSaving(true);
+            try {
+              await setAgentStatus(agent.id, agent.status === 'active' ? 'disabled' : 'active');
+              await refresh();
+            } catch (caught) {
+              setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
+            } finally {
+              setStatusSaving(false);
+            }
           }}
         >
           {agent.status === 'active' ? t('agents.disable') : t('agents.enable')}
         </Button>
       </header>
+
+      {actionError && (
+        <p role="alert" className="text-sm text-destructive">
+          {actionError}
+        </p>
+      )}
 
       {issued && <OneTimeToken token={issued} onDone={() => setIssued(null)} />}
 
@@ -111,7 +133,6 @@ export default function AgentDetailPage() {
               key={token.id}
               token={token}
               agentId={agent.id}
-              secrets={secrets}
               onIssued={setIssued}
               onChanged={refresh}
             />
@@ -125,6 +146,7 @@ export default function AgentDetailPage() {
 function OneTimeToken({ token, onDone }: { token: IssuedAgentToken; onDone: () => void }) {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
   return (
     <Callout variant="warning" icon={<KeyRound className="h-4 w-4" />}>
       <p className="font-medium">{t('agents.copyNow')}</p>
@@ -137,8 +159,13 @@ function OneTimeToken({ token, onDone }: { token: IssuedAgentToken; onDone: () =
           variant="secondary"
           leftIcon={copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           onClick={async () => {
-            await navigator.clipboard.writeText(token.token);
-            setCopied(true);
+            setCopyError(false);
+            try {
+              await navigator.clipboard.writeText(token.token);
+              setCopied(true);
+            } catch {
+              setCopyError(true);
+            }
           }}
         >
           {copied ? t('common.copied') : t('common.copy')}
@@ -147,6 +174,11 @@ function OneTimeToken({ token, onDone }: { token: IssuedAgentToken; onDone: () =
           {t('common.done')}
         </Button>
       </div>
+      {copyError && (
+        <p role="alert" className="mt-2 text-sm">
+          {t('agents.copyFailed')}
+        </p>
+      )}
     </Callout>
   );
 }
@@ -154,20 +186,30 @@ function OneTimeToken({ token, onDone }: { token: IssuedAgentToken; onDone: () =
 function TokenRow({
   token,
   agentId,
-  secrets,
   onIssued,
   onChanged,
 }: {
   token: AgentToken;
   agentId: string;
-  secrets: Secret[];
   onIssued: (token: IssuedAgentToken) => void;
   onChanged: () => void | Promise<unknown>;
 }) {
   const { t } = useI18n();
-  const { secretIds } = useTokenGrants(token.id);
+  const { secretIds, error: grantsError, isLoading: grantsLoading } = useTokenGrants(token.id);
+  const [secretOffset, setSecretOffset] = useState(0);
+  const {
+    secrets,
+    total: secretTotal,
+    error: secretsError,
+  } = useSecrets({
+    limit: SECRET_PAGE_SIZE,
+    offset: secretOffset,
+  });
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'rotate' | 'revoke' | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   useEffect(() => setSelected(secretIds), [secretIds]);
   return (
     <Card className="p-5">
@@ -185,10 +227,20 @@ function TokenRow({
           <Button
             size="sm"
             variant="ghost"
+            loading={pendingAction === 'rotate'}
+            disabled={pendingAction !== null}
             leftIcon={<RotateCcw className="h-4 w-4" />}
             onClick={async () => {
-              onIssued(await rotateToken(agentId, token.id));
-              await onChanged();
+              setActionError(null);
+              setPendingAction('rotate');
+              try {
+                onIssued(await rotateToken(agentId, token.id));
+                await onChanged();
+              } catch (caught) {
+                setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
+              } finally {
+                setPendingAction(null);
+              }
             }}
           >
             {t('agents.rotate')}
@@ -196,23 +248,37 @@ function TokenRow({
           <Button
             size="sm"
             variant="ghost"
-            disabled={token.status !== 'active'}
+            loading={pendingAction === 'revoke'}
+            disabled={token.status !== 'active' || pendingAction !== null}
             onClick={async () => {
-              await revokeToken(agentId, token.id);
-              await onChanged();
+              setActionError(null);
+              setPendingAction('revoke');
+              try {
+                await revokeToken(agentId, token.id);
+                await onChanged();
+              } catch (caught) {
+                setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
+              } finally {
+                setPendingAction(null);
+              }
             }}
           >
             {t('agents.revoke')}
           </Button>
         </div>
       </div>
+      {actionError && (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          {actionError}
+        </p>
+      )}
       <fieldset className="mt-5 border-t pt-4">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t('agents.secretAccess')}
         </legend>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="mt-3 grid gap-1 sm:grid-cols-2">
           {secrets.map((secret) => (
-            <label key={secret.id} className="flex items-center gap-2 text-sm">
+            <label key={secret.id} className="flex min-h-11 items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={selected.includes(secret.id)}
@@ -228,14 +294,36 @@ function TokenRow({
             </label>
           ))}
         </div>
+        {secretsError && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            {secretsError.message}
+          </p>
+        )}
+        {grantsError && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            {grantsError.message}
+          </p>
+        )}
+        <PaginationControls
+          offset={secretOffset}
+          limit={SECRET_PAGE_SIZE}
+          total={secretTotal}
+          onOffsetChange={setSecretOffset}
+        />
         <Button
           className="mt-4"
           size="sm"
           loading={saving}
+          disabled={grantsLoading || Boolean(grantsError)}
           onClick={async () => {
+            setActionError(null);
+            setSaved(false);
             setSaving(true);
             try {
               await saveGrants(token.id, selected);
+              setSaved(true);
+            } catch (caught) {
+              setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
             } finally {
               setSaving(false);
             }
@@ -243,6 +331,11 @@ function TokenRow({
         >
           {t('agents.saveAccess')}
         </Button>
+        {saved && (
+          <p role="status" className="mt-2 text-sm text-status-success">
+            {t('agents.accessSaved')}
+          </p>
+        )}
       </fieldset>
     </Card>
   );

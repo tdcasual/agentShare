@@ -27,6 +27,11 @@ vi.mock('@/domains/audit', () => ({
     isLoading: false,
     error: null,
   }),
+  useAuditStats: () => ({
+    stats: { total: 2, denied: 1, value_reads: 2 },
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 describe('AuditPage', () => {
