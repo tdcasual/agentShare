@@ -36,6 +36,38 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260714-012] ci-compose-config-required-env
+
+**Logged**: 2026-07-14T06:37:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The clean CI verification reached its final Compose check without the required encryption variable.
+
+### Error
+
+```text
+required variable ENCRYPTION_KEY is missing a value
+```
+
+### Context
+- All backend, frontend, build, and E2E checks had passed.
+- Local shells could mask the issue when `ENCRYPTION_KEY` was already exported.
+
+### Suggested Fix
+Provide an explicit synthetic value only to the non-running `docker compose config` validation.
+
+### Resolution
+The verification script now supplies a clearly labeled validation-only encryption value.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `scripts/ops/verify-control-plane.sh`, `tests/ops/test_container_artifacts.py`
+
+---
+
 ## [ERR-20260714-011] gh-api-query-zsh-glob
 
 **Logged**: 2026-07-14T06:34:00Z
