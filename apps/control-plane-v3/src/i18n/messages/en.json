@@ -2,6 +2,8 @@
   "setup": {
     "title": "Initialize VaultGate",
     "subtitle": "Create the first admin account to start using VaultGate",
+    "bootstrapToken": "Bootstrap token",
+    "bootstrapTokenHint": "Use the one-time BOOTSTRAP_TOKEN configured by the operator.",
     "passwordHint": "At least 12 characters with uppercase, lowercase, number and special character",
     "confirmPassword": "Confirm password",
     "createAccount": "Create admin account",
@@ -45,6 +47,9 @@
     "loadingEllipsis": "Loading...",
     "new": "New",
     "next": "Next",
+    "previous": "Previous",
+    "of": "of",
+    "pagination": "Pagination",
     "retry": "Retry",
     "save": "Save",
     "search": "Search",
@@ -62,6 +67,15 @@
     "tryAgainLater": "Please try again later",
     "unexpectedErrorTitle": "Something went wrong",
     "unexpectedErrorDescription": "An unexpected error occurred. Please try again."
+  },
+  "navigation": {
+    "label": "Primary navigation",
+    "dashboard": "Dashboard",
+    "secrets": "Secrets",
+    "agents": "Agents",
+    "audit": "Audit",
+    "docs": "Docs",
+    "logout": "Log out"
   },
   "metadata": {
     "appName": "VaultGate",
@@ -186,7 +200,10 @@
     "rotate": "Rotate",
     "revoke": "Revoke",
     "secretAccess": "Allowed Secrets",
-    "saveAccess": "Save access"
+    "saveAccess": "Save access",
+    "actionFailed": "The action failed. Please try again.",
+    "copyFailed": "Could not copy the token. Select and copy it manually.",
+    "accessSaved": "Secret access saved."
   },
   "docs": {
     "title": "Documentation",

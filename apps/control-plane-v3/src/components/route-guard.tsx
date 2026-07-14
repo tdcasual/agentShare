@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
+import { AppNavigation } from '@/components/app-navigation';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -146,5 +147,13 @@ export function RouteGuard({ children }: RouteGuardProps) {
   }
 
   // 正常渲染子内容
+  if (entryState.kind === 'authenticated' && !isPublicPath(pathname)) {
+    return (
+      <>
+        <AppNavigation />
+        {children}
+      </>
+    );
+  }
   return <>{children}</>;
 }

@@ -1,0 +1,7 @@
+* @tdcasual
+
+/.github/ @tdcasual
+/apps/api/app/modules/admin_auth/ @tdcasual
+/apps/api/app/modules/tokens/ @tdcasual
+/apps/api/app/modules/vault/ @tdcasual
+/ops/ @tdcasual

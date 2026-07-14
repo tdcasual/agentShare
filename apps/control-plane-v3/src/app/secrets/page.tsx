@@ -20,6 +20,9 @@ import { Plus, Key, Globe, Shield, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+
+const PAGE_SIZE = 25;
 
 type SecretType =
   | 'password'
@@ -83,7 +86,11 @@ const EMPTY_FORM = {
 
 export default function SecretsPage() {
   const { t } = useI18n();
-  const { secrets, isLoading, error, refresh } = useSecrets();
+  const [offset, setOffset] = useState(0);
+  const { secrets, total, isLoading, error, refresh } = useSecrets({
+    limit: PAGE_SIZE,
+    offset,
+  });
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -116,6 +123,7 @@ export default function SecretsPage() {
       });
       setForm(EMPTY_FORM);
       setShowCreate(false);
+      setOffset(0);
       refresh();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : t('secrets.createForm.saveFailed'));
@@ -133,6 +141,9 @@ export default function SecretsPage() {
     try {
       await deleteSecret(deleteTarget.id);
       setDeleteTarget(null);
+      if (secrets.length === 1 && offset > 0) {
+        setOffset(Math.max(0, offset - PAGE_SIZE));
+      }
       refresh();
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : t('secrets.deleteFailed'));
@@ -260,7 +271,7 @@ export default function SecretsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-foreground">{secrets.length}</div>
+          <div className="text-xl font-bold text-foreground">{total}</div>
           <div className="text-xs text-muted-foreground">{t('dashboard.totalSecrets')}</div>
         </Card>
       </div>
@@ -350,6 +361,12 @@ export default function SecretsPage() {
           </div>
         )}
       </Card>
+      <PaginationControls
+        offset={offset}
+        limit={PAGE_SIZE}
+        total={total}
+        onOffsetChange={setOffset}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

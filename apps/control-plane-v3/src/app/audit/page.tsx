@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useAuditLogs } from '@/domains/audit';
+import { useState } from 'react';
+import { useAuditLogs, useAuditStats } from '@/domains/audit';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -16,6 +16,9 @@ import { Shield, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/components/i18n-provider';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+
+const PAGE_SIZE = 50;
 
 export default function AuditPage() {
   const { t } = useI18n();
@@ -23,11 +26,14 @@ export default function AuditPage() {
     action?: string;
     result?: string;
   }>({});
+  const [offset, setOffset] = useState(0);
 
   const { logs, total, isLoading, error } = useAuditLogs({
-    limit: 100,
+    limit: PAGE_SIZE,
+    offset,
     ...filter,
   });
+  const { stats } = useAuditStats();
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -38,22 +44,9 @@ export default function AuditPage() {
   const isGrantedActive = filter.result === 'success';
   const isDeniedActive = filter.result === 'denied';
 
-  const { grantedCount, deniedCount, valueReadCount } = useMemo(() => {
-    return logs.reduce(
-      (acc, log) => {
-        if (log.result === 'success') {
-          acc.grantedCount += 1;
-        } else {
-          acc.deniedCount += 1;
-        }
-        if (log.action === 'secret.value.read') {
-          acc.valueReadCount += 1;
-        }
-        return acc;
-      },
-      { grantedCount: 0, deniedCount: 0, valueReadCount: 0 }
-    );
-  }, [logs]);
+  const deniedCount = stats?.denied ?? 0;
+  const grantedCount = Math.max(0, (stats?.total ?? 0) - deniedCount);
+  const valueReadCount = stats?.value_reads ?? 0;
 
   return (
     <main id="main-content" className="space-y-6 p-4 sm:p-6 lg:p-8">
@@ -76,7 +69,10 @@ export default function AuditPage() {
             <button
               type="button"
               aria-pressed={isAllActive}
-              onClick={() => setFilter({})}
+              onClick={() => {
+                setOffset(0);
+                setFilter({});
+              }}
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isAllActive
@@ -89,7 +85,10 @@ export default function AuditPage() {
             <button
               type="button"
               aria-pressed={isGrantedActive}
-              onClick={() => setFilter({ result: 'success' })}
+              onClick={() => {
+                setOffset(0);
+                setFilter({ result: 'success' });
+              }}
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isGrantedActive
@@ -102,7 +101,10 @@ export default function AuditPage() {
             <button
               type="button"
               aria-pressed={isDeniedActive}
-              onClick={() => setFilter({ result: 'denied' })}
+              onClick={() => {
+                setOffset(0);
+                setFilter({ result: 'denied' });
+              }}
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isDeniedActive
@@ -119,7 +121,7 @@ export default function AuditPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-foreground">{total}</div>
+          <div className="text-xl font-bold text-foreground">{stats?.total ?? total}</div>
           <div className="text-xs text-muted-foreground">{t('audit.totalEvents')}</div>
         </Card>
         <Card className="p-3 sm:p-4">
@@ -201,6 +203,12 @@ export default function AuditPage() {
           </div>
         )}
       </Card>
+      <PaginationControls
+        offset={offset}
+        limit={PAGE_SIZE}
+        total={total}
+        onOffsetChange={setOffset}
+      />
     </main>
   );
 }

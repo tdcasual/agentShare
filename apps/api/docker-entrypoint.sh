@@ -4,7 +4,7 @@ set -euo pipefail
 # VaultGate Docker entrypoint
 # Runs Alembic migration unless disabled, then execs the CMD.
 
-if [ "${RUN_DB_MIGRATIONS_ON_STARTUP:-true}" = "true" ] && [ -n "${DATABASE_URL:-}" ]; then
+if [ "${RUN_DB_MIGRATIONS_ON_STARTUP:-true}" = "true" ]; then
     echo "[entrypoint] Running Alembic migration..."
     alembic -c /srv/vaultgate/apps/api/alembic.ini upgrade head || {
         echo "[entrypoint] FATAL: Alembic migration failed. Exiting." >&2

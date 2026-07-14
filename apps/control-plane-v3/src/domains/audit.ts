@@ -3,7 +3,9 @@
 import useSWR from 'swr';
 import { getAuditStats, listAuditLogs } from '@/lib/vaultgate-api';
 
-export function useAuditLogs(query: { result?: string; action?: string; limit?: number } = {}) {
+export function useAuditLogs(
+  query: { result?: string; action?: string; limit?: number; offset?: number } = {}
+) {
   const key = `/api/admin/audit-logs?${new URLSearchParams(
     Object.entries(query).flatMap(([name, value]) =>
       value === undefined ? [] : [[name, String(value)]]

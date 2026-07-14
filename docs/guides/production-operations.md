@@ -1,5 +1,8 @@
 # Production Operations
 
+VaultGate currently supports one API process. Authentication rate limits are process-local; do not
+horizontally scale the API until a shared rate-limit store is configured.
+
 ## Startup Verification
 
 After each deployment:

@@ -6,7 +6,7 @@ from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from app.config import Settings
-from app.db import get_async_db
+from app.db import _build_alembic_config, get_async_db
 from app.factory import create_app
 from app.runtime import _async_database_url, build_runtime
 
@@ -17,6 +17,12 @@ def test_postgres_async_url_preserves_encoded_password() -> None:
     parsed = make_url(converted)
     assert parsed.drivername == "postgresql+asyncpg"
     assert parsed.password == "p@ss"
+
+
+def test_alembic_config_preserves_percent_encoded_password() -> None:
+    database_url = "postgresql://vault:p%40ss%25word@postgres:5432/vaultgate"
+
+    assert _build_alembic_config(database_url).get_main_option("sqlalchemy.url") == database_url
 
 
 def test_runtime_owns_one_async_engine_and_session_factory() -> None:

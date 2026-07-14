@@ -17,7 +17,13 @@ export default function SetupPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '' });
+  const [bootstrapTokenRequired, setBootstrapTokenRequired] = useState(false);
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    bootstrapToken: '',
+  });
 
   useEffect(() => {
     let stale = false;
@@ -27,6 +33,8 @@ export default function SetupPage() {
         const status = await getBootstrapStatus();
         if (!stale && !status.setup_required) {
           router.replace('/login');
+        } else if (!stale) {
+          setBootstrapTokenRequired(status.bootstrap_token_required);
         }
       } catch {
         // Ignore errors and allow the user to attempt setup
@@ -55,7 +63,10 @@ export default function SetupPage() {
     }
 
     try {
-      await bootstrap({ email: form.email, password: form.password });
+      await bootstrap(
+        { email: form.email, password: form.password },
+        bootstrapTokenRequired ? form.bootstrapToken : undefined
+      );
       router.push('/login');
       router.refresh();
     } catch (submitError) {
@@ -100,6 +111,23 @@ export default function SetupPage() {
 
           {/* Form */}
           <form className="space-y-5" onSubmit={handleSubmit}>
+            {bootstrapTokenRequired && (
+              <div className="space-y-2">
+                <Label htmlFor="bootstrap-token">{t('setup.bootstrapToken')}</Label>
+                <Input
+                  id="bootstrap-token"
+                  type="password"
+                  autoComplete="off"
+                  value={form.bootstrapToken}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, bootstrapToken: event.target.value }))
+                  }
+                  required
+                  minLength={32}
+                />
+                <p className="text-xs text-muted-foreground">{t('setup.bootstrapTokenHint')}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">{t('auth.login.email')}</Label>
               <div className="relative">

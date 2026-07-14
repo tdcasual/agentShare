@@ -20,18 +20,27 @@ describe('resolveAppEntryState', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns setup_required before initialization', async () => {
-    vi.mocked(getBootstrapStatus).mockResolvedValue({ setup_required: true });
+    vi.mocked(getBootstrapStatus).mockResolvedValue({
+      setup_required: true,
+      bootstrap_token_required: false,
+    });
     await expect(resolveAppEntryState()).resolves.toEqual({ kind: 'setup_required' });
   });
 
   it('returns anonymous for an initialized vault without a session', async () => {
-    vi.mocked(getBootstrapStatus).mockResolvedValue({ setup_required: false });
+    vi.mocked(getBootstrapStatus).mockResolvedValue({
+      setup_required: false,
+      bootstrap_token_required: false,
+    });
     vi.mocked(getCurrentSession).mockRejectedValue(new ApiError(401, 'Unauthorized'));
     await expect(resolveAppEntryState()).resolves.toEqual({ kind: 'anonymous' });
   });
 
   it('returns authenticated with the exact admin session', async () => {
-    vi.mocked(getBootstrapStatus).mockResolvedValue({ setup_required: false });
+    vi.mocked(getBootstrapStatus).mockResolvedValue({
+      setup_required: false,
+      bootstrap_token_required: false,
+    });
     vi.mocked(getCurrentSession).mockResolvedValue({
       id: 'admin-1',
       email: 'admin@example.com',

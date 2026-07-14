@@ -56,6 +56,7 @@ export const apiFetch = requestJson;
 
 export interface BootstrapStatus {
   setup_required: boolean;
+  bootstrap_token_required: boolean;
 }
 export interface AdminSession {
   id: string;
@@ -140,10 +141,31 @@ export interface AuditLog {
   created_at: string;
 }
 
+export interface PageQuery {
+  limit?: number;
+  offset?: number;
+}
+
+export interface PageResponse<T> {
+  items: T[];
+  total: number;
+  limit?: number;
+  offset?: number;
+}
+
+function withQuery(path: string, query: object): string {
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(
+    ([key, value]) => value !== undefined && params.set(key, String(value))
+  );
+  return `${path}${params.size ? `?${params}` : ''}`;
+}
+
 export const getBootstrapStatus = () => requestJson<BootstrapStatus>('/api/admin/bootstrap/status');
-export const bootstrap = (input: LoginInput) =>
+export const bootstrap = (input: LoginInput, bootstrapToken?: string) =>
   requestJson<{ id: string; email: string }>('/api/admin/bootstrap/init', {
     method: 'POST',
+    headers: bootstrapToken ? { 'X-Bootstrap-Token': bootstrapToken } : undefined,
     body: JSON.stringify(input),
   });
 export const login = (input: LoginInput) =>
@@ -154,8 +176,8 @@ export const login = (input: LoginInput) =>
 export const logout = () => requestJson<void>('/api/admin/session', { method: 'DELETE' });
 export const getCurrentSession = () => requestJson<AdminSession>('/api/admin/session');
 
-export const listSecrets = () =>
-  requestJson<{ items: Secret[]; total: number }>('/api/admin/secrets');
+export const listSecrets = (query: PageQuery = {}) =>
+  requestJson<PageResponse<Secret>>(withQuery('/api/admin/secrets', query));
 export const createSecret = (input: SecretCreateInput) =>
   requestJson<Secret>('/api/admin/secrets', { method: 'POST', body: JSON.stringify(input) });
 export const updateSecret = (id: string, input: SecretUpdateInput) =>
@@ -165,7 +187,8 @@ export const deleteSecret = (id: string) =>
 export const revealSecret = (id: string) =>
   requestJson<{ value: string }>(`/api/admin/secrets/${id}/value`);
 
-export const listAgents = () => requestJson<{ items: Agent[]; total: number }>('/api/admin/agents');
+export const listAgents = (query: PageQuery & { status?: Agent['status'] } = {}) =>
+  requestJson<PageResponse<Agent>>(withQuery('/api/admin/agents', query));
 export const getAgent = (id: string) => requestJson<AgentDetail>(`/api/admin/agents/${id}`);
 export const createAgent = (input: { name: string; description?: string }) =>
   requestJson<Agent>('/api/admin/agents', { method: 'POST', body: JSON.stringify(input) });
@@ -194,14 +217,7 @@ export const replaceTokenGrants = (tokenId: string, secretIds: string[]) =>
     body: JSON.stringify({ secret_ids: secretIds }),
   });
 
-export const listAuditLogs = (query: { result?: string; action?: string; limit?: number } = {}) => {
-  const params = new URLSearchParams();
-  Object.entries(query).forEach(
-    ([key, value]) => value !== undefined && params.set(key, String(value))
-  );
-  return requestJson<{ items: AuditLog[]; total: number }>(
-    `/api/admin/audit-logs${params.size ? `?${params}` : ''}`
-  );
-};
+export const listAuditLogs = (query: PageQuery & { result?: string; action?: string } = {}) =>
+  requestJson<PageResponse<AuditLog>>(withQuery('/api/admin/audit-logs', query));
 export const getAuditStats = () =>
-  requestJson<{ total: number; denied: number }>('/api/admin/audit-stats');
+  requestJson<{ total: number; denied: number; value_reads: number }>('/api/admin/audit-stats');

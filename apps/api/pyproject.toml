@@ -58,3 +58,6 @@ ignore = ["E501", "B008"]
 pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "--cov=app --cov-fail-under=80"
+
+[tool.coverage.run]
+concurrency = ["thread"]

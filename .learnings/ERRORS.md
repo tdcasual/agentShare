@@ -36,6 +36,72 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260714-009] reserved-password-postgres-smoke
+
+**Logged**: 2026-07-14T06:12:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra
+
+### Summary
+The isolated PostgreSQL smoke test could not connect to the newly built API container.
+
+### Error
+
+```text
+curl: (7) Failed to connect to 127.0.0.1 port 18080
+```
+
+### Context
+- PostgreSQL used a synthetic password containing URI-reserved characters.
+- The test cleanup trap removed containers before logs were captured.
+- No persistent project volume or existing stack was modified.
+
+### Suggested Fix
+Reproduce while capturing API exit status and logs before cleanup, then fix the startup path.
+
+### Resolution
+Alembic uses ConfigParser interpolation. Percent-encoded URL components are now escaped when passed
+to Alembic, while the resolved SQLAlchemy URL remains unchanged.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: `apps/api/alembic/env.py`, `apps/api/docker-entrypoint.sh`, `apps/api/app/config.py`
+
+---
+
+## [ERR-20260714-008] targeted-verification-lint-order
+
+**Logged**: 2026-07-14T06:02:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+Targeted tests passed, but the combined verification command stopped at Ruff before mypy.
+
+### Error
+
+```text
+I001 Import block is un-sorted or un-formatted
+```
+
+### Context
+- All 58 targeted behavior and operations tests passed.
+- New cross-module imports in two route files were not sorted.
+
+### Suggested Fix
+Run Ruff with its configured safe import fixer before resuming mypy, then rerun the complete chain.
+
+### Resolution
+Applied the repository Ruff import-order fix and resumed verification.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/app/modules/admin_auth/routes.py`, `apps/api/app/modules/agents/routes.py`
+
+---
+
 ## [ERR-20260713-003] delivery-security-verification
 
 **Logged**: 2026-07-13T13:38:00Z

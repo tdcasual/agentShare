@@ -9,6 +9,26 @@ def test_settings_default_to_sqlite():
     assert "sqlite" in settings.database_url
 
 
+def test_structured_postgres_settings_escape_reserved_password_characters():
+    settings = Settings(
+        app_env="development",
+        database_url="",
+        postgres_host="postgres",
+        postgres_db="vaultgate",
+        postgres_user="admin@example.com",
+        postgres_password="p@ss:/?#% word",
+    )
+
+    assert settings.database_url == (
+        "postgresql://admin%40example.com:p%40ss%3A%2F%3F%23%25 word@postgres:5432/vaultgate"
+    )
+
+
+def test_structured_postgres_settings_require_host_and_password():
+    with pytest.raises(ValueError, match="POSTGRES_HOST and POSTGRES_PASSWORD"):
+        Settings(app_env="development", database_url="", postgres_host="postgres")
+
+
 def test_deployment_like_settings_require_explicit_app_env():
     with pytest.raises(ValueError, match="APP_ENV"):
         Settings(database_url="postgresql://postgres:postgres@db.example.com:5432/vaultgate")
@@ -40,11 +60,21 @@ def test_production_settings_require_secure_cookie():
         )
 
 
+def test_production_settings_require_bootstrap_token():
+    with pytest.raises(ValueError, match="BOOTSTRAP_TOKEN"):
+        Settings(
+            app_env="production",
+            encryption_key="YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=",
+            session_secure=True,
+        )
+
+
 def test_valid_production_settings():
     settings = Settings(
         app_env="production",
         encryption_key="YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=",
         session_secure=True,
+        bootstrap_token="bootstrap-token-with-at-least-32-bytes",
     )
     assert settings.is_production_like()
     assert settings.session_secure is True
@@ -55,10 +85,12 @@ def test_is_production_like():
         app_env="production",
         encryption_key="a" * 44,
         session_secure=True,
+        bootstrap_token="bootstrap-token-with-at-least-32-bytes",
     ).is_production_like()
     assert Settings(
         app_env="staging",
         encryption_key="a" * 44,
         session_secure=True,
+        bootstrap_token="bootstrap-token-with-at-least-32-bytes",
     ).is_production_like()
     assert not Settings(app_env="development").is_production_like()

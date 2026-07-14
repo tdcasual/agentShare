@@ -54,6 +54,7 @@ def test_production_compose_uses_server_side_sessions_without_signing_secret() -
     assert "SESSION_SECRET" not in compose
     assert "SESSION_SECRET" not in env_example
     assert 'SESSION_SECURE: "true"' in compose
+    assert "BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:?BOOTSTRAP_TOKEN is required}" in compose
 
 
 def test_production_compose_keeps_data_services_private() -> None:

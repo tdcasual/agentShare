@@ -49,6 +49,10 @@ def test_api_dockerfile_exposes_runtime_contract() -> None:
     assert "uvicorn" in dockerfile
     assert "alembic" in entrypoint
     assert "upgrade head" in entrypoint
+    assert '[ -n "${DATABASE_URL:-}" ]' not in entrypoint
+    alembic_env = (ROOT / "apps/api/alembic/env.py").read_text()
+    assert "Settings().database_url" in alembic_env
+    assert '.replace("%", "%%")' in alembic_env
     assert 'exec "$@"' in entrypoint
 
 
@@ -143,10 +147,10 @@ def test_prod_compose_uses_published_images() -> None:
     assert "\n  caddy:\n" in compose
     assert "restart: unless-stopped" in compose
     assert "SESSION_SECURE: \"true\"" in compose
-    assert (
-        "DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-vaultgate}}"
-        in compose
-    )
+    assert "DATABASE_URL: ${DATABASE_URL:-}" in compose
+    assert "POSTGRES_HOST: postgres" in compose
+    assert "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}" in compose
+    assert "postgresql://${POSTGRES_USER" not in compose
 
 
 def test_production_env_template_includes_runtime_placeholders() -> None:
@@ -154,6 +158,7 @@ def test_production_env_template_includes_runtime_placeholders() -> None:
     assert "DATABASE_URL=" in env_example
     assert "leave DATABASE_URL unset" in env_example
     assert "ENCRYPTION_KEY=" in env_example
+    assert "BOOTSTRAP_TOKEN=" in env_example
     assert "SESSION_SECRET=" not in env_example
     assert "NEXT_PUBLIC_API_BASE_URL=" not in env_example
     assert "API_IMAGE=" in env_example

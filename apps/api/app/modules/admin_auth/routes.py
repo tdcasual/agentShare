@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
@@ -17,6 +18,7 @@ from app.modules.admin_auth.service import (
     generate_credential,
     resolve_admin_principal,
 )
+from app.modules.audit.service import add_admin_audit
 from app.orm import AdminSession, ManagementToken, User
 from app.rate_limit import RateLimitConfig, check_rate_limit, clear_attempts, record_failed_attempt
 
@@ -31,16 +33,29 @@ async def get_admin_principal(
 
 
 @router.get("/bootstrap/status")
-async def bootstrap_status(db: AsyncSession = Depends(get_async_db)) -> dict[str, bool]:
+async def bootstrap_status(
+    request: Request,
+    db: AsyncSession = Depends(get_async_db),
+) -> dict[str, bool]:
     count = await db.scalar(select(func.count(User.id)))
-    return {"setup_required": not bool(count)}
+    setup_required = not bool(count)
+    return {
+        "setup_required": setup_required,
+        "bootstrap_token_required": setup_required and request.app.state.settings.is_production_like(),
+    }
 
 
 @router.post("/bootstrap/init", status_code=status.HTTP_201_CREATED)
 async def bootstrap_init(
     body: BootstrapRequest,
+    request: Request,
     db: AsyncSession = Depends(get_async_db),
 ) -> dict[str, str]:
+    settings = request.app.state.settings
+    if settings.is_production_like():
+        supplied_token = request.headers.get("x-bootstrap-token", "")
+        if not secrets.compare_digest(supplied_token, settings.bootstrap_token):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid bootstrap token")
     user = User(
         email=body.email,
         password_hash=bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode(),
@@ -85,6 +100,17 @@ async def login(
         user_agent=request.headers.get("user-agent"),
     )
     db.add(session)
+    await db.flush()
+    principal = AdminPrincipal(user=user, auth_type="session", credential_id=session.id)
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="admin.login",
+        resource_type="admin_session",
+        resource_id=session.id,
+        resource_label=user.email,
+    )
     await db.commit()
     response.set_cookie(
         settings.session_cookie_name,
@@ -121,6 +147,15 @@ async def logout(
     session = await db.get(AdminSession, principal.credential_id)
     if session is not None:
         session.revoked_at = datetime.now(UTC)
+        add_admin_audit(
+            db,
+            request,
+            principal,
+            action="admin.logout",
+            resource_type="admin_session",
+            resource_id=session.id,
+            resource_label=principal.user.email,
+        )
         await db.commit()
     response.delete_cookie(request.app.state.settings.session_cookie_name, path="/")
 
@@ -149,6 +184,7 @@ async def list_management_tokens(
 @router.post("/management-tokens", status_code=status.HTTP_201_CREATED)
 async def create_management_token(
     body: ManagementTokenCreate,
+    request: Request,
     response: Response,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
@@ -163,6 +199,16 @@ async def create_management_token(
         expires_at=expires_from_ttl(body.ttl_seconds),
     )
     db.add(token)
+    await db.flush()
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="management_token.create",
+        resource_type="management_token",
+        resource_id=token.id,
+        resource_label=token.name,
+    )
     await db.commit()
     await db.refresh(token)
     response.headers["Cache-Control"] = "no-store"
@@ -172,6 +218,7 @@ async def create_management_token(
 @router.delete("/management-tokens/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_management_token(
     token_id: str,
+    request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> None:
@@ -179,12 +226,22 @@ async def revoke_management_token(
     if token is None or token.user_id != principal.user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Management token not found")
     token.revoked_at = datetime.now(UTC)
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="management_token.revoke",
+        resource_type="management_token",
+        resource_id=token.id,
+        resource_label=token.name,
+    )
     await db.commit()
 
 
 @router.post("/management-tokens/{token_id}/rotate")
 async def rotate_management_token(
     token_id: str,
+    request: Request,
     response: Response,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
@@ -194,6 +251,15 @@ async def rotate_management_token(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Management token not found")
     raw_value, token.key_hash, token.key_prefix = generate_credential("vgm_")
     token.revoked_at = None
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="management_token.rotate",
+        resource_type="management_token",
+        resource_id=token.id,
+        resource_label=token.name,
+    )
     await db.commit()
     response.headers["Cache-Control"] = "no-store"
     return {"id": token.id, "name": token.name, "token": raw_value, "key_prefix": token.key_prefix}

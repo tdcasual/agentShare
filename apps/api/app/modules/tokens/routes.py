@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +14,7 @@ from app.modules.admin_auth.service import (
     generate_credential,
 )
 from app.modules.agents.routes import owned_agent
+from app.modules.audit.service import add_admin_audit
 from app.modules.tokens.schemas import AgentTokenCreate, GrantReplace
 from app.modules.tokens.service import serialize_token
 from app.orm import AgentStatus, AgentToken, AgentTokenStatus, Secret, TokenSecretGrant
@@ -35,6 +36,7 @@ async def owned_token(db: AsyncSession, user_id: str, token_id: str) -> AgentTok
 async def issue_token(
     agent_id: str,
     body: AgentTokenCreate,
+    request: Request,
     response: Response,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
@@ -53,6 +55,16 @@ async def issue_token(
         expires_at=expires_from_ttl(body.ttl_seconds),
     )
     db.add(token)
+    await db.flush()
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="agent_token.issue",
+        resource_type="agent_token",
+        resource_id=token.id,
+        resource_label=f"{agent.name}/{token.name}",
+    )
     await db.commit()
     await db.refresh(token)
     payload = serialize_token(token)
@@ -64,6 +76,7 @@ async def issue_token(
 @router.post("/tokens/{token_id}/rotate")
 async def rotate_token(
     token_id: str,
+    request: Request,
     response: Response,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
@@ -72,6 +85,15 @@ async def rotate_token(
     raw_value, token.key_hash, token.key_prefix = generate_credential("vg_")
     token.status = AgentTokenStatus.ACTIVE
     token.revoked_at = None
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="agent_token.rotate",
+        resource_type="agent_token",
+        resource_id=token.id,
+        resource_label=token.name,
+    )
     await db.commit()
     payload = serialize_token(token)
     payload["token"] = raw_value
@@ -82,12 +104,22 @@ async def rotate_token(
 @router.delete("/tokens/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_token(
     token_id: str,
+    request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> None:
     token = await owned_token(db, principal.user.id, token_id)
     token.status = AgentTokenStatus.REVOKED
     token.revoked_at = datetime.now(UTC)
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="agent_token.revoke",
+        resource_type="agent_token",
+        resource_id=token.id,
+        resource_label=token.name,
+    )
     await db.commit()
 
 
@@ -110,6 +142,7 @@ async def get_grants(
 async def replace_grants(
     token_id: str,
     body: GrantReplace,
+    request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict[str, list[str]]:
@@ -129,5 +162,15 @@ async def replace_grants(
         TokenSecretGrant(token_id=token.id, secret_id=secret_id)
         for secret_id in requested_ids
     ])
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="token_grants.replace",
+        resource_type="agent_token",
+        resource_id=token.id,
+        resource_label=token.name,
+        metadata={"secret_count": len(requested_ids)},
+    )
     await db.commit()
     return {"secret_ids": requested_ids}
