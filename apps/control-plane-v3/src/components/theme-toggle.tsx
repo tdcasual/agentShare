@@ -20,7 +20,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       <div
         className={cn(
           'flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
-          'border border-primary/20 bg-card/80',
+          'border-primary/20 bg-card/80 border',
           className
         )}
       >
@@ -37,7 +37,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
         'relative flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
-        'border border-primary/20 bg-card/80',
+        'border-primary/20 bg-card/80 border',
         'hover:bg-primary/10',
         'transition-colors duration-300',
         className

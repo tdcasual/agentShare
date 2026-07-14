@@ -1,14 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { useSecrets, createSecret, deleteSecret } from '@/domains/secret';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useDeferredValue, useState } from 'react';
+import { Edit3, Eye, Globe2, KeyRound, Plus, Search, Shield, Trash2, X } from 'lucide-react';
+import { deleteSecret, useSecrets } from '@/domains/secret';
+import type { Secret, SecretType } from '@/lib/vaultgate-api';
+import { useI18n } from '@/components/i18n-provider';
+import { SecretEditorDialog } from '@/features/secrets/secret-editor-dialog';
+import { SecretRevealDialog } from '@/features/secrets/secret-reveal-dialog';
+import { SECRET_TYPES } from '@/features/secrets/secret-types';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Input } from '@/components/ui/input';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Select,
   SelectContent,
@@ -16,123 +21,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Key, Globe, Shield, Trash2 } from 'lucide-react';
-import { EmptyState } from '@/components/ui/empty-state';
-import { cn } from '@/lib/utils';
-import { useI18n } from '@/components/i18n-provider';
-import { PaginationControls } from '@/components/ui/pagination-controls';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PAGE_SIZE = 25;
-
-type SecretType =
-  | 'password'
-  | 'api_key'
-  | 'basic_auth'
-  | 'bearer_token'
-  | 'api_key_header'
-  | 'oauth_token'
-  | 'certificate'
-  | 'ssh_key'
-  | 'database_url'
-  | 'custom';
-
-const SECRET_TYPES: SecretType[] = [
-  'password',
-  'api_key',
-  'basic_auth',
-  'bearer_token',
-  'api_key_header',
-  'oauth_token',
-  'certificate',
-  'ssh_key',
-  'database_url',
-  'custom',
-];
-
-const SECRET_TYPE_ICONS: Record<SecretType, React.ReactNode> = {
-  password: <Key className="h-4 w-4" />,
-  api_key: <Key className="h-4 w-4" />,
-  basic_auth: <Shield className="h-4 w-4" />,
-  bearer_token: <Shield className="h-4 w-4" />,
-  api_key_header: <Key className="h-4 w-4" />,
-  oauth_token: <Shield className="h-4 w-4" />,
-  certificate: <Shield className="h-4 w-4" />,
-  ssh_key: <Key className="h-4 w-4" />,
-  database_url: <Globe className="h-4 w-4" />,
-  custom: <Key className="h-4 w-4" />,
-};
-
-const SECRET_TYPE_COLORS: Record<SecretType, string> = {
-  password: 'bg-status-brand-subtle text-status-brand-subtle-foreground',
-  api_key: 'bg-status-info-subtle text-status-info-subtle-foreground',
-  basic_auth: 'bg-status-success-subtle text-status-success-subtle-foreground',
-  bearer_token: 'bg-status-warning-subtle text-status-warning-subtle-foreground',
-  api_key_header: 'bg-status-info-subtle text-status-info-subtle-foreground',
-  oauth_token: 'bg-status-success-subtle text-status-success-subtle-foreground',
-  certificate: 'bg-status-brand-subtle text-status-brand-subtle-foreground',
-  ssh_key: 'bg-status-brand-subtle text-status-brand-subtle-foreground',
-  database_url: 'bg-status-info-subtle text-status-info-subtle-foreground',
-  custom: 'bg-muted text-foreground',
-};
-
-const EMPTY_FORM = {
-  name: '',
-  type: 'password' as SecretType,
-  value: '',
-  url: '',
-  username: '',
-  description: '',
-};
 
 export default function SecretsPage() {
   const { t } = useI18n();
   const [offset, setOffset] = useState(0);
+  const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search.trim());
+  const [typeFilter, setTypeFilter] = useState<'all' | SecretType>('all');
   const { secrets, total, isLoading, error, refresh } = useSecrets({
     limit: PAGE_SIZE,
     offset,
+    search: deferredSearch || undefined,
+    type: typeFilter === 'all' ? undefined : typeFilter,
   });
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [editing, setEditing] = useState<Secret | 'new' | null>(null);
+  const [revealing, setRevealing] = useState<Secret | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Secret | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
+  const filtered = Boolean(deferredSearch || typeFilter !== 'all');
 
-  const openCreate = () => {
-    setCreateError(null);
-    setShowCreate((v) => !v);
-  };
-
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name.trim() || !form.value) {
-      return;
-    }
-    setIsCreating(true);
-    setCreateError(null);
-    try {
-      await createSecret({
-        type: form.type,
-        name: form.name.trim(),
-        value: form.value,
-        url: form.url.trim() || undefined,
-        username: form.username.trim() || undefined,
-        description: form.description.trim() || undefined,
-      });
-      setForm(EMPTY_FORM);
-      setShowCreate(false);
-      setOffset(0);
-      refresh();
-    } catch (err) {
-      setCreateError(err instanceof Error ? err.message : t('secrets.createForm.saveFailed'));
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
+  async function confirmDelete() {
     if (!deleteTarget) {
       return;
     }
@@ -144,223 +57,158 @@ export default function SecretsPage() {
       if (secrets.length === 1 && offset > 0) {
         setOffset(Math.max(0, offset - PAGE_SIZE));
       }
-      refresh();
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : t('secrets.deleteFailed'));
+      await refresh();
+    } catch (caught) {
+      setDeleteError(caught instanceof Error ? caught.message : t('secrets.deleteFailed'));
     } finally {
       setIsDeleting(false);
     }
-  };
+  }
+
+  function resetFilters() {
+    setSearch('');
+    setTypeFilter('all');
+    setOffset(0);
+  }
 
   return (
-    <main id="main-content" className="space-y-6 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-7 p-4 sm:p-6 lg:p-8">
+      <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t('secrets.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('secrets.description')}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            VaultGate
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+            {t('secrets.title')}
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('secrets.description')}</p>
         </div>
-        <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+        <Button leftIcon={<Plus />} onClick={() => setEditing('new')}>
           {t('secrets.newSecret')}
         </Button>
-      </div>
+      </header>
 
-      {/* Create Form */}
-      {showCreate && (
-        <Card className="p-4 sm:p-6">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">
-            {t('secrets.createForm.title')}
-          </h2>
-          <form onSubmit={handleCreateSubmit} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="w-full space-y-2">
-                <Label htmlFor="secret-type">{t('secrets.createForm.type')}</Label>
-                <Select
-                  value={form.type}
-                  onValueChange={(value) => setForm((f) => ({ ...f, type: value as SecretType }))}
-                >
-                  <SelectTrigger id="secret-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SECRET_TYPES.map((secretType) => (
-                      <SelectItem key={secretType} value={secretType}>
-                        {secretType}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="secret-name">{t('secrets.createForm.name')}</Label>
-                <Input
-                  id="secret-name"
-                  placeholder={t('secrets.createForm.namePlaceholder')}
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  required
-                />
-              </div>
-            </div>
-            <div className="w-full space-y-2">
-              <Label htmlFor="secret-value">{t('secrets.createForm.value')}</Label>
-              <Textarea
-                id="secret-value"
-                placeholder={t('secrets.createForm.valuePlaceholder')}
-                value={form.value}
-                onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
-                required
-                rows={3}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="secret-url">{t('secrets.createForm.url')}</Label>
-                <Input
-                  id="secret-url"
-                  value={form.url}
-                  onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="secret-username">{t('secrets.createForm.username')}</Label>
-                <Input
-                  id="secret-username"
-                  value={form.username}
-                  onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="secret-description">{t('secrets.createForm.description')}</Label>
-              <Input
-                id="secret-description"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              />
-            </div>
-            {createError && (
-              <div
-                role="alert"
-                className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
-              >
-                {createError}
-              </div>
-            )}
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                onClick={() => {
-                  setShowCreate(false);
-                  setCreateError(null);
-                  setForm(EMPTY_FORM);
-                }}
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button size="sm" type="submit" loading={isCreating}>
-                {t('common.save')}
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
+      <section
+        aria-label={t('secrets.filterLabel')}
+        className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto]"
+      >
+        <div className="relative">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <Input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setOffset(0);
+            }}
+            className="pl-10 pr-10"
+            placeholder={t('secrets.searchPlaceholder')}
+            aria-label={t('secrets.searchPlaceholder')}
+          />
+          {search && (
+            <button
+              type="button"
+              className="absolute right-1 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setSearch('');
+                setOffset(0);
+              }}
+              aria-label={t('secrets.clearSearch')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <Select
+          value={typeFilter}
+          onValueChange={(value) => {
+            setTypeFilter(value as 'all' | SecretType);
+            setOffset(0);
+          }}
+        >
+          <SelectTrigger aria-label={t('secrets.filterType')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('secrets.allTypes')}</SelectItem>
+            {SECRET_TYPES.map((type) => (
+              <SelectItem key={type} value={type}>
+                {t(`secrets.types.${type}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="flex min-h-11 items-center text-sm tabular-nums text-muted-foreground md:justify-end">
+          {t('secrets.resultCount', { count: total })}
+        </div>
+      </section>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-foreground">{total}</div>
-          <div className="text-xs text-muted-foreground">{t('dashboard.totalSecrets')}</div>
-        </Card>
-      </div>
-
-      {/* Delete Error */}
       {deleteError && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-          {deleteError}
-          <button type="button" onClick={() => setDeleteError(null)} className="ml-2 underline">
+        <div
+          role="alert"
+          className="border-destructive/30 bg-destructive/5 flex items-start justify-between gap-4 border-y px-4 py-3 text-sm text-destructive"
+        >
+          <span>{deleteError}</span>
+          <button
+            type="button"
+            className="underline underline-offset-4"
+            onClick={() => setDeleteError(null)}
+          >
             {t('common.close')}
           </button>
         </div>
       )}
 
-      {/* Secrets List */}
-      <Card className="overflow-hidden">
+      <section aria-live="polite" aria-busy={isLoading}>
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">
-            {t('secrets.loading')}
-          </div>
+          <SecretListSkeleton />
         ) : error ? (
-          <div className="p-8 text-center text-sm text-destructive">
-            {t('secrets.loadFailed')}: {error.message}
-          </div>
-        ) : secrets.length === 0 ? (
           <EmptyState
-            title={t('secrets.emptyTitle')}
-            description={t('secrets.emptyDesc')}
-            icon={<Key className="h-6 w-6" />}
+            title={t('secrets.loadFailed')}
+            description={error.message}
+            icon={<Shield className="h-6 w-6" />}
             action={
-              <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-                {t('secrets.newSecret')}
+              <Button variant="outline" onClick={() => void refresh()}>
+                {t('common.retry')}
               </Button>
             }
+            className="border-y"
+          />
+        ) : secrets.length === 0 ? (
+          <EmptyState
+            title={t(filtered ? 'secrets.noResultsTitle' : 'secrets.emptyTitle')}
+            description={t(filtered ? 'secrets.noResultsDesc' : 'secrets.emptyDesc')}
+            icon={<KeyRound className="h-6 w-6" />}
+            action={
+              filtered ? (
+                <Button variant="outline" onClick={resetFilters}>
+                  {t('secrets.clearFilters')}
+                </Button>
+              ) : (
+                <Button leftIcon={<Plus />} onClick={() => setEditing('new')}>
+                  {t('secrets.newSecret')}
+                </Button>
+              )
+            }
+            className="border-y"
           />
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y border-y">
             {secrets.map((secret) => (
-              <div
+              <SecretRow
                 key={secret.id}
-                className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="truncate font-medium text-foreground">{secret.name}</h3>
-                    <Badge
-                      variant="secondary"
-                      className={cn('flex items-center gap-1', SECRET_TYPE_COLORS[secret.type])}
-                    >
-                      {SECRET_TYPE_ICONS[secret.type]}
-                      <span className="text-xs">{secret.type}</span>
-                    </Badge>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    {secret.url && (
-                      <span className="flex items-center gap-1">
-                        <Globe className="h-3 w-3" />
-                        {secret.url}
-                      </span>
-                    )}
-                    {secret.username && (
-                      <span className="flex items-center gap-1">
-                        <Shield className="h-3 w-3" />
-                        {secret.username}
-                      </span>
-                    )}
-                    {secret.tags.length > 0 && (
-                      <span>
-                        {t('secrets.tags')} {secret.tags.join(', ')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 sm:flex-shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    leftIcon={<Trash2 className="h-4 w-4" />}
-                    onClick={() => setDeleteTarget({ id: secret.id, name: secret.name })}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    {t('common.delete')}
-                  </Button>
-                </div>
-              </div>
+                secret={secret}
+                onEdit={() => setEditing(secret)}
+                onReveal={() => setRevealing(secret)}
+                onDelete={() => setDeleteTarget(secret)}
+              />
             ))}
           </div>
         )}
-      </Card>
+      </section>
+
       <PaginationControls
         offset={offset}
         limit={PAGE_SIZE}
@@ -368,17 +216,111 @@ export default function SecretsPage() {
         onOffsetChange={setOffset}
       />
 
-      {/* Delete Confirmation Dialog */}
+      <SecretEditorDialog
+        open={editing !== null}
+        secret={editing && editing !== 'new' ? editing : undefined}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSaved={async () => {
+          setOffset(0);
+          await refresh();
+        }}
+      />
+      <SecretRevealDialog
+        secret={revealing}
+        open={revealing !== null}
+        onOpenChange={(open) => !open && setRevealing(null)}
+      />
       <ConfirmDialog
-        isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteConfirm}
-        title={t('common.delete')}
+        isOpen={deleteTarget !== null}
+        onClose={() => !isDeleting && setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title={t('secrets.deleteTitle')}
         message={deleteTarget ? t('secrets.deleteConfirm', { name: deleteTarget.name }) : ''}
-        confirmText={t('common.delete')}
+        confirmText={t('secrets.deleteAction')}
         variant="danger"
         isLoading={isDeleting}
       />
     </main>
+  );
+}
+
+function SecretRow({
+  secret,
+  onEdit,
+  onReveal,
+  onDelete,
+}: {
+  secret: Secret;
+  onEdit: () => void;
+  onReveal: () => void;
+  onDelete: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <article className="grid min-w-0 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-3">
+      <div className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <h2 className="min-w-0 truncate font-medium text-foreground">{secret.name}</h2>
+          <Badge variant="secondary" className="font-normal">
+            {t(`secrets.types.${secret.type}`)}
+          </Badge>
+        </div>
+        <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+          {secret.url && (
+            <span className="flex min-w-0 items-center gap-1.5">
+              <Globe2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="max-w-[36ch] truncate">{secret.url}</span>
+            </span>
+          )}
+          {secret.username && <span className="max-w-[28ch] truncate">{secret.username}</span>}
+          {secret.description && <span className="line-clamp-1">{secret.description}</span>}
+        </div>
+        {secret.tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {secret.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-sm bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1 sm:justify-end">
+        <Button variant="ghost" size="sm" leftIcon={<Eye />} onClick={onReveal}>
+          {t('secrets.reveal')}
+        </Button>
+        <Button variant="ghost" size="sm" leftIcon={<Edit3 />} onClick={onEdit}>
+          {t('common.edit')}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={<Trash2 />}
+          className="text-destructive hover:text-destructive"
+          onClick={onDelete}
+        >
+          {t('common.delete')}
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+function SecretListSkeleton() {
+  return (
+    <div className="divide-y border-y" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div key={index} className="space-y-3 py-5 sm:px-3">
+          <div className="flex gap-2">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <Skeleton className="h-4 w-full max-w-xl" />
+        </div>
+      ))}
+    </div>
   );
 }

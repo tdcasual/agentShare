@@ -46,7 +46,7 @@ export default function AgentsPage() {
   }
 
   return (
-    <main id="main-content" className="space-y-7 p-4 sm:p-6 lg:p-8">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-7 p-4 sm:p-6 lg:p-8">
       <header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -54,6 +54,9 @@ export default function AgentsPage() {
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">{t('agents.title')}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('agents.description')}</p>
+          <p className="mt-3 text-xs tabular-nums text-muted-foreground">
+            {t('agents.resultCount', { count: total })}
+          </p>
         </div>
         <Button
           onClick={() => setShowCreate((value) => !value)}
@@ -101,7 +104,11 @@ export default function AgentsPage() {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+        <div className="space-y-3 border-y py-4" aria-label={t('common.loading')}>
+          <div className="h-16 animate-pulse rounded-md bg-muted" />
+          <div className="h-16 animate-pulse rounded-md bg-muted" />
+          <div className="h-16 animate-pulse rounded-md bg-muted" />
+        </div>
       ) : error ? (
         <p role="alert" className="text-sm text-destructive">
           {error.message}
@@ -111,6 +118,12 @@ export default function AgentsPage() {
           title={t('agents.empty')}
           description={t('agents.emptyDescription')}
           icon={<Bot className="h-6 w-6" />}
+          action={
+            <Button leftIcon={<Plus />} onClick={() => setShowCreate(true)}>
+              {t('agents.new')}
+            </Button>
+          }
+          className="border-y"
         />
       ) : (
         <div className="divide-y border-y">
@@ -118,12 +131,13 @@ export default function AgentsPage() {
             <Link
               key={agent.id}
               href={`/agents/${agent.id}`}
-              className="group grid gap-2 py-5 transition-colors hover:bg-accent/40 sm:grid-cols-[1fr_auto] sm:px-3"
+              className="hover:bg-accent/40 group grid gap-2 px-2 py-5 transition-colors sm:grid-cols-[1fr_auto] sm:px-3"
             >
               <div>
                 <div className="flex items-center gap-3">
                   <span
                     className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-status-success' : 'bg-muted-foreground'}`}
+                    aria-hidden="true"
                   />
                   <h2 className="font-medium group-hover:underline">{agent.name}</h2>
                 </div>
@@ -132,7 +146,7 @@ export default function AgentsPage() {
                 </p>
               </div>
               <span className="self-center text-xs uppercase tracking-wider text-muted-foreground">
-                {agent.status}
+                {t(`agents.status.${agent.status}`)}
               </span>
             </Link>
           ))}

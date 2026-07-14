@@ -36,6 +36,72 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260714-014] frontend-source-root-assumption
+
+**Logged**: 2026-07-14T11:41:20Z
+**Priority**: low
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+The initial frontend audit search assumed `src/` existed at the repository root, but the frontend is under `apps/control-plane-v3/`.
+
+### Error
+
+```text
+rg: src: IO error for operation on src: No such file or directory (os error 2)
+```
+
+### Context
+- The failed command was read-only and did not alter project state.
+- A repository-level file listing immediately revealed the correct frontend package path.
+- The same package-root assumption recurred once when reading `package.json`; subsequent commands explicitly used the package path or package workdir.
+
+### Suggested Fix
+Inspect repository layout before package-scoped searches, or set `workdir` to `apps/control-plane-v3`.
+
+### Resolution
+Continued the audit from `apps/control-plane-v3`.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package.json`
+- Recurrence-Count: 2
+
+---
+
+## [ERR-20260714-015] backend-tests-system-python
+
+**Logged**: 2026-07-14T12:55:13Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The first targeted backend test invocation used the system `pytest`, which lacked the API test dependency `httpx`.
+
+### Error
+
+```text
+RuntimeError: The starlette.testclient module requires the httpx package to be installed.
+```
+
+### Context
+- The repository provides dedicated virtual environments at `.venv` and `apps/api/.venv`.
+- The failed command did not change application state.
+
+### Suggested Fix
+Run API tests through `apps/api/.venv/bin/pytest` from the API package directory.
+
+### Resolution
+Switched subsequent backend verification to the API virtual environment.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/pyproject.toml`
+
+---
+
 ## [ERR-20260714-013] apply-patch-context-after-format
 
 **Logged**: 2026-07-14T09:28:00Z
@@ -55,6 +121,7 @@ apply_patch verification failed: Failed to find expected lines in vaultgate-api.
 ### Context
 - No files were modified by the failed patch.
 - The semantic target remained unchanged, but exact surrounding lines had changed.
+- The pattern recurred during the frontend polish when broad multi-file patches mixed malformed hunks or stale exact class/string context.
 
 ### Suggested Fix
 Re-read only the affected snippets and split the patch into current, narrow contexts.
@@ -64,7 +131,9 @@ Applied the cleanup using the formatted source as patch context.
 
 ### Metadata
 - Reproducible: yes
-- Related Files: `apps/control-plane-v3/src/lib/vaultgate-api.ts`
+- Related Files: `apps/control-plane-v3/src/lib/vaultgate-api.ts`, `apps/control-plane-v3/src/components/ui/dialog.tsx`, `apps/control-plane-v3/src/i18n/messages/zh-CN.json`
+- Recurrence-Count: 5
+- Last-Seen: 2026-07-14
 
 ---
 

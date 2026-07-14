@@ -3,98 +3,103 @@
 @tailwind utilities;
 
 /*
- * shadcn/ui design tokens (v2). HSL channel triples consumed as hsl(var(--*)).
+ * VaultGate perceptual color tokens. OKLCH channel triples are consumed as oklch(var(--*)).
  */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 222 83% 53%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --info: 199 89% 48%;
-    --info-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 83% 53%;
+    --background: 98.5% 0.006 255;
+    --foreground: 22% 0.03 255;
+    --card: 99.5% 0.004 255;
+    --card-foreground: 22% 0.03 255;
+    --popover: 99.5% 0.004 255;
+    --popover-foreground: 22% 0.03 255;
+    --primary: 52% 0.16 255;
+    --primary-foreground: 98% 0.01 255;
+    --secondary: 94% 0.016 255;
+    --secondary-foreground: 27% 0.035 255;
+    --muted: 94% 0.016 255;
+    --muted-foreground: 48% 0.035 255;
+    --accent: 92.5% 0.025 255;
+    --accent-foreground: 24% 0.04 255;
+    --destructive: 55% 0.19 25;
+    --destructive-foreground: 98% 0.01 25;
+    --success: 58% 0.14 150;
+    --success-foreground: 98% 0.01 150;
+    --warning: 72% 0.15 75;
+    --warning-foreground: 24% 0.05 75;
+    --info: 60% 0.13 235;
+    --info-foreground: 98% 0.01 235;
+    --border: 88% 0.02 255;
+    --input: 84% 0.025 255;
+    --ring: 52% 0.16 255;
     --radius: 0.5rem;
 
     /* Semantic status tokens (subtle backgrounds + solid text) */
-    --status-success: 142 71% 45%;
-    --status-success-foreground: 0 0% 100%;
-    --status-success-subtle: 142 76% 95%;
-    --status-success-subtle-foreground: 142 71% 30%;
-    --status-warning: 38 92% 50%;
-    --status-warning-foreground: 0 0% 100%;
-    --status-warning-subtle: 48 100% 95%;
-    --status-warning-subtle-foreground: 38 80% 30%;
-    --status-info: 199 89% 48%;
-    --status-info-foreground: 0 0% 100%;
-    --status-info-subtle: 199 89% 95%;
-    --status-info-subtle-foreground: 199 89% 30%;
-    --status-danger: 0 72% 51%;
-    --status-danger-foreground: 0 0% 100%;
-    --status-danger-subtle: 0 93% 95%;
-    --status-danger-subtle-foreground: 0 72% 35%;
-    --status-brand: 262 83% 58%;
-    --status-brand-foreground: 0 0% 100%;
-    --status-brand-subtle: 259 94% 95%;
-    --status-brand-subtle-foreground: 262 83% 40%;
+    --status-success: 58% 0.14 150;
+    --status-success-foreground: 98% 0.01 150;
+    --status-success-subtle: 94% 0.045 150;
+    --status-success-subtle-foreground: 38% 0.11 150;
+    --status-warning: 72% 0.15 75;
+    --status-warning-foreground: 24% 0.05 75;
+    --status-warning-subtle: 94% 0.055 85;
+    --status-warning-subtle-foreground: 42% 0.11 65;
+    --status-info: 60% 0.13 235;
+    --status-info-foreground: 98% 0.01 235;
+    --status-info-subtle: 94% 0.04 235;
+    --status-info-subtle-foreground: 40% 0.1 235;
+    --status-danger: 55% 0.19 25;
+    --status-danger-foreground: 98% 0.01 25;
+    --status-danger-subtle: 95% 0.04 25;
+    --status-danger-subtle-foreground: 43% 0.15 25;
+    --status-brand: 52% 0.16 255;
+    --status-brand-foreground: 98% 0.01 255;
+    --status-brand-subtle: 94% 0.04 255;
+    --status-brand-subtle-foreground: 40% 0.13 255;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142 64% 38%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --info: 199 89% 48%;
-    --info-foreground: 0 0% 100%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 224 76% 60%;
+    --background: 16% 0.025 255;
+    --foreground: 94% 0.012 255;
+    --card: 19% 0.028 255;
+    --card-foreground: 94% 0.012 255;
+    --popover: 20% 0.03 255;
+    --popover-foreground: 94% 0.012 255;
+    --primary: 70% 0.14 250;
+    --primary-foreground: 16% 0.03 255;
+    --secondary: 24% 0.03 255;
+    --secondary-foreground: 92% 0.015 255;
+    --muted: 24% 0.03 255;
+    --muted-foreground: 70% 0.035 255;
+    --accent: 27% 0.045 255;
+    --accent-foreground: 95% 0.01 255;
+    --destructive: 62% 0.18 25;
+    --destructive-foreground: 98% 0.01 25;
+    --success: 68% 0.13 150;
+    --success-foreground: 14% 0.025 150;
+    --warning: 78% 0.13 80;
+    --warning-foreground: 18% 0.04 75;
+    --info: 70% 0.12 235;
+    --info-foreground: 15% 0.03 235;
+    --border: 30% 0.03 255;
+    --input: 34% 0.035 255;
+    --ring: 70% 0.14 250;
 
     /* Semantic status tokens (dark mode) */
-    --status-success-subtle: 142 64% 16%;
-    --status-success-subtle-foreground: 142 76% 80%;
-    --status-warning-subtle: 38 80% 16%;
-    --status-warning-subtle-foreground: 38 92% 75%;
-    --status-info-subtle: 199 80% 16%;
-    --status-info-subtle-foreground: 199 89% 75%;
-    --status-danger-subtle: 0 70% 16%;
-    --status-danger-subtle-foreground: 0 93% 80%;
-    --status-brand-subtle: 262 50% 18%;
-    --status-brand-subtle-foreground: 259 94% 85%;
+    --status-success: 68% 0.13 150;
+    --status-success-subtle: 25% 0.055 150;
+    --status-success-subtle-foreground: 82% 0.09 150;
+    --status-warning: 78% 0.13 80;
+    --status-warning-subtle: 26% 0.055 75;
+    --status-warning-subtle-foreground: 86% 0.09 80;
+    --status-info: 70% 0.12 235;
+    --status-info-subtle: 25% 0.05 235;
+    --status-info-subtle-foreground: 84% 0.08 235;
+    --status-danger: 62% 0.18 25;
+    --status-danger-subtle: 25% 0.07 25;
+    --status-danger-subtle-foreground: 86% 0.09 25;
+    --status-brand: 70% 0.14 250;
+    --status-brand-subtle: 26% 0.06 255;
+    --status-brand-subtle-foreground: 86% 0.08 250;
   }
 }
 
@@ -107,11 +112,11 @@
 :root {
   /* Fonts */
   --font-sans:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC',
-    'Microsoft YaHei', sans-serif;
+    'Avenir Next', Avenir, 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei',
+    ui-sans-serif, system-ui, sans-serif;
   --font-display:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC',
-    'Microsoft YaHei', sans-serif;
+    'Avenir Next', Avenir, 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei',
+    ui-sans-serif, system-ui, sans-serif;
 }
 
 * {
@@ -126,8 +131,9 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: oklch(var(--background));
+  color: oklch(var(--foreground));
+  font-kerning: normal;
 }
 
 /* Custom scrollbar - neutral, subtle */
@@ -141,12 +147,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: oklch(var(--border));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+  background: oklch(var(--muted-foreground));
 }
 
 /* Animations - purposeful, not playful */
@@ -246,7 +252,7 @@ body {
 
 /* Focus visible for accessibility */
 *:focus-visible {
-  outline: 2px solid hsl(var(--ring));
+  outline: 2px solid oklch(var(--ring));
   outline-offset: 2px;
 }
 
@@ -276,23 +282,29 @@ body {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
-    --primary: 330 81% 60%;
-    --foreground: 0 0% 0%;
-    --muted-foreground: 0 0% 20%;
-    --border: 0 0% 0%;
+    --primary: 45% 0.2 255;
+    --foreground: 10% 0.02 255;
+    --muted-foreground: 28% 0.02 255;
+    --border: 10% 0.02 255;
   }
 
   .dark {
-    --foreground: 0 0% 100%;
-    --muted-foreground: 0 0% 80%;
-    --border: 0 0% 100%;
+    --foreground: 98% 0.01 255;
+    --muted-foreground: 82% 0.02 255;
+    --border: 98% 0.01 255;
   }
 
-  .card {
-    border: 2px solid hsl(var(--border));
+  [data-slot='card'] {
+    border: 2px solid oklch(var(--border));
   }
 
   button {
     border: 2px solid currentColor;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-nav ~ main {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
 }

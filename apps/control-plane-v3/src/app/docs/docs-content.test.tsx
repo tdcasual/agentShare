@@ -6,10 +6,10 @@ describe('DocsContent', () => {
   it('uses the current Vault Secret list endpoint in the quick start', () => {
     render(<DocsContent />);
 
-    const example = screen.getByText(/curl -H/);
-    expect(example).toHaveTextContent(
-      'curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8000/api/vault/secrets'
-    );
+    const example = screen.getByText(/curl --fail-with-body/);
+    expect(example).toHaveTextContent('Authorization: Bearer YOUR_TOKEN');
+    expect(example).toHaveTextContent('/api/vault/secrets');
+    expect(example).not.toHaveTextContent('localhost:8000');
     expect(example).not.toHaveTextContent(/\/api\/vault\s*$/);
   });
 

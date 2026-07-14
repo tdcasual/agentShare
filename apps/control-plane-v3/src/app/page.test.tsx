@@ -31,7 +31,7 @@ vi.mock('@/domains/agent', () => ({
 
 vi.mock('@/domains/audit', () => ({
   useAuditStats: () => ({
-    stats: { total: 100, denied: 10 },
+    stats: { total: 100, granted: 88, denied: 10, value_reads: 24 },
     isLoading: false,
     error: null,
   }),
@@ -43,26 +43,28 @@ describe('VaultGateDashboard', () => {
     expect(screen.getByText('dashboard.title')).toBeInTheDocument();
   });
 
-  it('renders quick action links', () => {
+  it('renders primary workflow links', () => {
     render(<VaultGateDashboard />);
     expect(screen.getByText('dashboard.createSecret')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.createToken')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.viewAudit')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.workflowAgents')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.workflowAudit')).toBeInTheDocument();
   });
 
-  it('renders browse section', () => {
+  it('renders the configuration path', () => {
     render(<VaultGateDashboard />);
-    expect(screen.getByText('dashboard.browse')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.setupPath')).toBeInTheDocument();
   });
 
-  it('renders API reference section', () => {
+  it('renders the 24 hour activity summary', () => {
     render(<VaultGateDashboard />);
-    expect(screen.getByText('dashboard.apiReference')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.activity24h')).toBeInTheDocument();
+    expect(screen.getByText('88')).toBeInTheDocument();
+    expect(screen.getByText('24')).toBeInTheDocument();
   });
 
   it('uses server totals instead of the current page length', () => {
     render(<VaultGateDashboard />);
-    expect(screen.getAllByText('73')).toHaveLength(2);
-    expect(screen.getAllByText('54')).toHaveLength(2);
+    expect(screen.getByText('73')).toBeInTheDocument();
+    expect(screen.getByText('54')).toBeInTheDocument();
   });
 });

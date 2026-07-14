@@ -68,7 +68,7 @@ export function ConfirmDialog({
             disabled={isLoading}
             className={cn(
               variant === 'danger' &&
-                'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                'hover:bg-destructive/90 bg-destructive text-destructive-foreground'
             )}
           >
             {isLoading ? t('common.loading') : (confirmText ?? t('modal.confirm'))}

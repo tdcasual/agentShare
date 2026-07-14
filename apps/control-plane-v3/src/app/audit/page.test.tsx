@@ -52,11 +52,11 @@ describe('AuditPage', () => {
 
   it('displays table headers', () => {
     render(<AuditPage />);
-    expect(screen.getByText('audit.time')).toBeInTheDocument();
-    expect(screen.getByText('audit.token')).toBeInTheDocument();
-    expect(screen.getByText('audit.secret')).toBeInTheDocument();
-    expect(screen.getByText('audit.action')).toBeInTheDocument();
-    expect(screen.getByText('audit.status')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'audit.time' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'audit.actor' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'audit.resource' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'audit.action' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'audit.status' })).toBeInTheDocument();
   });
 
   it('displays stats section', () => {

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteGuard } from './route-guard';
 
@@ -102,11 +102,13 @@ describe('RouteGuard', () => {
       </RouteGuard>
     );
 
-    expect(await screen.findByRole('navigation', { name: 'navigation.label' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'navigation.dashboard' })).toHaveAttribute('href', '/');
-    expect(screen.getByRole('link', { name: 'navigation.secrets' })).toHaveAttribute(
-      'aria-current',
-      'page'
-    );
+    const desktopNavigation = await screen.findByRole('navigation', { name: 'navigation.label' });
+    expect(desktopNavigation).toBeInTheDocument();
+    expect(
+      within(desktopNavigation).getByRole('link', { name: 'navigation.dashboard' })
+    ).toHaveAttribute('href', '/');
+    expect(
+      within(desktopNavigation).getByRole('link', { name: 'navigation.secrets' })
+    ).toHaveAttribute('aria-current', 'page');
   });
 });

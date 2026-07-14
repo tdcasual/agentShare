@@ -66,16 +66,22 @@ def test_production_bootstrap_requires_matching_one_time_token(test_database_url
         }
         payload = {"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
         assert production_client.post("/api/admin/bootstrap/init", json=payload).status_code == 403
-        assert production_client.post(
-            "/api/admin/bootstrap/init",
-            json=payload,
-            headers={"X-Bootstrap-Token": "wrong-token"},
-        ).status_code == 403
-        assert production_client.post(
-            "/api/admin/bootstrap/init",
-            json=payload,
-            headers={"X-Bootstrap-Token": BOOTSTRAP_TOKEN},
-        ).status_code == 201
+        assert (
+            production_client.post(
+                "/api/admin/bootstrap/init",
+                json=payload,
+                headers={"X-Bootstrap-Token": "wrong-token"},
+            ).status_code
+            == 403
+        )
+        assert (
+            production_client.post(
+                "/api/admin/bootstrap/init",
+                json=payload,
+                headers={"X-Bootstrap-Token": BOOTSTRAP_TOKEN},
+            ).status_code
+            == 201
+        )
 
 
 def test_management_token_is_separate_from_agent_tokens(client: TestClient) -> None:
@@ -102,10 +108,13 @@ def test_management_token_is_separate_from_agent_tokens(client: TestClient) -> N
     assert rotated_token.startswith("vgm_")
     assert rotated_token != management_token
     assert machine.get("/api/admin/secrets").status_code == 401
-    assert client.get(
-        "/api/admin/secrets",
-        headers={"Authorization": f"Bearer {rotated_token}"},
-    ).status_code == 200
+    assert (
+        client.get(
+            "/api/admin/secrets",
+            headers={"Authorization": f"Bearer {rotated_token}"},
+        ).status_code
+        == 200
+    )
 
     assert client.delete(f"/api/admin/management-tokens/{created.json()['id']}").status_code == 204
     audit = client.get("/api/admin/audit-logs?limit=200")
@@ -135,6 +144,11 @@ def test_secret_agent_tokens_and_independent_grants(client: TestClient) -> None:
     assert listed.status_code == 200
     assert listed.json()["total"] == 2
     assert len(listed.json()["items"]) == 1
+
+    filtered = client.get("/api/admin/secrets?search=git&type=api_key")
+    assert filtered.status_code == 200
+    assert filtered.json()["total"] == 1
+    assert filtered.json()["items"][0]["name"] == "github"
 
     revealed = client.get(
         f"/api/admin/secrets/{secret_ids[0]}/value",
@@ -286,9 +300,7 @@ def test_rotation_renews_expired_tokens_using_their_original_ttl(client: TestCli
     import asyncio
 
     asyncio.run(expire_tokens())
-    rotated_management = client.post(
-        f"/api/admin/management-tokens/{management['id']}/rotate"
-    )
+    rotated_management = client.post(f"/api/admin/management-tokens/{management['id']}/rotate")
     rotated_agent = client.post(f"/api/admin/tokens/{agent_token['id']}/rotate")
 
     assert rotated_management.status_code == 200
@@ -298,9 +310,7 @@ def test_rotation_renews_expired_tokens_using_their_original_ttl(client: TestCli
     assert 55 <= (management_expiry - datetime.now(UTC)).total_seconds() <= 60
     assert 55 <= (agent_expiry - datetime.now(UTC)).total_seconds() <= 60
 
-    management_headers = {
-        "Authorization": f"Bearer {rotated_management.json()['token']}"
-    }
+    management_headers = {"Authorization": f"Bearer {rotated_management.json()['token']}"}
     agent_headers = {"Authorization": f"Bearer {rotated_agent.json()['token']}"}
     assert client.get("/api/admin/secrets", headers=management_headers).status_code == 200
     assert client.get("/api/vault/secrets", headers=agent_headers).status_code == 200

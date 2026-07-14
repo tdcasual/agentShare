@@ -68,7 +68,10 @@ export async function setAgentStatus(id: string, status: 'active' | 'disabled') 
   return agent;
 }
 
-export async function issueToken(agentId: string, input: { name: string; ttl_seconds?: number }) {
+export async function issueToken(
+  agentId: string,
+  input: { name: string; description?: string; ttl_seconds?: number }
+) {
   const token = await issueAgentToken(agentId, input);
   await mutate(
     (key) => typeof key === 'string' && key.startsWith(`${AGENTS_KEY}/${agentId}/tokens`)

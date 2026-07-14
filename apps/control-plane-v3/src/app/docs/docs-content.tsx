@@ -1,69 +1,147 @@
 'use client';
 
 import Link from 'next/link';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Check, Copy, ExternalLink } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
+import { Button } from '@/components/ui/button';
 
 export function DocsContent() {
   const { t } = useI18n();
+  const [origin, setOrigin] = useState('https://vaultgate.example.com');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => setOrigin(window.location.origin), []);
+
+  const command = `curl --fail-with-body \\\n  -H "Authorization: Bearer YOUR_TOKEN" \\\n  "${origin}/api/vault/secrets"`;
 
   return (
-    <main id="main-content" className="space-y-6 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t('docs.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('docs.subtitle')}</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
+    <main id="main-content" className="mx-auto w-full max-w-5xl space-y-9 p-4 sm:p-6 lg:p-8">
+      <header className="border-b pb-6">
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/">
+            <ArrowLeft />
             {t('common.backToHome')}
           </Link>
         </Button>
-      </div>
+        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          VaultGate Runtime API
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+          {t('docs.title')}
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('docs.subtitle')}</p>
+      </header>
 
-      {/* API Reference */}
-      <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-foreground">{t('docs.apiReference')}</h2>
-        <p className="mb-4 text-sm text-muted-foreground">{t('docs.apiReferenceDesc')}</p>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex items-center gap-2">
-            <code className="rounded bg-muted px-2 py-1 font-mono text-xs">GET /api/docs</code>
-            <span>— {t('docs.swagger')}</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <code className="rounded bg-muted px-2 py-1 font-mono text-xs">
-              GET /api/openapi.json
-            </code>
-            <span>— {t('docs.openapi')}</span>
-          </li>
-        </ul>
-      </Card>
-
-      {/* Quick Start */}
-      <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-foreground">{t('docs.quickStart')}</h2>
-        <div className="space-y-4 text-sm text-muted-foreground">
-          <ol className="list-inside list-decimal space-y-2">
-            <li>
-              <strong>{t('dashboard.title')}</strong> {t('docs.step1')}
-            </li>
-            <li>
-              <strong>{t('agents.title')}</strong> {t('docs.step2')}
-            </li>
-            <li>
-              {t('docs.step3')}
-              <pre className="mt-2 overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs text-foreground">
-                curl -H &quot;Authorization: Bearer YOUR_TOKEN&quot;
-                http://localhost:8000/api/vault/secrets
-              </pre>
-            </li>
-          </ol>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">{t('docs.quickStart')}</h2>
+        <ol className="divide-y border-y">
+          <DocStep
+            number="01"
+            title={t('docs.createSecretTitle')}
+            description={t('docs.step1')}
+            href="/secrets"
+          />
+          <DocStep
+            number="02"
+            title={t('docs.issueTokenTitle')}
+            description={t('docs.step2')}
+            href="/agents"
+          />
+          <DocStep number="03" title={t('docs.callApiTitle')} description={t('docs.step3')} />
+        </ol>
+        <div className="relative overflow-hidden rounded-lg border bg-foreground text-background">
+          <div className="border-background/20 text-background/70 flex items-center justify-between border-b px-4 py-2 text-xs">
+            <span>shell</span>
+            <button
+              type="button"
+              onClick={async () => {
+                await navigator.clipboard.writeText(command);
+                setCopied(true);
+              }}
+              className="hover:text-background/80 inline-flex min-h-11 items-center gap-2 px-2 text-background"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? t('common.copied') : t('common.copy')}
+            </button>
+          </div>
+          <pre className="overflow-x-auto p-4 text-sm leading-6">
+            <code>{command}</code>
+          </pre>
         </div>
-      </Card>
+      </section>
+
+      <section className="space-y-4 border-t pt-7">
+        <div>
+          <h2 className="text-lg font-semibold">{t('docs.apiReference')}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t('docs.apiReferenceDesc')}</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <a
+            href="/api/docs"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:bg-accent/50 group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3"
+          >
+            <div>
+              <p className="font-medium">{t('docs.swagger')}</p>
+              <p className="mt-1 text-xs text-muted-foreground">GET /api/docs</p>
+            </div>
+            <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+          </a>
+          <a
+            href="/api/openapi.json"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:bg-accent/50 group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3"
+          >
+            <div>
+              <p className="font-medium">{t('docs.openapi')}</p>
+              <p className="mt-1 text-xs text-muted-foreground">GET /api/openapi.json</p>
+            </div>
+            <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+          </a>
+        </div>
+      </section>
     </main>
+  );
+}
+
+function DocStep({
+  number,
+  title,
+  description,
+  href,
+}: {
+  number: string;
+  title: string;
+  description: string;
+  href?: string;
+}) {
+  const content = (
+    <>
+      <span className="text-xs font-semibold tabular-nums text-muted-foreground">{number}</span>
+      <div>
+        <h3 className="font-medium text-foreground">{title}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      </div>
+      {href && <ExternalLink className="ml-auto h-4 w-4 text-muted-foreground" />}
+    </>
+  );
+  return (
+    <li>
+      {href ? (
+        <Link
+          href={href}
+          className="hover:bg-accent/50 grid min-h-20 grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 px-2 py-4 sm:px-3"
+        >
+          {content}
+        </Link>
+      ) : (
+        <div className="grid min-h-20 grid-cols-[36px_minmax(0,1fr)] items-center gap-3 px-2 py-4 sm:px-3">
+          {content}
+        </div>
+      )}
+    </li>
   );
 }

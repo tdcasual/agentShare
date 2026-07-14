@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LockKeyhole, Mail } from 'lucide-react';
-import { login, type LoginInput } from '@/lib/vaultgate-api';
+import { ApiError, login, type LoginInput } from '@/lib/vaultgate-api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,10 +29,12 @@ export default function LoginPage() {
       router.push('/');
       router.refresh();
     } catch (submitError) {
-      if (submitError instanceof Error) {
-        setError(submitError.message);
-      } else {
+      if (submitError instanceof ApiError && submitError.status === 401) {
         setError(t('auth.login.failed'));
+      } else if (submitError instanceof ApiError && submitError.status === 0) {
+        setError(t('common.networkError'));
+      } else {
+        setError(t('common.serverError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -109,7 +111,7 @@ export default function LoginPage() {
               <div
                 role="alert"
                 aria-live="polite"
-                className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                className="border-destructive/20 bg-destructive/10 rounded-xl border px-4 py-3 text-sm text-destructive"
               >
                 {error}
               </div>
@@ -119,11 +121,6 @@ export default function LoginPage() {
               {t('auth.login.signIn')}
             </Button>
           </form>
-
-          {/* Footer info */}
-          <div className="text-center text-xs text-muted-foreground">
-            <p>{t('auth.login.pageTitle')}</p>
-          </div>
         </div>
       </Card>
     </main>

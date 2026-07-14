@@ -6,9 +6,17 @@ import LoginPage from './page';
 // Mock the API module
 vi.mock('@/lib/vaultgate-api', () => ({
   login: vi.fn(),
+  ApiError: class ApiError extends Error {
+    constructor(
+      public status: number,
+      public detail: string
+    ) {
+      super(detail);
+    }
+  },
 }));
 
-import { login } from '@/lib/vaultgate-api';
+import { ApiError, login } from '@/lib/vaultgate-api';
 
 const mockedLogin = vi.mocked(login);
 
@@ -46,7 +54,7 @@ describe('LoginPage', () => {
 
   it('displays error message on login failure', async () => {
     const user = userEvent.setup();
-    mockedLogin.mockRejectedValueOnce(new Error('Invalid credentials'));
+    mockedLogin.mockRejectedValueOnce(new ApiError(401, 'Invalid credentials'));
 
     render(<LoginPage />);
 
@@ -55,7 +63,7 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: /auth\.login\.signIn/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Invalid credentials');
+      expect(screen.getByRole('alert')).toHaveTextContent('auth.login.failed');
     });
   });
 });

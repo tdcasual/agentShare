@@ -64,10 +64,11 @@ export async function mockSession(page: Page) {
       '/api/admin/session': sessionSummary,
       '/api/admin/secrets': { items: [vaultgateSecret], total: 1 },
       '/api/admin/agents': { items: [vaultgateAgent], total: 1 },
-      '/api/admin/agents/agent-1': { ...vaultgateAgent, tokens: [vaultgateToken] },
+      '/api/admin/agents/agent-1': vaultgateAgent,
+      '/api/admin/agents/agent-1/tokens': { items: [vaultgateToken], total: 1 },
       '/api/admin/tokens/token-1/grants': { secret_ids: ['secret-1'] },
       '/api/admin/audit-logs': { items: [vaultgateAuditLog], total: 1 },
-      '/api/admin/audit-stats': { total: 1, denied: 0 },
+      '/api/admin/audit-stats': { total: 1, granted: 1, denied: 0, value_reads: 1 },
     };
     await fulfillJson(route, 200, responses[path] ?? { items: [] });
   });

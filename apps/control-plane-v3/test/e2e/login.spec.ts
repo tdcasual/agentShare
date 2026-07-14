@@ -64,7 +64,7 @@ test.describe('login page', () => {
     await page.getByRole('button', { name: '登录' }).click();
 
     // Error should be displayed in the status box
-    await expect(page.getByText('邮箱或密码错误')).toBeVisible();
+    await expect(page.getByText('登录失败，请检查凭据。')).toBeVisible();
 
     // Button should return to normal state (not loading)
     await expect(page.getByRole('button', { name: '登录' })).toBeEnabled();
@@ -85,7 +85,9 @@ test.describe('login page', () => {
     await page.getByRole('button', { name: '登录' }).click();
 
     // Error should appear in the status box and button should be re-enabled
-    await expect(page.getByText('Failed to fetch')).toBeVisible();
+    await expect(
+      page.getByText('无法连接到 VaultGate。请检查网络或服务状态后重试。')
+    ).toBeVisible();
     await expect(page.getByRole('button', { name: '登录' })).toBeEnabled();
   });
 

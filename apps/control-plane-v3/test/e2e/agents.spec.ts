@@ -9,6 +9,6 @@ test.describe('Agent management', () => {
     await expect(page.getByText('Deploy Agent')).toBeVisible();
     await page.getByText('Deploy Agent').click();
     await expect(page).toHaveURL(/agents\/agent-1/);
-    await expect(page.getByText('CI/CD Token')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'CI/CD Token' })).toBeVisible();
   });
 });

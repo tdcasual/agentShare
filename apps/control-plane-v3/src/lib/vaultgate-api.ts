@@ -59,6 +59,9 @@ async function requestJson<T>(
     if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError(0, 'Request timeout');
     }
+    if (error instanceof TypeError) {
+      throw new ApiError(0, 'Network request failed');
+    }
     throw error;
   } finally {
     signal?.removeEventListener('abort', abortRequest);
@@ -158,6 +161,11 @@ export interface PageQuery {
   offset?: number;
 }
 
+export type SecretQuery = PageQuery & {
+  search?: string;
+  type?: SecretType;
+};
+
 export interface PageResponse<T> {
   items: T[];
   total: number;
@@ -188,7 +196,7 @@ export const login = (input: LoginInput) =>
 export const logout = () => requestJson<void>('/api/admin/session', { method: 'DELETE' });
 export const getCurrentSession = () => requestJson<AdminSession>('/api/admin/session');
 
-export const listSecrets = (query: PageQuery = {}) =>
+export const listSecrets = (query: SecretQuery = {}) =>
   requestJson<PageResponse<Secret>>(buildApiPath('/api/admin/secrets', query));
 export const createSecret = (input: SecretCreateInput) =>
   requestJson<Secret>('/api/admin/secrets', { method: 'POST', body: JSON.stringify(input) });
@@ -236,15 +244,19 @@ export type AuditQuery = PageQuery & {
   action?: string;
   actor_type?: string;
   actor_id?: string;
+  actor_search?: string;
   resource_type?: string;
   resource_id?: string;
+  resource_search?: string;
   created_from?: string;
   created_to?: string;
 };
 
+export type AuditStatsQuery = Pick<AuditQuery, 'created_from' | 'created_to'>;
+
 export const listAuditLogs = (query: AuditQuery = {}) =>
   requestJson<PageResponse<AuditLog>>(buildApiPath('/api/admin/audit-logs', query));
-export const getAuditStats = () =>
+export const getAuditStats = (query: AuditStatsQuery = {}) =>
   requestJson<{ total: number; granted: number; denied: number; value_reads: number }>(
-    '/api/admin/audit-stats'
+    buildApiPath('/api/admin/audit-stats', query)
   );

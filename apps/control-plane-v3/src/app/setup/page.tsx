@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
 import { useI18n } from '@/components/i18n-provider';
-import { bootstrap, getBootstrapStatus } from '@/lib/vaultgate-api';
+import { ApiError, bootstrap, getBootstrapStatus } from '@/lib/vaultgate-api';
 
 export default function SetupPage() {
   const { t } = useI18n();
@@ -17,6 +17,8 @@ export default function SetupPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [checkRevision, setCheckRevision] = useState(0);
   const [bootstrapTokenRequired, setBootstrapTokenRequired] = useState(false);
   const [form, setForm] = useState({
     email: '',
@@ -29,6 +31,7 @@ export default function SetupPage() {
     let stale = false;
 
     async function checkStatus() {
+      setStatusError(null);
       try {
         const status = await getBootstrapStatus();
         if (!stale && !status.setup_required) {
@@ -37,7 +40,9 @@ export default function SetupPage() {
           setBootstrapTokenRequired(status.bootstrap_token_required);
         }
       } catch {
-        // Ignore errors and allow the user to attempt setup
+        if (!stale) {
+          setStatusError(t('setup.statusFailed'));
+        }
       } finally {
         if (!stale) {
           setIsChecking(false);
@@ -49,7 +54,7 @@ export default function SetupPage() {
     return () => {
       stale = true;
     };
-  }, [router]);
+  }, [checkRevision, router, t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,8 +75,8 @@ export default function SetupPage() {
       router.push('/login');
       router.refresh();
     } catch (submitError) {
-      if (submitError instanceof Error) {
-        setError(submitError.message);
+      if (submitError instanceof ApiError && submitError.status === 0) {
+        setError(t('common.networkError'));
       } else {
         setError(t('setup.failed'));
       }
@@ -87,6 +92,26 @@ export default function SetupPage() {
         className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
       >
         <p className="text-muted-foreground">{t('common.initializing')}</p>
+      </main>
+    );
+  }
+
+  if (statusError) {
+    return (
+      <main id="main-content" className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md p-8 text-center" role="alert">
+          <h1 className="text-xl font-semibold">{t('common.serviceUnavailable')}</h1>
+          <p className="mt-3 text-sm text-muted-foreground">{statusError}</p>
+          <Button
+            className="mt-6"
+            onClick={() => {
+              setIsChecking(true);
+              setCheckRevision((value) => value + 1);
+            }}
+          >
+            {t('common.retry')}
+          </Button>
+        </Card>
       </main>
     );
   }
@@ -202,7 +227,7 @@ export default function SetupPage() {
               <div
                 role="alert"
                 aria-live="polite"
-                className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                className="border-destructive/20 bg-destructive/10 rounded-xl border px-4 py-3 text-sm text-destructive"
               >
                 {error}
               </div>

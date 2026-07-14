@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_async_db
@@ -11,15 +11,14 @@ from app.modules.audit.service import add_admin_audit
 from app.modules.secrets.schemas import SecretCreate, SecretUpdate
 from app.modules.secrets.service import serialize_secret
 from app.orm import Secret
+from app.orm.secret import SecretType
 from app.services.encryption import get_encryption_service
 
 router = APIRouter(prefix="/api/admin/secrets", tags=["Admin Secrets"])
 
 
 async def _owned_secret(db: AsyncSession, user_id: str, secret_id: str) -> Secret:
-    result = await db.execute(
-        select(Secret).where(Secret.id == secret_id, Secret.user_id == user_id)
-    )
+    result = await db.execute(select(Secret).where(Secret.id == secret_id, Secret.user_id == user_id))
     secret = result.scalar_one_or_none()
     if secret is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found")
@@ -30,18 +29,32 @@ async def _owned_secret(db: AsyncSession, user_id: str, secret_id: str) -> Secre
 async def list_secrets(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    search: str | None = Query(default=None, min_length=1, max_length=255),
+    secret_type: str | None = Query(default=None, alias="type"),
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
-    total = await db.scalar(
-        select(func.count(Secret.id)).where(Secret.user_id == principal.user.id)
-    )
+    filters = [Secret.user_id == principal.user.id]
+    if search is not None:
+        normalized_search = search.strip()
+        if normalized_search:
+            pattern = f"%{normalized_search}%"
+            filters.append(
+                or_(
+                    Secret.name.ilike(pattern),
+                    Secret.url.ilike(pattern),
+                    Secret.username.ilike(pattern),
+                    Secret.description.ilike(pattern),
+                )
+            )
+    if secret_type is not None:
+        if secret_type not in SecretType.all_values():
+            raise HTTPException(status_code=422, detail="Invalid secret type")
+        filters.append(Secret.type == secret_type)
+
+    total = await db.scalar(select(func.count(Secret.id)).where(*filters))
     result = await db.scalars(
-        select(Secret)
-        .where(Secret.user_id == principal.user.id)
-        .order_by(Secret.created_at.desc(), Secret.id)
-        .limit(limit)
-        .offset(offset)
+        select(Secret).where(*filters).order_by(Secret.created_at.desc(), Secret.id).limit(limit).offset(offset)
     )
     return {
         "items": [serialize_secret(secret) for secret in result],

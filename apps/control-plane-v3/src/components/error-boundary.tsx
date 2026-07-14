@@ -58,7 +58,7 @@ function ErrorFallback({
 
         {/* 技术详情（开发环境显示） */}
         {process.env.NODE_ENV === 'development' && error?.stack && (
-          <pre className="mb-4 max-h-40 overflow-auto rounded-lg bg-destructive/10 p-3 text-left text-xs text-destructive">
+          <pre className="bg-destructive/10 mb-4 max-h-40 overflow-auto rounded-lg p-3 text-left text-xs text-destructive">
             {error.stack}
           </pre>
         )}

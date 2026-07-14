@@ -38,6 +38,8 @@ vi.mock('@/domains/secret', () => ({
     refresh: mockRefresh,
   })),
   createSecret: vi.fn(),
+  updateSecret: vi.fn(),
+  revealSecret: vi.fn(),
   deleteSecret: vi.fn(),
 }));
 
@@ -59,8 +61,8 @@ describe('SecretsPage', () => {
 
   it('displays secret type badges', () => {
     render(<SecretsPage />);
-    expect(screen.getByText('api_key')).toBeInTheDocument();
-    expect(screen.getByText('bearer_token')).toBeInTheDocument();
+    expect(screen.getByText('secrets.types.api_key')).toBeInTheDocument();
+    expect(screen.getByText('secrets.types.bearer_token')).toBeInTheDocument();
   });
 
   it('displays tags', () => {

@@ -12,11 +12,12 @@ import {
   listSecrets as apiListSecrets,
   createSecret as apiCreateSecret,
   updateSecret as apiUpdateSecret,
+  revealSecret as apiRevealSecret,
   deleteSecret as apiDeleteSecret,
   type Secret,
   type SecretCreateInput,
   type SecretUpdateInput,
-  type PageQuery,
+  type SecretQuery,
 } from '@/lib/vaultgate-api';
 
 // Cache key prefix
@@ -26,7 +27,7 @@ const SECRET_CACHE_KEY = '/api/admin/secrets';
 // Hooks
 // ============================================
 
-export function useSecrets(query: PageQuery = {}) {
+export function useSecrets(query: SecretQuery = {}) {
   const key = buildApiPath(SECRET_CACHE_KEY, query);
   const { data, error, isLoading, mutate } = useSWR(key, () => apiListSecrets(query));
 
@@ -56,6 +57,11 @@ export async function updateSecret(id: string, input: SecretUpdateInput): Promis
   mutate((key) => typeof key === 'string' && key.startsWith(SECRET_CACHE_KEY));
   mutate(`${SECRET_CACHE_KEY}/${id}`);
   return secret;
+}
+
+export async function revealSecret(id: string): Promise<string> {
+  const revealed = await apiRevealSecret(id);
+  return revealed.value;
 }
 
 export async function deleteSecret(id: string): Promise<void> {
