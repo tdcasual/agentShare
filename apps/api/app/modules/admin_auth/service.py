@@ -11,6 +11,7 @@ from fastapi import HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.maintenance import should_update_last_used
 from app.orm import AdminSession, ManagementToken, User
 
 
@@ -34,6 +35,21 @@ def expires_from_ttl(ttl_seconds: int | None) -> datetime | None:
     if ttl_seconds is None:
         return None
     return datetime.now(UTC) + timedelta(seconds=ttl_seconds)
+
+
+def renew_expiration(
+    created_at: datetime,
+    expires_at: datetime | None,
+    now: datetime | None = None,
+) -> datetime | None:
+    if expires_at is None:
+        return None
+
+    def as_utc(value: datetime) -> datetime:
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+
+    ttl = as_utc(expires_at) - as_utc(created_at)
+    return as_utc(now or datetime.now(UTC)) + ttl
 
 
 async def authenticate_password(db: AsyncSession, email: str, password: str) -> User | None:
@@ -64,8 +80,14 @@ async def resolve_admin_principal(request: Request, db: AsyncSession) -> AdminPr
         user = await db.get(User, token.user_id)
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid management token")
-        token.last_used_at = datetime.now(UTC)
-        await db.commit()
+        now = datetime.now(UTC)
+        if should_update_last_used(
+            token.last_used_at,
+            now,
+            request.app.state.settings.last_used_write_interval_seconds,
+        ):
+            token.last_used_at = now
+            await db.commit()
         return AdminPrincipal(user=user, auth_type="management_token", credential_id=token.id)
 
     settings = request.app.state.settings
@@ -81,6 +103,12 @@ async def resolve_admin_principal(request: Request, db: AsyncSession) -> AdminPr
     user = await db.get(User, session.user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
-    session.last_used_at = datetime.now(UTC)
-    await db.commit()
+    now = datetime.now(UTC)
+    if should_update_last_used(
+        session.last_used_at,
+        now,
+        settings.last_used_write_interval_seconds,
+    ):
+        session.last_used_at = now
+        await db.commit()
     return AdminPrincipal(user=user, auth_type="session", credential_id=session.id)

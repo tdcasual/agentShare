@@ -18,6 +18,7 @@ const FORWARD_REQUEST_HEADERS = [
   'x-request-id',
   'cookie',
   'authorization',
+  'x-bootstrap-token',
   'origin',
   'referer',
 ];

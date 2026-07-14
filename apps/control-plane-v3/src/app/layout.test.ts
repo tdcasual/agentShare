@@ -42,6 +42,16 @@ describe('root layout localization', () => {
     expect(source).not.toContain('<main id="main-content">{children}</main>');
   });
 
+  it('renders the skip link before the guarded navigation shell', async () => {
+    const source = await readLayoutSource();
+    const skipLinkPosition = source.indexOf('href="#main-content"');
+    const routeGuardPosition = source.indexOf('<RouteGuardWrapper>');
+
+    expect(skipLinkPosition).toBeGreaterThan(-1);
+    expect(routeGuardPosition).toBeGreaterThan(-1);
+    expect(skipLinkPosition).toBeLessThan(routeGuardPosition);
+  });
+
   it('allows Next hydration scripts while restricting scripts to this origin', async () => {
     const source = await readNextConfigSource();
 

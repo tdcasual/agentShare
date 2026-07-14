@@ -114,7 +114,8 @@ def test_docker_workflow_builds_all_images_with_ghcr() -> None:
     assert "apps/caddy/Dockerfile" in workflow
     assert "apps/postgres/Dockerfile" in workflow
     assert "apps/control-plane-v3/Dockerfile" in workflow
-    assert "push: ${{ github.event_name != 'pull_request' }}" in workflow
+    assert "Push scanned image" in workflow
+    assert "if: github.event_name != 'pull_request'" in workflow
     assert "docker/metadata-action" in workflow
 
 
@@ -126,9 +127,11 @@ def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
     assert 'workflows: ["Docker Images"]' not in workflow
     assert "appleboy/scp-action" in workflow
     assert "appleboy/ssh-action" in workflow
-    assert "docker compose --env-file .env.production -f docker-compose.prod.yml config" in workflow
-    assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in workflow
-    assert "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans" in workflow
+    compose = "docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml"
+    assert f"{compose} config" in workflow
+    assert f"{compose} pull" in workflow
+    resolved_compose = "docker compose --env-file .env.production --env-file .resolved-release.env -f docker-compose.prod.yml"
+    assert f"{resolved_compose} up -d --remove-orphans" in workflow
     assert ".env.production" in workflow
     assert "DEPLOY_ENV_FILE" in workflow
     assert "smoke-test.sh" in workflow
@@ -161,10 +164,14 @@ def test_production_env_template_includes_runtime_placeholders() -> None:
     assert "BOOTSTRAP_TOKEN=" in env_example
     assert "SESSION_SECRET=" not in env_example
     assert "NEXT_PUBLIC_API_BASE_URL=" not in env_example
-    assert "API_IMAGE=" in env_example
-    assert "CADDY_IMAGE=" in env_example
-    assert "POSTGRES_IMAGE=" in env_example
-    assert "WEB_IMAGE=" in env_example
+    assert "API_IMAGE=" not in env_example
+    assert "CADDY_IMAGE=" not in env_example
+    assert "POSTGRES_IMAGE=" not in env_example
+    assert "WEB_IMAGE=" not in env_example
+    assert "APP_ENV=" not in env_example
+    assert "SESSION_SECURE=" not in env_example
+    assert "HSTS_MAX_AGE=" not in env_example
+    assert "CSP_REPORT_ONLY=" not in env_example
     assert "APP_BASE_URL=" in env_example
 
 

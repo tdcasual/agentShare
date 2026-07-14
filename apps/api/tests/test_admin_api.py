@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
@@ -171,7 +172,16 @@ def test_secret_agent_tokens_and_independent_grants(client: TestClient) -> None:
 
     details = client.get(f"/api/admin/agents/{agent_id}")
     assert details.status_code == 200
-    assert {token["name"] for token in details.json()["tokens"]} == {"primary", "fallback"}
+    assert "tokens" not in details.json()
+    tokens_page = client.get(f"/api/admin/agents/{agent_id}/tokens?limit=1&offset=0")
+    assert tokens_page.status_code == 200
+    assert tokens_page.json()["total"] == 2
+    assert len(tokens_page.json()["items"]) == 1
+    assert {
+        "agent_id",
+        "description",
+        "created_at",
+    } <= tokens_page.json()["items"][0].keys()
 
     updated = client.patch(f"/api/admin/secrets/{secret_ids[0]}", json={"description": "updated"})
     assert updated.status_code == 200
@@ -193,7 +203,7 @@ def test_secret_agent_tokens_and_independent_grants(client: TestClient) -> None:
         "secret.update",
         "secret.delete",
         "agent.create",
-        "agent.update",
+        "agent.disable",
         "agent_token.issue",
         "agent_token.revoke",
         "token_grants.replace",
@@ -204,7 +214,96 @@ def test_secret_agent_tokens_and_independent_grants(client: TestClient) -> None:
     stats = client.get("/api/admin/audit-stats")
     assert stats.status_code == 200
     assert stats.json()["value_reads"] == 1
+    assert stats.json()["granted"] == 0
     assert stats.json()["total"] >= len(actions)
+
+
+def test_admin_mutations_reject_invalid_types_and_null_required_fields(
+    client: TestClient,
+) -> None:
+    bootstrap_and_login(client)
+
+    invalid_secret = client.post(
+        "/api/admin/secrets",
+        json={"name": "invalid", "type": "not-a-secret-type", "value": "secret"},
+    )
+    assert invalid_secret.status_code == 422
+
+    secret = client.post(
+        "/api/admin/secrets",
+        json={"name": "database", "type": "password", "value": "secret"},
+    ).json()
+    for field in ("name", "type", "value", "tags", "metadata"):
+        response = client.patch(f"/api/admin/secrets/{secret['id']}", json={field: None})
+        assert response.status_code == 422, field
+
+    cleared_description = client.patch(
+        f"/api/admin/secrets/{secret['id']}",
+        json={"description": None},
+    )
+    assert cleared_description.status_code == 200
+    assert cleared_description.json()["description"] is None
+
+    agent = client.post("/api/admin/agents", json={"name": "runtime"}).json()
+    for field in ("name", "status"):
+        response = client.patch(f"/api/admin/agents/{agent['id']}", json={field: None})
+        assert response.status_code == 422, field
+
+
+def test_rotation_renews_expired_tokens_using_their_original_ttl(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    management = client.post(
+        "/api/admin/management-tokens",
+        json={"name": "automation", "ttl_seconds": 60},
+    ).json()
+    agent = client.post("/api/admin/agents", json={"name": "runtime"}).json()
+    agent_token = client.post(
+        f"/api/admin/agents/{agent['id']}/tokens",
+        json={"name": "primary", "ttl_seconds": 60},
+    ).json()
+
+    from sqlalchemy import update
+
+    from app.orm import AgentToken, ManagementToken
+
+    expired_at = datetime(2025, 1, 1, tzinfo=UTC)
+    created_at = datetime(2024, 12, 31, 23, 59, tzinfo=UTC)
+
+    async def expire_tokens() -> None:
+        async with client.app.state.runtime.session_factory() as db:
+            await db.execute(
+                update(ManagementToken)
+                .where(ManagementToken.id == management["id"])
+                .values(created_at=created_at, expires_at=expired_at)
+            )
+            await db.execute(
+                update(AgentToken)
+                .where(AgentToken.id == agent_token["id"])
+                .values(created_at=created_at, expires_at=expired_at)
+            )
+            await db.commit()
+
+    import asyncio
+
+    asyncio.run(expire_tokens())
+    rotated_management = client.post(
+        f"/api/admin/management-tokens/{management['id']}/rotate"
+    )
+    rotated_agent = client.post(f"/api/admin/tokens/{agent_token['id']}/rotate")
+
+    assert rotated_management.status_code == 200
+    assert rotated_agent.status_code == 200
+    management_expiry = datetime.fromisoformat(rotated_management.json()["expires_at"])
+    agent_expiry = datetime.fromisoformat(rotated_agent.json()["expires_at"])
+    assert 55 <= (management_expiry - datetime.now(UTC)).total_seconds() <= 60
+    assert 55 <= (agent_expiry - datetime.now(UTC)).total_seconds() <= 60
+
+    management_headers = {
+        "Authorization": f"Bearer {rotated_management.json()['token']}"
+    }
+    agent_headers = {"Authorization": f"Bearer {rotated_agent.json()['token']}"}
+    assert client.get("/api/admin/secrets", headers=management_headers).status_code == 200
+    assert client.get("/api/vault/secrets", headers=agent_headers).status_code == 200
 
 
 def test_admin_reveal_audit_failure_does_not_return_plaintext(client: TestClient) -> None:

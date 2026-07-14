@@ -12,6 +12,7 @@ from app.modules.admin_auth.service import (
     AdminPrincipal,
     expires_from_ttl,
     generate_credential,
+    renew_expiration,
 )
 from app.modules.agents.routes import owned_agent
 from app.modules.audit.service import add_admin_audit
@@ -83,6 +84,7 @@ async def rotate_token(
 ) -> dict:
     token = await owned_token(db, principal.user.id, token_id)
     raw_value, token.key_hash, token.key_prefix = generate_credential("vg_")
+    token.expires_at = renew_expiration(token.created_at, token.expires_at)
     token.status = AgentTokenStatus.ACTIVE
     token.revoked_at = None
     add_admin_audit(

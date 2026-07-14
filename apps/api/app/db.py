@@ -51,6 +51,7 @@ def _build_alembic_config(database_url: str) -> Config:
     config.set_main_option("script_location", str(alembic_root / "alembic"))
     config.set_main_option("prepend_sys_path", str(alembic_root))
     config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
+    config.attributes["database_url_explicit"] = True
     return config
 
 

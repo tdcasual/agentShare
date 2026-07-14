@@ -101,11 +101,11 @@ export default function VaultGateDashboard() {
                 {t('dashboard.healthCheck')}
               </li>
               <li>
-                <code className="font-mono text-xs">GET /docs</code> —{' '}
+                <code className="font-mono text-xs">GET /api/docs</code> —{' '}
                 {t('dashboard.apiDocumentation')}
               </li>
               <li>
-                <code className="font-mono text-xs">GET /openapi.json</code> —{' '}
+                <code className="font-mono text-xs">GET /api/openapi.json</code> —{' '}
                 {t('dashboard.openapiSchema')}
               </li>
             </ul>

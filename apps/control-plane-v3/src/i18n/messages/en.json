@@ -87,52 +87,6 @@
     "confirm": "Confirm",
     "defaultConfirmMessage": "Are you sure you want to proceed with this action?"
   },
-  "navigation": {
-    "tokens": "Remote Access",
-    "docs": "Docs",
-    "dashboard": "Dashboard",
-    "secrets": "Secrets",
-    "audit": "Audit"
-  },
-  "tokens": {
-    "title": "Access Tokens",
-    "description": "Manage tokens for agent access to your secrets",
-    "newToken": "New Token",
-    "loading": "Loading tokens...",
-    "loadFailed": "Failed to load tokens",
-    "emptyTitle": "No tokens yet",
-    "emptyDesc": "Create a token to grant agents access to your secrets",
-    "about": "About Access Tokens",
-    "aboutDesc": "Tokens allow agents to access secrets within their configured scopes. Each token is shown only once at creation time.",
-    "revokeConfirm": "Revoke token \"{name}\"? This action cannot be undone.",
-    "revokeFailed": "Failed to revoke token",
-    "copied": "Copied",
-    "copy": "Copy",
-    "scopes": "Scopes",
-    "revoke": "Revoke",
-    "apiUsage": "API Usage",
-    "expires": "Expires",
-    "never": "Never",
-    "lastUsed": "Last used",
-    "active": "Active",
-    "revoked": "Revoked",
-    "expired": "Expired",
-    "createForm": {
-      "title": "New Token",
-      "name": "Token name",
-      "namePlaceholder": "e.g. CI Deploy Token",
-      "expiration": "Expiration",
-      "never": "Never",
-      "days": "{count} days",
-      "saveFailed": "Failed to create token"
-    },
-    "created": {
-      "title": "Token Created",
-      "warning": "Copy this token now — it will not be shown again.",
-      "copyToken": "Copy Token",
-      "done": "Done"
-    }
-  },
   "errorBoundary": {
     "title": "Something went wrong",
     "contactSupport": "If the issue persists, please contact technical support"
@@ -192,6 +146,9 @@
     "notFound": "Agent not found",
     "disable": "Disable Agent",
     "enable": "Enable Agent",
+    "disableConfirmTitle": "Disable Agent?",
+    "disableConfirmMessage": "Disable {name}? Its tokens will immediately lose access.",
+    "confirmDisable": "Disable Agent",
     "tokenName": "Token name",
     "issueToken": "Issue Token",
     "tokens": "Agent Tokens",
@@ -199,6 +156,12 @@
     "copyNow": "Copy this token now. It will not be shown again.",
     "rotate": "Rotate",
     "revoke": "Revoke",
+    "rotateConfirmTitle": "Rotate Token?",
+    "rotateConfirmMessage": "Rotate {name}? The current token will stop working immediately.",
+    "revokeConfirmTitle": "Revoke Token?",
+    "revokeConfirmMessage": "Revoke {name}? This action cannot be undone without rotating it.",
+    "confirmRotate": "Rotate Token",
+    "confirmRevoke": "Revoke Token",
     "secretAccess": "Allowed Secrets",
     "saveAccess": "Save access",
     "actionFailed": "The action failed. Please try again.",
@@ -214,7 +177,7 @@
     "openapi": "OpenAPI schema",
     "quickStart": "Quick Start",
     "step1": "Open the Dashboard to create Secrets.",
-    "step2": "Go to the Tokens page to create an access token and grant scopes.",
+    "step2": "Open an Agent to issue a token and choose its allowed Secrets.",
     "step3": "Use the token with Bearer auth to call the Runtime API:"
   },
   "secrets": {

@@ -74,4 +74,17 @@ describe('vaultgate-api', () => {
     );
     expect(fetchMock.mock.calls[4]?.[1]).toMatchObject({ method: 'PUT' });
   });
+
+  it('normalizes non-JSON API failures into ApiError', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('upstream unavailable', { status: 502 }))
+    );
+
+    await expect(getBootstrapStatus()).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 502,
+      detail: 'upstream unavailable',
+    });
+  });
 });

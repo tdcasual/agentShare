@@ -70,16 +70,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           <I18nProvider initialLocale={locale}>
             <ErrorBoundary>
-              <RouteGuardWrapper>
-                <a
-                  href="#main-content"
-                  className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
-                >
-                  {skipLinkLabel}
-                </a>
-                {children}
-                <Toaster richColors position="top-right" />
-              </RouteGuardWrapper>
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+              >
+                {skipLinkLabel}
+              </a>
+              <RouteGuardWrapper>{children}</RouteGuardWrapper>
+              <Toaster richColors position="top-right" />
             </ErrorBoundary>
           </I18nProvider>
         </ThemeProvider>

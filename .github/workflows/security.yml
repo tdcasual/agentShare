@@ -4,14 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1"
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/**'
-      - 'Dockerfile'
-      - 'docker-compose*.yml'
-
 permissions:
   contents: read
   packages: read

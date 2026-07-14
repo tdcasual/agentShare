@@ -17,11 +17,12 @@ export function DocsContent() {
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t('docs.title')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{t('docs.subtitle')}</p>
         </div>
-        <Link href="/">
-          <Button variant="outline" size="sm" leftIcon={<ArrowLeft className="h-4 w-4" />}>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
             {t('common.backToHome')}
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       {/* API Reference */}
@@ -30,11 +31,13 @@ export function DocsContent() {
         <p className="mb-4 text-sm text-muted-foreground">{t('docs.apiReferenceDesc')}</p>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-center gap-2">
-            <code className="rounded bg-muted px-2 py-1 font-mono text-xs">GET /docs</code>
+            <code className="rounded bg-muted px-2 py-1 font-mono text-xs">GET /api/docs</code>
             <span>— {t('docs.swagger')}</span>
           </li>
           <li className="flex items-center gap-2">
-            <code className="rounded bg-muted px-2 py-1 font-mono text-xs">GET /openapi.json</code>
+            <code className="rounded bg-muted px-2 py-1 font-mono text-xs">
+              GET /api/openapi.json
+            </code>
             <span>— {t('docs.openapi')}</span>
           </li>
         </ul>
@@ -49,7 +52,7 @@ export function DocsContent() {
               <strong>{t('dashboard.title')}</strong> {t('docs.step1')}
             </li>
             <li>
-              <strong>{t('tokens.title')}</strong> {t('docs.step2')}
+              <strong>{t('agents.title')}</strong> {t('docs.step2')}
             </li>
             <li>
               {t('docs.step3')}

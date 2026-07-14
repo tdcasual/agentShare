@@ -11,10 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
-        // aliases retained so legacy call sites (variant="primary"/"danger") migrate by import path only
-        primary: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
         destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-        danger: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
         secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
@@ -23,7 +20,7 @@ const buttonVariants = cva(
       },
       size: {
         default: 'min-h-[44px] px-4 py-2',
-        sm: 'min-h-[40px] rounded-md px-3 text-xs',
+        sm: 'min-h-[44px] rounded-md px-3 text-xs',
         lg: 'min-h-[48px] rounded-md px-8',
         icon: 'h-10 w-10 min-h-[44px] min-w-[44px]',
       },

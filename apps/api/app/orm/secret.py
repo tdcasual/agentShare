@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from .user import User
 
 
-class SecretType:
+class SecretType(StrEnum):
     """Secret type constants."""
 
     PASSWORD = "password"
@@ -34,18 +35,7 @@ class SecretType:
 
     @classmethod
     def all_values(cls) -> list[str]:
-        return [
-            cls.PASSWORD,
-            cls.API_KEY,
-            cls.BASIC_AUTH,
-            cls.BEARER_TOKEN,
-            cls.API_KEY_HEADER,
-            cls.OAUTH_TOKEN,
-            cls.CERTIFICATE,
-            cls.SSH_KEY,
-            cls.DATABASE_URL,
-            cls.CUSTOM,
-        ]
+        return [secret_type.value for secret_type in cls]
 
 
 class Secret(Base):

@@ -30,7 +30,8 @@ Production startup fails when the default encryption key or insecure cookies are
 
 ## Security verification
 
-- `.github/workflows/security.yml` runs Trivy against the published API, web, Caddy, and PostgreSQL images on a weekly schedule, on relevant `main` changes, and on manual dispatch.
+- `.github/workflows/docker-images.yml` builds each commit image once, scans that exact local artifact with Trivy, and only pushes it after the scan passes.
+- `.github/workflows/security.yml` independently rescans the published API, web, Caddy, and PostgreSQL `latest` images on a weekly schedule or manual dispatch.
 - Trivy fails the workflow when a published image contains a fixed Critical or High vulnerability.
 - The PostgreSQL image preserves the official PostgreSQL 16 runtime and entrypoint while rebuilding its `gosu` helper with the patched Go toolchain declared in `apps/postgres/Dockerfile`.
 - Caddy adds security headers including HSTS, `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` at the public boundary.

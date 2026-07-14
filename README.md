@@ -46,7 +46,7 @@ docker compose up -d --build
 ```
 
 - Web UI: `http://127.0.0.1:3000`
-- API documentation: `http://127.0.0.1:8000/docs`
+- API documentation: `http://127.0.0.1:8000/api/docs`
 - Readiness: `http://127.0.0.1:8000/readyz`
 
 The first browser visit redirects to setup. Create the administrator, then create Secrets and Agents through the UI.

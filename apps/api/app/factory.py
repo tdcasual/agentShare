@@ -17,6 +17,7 @@ from sqlalchemy.engine import make_url
 
 from app import db as db_module
 from app.config import Settings
+from app.maintenance import cleanup_expired_records
 from app.observability import build_request_log_event
 from app.routes import register_routes
 from app.runtime import AppRuntime, build_runtime
@@ -145,7 +146,7 @@ def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
         allow_origins=allowed_origins,
         allow_credentials=settings.cors_allow_credentials,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
+        allow_headers=["Content-Type", "Authorization", "X-Request-ID", "X-Bootstrap-Token"],
         max_age=600,
     )
 
@@ -153,7 +154,7 @@ def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
 # Methods that change server state and require Origin validation
 _CSRF_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 # Paths that accept requests without cookies (machine-to-machine) and skip CSRF
-_CSRF_EXEMPT_PREFIXES = ("/healthz", "/version", "/docs", "/openapi.json", "/redoc")
+_CSRF_EXEMPT_PREFIXES = ("/healthz", "/version", "/api/docs", "/api/openapi.json")
 
 
 def add_csrf_middleware(app: FastAPI, settings: Settings) -> None:
@@ -267,12 +268,15 @@ def create_app(
         if _uses_embedded_sqlite(settings.database_url):
             db_module.migrate_db(settings.database_url)
 
+        runtime_obj: AppRuntime = app_instance.state.runtime
+        async with runtime_obj.session_factory() as maintenance_db:
+            await cleanup_expired_records(maintenance_db, settings)
+
         yield
 
         # Graceful shutdown: dispose engines and release connections
         startup_logger.info("VaultGate shutting down — disposing database engines")
         try:
-            runtime_obj: AppRuntime = app_instance.state.runtime
             await runtime_obj.dispose()
         except Exception:
             startup_logger.exception("Error disposing async runtime during shutdown")
@@ -280,6 +284,9 @@ def create_app(
 
     app = FastAPI(
         title="VaultGate",
+        docs_url="/api/docs",
+        openapi_url="/api/openapi.json",
+        redoc_url=None,
         description=(
             "极简易密钥保管与Token签发服务。"
             "存储账号、密码、API密钥等敏感信息，签发和管理访问Token。"

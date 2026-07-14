@@ -7,6 +7,7 @@ from fastapi import HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.maintenance import should_update_last_used
 from app.modules.admin_auth.service import hash_credential
 from app.orm import Agent, AgentStatus, AgentToken, Secret, TokenSecretGrant
 
@@ -32,8 +33,14 @@ async def resolve_agent_principal(request: Request, db: AsyncSession) -> AgentPr
     agent = await db.get(Agent, token.agent_id)
     if agent is None or agent.status != AgentStatus.ACTIVE:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Agent is disabled")
-    token.last_used_at = datetime.now(UTC)
-    await db.commit()
+    now = datetime.now(UTC)
+    if should_update_last_used(
+        token.last_used_at,
+        now,
+        request.app.state.settings.last_used_write_interval_seconds,
+    ):
+        token.last_used_at = now
+        await db.commit()
     return AgentPrincipal(token=token, agent=agent)
 
 

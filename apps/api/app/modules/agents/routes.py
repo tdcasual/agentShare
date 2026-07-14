@@ -11,6 +11,7 @@ from app.modules.admin_auth.service import AdminPrincipal
 from app.modules.agents.schemas import AgentCreate, AgentUpdate
 from app.modules.agents.service import serialize_agent
 from app.modules.audit.service import add_admin_audit
+from app.modules.tokens.service import serialize_token
 from app.orm import Agent, AgentStatus, AgentToken
 
 router = APIRouter(prefix="/api/admin/agents", tags=["Admin Agents"])
@@ -88,24 +89,34 @@ async def get_agent(
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
     agent = await owned_agent(db, principal.user.id, agent_id)
+    return serialize_agent(agent)
+
+
+@router.get("/{agent_id}/tokens")
+async def list_agent_tokens(
+    agent_id: str,
+    limit: int = Query(default=25, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    agent = await owned_agent(db, principal.user.id, agent_id)
+    total = await db.scalar(
+        select(func.count(AgentToken.id)).where(AgentToken.agent_id == agent.id)
+    )
     tokens = await db.scalars(
         select(AgentToken)
         .where(AgentToken.agent_id == agent.id)
         .order_by(AgentToken.created_at.desc(), AgentToken.id)
+        .limit(limit)
+        .offset(offset)
     )
-    payload = serialize_agent(agent)
-    payload["tokens"] = [
-        {
-            "id": token.id,
-            "name": token.name,
-            "key_prefix": token.key_prefix,
-            "status": token.status,
-            "expires_at": token.expires_at.isoformat() if token.expires_at else None,
-            "last_used_at": token.last_used_at.isoformat() if token.last_used_at else None,
-        }
-        for token in tokens
-    ]
-    return payload
+    return {
+        "items": [serialize_token(token) for token in tokens],
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.patch("/{agent_id}")
@@ -117,14 +128,19 @@ async def update_agent(
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
     agent = await owned_agent(db, principal.user.id, agent_id)
-    for field, value in body.model_dump(exclude_unset=True).items():
+    changes = body.model_dump(exclude_unset=True)
+    old_status = agent.status
+    for field, value in changes.items():
         setattr(agent, field, value)
+    action = "agent.update"
+    if agent.status != old_status:
+        action = "agent.disable" if agent.status == AgentStatus.DISABLED else "agent.enable"
     try:
         add_admin_audit(
             db,
             request,
             principal,
-            action="agent.update",
+            action=action,
             resource_type="agent",
             resource_id=agent.id,
             resource_label=agent.name,
@@ -135,24 +151,3 @@ async def update_agent(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Agent name already exists") from exc
     await db.refresh(agent)
     return serialize_agent(agent)
-
-
-@router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def disable_agent(
-    agent_id: str,
-    request: Request,
-    principal: AdminPrincipal = Depends(get_admin_principal),
-    db: AsyncSession = Depends(get_async_db),
-) -> None:
-    agent = await owned_agent(db, principal.user.id, agent_id)
-    agent.status = AgentStatus.DISABLED
-    add_admin_audit(
-        db,
-        request,
-        principal,
-        action="agent.disable",
-        resource_type="agent",
-        resource_id=agent.id,
-        resource_label=agent.name,
-    )
-    await db.commit()

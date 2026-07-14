@@ -31,9 +31,15 @@ jobs:
       - name: Compute deployment variables
         id: vars
         shell: bash
+        env:
+          INPUT_IMAGE_TAG: ${{ github.event.inputs.image_tag }}
         run: |
+          if [[ ! "$INPUT_IMAGE_TAG" =~ ^sha-[0-9a-f]{7,40}$ ]]; then
+            echo "image_tag must be an immutable sha-* tag produced by the image workflow." >&2
+            exit 1
+          fi
           echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
-          echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=$INPUT_IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Prepare release image env
         shell: bash
@@ -85,22 +91,52 @@ jobs:
 
             printf '%s\n' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
-            set -a
-            . ./.env.production
-            . ./.release.env
-            set +a
-
-            docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null
+            docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml config >/dev/null
             chmod +x scripts/ops/backup-postgres.sh scripts/ops/restore-postgres.sh scripts/ops/smoke-test.sh
-            if docker compose --env-file .env.production -f docker-compose.prod.yml ps --status running postgres | grep -q postgres; then
+
+            ROLLBACK_AVAILABLE=false
+            : > .rollback.env
+            if [ "$(docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml ps --services --status running | wc -l)" -eq 4 ]; then
+              for service in api caddy postgres web; do
+                container_id="$(docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml ps -q "$service")"
+                image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+                variable_name="$(printf '%s_IMAGE' "$service" | tr '[:lower:]' '[:upper:]')"
+                printf '%s=%s\n' "$variable_name" "$image_id" >> .rollback.env
+              done
+              ROLLBACK_AVAILABLE=true
+            fi
+
+            if docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml ps --status running postgres | grep -q postgres; then
               echo "Creating pre-migration PostgreSQL backup..."
               ./scripts/ops/backup-postgres.sh
             else
               echo "No running PostgreSQL service; treating this as a fresh deployment."
             fi
-            docker compose --env-file .env.production -f docker-compose.prod.yml pull
-            docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml pull
+
+            : > .resolved-release.env
+            for variable_name in API_IMAGE CADDY_IMAGE POSTGRES_IMAGE WEB_IMAGE; do
+              image_reference="$(sed -n "s/^${variable_name}=//p" .release.env)"
+              image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_reference")"
+              case "$image_digest" in
+                *@sha256:*) ;;
+                *) echo "Unable to resolve immutable digest for $image_reference" >&2; exit 1 ;;
+              esac
+              printf '%s=%s\n' "$variable_name" "$image_digest" >> .resolved-release.env
+            done
+
+            docker compose --env-file .env.production --env-file .resolved-release.env -f docker-compose.prod.yml up -d --remove-orphans
 
             echo "Running smoke checks through caddy (/healthz, /readyz, x-request-id)..."
-            ./scripts/ops/smoke-test.sh
+            if ! ./scripts/ops/smoke-test.sh; then
+              if [ "$ROLLBACK_AVAILABLE" = true ]; then
+                echo "Smoke checks failed; restoring previous images."
+                docker compose --env-file .env.production --env-file .rollback.env -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+                ./scripts/ops/smoke-test.sh || echo "Warning: rollback stack smoke checks also failed." >&2
+                echo "Deployment failed and the previous stack was restored." >&2
+              else
+                echo "Deployment failed and no previous stack was available for rollback." >&2
+              fi
+              exit 1
+            fi
             docker image prune -f

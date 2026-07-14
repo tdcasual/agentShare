@@ -94,3 +94,23 @@ def test_is_production_like():
         bootstrap_token="bootstrap-token-with-at-least-32-bytes",
     ).is_production_like()
     assert not Settings(app_env="development").is_production_like()
+
+
+def test_trusted_proxy_configuration_accepts_cidrs_and_rejects_invalid_values():
+    settings = Settings(
+        app_env="development",
+        trusted_proxy_cidrs="172.30.0.0/24,2001:db8::/32",
+    )
+    assert settings.trusted_proxy_cidrs == "172.30.0.0/24,2001:db8::/32"
+
+    with pytest.raises(ValueError, match="TRUSTED_PROXY_CIDRS"):
+        Settings(app_env="development", trusted_proxy_cidrs="not-a-network")
+
+
+def test_data_lifecycle_settings_reject_invalid_values():
+    with pytest.raises(ValueError):
+        Settings(app_env="development", last_used_write_interval_seconds=-1)
+    with pytest.raises(ValueError):
+        Settings(app_env="development", credential_retention_days=-1)
+    with pytest.raises(ValueError):
+        Settings(app_env="development", audit_retention_days=0)

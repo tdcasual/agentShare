@@ -1,16 +1,10 @@
 'use client';
 
 import useSWR from 'swr';
-import { getAuditStats, listAuditLogs } from '@/lib/vaultgate-api';
+import { buildApiPath, getAuditStats, listAuditLogs, type AuditQuery } from '@/lib/vaultgate-api';
 
-export function useAuditLogs(
-  query: { result?: string; action?: string; limit?: number; offset?: number } = {}
-) {
-  const key = `/api/admin/audit-logs?${new URLSearchParams(
-    Object.entries(query).flatMap(([name, value]) =>
-      value === undefined ? [] : [[name, String(value)]]
-    )
-  )}`;
+export function useAuditLogs(query: AuditQuery = {}) {
+  const key = buildApiPath('/api/admin/audit-logs', query);
   const { data, error, isLoading } = useSWR(key, () => listAuditLogs(query));
   return { logs: data?.items ?? [], total: data?.total ?? 0, isLoading, error };
 }

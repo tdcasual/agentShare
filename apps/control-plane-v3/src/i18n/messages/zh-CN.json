@@ -87,52 +87,6 @@
     "confirm": "确认",
     "defaultConfirmMessage": "您确定要继续此操作吗？"
   },
-  "navigation": {
-    "tokens": "远程接入",
-    "docs": "文档",
-    "dashboard": "仪表板",
-    "secrets": "密钥",
-    "audit": "审计"
-  },
-  "tokens": {
-    "title": "访问Token",
-    "description": "管理Agent访问密钥的Token",
-    "newToken": "新建Token",
-    "loading": "加载Token中...",
-    "loadFailed": "加载Token失败",
-    "emptyTitle": "暂无Token",
-    "emptyDesc": "创建Token以授权Agent访问密钥",
-    "about": "关于访问Token",
-    "aboutDesc": "Token允许Agent在配置的权限范围内访问密钥。每个Token仅在创建时显示一次。",
-    "revokeConfirm": "撤销Token \"{name}\"？此操作不可撤销。",
-    "revokeFailed": "撤销Token失败",
-    "copied": "已复制",
-    "copy": "复制",
-    "scopes": "权限范围",
-    "revoke": "撤销",
-    "apiUsage": "API使用",
-    "expires": "过期时间",
-    "never": "永不",
-    "lastUsed": "最后使用",
-    "active": "活跃",
-    "revoked": "已撤销",
-    "expired": "已过期",
-    "createForm": {
-      "title": "新建Token",
-      "name": "Token名称",
-      "namePlaceholder": "例如：CI部署Token",
-      "expiration": "有效期",
-      "never": "永不过期",
-      "days": "{count} 天",
-      "saveFailed": "创建Token失败"
-    },
-    "created": {
-      "title": "Token已创建",
-      "warning": "请立即复制此Token——它不会再次显示。",
-      "copyToken": "复制Token",
-      "done": "完成"
-    }
-  },
   "errorBoundary": {
     "title": "页面出错了",
     "contactSupport": "如果问题持续存在，请联系技术支持"
@@ -192,6 +146,9 @@
     "notFound": "未找到 Agent",
     "disable": "停用 Agent",
     "enable": "启用 Agent",
+    "disableConfirmTitle": "停用 Agent？",
+    "disableConfirmMessage": "确定停用 {name}？其 Token 将立即失去访问权限。",
+    "confirmDisable": "停用 Agent",
     "tokenName": "Token 名称",
     "issueToken": "签发 Token",
     "tokens": "Agent Token",
@@ -199,6 +156,12 @@
     "copyNow": "请立即复制此 Token，之后不会再次显示。",
     "rotate": "轮换",
     "revoke": "撤销",
+    "rotateConfirmTitle": "轮换 Token？",
+    "rotateConfirmMessage": "确定轮换 {name}？当前 Token 将立即失效。",
+    "revokeConfirmTitle": "撤销 Token？",
+    "revokeConfirmMessage": "确定撤销 {name}？除非再次轮换，否则无法恢复。",
+    "confirmRotate": "轮换 Token",
+    "confirmRevoke": "撤销 Token",
     "secretAccess": "允许访问的密钥",
     "saveAccess": "保存授权",
     "actionFailed": "操作失败，请重试。",
@@ -214,7 +177,7 @@
     "openapi": "OpenAPI schema",
     "quickStart": "快速入门",
     "step1": "访问仪表板创建密钥（Secrets）。",
-    "step2": "在 Token 页面创建访问 Token 并授权可访问范围。",
+    "step2": "打开 Agent，签发 Token 并选择允许访问的密钥。",
     "step3": "使用 Token 通过 Bearer 认证调用 Runtime API："
   },
   "secrets": {

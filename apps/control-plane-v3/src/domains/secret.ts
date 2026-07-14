@@ -8,6 +8,7 @@
 
 import useSWR, { mutate } from 'swr';
 import {
+  buildApiPath,
   listSecrets as apiListSecrets,
   createSecret as apiCreateSecret,
   updateSecret as apiUpdateSecret,
@@ -26,11 +27,7 @@ const SECRET_CACHE_KEY = '/api/admin/secrets';
 // ============================================
 
 export function useSecrets(query: PageQuery = {}) {
-  const params = new URLSearchParams();
-  Object.entries(query).forEach(
-    ([key, value]) => value !== undefined && params.set(key, String(value))
-  );
-  const key = `${SECRET_CACHE_KEY}${params.size ? `?${params}` : ''}`;
+  const key = buildApiPath(SECRET_CACHE_KEY, query);
   const { data, error, isLoading, mutate } = useSWR(key, () => apiListSecrets(query));
 
   return {

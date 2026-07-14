@@ -25,9 +25,13 @@ def test_deploy_workflow_validates_remote_stack_and_runs_smoke_checks() -> None:
 
     assert "script_stop: true" in workflow
     assert "set -euo pipefail" in workflow
-    assert "docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null" in workflow
-    assert "docker compose --env-file .env.production -f docker-compose.prod.yml pull" in workflow
-    assert "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans" in workflow
+    compose = "docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml"
+    assert f"{compose} config >/dev/null" in workflow
+    assert f"{compose} pull" in workflow
+    resolved_compose = "docker compose --env-file .env.production --env-file .resolved-release.env -f docker-compose.prod.yml"
+    assert f"{resolved_compose} up -d --remove-orphans" in workflow
+    assert ". ./.env.production" not in workflow
+    assert ". ./.release.env" not in workflow
     assert "./scripts/ops/smoke-test.sh" in workflow
     assert "CADDY_IMAGE=ghcr.io/" in workflow
     assert "POSTGRES_IMAGE=ghcr.io/" in workflow
@@ -35,12 +39,31 @@ def test_deploy_workflow_validates_remote_stack_and_runs_smoke_checks() -> None:
     assert "VAULTGATE_ADMIN_PASSWORD" not in workflow
 
 
+def test_deploy_requires_scanned_sha_tags_and_pins_images_by_digest() -> None:
+    workflow = (ROOT / ".github/workflows/deploy.yml").read_text()
+
+    assert "^sha-[0-9a-f]{7,40}$" in workflow
+    assert "docker image inspect" in workflow
+    assert ".resolved-release.env" in workflow
+    assert "RepoDigests" in workflow
+
+
+def test_deploy_rolls_back_running_images_when_smoke_checks_fail() -> None:
+    workflow = (ROOT / ".github/workflows/deploy.yml").read_text()
+
+    assert ".rollback.env" in workflow
+    assert "ROLLBACK_AVAILABLE" in workflow
+    assert "Smoke checks failed; restoring previous images." in workflow
+    assert "--env-file .rollback.env" in workflow
+    assert "Deployment failed and the previous stack was restored." in workflow
+
+
 def test_deploy_backs_up_postgres_before_startup_migrations() -> None:
     workflow = (ROOT / ".github/workflows/deploy.yml").read_text()
 
     backup_call = workflow.index("./scripts/ops/backup-postgres.sh")
     restart_call = workflow.index(
-        "docker compose --env-file .env.production -f docker-compose.prod.yml up"
+        "docker compose --env-file .env.production --env-file .resolved-release.env -f docker-compose.prod.yml up"
     )
     assert backup_call < restart_call
     assert "scripts/ops/backup-postgres.sh" in workflow

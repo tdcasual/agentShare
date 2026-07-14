@@ -36,6 +36,233 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260714-013] apply-patch-context-after-format
+
+**Logged**: 2026-07-14T09:28:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A multi-file patch used pre-format context and failed after Prettier collapsed a call to one line.
+
+### Error
+
+```text
+apply_patch verification failed: Failed to find expected lines in vaultgate-api.ts
+```
+
+### Context
+- No files were modified by the failed patch.
+- The semantic target remained unchanged, but exact surrounding lines had changed.
+
+### Suggested Fix
+Re-read only the affected snippets and split the patch into current, narrow contexts.
+
+### Resolution
+Applied the cleanup using the formatted source as patch context.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/lib/vaultgate-api.ts`
+
+---
+
+## [ERR-20260714-012] npm-mirror-audit-endpoint
+
+**Logged**: 2026-07-14T09:18:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The configured npm mirror does not implement the npm security audit API.
+
+### Error
+
+```text
+404 Not Found - POST https://registry.npmmirror.com/-/npm/v1/security/audits/quick
+[NOT_IMPLEMENTED] /-/npm/v1/security/* not implemented yet
+```
+
+### Context
+- Dependency installation works through the mirror, but vulnerability auditing cannot produce a result.
+- The project and global npm configuration should not be mutated just to run one audit.
+
+### Suggested Fix
+Override the registry only for `npm audit` and use the official npm registry endpoint.
+
+### Resolution
+Re-ran `npm audit` with `--registry=https://registry.npmjs.org`.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package-lock.json`
+
+---
+
+## [ERR-20260714-011] alembic-url-precedence
+
+**Logged**: 2026-07-14T09:10:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: backend
+
+### Summary
+Alembic could not distinguish an explicit programmatic database URL from the default URL in `alembic.ini`.
+
+### Error
+
+```text
+sqlalchemy.exc.OperationalError: table users already exists
+```
+
+### Context
+- CLI migrations must honor `DATABASE_URL` from Settings.
+- `migrate_db(database_url)` must instead use its explicit argument.
+- Testing only whether `sqlalchemy.url` was empty failed because `alembic.ini` defines a default.
+
+### Suggested Fix
+Mark programmatic Alembic configs with an explicit attribute and implement deterministic URL precedence.
+
+### Resolution
+Added `database_url_explicit` to programmatic configs; Alembic env now preserves explicit URLs and otherwise loads Settings.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/app/db.py`, `apps/api/alembic/env.py`
+
+---
+
+## [ERR-20260714-010] zsh-multiline-pid-kill
+
+**Logged**: 2026-07-14T08:50:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A zsh command substitution returned newline-separated PIDs that `kill` treated as one invalid argument.
+
+### Error
+
+```text
+zsh:kill: illegal pid: 670486\n670754\n...
+```
+
+### Context
+- Orphaned Vitest fork workers needed cleanup after test runner sessions detached.
+- Quoting the multiline substitution prevented word splitting in zsh.
+
+### Suggested Fix
+Filter only matching `node` processes and pipe individual PIDs through `xargs kill`.
+
+### Resolution
+Used `ps`, `awk`, and `xargs` to terminate only this workspace's orphaned Vitest workers.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/vitest.config.ts`
+
+---
+
+## [ERR-20260714-009] vitest-bracket-path-filter
+
+**Logged**: 2026-07-14T08:36:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+Vitest accepted a bracketed Next.js route path filter but exited without reporting collected tests.
+
+### Error
+
+```text
+RUN v4.1.10 ...
+```
+
+### Context
+- The command filtered `src/app/agents/[agentId]/page.test.tsx` through npm.
+- It exited successfully without a test file or test count, so the result was not usable as validation.
+
+### Suggested Fix
+Use a directory or filename substring filter that avoids square brackets, and require explicit test counts.
+
+### Resolution
+Re-ran the suite using stable Vitest filters and verified the reported test totals.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/app/agents/[agentId]/page.test.tsx`
+
+---
+
+## [ERR-20260714-008] production-env-example-compose-validation
+
+**Logged**: 2026-07-14T08:28:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: config
+
+### Summary
+The production env example omitted a required Compose interpolation variable.
+
+### Error
+
+```text
+error while interpolating services.api.environment.CORS_ALLOWED_ORIGINS:
+required variable CORS_ALLOWED_ORIGINS is missing a value
+```
+
+### Context
+- Static operations tests passed, but `docker compose config` failed with the documented production env example.
+- The example defined `APP_BASE_URL` but not the separately required `CORS_ALLOWED_ORIGINS` value.
+
+### Suggested Fix
+Validate production environment examples by executing `docker compose config`, including values with spaces and `#`.
+
+### Resolution
+Added `CORS_ALLOWED_ORIGINS` to the production example and retained real Compose expansion in release validation.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `ops/compose/prod.env.example`, `docker-compose.prod.yml`
+
+---
+
+## [ERR-20260714-013] audit-shell-status-readonly
+
+**Logged**: 2026-07-14T07:53:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+An audit command used zsh's read-only `status` parameter as a local variable.
+
+### Error
+
+```text
+zsh: read-only variable: status
+```
+
+### Context
+- The preceding isolated `.env` source test had already completed and exposed the intended behavior.
+- No repository service or persistent data was changed.
+
+### Suggested Fix
+Use a neutral shell variable such as `exit_code` in zsh orchestration commands.
+
+### Resolution
+Subsequent audit commands avoid zsh reserved parameter names.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `.learnings/ERRORS.md`
+
+---
+
 ## [ERR-20260714-012] ci-compose-config-required-env
 
 **Logged**: 2026-07-14T06:37:00Z

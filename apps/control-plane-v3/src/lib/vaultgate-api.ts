@@ -19,7 +19,8 @@ async function requestJson<T>(
   const { timeout = 30_000, signal, ...requestInit } = init;
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeout);
-  signal?.addEventListener('abort', () => controller.abort(), { once: true });
+  const abortRequest = () => controller.abort();
+  signal?.addEventListener('abort', abortRequest, { once: true });
   const headers = new Headers(requestInit.headers);
   if (requestInit.body && !headers.has('content-type')) {
     headers.set('content-type', 'application/json');
@@ -33,7 +34,19 @@ async function requestJson<T>(
       signal: controller.signal,
     });
     const text = await response.text();
-    const payload = text ? (JSON.parse(text) as JsonObject) : null;
+    let payload: JsonObject | null = null;
+    if (text) {
+      try {
+        payload = JSON.parse(text) as JsonObject;
+      } catch {
+        throw new ApiError(
+          response.status,
+          response.ok
+            ? 'Invalid JSON response'
+            : text.trim() || response.statusText || 'Request failed'
+        );
+      }
+    }
     if (!response.ok) {
       const detail = typeof payload?.detail === 'string' ? payload.detail : response.statusText;
       throw new ApiError(response.status, detail || 'Request failed');
@@ -48,6 +61,7 @@ async function requestJson<T>(
     }
     throw error;
   } finally {
+    signal?.removeEventListener('abort', abortRequest);
     window.clearTimeout(timer);
   }
 }
@@ -123,9 +137,7 @@ export interface AgentToken {
 export interface IssuedAgentToken extends AgentToken {
   token: string;
 }
-export interface AgentDetail extends Agent {
-  tokens: AgentToken[];
-}
+export type AgentDetail = Agent;
 export interface AuditLog {
   id: string;
   actor_type: string;
@@ -153,7 +165,7 @@ export interface PageResponse<T> {
   offset?: number;
 }
 
-function withQuery(path: string, query: object): string {
+export function buildApiPath(path: string, query: object = {}): string {
   const params = new URLSearchParams();
   Object.entries(query).forEach(
     ([key, value]) => value !== undefined && params.set(key, String(value))
@@ -177,7 +189,7 @@ export const logout = () => requestJson<void>('/api/admin/session', { method: 'D
 export const getCurrentSession = () => requestJson<AdminSession>('/api/admin/session');
 
 export const listSecrets = (query: PageQuery = {}) =>
-  requestJson<PageResponse<Secret>>(withQuery('/api/admin/secrets', query));
+  requestJson<PageResponse<Secret>>(buildApiPath('/api/admin/secrets', query));
 export const createSecret = (input: SecretCreateInput) =>
   requestJson<Secret>('/api/admin/secrets', { method: 'POST', body: JSON.stringify(input) });
 export const updateSecret = (id: string, input: SecretUpdateInput) =>
@@ -188,8 +200,10 @@ export const revealSecret = (id: string) =>
   requestJson<{ value: string }>(`/api/admin/secrets/${id}/value`);
 
 export const listAgents = (query: PageQuery & { status?: Agent['status'] } = {}) =>
-  requestJson<PageResponse<Agent>>(withQuery('/api/admin/agents', query));
+  requestJson<PageResponse<Agent>>(buildApiPath('/api/admin/agents', query));
 export const getAgent = (id: string) => requestJson<AgentDetail>(`/api/admin/agents/${id}`);
+export const listAgentTokens = (agentId: string, query: PageQuery = {}) =>
+  requestJson<PageResponse<AgentToken>>(buildApiPath(`/api/admin/agents/${agentId}/tokens`, query));
 export const createAgent = (input: { name: string; description?: string }) =>
   requestJson<Agent>('/api/admin/agents', { method: 'POST', body: JSON.stringify(input) });
 export const updateAgent = (
@@ -217,7 +231,20 @@ export const replaceTokenGrants = (tokenId: string, secretIds: string[]) =>
     body: JSON.stringify({ secret_ids: secretIds }),
   });
 
-export const listAuditLogs = (query: PageQuery & { result?: string; action?: string } = {}) =>
-  requestJson<PageResponse<AuditLog>>(withQuery('/api/admin/audit-logs', query));
+export type AuditQuery = PageQuery & {
+  result?: string;
+  action?: string;
+  actor_type?: string;
+  actor_id?: string;
+  resource_type?: string;
+  resource_id?: string;
+  created_from?: string;
+  created_to?: string;
+};
+
+export const listAuditLogs = (query: AuditQuery = {}) =>
+  requestJson<PageResponse<AuditLog>>(buildApiPath('/api/admin/audit-logs', query));
 export const getAuditStats = () =>
-  requestJson<{ total: number; denied: number; value_reads: number }>('/api/admin/audit-stats');
+  requestJson<{ total: number; granted: number; denied: number; value_reads: number }>(
+    '/api/admin/audit-stats'
+  );

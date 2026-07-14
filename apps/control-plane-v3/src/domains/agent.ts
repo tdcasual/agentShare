@@ -2,11 +2,13 @@
 
 import useSWR, { mutate } from 'swr';
 import {
+  buildApiPath,
   createAgent as apiCreateAgent,
   getAgent,
   getTokenGrants,
   issueAgentToken,
   listAgents,
+  listAgentTokens,
   replaceTokenGrants,
   revokeAgentToken,
   rotateAgentToken,
@@ -19,11 +21,7 @@ const AGENTS_KEY = '/api/admin/agents';
 const EMPTY_SECRET_IDS: string[] = [];
 
 export function useAgents(query: PageQuery & { status?: Agent['status'] } = {}) {
-  const params = new URLSearchParams();
-  Object.entries(query).forEach(
-    ([key, value]) => value !== undefined && params.set(key, String(value))
-  );
-  const key = `${AGENTS_KEY}${params.size ? `?${params}` : ''}`;
+  const key = buildApiPath(AGENTS_KEY, query);
   const state = useSWR(key, () => listAgents(query));
   return {
     agents: state.data?.items ?? [],
@@ -36,6 +34,17 @@ export function useAgents(query: PageQuery & { status?: Agent['status'] } = {}) 
 export function useAgent(id: string | null) {
   const state = useSWR(id ? `${AGENTS_KEY}/${id}` : null, () => getAgent(id!));
   return { agent: state.data, ...state, refresh: state.mutate };
+}
+
+export function useAgentTokens(agentId: string | null, query: PageQuery = {}) {
+  const key = agentId ? buildApiPath(`${AGENTS_KEY}/${agentId}/tokens`, query) : null;
+  const state = useSWR(key, () => listAgentTokens(agentId!, query));
+  return {
+    tokens: state.data?.items ?? [],
+    total: state.data?.total ?? 0,
+    ...state,
+    refresh: state.mutate,
+  };
 }
 
 export function useTokenGrants(tokenId: string | null) {
@@ -61,19 +70,25 @@ export async function setAgentStatus(id: string, status: 'active' | 'disabled') 
 
 export async function issueToken(agentId: string, input: { name: string; ttl_seconds?: number }) {
   const token = await issueAgentToken(agentId, input);
-  await mutate(`${AGENTS_KEY}/${agentId}`);
+  await mutate(
+    (key) => typeof key === 'string' && key.startsWith(`${AGENTS_KEY}/${agentId}/tokens`)
+  );
   return token;
 }
 
 export async function rotateToken(agentId: string, tokenId: string) {
   const token = await rotateAgentToken(tokenId);
-  await mutate(`${AGENTS_KEY}/${agentId}`);
+  await mutate(
+    (key) => typeof key === 'string' && key.startsWith(`${AGENTS_KEY}/${agentId}/tokens`)
+  );
   return token;
 }
 
 export async function revokeToken(agentId: string, tokenId: string) {
   await revokeAgentToken(tokenId);
-  await mutate(`${AGENTS_KEY}/${agentId}`);
+  await mutate(
+    (key) => typeof key === 'string' && key.startsWith(`${AGENTS_KEY}/${agentId}/tokens`)
+  );
 }
 
 export async function saveGrants(tokenId: string, secretIds: string[]) {

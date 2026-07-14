@@ -65,7 +65,7 @@ function ErrorFallback({
 
         {/* 操作按钮 */}
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Button variant="primary" onClick={onReload} leftIcon={<RefreshCw className="h-4 w-4" />}>
+          <Button variant="default" onClick={onReload} leftIcon={<RefreshCw className="h-4 w-4" />}>
             {t('common.refreshPage')}
           </Button>
           <Button variant="outline" onClick={onGoHome} leftIcon={<Home className="h-4 w-4" />}>

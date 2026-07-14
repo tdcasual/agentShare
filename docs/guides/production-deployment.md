@@ -28,7 +28,7 @@ The production compose (`docker-compose.prod.yml`) includes:
 
 1. Push images through `.github/workflows/docker-images.yml`.
 2. Trigger `.github/workflows/deploy.yml` manually when ready to deploy.
-3. The deploy workflow uploads production assets, writes `.env.production`, validates compose, pulls images, restarts the stack, and runs smoke checks.
+3. The deploy workflow uploads production assets, writes `.env.production`, accepts only scanned `sha-*` image tags, resolves them to digests, restarts the stack, and runs smoke checks with automatic image rollback.
 4. The API container runs `alembic upgrade head` on startup before `uvicorn`.
 
 ## Database Migrations

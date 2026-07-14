@@ -45,7 +45,7 @@ export default function AuditPage() {
   const isDeniedActive = filter.result === 'denied';
 
   const deniedCount = stats?.denied ?? 0;
-  const grantedCount = Math.max(0, (stats?.total ?? 0) - deniedCount);
+  const grantedCount = stats?.granted ?? 0;
   const valueReadCount = stats?.value_reads ?? 0;
 
   return (
@@ -74,7 +74,7 @@ export default function AuditPage() {
                 setFilter({});
               }}
               className={cn(
-                'rounded-lg px-3 py-1.5 text-sm transition-colors',
+                'min-h-11 rounded-lg px-3 py-2 text-sm transition-colors',
                 isAllActive
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
@@ -90,7 +90,7 @@ export default function AuditPage() {
                 setFilter({ result: 'success' });
               }}
               className={cn(
-                'rounded-lg px-3 py-1.5 text-sm transition-colors',
+                'min-h-11 rounded-lg px-3 py-2 text-sm transition-colors',
                 isGrantedActive
                   ? 'bg-status-success-subtle text-status-success-subtle-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
@@ -106,7 +106,7 @@ export default function AuditPage() {
                 setFilter({ result: 'denied' });
               }}
               className={cn(
-                'rounded-lg px-3 py-1.5 text-sm transition-colors',
+                'min-h-11 rounded-lg px-3 py-2 text-sm transition-colors',
                 isDeniedActive
                   ? 'bg-status-danger-subtle text-status-danger-subtle-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'

@@ -10,6 +10,7 @@ import {
   saveGrants,
   setAgentStatus,
   useAgent,
+  useAgentTokens,
   useTokenGrants,
 } from '@/domains/agent';
 import type { AgentToken, IssuedAgentToken } from '@/lib/vaultgate-api';
@@ -21,19 +22,44 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useSecrets } from '@/domains/secret';
 
 const SECRET_PAGE_SIZE = 25;
+const TOKEN_PAGE_SIZE = 25;
 
 export default function AgentDetailPage() {
   const { t } = useI18n();
   const params = useParams<{ agentId: string }>();
   const { agent, isLoading, error, refresh } = useAgent(params.agentId);
+  const [tokenOffset, setTokenOffset] = useState(0);
+  const {
+    tokens,
+    total: tokenTotal,
+    isLoading: tokensLoading,
+    error: tokensError,
+    refresh: refreshTokens,
+  } = useAgentTokens(params.agentId, { limit: TOKEN_PAGE_SIZE, offset: tokenOffset });
   const [tokenName, setTokenName] = useState('');
   const [issued, setIssued] = useState<IssuedAgentToken | null>(null);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [statusSaving, setStatusSaving] = useState(false);
+  const [confirmDisable, setConfirmDisable] = useState(false);
+
+  async function changeAgentStatus(status: 'active' | 'disabled') {
+    setActionError(null);
+    setStatusSaving(true);
+    try {
+      await setAgentStatus(params.agentId, status);
+      setConfirmDisable(false);
+      await refresh();
+    } catch (caught) {
+      setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
+    } finally {
+      setStatusSaving(false);
+    }
+  }
 
   async function createToken(event: FormEvent) {
     event.preventDefault();
@@ -42,7 +68,8 @@ export default function AgentDetailPage() {
     try {
       setIssued(await issueToken(params.agentId, { name: tokenName.trim() }));
       setTokenName('');
-      await refresh();
+      setTokenOffset(0);
+      await refreshTokens();
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
     } finally {
@@ -81,16 +108,11 @@ export default function AgentDetailPage() {
           variant="secondary"
           loading={statusSaving}
           leftIcon={<ShieldOff className="h-4 w-4" />}
-          onClick={async () => {
-            setActionError(null);
-            setStatusSaving(true);
-            try {
-              await setAgentStatus(agent.id, agent.status === 'active' ? 'disabled' : 'active');
-              await refresh();
-            } catch (caught) {
-              setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
-            } finally {
-              setStatusSaving(false);
+          onClick={() => {
+            if (agent.status === 'active') {
+              setConfirmDisable(true);
+            } else {
+              void changeAgentStatus('active');
             }
           }}
         >
@@ -105,6 +127,17 @@ export default function AgentDetailPage() {
       )}
 
       {issued && <OneTimeToken token={issued} onDone={() => setIssued(null)} />}
+
+      <ConfirmDialog
+        isOpen={confirmDisable}
+        onClose={() => setConfirmDisable(false)}
+        onConfirm={() => void changeAgentStatus('disabled')}
+        title={t('agents.disableConfirmTitle')}
+        message={t('agents.disableConfirmMessage', { name: agent.name })}
+        confirmText={t('agents.confirmDisable')}
+        isLoading={statusSaving}
+        variant="danger"
+      />
 
       <Card className="p-5">
         <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={createToken}>
@@ -125,19 +158,31 @@ export default function AgentDetailPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">{t('agents.tokens')}</h2>
-        {agent.tokens.length === 0 ? (
+        {tokensLoading ? (
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+        ) : tokensError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {tokensError.message}
+          </p>
+        ) : tokens.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('agents.noTokens')}</p>
         ) : (
-          agent.tokens.map((token) => (
+          tokens.map((token) => (
             <TokenRow
               key={token.id}
               token={token}
               agentId={agent.id}
               onIssued={setIssued}
-              onChanged={refresh}
+              onChanged={refreshTokens}
             />
           ))
         )}
+        <PaginationControls
+          offset={tokenOffset}
+          limit={TOKEN_PAGE_SIZE}
+          total={tokenTotal}
+          onOffsetChange={setTokenOffset}
+        />
       </section>
     </main>
   );
@@ -206,11 +251,35 @@ function TokenRow({
     offset: secretOffset,
   });
   const [selected, setSelected] = useState<string[]>([]);
+  const [selectionDirty, setSelectionDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pendingAction, setPendingAction] = useState<'rotate' | 'revoke' | null>(null);
+  const [confirmation, setConfirmation] = useState<'rotate' | 'revoke' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  useEffect(() => setSelected(secretIds), [secretIds]);
+
+  async function executeTokenAction(action: 'rotate' | 'revoke') {
+    setActionError(null);
+    setPendingAction(action);
+    try {
+      if (action === 'rotate') {
+        onIssued(await rotateToken(agentId, token.id));
+      } else {
+        await revokeToken(agentId, token.id);
+      }
+      setConfirmation(null);
+      await onChanged();
+    } catch (caught) {
+      setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
+    } finally {
+      setPendingAction(null);
+    }
+  }
+  useEffect(() => {
+    if (!selectionDirty) {
+      setSelected(secretIds);
+    }
+  }, [secretIds, selectionDirty]);
   return (
     <Card className="p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -230,18 +299,7 @@ function TokenRow({
             loading={pendingAction === 'rotate'}
             disabled={pendingAction !== null}
             leftIcon={<RotateCcw className="h-4 w-4" />}
-            onClick={async () => {
-              setActionError(null);
-              setPendingAction('rotate');
-              try {
-                onIssued(await rotateToken(agentId, token.id));
-                await onChanged();
-              } catch (caught) {
-                setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
-              } finally {
-                setPendingAction(null);
-              }
-            }}
+            onClick={() => setConfirmation('rotate')}
           >
             {t('agents.rotate')}
           </Button>
@@ -250,18 +308,7 @@ function TokenRow({
             variant="ghost"
             loading={pendingAction === 'revoke'}
             disabled={token.status !== 'active' || pendingAction !== null}
-            onClick={async () => {
-              setActionError(null);
-              setPendingAction('revoke');
-              try {
-                await revokeToken(agentId, token.id);
-                await onChanged();
-              } catch (caught) {
-                setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));
-              } finally {
-                setPendingAction(null);
-              }
-            }}
+            onClick={() => setConfirmation('revoke')}
           >
             {t('agents.revoke')}
           </Button>
@@ -272,6 +319,21 @@ function TokenRow({
           {actionError}
         </p>
       )}
+      <ConfirmDialog
+        isOpen={confirmation !== null}
+        onClose={() => setConfirmation(null)}
+        onConfirm={() => confirmation && void executeTokenAction(confirmation)}
+        title={t(
+          confirmation === 'rotate' ? 'agents.rotateConfirmTitle' : 'agents.revokeConfirmTitle'
+        )}
+        message={t(
+          confirmation === 'rotate' ? 'agents.rotateConfirmMessage' : 'agents.revokeConfirmMessage',
+          { name: token.name }
+        )}
+        confirmText={t(confirmation === 'rotate' ? 'agents.confirmRotate' : 'agents.confirmRevoke')}
+        isLoading={pendingAction !== null}
+        variant="danger"
+      />
       <fieldset className="mt-5 border-t pt-4">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t('agents.secretAccess')}
@@ -282,13 +344,14 @@ function TokenRow({
               <input
                 type="checkbox"
                 checked={selected.includes(secret.id)}
-                onChange={(event) =>
+                onChange={(event) => {
+                  setSelectionDirty(true);
                   setSelected((current) =>
                     event.target.checked
                       ? [...current, secret.id]
                       : current.filter((id) => id !== secret.id)
-                  )
-                }
+                  );
+                }}
               />
               <span>{secret.name}</span>
             </label>
@@ -321,6 +384,7 @@ function TokenRow({
             setSaving(true);
             try {
               await saveGrants(token.id, selected);
+              setSelectionDirty(false);
               setSaved(true);
             } catch (caught) {
               setActionError(caught instanceof Error ? caught.message : t('agents.actionFailed'));

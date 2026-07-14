@@ -3,9 +3,10 @@
 This module defines VaultGate application settings.
 """
 import os
+from ipaddress import ip_network
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
@@ -48,7 +49,23 @@ class Settings(BaseSettings):
     # Rate limiting
     auth_rate_limit_max_attempts: int = 5
     auth_rate_limit_window_seconds: int = 300
-    trusted_proxy_ips: str = ""
+    trusted_proxy_cidrs: str = ""
+
+    # Data lifecycle
+    last_used_write_interval_seconds: int = Field(default=300, ge=0)
+    credential_retention_days: int = Field(default=30, ge=0)
+    audit_retention_days: int = Field(default=365, ge=1)
+
+    @field_validator("trusted_proxy_cidrs")
+    @classmethod
+    def validate_trusted_proxy_cidrs(cls, value: str) -> str:
+        try:
+            for network in value.split(","):
+                if normalized := network.strip():
+                    ip_network(normalized, strict=False)
+        except ValueError as exc:
+            raise ValueError("TRUSTED_PROXY_CIDRS must contain valid IP addresses or CIDRs") from exc
+        return value
 
     @model_validator(mode="after")
     def validate_settings_for_environment(self) -> "Settings":

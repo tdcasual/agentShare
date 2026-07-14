@@ -22,7 +22,10 @@ def test_postgres_backup_uses_pg_dump() -> None:
     assert "pg_dump" in script
     assert "docker compose" in script
     assert "BACKUP_DIR" in script
-    assert "POSTGRES_DB" in script
+    assert ': "${POSTGRES_DB:?' not in script
+    assert ': "${POSTGRES_USER:?' not in script
+    assert "--env-file \"${COMPOSE_RELEASE_ENV_FILE}\"" in script
+    assert "sh -c" in script
     assert "DATABASE_URL" not in script
 
 
@@ -30,7 +33,11 @@ def test_postgres_restore_documents_safe_restore_order() -> None:
     script = (ROOT / "scripts/ops/restore-postgres.sh").read_text()
     assert "psql" in script or "pg_restore" in script
     assert "docker compose" in script
-    assert "POSTGRES_DB" in script
+    assert ': "${POSTGRES_DB:?' not in script
+    assert ': "${POSTGRES_USER:?' not in script
+    assert "--env-file \"${COMPOSE_RELEASE_ENV_FILE}\"" in script
+    assert "--single-transaction" in script
+    assert "--exit-on-error" in script
     assert "Stop API writes" in script
     assert "restore" in script.lower()
 

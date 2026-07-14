@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.client_ip import get_client_ip
 from app.modules.admin_auth.service import AdminPrincipal
 from app.orm import AgentToken, AuditLog, Secret
 
@@ -28,7 +29,7 @@ def add_admin_audit(
         action=action,
         result="success",
         request_id=getattr(request.state, "request_id", None),
-        ip_address=request.client.host if request.client else None,
+        ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
         log_metadata=metadata or {},
     )
@@ -63,7 +64,7 @@ async def write_vault_audit(
         result=result,
         reason=reason,
         request_id=getattr(request.state, "request_id", None),
-        ip_address=request.client.host if request.client else None,
+        ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
     db.add(log)

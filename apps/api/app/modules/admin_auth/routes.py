@@ -4,11 +4,12 @@ import secrets
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.client_ip import get_client_ip
 from app.db import get_async_db
 from app.modules.admin_auth.schemas import BootstrapRequest, LoginRequest, ManagementTokenCreate
 from app.modules.admin_auth.service import (
@@ -16,6 +17,7 @@ from app.modules.admin_auth.service import (
     authenticate_password,
     expires_from_ttl,
     generate_credential,
+    renew_expiration,
     resolve_admin_principal,
 )
 from app.modules.audit.service import add_admin_audit
@@ -96,7 +98,7 @@ async def login(
         key_hash=key_hash,
         key_prefix=key_prefix,
         expires_at=datetime.now(UTC) + timedelta(seconds=settings.session_ttl_seconds),
-        ip_address=request.client.host if request.client else None,
+        ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
     db.add(session)
@@ -162,23 +164,37 @@ async def logout(
 
 @router.get("/management-tokens")
 async def list_management_tokens(
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
-) -> dict[str, list[dict[str, str | None]]]:
+) -> dict:
+    total = await db.scalar(
+        select(func.count(ManagementToken.id)).where(
+            ManagementToken.user_id == principal.user.id
+        )
+    )
     rows = await db.scalars(
         select(ManagementToken)
         .where(ManagementToken.user_id == principal.user.id)
         .order_by(ManagementToken.created_at.desc(), ManagementToken.id)
+        .limit(limit)
+        .offset(offset)
     )
-    return {"items": [
-        {
-            "id": item.id,
-            "name": item.name,
-            "key_prefix": item.key_prefix,
-            "revoked_at": item.revoked_at.isoformat() if item.revoked_at else None,
-        }
-        for item in rows
-    ]}
+    return {
+        "items": [
+            {
+                "id": item.id,
+                "name": item.name,
+                "key_prefix": item.key_prefix,
+                "revoked_at": item.revoked_at.isoformat() if item.revoked_at else None,
+            }
+            for item in rows
+        ],
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.post("/management-tokens", status_code=status.HTTP_201_CREATED)
@@ -212,7 +228,13 @@ async def create_management_token(
     await db.commit()
     await db.refresh(token)
     response.headers["Cache-Control"] = "no-store"
-    return {"id": token.id, "name": token.name, "token": raw_value, "key_prefix": token.key_prefix}
+    return {
+        "id": token.id,
+        "name": token.name,
+        "token": raw_value,
+        "key_prefix": token.key_prefix,
+        "expires_at": token.expires_at.isoformat() if token.expires_at else None,
+    }
 
 
 @router.delete("/management-tokens/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -245,11 +267,12 @@ async def rotate_management_token(
     response: Response,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
-) -> dict[str, str]:
+) -> dict[str, str | None]:
     token = await db.get(ManagementToken, token_id)
     if token is None or token.user_id != principal.user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Management token not found")
     raw_value, token.key_hash, token.key_prefix = generate_credential("vgm_")
+    token.expires_at = renew_expiration(token.created_at, token.expires_at)
     token.revoked_at = None
     add_admin_audit(
         db,
@@ -262,4 +285,10 @@ async def rotate_management_token(
     )
     await db.commit()
     response.headers["Cache-Control"] = "no-store"
-    return {"id": token.id, "name": token.name, "token": raw_value, "key_prefix": token.key_prefix}
+    return {
+        "id": token.id,
+        "name": token.name,
+        "token": raw_value,
+        "key_prefix": token.key_prefix,
+        "expires_at": token.expires_at.isoformat() if token.expires_at else None,
+    }

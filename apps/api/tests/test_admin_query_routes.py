@@ -110,10 +110,16 @@ def test_audit_queries_directly_apply_filters_pagination_and_global_stats():
     list_db.scalars.return_value = [log]
 
     page = asyncio.run(
-        list_audit_logs(
-            result="success",
-            action="secret.value.read",
-            limit=10,
+            list_audit_logs(
+                result="success",
+                action="secret.value.read",
+                actor_type="agent_token",
+                actor_id="token-id",
+                resource_type="secret",
+                resource_id="secret-id",
+                created_from=datetime(2026, 1, 1, tzinfo=UTC),
+                created_to=datetime(2026, 12, 31, tzinfo=UTC),
+                limit=10,
             offset=20,
             _principal=_principal(),
             db=list_db,
@@ -139,9 +145,9 @@ def test_audit_queries_directly_apply_filters_pagination_and_global_stats():
     }
 
     stats_db = AsyncMock()
-    stats_db.scalar.side_effect = [9, 2, 4]
+    stats_db.scalar.side_effect = [9, 3, 2, 4]
     stats = asyncio.run(audit_stats(_principal(), stats_db))
-    assert stats == {"total": 9, "denied": 2, "value_reads": 4}
+    assert stats == {"total": 9, "granted": 3, "denied": 2, "value_reads": 4}
 
 
 def test_token_grant_queries_enforce_ownership_and_commit_empty_grants():

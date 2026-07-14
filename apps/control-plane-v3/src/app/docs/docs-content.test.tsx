@@ -12,4 +12,12 @@ describe('DocsContent', () => {
     );
     expect(example).not.toHaveTextContent(/\/api\/vault\s*$/);
   });
+
+  it('points API references at the API namespace', () => {
+    render(<DocsContent />);
+
+    expect(screen.getByText('GET /api/docs')).toBeInTheDocument();
+    expect(screen.getByText('GET /api/openapi.json')).toBeInTheDocument();
+    expect(screen.queryByText('GET /openapi.json')).not.toBeInTheDocument();
+  });
 });
