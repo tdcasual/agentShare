@@ -29,8 +29,16 @@ class TestEncryptionService:
         svc = EncryptionService(encryption_key=key)
         plaintext = "hello world"
         encrypted = svc.encrypt(plaintext)
+        assert encrypted.startswith("v1:")
         assert encrypted != plaintext
         assert svc.decrypt(encrypted) == plaintext
+
+    def test_decrypts_legacy_unversioned_payload(self):
+        key = base64.b64encode(os.urandom(32)).decode()
+        svc = EncryptionService(encryption_key=key)
+        versioned = svc.encrypt("legacy-compatible-data")
+
+        assert svc.decrypt(versioned.removeprefix("v1:")) == "legacy-compatible-data"
 
     def test_encrypt_produces_different_ciphertext(self):
         """Each encryption uses a random IV, so ciphertext differs."""

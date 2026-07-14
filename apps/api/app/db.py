@@ -1,42 +1,18 @@
-import asyncio
-import contextlib
 import os
 from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
-from typing import Any
 
 from alembic.config import Config
 from alembic.util.exc import CommandError
+from fastapi import Request
 from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from alembic import command
 from app.config import Settings
-from app.runtime import AppRuntime, build_runtime
 
-_default_runtime: AppRuntime | None = None
 ALEMBIC_INI_PATH = Path(__file__).resolve().parents[1] / "alembic.ini"
 DEFAULT_LOCAL_DEV_DATABASE_NAME = "vaultgate.db"
-
-
-def _get_default_runtime() -> AppRuntime:
-    global _default_runtime
-    if _default_runtime is None:
-        _default_runtime = build_runtime(Settings())
-    return _default_runtime
-
-
-def reset_default_runtime() -> None:
-    """Reset the default runtime singleton, disposing its sync engine.
-
-    Disposing the engine prevents unclosed-database warnings when the singleton
-    is replaced between tests.
-    """
-    global _default_runtime
-    runtime = _default_runtime
-    _default_runtime = None
-    if runtime is not None:
-        runtime.engine.dispose()
 
 
 def _iter_alembic_root_candidates() -> Generator[Path, None, None]:
@@ -123,7 +99,7 @@ def migrate_db(
     *,
     recover_default_dev_sqlite: bool = False,
 ) -> Path | None:
-    resolved_database_url = database_url or _get_default_runtime().settings.database_url
+    resolved_database_url = database_url or Settings().database_url
     config = _build_alembic_config(resolved_database_url)
 
     try:
@@ -148,87 +124,10 @@ def migrate_db(
         return backup_path
 
 
-# Async database support for VaultGate
-_async_engine: AsyncEngine | None = None
-_async_session_factory: async_sessionmaker[AsyncSession] | None = None
-
-
-def _get_async_database_url(database_url: str) -> str:
-    """Convert sync database URL to async URL."""
-    if database_url.startswith("sqlite://"):
-        return database_url.replace("sqlite://", "sqlite+aiosqlite://")
-    elif database_url.startswith("postgresql://"):
-        return database_url.replace("postgresql://", "postgresql+asyncpg://")
-    return database_url
-
-
-def get_async_engine(database_url: str | None = None) -> AsyncEngine:
-    """Get or create async database engine."""
-    global _async_engine, _async_session_factory
-
-    if _async_engine is None:
-        resolved_url = database_url or _get_default_runtime().settings.database_url
-        async_url = _get_async_database_url(resolved_url)
-
-        is_sqlite = async_url.startswith("sqlite+aiosqlite://")
-        engine_kwargs: dict[str, Any] = {"echo": False}
-        if is_sqlite:
-            engine_kwargs["connect_args"] = {"check_same_thread": False}
-        else:
-            engine_kwargs.update({
-                "pool_pre_ping": True,
-                "pool_size": 10,
-                "max_overflow": 20,
-                "pool_recycle": 1800,
-            })
-
-        _async_engine = create_async_engine(async_url, **engine_kwargs)
-        _async_session_factory = async_sessionmaker(
-            bind=_async_engine,
-            expire_on_commit=False,
-            class_=AsyncSession,
-        )
-
-    return _async_engine
-
-
-def reset_async_engine() -> None:
-    """Reset the async engine singleton, disposing connections when possible.
-
-    Intended for sync test fixtures. aiosqlite connections each own their event
-    loop, so disposing on a fresh loop (via asyncio.run) closes them correctly
-    regardless of which loop created the engine. Use dispose_async_engine() from
-    async contexts such as the application lifespan.
-    """
-    global _async_engine, _async_session_factory
-    engine = _async_engine
-    _async_engine = None
-    _async_session_factory = None
-    if engine is not None:
-        # A running event loop may be present (e.g. called from async code);
-        # in that case the owner is responsible for disposing the engine.
-        with contextlib.suppress(RuntimeError):
-            asyncio.run(engine.dispose())
-
-
-async def dispose_async_engine() -> None:
-    """Dispose and reset the async engine from an async context (e.g. lifespan)."""
-    global _async_engine, _async_session_factory
-    engine = _async_engine
-    _async_engine = None
-    _async_session_factory = None
-    if engine is not None:
-        await engine.dispose()
-
-
-async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_async_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency that yields an async DB session per request."""
-    get_async_engine()  # ensures engine and session factory are initialized
-
-    if _async_session_factory is None:
-        raise RuntimeError("Async session factory not initialized")
-
-    async with _async_session_factory() as session:
+    session_factory = request.app.state.runtime.session_factory
+    async with session_factory() as session:
         try:
             yield session
         except Exception:

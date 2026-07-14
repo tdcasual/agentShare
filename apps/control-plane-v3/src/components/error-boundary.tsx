@@ -10,8 +10,6 @@ import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/components/i18n-provider';
-import { useGlobalSession } from '@/lib/session-state';
-import { getDefaultManagementRoute } from '@/lib/role-system';
 import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -127,7 +125,5 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, State> {
 }
 
 export function ErrorBoundary(props: Props) {
-  const session = useGlobalSession();
-
-  return <ErrorBoundaryInner {...props} homeTarget={getDefaultManagementRoute(session.role)} />;
+  return <ErrorBoundaryInner {...props} homeTarget="/" />;
 }

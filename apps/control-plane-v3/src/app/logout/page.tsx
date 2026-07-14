@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { logout } from '@/lib/session-state';
-import { resetBootstrapCache } from '@/lib/entry-state';
+import { logout } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ export default function LogoutPage() {
     async function performLogout() {
       try {
         await logout();
-        resetBootstrapCache();
         if (!cancelled) {
           window.location.href = '/login';
         }

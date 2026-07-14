@@ -21,7 +21,7 @@ def _make_test_app(settings: Settings | None = None) -> FastAPI:
     def healthz():
         return {"status": "ok"}
 
-    @app.post("/api/session/login")
+    @app.post("/api/admin/session/login")
     def login():
         return {"status": "ok"}
 
@@ -110,7 +110,7 @@ class TestCSRFMiddleware:
         """Machine-to-machine requests (no session cookie) skip CSRF."""
         settings = Settings(cors_allowed_origins="http://localhost:3000")
         client = _client_with_csrf(settings)
-        resp = client.post("/api/session/login")
+        resp = client.post("/api/admin/session/login")
         assert resp.status_code == 200
 
     def test_post_with_session_cookie_and_valid_origin(self):
@@ -118,7 +118,7 @@ class TestCSRFMiddleware:
         settings = Settings(cors_allowed_origins="http://localhost:3000")
         client = _client_with_csrf(settings)
         resp = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
             headers={"origin": "http://localhost:3000"},
         )
@@ -129,7 +129,7 @@ class TestCSRFMiddleware:
         settings = Settings(cors_allowed_origins="http://localhost:3000")
         client = _client_with_csrf(settings)
         resp = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
             headers={"origin": "http://evil.example.com"},
         )
@@ -141,7 +141,7 @@ class TestCSRFMiddleware:
         settings = Settings(cors_allowed_origins="http://localhost:3000")
         client = _client_with_csrf(settings)
         resp = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
         )
         assert resp.status_code == 403
@@ -203,7 +203,7 @@ class TestCSRFMiddleware:
         settings = Settings(cors_allowed_origins="", app_env="development")
         client = _client_with_csrf(settings)
         resp = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
         )
         assert resp.status_code == 200
@@ -213,7 +213,7 @@ class TestCSRFMiddleware:
         settings = Settings(cors_allowed_origins="http://localhost:3000")
         client = _client_with_csrf(settings)
         resp = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
             headers={"referer": "http://localhost:3000/some/page"},
         )
@@ -224,7 +224,7 @@ class TestCSRFMiddleware:
         settings = Settings(cors_allowed_origins="http://localhost:3000")
         client = _client_with_csrf(settings)
         resp = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
             headers={"referer": "http://evil.example.com/attack"},
         )
@@ -236,14 +236,14 @@ class TestCSRFMiddleware:
         client = _client_with_csrf(settings)
 
         resp1 = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
             headers={"origin": "http://localhost:3000"},
         )
         assert resp1.status_code == 200
 
         resp2 = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
             headers={"origin": "http://localhost:4000"},
         )
@@ -254,7 +254,7 @@ class TestCSRFMiddleware:
         settings = Settings(cors_allowed_origins="http://localhost:3000")
         client = _client_with_csrf(settings)
         resp = client.post(
-            "/api/session/login",
+            "/api/admin/session/login",
             cookies={_TEST_COOKIE_KEY: "test-session-value"},
             headers={"origin": "http://localhost:3000/"},
         )

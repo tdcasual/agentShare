@@ -1,7 +1,13 @@
 # VaultGate Control Plane v3 前端 UI 审计报告
 
+> 状态：已被 2026-07-14 Agent 中心界面重构取代。旧顶级 Token 页面、role store、
+> session-state 兼容层和旧 API fixtures 已删除；入口状态现在只有 setup、anonymous、
+> authenticated、unavailable。当前质量结果应以仓库最新 `npm run check`、单元测试和
+> production build 为准。2026-07-14 最终结果为 21 个文件、55/55 单元测试和 15/15
+> E2E 通过。以下内容保留为历史审计记录。
+
 > 审计维度：可访问性 (A11y)、性能、主题、响应式、AI Slop / 反模式、UX 文案。
-> 基线检查：`npm run check` 通过，`npm run test:unit` 65/65 通过。
+> 历史基线检查：`npm run check` 通过，`npm run test:unit` 65/65 通过。
 
 ---
 

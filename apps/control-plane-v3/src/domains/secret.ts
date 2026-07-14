@@ -18,7 +18,7 @@ import {
 } from '@/lib/vaultgate-api';
 
 // Cache key prefix
-const SECRET_CACHE_KEY = '/api/secrets';
+const SECRET_CACHE_KEY = '/api/admin/secrets';
 
 // ============================================
 // Hooks

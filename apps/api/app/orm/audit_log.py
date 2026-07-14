@@ -24,23 +24,34 @@ class AuditLog(Base):
     __table_args__ = (
         sa.Index("idx_audit_logs_token_id", "token_id"),
         sa.Index("idx_audit_logs_secret_id", "secret_id"),
+        sa.Index("idx_audit_logs_actor", "actor_type", "actor_id"),
+        sa.Index("idx_audit_logs_resource", "resource_type", "resource_id"),
+        sa.Index("idx_audit_logs_request_id", "request_id"),
         sa.Index("idx_audit_logs_created_at", "created_at"),
     )
 
     id: so.Mapped[str] = so.mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
     token_id: so.Mapped[str | None] = so.mapped_column(
         sa.String(255),
-        sa.ForeignKey("tokens.id", ondelete="SET NULL"),
+        sa.ForeignKey("agent_tokens.id", ondelete="SET NULL"),
         nullable=True,
     )
-    token_prefix: so.Mapped[str | None] = so.mapped_column(sa.String(10), nullable=True)
+    token_prefix: so.Mapped[str | None] = so.mapped_column(sa.String(16), nullable=True)
     secret_id: so.Mapped[str | None] = so.mapped_column(
         sa.String(255),
         sa.ForeignKey("secrets.id", ondelete="SET NULL"),
         nullable=True,
     )
+    actor_type: so.Mapped[str] = so.mapped_column(sa.String(32), nullable=False)
+    actor_id: so.Mapped[str | None] = so.mapped_column(sa.String(255))
+    actor_label: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
+    resource_type: so.Mapped[str | None] = so.mapped_column(sa.String(32))
+    resource_id: so.Mapped[str | None] = so.mapped_column(sa.String(255))
+    resource_label: so.Mapped[str | None] = so.mapped_column(sa.String(255))
     action: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
     result: so.Mapped[str] = so.mapped_column(sa.String(20), nullable=False, default="success")
+    reason: so.Mapped[str | None] = so.mapped_column(sa.String(100))
+    request_id: so.Mapped[str | None] = so.mapped_column(sa.String(255))
     ip_address: so.Mapped[str | None] = so.mapped_column(sa.String(45), nullable=True)
     user_agent: so.Mapped[str | None] = so.mapped_column(sa.Text, nullable=True)
     requested_field_count: so.Mapped[int | None] = so.mapped_column(sa.Integer, nullable=True)

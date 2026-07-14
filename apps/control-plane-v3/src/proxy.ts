@@ -13,7 +13,6 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { resolveManagementSessionCookieName } from './lib/management-session-cookie';
 
 // 公开路由（无需认证）
 const PUBLIC_ROUTES = [
@@ -36,26 +35,14 @@ function isPublicRoute(pathname: string): boolean {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookieName = resolveManagementSessionCookieName();
 
   // 公开路由直接放行
   if (isPublicRoute(pathname)) {
     return NextResponse.next();
   }
 
-  // 获取session
-  const sessionCookie = request.cookies.get(sessionCookieName)?.value;
-
-  // 未登录且不是公开路由，添加标记供客户端处理
-  if (!sessionCookie) {
-    const response = NextResponse.next();
-    response.headers.set('x-auth-required', 'true');
-    return response;
-  }
-
-  // 正常访问 — 已有 cookie 存在。
-  // 不解析 cookie 内容，不传播角色到 headers。
-  // 角色检查完全由客户端 route-guard + /session/me API 处理。
+  // Authentication state is resolved by the client route guard against the
+  // server-side session endpoint. This proxy never interprets cookies.
   return NextResponse.next();
 }
 

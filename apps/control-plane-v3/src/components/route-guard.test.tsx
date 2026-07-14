@@ -32,12 +32,11 @@ describe('RouteGuard', () => {
 
   it('redirects authenticated lower-role users from login to their role-safe landing page', async () => {
     resolveAppEntryStateMock.mockResolvedValue({
-      kind: 'authenticated_ready',
-      bootstrap: { initialized: true },
+      kind: 'authenticated',
       session: {
         email: 'admin@example.com',
-        role: 'admin',
-        session_id: 'session-1',
+        id: 'admin-1',
+        auth_type: 'session',
       },
     });
 
@@ -55,8 +54,7 @@ describe('RouteGuard', () => {
   it('allows anonymous users to stay on public docs routes', async () => {
     pathnameMock.mockReturnValue('/docs');
     resolveAppEntryStateMock.mockResolvedValue({
-      kind: 'login_required',
-      bootstrap: { initialized: true },
+      kind: 'anonymous',
     });
 
     render(
@@ -75,8 +73,7 @@ describe('RouteGuard', () => {
   it('allows public docs routes even before bootstrap is completed', async () => {
     pathnameMock.mockReturnValue('/docs');
     resolveAppEntryStateMock.mockResolvedValue({
-      kind: 'bootstrap_required',
-      bootstrap: { initialized: false },
+      kind: 'setup_required',
     });
 
     render(

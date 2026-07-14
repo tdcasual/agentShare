@@ -9,17 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
 import { useI18n } from '@/components/i18n-provider';
-import { apiFetch } from '@/lib/vaultgate-api';
-
-interface BootstrapStatus {
-  initialized: boolean;
-}
-
-interface BootstrapResponse {
-  message: string;
-  user_id: string;
-  email: string;
-}
+import { bootstrap, getBootstrapStatus } from '@/lib/vaultgate-api';
 
 export default function SetupPage() {
   const { t } = useI18n();
@@ -34,8 +24,8 @@ export default function SetupPage() {
 
     async function checkStatus() {
       try {
-        const status = await apiFetch<BootstrapStatus>('/bootstrap/status');
-        if (!stale && status.initialized) {
+        const status = await getBootstrapStatus();
+        if (!stale && !status.setup_required) {
           router.replace('/login');
         }
       } catch {
@@ -65,10 +55,7 @@ export default function SetupPage() {
     }
 
     try {
-      await apiFetch<BootstrapResponse>('/bootstrap/init', {
-        method: 'POST',
-        body: JSON.stringify({ email: form.email, password: form.password }),
-      });
+      await bootstrap({ email: form.email, password: form.password });
       router.push('/login');
       router.refresh();
     } catch (submitError) {

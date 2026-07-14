@@ -13,6 +13,8 @@ def test_security_workflow_scans_container_artifacts() -> None:
     assert "workflow_dispatch" in workflow
     assert "schedule:" in workflow
     assert "ghcr.io/" in workflow or "image-ref" in workflow
+    assert "vaultgate-caddy" in workflow
+    assert "vaultgate-postgres" in workflow
 
 
 def test_caddyfile_sets_security_headers() -> None:
@@ -26,7 +28,6 @@ def test_caddyfile_sets_security_headers() -> None:
 
 
 def test_production_docs_cover_security_scans_and_headers() -> None:
-    deployment_guide = (ROOT / "docs/guides/production-deployment.md").read_text().lower()
     security_guide = (ROOT / "docs/guides/production-security.md").read_text().lower()
 
     assert "trivy" in security_guide

@@ -28,7 +28,7 @@ describe('LoginPage', () => {
 
   it('submits credentials on form submit', async () => {
     const user = userEvent.setup();
-    mockedLogin.mockResolvedValueOnce({ message: 'ok', user_id: '123', email: 'test@test.com' });
+    mockedLogin.mockResolvedValueOnce({ status: 'authenticated', email: 'test@test.com' });
 
     render(<LoginPage />);
 

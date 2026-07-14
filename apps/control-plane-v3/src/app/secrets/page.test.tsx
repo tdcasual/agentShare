@@ -41,13 +41,6 @@ vi.mock('@/domains/secret', () => ({
   deleteSecret: vi.fn(),
 }));
 
-vi.mock('@/domains/token', () => ({
-  useTokens: () => ({
-    tokens: [],
-    isLoading: false,
-  }),
-}));
-
 describe('SecretsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();

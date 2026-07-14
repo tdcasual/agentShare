@@ -1,4 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+
+const systemChrome =
+  process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
+  (existsSync('/usr/bin/google-chrome') ? '/usr/bin/google-chrome' : undefined);
 
 export default defineConfig({
   testDir: './test/e2e',
@@ -18,7 +23,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: systemChrome ? { executablePath: systemChrome } : undefined,
+      },
     },
   ],
 });

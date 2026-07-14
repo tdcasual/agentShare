@@ -14,7 +14,7 @@ from sqlalchemy import orm as so
 from .base import Base
 
 if TYPE_CHECKING:
-    from .scope import Scope
+    from .token_secret_grant import TokenSecretGrant
     from .user import User
 
 
@@ -70,7 +70,6 @@ class Secret(Base):
         sa.String(255),
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     type: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
     name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
@@ -98,7 +97,7 @@ class Secret(Base):
 
     # Relationships
     user: so.Mapped[User] = so.relationship(back_populates="secrets")
-    scopes: so.WriteOnlyMapped[Scope] = so.relationship(
+    grants: so.WriteOnlyMapped[TokenSecretGrant] = so.relationship(
         back_populates="secret",
         cascade="all, delete-orphan",
         passive_deletes=True,

@@ -9,8 +9,6 @@ def _term(*parts: str) -> str:
 # Each pattern uses word-boundary or context-specific matching to avoid
 # false positives from substrings (e.g. "AgentRepository" inside "OpenClawAgentRepository").
 FORBIDDEN_PATTERNS: list[tuple[str, re.Pattern]] = [
-    (_term("Agent", "Token"), re.compile(rf"\b{_term('Agent', 'Token')}\b")),
-    (_term("agent", "_", "tokens"), re.compile(rf"\b{_term('agent', '_', 'tokens')}\b")),
     (_term("Agent", "Identity", "Model"), re.compile(rf"\b{_term('Agent', 'Identity', 'Model')}\b")),
     (_term("legacy", "_", "name"), re.compile(rf"\b{_term('legacy', '_', 'name')}\b")),
     (
@@ -35,7 +33,7 @@ FORBIDDEN_PATTERNS: list[tuple[str, re.Pattern]] = [
 EXCLUDED_SUFFIXES = {".py", ".ts", ".tsx", ".json"}
 
 
-def test_source_no_longer_contains_removed_legacy_agent_token_terms():
+def test_source_no_longer_contains_removed_legacy_agent_profile_terms():
     offenders: list[tuple[str, str]] = []
 
     for root in [Path("apps/api/app"), Path("apps/api/tests"), Path("apps/control-plane-v3/src")]:

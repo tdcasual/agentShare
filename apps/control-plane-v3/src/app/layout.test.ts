@@ -11,6 +11,10 @@ async function readLayoutSource() {
   return readFile(absolutePath, 'utf8');
 }
 
+async function readNextConfigSource() {
+  return readFile(path.join(appDir, '../../next.config.mjs'), 'utf8');
+}
+
 describe('root layout localization', () => {
   it('derives document lang and skip link copy from the persisted locale', async () => {
     const source = await readLayoutSource();
@@ -36,5 +40,12 @@ describe('root layout localization', () => {
     const source = await readLayoutSource();
 
     expect(source).not.toContain('<main id="main-content">{children}</main>');
+  });
+
+  it('allows Next hydration scripts while restricting scripts to this origin', async () => {
+    const source = await readNextConfigSource();
+
+    expect(source).toContain("script-src 'self' 'unsafe-inline'");
+    expect(source).not.toMatch(/script-src[^\n]*https?:/);
   });
 });

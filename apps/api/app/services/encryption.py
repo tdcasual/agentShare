@@ -5,6 +5,7 @@ This module provides AES-256-GCM encryption for secret values.
 from __future__ import annotations
 
 import base64
+import binascii
 import os
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -73,7 +74,7 @@ class EncryptionService:
             key_bytes = base64.b64decode(key_str)
             if len(key_bytes) == 32:
                 return key_bytes
-        except Exception:
+        except binascii.Error:
             pass
 
         # Try hex encoding
@@ -117,8 +118,7 @@ class EncryptionService:
         # Pack: iv (12 bytes) + ciphertext + tag (16 bytes)
         packed = iv + ciphertext + tag
 
-        # Return base64 encoded
-        return base64.b64encode(packed).decode("ascii")
+        return "v1:" + base64.b64encode(packed).decode("ascii")
 
     def decrypt(self, encrypted_b64: str) -> str:
         """Decrypt base64-encoded encrypted data.
@@ -133,6 +133,10 @@ class EncryptionService:
             ValueError: If encrypted data is invalid.
         """
         try:
+            if ":" in encrypted_b64:
+                version, encrypted_b64 = encrypted_b64.split(":", 1)
+                if version != "v1":
+                    raise ValueError(f"Unsupported encryption payload version: {version}")
             # Decode base64
             packed = base64.b64decode(encrypted_b64)
 

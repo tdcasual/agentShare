@@ -62,11 +62,35 @@ _check_homepage() {
 	fi
 }
 
+_request_status() {
+	path="$1"
+	if printf '%s' "${APP_BASE_URL}" | grep -q '^https://'; then
+		curl --silent --show-error --location \
+			--resolve "${PUBLIC_HOST}:443:127.0.0.1" \
+			--output /dev/null --write-out '%{http_code}' \
+			"${APP_BASE_URL}${path}"
+	else
+		curl --silent --show-error --location \
+			-H "Host: ${PUBLIC_HOST}" \
+			--output /dev/null --write-out '%{http_code}' \
+			"${APP_BASE_URL}${path}"
+	fi
+}
+
+_check_api_contract() {
+	bootstrap_status="$(_request_status /api/admin/bootstrap/status)"
+	[ "${bootstrap_status}" = "200" ]
+
+	session_status="$(_request_status /api/admin/session)"
+	[ "${session_status}" = "401" ]
+}
+
 check_once() {
 	_check_health
 	_check_request_id_header
 	_check_readyz
 	_check_homepage
+	_check_api_contract
 }
 
 attempt=1

@@ -77,11 +77,8 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const isPublic = isPublicPath(pathname);
 
     // 引导状态特殊处理
-    if (entryState.kind === 'bootstrap_required') {
-      if (isPublic) {
-        return;
-      }
-      if (pathname !== '/setup') {
+    if (entryState.kind === 'setup_required') {
+      if (pathname !== '/setup' && !pathname.startsWith('/docs')) {
         router.replace('/setup');
       }
       return;
@@ -93,16 +90,13 @@ export function RouteGuard({ children }: RouteGuardProps) {
     }
 
     // 已认证用户访问登录/设置页 — 重定向到管理首页
-    if (
-      entryState.kind === 'authenticated_ready' &&
-      (pathname === '/login' || pathname === '/setup')
-    ) {
+    if (entryState.kind === 'authenticated' && (pathname === '/login' || pathname === '/setup')) {
       router.replace('/');
       return;
     }
 
     // 未认证用户访问需要认证的页面 — 重定向到登录页
-    if (entryState.kind === 'login_required' && !isPublic) {
+    if (entryState.kind === 'anonymous' && !isPublic) {
       if (pathname !== '/login') {
         router.replace('/login');
       }

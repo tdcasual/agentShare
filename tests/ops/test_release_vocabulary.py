@@ -5,11 +5,9 @@ def _term(*parts: str) -> str:
     return "".join(parts)
 
 
-def test_current_docs_do_not_use_removed_agent_token_vocabulary():
+def test_current_docs_do_not_use_removed_agent_profile_vocabulary():
     roots = [Path("README.md"), Path("docs/guides")]
     forbidden = [
-        _term("agent", " ", "token"),
-        _term("agent", " ", "tokens"),
         _term("remote", " ", "agent", " ", "profile"),
         _term("/", "api", "/", "agents"),
         _term("/", "api", "/", "agent", "-", "tokens"),

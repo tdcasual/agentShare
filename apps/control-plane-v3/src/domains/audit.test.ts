@@ -8,17 +8,8 @@ vi.mock('swr', () => ({
 
 // Mock the API module
 vi.mock('@/lib/vaultgate-api', () => ({
-  apiFetch: vi.fn().mockResolvedValue({}),
-  ApiError: class ApiError extends Error {
-    status: number;
-    detail: string;
-    constructor(status: number, detail: string) {
-      super(detail);
-      this.status = status;
-      this.detail = detail;
-      this.name = 'ApiError';
-    }
-  },
+  listAuditLogs: vi.fn(),
+  getAuditStats: vi.fn(),
 }));
 
 import { useAuditLogs, useAuditStats } from './audit';

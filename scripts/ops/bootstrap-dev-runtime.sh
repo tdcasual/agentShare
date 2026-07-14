@@ -26,7 +26,11 @@ fi
 )
 
 if [ -x "${PLAYWRIGHT_BIN}" ]; then
-  "${PLAYWRIGHT_BIN}" install chromium
+  if command -v google-chrome >/dev/null 2>&1; then
+    printf 'Using system Chrome for Playwright: %s\n' "$(command -v google-chrome)"
+  else
+    "${PLAYWRIGHT_BIN}" install chromium
+  fi
 fi
 
 printf 'Bootstrapped dev runtime at %s\n' "${ROOT_DIR}"

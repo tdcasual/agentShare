@@ -3,7 +3,7 @@ import { mockSession } from './fixtures';
 
 test.describe('dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await mockSession(page, 'admin');
+    await mockSession(page);
   });
 
   test('displays dashboard heading', async ({ page }) => {
@@ -20,13 +20,13 @@ test.describe('dashboard', () => {
     await expect(page).toHaveURL(/.*secrets.*/);
   });
 
-  test('navigates to tokens page', async ({ page }) => {
+  test('navigates to Agents page', async ({ page }) => {
     await page.goto('/');
     await page
-      .getByRole('link', { name: /令牌|Tokens/ })
+      .getByRole('link', { name: /Agent|Agents/ })
       .first()
       .click();
-    await expect(page).toHaveURL(/.*tokens.*/);
+    await expect(page).toHaveURL(/.*agents.*/);
   });
 
   test('navigates to audit page', async ({ page }) => {

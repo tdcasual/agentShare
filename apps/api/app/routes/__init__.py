@@ -1,39 +1,26 @@
-"""VaultGate route modules.
-
-This module registers all VaultGate API routes.
-The old Agent Control Plane routes have been removed as part of the VaultGate in-place replacement.
-"""
+"""Register the supported VaultGate API surface."""
 
 from fastapi import APIRouter, FastAPI
 
-# VaultGate routes
-from app.routes.audit import router as audit_router
-from app.routes.auth import router as auth_router
-from app.routes.bootstrap import router as bootstrap_router
-from app.routes.runtime import router as runtime_router
-from app.routes.secrets_mgmt import router as secrets_mgmt_router
-from app.routes.tokens import router as tokens_router
-from app.routes.vault import router as vault_router
+from app.modules.admin_auth.routes import router as admin_auth_router
+from app.modules.agents.routes import router as admin_agents_router
+from app.modules.audit.routes import router as admin_audit_router
+from app.modules.secrets.routes import router as admin_secrets_router
+from app.modules.tokens.routes import router as admin_tokens_router
+from app.modules.vault.routes import router as vault_router
 
 
 def get_vaultgate_routers() -> tuple[APIRouter, ...]:
-    """Get all VaultGate routers.
-
-    Returns:
-        Tuple of APIRouter instances
-    """
     return (
-        bootstrap_router,    # /api/bootstrap - initialize first user
-        auth_router,         # /api/session - login/logout/me
-        secrets_mgmt_router, # /api/secrets - secret CRUD (web UI)
-        tokens_router,       # /api/tokens - token management
-        audit_router,        # /api/audit-logs - audit log queries
-        vault_router,        # /api/vault - runtime API (Bearer token)
-        runtime_router,      # /api/me - token verification
+        admin_auth_router,
+        admin_secrets_router,
+        admin_agents_router,
+        admin_tokens_router,
+        admin_audit_router,
+        vault_router,
     )
 
 
 def register_routes(app: FastAPI) -> None:
-    """Register VaultGate routes with the FastAPI app."""
     for router in get_vaultgate_routers():
         app.include_router(router)

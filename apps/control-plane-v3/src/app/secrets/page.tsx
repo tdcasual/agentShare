@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useSecrets, createSecret, deleteSecret } from '@/domains/secret';
-import { useTokens } from '@/domains/token';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,7 +84,6 @@ const EMPTY_FORM = {
 export default function SecretsPage() {
   const { t } = useI18n();
   const { secrets, isLoading, error, refresh } = useSecrets();
-  const { tokens } = useTokens();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -264,10 +262,6 @@ export default function SecretsPage() {
         <Card className="p-3 sm:p-4">
           <div className="text-xl font-bold text-foreground">{secrets.length}</div>
           <div className="text-xs text-muted-foreground">{t('dashboard.totalSecrets')}</div>
-        </Card>
-        <Card className="p-3 sm:p-4">
-          <div className="text-xl font-bold text-foreground">{tokens.length}</div>
-          <div className="text-xs text-muted-foreground">{t('dashboard.activeTokens')}</div>
         </Card>
       </div>
 

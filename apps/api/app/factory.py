@@ -73,7 +73,7 @@ def register_core_routes(app: FastAPI) -> None:
         return {"status": "ok"}
 
     @app.get("/readyz", response_model=None, tags=["Bootstrap"], summary="Readiness probe", description="Deep health check verifying database and encryption service.")
-    def readiness_check(request: Request) -> JSONResponse | dict[str, str]:
+    async def readiness_check(request: Request) -> JSONResponse | dict[str, str]:
         """Verify all critical dependencies are available.
 
         Returns 200 if the service is ready to accept traffic, 503 otherwise.
@@ -84,8 +84,8 @@ def register_core_routes(app: FastAPI) -> None:
         # Check database connectivity
         try:
             runtime: AppRuntime = request.app.state.runtime
-            with runtime.engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
+            async with runtime.engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
             checks["database"] = "ok"
         except Exception as exc:
             startup_logger.exception("Readiness check: database failed")
@@ -271,16 +271,11 @@ def create_app(
 
         # Graceful shutdown: dispose engines and release connections
         startup_logger.info("VaultGate shutting down — disposing database engines")
-        runtime_obj: AppRuntime = app_instance.state.runtime
         try:
-            runtime_obj.engine.dispose()
+            runtime_obj: AppRuntime = app_instance.state.runtime
+            await runtime_obj.dispose()
         except Exception:
-            startup_logger.exception("Error disposing sync engine during shutdown")
-        try:
-            from app.db import dispose_async_engine
-            await dispose_async_engine()
-        except Exception:
-            startup_logger.exception("Error disposing async engine during shutdown")
+            startup_logger.exception("Error disposing async runtime during shutdown")
         startup_logger.info("VaultGate shutdown complete")
 
     app = FastAPI(
@@ -291,12 +286,12 @@ def create_app(
             "API文档公开访问，Agent通过Bearer Token获取权限内的密钥信息。"
         ),
         openapi_tags=[
-            {"name": "Bootstrap", "description": "健康检查和公开API文档。"},
-            {"name": "Authentication", "description": "用户登录和会话管理。"},
-            {"name": "Secrets", "description": "密钥CRUD操作（Web UI使用）。"},
-            {"name": "Tokens", "description": "Token管理和权限配置。"},
-            {"name": "Vault", "description": "运行时API（Agent通过Bearer Token访问）。"},
-            {"name": "Runtime", "description": "Token验证端点。"},
+            {"name": "Admin", "description": "单管理员初始化、会话与管理 Token。"},
+            {"name": "Admin Secrets", "description": "管理员 Secret 管理。"},
+            {"name": "Admin Agents", "description": "Agent 生命周期。"},
+            {"name": "Admin Tokens", "description": "Agent Token 与逐 Secret 授权。"},
+            {"name": "Admin Audit", "description": "结构化审计查询与统计。"},
+            {"name": "Vault", "description": "仅供 vg_ Agent Token 使用的运行时 API。"},
         ],
         lifespan=lifespan,
     )

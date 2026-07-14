@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from ipaddress import ip_address
 from time import monotonic
 from typing import NamedTuple
 
@@ -72,21 +73,43 @@ def _get_client_ip(request: Request) -> str:
     which is acceptable since all requests from behind the proxy share the
     same rate limit bucket.
     """
-    return request.client.host if request.client else "unknown"
+    direct_ip = request.client.host if request.client else "unknown"
+    configured = getattr(request.app.state.settings, "trusted_proxy_ips", "")
+    trusted_proxies = {item.strip() for item in configured.split(",") if item.strip()}
+    if direct_ip not in trusted_proxies:
+        return direct_ip
+    forwarded = request.headers.get("x-forwarded-for", "").split(",", 1)[0].strip()
+    if not forwarded:
+        return direct_ip
+    try:
+        return str(ip_address(forwarded))
+    except ValueError:
+        return direct_ip
 
 
-def check_rate_limit(request: Request, config: RateLimitConfig) -> JSONResponse | None:
+def _rate_limit_key(request: Request, identifier: str | None) -> str:
+    client_ip = _get_client_ip(request)
+    if identifier is None:
+        return client_ip
+    return f"{client_ip}|{identifier.strip().lower()}"
+
+
+def check_rate_limit(
+    request: Request,
+    config: RateLimitConfig,
+    identifier: str | None = None,
+) -> JSONResponse | None:
     """Check if the request should be rate-limited.
 
     Returns a 429 JSONResponse if rate-limited, or None if the request is allowed.
     """
-    ip = _get_client_ip(request)
-    attempt_count = _store.get_attempt_count(ip, config.window_seconds)
+    key = _rate_limit_key(request, identifier)
+    attempt_count = _store.get_attempt_count(key, config.window_seconds)
 
     if attempt_count >= config.max_attempts:
         logger.warning(
             "Rate limit exceeded for IP %s: %d attempts in %d seconds",
-            ip, attempt_count, config.window_seconds,
+            key, attempt_count, config.window_seconds,
         )
         return JSONResponse(
             status_code=429,
@@ -97,15 +120,18 @@ def check_rate_limit(request: Request, config: RateLimitConfig) -> JSONResponse 
     return None
 
 
-def record_failed_attempt(request: Request, config: RateLimitConfig) -> int:
+def record_failed_attempt(
+    request: Request,
+    config: RateLimitConfig,
+    identifier: str | None = None,
+) -> int:
     """Record a failed login attempt and return the current count."""
-    ip = _get_client_ip(request)
-    count = _store.record_failure(ip, config.window_seconds)
-    logger.info("Failed login attempt from IP %s (%d/%d)", ip, count, config.max_attempts)
+    key = _rate_limit_key(request, identifier)
+    count = _store.record_failure(key, config.window_seconds)
+    logger.info("Failed login attempt for %s (%d/%d)", key, count, config.max_attempts)
     return count
 
 
-def clear_attempts(request: Request) -> None:
+def clear_attempts(request: Request, identifier: str | None = None) -> None:
     """Clear failed attempts for the client IP (e.g., after successful login)."""
-    ip = _get_client_ip(request)
-    _store.clear(ip)
+    _store.clear(_rate_limit_key(request, identifier))
