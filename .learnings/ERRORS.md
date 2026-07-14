@@ -36,6 +36,38 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260714-011] gh-api-query-zsh-glob
+
+**Logged**: 2026-07-14T06:34:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+zsh expanded an unquoted GitHub API query string before `gh` could run.
+
+### Error
+
+```text
+zsh: no matches found: repos/.../dependabot/alerts?state=open
+```
+
+### Context
+- The HTTP request was never sent.
+- Query-string endpoints contain glob metacharacters under zsh.
+
+### Suggested Fix
+Quote GitHub API endpoint arguments containing `?` or `&`.
+
+### Resolution
+Retried with the endpoint in single quotes.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `.learnings/ERRORS.md`
+
+---
+
 ## [ERR-20260714-010] clean-ci-e2e-build-order
 
 **Logged**: 2026-07-14T06:31:00Z
