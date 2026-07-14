@@ -11,7 +11,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Defaults - MUST be changed in production
 # Valid base64-encoded 32-byte key for AES-256-GCM (development only)
 DEFAULT_ENCRYPTION_KEY = "ZGV2LW9ubHktMzItYnl0ZS1lbmNyeXB0aW9uLWtleSE="  # DO NOT use in production
-DEFAULT_SESSION_SECRET = "changeme-session-secret-for-cookies"
 
 
 class Settings(BaseSettings):
@@ -29,7 +28,6 @@ class Settings(BaseSettings):
     encryption_key: str = DEFAULT_ENCRYPTION_KEY
 
     # Session - for web UI authentication cookies
-    session_secret: str = DEFAULT_SESSION_SECRET
     session_cookie_name: str = "vaultgate_session"
     session_ttl_seconds: int = 60 * 60 * 12  # 12 hours
     session_secure: bool = False  # Set True in production with HTTPS
@@ -41,6 +39,7 @@ class Settings(BaseSettings):
     # Rate limiting
     auth_rate_limit_max_attempts: int = 5
     auth_rate_limit_window_seconds: int = 300
+    trusted_proxy_ips: str = ""
 
     @model_validator(mode="after")
     def validate_settings_for_environment(self) -> "Settings":
@@ -56,13 +55,6 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "Production settings must use a strong ENCRYPTION_KEY. "
                     "Generate with: python -c 'import secrets, base64; print(base64.b64encode(secrets.token_bytes(32)).decode())'"
-                )
-
-            # Validate session secret
-            if self.session_secret == DEFAULT_SESSION_SECRET:
-                raise ValueError(
-                    "Production settings must use a strong SESSION_SECRET. "
-                    "Generate with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
                 )
 
             # Validate secure cookies

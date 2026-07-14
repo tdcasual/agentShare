@@ -1,0 +1,125 @@
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db import get_async_db
+from app.modules.admin_auth.routes import get_admin_principal
+from app.modules.admin_auth.service import AdminPrincipal
+from app.modules.secrets.schemas import SecretCreate, SecretUpdate
+from app.modules.secrets.service import serialize_secret
+from app.orm import Secret
+from app.services.encryption import get_encryption_service
+
+router = APIRouter(prefix="/api/admin/secrets", tags=["Admin Secrets"])
+
+
+async def _owned_secret(db: AsyncSession, user_id: str, secret_id: str) -> Secret:
+    result = await db.execute(
+        select(Secret).where(Secret.id == secret_id, Secret.user_id == user_id)
+    )
+    secret = result.scalar_one_or_none()
+    if secret is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found")
+    return secret
+
+
+@router.get("")
+async def list_secrets(
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    total = await db.scalar(
+        select(func.count(Secret.id)).where(Secret.user_id == principal.user.id)
+    )
+    result = await db.scalars(
+        select(Secret)
+        .where(Secret.user_id == principal.user.id)
+        .order_by(Secret.created_at.desc(), Secret.id)
+        .limit(limit)
+        .offset(offset)
+    )
+    return {
+        "items": [serialize_secret(secret) for secret in result],
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_secret(
+    body: SecretCreate,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    secret = Secret(
+        user_id=principal.user.id,
+        name=body.name,
+        type=body.type,
+        url=body.url,
+        username=body.username,
+        description=body.description,
+        value_encrypted=get_encryption_service().encrypt(body.value),
+        tags=body.tags,
+        secret_metadata=body.metadata,
+    )
+    db.add(secret)
+    await db.commit()
+    await db.refresh(secret)
+    return serialize_secret(secret)
+
+
+@router.get("/{secret_id}")
+async def get_secret(
+    secret_id: str,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    return serialize_secret(await _owned_secret(db, principal.user.id, secret_id))
+
+
+@router.get("/{secret_id}/value")
+async def reveal_secret(
+    secret_id: str,
+    response: Response,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict[str, str]:
+    secret = await _owned_secret(db, principal.user.id, secret_id)
+    response.headers["Cache-Control"] = "no-store"
+    return {"value": get_encryption_service().decrypt(secret.value_encrypted)}
+
+
+@router.patch("/{secret_id}")
+async def update_secret(
+    secret_id: str,
+    body: SecretUpdate,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    secret = await _owned_secret(db, principal.user.id, secret_id)
+    changes = body.model_dump(exclude_unset=True)
+    if "metadata" in changes:
+        secret.secret_metadata = changes.pop("metadata")
+    if "value" in changes:
+        secret.value_encrypted = get_encryption_service().encrypt(changes.pop("value"))
+    for field, value in changes.items():
+        setattr(secret, field, value)
+    await db.commit()
+    await db.refresh(secret)
+    return serialize_secret(secret)
+
+
+@router.delete("/{secret_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_secret(
+    secret_id: str,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> None:
+    secret = await _owned_secret(db, principal.user.id, secret_id)
+    await db.delete(secret)
+    await db.commit()

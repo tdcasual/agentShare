@@ -25,6 +25,8 @@ jobs:
       matrix:
         image_name:
           - vaultgate-api
+          - vaultgate-caddy
+          - vaultgate-postgres
           - vaultgate-web
 
     steps:

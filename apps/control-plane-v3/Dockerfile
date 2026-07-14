@@ -29,6 +29,17 @@ COPY --from=builder /srv/vaultgate/apps/control-plane-v3/.next/static ./.next/st
 # Public assets (PWA icons, manifest, service worker)
 COPY --from=builder /srv/vaultgate/apps/control-plane-v3/public ./public
 
+RUN rm -rf \
+      /usr/local/lib/node_modules/npm \
+      /usr/local/lib/node_modules/corepack \
+      /opt/yarn-v1.22.22 \
+    && rm -f \
+      /usr/local/bin/npm \
+      /usr/local/bin/npx \
+      /usr/local/bin/corepack \
+      /usr/local/bin/yarn \
+      /usr/local/bin/yarnpkg
+
 EXPOSE 3000
 
 USER node

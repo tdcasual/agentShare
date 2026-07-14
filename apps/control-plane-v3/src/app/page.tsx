@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSecrets } from '@/domains/secret';
-import { useTokens } from '@/domains/token';
+import { useAgents } from '@/domains/agent';
 import { useAuditStats } from '@/domains/audit';
 import { Card } from '@/components/ui/card';
 import { Callout } from '@/components/ui/callout';
@@ -12,12 +12,12 @@ import { useI18n } from '@/components/i18n-provider';
 export default function VaultGateDashboard() {
   const { t } = useI18n();
   const { secrets, isLoading: secretsLoading } = useSecrets();
-  const { tokens, isLoading: tokensLoading } = useTokens();
+  const { agents, isLoading: agentsLoading } = useAgents();
   const { stats, isLoading: statsLoading } = useAuditStats();
 
   const totalSecrets = secrets.length;
-  const activeTokens = tokens.filter((token) => token.status === 'active').length;
-  const recentActivity = stats?.recent ?? 0;
+  const activeAgents = agents.filter((agent) => agent.status === 'active').length;
+  const recentActivity = stats?.total ?? 0;
 
   return (
     <main id="main-content" className="space-y-8 p-4 sm:p-6 lg:p-8">
@@ -43,9 +43,9 @@ export default function VaultGateDashboard() {
           isLoading={secretsLoading}
         />
         <StatCard
-          label={t('dashboard.activeTokens')}
-          value={activeTokens}
-          isLoading={tokensLoading}
+          label={t('dashboard.activeAgents')}
+          value={activeAgents}
+          isLoading={agentsLoading}
         />
         <StatCard
           label={t('dashboard.recentActivity')}
@@ -64,7 +64,7 @@ export default function VaultGateDashboard() {
             description={t('dashboard.createSecretDesc')}
           />
           <QuickActionRow
-            href="/tokens"
+            href="/agents"
             label={t('dashboard.createToken')}
             description={t('dashboard.createTokenDesc')}
           />
@@ -81,7 +81,7 @@ export default function VaultGateDashboard() {
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">{t('dashboard.browse')}</h2>
         <div className="grid gap-2 sm:grid-cols-2">
           <QuickLink href="/secrets" label={t('dashboard.secrets')} count={totalSecrets} />
-          <QuickLink href="/tokens" label={t('dashboard.tokens')} count={activeTokens} />
+          <QuickLink href="/agents" label={t('dashboard.agents')} count={activeAgents} />
           <QuickLink href="/audit" label={t('dashboard.auditLogs')} />
         </div>
       </Card>
@@ -113,15 +113,11 @@ export default function VaultGateDashboard() {
             <p className="mb-1 text-foreground">{t('dashboard.agentAccess')}</p>
             <ul className="ml-2 list-inside list-disc space-y-1">
               <li>
-                <code className="font-mono text-xs">GET /api/vault</code> —{' '}
+                <code className="font-mono text-xs">GET /api/vault/secrets</code> —{' '}
                 {t('dashboard.listSecrets')}
               </li>
               <li>
-                <code className="font-mono text-xs">GET /api/vault/:id?fields=value</code> —{' '}
-                {t('dashboard.getSecret')}
-              </li>
-              <li>
-                <code className="font-mono text-xs">GET /api/vault/:id/value</code> —{' '}
+                <code className="font-mono text-xs">GET /api/vault/secrets/:id/value</code> —{' '}
                 {t('dashboard.getSecretValue')}
               </li>
             </ul>

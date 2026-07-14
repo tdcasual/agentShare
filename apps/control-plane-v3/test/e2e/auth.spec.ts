@@ -15,15 +15,15 @@ test.describe('authentication flow', () => {
   });
 
   test('shows dashboard for authenticated admin', async ({ page }) => {
-    await mockSession(page, 'admin');
+    await mockSession(page);
     await page.goto('/');
     await expect(page.getByRole('heading', { name: /欢迎|VaultGate/ })).toBeVisible();
   });
 
-  test('logout sends POST to session logout endpoint', async ({ page }) => {
-    await mockSession(page, 'admin');
+  test('logout sends DELETE to session endpoint', async ({ page }) => {
+    await mockSession(page);
     const logoutRequest = page.waitForRequest(
-      (req) => req.url().includes('/api/session/logout') && req.method() === 'POST'
+      (req) => req.url().includes('/api/admin/session') && req.method() === 'DELETE'
     );
     await page.goto('/logout');
     await logoutRequest;

@@ -1,82 +1,57 @@
 # VaultGate
 
-Simple key storage and token issuance service.
+VaultGate is a small self-hosted credential gateway for one administrator and multiple Agents.
+
+The administrator stores encrypted Secrets, creates Agents, issues one or more `vg_` Tokens for each Agent, and explicitly selects which Secrets every Token may read. Tags are UI metadata only and never grant access dynamically.
 
 ## Architecture
 
-VaultGate is a minimal vault for storing secrets (accounts, passwords, API keys) and issuing scoped bearer tokens that agents use to retrieve authorized secrets at runtime.
+- FastAPI and async SQLAlchemy backend: `apps/api/`
+- Next.js management console: `apps/control-plane-v3/`
+- PostgreSQL in production; SQLite for local development
+- AES-256-GCM encrypted Secret values with versioned payloads
+- Server-side, revocable administrator Sessions
+- Separate `vgm_` management Tokens for administrator automation
 
-```
-FastAPI (Python) + PostgreSQL + Next.js
-```
+## API
 
-- **API** -- FastAPI backend at `apps/api/`
-- **Web** -- Next.js management console at `apps/control-plane-v3/`
-- **Database** -- PostgreSQL (SQLite for local dev)
-- **Encryption** -- AES-256-GCM in application layer
+Management endpoints use `/api/admin/*` and accept either the browser Session cookie or `Authorization: Bearer vgm_...`.
 
-## Core Features
+Important groups:
 
-- **Secret CRUD** -- Create, read, update, and delete secrets through the web UI or management API. Secrets are encrypted at rest with AES-256-GCM.
-- **Token management with scopes** -- Issue bearer tokens with configurable scopes and TTL. Tokens grant runtime access to authorized secrets.
-- **Vault runtime API** -- Agents authenticate with `Authorization: Bearer <token>` to retrieve secrets within their scope.
-- **Audit logging** -- Every secret access and token operation is logged.
+| Purpose | Endpoint |
+|---|---|
+| First-time setup | `/api/admin/bootstrap/*` |
+| Administrator Session | `/api/admin/session/*` |
+| Management Tokens | `/api/admin/management-tokens` |
+| Secrets | `/api/admin/secrets` |
+| Agents | `/api/admin/agents` |
+| Agent Tokens and grants | `/api/admin/tokens/*` |
+| Audit | `/api/admin/audit-logs`, `/api/admin/audit-stats` |
 
-## Tech Stack
+Agent runtime endpoints use `/api/vault/*` and accept only `vg_` Tokens:
 
-| Layer | Technology |
-|-------|------------|
-| API | Python 3.12, FastAPI, SQLAlchemy 2, Pydantic v2 |
-| Web | Next.js 15, React 19, Tailwind CSS, shadcn/ui |
-| Database | PostgreSQL (production), SQLite (local dev) |
-| Encryption | AES-256-GCM (ENCRYPTION_KEY) |
-| Containerization | Docker, Docker Compose |
+- `GET /api/vault/me`
+- `GET /api/vault/secrets`
+- `GET /api/vault/secrets/{id}`
+- `GET /api/vault/secrets/{id}/value`
 
-## Quick Start
+`vg_` and `vgm_` credentials are rejected outside their respective API boundary.
+
+## Quick start
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
 ```
 
-Then open:
-
 - Web UI: `http://127.0.0.1:3000`
-- API docs: `http://127.0.0.1:8000/docs`
-- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+- API documentation: `http://127.0.0.1:8000/docs`
+- Readiness: `http://127.0.0.1:8000/readyz`
 
-Stop and remove containers:
-
-```bash
-docker compose down
-```
-
-Stop and remove containers plus database volumes:
-
-```bash
-docker compose down -v
-```
-
-## API Overview
-
-VaultGate exposes six route groups:
-
-| Group | Prefix | Description |
-|-------|--------|-------------|
-| Bootstrap | `/api/bootstrap` | Health check, initial owner setup |
-| Authentication | `/api/session` | Login, logout, current user |
-| Secrets | `/api/secrets` | Secret CRUD (web UI) |
-| Tokens | `/api/tokens` | Token management with scopes |
-| Vault | `/api/vault` | Runtime API (Bearer token auth) |
-| Runtime | `/api/me` | Token verification |
-
-All management routes require a session cookie. Runtime routes (`/api/vault`, `/api/me`) accept `Authorization: Bearer <token>`.
+The first browser visit redirects to setup. Create the administrator, then create Secrets and Agents through the UI.
 
 ## Development
-
-### Local development without Docker
-
-1. Install dependencies:
 
 ```bash
 python3 -m venv .venv
@@ -84,55 +59,47 @@ python3 -m venv .venv
 cd apps/control-plane-v3 && npm install
 ```
 
-2. Start the API (uses SQLite by default):
+Run the API:
 
 ```bash
 .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
 ```
 
-3. Start the web UI:
+Run the web application:
 
 ```bash
-cd apps/control-plane-v3 && VAULTGATE_API_URL=http://127.0.0.1:8000 npm run dev
+cd apps/control-plane-v3
+VAULTGATE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
-### Local development with Docker services
+The browser always calls the same-origin `/api` proxy; there is no public client-side API base URL.
 
-Start only the dependency services and run the API locally:
+## Verification
 
 ```bash
-docker compose up -d postgres
+./scripts/ops/verify-control-plane.sh
 ```
 
-Then set the database URL and run the API:
+This runs backend static analysis/tests, operations contract tests, frontend checks/tests, and the production build.
 
-```bash
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/vaultgate .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
-```
-
-### Run tests
-
-```bash
-.venv/bin/pytest apps/api/tests -q
-cd apps/control-plane-v3 && npm run build
-```
-
-### Production deployment
-
-For production, use `docker-compose.prod.yml` with a properly configured `.env.production`:
+## Production
 
 ```bash
 cp ops/compose/prod.env.example .env.production
-# edit .env.production with strong keys and production URLs
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ```
 
-Generate production keys:
+Generate the encryption key:
 
 ```bash
-# ENCRYPTION_KEY (AES-256, base64-encoded 32 bytes)
-python -c 'import secrets, base64; print(base64.b64encode(secrets.token_bytes(32)).decode())'
-
-# SESSION_SECRET
-python -c 'import secrets; print(secrets.token_urlsafe(32))'
+python3 -c 'import secrets,base64; print(base64.b64encode(secrets.token_bytes(32)).decode())'
 ```
+
+Before upgrading an existing deployment, back up PostgreSQL. Container startup runs `alembic upgrade head`; the migration preserves current users, Secrets, Tokens, grants, and audit records while introducing Agents and server-side administrator authentication.
+
+See:
+
+- `docs/guides/deployment-manual.md`
+- `docs/guides/production-security.md`
+- `docs/guides/production-operations.md`
+- `docs/guides/agent-quickstart.md`

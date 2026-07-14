@@ -1,15 +1,24 @@
 from __future__ import annotations
 
+import tomllib
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def test_api_dev_dependencies_include_test_client_transport() -> None:
+    pyproject = tomllib.loads((ROOT / "apps/api/pyproject.toml").read_text())
+
+    assert "httpx2>=2.5.0" in pyproject["project"]["optional-dependencies"]["dev"]
+
+
 def test_container_artifacts_exist() -> None:
     assert (ROOT / ".github/workflows/docker-images.yml").exists()
     assert (ROOT / ".github/workflows/deploy.yml").exists()
     assert (ROOT / "apps/api/Dockerfile").exists()
+    assert (ROOT / "apps/caddy/Dockerfile").exists()
+    assert (ROOT / "apps/postgres/Dockerfile").exists()
     assert (ROOT / "apps/api/docker-entrypoint.sh").exists()
     assert (ROOT / "apps/control-plane-v3/Dockerfile").exists()
     assert (ROOT / "docker-compose.prod.yml").exists()
@@ -32,7 +41,8 @@ def test_api_dockerfile_exposes_runtime_contract() -> None:
     assert "requirements.lock" in dockerfile
     assert "pip install" in dockerfile
     assert "-r requirements.lock" in dockerfile
-    assert "pip install --no-cache-dir --no-deps ./apps/api" in dockerfile
+    assert "PYTHONPATH=/srv/vaultgate/apps/api" in dockerfile
+    assert "pip install --no-cache-dir --no-deps ./apps/api" not in dockerfile
     assert "COPY apps/api/docker-entrypoint.sh" in dockerfile
     assert "ENTRYPOINT" in dockerfile
     assert "EXPOSE 8000" in dockerfile
@@ -58,6 +68,9 @@ def test_web_dockerfile_builds_next_app() -> None:
     assert "npm run build" in dockerfile
     assert ".next/standalone" in dockerfile
     assert ".next/static" in dockerfile
+    assert "RUN rm -rf" in dockerfile
+    assert "/usr/local/lib/node_modules/npm" in dockerfile
+    assert "/usr/local/bin/corepack" in dockerfile
     assert "EXPOSE 3000" in dockerfile
     assert 'CMD ["node", "server.js"]' in dockerfile
 
@@ -74,6 +87,7 @@ def test_compose_defines_complete_stack() -> None:
 def test_dev_compose_builds_local_app_services_without_pulling_fake_local_tags() -> None:
     compose = (ROOT / "docker-compose.yml").read_text()
     assert "dockerfile: apps/api/Dockerfile" in compose
+    assert "dockerfile: apps/postgres/Dockerfile" in compose
     assert "dockerfile: apps/control-plane-v3/Dockerfile" in compose
     assert "vaultgate-api:local" not in compose
     assert "vaultgate-web:local" not in compose
@@ -88,11 +102,13 @@ def test_dev_compose_binds_exposed_services_to_loopback_only() -> None:
     assert "127.0.0.1:${WEB_PORT:-3000}:3000" in compose
 
 
-def test_docker_workflow_builds_both_images_with_ghcr() -> None:
+def test_docker_workflow_builds_all_images_with_ghcr() -> None:
     workflow = (ROOT / ".github/workflows/docker-images.yml").read_text()
     assert "docker/login-action" in workflow
     assert "ghcr.io/" in workflow
     assert "apps/api/Dockerfile" in workflow
+    assert "apps/caddy/Dockerfile" in workflow
+    assert "apps/postgres/Dockerfile" in workflow
     assert "apps/control-plane-v3/Dockerfile" in workflow
     assert "push: ${{ github.event_name != 'pull_request' }}" in workflow
     assert "docker/metadata-action" in workflow
@@ -120,6 +136,8 @@ def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
 
 def test_prod_compose_uses_published_images() -> None:
     compose = (ROOT / "docker-compose.prod.yml").read_text()
+    assert "${CADDY_IMAGE:" in compose
+    assert "${POSTGRES_IMAGE:" in compose
     assert "${API_IMAGE:" in compose
     assert "${WEB_IMAGE:" in compose
     assert "\n  caddy:\n" in compose
@@ -136,9 +154,11 @@ def test_production_env_template_includes_runtime_placeholders() -> None:
     assert "DATABASE_URL=" in env_example
     assert "leave DATABASE_URL unset" in env_example
     assert "ENCRYPTION_KEY=" in env_example
-    assert "SESSION_SECRET=" in env_example
-    assert "NEXT_PUBLIC_API_BASE_URL=" in env_example
+    assert "SESSION_SECRET=" not in env_example
+    assert "NEXT_PUBLIC_API_BASE_URL=" not in env_example
     assert "API_IMAGE=" in env_example
+    assert "CADDY_IMAGE=" in env_example
+    assert "POSTGRES_IMAGE=" in env_example
     assert "WEB_IMAGE=" in env_example
     assert "APP_BASE_URL=" in env_example
 
@@ -177,6 +197,9 @@ def test_smoke_script_checks_https_entrypoint() -> None:
     assert "x-request-id" in script.lower()
     assert "/healthz" in script
     assert "/readyz" in script
+    assert "/api/admin/bootstrap/status" in script
+    assert "/api/admin/session" in script
+    assert "401" in script
 
 
 def test_dev_runtime_bootstrap_script_is_present() -> None:
@@ -187,6 +210,12 @@ def test_dev_runtime_bootstrap_script_is_present() -> None:
 def test_repo_verification_script_is_present() -> None:
     script_path = ROOT / "scripts/ops/verify-control-plane.sh"
     assert script_path.exists()
+
+
+def test_repo_verification_runs_browser_flows() -> None:
+    script = (ROOT / "scripts/ops/verify-control-plane.sh").read_text()
+
+    assert "npm run test:e2e" in script
 
 
 def test_operations_docs_reference_request_ids_for_incident_tracing() -> None:
@@ -201,7 +230,7 @@ def test_security_docs_explain_fail_fast_production_secrets_and_secure_cookies()
     security_guide = (ROOT / "docs/guides/production-security.md").read_text().lower()
 
     assert "encryption_key" in security_guide
-    assert "session_secret" in security_guide
+    assert "server-side" in security_guide
     assert "session_secure" in security_guide
 
 
@@ -227,6 +256,22 @@ def test_repo_quality_floor_is_documented_and_enforced() -> None:
     assert '"lint"' in web_package
     assert '"test:unit"' in web_package
     assert "./scripts/ops/verify-control-plane.sh" in ci_workflow
+
+
+def test_ci_uses_unified_verification_for_tests_and_static_checks() -> None:
+    ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+
+    assert "Lint Python (ruff)" not in ci_workflow
+    assert "Type check Python (mypy)" not in ci_workflow
+    assert "Run API tests (pytest)" not in ci_workflow
+    assert ci_workflow.count("./scripts/ops/verify-control-plane.sh") == 1
+
+
+def test_ci_audits_locked_api_runtime_dependencies() -> None:
+    ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+
+    assert "pip-audit -r requirements.lock" in ci_workflow
+    assert "npm audit --registry=https://registry.npmjs.org --audit-level=high" in ci_workflow
 
 
 def test_frontend_dead_design_token_layer_is_removed() -> None:

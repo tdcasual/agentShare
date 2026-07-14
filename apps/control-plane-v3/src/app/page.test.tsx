@@ -13,17 +13,13 @@ vi.mock('@/domains/secret', () => ({
   }),
 }));
 
-vi.mock('@/domains/token', () => ({
-  useTokens: () => ({
-    tokens: [
+vi.mock('@/domains/agent', () => ({
+  useAgents: () => ({
+    agents: [
       {
         id: '1',
-        name: 'CI Token',
+        name: 'CI Agent',
         status: 'active',
-        key_prefix: 'vg_abc',
-        created_at: '2026-01-01',
-        expires_at: null,
-        last_used_at: null,
       },
     ],
     isLoading: false,
@@ -33,7 +29,7 @@ vi.mock('@/domains/token', () => ({
 
 vi.mock('@/domains/audit', () => ({
   useAuditStats: () => ({
-    stats: { recent: 5, total: 100, granted: 90, denied: 10 },
+    stats: { total: 100, denied: 10 },
     isLoading: false,
     error: null,
   }),

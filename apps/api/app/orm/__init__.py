@@ -4,18 +4,26 @@ This module exports all VaultGate database models.
 The old Agent Control Plane models have been removed.
 """
 
+from app.orm.admin_session import AdminSession
+from app.orm.agent import Agent, AgentStatus
+from app.orm.agent_token import AgentToken, AgentTokenStatus
 from app.orm.audit_log import AuditLog
 from app.orm.base import Base
-from app.orm.scope import Scope
+from app.orm.management_token import ManagementToken
 from app.orm.secret import Secret
-from app.orm.token import Token
+from app.orm.token_secret_grant import TokenSecretGrant
 from app.orm.user import User
 
 __all__ = [
     "Base",
     "User",
+    "AdminSession",
+    "ManagementToken",
+    "Agent",
+    "AgentStatus",
     "Secret",
-    "Token",
-    "Scope",
+    "AgentToken",
+    "AgentTokenStatus",
+    "TokenSecretGrant",
     "AuditLog",
 ]

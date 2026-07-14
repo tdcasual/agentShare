@@ -15,7 +15,8 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.lock
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/srv/vaultgate/apps/api
 
 WORKDIR /srv/vaultgate
 
@@ -29,9 +30,7 @@ COPY apps/api/alembic.ini apps/api/alembic.ini
 COPY apps/api/alembic apps/api/alembic
 COPY apps/api/docker-entrypoint.sh apps/api/docker-entrypoint.sh
 
-# Install the app package itself (no deps, already in builder)
-RUN pip install --no-cache-dir --no-deps ./apps/api \
-    && chmod +x /srv/vaultgate/apps/api/docker-entrypoint.sh
+RUN chmod +x /srv/vaultgate/apps/api/docker-entrypoint.sh
 
 # Create non-root user
 RUN adduser --disabled-password --gecos "" --home /home/appuser appuser \

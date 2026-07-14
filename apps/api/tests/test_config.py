@@ -1,7 +1,7 @@
 """Tests for VaultGate configuration settings."""
 import pytest
 
-from app.config import DEFAULT_ENCRYPTION_KEY, DEFAULT_SESSION_SECRET, Settings
+from app.config import DEFAULT_ENCRYPTION_KEY, Settings
 
 
 def test_settings_default_to_sqlite():
@@ -27,17 +27,6 @@ def test_production_settings_reject_default_encryption_key():
         Settings(
             app_env="production",
             encryption_key=DEFAULT_ENCRYPTION_KEY,
-            session_secret="a" * 32,
-            session_secure=True,
-        )
-
-
-def test_production_settings_reject_default_session_secret():
-    with pytest.raises(ValueError, match="SESSION_SECRET"):
-        Settings(
-            app_env="production",
-            encryption_key="a" * 44,
-            session_secret=DEFAULT_SESSION_SECRET,
             session_secure=True,
         )
 
@@ -47,7 +36,6 @@ def test_production_settings_require_secure_cookie():
         Settings(
             app_env="production",
             encryption_key="a" * 44,
-            session_secret="a" * 32,
             session_secure=False,
         )
 
@@ -56,7 +44,6 @@ def test_valid_production_settings():
     settings = Settings(
         app_env="production",
         encryption_key="YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=",
-        session_secret="a-very-strong-production-session-secret-32chars",
         session_secure=True,
     )
     assert settings.is_production_like()
@@ -67,13 +54,11 @@ def test_is_production_like():
     assert Settings(
         app_env="production",
         encryption_key="a" * 44,
-        session_secret="a" * 32,
         session_secure=True,
     ).is_production_like()
     assert Settings(
         app_env="staging",
         encryption_key="a" * 44,
-        session_secret="a" * 32,
         session_secure=True,
     ).is_production_like()
     assert not Settings(app_env="development").is_production_like()

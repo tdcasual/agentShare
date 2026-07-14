@@ -1,5 +1,10 @@
 """Tests for VaultGate application factory."""
+import asyncio
+from unittest.mock import AsyncMock, patch
+
 import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.config import Settings
 from app.factory import create_app
@@ -30,16 +35,12 @@ def test_create_app_registers_vaultgate_routes():
     app = create_app(Settings())
     route_paths = _collect_route_paths(app)
 
-    # Auth routes
-    assert "/api/session/login" in route_paths
-    assert "/api/session/logout" in route_paths
-    assert "/api/session/me" in route_paths
-
-    # Bootstrap route
-    assert "/api/bootstrap/init" in route_paths
-
-    # Vault routes
-    assert "/api/vault" in route_paths
+    assert "/api/admin/session/login" in route_paths
+    assert "/api/admin/session" in route_paths
+    assert "/api/admin/bootstrap/init" in route_paths
+    assert "/api/admin/secrets" in route_paths
+    assert "/api/admin/agents" in route_paths
+    assert "/api/vault/secrets" in route_paths
 
 
 def test_create_app_attaches_runtime_settings(tmp_path):
@@ -49,6 +50,7 @@ def test_create_app_attaches_runtime_settings(tmp_path):
 
     assert app.state.settings is settings
     assert app.state.runtime is not None
+    assert isinstance(app.state.runtime.engine, AsyncEngine)
     assert app.state.runtime.settings.database_url.endswith("factory-test.db")
 
 
@@ -73,7 +75,26 @@ def test_create_app_rejects_conflicting_settings_and_runtime(tmp_path):
         with pytest.raises(ValueError, match="settings and runtime"):
             create_app(settings, runtime=runtime)
     finally:
-        runtime.engine.dispose()
+        asyncio.run(runtime.dispose())
+
+
+def test_lifespan_disposes_the_attached_async_engine(tmp_path):
+    from app.runtime import build_runtime
+
+    settings = Settings(database_url=f"sqlite:///{tmp_path / 'lifespan.db'}")
+    runtime = build_runtime(settings)
+    with patch("app.runtime.AppRuntime.dispose", new_callable=AsyncMock) as dispose:
+        app = create_app(
+            settings,
+            runtime=runtime,
+            app_configurers=(),
+            route_registrar=None,
+        )
+
+        with TestClient(app):
+            pass
+
+        dispose.assert_awaited_once_with()
 
 
 def test_healthz_endpoint(client):
@@ -88,3 +109,13 @@ def test_version_endpoint(client):
     data = response.json()
     assert "version" in data
     assert data["name"] == "VaultGate"
+
+
+def test_readiness_endpoint_checks_database_and_encryption(client):
+    response = client.get("/readyz")
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "database": "ok",
+        "encryption": "ok",
+    }

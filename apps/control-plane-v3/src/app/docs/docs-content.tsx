@@ -54,7 +54,8 @@ export function DocsContent() {
             <li>
               {t('docs.step3')}
               <pre className="mt-2 overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs text-foreground">
-                curl -H &quot;Authorization: Bearer YOUR_TOKEN&quot; http://localhost:8000/api/vault
+                curl -H &quot;Authorization: Bearer YOUR_TOKEN&quot;
+                http://localhost:8000/api/vault/secrets
               </pre>
             </li>
           </ol>

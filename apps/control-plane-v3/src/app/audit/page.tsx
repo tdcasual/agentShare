@@ -21,7 +21,7 @@ export default function AuditPage() {
   const { t } = useI18n();
   const [filter, setFilter] = useState<{
     action?: string;
-    granted?: boolean;
+    result?: string;
   }>({});
 
   const { logs, total, isLoading, error } = useAuditLogs({
@@ -34,19 +34,19 @@ export default function AuditPage() {
     return date.toLocaleString();
   };
 
-  const isAllActive = !filter.action && !filter.granted;
-  const isGrantedActive = filter.granted === true;
-  const isDeniedActive = filter.granted === false;
+  const isAllActive = !filter.action && !filter.result;
+  const isGrantedActive = filter.result === 'success';
+  const isDeniedActive = filter.result === 'denied';
 
   const { grantedCount, deniedCount, valueReadCount } = useMemo(() => {
     return logs.reduce(
       (acc, log) => {
-        if (log.granted) {
+        if (log.result === 'success') {
           acc.grantedCount += 1;
         } else {
           acc.deniedCount += 1;
         }
-        if (log.action === 'read_value') {
+        if (log.action === 'secret.value.read') {
           acc.valueReadCount += 1;
         }
         return acc;
@@ -89,7 +89,7 @@ export default function AuditPage() {
             <button
               type="button"
               aria-pressed={isGrantedActive}
-              onClick={() => setFilter({ granted: true })}
+              onClick={() => setFilter({ result: 'success' })}
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isGrantedActive
@@ -102,7 +102,7 @@ export default function AuditPage() {
             <button
               type="button"
               aria-pressed={isDeniedActive}
-              onClick={() => setFilter({ granted: false })}
+              onClick={() => setFilter({ result: 'denied' })}
               className={cn(
                 'rounded-lg px-3 py-1.5 text-sm transition-colors',
                 isDeniedActive
@@ -168,20 +168,18 @@ export default function AuditPage() {
                     <TableCell className="whitespace-nowrap text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Clock className="h-3 w-3" />
-                        {formatDate(log.timestamp)}
+                        {formatDate(log.created_at)}
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-foreground">
-                      {log.token_id ? `${log.token_id.slice(0, 8)}...` : 'System'}
+                      {log.actor_label || 'System'}
                     </TableCell>
                     <TableCell className="font-mono text-foreground">
-                      {log.secret_id ? `${log.secret_id.slice(0, 8)}...` : 'N/A'}
+                      {log.resource_label || 'N/A'}
                     </TableCell>
-                    <TableCell className="text-foreground">
-                      {log.action.replace(/_/g, ' ')}
-                    </TableCell>
+                    <TableCell className="text-foreground">{log.action}</TableCell>
                     <TableCell>
-                      {log.granted ? (
+                      {log.result === 'success' ? (
                         <Badge
                           variant="default"
                           className="gap-1 bg-status-success-subtle text-status-success-subtle-foreground hover:bg-status-success-subtle"

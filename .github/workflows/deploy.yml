@@ -40,6 +40,8 @@ jobs:
         run: |
           cat > .release.env <<EOF
           API_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/vaultgate-api:${{ steps.vars.outputs.image_tag }}
+          CADDY_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/vaultgate-caddy:${{ steps.vars.outputs.image_tag }}
+          POSTGRES_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/vaultgate-postgres:${{ steps.vars.outputs.image_tag }}
           WEB_IMAGE=ghcr.io/${{ steps.vars.outputs.owner_lc }}/vaultgate-web:${{ steps.vars.outputs.image_tag }}
           EOF
 
@@ -52,7 +54,7 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}
           target: ${{ secrets.DEPLOY_PATH }}
           overwrite: true
-          source: "docker-compose.prod.yml,.env.production.example,.release.env,ops/caddy/Caddyfile,ops/compose/prod.env.example,scripts/ops/smoke-test.sh"
+          source: "docker-compose.prod.yml,.release.env,ops/caddy/Caddyfile,ops/compose/prod.env.example,scripts/ops/smoke-test.sh,scripts/ops/backup-postgres.sh,scripts/ops/restore-postgres.sh"
 
       - name: Pull and restart remote stack
         uses: appleboy/ssh-action@v1.0.3
@@ -89,10 +91,16 @@ jobs:
             set +a
 
             docker compose --env-file .env.production -f docker-compose.prod.yml config >/dev/null
+            chmod +x scripts/ops/backup-postgres.sh scripts/ops/restore-postgres.sh scripts/ops/smoke-test.sh
+            if docker compose --env-file .env.production -f docker-compose.prod.yml ps --status running postgres | grep -q postgres; then
+              echo "Creating pre-migration PostgreSQL backup..."
+              ./scripts/ops/backup-postgres.sh
+            else
+              echo "No running PostgreSQL service; treating this as a fresh deployment."
+            fi
             docker compose --env-file .env.production -f docker-compose.prod.yml pull
             docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans
 
-            chmod +x scripts/ops/smoke-test.sh
             echo "Running smoke checks through caddy (/healthz, /readyz, x-request-id)..."
             ./scripts/ops/smoke-test.sh
             docker image prune -f

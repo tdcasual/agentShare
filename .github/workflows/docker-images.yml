@@ -22,6 +22,10 @@ jobs:
         include:
           - name: api
             dockerfile: apps/api/Dockerfile
+          - name: caddy
+            dockerfile: apps/caddy/Dockerfile
+          - name: postgres
+            dockerfile: apps/postgres/Dockerfile
           - name: web
             dockerfile: apps/control-plane-v3/Dockerfile
 

@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: postgres:16
+    build:
+      context: .
+      dockerfile: apps/postgres/Dockerfile
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-vaultgate}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -26,9 +28,8 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/vaultgate}
-      # VaultGate encryption and session keys
+      # VaultGate encryption and server-side session settings
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is required}
-      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
       SESSION_SECURE: ${SESSION_SECURE:-false}
       # CORS
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8000}
@@ -53,8 +54,6 @@ services:
       - no-new-privileges:true
     environment:
       VAULTGATE_API_URL: ${VAULTGATE_API_URL:-http://api:8000}
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
-      NEXT_PUBLIC_SESSION_COOKIE_NAME: ${NEXT_PUBLIC_SESSION_COOKIE_NAME:-vaultgate_session}
     depends_on:
       api:
         condition: service_healthy

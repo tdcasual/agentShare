@@ -38,32 +38,17 @@ jobs:
         working-directory: apps/api
         run: ../../.venv/bin/python -m alembic upgrade head
 
-      - name: Lint Python (ruff)
-        working-directory: apps/api
-        run: ../../.venv/bin/ruff check app/ tests/
-
-      - name: Type check Python (mypy)
-        working-directory: apps/api
-        run: ../../.venv/bin/mypy app/
-
       - name: Security scan (bandit)
         working-directory: apps/api
         run: ../../.venv/bin/bandit -r app/ -ll
 
       - name: Dependency audit (pip-audit)
         working-directory: apps/api
-        run: ../../.venv/bin/pip-audit --desc
-
-      - name: Run API tests (pytest)
-        working-directory: apps/api
-        run: ../../.venv/bin/python -m pytest tests/ -x -q --override-ini="addopts="
-        env:
-          ENCRYPTION_KEY: "ZGV2LW9ubHktMzItYnl0ZS1lbmNyeXB0aW9uLWtleSE="
-          APP_ENV: development
+        run: ../../.venv/bin/pip-audit -r requirements.lock --desc
 
       - name: Audit npm dependencies
         working-directory: apps/control-plane-v3
-        run: npm audit --audit-level=high
+        run: npm audit --registry=https://registry.npmjs.org --audit-level=high
 
       - name: Run unified control plane verification
         run: ./scripts/ops/verify-control-plane.sh

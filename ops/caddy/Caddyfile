@@ -30,6 +30,10 @@
 		reverse_proxy api:8000
 	}
 
+	handle /readyz {
+		reverse_proxy api:8000
+	}
+
 	handle /version {
 		reverse_proxy api:8000
 	}
