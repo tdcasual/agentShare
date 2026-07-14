@@ -102,6 +102,38 @@ Switched subsequent backend verification to the API virtual environment.
 
 ---
 
+## [ERR-20260714-016] zsh-bracket-path-glob
+
+**Logged**: 2026-07-14T14:48:01Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A read-only audit command passed a Next.js bracket route path to zsh without quoting it.
+
+### Error
+
+```text
+zsh:1: no matches found: src/app/api/[...path]/route.ts
+```
+
+### Context
+- zsh interpreted `[...path]` as a filename glob instead of a literal route directory.
+- Other parallel audit checks completed, and no application state changed.
+
+### Suggested Fix
+Quote paths containing square brackets, for example `sed -n '1,220p' 'src/app/api/[...path]/route.ts'`.
+
+### Resolution
+Continued the audit with quoted bracket-route paths.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/app/api/[...path]/route.ts`
+
+---
+
 ## [ERR-20260714-013] apply-patch-context-after-format
 
 **Logged**: 2026-07-14T09:28:00Z
