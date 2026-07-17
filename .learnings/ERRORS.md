@@ -36,6 +36,40 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260717-003] compose-static-ip-collision
+
+**Logged**: 2026-07-17T04:02:00Z
+**Priority**: critical
+**Status**: resolved
+**Area**: operations
+
+### Summary
+The production Compose stack could not start Caddy because Docker dynamically assigned Caddy's fixed `172.30.0.2` address to API before Caddy started.
+
+### Error
+
+```text
+Error response from daemon: failed to set up container networking: Address already in use
+```
+
+### Context
+- Caddy uses a fixed address so API can trust only the reverse proxy for forwarded client IPs.
+- API starts before Caddy because Caddy depends on API health.
+- The edge network's dynamic pool included the fixed Caddy address.
+
+### Suggested Fix
+Reserve a non-overlapping dynamic allocation range while keeping Caddy's trusted static address inside the network subnet.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `docker-compose.prod.yml`, `tests/ops/test_security_artifacts.py`
+
+### Resolution
+- **Resolved**: 2026-07-17T04:02:00Z
+- **Notes**: Restricted dynamic edge allocations to `172.30.0.128/25` and added an operations regression assertion.
+
+---
+
 ## [ERR-20260717-002] python-version-mypy-drift
 
 **Logged**: 2026-07-17T03:40:00Z

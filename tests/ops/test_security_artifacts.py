@@ -70,6 +70,7 @@ def test_production_api_only_trusts_the_fixed_caddy_address() -> None:
     compose = (ROOT / "docker-compose.prod.yml").read_text()
 
     assert "ipv4_address: 172.30.0.2" in compose
+    assert "ip_range: 172.30.0.128/25" in compose
     assert "TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-172.30.0.2/32}" in compose
 
 
