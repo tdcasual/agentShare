@@ -36,6 +36,41 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260717-002] python-version-mypy-drift
+
+**Logged**: 2026-07-17T03:40:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: backend
+
+### Summary
+The release CI failed because mypy under the supported Python 3.12 environment reported errors that were not reproduced by the host Python 3.14 environment.
+
+### Error
+
+```text
+app/idempotency.py:121: error: Returning Any from function declared to return "dict[str, Any] | None"
+app/modules/admin_auth/routes.py:237: error: Unused "type: ignore" comment
+app/modules/admin_auth/routes.py:270: error: Unused "type: ignore" comment
+```
+
+### Context
+- CI installs the locked mypy 2.3.0 environment on Python 3.12.
+- The local host used the same mypy version with Python 3.14, whose type analysis did not expose the same diagnostics.
+
+### Suggested Fix
+Run release static analysis in the minimum supported Python version and validate decoded JSON before narrowing it to the declared response type.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/app/idempotency.py`, `apps/api/app/modules/admin_auth/routes.py`
+
+### Resolution
+- **Resolved**: 2026-07-17T03:40:00Z
+- **Notes**: Added runtime JSON-object validation, explicit narrowing, and removed obsolete suppressions.
+
+---
+
 ## [ERR-20260717-001] git-ref-write-restricted
 
 **Logged**: 2026-07-17T00:00:00Z

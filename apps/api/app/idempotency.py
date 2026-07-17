@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from fastapi import HTTPException, Request, status
 from sqlalchemy import select
@@ -18,6 +18,13 @@ from app.services.encryption import get_encryption_service
 class IdempotencyContext:
     key: str
     request_hash: str
+
+
+def _decode_response(encrypted_payload: str) -> dict[str, Any]:
+    decoded: object = json.loads(get_encryption_service().decrypt(encrypted_payload))
+    if not isinstance(decoded, dict):
+        raise ValueError("Stored idempotency response must be a JSON object")
+    return cast(dict[str, Any], decoded)
 
 
 def _request_hash(request: Request, payload: Any) -> str:
@@ -63,8 +70,7 @@ async def replay_idempotent_response(
             status_code=status.HTTP_409_CONFLICT,
             detail="Idempotency-Key was already used for a different request",
         )
-    decoded = get_encryption_service().decrypt(record.response_encrypted)
-    return context, json.loads(decoded)
+    return context, _decode_response(record.response_encrypted)
 
 
 def store_idempotent_response(
@@ -118,4 +124,4 @@ async def commit_idempotent_response(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Idempotency-Key was already used for a different request",
             ) from None
-        return json.loads(get_encryption_service().decrypt(record.response_encrypted))
+        return _decode_response(record.response_encrypted)

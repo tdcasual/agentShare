@@ -6,10 +6,10 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from app.idempotency import commit_idempotent_response, replay_idempotent_response
+from app.idempotency import _decode_response, commit_idempotent_response, replay_idempotent_response
 from app.orm import User
 from app.runtime import build_runtime
-from app.services.encryption import reset_encryption_service
+from app.services.encryption import get_encryption_service, reset_encryption_service
 
 
 def _request(key: str, path: str = "/api/admin/secrets") -> Request:
@@ -58,3 +58,17 @@ def test_idempotency_replays_encrypted_response_and_rejects_mismatch(test_settin
             reset_encryption_service()
 
     asyncio.run(exercise())
+
+
+def test_idempotency_rejects_non_object_stored_response(test_settings) -> None:
+    reset_encryption_service()
+    try:
+        service = get_encryption_service(
+            test_settings.encryption_key,
+            test_settings.encryption_keyring,
+            test_settings.encryption_active_key_id,
+        )
+        with pytest.raises(ValueError, match="must be a JSON object"):
+            _decode_response(service.encrypt("[]"))
+    finally:
+        reset_encryption_service()

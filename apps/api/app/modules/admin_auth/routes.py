@@ -234,7 +234,7 @@ async def create_management_token(
     )
     if replay is not None:
         response.headers["Cache-Control"] = "no-store"
-        return replay  # type: ignore[return-value]
+        return replay
     raw_value, key_hash, key_prefix = generate_credential("vgm_")
     token = ManagementToken(
         user_id=principal.user.id,
@@ -267,7 +267,7 @@ async def create_management_token(
     )
     if concurrent_replay is not None:
         response.headers["Cache-Control"] = "no-store"
-        return concurrent_replay  # type: ignore[return-value]
+        return concurrent_replay
     await db.refresh(token)
     response.headers["Cache-Control"] = "no-store"
     return payload
