@@ -13,6 +13,8 @@ vi.mock('@/domains/audit', () => ({
         resource_label: 'github',
         action: 'secret.value.read',
         result: 'success',
+        reason: 'explicit grant',
+        request_id: 'request-123',
       },
       {
         id: '2',
@@ -29,6 +31,11 @@ vi.mock('@/domains/audit', () => ({
   }),
   useAuditStats: () => ({
     stats: { total: 2, denied: 1, value_reads: 2 },
+    isLoading: false,
+    error: null,
+  }),
+  useAuditActions: () => ({
+    actions: ['secret.value.read', 'agent_token.issue'],
     isLoading: false,
     error: null,
   }),
@@ -57,11 +64,17 @@ describe('AuditPage', () => {
     expect(screen.getByRole('columnheader', { name: 'audit.resource' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'audit.action' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'audit.status' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'audit.technicalDetails' })
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('explicit grant').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('request-123').length).toBeGreaterThan(0);
   });
 
   it('displays stats section', () => {
     render(<AuditPage />);
     expect(screen.getByText('audit.totalEvents')).toBeInTheDocument();
     expect(screen.getByText('audit.valueReads')).toBeInTheDocument();
+    expect(screen.getByText('audit.grantedAccess').parentElement).toHaveTextContent('—');
   });
 });

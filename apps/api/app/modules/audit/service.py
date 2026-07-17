@@ -7,6 +7,37 @@ from app.client_ip import get_client_ip
 from app.modules.admin_auth.service import AdminPrincipal
 from app.orm import AgentToken, AuditLog, Secret
 
+AUDIT_ACTIONS = (
+    "secret.read",
+    "secret.value.read",
+    "secret.list",
+    "secret.create",
+    "secret.update",
+    "secret.delete",
+    "secret.reencrypt",
+    "agent.create",
+    "agent.update",
+    "agent.enable",
+    "agent.disable",
+    "agent_token.issue",
+    "agent_token.rotate",
+    "agent_token.revoke",
+    "token_grants.replace",
+    "management_token.create",
+    "management_token.rotate",
+    "management_token.revoke",
+    "admin.login",
+    "admin.login.failed",
+    "admin.logout",
+    "agent_auth.failed",
+)
+AUDIT_ACTION_SET = frozenset(AUDIT_ACTIONS)
+
+
+def _validate_audit_action(action: str) -> None:
+    if action not in AUDIT_ACTION_SET:
+        raise ValueError(f"Unsupported audit action: {action}")
+
 
 def add_admin_audit(
     db: AsyncSession,
@@ -19,6 +50,7 @@ def add_admin_audit(
     resource_label: str,
     metadata: dict | None = None,
 ) -> AuditLog:
+    _validate_audit_action(action)
     log = AuditLog(
         actor_type=principal.auth_type,
         actor_id=principal.credential_id,
@@ -37,6 +69,31 @@ def add_admin_audit(
     return log
 
 
+async def write_auth_failure_audit(
+    db: AsyncSession,
+    request: Request,
+    *,
+    action: str,
+    actor_type: str,
+    actor_label: str,
+    reason: str,
+) -> AuditLog:
+    _validate_audit_action(action)
+    log = AuditLog(
+        actor_type=actor_type,
+        actor_label=actor_label[:255],
+        action=action,
+        result="denied",
+        reason=reason,
+        request_id=getattr(request.state, "request_id", None),
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    db.add(log)
+    await db.commit()
+    return log
+
+
 async def write_vault_audit(
     db: AsyncSession,
     request: Request,
@@ -48,6 +105,7 @@ async def write_vault_audit(
     requested_secret_id: str | None = None,
     reason: str | None = None,
 ) -> AuditLog:
+    _validate_audit_action(action)
     resource_id = secret.id if secret is not None else requested_secret_id
     resource_label = secret.name if secret is not None else requested_secret_id
     log = AuditLog(

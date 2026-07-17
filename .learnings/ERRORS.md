@@ -36,6 +36,359 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260717-001] git-ref-write-restricted
+
+**Logged**: 2026-07-17T00:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: config
+
+### Summary
+Creating the release branch failed because the managed workspace exposes `.git` as read-only inside the default sandbox.
+
+### Error
+
+```text
+fatal: cannot lock ref 'refs/heads/release/vaultgate-hardening-20260717'
+```
+
+### Context
+- The working tree itself remained writable and unchanged.
+- Git metadata mutations require controlled escalation in this environment.
+
+### Suggested Fix
+Run branch, commit, and merge commands with the managed Git escalation path.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `.git/refs/heads`
+
+### Resolution
+- **Resolved**: 2026-07-17T00:00:00Z
+- **Notes**: Retried the Git workflow with scoped elevated permissions.
+
+---
+
+## [ERR-20260715-006] host-python312-unavailable
+
+**Logged**: 2026-07-15T00:24:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The host did not provide a `python3.12` executable for a clean locked-dependency test environment.
+
+### Error
+
+```text
+zsh: command not found: python3.12
+```
+
+### Resolution
+Used the freshly built Python 3.12 API image as an ephemeral test runner. The complete backend suite passed with the coverage gate satisfied.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/requirements-dev.lock`, `apps/api/Dockerfile`
+
+---
+
+## [ERR-20260715-005] dependency-audit-restricted-endpoints
+
+**Logged**: 2026-07-15T00:18:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: security
+
+### Summary
+Dependency audits failed in the default sandbox because the configured npm mirror does not implement the audit endpoint and pip-audit could not prepare its temporary environment.
+
+### Error
+
+```text
+npm audit 404 [NOT_IMPLEMENTED]
+pip-audit: Failed to upgrade pip, wheel, setuptools
+```
+
+### Resolution
+Used the official npm registry and approved external access for pip-audit. Both audits completed with zero known vulnerabilities.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package-lock.json`, `apps/api/requirements.lock`
+
+---
+
+## [ERR-20260715-004] next-build-sandbox-port-denied
+
+**Logged**: 2026-07-15T00:12:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: build
+
+### Summary
+Next.js Turbopack could not run the PostCSS worker inside the restricted sandbox because local port binding was denied.
+
+### Error
+
+```text
+creating new process
+binding to a port
+Operation not permitted (os error 1)
+```
+
+### Resolution
+Re-ran the approved `npm run build` command outside the sandbox; the production build completed successfully.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/app/globals.css`
+
+---
+
+## [ERR-20260715-003] generated-type-prettier-plugin-resolution
+
+**Logged**: 2026-07-15T00:07:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+Formatting the generated OpenAPI file from the repository root prevented Prettier from resolving the frontend-local Tailwind plugin.
+
+### Error
+
+```text
+Cannot find package 'prettier-plugin-tailwindcss' imported from .../noop.js
+```
+
+### Resolution
+Run the generated-file formatting step from `apps/control-plane-v3`, where the plugin is installed.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package.json`
+
+---
+
+## [ERR-20260715-002] openapi-typescript-stdin-argument
+
+**Logged**: 2026-07-15T00:05:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+`openapi-typescript` 7.13 treated `-` as a literal file path instead of standard input.
+
+### Error
+
+```text
+ResolveError: ENOENT: no such file or directory '.../control-plane-v3/-'
+```
+
+### Resolution
+Use `/dev/stdin` as the schema input path for the OpenAPI generation pipeline.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package.json`
+
+---
+
+## [ERR-20260715-001] npm-registry-dns-in-sandbox
+
+**Logged**: 2026-07-15T00:02:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: dependencies
+
+### Summary
+Installing the OpenAPI type generator failed inside the restricted sandbox because the configured npm mirror could not be resolved.
+
+### Error
+
+```text
+npm ERR! code EAI_AGAIN
+npm ERR! request to https://registry.npmmirror.com/openapi-typescript failed
+```
+
+### Context
+- Existing frontend checks and dependencies were unaffected.
+- The same scoped install succeeded after the required network escalation.
+
+### Suggested Fix
+Retry dependency downloads with approved network access when DNS failure is sandbox-related.
+
+### Resolution
+Installed `openapi-typescript` with the approved `npm install --save-dev` prefix.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package.json`, `apps/control-plane-v3/package-lock.json`
+
+---
+
+## [ERR-20260715-001] ruff-import-order-after-schema-edit
+
+**Logged**: 2026-07-15T06:27:59Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+Adding a module-level password limit helper left the import block outside Ruff's expected grouping.
+
+### Error
+
+```text
+I001 Import block is un-sorted or un-formatted
+```
+
+### Context
+- The behavior and focused tests passed; only the import-order quality gate failed.
+- The issue occurred in `apps/api/app/modules/admin_auth/schemas.py` after a manual patch.
+
+### Suggested Fix
+Run Ruff formatting on each edited Python module before broader verification.
+
+### Resolution
+Applied Ruff's import organizer and reran the focused quality gate.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/app/modules/admin_auth/schemas.py`
+
+---
+
+## [ERR-20260715-002] uv-python312-resolution-network
+
+**Logged**: 2026-07-15T06:29:00Z
+**Priority**: low
+**Status**: pending
+**Area**: infra
+
+### Summary
+Generating a Python 3.12 development lock with uv stalled while downloading the managed CPython interpreter.
+
+### Error
+
+```text
+Downloading cpython-3.12.13-linux-x86_64-gnu (download) (32.6MiB)
+```
+
+The process produced no further output and was stopped after a bounded wait.
+
+### Context
+- The sandbox initially blocked uv's cache directory; an approved elevated retry reached the download step.
+- No repository files were changed by uv.
+
+### Suggested Fix
+Use a preinstalled Python 3.12 toolchain or a CI cache for lock generation; do not make local verification depend on a live interpreter download.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: `apps/api/requirements.lock`, `scripts/ops/bootstrap-dev-runtime.sh`
+
+---
+
+## [ERR-20260715-003] synthetic-flow-csrf-origin
+
+**Logged**: 2026-07-15T08:05:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The first real Compose synthetic flow used a different browser origin than the API CSRF allowlist.
+
+### Error
+
+```text
+Expected Secret creation status 201, received 403
+```
+
+### Context
+- The test used `http://127.0.0.1:3000` while the development Compose default allowed `http://localhost:3000`.
+- The disposable stack was removed, including its PostgreSQL volume, after the failure.
+
+### Suggested Fix
+Derive both the API `CORS_ALLOWED_ORIGINS` value and Playwright base URL from one synthetic-flow variable.
+
+### Resolution
+The synthetic runner now injects the same `SYNTHETIC_BASE_URL` into Compose and Playwright.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `scripts/ops/run-synthetic-flow.sh`, `apps/control-plane-v3/test/integration/vaultgate.synthetic.spec.ts`
+
+---
+
+## [ERR-20260715-001] python-raw-string-test-fixture
+
+**Logged**: 2026-07-15T00:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A literal backslash search fixture used an invalid Python raw string ending in a single backslash.
+
+### Error
+
+```text
+Expected `)`, found name
+```
+
+### Context
+- Ruff could not parse `apps/api/tests/test_admin_api.py` after adding literal LIKE wildcard coverage.
+- Python raw strings cannot end with an odd number of backslashes.
+
+### Suggested Fix
+Use a regular escaped string (`"\\\\"`) when the intended value is one trailing backslash.
+
+### Resolution
+Replaced the invalid raw string and reran Ruff before the broader test suite.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/tests/test_admin_api.py`
+
+---
+
+## [ERR-20260714-008] jsdom-domexception-and-clipboard-mocks
+
+**Logged**: 2026-07-14T15:47:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+Node/jsdom browser API objects require structural error checks and getter spies in frontend tests.
+
+### Error
+
+```text
+DOMException did not satisfy instanceof Error; navigator.clipboard has only a getter
+```
+
+### Context
+- Proxy timeout classification relied on `error instanceof Error` before reading `name`.
+- Clipboard failure testing attempted to assign directly to jsdom's read-only Navigator getter.
+
+### Suggested Fix
+Read the `name` property structurally from unknown errors and mock browser getter APIs with `vi.spyOn(..., 'get')`.
+
+### Resolution
+Updated timeout classification and the clipboard failure test with environment-independent patterns.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/app/api/[...path]/route.ts`, `apps/control-plane-v3/src/features/secrets/secret-reveal-dialog.test.tsx`
+
+---
+
 ## [ERR-20260714-014] frontend-source-root-assumption
 
 **Logged**: 2026-07-14T11:41:20Z

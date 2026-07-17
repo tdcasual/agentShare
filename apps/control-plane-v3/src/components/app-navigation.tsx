@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   MoreHorizontal,
+  Settings,
   ShieldCheck,
 } from 'lucide-react';
 import { useI18n } from './i18n-provider';
@@ -39,19 +40,19 @@ export function AppNavigation() {
 
   return (
     <>
-      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/90 sticky top-0 z-40 border-b">
-        <div className="mx-auto flex min-h-16 max-w-screen-2xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-40 border-b bg-background/95 supports-[backdrop-filter]:bg-background/90">
+        <div className="mx-auto flex min-h-[64px] max-w-screen-2xl items-center gap-[8px] px-[12px] sm:gap-6 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="flex min-h-11 shrink-0 items-center gap-2 font-semibold tracking-tight"
+            className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2 font-semibold tracking-tight"
           >
             <span
-              className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground text-background"
+              className="flex h-[28px] w-[28px] items-center justify-center rounded-md bg-foreground text-background"
               aria-hidden="true"
             >
-              <ShieldCheck className="h-4 w-4" />
+              <ShieldCheck className="h-[16px] w-[16px]" />
             </span>
-            VaultGate
+            <span className="hidden min-[360px]:inline">VaultGate</span>
           </Link>
 
           <nav
@@ -87,6 +88,17 @@ export function AppNavigation() {
               >
                 {t('navigation.docs')}
               </Link>
+              <Link
+                href="/settings/management-tokens"
+                aria-current={pathname.startsWith('/settings') ? 'page' : undefined}
+                className={cn(
+                  'relative inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+                  pathname.startsWith('/settings') &&
+                    'text-foreground after:absolute after:inset-x-3 after:bottom-[-11px] after:h-0.5 after:bg-primary'
+                )}
+              >
+                {t('navigation.managementTokens')}
+              </Link>
             </div>
           </nav>
 
@@ -103,10 +115,10 @@ export function AppNavigation() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
                   aria-label={t('navigation.more')}
                 >
-                  <MoreHorizontal className="h-5 w-5" />
+                  <MoreHorizontal className="h-[20px] w-[20px]" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-44">
@@ -114,6 +126,12 @@ export function AppNavigation() {
                   <Link href="/docs" className="min-h-11">
                     <BookOpen />
                     {t('navigation.docs')}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/management-tokens" className="min-h-11">
+                    <Settings />
+                    {t('navigation.managementTokens')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -131,7 +149,7 @@ export function AppNavigation() {
 
       <nav
         aria-label={t('navigation.mobileLabel')}
-        className="mobile-bottom-nav bg-background/95 fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="grid grid-cols-4">
           {ITEMS.map(({ href, label, icon: Icon }) => {
@@ -142,8 +160,8 @@ export function AppNavigation() {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex min-h-16 flex-col items-center justify-center gap-1 text-[0.7rem] font-medium text-muted-foreground',
-                  active && 'text-primary'
+                  'flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium text-foreground/75',
+                  active && 'text-foreground'
                 )}
               >
                 <Icon className="h-5 w-5" />

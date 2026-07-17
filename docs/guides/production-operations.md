@@ -1,7 +1,7 @@
 # Production Operations
 
-VaultGate currently supports one API process. Authentication rate limits are process-local; do not
-horizontally scale the API until a shared rate-limit store is configured.
+Authentication rate limits are derived from persisted audit events, so multiple API processes share
+the same failure window when they use the same PostgreSQL database.
 
 ## Startup Verification
 

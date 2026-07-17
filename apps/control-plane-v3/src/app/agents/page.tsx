@@ -75,6 +75,7 @@ export default function AgentsPage() {
                 id="agent-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
+                maxLength={255}
                 required
               />
             </div>
@@ -84,6 +85,7 @@ export default function AgentsPage() {
                 id="agent-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
+                maxLength={2000}
               />
             </div>
             {formError && (
@@ -131,7 +133,7 @@ export default function AgentsPage() {
             <Link
               key={agent.id}
               href={`/agents/${agent.id}`}
-              className="hover:bg-accent/40 group grid gap-2 px-2 py-5 transition-colors sm:grid-cols-[1fr_auto] sm:px-3"
+              className="group grid gap-2 px-2 py-5 transition-colors hover:bg-accent/40 sm:grid-cols-[1fr_auto] sm:px-3"
             >
               <div>
                 <div className="flex items-center gap-3">

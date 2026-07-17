@@ -84,6 +84,19 @@ def test_production_bootstrap_requires_matching_one_time_token(test_database_url
         )
 
 
+def test_bootstrap_rejects_passwords_over_bcrypt_byte_limit(client: TestClient) -> None:
+    too_long_ascii = "Aa1!" + ("x" * 69)
+    too_long_unicode = "Aa1!" + ("密" * 23)
+
+    for password in (too_long_ascii, too_long_unicode):
+        response = client.post(
+            "/api/admin/bootstrap/init",
+            json={"email": ADMIN_EMAIL, "password": password},
+        )
+        assert response.status_code == 422
+        assert "72 UTF-8 bytes" in response.text
+
+
 def test_management_token_is_separate_from_agent_tokens(client: TestClient) -> None:
     bootstrap_and_login(client)
     created = client.post(
@@ -94,6 +107,14 @@ def test_management_token_is_separate_from_agent_tokens(client: TestClient) -> N
     management_token = created.json()["token"]
     assert management_token.startswith("vgm_")
     assert created.headers["cache-control"] == "no-store"
+    listed = client.get("/api/admin/management-tokens")
+    assert listed.status_code == 200
+    summary = listed.json()["items"][0]
+    assert summary["name"] == "automation"
+    assert summary["description"] is None
+    assert summary["expires_at"] is not None
+    assert summary["last_used_at"] is None
+    assert summary["created_at"] is not None
 
     machine = TestClient(client.app, headers={"Authorization": f"Bearer {management_token}"})
     assert machine.get("/api/admin/secrets").status_code == 200
@@ -242,6 +263,13 @@ def test_admin_mutations_reject_invalid_types_and_null_required_fields(
         json={"name": "invalid", "type": "not-a-secret-type", "value": "secret"},
     )
     assert invalid_secret.status_code == 422
+    assert (
+        client.post(
+            "/api/admin/secrets",
+            json={"name": "empty", "type": "password", "value": ""},
+        ).status_code
+        == 422
+    )
 
     secret = client.post(
         "/api/admin/secrets",
@@ -250,6 +278,7 @@ def test_admin_mutations_reject_invalid_types_and_null_required_fields(
     for field in ("name", "type", "value", "tags", "metadata"):
         response = client.patch(f"/api/admin/secrets/{secret['id']}", json={field: None})
         assert response.status_code == 422, field
+    assert client.patch(f"/api/admin/secrets/{secret['id']}", json={"value": ""}).status_code == 422
 
     cleared_description = client.patch(
         f"/api/admin/secrets/{secret['id']}",
@@ -262,6 +291,26 @@ def test_admin_mutations_reject_invalid_types_and_null_required_fields(
     for field in ("name", "status"):
         response = client.patch(f"/api/admin/agents/{agent['id']}", json={field: None})
         assert response.status_code == 422, field
+
+
+def test_admin_search_treats_like_wildcards_as_literal_text(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    names = ["percent%only", "under_score", r"back\slash", "plain"]
+    for name in names:
+        response = client.post(
+            "/api/admin/secrets",
+            json={"name": name, "type": "password", "value": "secret"},
+        )
+        assert response.status_code == 201
+
+    for search, expected in (("%", "percent%only"), ("_", "under_score"), ("\\", r"back\slash")):
+        response = client.get("/api/admin/secrets", params={"search": search})
+        assert response.status_code == 200
+        assert [item["name"] for item in response.json()["items"]] == [expected]
+
+        audit = client.get("/api/admin/audit-logs", params={"resource_search": search})
+        assert audit.status_code == 200
+        assert {item["resource_label"] for item in audit.json()["items"]} == {expected}
 
 
 def test_rotation_renews_expired_tokens_using_their_original_ttl(client: TestClient) -> None:

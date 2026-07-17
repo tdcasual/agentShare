@@ -91,18 +91,24 @@ export function SecretEditorDialog({
       const common = {
         name: form.name.trim(),
         type: form.type,
-        url: form.url.trim() || undefined,
-        username: form.username.trim() || undefined,
-        description: form.description.trim() || undefined,
         tags: parseTags(form.tags),
       };
       if (secret) {
         await updateSecret(secret.id, {
           ...common,
+          url: form.url.trim() || null,
+          username: form.username.trim() || null,
+          description: form.description.trim() || null,
           ...(form.value ? { value: form.value } : {}),
         });
       } else {
-        await createSecret({ ...common, value: form.value });
+        await createSecret({
+          ...common,
+          value: form.value,
+          url: form.url.trim() || undefined,
+          username: form.username.trim() || undefined,
+          description: form.description.trim() || undefined,
+        });
       }
       await onSaved();
       onOpenChange(false);
@@ -234,7 +240,7 @@ export function SecretEditorDialog({
           {error && (
             <p
               role="alert"
-              className="bg-destructive/10 rounded-md px-3 py-2 text-sm text-destructive"
+              className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
             >
               {error}
             </p>

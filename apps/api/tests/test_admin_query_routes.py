@@ -10,9 +10,11 @@ from starlette.requests import Request
 
 from app.modules.admin_auth.service import AdminPrincipal
 from app.modules.agents.routes import list_agents
-from app.modules.audit.routes import audit_stats, list_audit_logs
-from app.modules.tokens.routes import get_grants, owned_token, replace_grants
+from app.modules.audit.routes import audit_stats, list_audit_actions, list_audit_logs
+from app.modules.audit.service import AUDIT_ACTIONS
+from app.modules.tokens.routes import get_grants, replace_grants
 from app.modules.tokens.schemas import GrantReplace
+from app.modules.tokens.service import owned_token
 from app.orm import Agent, AgentToken, AuditLog, User
 
 
@@ -157,6 +159,7 @@ def test_audit_queries_directly_apply_filters_pagination_and_global_stats():
         )
     )
     assert stats == {"total": 9, "granted": 3, "denied": 2, "value_reads": 4}
+    assert asyncio.run(list_audit_actions(_principal())) == {"items": list(AUDIT_ACTIONS)}
 
 
 def test_token_grant_queries_enforce_ownership_and_commit_empty_grants():

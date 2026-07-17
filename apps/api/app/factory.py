@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app import db as db_module
 from app.config import Settings
@@ -26,6 +27,52 @@ request_logger = logging.getLogger("app.request")
 startup_logger = logging.getLogger("app.startup")
 AppConfigurer = Callable[[FastAPI, Settings], None]
 RouteRegistrar = Callable[[FastAPI], None]
+class RequestBodyTooLarge(Exception):
+    pass
+
+
+class RequestSizeLimitMiddleware:
+    def __init__(self, app: ASGIApp, max_bytes: int) -> None:
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = {key.lower(): value for key, value in scope.get("headers", [])}
+        raw_content_length = headers.get(b"content-length")
+        if raw_content_length is not None:
+            try:
+                if int(raw_content_length) > self.max_bytes:
+                    await self._reject(scope, receive, send)
+                    return
+            except ValueError:
+                response = JSONResponse(status_code=400, content={"detail": "Invalid Content-Length"})
+                await response(scope, receive, send)
+                return
+
+        received = 0
+
+        async def limited_receive() -> Message:
+            nonlocal received
+            message = await receive()
+            if message["type"] == "http.request":
+                received += len(message.get("body", b""))
+                if received > self.max_bytes:
+                    raise RequestBodyTooLarge
+            return message
+
+        try:
+            await self.app(scope, limited_receive, send)
+        except RequestBodyTooLarge:
+            await self._reject(scope, receive, send)
+
+    @staticmethod
+    async def _reject(scope: Scope, receive: Receive, send: Send) -> None:
+        response = JSONResponse(status_code=413, content={"detail": "Request body too large"})
+        await response(scope, receive, send)
 
 
 def _uses_embedded_sqlite(database_url: str) -> bool:
@@ -137,6 +184,10 @@ def add_security_headers_middleware(app: FastAPI, settings: Settings) -> None:
         return response
 
 
+def add_request_size_middleware(app: FastAPI, settings: Settings) -> None:
+    app.add_middleware(RequestSizeLimitMiddleware, max_bytes=settings.max_request_body_bytes)
+
+
 def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
     allowed_origins = [origin.strip() for origin in settings.cors_allowed_origins.split(",") if origin.strip()]
     if not allowed_origins:
@@ -225,6 +276,7 @@ def add_csrf_middleware(app: FastAPI, settings: Settings) -> None:
 def configure_default_app(app: FastAPI, settings: Settings) -> None:
     add_cors_middleware(app, settings)
     add_csrf_middleware(app, settings)
+    add_request_size_middleware(app, settings)
     add_security_headers_middleware(app, settings)
     add_request_logging_middleware(app)
     register_core_routes(app)

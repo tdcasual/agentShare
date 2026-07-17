@@ -1,32 +1,81 @@
 from __future__ import annotations
 
-from typing import Self
+import json
+from typing import Annotated, Any, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.orm.secret import SecretType
+
+SecretTag = Annotated[str, Field(min_length=1, max_length=64)]
+MAX_METADATA_BYTES = 65_536
+MAX_METADATA_DEPTH = 8
+
+
+def _metadata_depth(value: Any, depth: int = 0) -> int:
+    if depth > MAX_METADATA_DEPTH:
+        return depth
+    if isinstance(value, dict):
+        return max((_metadata_depth(item, depth + 1) for item in value.values()), default=depth)
+    if isinstance(value, list):
+        return max((_metadata_depth(item, depth + 1) for item in value), default=depth)
+    return depth
+
+
+def _validate_metadata(value: dict[str, Any]) -> dict[str, Any]:
+    if _metadata_depth(value) > MAX_METADATA_DEPTH:
+        raise ValueError(f"metadata must not exceed {MAX_METADATA_DEPTH} levels")
+    serialized = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    if len(serialized.encode("utf-8")) > MAX_METADATA_BYTES:
+        raise ValueError(f"metadata must not exceed {MAX_METADATA_BYTES} UTF-8 bytes")
+    return value
 
 
 class SecretCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     type: SecretType
-    value: str = Field(max_length=1_000_000)
-    url: str | None = None
+    value: str = Field(min_length=1, max_length=1_000_000)
+    url: str | None = Field(default=None, max_length=2048)
     username: str | None = Field(default=None, max_length=255)
-    description: str | None = None
-    tags: list[str] = Field(default_factory=list, max_length=100)
-    metadata: dict = Field(default_factory=dict)
+    description: str | None = Field(default=None, max_length=5000)
+    tags: list[SecretTag] = Field(default_factory=list, max_length=100)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, value: list[str]) -> list[str]:
+        normalized = [tag.strip() for tag in value]
+        if any(not tag for tag in normalized):
+            raise ValueError("tags must not be blank")
+        return normalized
+
+    @field_validator("metadata")
+    @classmethod
+    def validate_metadata(cls, value: dict[str, Any]) -> dict[str, Any]:
+        return _validate_metadata(value)
 
 
 class SecretUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     type: SecretType | None = None
-    value: str | None = Field(default=None, max_length=1_000_000)
-    url: str | None = None
+    value: str | None = Field(default=None, min_length=1, max_length=1_000_000)
+    url: str | None = Field(default=None, max_length=2048)
     username: str | None = Field(default=None, max_length=255)
-    description: str | None = None
-    tags: list[str] | None = Field(default=None, max_length=100)
-    metadata: dict | None = None
+    description: str | None = Field(default=None, max_length=5000)
+    tags: list[SecretTag] | None = Field(default=None, max_length=100)
+    metadata: dict[str, Any] | None = None
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_optional_tags(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return value
+        return SecretCreate.normalize_tags(value)
+
+    @field_validator("metadata")
+    @classmethod
+    def validate_optional_metadata(cls, value: dict[str, Any] | None) -> dict[str, Any] | None:
+        return _validate_metadata(value) if value is not None else value
 
     @model_validator(mode="after")
     def reject_null_required_fields(self) -> Self:

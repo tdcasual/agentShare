@@ -29,16 +29,17 @@ class TestEncryptionService:
         svc = EncryptionService(encryption_key=key)
         plaintext = "hello world"
         encrypted = svc.encrypt(plaintext)
-        assert encrypted.startswith("v1:")
+        assert encrypted.startswith("v2:current:")
         assert encrypted != plaintext
         assert svc.decrypt(encrypted) == plaintext
 
     def test_decrypts_legacy_unversioned_payload(self):
         key = base64.b64encode(os.urandom(32)).decode()
         svc = EncryptionService(encryption_key=key)
-        versioned = svc.encrypt("legacy-compatible-data")
+        legacy = svc.encrypt("legacy-compatible-data").split(":", 2)[-1]
 
-        assert svc.decrypt(versioned.removeprefix("v1:")) == "legacy-compatible-data"
+        assert svc.decrypt(legacy) == "legacy-compatible-data"
+        assert svc.decrypt(f"v1:{legacy}") == "legacy-compatible-data"
 
     def test_encrypt_produces_different_ciphertext(self):
         """Each encryption uses a random IV, so ciphertext differs."""
@@ -105,7 +106,7 @@ class TestEncryptionService:
         key = self._make_key()
         svc = EncryptionService(encryption_key=key)
         encrypted = svc.encrypt("tamper me")
-        raw = bytearray(base64.b64decode(encrypted))
+        raw = bytearray(base64.b64decode(encrypted.split(":", 2)[-1]))
         raw[-1] ^= 0xFF  # flip last byte (part of tag)
         with pytest.raises(ValueError):
             svc.decrypt(base64.b64encode(raw).decode())
@@ -135,3 +136,25 @@ class TestEncryptionService:
             assert svc1 is svc2
         finally:
             reset_encryption_service()
+
+    def test_keyring_decrypts_old_payload_and_encrypts_with_active_key(self):
+        old_key = self._make_key()
+        new_key = self._make_key()
+        old_service = EncryptionService(encryption_key=old_key, active_key_id="old")
+        legacy_payload = old_service.encrypt("legacy")
+
+        service = EncryptionService(
+            encryption_key=new_key,
+            encryption_keyring={"old": old_key},
+            active_key_id="new",
+        )
+        current_payload = service.encrypt("current")
+        assert current_payload.startswith("v2:new:")
+        assert service.decrypt(current_payload) == "current"
+        assert service.decrypt(legacy_payload) == "legacy"
+        assert not service.needs_reencryption(current_payload)
+        assert service.needs_reencryption(legacy_payload)
+
+    def test_keyring_rejects_invalid_active_key_id(self):
+        with pytest.raises(ValueError, match="Invalid encryption active key id"):
+            EncryptionService(encryption_key=self._make_key(), active_key_id="contains:colon")

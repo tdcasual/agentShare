@@ -9,32 +9,34 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_schemas import (
+    AdminSessionResponse,
+    AdminUserResponse,
+    BootstrapStatusResponse,
+    LoginResponse,
+    ManagementTokenIssued,
+    ManagementTokenPageResponse,
+)
 from app.client_ip import get_client_ip
 from app.db import get_async_db
+from app.idempotency import commit_idempotent_response, replay_idempotent_response
 from app.modules.admin_auth.schemas import BootstrapRequest, LoginRequest, ManagementTokenCreate
 from app.modules.admin_auth.service import (
     AdminPrincipal,
     authenticate_password,
     expires_from_ttl,
     generate_credential,
+    get_admin_principal,
     renew_expiration,
-    resolve_admin_principal,
 )
-from app.modules.audit.service import add_admin_audit
+from app.modules.audit.service import add_admin_audit, write_auth_failure_audit
 from app.orm import AdminSession, ManagementToken, User
-from app.rate_limit import RateLimitConfig, check_rate_limit, clear_attempts, record_failed_attempt
+from app.rate_limit import RateLimitConfig, check_persistent_login_rate_limit
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 
-async def get_admin_principal(
-    request: Request,
-    db: AsyncSession = Depends(get_async_db),
-) -> AdminPrincipal:
-    return await resolve_admin_principal(request, db)
-
-
-@router.get("/bootstrap/status")
+@router.get("/bootstrap/status", response_model=BootstrapStatusResponse)
 async def bootstrap_status(
     request: Request,
     db: AsyncSession = Depends(get_async_db),
@@ -47,7 +49,7 @@ async def bootstrap_status(
     }
 
 
-@router.post("/bootstrap/init", status_code=status.HTTP_201_CREATED)
+@router.post("/bootstrap/init", status_code=status.HTTP_201_CREATED, response_model=AdminUserResponse)
 async def bootstrap_init(
     body: BootstrapRequest,
     request: Request,
@@ -72,7 +74,7 @@ async def bootstrap_init(
     return {"id": user.id, "email": user.email}
 
 
-@router.post("/session/login")
+@router.post("/session/login", response_model=LoginResponse)
 async def login(
     body: LoginRequest,
     request: Request,
@@ -84,14 +86,28 @@ async def login(
         settings.auth_rate_limit_max_attempts,
         settings.auth_rate_limit_window_seconds,
     )
-    limited = check_rate_limit(request, rate_config, body.email)
+    limited = await check_persistent_login_rate_limit(db, request, rate_config, body.email)
     if limited is not None:
+        await write_auth_failure_audit(
+            db,
+            request,
+            action="admin.login.failed",
+            actor_type="anonymous",
+            actor_label=body.email,
+            reason="rate_limited",
+        )
         return limited  # type: ignore[return-value]
     user = await authenticate_password(db, body.email, body.password)
     if user is None:
-        record_failed_attempt(request, rate_config, body.email)
+        await write_auth_failure_audit(
+            db,
+            request,
+            action="admin.login.failed",
+            actor_type="anonymous",
+            actor_label=body.email,
+            reason="invalid_credentials",
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    clear_attempts(request, body.email)
     raw_value, key_hash, key_prefix = generate_credential("vgs_")
     session = AdminSession(
         user_id=user.id,
@@ -126,7 +142,7 @@ async def login(
     return {"email": user.email, "status": "authenticated"}
 
 
-@router.get("/session")
+@router.get("/session", response_model=AdminSessionResponse)
 async def current_session(
     principal: AdminPrincipal = Depends(get_admin_principal),
 ) -> dict[str, str]:
@@ -162,7 +178,7 @@ async def logout(
     response.delete_cookie(request.app.state.settings.session_cookie_name, path="/")
 
 
-@router.get("/management-tokens")
+@router.get("/management-tokens", response_model=ManagementTokenPageResponse)
 async def list_management_tokens(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -186,8 +202,12 @@ async def list_management_tokens(
             {
                 "id": item.id,
                 "name": item.name,
+                "description": item.description,
                 "key_prefix": item.key_prefix,
+                "expires_at": item.expires_at.isoformat() if item.expires_at else None,
                 "revoked_at": item.revoked_at.isoformat() if item.revoked_at else None,
+                "last_used_at": item.last_used_at.isoformat() if item.last_used_at else None,
+                "created_at": item.created_at.isoformat(),
             }
             for item in rows
         ],
@@ -197,7 +217,11 @@ async def list_management_tokens(
     }
 
 
-@router.post("/management-tokens", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/management-tokens",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ManagementTokenIssued,
+)
 async def create_management_token(
     body: ManagementTokenCreate,
     request: Request,
@@ -205,6 +229,12 @@ async def create_management_token(
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict[str, str | None]:
+    idempotency, replay = await replay_idempotent_response(
+        db, request, principal.user.id, body.model_dump(mode="json")
+    )
+    if replay is not None:
+        response.headers["Cache-Control"] = "no-store"
+        return replay  # type: ignore[return-value]
     raw_value, key_hash, key_prefix = generate_credential("vgm_")
     token = ManagementToken(
         user_id=principal.user.id,
@@ -225,16 +255,22 @@ async def create_management_token(
         resource_id=token.id,
         resource_label=token.name,
     )
-    await db.commit()
-    await db.refresh(token)
-    response.headers["Cache-Control"] = "no-store"
-    return {
+    payload = {
         "id": token.id,
         "name": token.name,
         "token": raw_value,
         "key_prefix": token.key_prefix,
         "expires_at": token.expires_at.isoformat() if token.expires_at else None,
     }
+    concurrent_replay = await commit_idempotent_response(
+        db, principal.user.id, idempotency, payload, status_code=201
+    )
+    if concurrent_replay is not None:
+        response.headers["Cache-Control"] = "no-store"
+        return concurrent_replay  # type: ignore[return-value]
+    await db.refresh(token)
+    response.headers["Cache-Control"] = "no-store"
+    return payload
 
 
 @router.delete("/management-tokens/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -260,7 +296,7 @@ async def revoke_management_token(
     await db.commit()
 
 
-@router.post("/management-tokens/{token_id}/rotate")
+@router.post("/management-tokens/{token_id}/rotate", response_model=ManagementTokenIssued)
 async def rotate_management_token(
     token_id: str,
     request: Request,

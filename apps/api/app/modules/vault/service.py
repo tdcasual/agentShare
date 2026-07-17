@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.maintenance import should_update_last_used
 from app.modules.admin_auth.service import hash_credential
+from app.modules.audit.service import write_auth_failure_audit
 from app.orm import Agent, AgentStatus, AgentToken, Secret, TokenSecretGrant
 
 
@@ -21,17 +22,49 @@ class AgentPrincipal:
 async def resolve_agent_principal(request: Request, db: AsyncSession) -> AgentPrincipal:
     authorization = request.headers.get("authorization", "")
     if not authorization.startswith("Bearer "):
+        await write_auth_failure_audit(
+            db,
+            request,
+            action="agent_auth.failed",
+            actor_type="anonymous",
+            actor_label="anonymous",
+            reason="agent_token_required",
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Agent token required")
     raw_value = authorization.removeprefix("Bearer ")
     if not raw_value.startswith("vg_") or raw_value.startswith("vgm_"):
+        await write_auth_failure_audit(
+            db,
+            request,
+            action="agent_auth.failed",
+            actor_type="unknown_agent_token",
+            actor_label=raw_value[:16] or "unknown",
+            reason="invalid_agent_token_type",
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid agent token")
     token = await db.scalar(
         select(AgentToken).where(AgentToken.key_hash == hash_credential(raw_value))
     )
     if token is None or not token.is_valid():
+        await write_auth_failure_audit(
+            db,
+            request,
+            action="agent_auth.failed",
+            actor_type="unknown_agent_token",
+            actor_label=raw_value[:16],
+            reason="invalid_agent_token",
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid agent token")
     agent = await db.get(Agent, token.agent_id)
     if agent is None or agent.status != AgentStatus.ACTIVE:
+        await write_auth_failure_audit(
+            db,
+            request,
+            action="agent_auth.failed",
+            actor_type="agent_token",
+            actor_label=token.key_prefix,
+            reason="agent_disabled",
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Agent is disabled")
     now = datetime.now(UTC)
     if should_update_last_used(

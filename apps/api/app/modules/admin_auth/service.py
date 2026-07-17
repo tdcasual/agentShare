@@ -7,10 +7,11 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 import bcrypt
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import get_async_db
 from app.maintenance import should_update_last_used
 from app.orm import AdminSession, ManagementToken, User
 
@@ -20,6 +21,13 @@ class AdminPrincipal:
     user: User
     auth_type: Literal["session", "management_token"]
     credential_id: str
+
+
+async def get_admin_principal(
+    request: Request,
+    db: AsyncSession = Depends(get_async_db),
+) -> AdminPrincipal:
+    return await resolve_admin_principal(request, db)
 
 
 def hash_credential(raw_value: str) -> str:

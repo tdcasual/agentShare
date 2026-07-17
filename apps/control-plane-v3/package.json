@@ -11,14 +11,17 @@
     "build": "next build",
     "start": "node ./scripts/start-standalone.mjs",
     "start:next": "next start",
-    "lint": "npx eslint src test playwright.config.ts --ext .ts,.tsx",
-    "lint:fix": "npx eslint src test playwright.config.ts --ext .ts,.tsx --fix",
+    "lint": "npx eslint src test playwright.config.ts playwright.integration.config.ts --ext .ts,.tsx",
+    "lint:fix": "npx eslint src test playwright.config.ts playwright.integration.config.ts --ext .ts,.tsx --fix",
     "typecheck": "rm -f tsconfig.tsbuildinfo && rm -rf .next/types && next typegen && tsc --noEmit --incremental false",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\" \"playwright.config.ts\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\" \"playwright.config.ts\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\" \"playwright*.config.ts\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"test/**/*.ts\" \"playwright*.config.ts\"",
+    "generate:api-types": "cd ../.. && PYTHONPATH=apps/api .venv/bin/python apps/control-plane-v3/scripts/export-openapi.py | apps/control-plane-v3/node_modules/.bin/openapi-typescript /dev/stdin -o apps/control-plane-v3/src/lib/generated-api.ts && cd apps/control-plane-v3 && ./node_modules/.bin/prettier --write src/lib/generated-api.ts",
+    "check:api-types": "npm run generate:api-types && git diff --exit-code -- src/lib/generated-api.ts",
     "test": "vitest",
     "test:unit": "vitest --run",
     "test:e2e": "playwright test",
+    "test:integration": "playwright test --config=playwright.integration.config.ts",
     "test:coverage": "vitest run --coverage",
     "check": "npm run typecheck && npm run lint && npm run format:check"
   },
@@ -29,8 +32,6 @@
     "@radix-ui/react-label": "^2.1.10",
     "@radix-ui/react-select": "^2.3.1",
     "@radix-ui/react-slot": "^1.3.0",
-    "@radix-ui/react-tabs": "^1.1.15",
-    "@radix-ui/react-tooltip": "^1.2.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.0",
     "lucide-react": "^0.460.0",
@@ -40,8 +41,7 @@
     "react-dom": "^19.0.0",
     "sonner": "^2.0.7",
     "swr": "^2.4.1",
-    "tailwind-merge": "^2.5.0",
-    "zustand": "^5.0.0"
+    "tailwind-merge": "^2.5.0"
   },
   "overrides": {
     "next": {
@@ -72,6 +72,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.4.0",
     "jsdom": "^29.0.1",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.13",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",

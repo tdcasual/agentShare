@@ -26,7 +26,7 @@ export interface ConfirmDialogProps {
 }
 
 /**
- * Controlled confirmation dialog (drop-in for the legacy ConfirmModal).
+ * Controlled confirmation dialog.
  * The action stays open while isLoading so the caller can run async work and
  * close via state on success.
  */
@@ -68,7 +68,7 @@ export function ConfirmDialog({
             disabled={isLoading}
             className={cn(
               variant === 'danger' &&
-                'hover:bg-destructive/90 bg-destructive text-destructive-foreground'
+                'bg-destructive text-destructive-foreground hover:bg-destructive/90'
             )}
           >
             {isLoading ? t('common.loading') : (confirmText ?? t('modal.confirm'))}

@@ -8,7 +8,12 @@ vi.mock('swr', () => ({
 
 // Mock the API module
 vi.mock('@/lib/vaultgate-api', () => ({
-  apiFetch: vi.fn().mockResolvedValue({}),
+  buildApiPath: vi.fn((path: string) => path),
+  listSecrets: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+  createSecret: vi.fn().mockResolvedValue({}),
+  updateSecret: vi.fn().mockResolvedValue({}),
+  revealSecret: vi.fn().mockResolvedValue({ value: '' }),
+  deleteSecret: vi.fn().mockResolvedValue(undefined),
   ApiError: class ApiError extends Error {
     status: number;
     detail: string;

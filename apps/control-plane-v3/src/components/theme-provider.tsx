@@ -17,10 +17,15 @@ function ThemeColorSync() {
 
   useEffect(() => {
     const root = document.documentElement;
-    const hslChannels = getComputedStyle(root).getPropertyValue('--background').trim();
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta && hslChannels) {
-      meta.setAttribute('content', `hsl(${hslChannels})`);
+    const oklchChannels = getComputedStyle(root).getPropertyValue('--background').trim();
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.append(meta);
+    }
+    if (oklchChannels) {
+      meta.setAttribute('content', `oklch(${oklchChannels})`);
     }
   }, [resolvedTheme]);
 

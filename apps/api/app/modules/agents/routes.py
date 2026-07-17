@@ -5,27 +5,19 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_schemas import AgentPageResponse, AgentResponse, AgentTokenPageResponse
 from app.db import get_async_db
-from app.modules.admin_auth.routes import get_admin_principal
-from app.modules.admin_auth.service import AdminPrincipal
+from app.idempotency import commit_idempotent_response, replay_idempotent_response
+from app.modules.admin_auth.service import AdminPrincipal, get_admin_principal
 from app.modules.agents.schemas import AgentCreate, AgentUpdate
-from app.modules.agents.service import serialize_agent
+from app.modules.agents.service import owned_agent, serialize_agent
 from app.modules.audit.service import add_admin_audit
 from app.modules.tokens.service import serialize_token
 from app.orm import Agent, AgentStatus, AgentToken
 
 router = APIRouter(prefix="/api/admin/agents", tags=["Admin Agents"])
 
-
-async def owned_agent(db: AsyncSession, user_id: str, agent_id: str) -> Agent:
-    result = await db.execute(select(Agent).where(Agent.id == agent_id, Agent.user_id == user_id))
-    agent = result.scalar_one_or_none()
-    if agent is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found")
-    return agent
-
-
-@router.get("")
+@router.get("", response_model=AgentPageResponse)
 async def list_agents(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -54,13 +46,18 @@ async def list_agents(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=AgentResponse)
 async def create_agent(
     body: AgentCreate,
     request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
+    idempotency, replay = await replay_idempotent_response(
+        db, request, principal.user.id, body.model_dump(mode="json")
+    )
+    if replay is not None:
+        return replay
     agent = Agent(user_id=principal.user.id, name=body.name, description=body.description)
     db.add(agent)
     try:
@@ -74,15 +71,20 @@ async def create_agent(
             resource_id=agent.id,
             resource_label=agent.name,
         )
-        await db.commit()
+        payload = serialize_agent(agent)
+        concurrent_replay = await commit_idempotent_response(
+            db, principal.user.id, idempotency, payload, status_code=201
+        )
+        if concurrent_replay is not None:
+            return concurrent_replay
     except IntegrityError as exc:
         await db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Agent name already exists") from exc
     await db.refresh(agent)
-    return serialize_agent(agent)
+    return payload
 
 
-@router.get("/{agent_id}")
+@router.get("/{agent_id}", response_model=AgentResponse)
 async def get_agent(
     agent_id: str,
     principal: AdminPrincipal = Depends(get_admin_principal),
@@ -92,7 +94,7 @@ async def get_agent(
     return serialize_agent(agent)
 
 
-@router.get("/{agent_id}/tokens")
+@router.get("/{agent_id}/tokens", response_model=AgentTokenPageResponse)
 async def list_agent_tokens(
     agent_id: str,
     limit: int = Query(default=25, ge=1, le=200),
@@ -119,7 +121,7 @@ async def list_agent_tokens(
     }
 
 
-@router.patch("/{agent_id}")
+@router.patch("/{agent_id}", response_model=AgentResponse)
 async def update_agent(
     agent_id: str,
     body: AgentUpdate,

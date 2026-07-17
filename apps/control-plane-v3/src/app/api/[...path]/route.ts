@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE_URL = process.env.VAULTGATE_API_URL || 'http://localhost:8000';
+const API_TIMEOUT_MS = Number(process.env.VAULTGATE_API_TIMEOUT_MS || 15_000);
 
 // Only forward these request headers to the backend.
 // cookie: required so backend session cookies authenticate management requests.
@@ -68,10 +69,12 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
       method: request.method,
       headers,
       body,
+      signal: AbortSignal.timeout(API_TIMEOUT_MS),
     });
 
     // Build response with whitelisted headers only
-    const responseBody = await response.text();
+    const responseBody =
+      response.status === 204 || response.status === 304 ? null : await response.text();
     const responseHeaders: Record<string, string> = {};
 
     response.headers.forEach((value, key) => {
@@ -88,12 +91,16 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
   } catch (error) {
     console.error('Proxy error:', error instanceof Error ? error.message : 'Unknown error');
 
+    const errorName =
+      error && typeof error === 'object' && 'name' in error ? String(error.name) : undefined;
+    const timedOut = errorName === 'TimeoutError' || errorName === 'AbortError';
+
     return NextResponse.json(
       {
-        error: 'backend_unavailable',
-        message: 'Backend service unavailable',
+        detail: timedOut ? 'Backend request timed out' : 'Backend service unavailable',
+        code: timedOut ? 'backend_timeout' : 'backend_unavailable',
       },
-      { status: 503 }
+      { status: timedOut ? 504 : 503 }
     );
   }
 }

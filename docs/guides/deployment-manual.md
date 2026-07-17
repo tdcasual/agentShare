@@ -50,11 +50,15 @@ Stop API writes, restore the PostgreSQL backup into a clean database, point `DAT
 | Variable | Required | Description |
 |---|---:|---|
 | `ENCRYPTION_KEY` | yes | Base64-encoded 32-byte AES key |
+| `ENCRYPTION_ACTIVE_KEY_ID` | no | Key id for newly encrypted values |
+| `ENCRYPTION_KEYRING` | no | JSON object containing legacy key ids and keys during rotation |
 | `POSTGRES_PASSWORD` | yes | Database password |
 | `PUBLIC_HOST` | production | Public domain |
 | `ACME_EMAIL` | production | ACME registration address |
 | `CORS_ALLOWED_ORIGINS` | production | Exact comma-separated browser origins |
 | `SESSION_SECURE` | production | Must be `true` behind HTTPS |
+| `MAX_REQUEST_BODY_BYTES` | no | Maximum API request body size in bytes (default 2 MiB) |
+| `IDEMPOTENCY_RETENTION_DAYS` | no | Completed mutation replay retention, 1-90 days |
 | `VAULTGATE_API_URL` | web container | Internal API origin used by the same-origin proxy |
 
 The browser has no configurable public API base. It always calls the web application's `/api` proxy.

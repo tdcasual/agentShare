@@ -45,7 +45,7 @@ describe('root layout localization', () => {
   it('renders the skip link before the guarded navigation shell', async () => {
     const source = await readLayoutSource();
     const skipLinkPosition = source.indexOf('href="#main-content"');
-    const routeGuardPosition = source.indexOf('<RouteGuardWrapper>');
+    const routeGuardPosition = source.indexOf('<RouteGuard>');
 
     expect(skipLinkPosition).toBeGreaterThan(-1);
     expect(routeGuardPosition).toBeGreaterThan(-1);

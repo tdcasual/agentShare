@@ -32,6 +32,7 @@ export function SecretRevealDialog({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
   const [remaining, setRemaining] = useState(REVEAL_SECONDS);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export function SecretRevealDialog({
       setValue(null);
       setError(null);
       setCopied(false);
+      setCopyError(null);
       setRemaining(REVEAL_SECONDS);
       return;
     }
@@ -99,7 +101,7 @@ export function SecretRevealDialog({
             <Skeleton className="h-4 w-40" />
           </div>
         ) : error ? (
-          <div className="bg-destructive/10 space-y-3 rounded-md p-4">
+          <div className="space-y-3 rounded-md bg-destructive/10 p-4">
             <p role="alert" className="text-sm text-destructive">
               {error}
             </p>
@@ -114,7 +116,11 @@ export function SecretRevealDialog({
           </div>
         ) : (
           <>
-            <pre className="bg-muted/50 max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-md border p-4 text-sm leading-relaxed">
+            <pre
+              tabIndex={0}
+              aria-label={t('secrets.revealedValue')}
+              className="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-md border bg-muted/50 p-4 text-sm leading-relaxed focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            >
               {value}
             </pre>
             <p role="status" className="text-xs text-muted-foreground">
@@ -138,14 +144,20 @@ export function SecretRevealDialog({
               try {
                 await navigator.clipboard.writeText(value);
                 setCopied(true);
+                setCopyError(null);
               } catch {
-                setError(t('secrets.copyFailed'));
+                setCopyError(t('secrets.copyFailed'));
               }
             }}
           >
             {copied ? t('common.copied') : t('common.copy')}
           </Button>
         </DialogFooter>
+        {copyError && (
+          <p role="alert" className="text-sm text-destructive">
+            {copyError}
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );

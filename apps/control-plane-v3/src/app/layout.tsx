@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { RouteGuardWrapper } from '@/components/route-guard-wrapper';
+import { RouteGuard } from '@/components/route-guard';
 import { Toaster } from '@/components/ui/sonner';
 import { defaultLocale, locales, type Locale } from '@/i18n/config';
 
@@ -76,7 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               >
                 {skipLinkLabel}
               </a>
-              <RouteGuardWrapper>{children}</RouteGuardWrapper>
+              <RouteGuard>{children}</RouteGuard>
               <Toaster richColors position="top-right" />
             </ErrorBoundary>
           </I18nProvider>

@@ -34,7 +34,11 @@ class AppRuntime:
 def build_runtime(settings: Settings) -> AppRuntime:
     from app.services.encryption import get_encryption_service
 
-    get_encryption_service(encryption_key=settings.encryption_key)
+    get_encryption_service(
+        encryption_key=settings.encryption_key,
+        encryption_keyring=settings.encryption_keyring,
+        active_key_id=settings.encryption_active_key_id,
+    )
 
     async_url = _async_database_url(settings.database_url)
     is_sqlite = async_url.startswith("sqlite+aiosqlite:")

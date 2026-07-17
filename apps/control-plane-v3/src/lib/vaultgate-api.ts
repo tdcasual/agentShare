@@ -1,6 +1,29 @@
 'use client';
 
+import type { components } from './generated-api';
+
 type JsonObject = Record<string, unknown>;
+type RequestOptions = Omit<RequestInit, 'signal'> & { timeout?: number };
+type ApiSchemas = components['schemas'];
+
+function errorDetail(payload: JsonObject | null, fallback: string): string {
+  if (typeof payload?.detail === 'string') {
+    return payload.detail;
+  }
+  if (Array.isArray(payload?.detail)) {
+    const messages = payload.detail
+      .map((item) =>
+        item && typeof item === 'object' && typeof (item as JsonObject).msg === 'string'
+          ? String((item as JsonObject).msg)
+          : null
+      )
+      .filter((item): item is string => Boolean(item));
+    if (messages.length > 0) {
+      return messages.join('; ');
+    }
+  }
+  return fallback || 'Request failed';
+}
 
 export class ApiError extends Error {
   constructor(
@@ -12,15 +35,10 @@ export class ApiError extends Error {
   }
 }
 
-async function requestJson<T>(
-  path: string,
-  init: RequestInit & { timeout?: number } = {}
-): Promise<T> {
-  const { timeout = 30_000, signal, ...requestInit } = init;
+async function requestJson<T>(path: string, init: RequestOptions = {}): Promise<T> {
+  const { timeout = 30_000, ...requestInit } = init;
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeout);
-  const abortRequest = () => controller.abort();
-  signal?.addEventListener('abort', abortRequest, { once: true });
   const headers = new Headers(requestInit.headers);
   if (requestInit.body && !headers.has('content-type')) {
     headers.set('content-type', 'application/json');
@@ -48,8 +66,7 @@ async function requestJson<T>(
       }
     }
     if (!response.ok) {
-      const detail = typeof payload?.detail === 'string' ? payload.detail : response.statusText;
-      throw new ApiError(response.status, detail || 'Request failed');
+      throw new ApiError(response.status, errorDetail(payload, response.statusText));
     }
     return payload as T;
   } catch (error) {
@@ -64,49 +81,18 @@ async function requestJson<T>(
     }
     throw error;
   } finally {
-    signal?.removeEventListener('abort', abortRequest);
     window.clearTimeout(timer);
   }
 }
 
-export const apiFetch = requestJson;
-
-export interface BootstrapStatus {
-  setup_required: boolean;
-  bootstrap_token_required: boolean;
-}
-export interface AdminSession {
-  id: string;
-  email: string;
-  auth_type: 'session' | 'management_token';
-}
+export type BootstrapStatus = ApiSchemas['BootstrapStatusResponse'];
+export type AdminSession = ApiSchemas['AdminSessionResponse'];
 export interface LoginInput {
   email: string;
   password: string;
 }
-export interface Secret {
-  id: string;
-  name: string;
-  type: SecretType;
-  url: string | null;
-  username: string | null;
-  description: string | null;
-  tags: string[];
-  metadata: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-}
-export type SecretType =
-  | 'password'
-  | 'api_key'
-  | 'basic_auth'
-  | 'bearer_token'
-  | 'api_key_header'
-  | 'oauth_token'
-  | 'certificate'
-  | 'ssh_key'
-  | 'database_url'
-  | 'custom';
+export type Secret = ApiSchemas['SecretResponse'];
+export type SecretType = ApiSchemas['SecretType'];
 export interface SecretCreateInput {
   name: string;
   type: SecretType;
@@ -117,44 +103,22 @@ export interface SecretCreateInput {
   tags?: string[];
   metadata?: Record<string, unknown>;
 }
-export type SecretUpdateInput = Partial<SecretCreateInput>;
-export interface Agent {
-  id: string;
-  name: string;
-  description: string | null;
-  status: 'active' | 'disabled';
-  created_at: string;
-  updated_at: string;
+export interface SecretUpdateInput {
+  name?: string;
+  type?: SecretType;
+  value?: string;
+  url?: string | null;
+  username?: string | null;
+  description?: string | null;
+  tags?: string[];
+  metadata?: Record<string, unknown>;
 }
-export interface AgentToken {
-  id: string;
-  agent_id: string;
-  name: string;
-  description: string | null;
-  key_prefix: string;
-  status: 'active' | 'revoked';
-  expires_at: string | null;
-  last_used_at: string | null;
-  created_at: string;
-}
-export interface IssuedAgentToken extends AgentToken {
-  token: string;
-}
-export type AgentDetail = Agent;
-export interface AuditLog {
-  id: string;
-  actor_type: string;
-  actor_id: string | null;
-  actor_label: string;
-  resource_type: string | null;
-  resource_id: string | null;
-  resource_label: string | null;
-  action: string;
-  result: 'success' | 'denied';
-  reason: string | null;
-  request_id: string | null;
-  created_at: string;
-}
+export type Agent = ApiSchemas['AgentResponse'];
+export type AgentToken = ApiSchemas['AgentTokenResponse'];
+export type IssuedAgentToken = ApiSchemas['IssuedAgentTokenResponse'];
+export type ManagementToken = ApiSchemas['ManagementTokenSummary'];
+export type IssuedManagementToken = ApiSchemas['ManagementTokenIssued'];
+export type AuditLog = ApiSchemas['AuditLogResponse'];
 
 export interface PageQuery {
   limit?: number;
@@ -196,6 +160,26 @@ export const login = (input: LoginInput) =>
 export const logout = () => requestJson<void>('/api/admin/session', { method: 'DELETE' });
 export const getCurrentSession = () => requestJson<AdminSession>('/api/admin/session');
 
+export const listManagementTokens = (query: PageQuery = {}) =>
+  requestJson<PageResponse<ManagementToken>>(buildApiPath('/api/admin/management-tokens', query));
+export const createManagementToken = (input: {
+  name: string;
+  description?: string;
+  ttl_seconds?: number;
+}) =>
+  requestJson<IssuedManagementToken>('/api/admin/management-tokens', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    headers: { 'cache-control': 'no-store' },
+  });
+export const rotateManagementToken = (tokenId: string) =>
+  requestJson<IssuedManagementToken>(`/api/admin/management-tokens/${tokenId}/rotate`, {
+    method: 'POST',
+    headers: { 'cache-control': 'no-store' },
+  });
+export const revokeManagementToken = (tokenId: string) =>
+  requestJson<void>(`/api/admin/management-tokens/${tokenId}`, { method: 'DELETE' });
+
 export const listSecrets = (query: SecretQuery = {}) =>
   requestJson<PageResponse<Secret>>(buildApiPath('/api/admin/secrets', query));
 export const createSecret = (input: SecretCreateInput) =>
@@ -209,7 +193,7 @@ export const revealSecret = (id: string) =>
 
 export const listAgents = (query: PageQuery & { status?: Agent['status'] } = {}) =>
   requestJson<PageResponse<Agent>>(buildApiPath('/api/admin/agents', query));
-export const getAgent = (id: string) => requestJson<AgentDetail>(`/api/admin/agents/${id}`);
+export const getAgent = (id: string) => requestJson<Agent>(`/api/admin/agents/${id}`);
 export const listAgentTokens = (agentId: string, query: PageQuery = {}) =>
   requestJson<PageResponse<AgentToken>>(buildApiPath(`/api/admin/agents/${agentId}/tokens`, query));
 export const createAgent = (input: { name: string; description?: string }) =>
@@ -260,3 +244,4 @@ export const getAuditStats = (query: AuditStatsQuery = {}) =>
   requestJson<{ total: number; granted: number; denied: number; value_reads: number }>(
     buildApiPath('/api/admin/audit-stats', query)
   );
+export const listAuditActions = () => requestJson<{ items: string[] }>('/api/admin/audit-actions');

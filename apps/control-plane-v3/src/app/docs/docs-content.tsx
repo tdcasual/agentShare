@@ -10,6 +10,7 @@ export function DocsContent() {
   const { t } = useI18n();
   const [origin, setOrigin] = useState('https://vaultgate.example.com');
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
 
   useEffect(() => setOrigin(window.location.origin), []);
 
@@ -51,24 +52,38 @@ export function DocsContent() {
           <DocStep number="03" title={t('docs.callApiTitle')} description={t('docs.step3')} />
         </ol>
         <div className="relative overflow-hidden rounded-lg border bg-foreground text-background">
-          <div className="border-background/20 text-background/70 flex items-center justify-between border-b px-4 py-2 text-xs">
+          <div className="flex items-center justify-between border-b border-background/20 px-4 py-2 text-xs text-background/70">
             <span>shell</span>
             <button
               type="button"
               onClick={async () => {
-                await navigator.clipboard.writeText(command);
-                setCopied(true);
+                try {
+                  await navigator.clipboard.writeText(command);
+                  setCopied(true);
+                  setCopyError(false);
+                } catch {
+                  setCopyError(true);
+                }
               }}
-              className="hover:text-background/80 inline-flex min-h-11 items-center gap-2 px-2 text-background"
+              className="inline-flex min-h-11 items-center gap-2 px-2 text-background hover:text-background/80"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? t('common.copied') : t('common.copy')}
             </button>
           </div>
-          <pre className="overflow-x-auto p-4 text-sm leading-6">
+          <pre
+            tabIndex={0}
+            aria-label={t('docs.commandLabel')}
+            className="overflow-x-auto p-4 text-sm leading-6 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          >
             <code>{command}</code>
           </pre>
         </div>
+        {copyError && (
+          <p role="alert" className="text-sm text-destructive">
+            {t('docs.copyFailed')}
+          </p>
+        )}
       </section>
 
       <section className="space-y-4 border-t pt-7">
@@ -81,7 +96,7 @@ export function DocsContent() {
             href="/api/docs"
             target="_blank"
             rel="noreferrer"
-            className="hover:bg-accent/50 group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3"
+            className="group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3 hover:bg-accent/50"
           >
             <div>
               <p className="font-medium">{t('docs.swagger')}</p>
@@ -93,7 +108,7 @@ export function DocsContent() {
             href="/api/openapi.json"
             target="_blank"
             rel="noreferrer"
-            className="hover:bg-accent/50 group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3"
+            className="group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3 hover:bg-accent/50"
           >
             <div>
               <p className="font-medium">{t('docs.openapi')}</p>
@@ -133,7 +148,7 @@ function DocStep({
       {href ? (
         <Link
           href={href}
-          className="hover:bg-accent/50 grid min-h-20 grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 px-2 py-4 sm:px-3"
+          className="grid min-h-20 grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 px-2 py-4 hover:bg-accent/50 sm:px-3"
         >
           {content}
         </Link>

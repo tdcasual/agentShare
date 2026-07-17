@@ -33,6 +33,8 @@ class Settings(BaseSettings):
 
     # Encryption - AES-256-GCM key (32 bytes base64-encoded = 44 chars)
     encryption_key: str = DEFAULT_ENCRYPTION_KEY
+    encryption_active_key_id: str = "current"
+    encryption_keyring: dict[str, str] = Field(default_factory=dict)
 
     # Session - for web UI authentication cookies
     session_cookie_name: str = "vaultgate_session"
@@ -55,6 +57,8 @@ class Settings(BaseSettings):
     last_used_write_interval_seconds: int = Field(default=300, ge=0)
     credential_retention_days: int = Field(default=30, ge=0)
     audit_retention_days: int = Field(default=365, ge=1)
+    idempotency_retention_days: int = Field(default=7, ge=1, le=90)
+    max_request_body_bytes: int = Field(default=2_097_152, ge=65_536, le=16_777_216)
 
     @field_validator("trusted_proxy_cidrs")
     @classmethod

@@ -155,76 +155,9 @@ body {
   background: oklch(var(--muted-foreground));
 }
 
-/* Animations - purposeful, not playful */
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-slide-down {
-  animation: slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out forwards;
-}
-
 /* Safe area support for notched devices */
 .safe-area-inset-top {
   padding-top: env(safe-area-inset-top);
-}
-
-.safe-area-inset-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.safe-area-pb {
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Mobile viewport height fix */
@@ -235,13 +168,6 @@ body {
 
   .min-h-screen {
     min-height: 100dvh;
-  }
-}
-
-/* Smooth scrolling for mobile */
-@supports (-webkit-overflow-scrolling: touch) {
-  .scroll-smooth {
-    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -269,13 +195,6 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  .animate-slide-up,
-  .animate-slide-down,
-  .animate-scale-in,
-  .animate-fade-in {
-    animation: none !important;
   }
 }
 

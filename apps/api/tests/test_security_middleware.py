@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from app.config import Settings
 from app.factory import (
     add_csrf_middleware,
+    add_request_size_middleware,
     add_security_headers_middleware,
 )
 
@@ -54,6 +55,13 @@ def _client_with_csrf(settings: Settings | None = None) -> TestClient:
     return TestClient(app)
 
 
+def _client_with_request_limit(max_bytes: int) -> TestClient:
+    settings = Settings(max_request_body_bytes=max_bytes)
+    app = _make_test_app(settings)
+    add_request_size_middleware(app, settings)
+    return TestClient(app)
+
+
 # Use the default cookie name from Settings for test cookies
 _TEST_COOKIE_KEY = "vaultgate_session"
 
@@ -91,6 +99,22 @@ class TestSecurityHeaders:
         ]
         for header in mandatory:
             assert header in resp.headers, f"Missing header: {header}"
+
+
+class TestRequestSizeLimit:
+    def test_rejects_declared_oversized_body(self):
+        client = _client_with_request_limit(65_536)
+        response = client.post(
+            "/api/admin/session/login",
+            content=b"x",
+            headers={"content-length": "65537"},
+        )
+        assert response.status_code == 413
+
+    def test_allows_body_within_limit(self):
+        client = _client_with_request_limit(65_536)
+        response = client.post("/api/admin/session/login", content=b"x" * 1024)
+        assert response.status_code == 200
 
 
 # ===========================================================================

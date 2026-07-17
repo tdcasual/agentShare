@@ -219,6 +219,18 @@ def test_dev_runtime_bootstrap_script_is_present() -> None:
     assert script_path.exists()
 
 
+def test_dev_runtime_bootstrap_uses_the_development_lock() -> None:
+    script = (ROOT / "scripts/ops/bootstrap-dev-runtime.sh").read_text()
+    assert "requirements-dev.lock" in script
+    assert "install --no-deps -e" in script
+    assert 'bin/pip" check' in script
+
+
+def test_development_lock_includes_runtime_lock() -> None:
+    lockfile = (ROOT / "apps/api/requirements-dev.lock").read_text()
+    assert "-r requirements.lock" in lockfile
+
+
 def test_repo_verification_script_is_present() -> None:
     script_path = ROOT / "scripts/ops/verify-control-plane.sh"
     assert script_path.exists()
@@ -230,6 +242,17 @@ def test_repo_verification_runs_browser_flows() -> None:
     assert "npm run test:e2e" in script
     assert script.index("npm run build") < script.index("npm run test:e2e")
     assert 'ENCRYPTION_KEY="verification-only-not-a-production-key" docker compose config' in script
+    assert "RUN_SYNTHETIC_FLOW" in script
+
+
+def test_synthetic_flow_uses_a_fresh_compose_stack() -> None:
+    script = (ROOT / "scripts/ops/run-synthetic-flow.sh").read_text()
+    spec = (ROOT / "apps/control-plane-v3/test/integration/vaultgate.synthetic.spec.ts").read_text()
+    assert "docker compose" in script
+    assert "down -v" in script
+    assert "npm run test:integration" in script
+    assert "/api/vault/secrets" in spec
+    assert "/api/admin/audit-logs" in spec
 
 
 def test_operations_docs_reference_request_ids_for_incident_tracing() -> None:

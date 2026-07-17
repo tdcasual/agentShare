@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_schemas import SecretListResponse, SecretResponse, SecretValueResponse, VaultIdentityResponse
 from app.db import get_async_db
 from app.modules.audit.service import write_vault_audit
 from app.modules.secrets.service import serialize_secret
@@ -21,7 +22,7 @@ async def get_agent_principal(
     return await resolve_agent_principal(request, db)
 
 
-@router.get("/me")
+@router.get("/me", response_model=VaultIdentityResponse)
 async def get_me(principal: AgentPrincipal = Depends(get_agent_principal)) -> dict:
     return {
         "agent_id": principal.agent.id,
@@ -31,8 +32,9 @@ async def get_me(principal: AgentPrincipal = Depends(get_agent_principal)) -> di
     }
 
 
-@router.get("/secrets")
+@router.get("/secrets", response_model=SecretListResponse)
 async def list_secrets(
+    request: Request,
     principal: AgentPrincipal = Depends(get_agent_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
@@ -42,10 +44,18 @@ async def list_secrets(
         .where(TokenSecretGrant.token_id == principal.token.id)
         .order_by(Secret.name, Secret.id)
     )
-    return {"items": [serialize_secret(secret) for secret in secrets]}
+    items = [serialize_secret(secret) for secret in secrets]
+    await write_vault_audit(
+        db,
+        request,
+        principal.token,
+        action="secret.list",
+        result="success",
+    )
+    return {"items": items}
 
 
-@router.get("/secrets/{secret_id}")
+@router.get("/secrets/{secret_id}", response_model=SecretResponse)
 async def get_secret(
     secret_id: str,
     request: Request,
@@ -75,7 +85,7 @@ async def get_secret(
     return serialize_secret(secret)
 
 
-@router.get("/secrets/{secret_id}/value")
+@router.get("/secrets/{secret_id}/value", response_model=SecretValueResponse)
 async def reveal_secret(
     secret_id: str,
     request: Request,

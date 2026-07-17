@@ -11,6 +11,8 @@
 ## Required configuration
 
 - `ENCRYPTION_KEY`: unique base64-encoded 32-byte AES key.
+- `ENCRYPTION_ACTIVE_KEY_ID`: key id used for new ciphertext (default `current`).
+- `ENCRYPTION_KEYRING`: optional JSON object of legacy key ids to base64 keys.
 - `SESSION_SECURE=true`: required for staging and production.
 - `CORS_ALLOWED_ORIGINS`: exact trusted browser origins.
 - `POSTGRES_PASSWORD`: strong unique database password.
@@ -42,7 +44,7 @@ Review the latest security workflow before promoting an image. A passing source 
 
 - Rotate Agent and management Tokens through the admin API or control plane; revoke the replaced credential after dependants have switched.
 - Rotate database credentials through the deployment secret store and restart the affected services.
-- Treat `ENCRYPTION_KEY` rotation as a keyring migration because existing ciphertext remains bound to its original key.
+- New ciphertext records the active key id. Keep old keys in `ENCRYPTION_KEYRING` until all data is re-encrypted, then remove them.
 
 ## Rotation and incidents
 

@@ -53,9 +53,8 @@ export async function createSecret(input: SecretCreateInput): Promise<Secret> {
 
 export async function updateSecret(id: string, input: SecretUpdateInput): Promise<Secret> {
   const secret = await apiUpdateSecret(id, input);
-  // Refresh the list and specific item
+  // All secret reads use paginated list keys.
   mutate((key) => typeof key === 'string' && key.startsWith(SECRET_CACHE_KEY));
-  mutate(`${SECRET_CACHE_KEY}/${id}`);
   return secret;
 }
 

@@ -49,4 +49,20 @@ describe('SecretEditorDialog', () => {
     });
     expect(onSaved).toHaveBeenCalledOnce();
   });
+
+  it('sends null when optional fields are cleared during an edit', async () => {
+    const user = userEvent.setup();
+    render(<SecretEditorDialog open secret={secret} onOpenChange={vi.fn()} onSaved={vi.fn()} />);
+
+    await user.clear(screen.getByLabelText('secrets.createForm.username'));
+    await user.clear(screen.getByLabelText('secrets.createForm.description'));
+    await user.click(screen.getByRole('button', { name: 'secrets.saveChanges' }));
+
+    await waitFor(() => {
+      expect(updateSecretMock).toHaveBeenCalledWith(
+        'secret-1',
+        expect.objectContaining({ username: null, description: null, url: null })
+      );
+    });
+  });
 });

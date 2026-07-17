@@ -9,6 +9,7 @@ from app.orm.agent import Agent, AgentStatus
 from app.orm.agent_token import AgentToken, AgentTokenStatus
 from app.orm.audit_log import AuditLog
 from app.orm.base import Base
+from app.orm.idempotency_record import IdempotencyRecord
 from app.orm.management_token import ManagementToken
 from app.orm.secret import Secret
 from app.orm.token_secret_grant import TokenSecretGrant
@@ -26,4 +27,5 @@ __all__ = [
     "AgentTokenStatus",
     "TokenSecretGrant",
     "AuditLog",
+    "IdempotencyRecord",
 ]

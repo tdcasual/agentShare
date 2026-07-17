@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Secret } from '@/lib/vaultgate-api';
 import { SecretRevealDialog } from './secret-reveal-dialog';
@@ -32,7 +33,22 @@ describe('SecretRevealDialog', () => {
     render(<SecretRevealDialog secret={secret} open onOpenChange={vi.fn()} />);
 
     expect(await screen.findByText('super-secret-value')).toBeInTheDocument();
+    expect(screen.getByLabelText('secrets.revealedValue')).toHaveAttribute('tabindex', '0');
     expect(revealSecretMock).toHaveBeenCalledWith('secret-1');
     expect(screen.getByText('secrets.revealDescription')).toBeInTheDocument();
+  });
+
+  it('keeps the plaintext visible when clipboard copy fails', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(navigator, 'clipboard', 'get').mockReturnValue({
+      writeText: vi.fn().mockRejectedValue(new Error('denied')),
+    } as Pick<Clipboard, 'writeText'> as Clipboard);
+    render(<SecretRevealDialog secret={secret} open onOpenChange={vi.fn()} />);
+
+    expect(await screen.findByText('super-secret-value')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'common.copy' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('secrets.copyFailed');
+    expect(screen.getByText('super-secret-value')).toBeInTheDocument();
   });
 });

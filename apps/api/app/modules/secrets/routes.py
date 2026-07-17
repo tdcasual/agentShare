@@ -4,14 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response,
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_schemas import ReencryptResponse, SecretPageResponse, SecretResponse, SecretValueResponse
 from app.db import get_async_db
-from app.modules.admin_auth.routes import get_admin_principal
-from app.modules.admin_auth.service import AdminPrincipal
+from app.idempotency import commit_idempotent_response, replay_idempotent_response
+from app.modules.admin_auth.service import AdminPrincipal, get_admin_principal
 from app.modules.audit.service import add_admin_audit
 from app.modules.secrets.schemas import SecretCreate, SecretUpdate
 from app.modules.secrets.service import serialize_secret
 from app.orm import Secret
 from app.orm.secret import SecretType
+from app.query_utils import contains_pattern
 from app.services.encryption import get_encryption_service
 
 router = APIRouter(prefix="/api/admin/secrets", tags=["Admin Secrets"])
@@ -25,7 +27,7 @@ async def _owned_secret(db: AsyncSession, user_id: str, secret_id: str) -> Secre
     return secret
 
 
-@router.get("")
+@router.get("", response_model=SecretPageResponse)
 async def list_secrets(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -38,13 +40,13 @@ async def list_secrets(
     if search is not None:
         normalized_search = search.strip()
         if normalized_search:
-            pattern = f"%{normalized_search}%"
+            pattern = contains_pattern(normalized_search)
             filters.append(
                 or_(
-                    Secret.name.ilike(pattern),
-                    Secret.url.ilike(pattern),
-                    Secret.username.ilike(pattern),
-                    Secret.description.ilike(pattern),
+                    Secret.name.ilike(pattern, escape="\\"),
+                    Secret.url.ilike(pattern, escape="\\"),
+                    Secret.username.ilike(pattern, escape="\\"),
+                    Secret.description.ilike(pattern, escape="\\"),
                 )
             )
     if secret_type is not None:
@@ -64,13 +66,18 @@ async def list_secrets(
     }
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=SecretResponse)
 async def create_secret(
     body: SecretCreate,
     request: Request,
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
+    idempotency, replay = await replay_idempotent_response(
+        db, request, principal.user.id, body.model_dump(mode="json")
+    )
+    if replay is not None:
+        return replay
     secret = Secret(
         user_id=principal.user.id,
         name=body.name,
@@ -93,12 +100,45 @@ async def create_secret(
         resource_id=secret.id,
         resource_label=secret.name,
     )
-    await db.commit()
+    await db.flush()
+    payload = serialize_secret(secret)
+    concurrent_replay = await commit_idempotent_response(
+        db, principal.user.id, idempotency, payload, status_code=201
+    )
+    if concurrent_replay is not None:
+        return concurrent_replay
     await db.refresh(secret)
-    return serialize_secret(secret)
+    return payload
 
 
-@router.get("/{secret_id}")
+@router.post("/reencrypt", response_model=ReencryptResponse)
+async def reencrypt_secrets(
+    request: Request,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict[str, int]:
+    encryption = get_encryption_service()
+    secrets = await db.scalars(select(Secret).where(Secret.user_id == principal.user.id))
+    updated = 0
+    for secret in secrets:
+        if encryption.needs_reencryption(secret.value_encrypted):
+            secret.value_encrypted = encryption.encrypt(encryption.decrypt(secret.value_encrypted))
+            updated += 1
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="secret.reencrypt",
+        resource_type="secret_collection",
+        resource_id=principal.user.id,
+        resource_label="Secrets",
+        metadata={"updated": updated},
+    )
+    await db.commit()
+    return {"updated": updated}
+
+
+@router.get("/{secret_id}", response_model=SecretResponse)
 async def get_secret(
     secret_id: str,
     principal: AdminPrincipal = Depends(get_admin_principal),
@@ -107,7 +147,7 @@ async def get_secret(
     return serialize_secret(await _owned_secret(db, principal.user.id, secret_id))
 
 
-@router.get("/{secret_id}/value")
+@router.get("/{secret_id}/value", response_model=SecretValueResponse)
 async def reveal_secret(
     secret_id: str,
     request: Request,
@@ -116,6 +156,7 @@ async def reveal_secret(
     db: AsyncSession = Depends(get_async_db),
 ) -> dict[str, str]:
     secret = await _owned_secret(db, principal.user.id, secret_id)
+    value = get_encryption_service().decrypt(secret.value_encrypted)
     add_admin_audit(
         db,
         request,
@@ -127,10 +168,10 @@ async def reveal_secret(
     )
     await db.commit()
     response.headers["Cache-Control"] = "no-store"
-    return {"value": get_encryption_service().decrypt(secret.value_encrypted)}
+    return {"value": value}
 
 
-@router.patch("/{secret_id}")
+@router.patch("/{secret_id}", response_model=SecretResponse)
 async def update_secret(
     secret_id: str,
     body: SecretUpdate,

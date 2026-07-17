@@ -12,7 +12,9 @@ if [ ! -d "${VENV_DIR}" ]; then
 fi
 
 "${VENV_DIR}/bin/python" -m pip install --upgrade pip
-"${VENV_DIR}/bin/pip" install -e "${ROOT_DIR}/apps/api[dev]"
+"${VENV_DIR}/bin/pip" install -r "${ROOT_DIR}/apps/api/requirements-dev.lock"
+"${VENV_DIR}/bin/pip" install --no-deps -e "${ROOT_DIR}/apps/api"
+"${VENV_DIR}/bin/pip" check
 
 (
   cd "${ROOT_DIR}/apps/control-plane-v3"

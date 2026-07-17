@@ -6,7 +6,11 @@ import { describe, expect, it } from 'vitest';
 const agentsDir = path.dirname(fileURLToPath(import.meta.url));
 
 async function readAgentDetailSource() {
-  return readFile(path.join(agentsDir, '[agentId]/page.tsx'), 'utf8');
+  const [page, workspace] = await Promise.all([
+    readFile(path.join(agentsDir, '[agentId]/page.tsx'), 'utf8'),
+    readFile(path.join(agentsDir, '../../features/agents/agent-token-workspace.tsx'), 'utf8'),
+  ]);
+  return `${page}\n${workspace}`;
 }
 
 describe('Agent detail destructive action confirmation', () => {

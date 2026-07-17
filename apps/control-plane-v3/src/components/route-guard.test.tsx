@@ -30,7 +30,7 @@ describe('RouteGuard', () => {
     pathnameMock.mockReturnValue('/login');
   });
 
-  it('redirects authenticated lower-role users from login to their role-safe landing page', async () => {
+  it('redirects authenticated admins from login to the application', async () => {
     resolveAppEntryStateMock.mockResolvedValue({
       kind: 'authenticated',
       session: {
@@ -51,11 +51,22 @@ describe('RouteGuard', () => {
     });
   });
 
+  it('redirects login to setup before VaultGate is initialized', async () => {
+    resolveAppEntryStateMock.mockResolvedValue({ kind: 'setup_required' });
+
+    render(
+      <RouteGuard>
+        <div>login</div>
+      </RouteGuard>
+    );
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith('/setup');
+    });
+  });
+
   it('allows anonymous users to stay on public docs routes', async () => {
     pathnameMock.mockReturnValue('/docs');
-    resolveAppEntryStateMock.mockResolvedValue({
-      kind: 'anonymous',
-    });
 
     render(
       <RouteGuard>
@@ -63,30 +74,24 @@ describe('RouteGuard', () => {
       </RouteGuard>
     );
 
-    await waitFor(() => {
-      expect(resolveAppEntryStateMock).toHaveBeenCalled();
-    });
-
+    expect(await screen.findByText('public docs')).toBeInTheDocument();
+    expect(resolveAppEntryStateMock).not.toHaveBeenCalled();
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
-  it('allows public docs routes even before bootstrap is completed', async () => {
-    pathnameMock.mockReturnValue('/docs');
-    resolveAppEntryStateMock.mockResolvedValue({
-      kind: 'setup_required',
-    });
+  it('renders public docs without resolving backend state', async () => {
+    pathnameMock.mockReturnValue('/docs/runtime');
+    resolveAppEntryStateMock.mockRejectedValue(new Error('API unavailable'));
 
     render(
       <RouteGuard>
-        <div>public docs before bootstrap</div>
+        <div>public docs while offline</div>
       </RouteGuard>
     );
 
-    await waitFor(() => {
-      expect(resolveAppEntryStateMock).toHaveBeenCalled();
-    });
-
-    expect(replaceMock).not.toHaveBeenCalled();
+    expect(await screen.findByText('public docs while offline')).toBeInTheDocument();
+    expect(resolveAppEntryStateMock).not.toHaveBeenCalled();
+    expect(screen.queryByText('common.serviceUnavailable')).not.toBeInTheDocument();
   });
 
   it('renders persistent navigation on authenticated application pages', async () => {

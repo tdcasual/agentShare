@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeferredValue, useState } from 'react';
+import { useState } from 'react';
 import { Edit3, Eye, Globe2, KeyRound, Plus, Search, Shield, Trash2, X } from 'lucide-react';
 import { deleteSecret, useSecrets } from '@/domains/secret';
 import type { Secret, SecretType } from '@/lib/vaultgate-api';
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 const PAGE_SIZE = 25;
 
@@ -29,7 +30,7 @@ export default function SecretsPage() {
   const { t } = useI18n();
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState('');
-  const deferredSearch = useDeferredValue(search.trim());
+  const deferredSearch = useDebouncedValue(search.trim());
   const [typeFilter, setTypeFilter] = useState<'all' | SecretType>('all');
   const { secrets, total, isLoading, error, refresh } = useSecrets({
     limit: PAGE_SIZE,
@@ -99,6 +100,7 @@ export default function SecretsPage() {
           />
           <Input
             value={search}
+            maxLength={255}
             onChange={(event) => {
               setSearch(event.target.value);
               setOffset(0);
@@ -148,7 +150,7 @@ export default function SecretsPage() {
       {deleteError && (
         <div
           role="alert"
-          className="border-destructive/30 bg-destructive/5 flex items-start justify-between gap-4 border-y px-4 py-3 text-sm text-destructive"
+          className="flex items-start justify-between gap-4 border-y border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
         >
           <span>{deleteError}</span>
           <button

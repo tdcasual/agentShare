@@ -10,9 +10,10 @@ vi.mock('swr', () => ({
 vi.mock('@/lib/vaultgate-api', () => ({
   listAuditLogs: vi.fn(),
   getAuditStats: vi.fn(),
+  listAuditActions: vi.fn(),
 }));
 
-import { useAuditLogs, useAuditStats } from './audit';
+import { useAuditActions, useAuditLogs, useAuditStats } from './audit';
 
 describe('audit domain', () => {
   describe('exports', () => {
@@ -22,6 +23,10 @@ describe('audit domain', () => {
 
     it('exports useAuditStats hook', () => {
       expect(typeof useAuditStats).toBe('function');
+    });
+
+    it('exports useAuditActions hook', () => {
+      expect(typeof useAuditActions).toBe('function');
     });
   });
 });

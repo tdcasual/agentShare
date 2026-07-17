@@ -216,7 +216,7 @@ function WorkflowStep({
   return (
     <Link
       href={href}
-      className="hover:bg-accent/50 group grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-2 py-4 sm:px-3"
+      className="group grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-2 py-4 hover:bg-accent/50 sm:px-3"
     >
       {complete ? (
         <CheckCircle2 className="h-5 w-5 text-status-success" />

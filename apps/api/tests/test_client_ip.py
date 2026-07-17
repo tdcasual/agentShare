@@ -13,9 +13,9 @@ def _request(
     headers = []
     if forwarded_for is not None:
         headers.append((b"x-forwarded-for", forwarded_for.encode()))
-    app = SimpleNamespace(state=SimpleNamespace(
-        settings=SimpleNamespace(trusted_proxy_cidrs=trusted_proxy_cidrs)
-    ))
+    app = SimpleNamespace(
+        state=SimpleNamespace(settings=SimpleNamespace(trusted_proxy_cidrs=trusted_proxy_cidrs))
+    )
     return Request(
         {
             "type": "http",
@@ -46,5 +46,17 @@ def test_trusted_proxy_cidr_uses_valid_leftmost_forwarded_ip() -> None:
 
 def test_trusted_proxy_rejects_invalid_forwarded_ip() -> None:
     request = _request("172.30.0.2", "spoofed", "172.30.0.0/24")
+
+    assert get_client_ip(request) == "172.30.0.2"
+
+
+def test_invalid_direct_peer_is_returned_without_proxy_parsing() -> None:
+    request = _request("local-socket", "198.51.100.25", "0.0.0.0/0")
+
+    assert get_client_ip(request) == "local-socket"
+
+
+def test_trusted_proxy_without_forwarded_header_uses_direct_peer() -> None:
+    request = _request("172.30.0.2", None, "172.30.0.0/24")
 
     assert get_client_ip(request) == "172.30.0.2"

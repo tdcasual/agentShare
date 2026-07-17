@@ -6,15 +6,24 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_schemas import AuditActionsResponse, AuditLogPageResponse, AuditStatsResponse
 from app.db import get_async_db
-from app.modules.admin_auth.routes import get_admin_principal
-from app.modules.admin_auth.service import AdminPrincipal
+from app.modules.admin_auth.service import AdminPrincipal, get_admin_principal
+from app.modules.audit.service import AUDIT_ACTIONS
 from app.orm import AuditLog
+from app.query_utils import contains_pattern
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Audit"])
 
 
-@router.get("/audit-logs")
+@router.get("/audit-actions", response_model=AuditActionsResponse)
+async def list_audit_actions(
+    _principal: AdminPrincipal = Depends(get_admin_principal),
+) -> dict[str, list[str]]:
+    return {"items": list(AUDIT_ACTIONS)}
+
+
+@router.get("/audit-logs", response_model=AuditLogPageResponse)
 async def list_audit_logs(
     result: str | None = Query(default=None),
     action: str | None = Query(default=None),
@@ -43,7 +52,7 @@ async def list_audit_logs(
     if actor_search is not None:
         normalized_actor_search = actor_search.strip()
         if normalized_actor_search:
-            filters.append(AuditLog.actor_label.ilike(f"%{normalized_actor_search}%"))
+            filters.append(AuditLog.actor_label.ilike(contains_pattern(normalized_actor_search), escape="\\"))
     if resource_type is not None:
         filters.append(AuditLog.resource_type == resource_type)
     if resource_id is not None:
@@ -51,7 +60,7 @@ async def list_audit_logs(
     if resource_search is not None:
         normalized_resource_search = resource_search.strip()
         if normalized_resource_search:
-            filters.append(AuditLog.resource_label.ilike(f"%{normalized_resource_search}%"))
+            filters.append(AuditLog.resource_label.ilike(contains_pattern(normalized_resource_search), escape="\\"))
     if created_from is not None:
         filters.append(AuditLog.created_at >= created_from)
     if created_to is not None:
@@ -84,7 +93,7 @@ async def list_audit_logs(
     }
 
 
-@router.get("/audit-stats")
+@router.get("/audit-stats", response_model=AuditStatsResponse)
 async def audit_stats(
     _principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),

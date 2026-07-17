@@ -1,19 +1,10 @@
 'use client';
 
-import { useDeferredValue, useMemo, useState } from 'react';
-import {
-  CheckCircle2,
-  ChevronDown,
-  Clock3,
-  Filter,
-  Search,
-  ShieldAlert,
-  XCircle,
-} from 'lucide-react';
-import { useAuditLogs, useAuditStats } from '@/domains/audit';
-import type { AuditLog, AuditQuery } from '@/lib/vaultgate-api';
+import { useMemo, useState } from 'react';
+import { Filter, Search, ShieldAlert } from 'lucide-react';
+import { useAuditActions, useAuditLogs, useAuditStats } from '@/domains/audit';
+import type { AuditQuery } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
@@ -26,35 +17,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  AuditEventCard,
+  AuditMetric,
+  AuditSkeleton,
+  AuditTableRow,
+  auditActionLabel,
+} from '@/features/audit/audit-events';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 const PAGE_SIZE = 50;
-const ACTIONS = [
-  'secret.value.read',
-  'secret.metadata.read',
-  'secret.create',
-  'secret.update',
-  'secret.delete',
-  'agent.create',
-  'agent.update',
-  'agent.enable',
-  'agent.disable',
-  'token.issue',
-  'token.rotate',
-  'token.revoke',
-  'token.grants.replace',
-  'admin.login',
-  'admin.logout',
-] as const;
-
 export default function AuditPage() {
   const { t, locale } = useI18n();
   const [offset, setOffset] = useState(0);
@@ -64,8 +37,8 @@ export default function AuditPage() {
   const [resourceSearch, setResourceSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const deferredActor = useDeferredValue(actorSearch.trim());
-  const deferredResource = useDeferredValue(resourceSearch.trim());
+  const deferredActor = useDebouncedValue(actorSearch.trim());
+  const deferredResource = useDebouncedValue(resourceSearch.trim());
 
   const query = useMemo<AuditQuery>(
     () => ({
@@ -82,7 +55,8 @@ export default function AuditPage() {
   );
 
   const { logs, total, isLoading, error, refresh } = useAuditLogs(query);
-  const { stats, isLoading: statsLoading } = useAuditStats();
+  const { stats, isLoading: statsLoading, error: statsError } = useAuditStats();
+  const { actions, isLoading: actionsLoading, error: actionsError } = useAuditActions();
   const filtered =
     result !== 'all' || action !== 'all' || actorSearch || resourceSearch || dateFrom || dateTo;
   const number = new Intl.NumberFormat(locale);
@@ -109,33 +83,46 @@ export default function AuditPage() {
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('audit.description')}</p>
       </header>
 
-      <section aria-label={t('audit.summary')} className="grid grid-cols-2 border-y sm:grid-cols-4">
-        <AuditMetric
-          label={t('audit.totalEvents')}
-          value={stats?.total}
-          loading={statsLoading}
-          formatter={number}
-        />
-        <AuditMetric
-          label={t('audit.grantedAccess')}
-          value={stats?.granted}
-          loading={statsLoading}
-          formatter={number}
-          tone="success"
-        />
-        <AuditMetric
-          label={t('audit.deniedAccess')}
-          value={stats?.denied}
-          loading={statsLoading}
-          formatter={number}
-          tone="danger"
-        />
-        <AuditMetric
-          label={t('audit.valueReads')}
-          value={stats?.value_reads}
-          loading={statsLoading}
-          formatter={number}
-        />
+      <section aria-labelledby="audit-summary-heading" className="space-y-3">
+        <div>
+          <h2 id="audit-summary-heading" className="text-sm font-semibold">
+            {t('audit.summary')}
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">{t('audit.globalSummaryHint')}</p>
+        </div>
+        {statsError && (
+          <p role="alert" className="text-sm text-destructive">
+            {t('audit.statsLoadFailed')}
+          </p>
+        )}
+        <div className="grid grid-cols-2 border-y sm:grid-cols-4">
+          <AuditMetric
+            label={t('audit.totalEvents')}
+            value={stats?.total}
+            loading={statsLoading}
+            formatter={number}
+          />
+          <AuditMetric
+            label={t('audit.grantedAccess')}
+            value={stats?.granted}
+            loading={statsLoading}
+            formatter={number}
+            tone="success"
+          />
+          <AuditMetric
+            label={t('audit.deniedAccess')}
+            value={stats?.denied}
+            loading={statsLoading}
+            formatter={number}
+            tone="danger"
+          />
+          <AuditMetric
+            label={t('audit.valueReads')}
+            value={stats?.value_reads}
+            loading={statsLoading}
+            formatter={number}
+          />
+        </div>
       </section>
 
       <section aria-labelledby="audit-filter-heading" className="space-y-4 border-b pb-6">
@@ -192,6 +179,7 @@ export default function AuditPage() {
               />
               <Input
                 id="audit-actor"
+                maxLength={255}
                 value={actorSearch}
                 onChange={(event) => {
                   setActorSearch(event.target.value);
@@ -211,6 +199,7 @@ export default function AuditPage() {
               />
               <Input
                 id="audit-resource"
+                maxLength={255}
                 value={resourceSearch}
                 onChange={(event) => {
                   setResourceSearch(event.target.value);
@@ -225,6 +214,7 @@ export default function AuditPage() {
             <Label htmlFor="audit-action">{t('audit.action')}</Label>
             <Select
               value={action}
+              disabled={actionsLoading || Boolean(actionsError)}
               onValueChange={(value) => {
                 setAction(value);
                 setOffset(0);
@@ -235,13 +225,21 @@ export default function AuditPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('audit.allActions')}</SelectItem>
-                {ACTIONS.map((value) => (
+                {actions.map((value) => (
                   <SelectItem key={value} value={value}>
-                    {actionLabel(value, t)}
+                    {auditActionLabel(value, t)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {actionsLoading && (
+              <p className="text-xs text-muted-foreground">{t('common.loading')}</p>
+            )}
+            {actionsError && (
+              <p role="alert" className="text-xs text-destructive">
+                {t('audit.actionsLoadFailed')}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -320,6 +318,7 @@ export default function AuditPage() {
                     <TableHead>{t('audit.resource')}</TableHead>
                     <TableHead>{t('audit.action')}</TableHead>
                     <TableHead>{t('audit.status')}</TableHead>
+                    <TableHead>{t('audit.technicalDetails')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -344,148 +343,5 @@ export default function AuditPage() {
         onOffsetChange={setOffset}
       />
     </main>
-  );
-}
-
-function AuditMetric({
-  label,
-  value,
-  loading,
-  formatter,
-  tone,
-}: {
-  label: string;
-  value?: number;
-  loading: boolean;
-  formatter: Intl.NumberFormat;
-  tone?: 'success' | 'danger';
-}) {
-  const color =
-    tone === 'success'
-      ? 'text-status-success'
-      : tone === 'danger'
-        ? 'text-status-danger'
-        : 'text-foreground';
-  return (
-    <div className="border-r p-4 last:border-r-0 sm:p-5">
-      <p className={`text-2xl font-semibold tabular-nums ${color}`}>
-        {loading ? '—' : formatter.format(value ?? 0)}
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-function AuditTableRow({ log }: { log: AuditLog }) {
-  const { t, locale } = useI18n();
-  return (
-    <TableRow>
-      <TableCell className="whitespace-nowrap tabular-nums text-muted-foreground">
-        {formatDate(log.created_at, locale)}
-      </TableCell>
-      <TableCell className="max-w-[220px] truncate">
-        {log.actor_label || t('audit.system')}
-      </TableCell>
-      <TableCell className="max-w-[260px] truncate">
-        {log.resource_label || t('audit.noResource')}
-      </TableCell>
-      <TableCell>{actionLabel(log.action, t)}</TableCell>
-      <TableCell>
-        <ResultBadge result={log.result} />
-      </TableCell>
-    </TableRow>
-  );
-}
-
-function AuditEventCard({ log }: { log: AuditLog }) {
-  const { t, locale } = useI18n();
-  return (
-    <article className="py-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-medium text-foreground">{actionLabel(log.action, t)}</p>
-          <p className="mt-1 flex items-center gap-1.5 text-xs tabular-nums text-muted-foreground">
-            <Clock3 className="h-3.5 w-3.5" />
-            {formatDate(log.created_at, locale)}
-          </p>
-        </div>
-        <ResultBadge result={log.result} />
-      </div>
-      <dl className="mt-3 grid gap-2 text-sm">
-        <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-2">
-          <dt className="text-muted-foreground">{t('audit.actor')}</dt>
-          <dd className="break-words">{log.actor_label || t('audit.system')}</dd>
-        </div>
-        <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-2">
-          <dt className="text-muted-foreground">{t('audit.resource')}</dt>
-          <dd className="break-words">{log.resource_label || t('audit.noResource')}</dd>
-        </div>
-      </dl>
-      {(log.reason || log.request_id) && (
-        <details className="group mt-3 text-sm">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-muted-foreground">
-            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
-            {t('audit.technicalDetails')}
-          </summary>
-          <dl className="space-y-2 border-l pl-4 text-xs">
-            {log.reason && (
-              <div>
-                <dt className="text-muted-foreground">{t('audit.reason')}</dt>
-                <dd className="mt-1 break-all">{log.reason}</dd>
-              </div>
-            )}
-            {log.request_id && (
-              <div>
-                <dt className="text-muted-foreground">{t('audit.requestId')}</dt>
-                <dd className="mt-1 break-all">{log.request_id}</dd>
-              </div>
-            )}
-          </dl>
-        </details>
-      )}
-    </article>
-  );
-}
-
-function ResultBadge({ result }: { result: AuditLog['result'] }) {
-  const { t } = useI18n();
-  return result === 'success' ? (
-    <Badge className="gap-1 bg-status-success-subtle text-status-success-subtle-foreground hover:bg-status-success-subtle">
-      <CheckCircle2 className="h-3 w-3" />
-      {t('audit.granted')}
-    </Badge>
-  ) : (
-    <Badge variant="destructive" className="gap-1">
-      <XCircle className="h-3 w-3" />
-      {t('audit.denied')}
-    </Badge>
-  );
-}
-
-function actionLabel(action: string, t: (key: string) => string) {
-  const key = `audit.actions.${action.replaceAll('.', '_')}`;
-  const translated = t(key);
-  return translated === key ? action.replaceAll('.', ' › ') : translated;
-}
-
-function formatDate(value: string, locale: string) {
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'medium' }).format(
-    new Date(value)
-  );
-}
-
-function AuditSkeleton() {
-  return (
-    <div className="divide-y border-y">
-      {Array.from({ length: 8 }, (_, index) => (
-        <div key={index} className="grid gap-3 py-4 md:grid-cols-5">
-          <Skeleton className="h-5 w-36" />
-          <Skeleton className="h-5 w-28" />
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-5 w-20" />
-        </div>
-      ))}
-    </div>
   );
 }

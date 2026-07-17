@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from threading import RLock
 from time import monotonic
@@ -14,8 +15,11 @@ from typing import NamedTuple
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.client_ip import get_client_ip
+from app.orm import AuditLog
 
 logger = logging.getLogger("app.rate_limit")
 
@@ -131,3 +135,48 @@ def record_failed_attempt(
 def clear_attempts(request: Request, identifier: str | None = None) -> None:
     """Clear failed attempts for the client IP (e.g., after successful login)."""
     _store.clear(_rate_limit_key(request, identifier))
+
+
+async def check_persistent_login_rate_limit(
+    db: AsyncSession,
+    request: Request,
+    config: RateLimitConfig,
+    identifier: str,
+) -> JSONResponse | None:
+    normalized_identifier = identifier.strip().lower()
+    client_ip = get_client_ip(request)
+    cutoff = datetime.now(UTC) - timedelta(seconds=config.window_seconds)
+    last_success = await db.scalar(
+        select(func.max(AuditLog.created_at)).where(
+            AuditLog.action == "admin.login",
+            AuditLog.result == "success",
+            AuditLog.actor_label == normalized_identifier,
+            AuditLog.ip_address == client_ip,
+            AuditLog.created_at >= cutoff,
+        )
+    )
+    if last_success is not None:
+        cutoff = max(cutoff, last_success)
+    attempt_count = await db.scalar(
+        select(func.count(AuditLog.id)).where(
+            AuditLog.action == "admin.login.failed",
+            AuditLog.result == "denied",
+            AuditLog.actor_label == normalized_identifier,
+            AuditLog.ip_address == client_ip,
+            AuditLog.created_at >= cutoff,
+        )
+    )
+    if (attempt_count or 0) < config.max_attempts:
+        return None
+    logger.warning(
+        "Persistent login rate limit exceeded for IP %s: %d attempts in %d seconds",
+        client_ip,
+        attempt_count,
+        config.window_seconds,
+    )
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": f"Too many failed login attempts. Try again in {config.window_seconds} seconds.",
+        },
+    )

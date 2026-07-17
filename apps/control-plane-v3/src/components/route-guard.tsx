@@ -21,9 +21,14 @@ interface RouteGuardProps {
 }
 
 const PUBLIC_PATHS = new Set(['/login', '/setup', '/logout', '/docs']);
+const STATE_FREE_PATHS = new Set(['/logout', '/docs']);
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.has(pathname) || pathname.startsWith('/docs/');
+}
+
+function isStateFreePath(pathname: string): boolean {
+  return STATE_FREE_PATHS.has(pathname) || pathname.startsWith('/docs/');
 }
 
 /**
@@ -44,6 +49,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
   }, []);
 
   useEffect(() => {
+    if (isStateFreePath(pathname)) {
+      setEntryState(null);
+      return;
+    }
     let stale = false;
 
     async function load() {
@@ -107,6 +116,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   // 避免 hydration mismatch：SSR 和初始 hydrate 渲染 children
   if (!mounted) {
+    return <>{children}</>;
+  }
+
+  // Public documentation must remain available when the management API is offline.
+  if (isStateFreePath(pathname)) {
     return <>{children}</>;
   }
 

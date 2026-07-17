@@ -19,12 +19,12 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
     return (
       <div
         className={cn(
-          'flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
-          'border-primary/20 bg-card/80 border',
+          'flex h-[44px] min-h-[44px] w-[44px] min-w-[44px] items-center justify-center rounded-full',
+          'border border-primary/20 bg-card/80',
           className
         )}
       >
-        <div className="h-5 w-5 animate-pulse rounded-full bg-border" />
+        <div className="h-[20px] w-[20px] animate-pulse rounded-full bg-border" />
       </div>
     );
   }
@@ -36,8 +36,8 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
-        'relative flex h-10 min-h-[44px] w-10 min-w-[44px] items-center justify-center rounded-full',
-        'border-primary/20 bg-card/80 border',
+        'relative flex h-[44px] min-h-[44px] w-[44px] min-w-[44px] items-center justify-center rounded-full',
+        'border border-primary/20 bg-card/80',
         'hover:bg-primary/10',
         'transition-colors duration-300',
         className
@@ -52,7 +52,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         )}
         aria-hidden="true"
       >
-        <Moon className="h-5 w-5 text-primary" />
+        <Moon className="h-[20px] w-[20px] text-primary" />
       </span>
       <span
         className={cn(
@@ -61,7 +61,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         )}
         aria-hidden="true"
       >
-        <Sun className="h-5 w-5 text-primary" />
+        <Sun className="h-[20px] w-[20px] text-primary" />
       </span>
     </button>
   );

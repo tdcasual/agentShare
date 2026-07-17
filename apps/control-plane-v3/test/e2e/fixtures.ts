@@ -69,6 +69,24 @@ export async function mockSession(page: Page) {
       '/api/admin/tokens/token-1/grants': { secret_ids: ['secret-1'] },
       '/api/admin/audit-logs': { items: [vaultgateAuditLog], total: 1 },
       '/api/admin/audit-stats': { total: 1, granted: 1, denied: 0, value_reads: 1 },
+      '/api/admin/audit-actions': { items: ['secret.value.read', 'agent_token.issue'] },
+      '/api/admin/management-tokens': {
+        items: [
+          {
+            id: 'management-1',
+            name: 'Deploy Automation',
+            description: 'Production deployment API access',
+            key_prefix: 'vgm_deploy',
+            expires_at: '2027-01-01T00:00:00Z',
+            revoked_at: null,
+            last_used_at: null,
+            created_at: '2026-01-01T00:00:00Z',
+          },
+        ],
+        total: 1,
+        limit: 100,
+        offset: 0,
+      },
     };
     await fulfillJson(route, 200, responses[path] ?? { items: [] });
   });

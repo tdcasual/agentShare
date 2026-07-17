@@ -6,34 +6,29 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_schemas import GrantResponse, IssuedAgentTokenResponse
 from app.db import get_async_db
-from app.modules.admin_auth.routes import get_admin_principal
+from app.idempotency import commit_idempotent_response, replay_idempotent_response
 from app.modules.admin_auth.service import (
     AdminPrincipal,
     expires_from_ttl,
     generate_credential,
+    get_admin_principal,
     renew_expiration,
 )
-from app.modules.agents.routes import owned_agent
+from app.modules.agents.service import owned_agent
 from app.modules.audit.service import add_admin_audit
 from app.modules.tokens.schemas import AgentTokenCreate, GrantReplace
-from app.modules.tokens.service import serialize_token
+from app.modules.tokens.service import owned_token, serialize_token
 from app.orm import AgentStatus, AgentToken, AgentTokenStatus, Secret, TokenSecretGrant
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Tokens"])
 
-
-async def owned_token(db: AsyncSession, user_id: str, token_id: str) -> AgentToken:
-    result = await db.execute(
-        select(AgentToken).where(AgentToken.id == token_id, AgentToken.user_id == user_id)
-    )
-    token = result.scalar_one_or_none()
-    if token is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agent token not found")
-    return token
-
-
-@router.post("/agents/{agent_id}/tokens", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/agents/{agent_id}/tokens",
+    status_code=status.HTTP_201_CREATED,
+    response_model=IssuedAgentTokenResponse,
+)
 async def issue_token(
     agent_id: str,
     body: AgentTokenCreate,
@@ -42,6 +37,12 @@ async def issue_token(
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
+    idempotency, replay = await replay_idempotent_response(
+        db, request, principal.user.id, {"agent_id": agent_id, **body.model_dump(mode="json")}
+    )
+    if replay is not None:
+        response.headers["Cache-Control"] = "no-store"
+        return replay
     agent = await owned_agent(db, principal.user.id, agent_id)
     if agent.status != AgentStatus.ACTIVE:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Agent is disabled")
@@ -66,15 +67,20 @@ async def issue_token(
         resource_id=token.id,
         resource_label=f"{agent.name}/{token.name}",
     )
-    await db.commit()
-    await db.refresh(token)
     payload = serialize_token(token)
     payload["token"] = raw_value
+    concurrent_replay = await commit_idempotent_response(
+        db, principal.user.id, idempotency, payload, status_code=201
+    )
+    if concurrent_replay is not None:
+        response.headers["Cache-Control"] = "no-store"
+        return concurrent_replay
+    await db.refresh(token)
     response.headers["Cache-Control"] = "no-store"
     return payload
 
 
-@router.post("/tokens/{token_id}/rotate")
+@router.post("/tokens/{token_id}/rotate", response_model=IssuedAgentTokenResponse)
 async def rotate_token(
     token_id: str,
     request: Request,
@@ -125,7 +131,7 @@ async def revoke_token(
     await db.commit()
 
 
-@router.get("/tokens/{token_id}/grants")
+@router.get("/tokens/{token_id}/grants", response_model=GrantResponse)
 async def get_grants(
     token_id: str,
     principal: AdminPrincipal = Depends(get_admin_principal),
@@ -140,7 +146,7 @@ async def get_grants(
     return {"secret_ids": list(secret_ids)}
 
 
-@router.put("/tokens/{token_id}/grants")
+@router.put("/tokens/{token_id}/grants", response_model=GrantResponse)
 async def replace_grants(
     token_id: str,
     body: GrantReplace,

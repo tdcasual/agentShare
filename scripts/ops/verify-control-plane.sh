@@ -27,6 +27,7 @@ fi
 
 (
   cd "${ROOT_DIR}/apps/control-plane-v3"
+  npm run check:api-types
   npm run typecheck
   npm run lint
   npm test -- --run
@@ -34,6 +35,10 @@ fi
   npm run build
   npm run test:e2e
 )
+
+if [ "${RUN_SYNTHETIC_FLOW:-0}" = "1" ]; then
+  "${ROOT_DIR}/scripts/ops/run-synthetic-flow.sh"
+fi
 
 (
   cd "${ROOT_DIR}"
