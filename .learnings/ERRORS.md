@@ -36,6 +36,41 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260717-004] durability-drill-host-variable-collision
+
+**Logged**: 2026-07-17T05:40:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: operations
+
+### Summary
+The durability drill's local smoke variables overrode the Compose `PUBLIC_HOST`, causing Caddy to enable local HTTPS and curl to reject its development certificate.
+
+### Error
+
+```text
+curl: (60) SSL certificate OpenSSL verify result: unable to get local issuer certificate
+Smoke check failed for http://localhost
+```
+
+### Context
+- Core durability checks, WAL archival, database restart, and marker persistence had already passed.
+- The shell-level `PUBLIC_HOST=localhost` took precedence over the value in the drill env file.
+- The same variable was being used for both Compose interpolation and the host-side smoke request.
+
+### Suggested Fix
+Use dedicated smoke-only variables and pass them only to `smoke-test.sh`, without exporting them to Compose.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `scripts/ops/run-durability-drill.sh`, `docs/guides/data-durability.md`
+
+### Resolution
+- **Resolved**: 2026-07-17T05:43:00Z
+- **Notes**: Added `DRILL_SMOKE_PUBLIC_HOST` and `DRILL_SMOKE_BASE_URL`; the full drill and snapshot hook subsequently passed.
+
+---
+
 ## [ERR-20260717-003] compose-static-ip-collision
 
 **Logged**: 2026-07-17T04:02:00Z

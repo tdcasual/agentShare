@@ -1,0 +1,44 @@
+groups:
+  - name: vaultgate-durability
+    rules:
+      - alert: VaultGateReadinessDown
+        expr: probe_success{job="vaultgate-readyz"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: VaultGate readiness has failed for two minutes
+
+      - alert: VaultGatePostgresDown
+        expr: pg_up{job="vaultgate-postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: VaultGate PostgreSQL is unavailable
+
+      - alert: VaultGatePostgresDiskPressure
+        expr: |
+          100 * (1 - node_filesystem_avail_bytes{mountpoint=~".*/vaultgate.*"}
+          / node_filesystem_size_bytes{mountpoint=~".*/vaultgate.*"}) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: VaultGate storage is over 80 percent full
+
+      - alert: VaultGatePostgresReplicationLag
+        expr: pg_replication_lag_seconds{job="vaultgate-postgres"} > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: VaultGate PostgreSQL replication lag exceeds 30 seconds
+
+      - alert: VaultGateWalArchiveFailures
+        expr: increase(pg_stat_archiver_failed_count{job="vaultgate-postgres"}[15m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: VaultGate PostgreSQL WAL archiving is failing

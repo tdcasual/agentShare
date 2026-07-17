@@ -58,19 +58,10 @@ services:
 
   api:
     image: ${API_IMAGE:?API_IMAGE is required}
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       APP_ENV: production
       DATABASE_URL: ${DATABASE_URL:-}
       DATABASE_URL_FILE: ${DATABASE_URL_FILE:-}
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: ${POSTGRES_DB:-vaultgate}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
-      POSTGRES_PASSWORD_FILE: ${POSTGRES_PASSWORD_FILE:-}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       ENCRYPTION_KEY_FILE: ${ENCRYPTION_KEY_FILE:-}
       ENCRYPTION_ACTIVE_KEY_ID: ${ENCRYPTION_ACTIVE_KEY_ID:-current}
@@ -98,7 +89,6 @@ services:
       retries: 5
     networks:
       - edge
-      - data
     restart: unless-stopped
     stop_grace_period: 30s
     read_only: true
@@ -107,6 +97,7 @@ services:
     security_opt:
       - no-new-privileges:true
     deploy:
+      replicas: ${API_REPLICAS:-2}
       resources:
         limits:
           memory: 512M
@@ -115,65 +106,13 @@ services:
           memory: 128M
           cpus: "0.25"
 
-  postgres:
-    image: ${POSTGRES_IMAGE:?POSTGRES_IMAGE is required}
-    command:
-      - postgres
-      - -c
-      - fsync=on
-      - -c
-      - synchronous_commit=on
-      - -c
-      - full_page_writes=on
-      - -c
-      - wal_compression=on
-      - -c
-      - wal_level=replica
-      - -c
-      - archive_mode=on
-      - -c
-      - archive_timeout=${POSTGRES_ARCHIVE_TIMEOUT_SECONDS:-300}s
-      - -c
-      - archive_command=test ! -f /var/lib/postgresql/wal-archive/%f && cp %p /var/lib/postgresql/wal-archive/%f
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-vaultgate}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
-      POSTGRES_PASSWORD_FILE: ${POSTGRES_PASSWORD_FILE:-}
-      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:---data-checksums}
-    volumes:
-      - ${POSTGRES_DATA_LOCATION:-postgres-data}:/var/lib/postgresql/data
-      - ${POSTGRES_WAL_ARCHIVE_LOCATION:-postgres-wal-archive}:/var/lib/postgresql/wal-archive
-      - ${VAULTGATE_SECRETS_DIR:-./.vaultgate-secrets}:/run/secrets/vaultgate:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vaultgate}"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
-    networks:
-      - data
-    restart: unless-stopped
-    stop_grace_period: 2m
-    security_opt:
-      - no-new-privileges:true
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "1.0"
-
 networks:
   edge:
     ipam:
       config:
         - subnet: 172.30.0.0/24
-          # Keep Docker's dynamic allocations away from Caddy's trusted proxy IP.
           ip_range: 172.30.0.128/25
-  data:
 
 volumes:
   caddy-data:
   caddy-config:
-  postgres-data:
-  postgres-wal-archive:

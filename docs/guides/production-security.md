@@ -18,6 +18,9 @@
 - `POSTGRES_PASSWORD`: strong unique database password.
 
 Production startup fails when the default encryption key or insecure cookies are configured.
+Secrets can be supplied through the corresponding `_FILE` settings. Direct and file-backed values
+are mutually exclusive, and key recovery can be verified without exposing key material using
+`scripts/ops/verify-key-recovery.sh`.
 
 ## Application protections
 
@@ -45,6 +48,8 @@ Review the latest security workflow before promoting an image. A passing source 
 - Rotate Agent and management Tokens through the admin API or control plane; revoke the replaced credential after dependants have switched.
 - Rotate database credentials through the deployment secret store and restart the affected services.
 - New ciphertext records the active key id. Keep old keys in `ENCRYPTION_KEYRING` until all data is re-encrypted, then remove them.
+- Keep active and historical keys in a versioned secret store plus an offline, dual-control recovery copy.
+- Run the keyring recovery audit before removing any historical key.
 
 ## Rotation and incidents
 

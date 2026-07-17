@@ -47,8 +47,9 @@ def test_api_dockerfile_exposes_runtime_contract() -> None:
     assert "ENTRYPOINT" in dockerfile
     assert "EXPOSE 8000" in dockerfile
     assert "uvicorn" in dockerfile
-    assert "alembic" in entrypoint
-    assert "upgrade head" in entrypoint
+    assert "alembic" in entrypoint.lower()
+    assert "migrate_db" in entrypoint
+    assert "migration lock" in entrypoint.lower()
     assert '[ -n "${DATABASE_URL:-}" ]' not in entrypoint
     alembic_env = (ROOT / "apps/api/alembic/env.py").read_text()
     assert "Settings().database_url" in alembic_env
@@ -137,8 +138,8 @@ def test_deploy_workflow_syncs_and_restarts_remote_stack() -> None:
     assert "smoke-test.sh" in workflow
     assert "> .env.production" in workflow
     assert "if [ ! -f .env.production ]" not in workflow
-    assert "alembic" in entrypoint
-    assert "upgrade head" in entrypoint
+    assert "alembic" in entrypoint.lower()
+    assert "migrate_db" in entrypoint
 
 
 def test_prod_compose_uses_published_images() -> None:
@@ -152,7 +153,8 @@ def test_prod_compose_uses_published_images() -> None:
     assert "SESSION_SECURE: \"true\"" in compose
     assert "DATABASE_URL: ${DATABASE_URL:-}" in compose
     assert "POSTGRES_HOST: postgres" in compose
-    assert "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}" in compose
+    assert "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}" in compose
+    assert "POSTGRES_PASSWORD_FILE: ${POSTGRES_PASSWORD_FILE:-}" in compose
     assert "postgresql://${POSTGRES_USER" not in compose
 
 
@@ -280,7 +282,7 @@ def test_ci_and_deployment_docs_reference_migration_step() -> None:
     assert "alembic upgrade head" in deployment_guide
     assert "startup" in deployment_guide
     assert "alembic" in entrypoint
-    assert "upgrade head" in entrypoint
+    assert "migrate_db" in entrypoint
 
 
 def test_repo_quality_floor_is_documented_and_enforced() -> None:

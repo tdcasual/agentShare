@@ -58,7 +58,7 @@ def test_deploy_rolls_back_running_images_when_smoke_checks_fail() -> None:
     assert "Deployment failed and the previous stack was restored." in workflow
 
 
-def test_deploy_backs_up_postgres_before_startup_migrations() -> None:
+def test_deploy_keeps_logical_backup_optional_and_before_startup_migrations() -> None:
     workflow = (ROOT / ".github/workflows/deploy.yml").read_text()
 
     backup_call = workflow.index("./scripts/ops/backup-postgres.sh")
@@ -66,6 +66,8 @@ def test_deploy_backs_up_postgres_before_startup_migrations() -> None:
         "docker compose --env-file .env.production --env-file .resolved-release.env -f docker-compose.prod.yml up"
     )
     assert backup_call < restart_call
+    assert "ENABLE_LOGICAL_BACKUP" in workflow
+    assert "snapshot/PITR policy" in workflow
     assert "scripts/ops/backup-postgres.sh" in workflow
     assert "scripts/ops/restore-postgres.sh" in workflow
 

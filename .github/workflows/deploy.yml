@@ -60,7 +60,7 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}
           target: ${{ secrets.DEPLOY_PATH }}
           overwrite: true
-          source: "docker-compose.prod.yml,.release.env,ops/caddy/Caddyfile,ops/compose/prod.env.example,scripts/ops/smoke-test.sh,scripts/ops/backup-postgres.sh,scripts/ops/restore-postgres.sh"
+          source: "docker-compose.prod.yml,docker-compose.prod.external-db.yml,.release.env,ops/caddy/Caddyfile,ops/compose/prod.env.example,ops/compose/prod.external-db.env.example,ops/monitoring/vaultgate-alerts.yml,scripts/ops/smoke-test.sh,scripts/ops/backup-postgres.sh,scripts/ops/restore-postgres.sh,scripts/ops/check-postgres-durability.sh,scripts/ops/export-audit-log.sh,scripts/ops/snapshot-postgres-volume.sh,scripts/ops/verify-key-recovery.sh,scripts/ops/run-durability-drill.sh"
 
       - name: Pull and restart remote stack
         uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
@@ -80,7 +80,8 @@ jobs:
             set -euo pipefail
             mkdir -p "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
-            mkdir -p ops/caddy ops/compose scripts/ops
+            mkdir -p ops/caddy ops/compose ops/monitoring scripts/ops .vaultgate-secrets
+            chmod 700 .vaultgate-secrets
 
             if [ -z "$DEPLOY_ENV_FILE" ]; then
               echo "DEPLOY_ENV_FILE secret is required."
@@ -92,7 +93,7 @@ jobs:
             printf '%s\n' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml config >/dev/null
-            chmod +x scripts/ops/backup-postgres.sh scripts/ops/restore-postgres.sh scripts/ops/smoke-test.sh
+            chmod +x scripts/ops/*.sh
 
             ROLLBACK_AVAILABLE=false
             : > .rollback.env
@@ -106,11 +107,12 @@ jobs:
               ROLLBACK_AVAILABLE=true
             fi
 
-            if docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml ps --status running postgres | grep -q postgres; then
-              echo "Creating pre-migration PostgreSQL backup..."
+            logical_backup_enabled="$(sed -n 's/^ENABLE_LOGICAL_BACKUP=//p' .env.production | tail -n 1)"
+            if [ "$logical_backup_enabled" = "true" ] && docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml ps --status running postgres | grep -q postgres; then
+              echo "Creating optional pre-migration PostgreSQL logical backup..."
               ./scripts/ops/backup-postgres.sh
             else
-              echo "No running PostgreSQL service; treating this as a fresh deployment."
+              echo "Logical backup disabled or no running PostgreSQL service; relying on the configured snapshot/PITR policy."
             fi
             docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml pull
 
@@ -139,4 +141,6 @@ jobs:
               fi
               exit 1
             fi
+            ./scripts/ops/verify-key-recovery.sh
+            ./scripts/ops/check-postgres-durability.sh
             docker image prune -f

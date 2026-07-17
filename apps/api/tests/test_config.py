@@ -1,4 +1,6 @@
 """Tests for VaultGate configuration settings."""
+import json
+
 import pytest
 
 from app.config import DEFAULT_ENCRYPTION_KEY, Settings
@@ -114,3 +116,49 @@ def test_data_lifecycle_settings_reject_invalid_values():
         Settings(app_env="development", credential_retention_days=-1)
     with pytest.raises(ValueError):
         Settings(app_env="development", audit_retention_days=0)
+
+
+def test_settings_load_production_secrets_from_files(tmp_path, monkeypatch):
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    database_url_file = tmp_path / "database-url"
+    encryption_key_file = tmp_path / "encryption-key"
+    encryption_keyring_file = tmp_path / "encryption-keyring"
+    bootstrap_token_file = tmp_path / "bootstrap-token"
+    postgres_password_file = tmp_path / "postgres-password"
+    database_url_file.write_text("postgresql://vaultgate:file-password@db/vaultgate\n")
+    encryption_key_file.write_text(
+        "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=\n"
+    )
+    encryption_keyring_file.write_text(
+        json.dumps({"old": "b2xkLWtleS1tYXRlcmlhbC0zMi1ieXRlcy12YWx1ZSE="})
+    )
+    bootstrap_token_file.write_text("bootstrap-token-with-at-least-32-bytes\n")
+    postgres_password_file.write_text("file-backed-postgres-password\n")
+
+    settings = Settings(
+        app_env="production",
+        database_url_file=str(database_url_file),
+        postgres_password_file=str(postgres_password_file),
+        encryption_key_file=str(encryption_key_file),
+        encryption_keyring_file=str(encryption_keyring_file),
+        bootstrap_token_file=str(bootstrap_token_file),
+        session_secure=True,
+    )
+
+    assert settings.postgres_password == "file-backed-postgres-password"
+    assert settings.database_url == "postgresql://vaultgate:file-password@db/vaultgate"
+    assert settings.encryption_key.startswith("YWJj")
+    assert set(settings.encryption_keyring) == {"old"}
+    assert settings.bootstrap_token == "bootstrap-token-with-at-least-32-bytes"
+
+
+def test_settings_reject_ambiguous_direct_and_file_secret(tmp_path):
+    key_file = tmp_path / "encryption-key"
+    key_file.write_text("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=")
+
+    with pytest.raises(ValueError, match="either ENCRYPTION_KEY or ENCRYPTION_KEY_FILE"):
+        Settings(
+            app_env="development",
+            encryption_key="a" * 44,
+            encryption_key_file=str(key_file),
+        )

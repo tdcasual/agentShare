@@ -10,4 +10,5 @@ FROM postgres:16
 
 COPY --from=gosu-builder /out/gosu /usr/local/bin/gosu
 
-RUN gosu --version | grep -F "1.19 (go1.26.5"
+RUN gosu --version | grep -F "1.19 (go1.26.5" \
+    && install -d -o postgres -g postgres /var/lib/postgresql/wal-archive

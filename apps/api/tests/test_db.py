@@ -1,12 +1,14 @@
 import asyncio
 
+from alembic.config import Config
 from fastapi import Depends
 from fastapi.testclient import TestClient
 from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+import app.db as db_module
 from app.config import Settings
-from app.db import _build_alembic_config, get_async_db, migrate_db
+from app.db import POSTGRES_MIGRATION_LOCK_ID, _build_alembic_config, get_async_db, migrate_db
 from app.factory import create_app
 from app.runtime import _async_database_url, build_runtime
 
@@ -23,6 +25,82 @@ def test_alembic_config_preserves_percent_encoded_password() -> None:
     database_url = "postgresql://vault:p%40ss%25word@postgres:5432/vaultgate"
 
     assert _build_alembic_config(database_url).get_main_option("sqlalchemy.url") == database_url
+
+
+def test_postgres_migration_lock_id_fits_signed_bigint() -> None:
+    assert 0 < POSTGRES_MIGRATION_LOCK_ID < 2**63
+
+
+def test_postgres_migration_upgrade_waits_for_and_releases_advisory_lock(monkeypatch) -> None:
+    class FakeResult:
+        def __init__(self, value: bool) -> None:
+            self.value = value
+
+        def scalar_one(self) -> bool:
+            return self.value
+
+    class FakeConnection:
+        def __init__(self) -> None:
+            self.lock_attempts = iter((False, True))
+            self.commits = 0
+            self.unlocked = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            return None
+
+        def execute(self, statement, _parameters):
+            sql = str(statement)
+            if "pg_try_advisory_lock" in sql:
+                return FakeResult(next(self.lock_attempts))
+            if "pg_advisory_unlock" in sql:
+                self.unlocked = True
+                return FakeResult(True)
+            raise AssertionError(sql)
+
+        def commit(self) -> None:
+            self.commits += 1
+
+    class FakeEngine:
+        def __init__(self, connection: FakeConnection) -> None:
+            self.connection = connection
+            self.disposed = False
+
+        def connect(self) -> FakeConnection:
+            return self.connection
+
+        def dispose(self) -> None:
+            self.disposed = True
+
+    connection = FakeConnection()
+    engine = FakeEngine(connection)
+    upgrade_saw_connection = False
+
+    def fake_upgrade(config: Config, revision: str) -> None:
+        nonlocal upgrade_saw_connection
+        assert revision == "head"
+        upgrade_saw_connection = config.attributes["connection"] is connection
+
+    monotonic_values = iter((0.0, 0.0, 1.0))
+    monkeypatch.setattr(db_module, "create_engine", lambda *_args, **_kwargs: engine)
+    monkeypatch.setattr(db_module.command, "upgrade", fake_upgrade)
+    monkeypatch.setattr(db_module.time, "monotonic", lambda: next(monotonic_values))
+    monkeypatch.setattr(db_module.time, "sleep", lambda _seconds: None)
+    monkeypatch.setenv("MIGRATION_LOCK_TIMEOUT_SECONDS", "3")
+    config = Config()
+
+    db_module._upgrade_postgres_with_advisory_lock(
+        config,
+        "postgresql://vaultgate:password@db/vaultgate",
+    )
+
+    assert upgrade_saw_connection is True
+    assert connection.unlocked is True
+    assert connection.commits == 3
+    assert engine.disposed is True
+    assert "connection" not in config.attributes
 
 
 def test_migrate_db_uses_the_explicit_target_when_environment_differs(

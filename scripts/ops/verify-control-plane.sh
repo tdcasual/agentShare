@@ -18,6 +18,7 @@ fi
 (
   cd "${ROOT_DIR}"
   PYTHONPATH=apps/api .venv/bin/ruff check apps/api/app apps/api/tests
+  .venv/bin/python scripts/ops/check_migration_policy.py
 )
 
 (

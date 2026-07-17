@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import os
 import re
 
@@ -191,6 +192,21 @@ class EncryptionService:
 
     def needs_reencryption(self, encrypted_value: str) -> bool:
         return not encrypted_value.startswith(f"v2:{self._active_key_id}:")
+
+    @property
+    def active_key_id(self) -> str:
+        return self._active_key_id
+
+    @property
+    def key_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self._keys))
+
+    def key_fingerprints(self) -> dict[str, str]:
+        """Return non-secret key fingerprints for escrow and recovery verification."""
+        return {
+            key_id: hashlib.sha256(key).hexdigest()[:16]
+            for key_id, key in sorted(self._keys.items())
+        }
 
 
 # Global singleton instance

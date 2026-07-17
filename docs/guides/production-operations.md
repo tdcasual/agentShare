@@ -13,12 +13,16 @@ After each deployment:
 
 ## Backup
 
+The primary recovery path is storage snapshot plus WAL/PITR. See
+[`data-durability.md`](data-durability.md). Logical backups are optional and enabled with
+`ENABLE_LOGICAL_BACKUP=true`.
+
 ```bash
 ./scripts/ops/backup-postgres.sh
 ```
 
 - Backups are saved to `./backups/postgres/` with timestamps.
-- Run daily and before schema changes.
+- Run on demand or before high-risk schema changes when logical backups are enabled.
 - Store backups off-host for disaster recovery.
 
 ## Restore
@@ -43,3 +47,7 @@ After each deployment:
 - **Health**: `GET /healthz` — returns `{"status": "ok"}`
 - **Readiness**: `GET /readyz` — returns `{"status": "ok"}` when database and encryption are operational
 - **Request IDs**: All responses include `x-request-id` header for log correlation
+- **Database durability**: `scripts/ops/check-postgres-durability.sh`
+- **Key recovery**: `scripts/ops/verify-key-recovery.sh`
+- **Audit export**: `scripts/ops/export-audit-log.sh`
+- **Recovery drill**: `scripts/ops/run-durability-drill.sh`
