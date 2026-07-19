@@ -116,7 +116,8 @@ Run this check from systemd or cron and alert on any non-zero exit:
 ```
 
 It verifies durability settings, checksums, WAL archival, replica policy, disk usage, and inode
-usage. Prometheus alert templates are provided in `ops/monitoring/vaultgate-alerts.yml`.
+usage. Prometheus alert templates are provided in `ops/monitoring/vaultgate-alerts.yml`; exporter
+setup and scrape configuration are covered in [`monitoring.md`](monitoring.md).
 
 ## 6. Migrations
 

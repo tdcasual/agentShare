@@ -59,6 +59,11 @@ Run the frontend against a local API:
 VAULTGATE_API_URL=http://127.0.0.1:8000 npm run dev
 ```
 
+`npm run start` (`scripts/start-standalone.mjs`) runs the production build outside Docker: it
+copies `.next/static` and `public` into `.next/standalone` and execs its `server.js`. The
+Dockerfile performs the same copy at image build time and runs `node server.js` directly, so this
+script is for bare-metal or local production-mode runs only.
+
 ## Verification
 
 Frontend-only checks:

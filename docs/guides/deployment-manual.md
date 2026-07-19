@@ -64,6 +64,7 @@ Stop API writes, restore the PostgreSQL backup into a clean database, point `DAT
 | `AUDIT_RETENTION_DAYS` | no | Audit row retention in days (default 365) |
 | `IDEMPOTENCY_RETENTION_DAYS` | no | Completed mutation replay retention, 1-90 days |
 | `ENABLE_LOGICAL_BACKUP` | no | `true` runs a pre-migration `pg_dump` during deployment (default `false`) |
+| `RUN_DB_MIGRATIONS_ON_STARTUP` | no | `true` (default) runs Alembic migrations under the PostgreSQL advisory lock before uvicorn starts. Set to `false` only when an external migration pipeline owns schema changes; with multiple API replicas you must then guarantee migrations complete before any replica receives traffic |
 | `VAULTGATE_API_URL` | web container | Internal API origin used by the same-origin proxy |
 
 The browser has no configurable public API base. It always calls the web application's `/api` proxy.
