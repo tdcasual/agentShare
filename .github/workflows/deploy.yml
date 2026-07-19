@@ -89,6 +89,14 @@ jobs:
             fi
 
             printf '%s\n' "$DEPLOY_ENV_FILE" > .env.production
+            # Export the production environment for the ops scripts below:
+            # smoke-test.sh requires PUBLIC_HOST, and check-postgres-durability.sh
+            # honors POSTGRES_USER/POSTGRES_DB/REQUIRE_POSTGRES_REPLICA.
+            # Sourcing is safe for the strict KEY=value format used by
+            # ops/compose/prod.env.example (verified: no example value contains
+            # unquoted spaces); keep DEPLOY_ENV_FILE values free of unquoted
+            # spaces and shell expansions such as $ or backticks.
+            set -a; . ./.env.production; set +a
 
             printf '%s\n' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 

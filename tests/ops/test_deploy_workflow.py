@@ -30,9 +30,12 @@ def test_deploy_workflow_validates_remote_stack_and_runs_smoke_checks() -> None:
     assert f"{compose} pull" in workflow
     resolved_compose = "docker compose --env-file .env.production --env-file .resolved-release.env -f docker-compose.prod.yml"
     assert f"{resolved_compose} up -d --remove-orphans" in workflow
-    assert ". ./.env.production" not in workflow
-    assert ". ./.release.env" not in workflow
     assert "./scripts/ops/smoke-test.sh" in workflow
+    # The remote script sources .env.production (smoke-test.sh requires
+    # PUBLIC_HOST) but must never source the image-only .release.env.
+    assert "set -a; . ./.env.production; set +a" in workflow
+    assert workflow.index(". ./.env.production") < workflow.index("./scripts/ops/smoke-test.sh")
+    assert ". ./.release.env" not in workflow
     assert "CADDY_IMAGE=ghcr.io/" in workflow
     assert "POSTGRES_IMAGE=ghcr.io/" in workflow
     assert "VAULTGATE_ADMIN_EMAIL" not in workflow

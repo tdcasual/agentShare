@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def _contract_text() -> str:
     paths = [
         ROOT / "README.md",
+        ROOT / ".env.example",
         *sorted((ROOT / "docs" / "guides").glob("*.md")),
         ROOT / "docker-compose.yml",
         ROOT / "docker-compose.prod.yml",

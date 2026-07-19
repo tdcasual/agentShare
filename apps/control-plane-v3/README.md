@@ -42,7 +42,7 @@ Browser
 ## API Contract
 
 - Browser code should call canonical paths such as `/api/admin/session` or `/api/admin/secrets`.
-- The frontend proxy forwards `/api/*` paths to `VAULTGATE_API_URL`; upstream requests time out after `VAULTGATE_API_TIMEOUT_MS` (30 seconds by default).
+- The frontend proxy forwards `/api/*` paths to `VAULTGATE_API_URL`; upstream requests time out after `VAULTGATE_API_TIMEOUT_MS` milliseconds (code default 15000; the compose deployments set 30000, overridable through the environment variable).
 - Management routes require a valid `vaultgate_session` cookie or `vgm_` management token.
 
 ## Local Development

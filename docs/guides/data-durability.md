@@ -102,6 +102,11 @@ This mode does not start or wait for an unused local database and defaults to tw
 Require TLS certificate validation in `DATABASE_URL`. Database replicas improve availability but do
 not replace snapshots or PITR because accidental writes and corruption can replicate.
 
+This topology is deployed manually with the command above. The `deploy.yml` workflow only automates
+the standard four-service `docker-compose.prod.yml` stack: its rollback detection expects exactly
+four running services, so automatic pull/restart/smoke-check/rollback does not cover the
+external-database stack.
+
 ## 5. Monitoring and alerts
 
 Run this check from systemd or cron and alert on any non-zero exit:

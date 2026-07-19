@@ -36,7 +36,7 @@
 1. Run Ruff, mypy, Bandit, API tests, Alembic checks, and ops tests.
 2. Run frontend type/lint/format, unit/coverage, E2E, production build, and npm audit.
 3. Run Python lock-file audit, Trivy image scans, Compose validation, and `git diff --check`.
-4. Record exact results and any external limitations in `PROJECT-AUDIT.md`.
+4. Record exact results and any external limitations in `docs/audits/2026-07-14-release-audit.md`.
 
 ### Task 5: Commit and merge
 

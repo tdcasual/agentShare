@@ -17,7 +17,7 @@ Internet → Caddy (TLS) → Web (Next.js) → API (FastAPI) → PostgreSQL
 
 The production compose (`docker-compose.prod.yml`) includes:
 
-- `read_only: true` on all application containers
+- `read_only: true` on the caddy, web, and api containers (PostgreSQL is excluded because it must write to its data and WAL archive volumes)
 - `security_opt: no-new-privileges:true` on all services
 - Network segmentation: `edge` (public) and `data` (internal) networks
 - Resource limits: 512MB memory, 1 CPU per container
