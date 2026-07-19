@@ -103,6 +103,9 @@ def test_database_keyring_audit_and_integrity_export(tmp_path, monkeypatch) -> N
             async with runtime.session_factory() as session:
                 user = User(id="user-1", email="admin@example.com", password_hash="hash")
                 session.add(user)
+                # SQLite enforces foreign keys: flush the parent row before
+                # inserting children that reference it.
+                await session.flush()
                 session.add(
                     Secret(
                         id="secret-1",

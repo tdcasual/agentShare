@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import secrets
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Literal
@@ -14,6 +15,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_async_db
 from app.maintenance import should_update_last_used
 from app.orm import AdminSession, ManagementToken, User
+from app.time_utils import as_utc
+
+# Pre-computed bcrypt hash checked when the email does not exist, so a missing
+# account costs the same verification work as a real one (timing side channel).
+_DUMMY_PASSWORD_HASH = "$2b$12$oXGk.YE4paFxSGvk7OvlUOWR/J/6cI268PPafk4eI9io1CRx6K9uK"
 
 
 @dataclass(frozen=True)
@@ -53,9 +59,6 @@ def renew_expiration(
     if expires_at is None:
         return None
 
-    def as_utc(value: datetime) -> datetime:
-        return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
-
     ttl = as_utc(expires_at) - as_utc(created_at)
     return as_utc(now or datetime.now(UTC)) + ttl
 
@@ -64,6 +67,9 @@ async def authenticate_password(db: AsyncSession, email: str, password: str) -> 
     result = await db.execute(select(User).where(User.email == email.strip().lower()))
     user = result.scalar_one_or_none()
     if user is None:
+        # Equalize timing with the real-password path before returning.
+        with suppress(TypeError, ValueError):
+            bcrypt.checkpw(password.encode(), _DUMMY_PASSWORD_HASH.encode())
         return None
     try:
         return user if bcrypt.checkpw(password.encode(), user.password_hash.encode()) else None

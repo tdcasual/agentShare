@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { logout } from '@/lib/vaultgate-api';
+import { useRouter } from 'next/navigation';
+import { ApiError, logout } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { PageLoader } from '@/components/ui/page-loader';
 
 export default function LogoutPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,6 +24,11 @@ export default function LogoutPage() {
         }
       } catch (logoutError) {
         if (!cancelled) {
+          // 会话已失效（401）即视为已登出，直接回登录页，不显示错误卡片
+          if (logoutError instanceof ApiError && logoutError.status === 401) {
+            router.replace('/login');
+            return;
+          }
           setError(logoutError instanceof Error ? logoutError.message : t('auth.logout.failed'));
         }
       }
@@ -32,7 +39,7 @@ export default function LogoutPage() {
     return () => {
       cancelled = true;
     };
-    // t 不需要作为依赖，注销只在挂载时执行一次
+    // t 与 router 不需要作为依赖，注销只在挂载时执行一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

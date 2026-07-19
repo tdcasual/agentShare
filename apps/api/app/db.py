@@ -133,9 +133,7 @@ def migrate_db(
 
 
 def _upgrade_postgres_with_advisory_lock(config: Config, database_url: str) -> None:
-    timeout_seconds = int(os.environ.get("MIGRATION_LOCK_TIMEOUT_SECONDS", "120"))
-    if timeout_seconds < 1 or timeout_seconds > 600:
-        raise ValueError("MIGRATION_LOCK_TIMEOUT_SECONDS must be between 1 and 600")
+    timeout_seconds = Settings().migration_lock_timeout_seconds
 
     engine = create_engine(database_url, poolclass=NullPool)
     deadline = time.monotonic() + timeout_seconds

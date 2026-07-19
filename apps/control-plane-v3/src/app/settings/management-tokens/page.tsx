@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import useSWR from 'swr';
 import { Check, Clipboard, KeyRound, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   createManagementToken,
   listManagementTokens,
@@ -12,20 +13,32 @@ import {
   type ManagementToken,
 } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Callout } from '@/components/ui/callout';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 25;
 
 export default function ManagementTokensPage() {
   const { t, locale } = useI18n();
+  const [offset, setOffset] = useState(0);
   const { data, error, isLoading, mutate } = useSWR(
-    '/api/admin/management-tokens?limit=100&offset=0',
-    () => listManagementTokens({ limit: PAGE_SIZE, offset: 0 })
+    `/api/admin/management-tokens?limit=${PAGE_SIZE}&offset=${offset}`,
+    () => listManagementTokens({ limit: PAGE_SIZE, offset })
   );
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -55,6 +68,7 @@ export default function ManagementTokensPage() {
       setCopied(false);
       setName('');
       setDescription('');
+      setOffset(0);
       await mutate();
     } catch (caught) {
       setFormError(caught instanceof Error ? caught.message : t('managementTokens.createFailed'));
@@ -72,6 +86,10 @@ export default function ManagementTokensPage() {
     try {
       if (confirmTarget.action === 'revoke') {
         await revokeManagementToken(confirmTarget.token.id);
+        // 撤销的是末页最后一条时回退一页，避免越界空态
+        if ((data?.items.length ?? 0) === 1 && offset > 0) {
+          setOffset((current) => Math.max(0, current - PAGE_SIZE));
+        }
       } else {
         setIssued(await rotateManagementToken(confirmTarget.token.id));
         setCopied(false);
@@ -130,24 +148,20 @@ export default function ManagementTokensPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="management-token-ttl">{t('managementTokens.ttl')}</Label>
-            <select
-              id="management-token-ttl"
-              value={ttl}
-              onChange={(event) => setTtl(event.target.value)}
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="none">{t('managementTokens.ttlNone')}</option>
-              <option value="86400">{t('managementTokens.ttlDay')}</option>
-              <option value="604800">{t('managementTokens.ttlWeek')}</option>
-              <option value="2592000">{t('managementTokens.ttlMonth')}</option>
-              <option value="31536000">{t('managementTokens.ttlYear')}</option>
-            </select>
+            <Select value={ttl} onValueChange={setTtl}>
+              <SelectTrigger id="management-token-ttl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('managementTokens.ttlNone')}</SelectItem>
+                <SelectItem value="86400">{t('managementTokens.ttlDay')}</SelectItem>
+                <SelectItem value="604800">{t('managementTokens.ttlWeek')}</SelectItem>
+                <SelectItem value="2592000">{t('managementTokens.ttlMonth')}</SelectItem>
+                <SelectItem value="31536000">{t('managementTokens.ttlYear')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          {formError && (
-            <p role="alert" className="text-sm text-destructive">
-              {formError}
-            </p>
-          )}
+          {formError && <InlineAlert>{formError}</InlineAlert>}
           <Button type="submit" loading={saving} leftIcon={<Plus />}>
             {t('managementTokens.create')}
           </Button>
@@ -163,17 +177,15 @@ export default function ManagementTokensPage() {
             </div>
             <KeyRound className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           </div>
-          {actionError && (
-            <p role="alert" className="text-sm text-destructive">
-              {actionError}
-            </p>
-          )}
+          {actionError && <InlineAlert>{actionError}</InlineAlert>}
           {isLoading ? (
-            <p className="py-8 text-sm text-muted-foreground">{t('common.loading')}</p>
+            <div className="space-y-3 border-y py-4" aria-label={t('common.loading')}>
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
           ) : error ? (
-            <p role="alert" className="py-8 text-sm text-destructive">
-              {error.message}
-            </p>
+            <InlineAlert>{error.message}</InlineAlert>
           ) : !data?.items.length ? (
             <EmptyState
               title={t('managementTokens.emptyTitle')}
@@ -195,6 +207,12 @@ export default function ManagementTokensPage() {
               ))}
             </div>
           )}
+          <PaginationControls
+            offset={offset}
+            limit={PAGE_SIZE}
+            total={data?.total ?? 0}
+            onOffsetChange={setOffset}
+          />
         </section>
       </section>
 
@@ -215,6 +233,7 @@ export default function ManagementTokensPage() {
                   try {
                     await navigator.clipboard.writeText(issued.token);
                     setCopied(true);
+                    toast.success(t('common.copySuccess'));
                   } catch {
                     setActionError(t('managementTokens.copyFailed'));
                   }
@@ -293,11 +312,7 @@ function TokenRow({
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-medium">{token.name}</h3>
-          <span
-            className={`text-xs ${revoked || expired ? 'text-destructive' : 'text-status-success'}`}
-          >
-            {t(statusKey)}
-          </span>
+          <Badge variant={revoked || expired ? 'danger' : 'success'}>{t(statusKey)}</Badge>
         </div>
         {token.description && (
           <p className="mt-1 text-sm text-muted-foreground">{token.description}</p>

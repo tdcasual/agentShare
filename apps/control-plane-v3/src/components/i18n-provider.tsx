@@ -125,7 +125,8 @@ export function I18nProvider({
       let text = typeof value === 'string' ? value : key;
       if (values) {
         Object.entries(values).forEach(([k, v]) => {
-          text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+          // 函数式替换：避免值中的 $&、$' 等被当作特殊替换模式
+          text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), () => String(v));
         });
       }
       return text;

@@ -5,11 +5,30 @@ import { useRouter } from 'next/navigation';
 import { LockKeyhole, Mail } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
 import { useI18n } from '@/components/i18n-provider';
 import { ApiError, bootstrap, getBootstrapStatus } from '@/lib/vaultgate-api';
+
+// 与后端 apps/api/app/modules/admin_auth/schemas.py 的密码策略保持一致：
+// 至少 12 位，含大小写字母、数字、特殊字符，且不超过 72 个 UTF-8 字节（bcrypt 上限）。
+const MIN_PASSWORD_LENGTH = 12;
+const MAX_PASSWORD_UTF8_BYTES = 72;
+
+function checkPasswordPolicy(password: string): 'tooLong' | 'tooWeak' | null {
+  if (new TextEncoder().encode(password).length > MAX_PASSWORD_UTF8_BYTES) {
+    return 'tooLong';
+  }
+  const meetsPolicy =
+    password.length >= MIN_PASSWORD_LENGTH &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password);
+  return meetsPolicy ? null : 'tooWeak';
+}
 
 export default function SetupPage() {
   const { t } = useI18n();
@@ -67,6 +86,15 @@ export default function SetupPage() {
       return;
     }
 
+    const passwordViolation = checkPasswordPolicy(form.password);
+    if (passwordViolation) {
+      setError(
+        passwordViolation === 'tooLong' ? t('setup.passwordTooLong') : t('setup.passwordTooWeak')
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       await bootstrap(
         { email: form.email, password: form.password },
@@ -119,14 +147,14 @@ export default function SetupPage() {
   return (
     <main
       id="main-content"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
+      className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 sm:py-12"
     >
       {/* Header controls */}
       <div className="safe-area-inset-top fixed right-4 top-4 z-toast flex items-center gap-3">
         <SimpleThemeToggle />
       </div>
 
-      <Card className="relative z-10 w-full max-w-xl">
+      <Card className="w-full max-w-xl">
         <div className="space-y-3 p-6 sm:space-y-5 sm:p-8 lg:space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
@@ -223,15 +251,7 @@ export default function SetupPage() {
             </div>
 
             {/* Status message */}
-            {error && (
-              <div
-                role="alert"
-                aria-live="polite"
-                className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-              >
-                {error}
-              </div>
-            )}
+            {error && <InlineAlert>{error}</InlineAlert>}
 
             <Button className="w-full" type="submit" loading={isSubmitting}>
               {t('setup.createAccount')}

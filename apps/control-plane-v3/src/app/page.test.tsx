@@ -40,7 +40,7 @@ vi.mock('@/domains/audit', () => ({
 describe('VaultGateDashboard', () => {
   it('renders the dashboard title', () => {
     render(<VaultGateDashboard />);
-    expect(screen.getByText('dashboard.title')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.controlPlane')).toBeInTheDocument();
   });
 
   it('renders primary workflow links', () => {

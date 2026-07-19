@@ -66,4 +66,19 @@ describe('LoginPage', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('auth.login.failed');
     });
   });
+
+  it('displays a rate limit message when login returns 429', async () => {
+    const user = userEvent.setup();
+    mockedLogin.mockRejectedValueOnce(new ApiError(429, 'Too many attempts'));
+
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/auth\.login\.email/i), 'test@test.com');
+    await user.type(screen.getByLabelText(/auth\.login\.password/i), 'Str0ng!Pass#2026');
+    await user.click(screen.getByRole('button', { name: /auth\.login\.signIn/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('auth.login.rateLimited');
+    });
+  });
 });

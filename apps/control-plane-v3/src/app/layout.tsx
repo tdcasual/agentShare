@@ -72,12 +72,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ErrorBoundary>
               <a
                 href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
                 {skipLinkLabel}
               </a>
               <RouteGuard>{children}</RouteGuard>
-              <Toaster richColors position="top-right" />
+              <Toaster position="top-right" />
             </ErrorBoundary>
           </I18nProvider>
         </ThemeProvider>

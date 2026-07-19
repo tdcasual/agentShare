@@ -7,16 +7,12 @@ from typing import TYPE_CHECKING
 import sqlalchemy as sa
 from sqlalchemy import orm as so
 
+from app.time_utils import as_utc
+
 from .base import Base
 
 if TYPE_CHECKING:
     from .user import User
-
-
-def _as_utc(value: datetime) -> datetime:
-    if value.tzinfo is None:
-        return value.replace(tzinfo=UTC)
-    return value.astimezone(UTC)
 
 
 class AdminSession(Base):
@@ -49,5 +45,5 @@ class AdminSession(Base):
     user: so.Mapped[User] = so.relationship(back_populates="admin_sessions")
 
     def is_valid(self, now: datetime | None = None) -> bool:
-        checked_at = _as_utc(now or datetime.now(UTC))
-        return self.revoked_at is None and checked_at < _as_utc(self.expires_at)
+        checked_at = as_utc(now or datetime.now(UTC))
+        return self.revoked_at is None and checked_at < as_utc(self.expires_at)

@@ -83,7 +83,7 @@ def add_request_logging_middleware(app: FastAPI) -> None:
     @app.middleware("http")
     async def log_request(request: Request, call_next):
         started_at = monotonic()
-        request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+        request_id = (request.headers.get("x-request-id") or str(uuid.uuid4()))[:255]
         request.state.request_id = request_id
         try:
             response = await call_next(request)

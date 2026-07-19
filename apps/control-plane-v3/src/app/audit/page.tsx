@@ -7,6 +7,7 @@ import type { AuditQuery } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -72,7 +73,7 @@ export default function AuditPage() {
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-7 p-4 sm:p-6 lg:p-8">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
       <header className="border-b pb-6">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           VaultGate
@@ -90,12 +91,8 @@ export default function AuditPage() {
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">{t('audit.globalSummaryHint')}</p>
         </div>
-        {statsError && (
-          <p role="alert" className="text-sm text-destructive">
-            {t('audit.statsLoadFailed')}
-          </p>
-        )}
-        <div className="grid grid-cols-2 border-y sm:grid-cols-4">
+        {statsError && <InlineAlert>{t('audit.statsLoadFailed')}</InlineAlert>}
+        <div className="grid grid-cols-2 gap-px border-y bg-border sm:grid-cols-4">
           <AuditMetric
             label={t('audit.totalEvents')}
             value={stats?.total}
@@ -148,7 +145,7 @@ export default function AuditPage() {
                 setResult(value);
                 setOffset(0);
               }}
-              className={`min-h-11 rounded-md border px-4 text-sm font-medium transition-colors ${
+              className={`min-h-11 rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 result === value
                   ? value === 'denied'
                     ? 'border-status-danger bg-status-danger-subtle text-status-danger-subtle-foreground'
@@ -236,9 +233,9 @@ export default function AuditPage() {
               <p className="text-xs text-muted-foreground">{t('common.loading')}</p>
             )}
             {actionsError && (
-              <p role="alert" className="text-xs text-destructive">
+              <InlineAlert className="px-3 py-2 text-xs">
                 {t('audit.actionsLoadFailed')}
-              </p>
+              </InlineAlert>
             )}
           </div>
           <div className="grid grid-cols-2 gap-3">

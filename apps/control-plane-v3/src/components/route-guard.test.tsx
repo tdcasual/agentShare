@@ -94,6 +94,90 @@ describe('RouteGuard', () => {
     expect(screen.queryByText('common.serviceUnavailable')).not.toBeInTheDocument();
   });
 
+  it('renders the full-screen loader instead of children while the entry state is unresolved', () => {
+    pathnameMock.mockReturnValue('/secrets');
+    resolveAppEntryStateMock.mockReturnValue(new Promise(() => {}));
+
+    render(
+      <RouteGuard>
+        <div>protected content</div>
+      </RouteGuard>
+    );
+
+    expect(screen.queryByText('protected content')).not.toBeInTheDocument();
+    expect(screen.getByText('common.initializing')).toBeInTheDocument();
+  });
+
+  it('does not redirect on stale entry state after client-side navigation', async () => {
+    resolveAppEntryStateMock
+      .mockResolvedValueOnce({ kind: 'anonymous' })
+      // Re-resolution for the next path never settles within this test.
+      .mockReturnValueOnce(new Promise(() => {}));
+
+    pathnameMock.mockReturnValue('/login');
+    const { rerender } = render(
+      <RouteGuard>
+        <div>login page</div>
+      </RouteGuard>
+    );
+
+    // The anonymous state for /login is applied: the public page renders.
+    expect(await screen.findByText('login page')).toBeInTheDocument();
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    // Client-side navigation to a protected page (e.g. router.push('/') after login).
+    pathnameMock.mockReturnValue('/');
+    rerender(
+      <RouteGuard>
+        <div>home page</div>
+      </RouteGuard>
+    );
+
+    await waitFor(() => {
+      expect(resolveAppEntryStateMock).toHaveBeenCalledTimes(2);
+    });
+
+    // The stale anonymous state must not bounce the user back to /login,
+    // and the unresolved page shows the loader instead of flashing content.
+    expect(replaceMock).not.toHaveBeenCalled();
+    expect(screen.queryByText('home page')).not.toBeInTheDocument();
+    expect(screen.getByText('common.initializing')).toBeInTheDocument();
+  });
+
+  it('keeps rendering protected pages without a full-screen loader during authenticated navigation', async () => {
+    resolveAppEntryStateMock
+      .mockResolvedValueOnce({
+        kind: 'authenticated',
+        session: { email: 'admin@example.com', id: 'admin-1', auth_type: 'session' },
+      })
+      // Silent revalidation for the next path never settles within this test.
+      .mockReturnValueOnce(new Promise(() => {}));
+
+    pathnameMock.mockReturnValue('/secrets');
+    const { rerender } = render(
+      <RouteGuard>
+        <div>secrets content</div>
+      </RouteGuard>
+    );
+
+    expect(await screen.findByText('secrets content')).toBeInTheDocument();
+
+    // Authenticated SPA navigation must render instantly without the full-screen loader.
+    pathnameMock.mockReturnValue('/agents');
+    rerender(
+      <RouteGuard>
+        <div>agents content</div>
+      </RouteGuard>
+    );
+
+    await waitFor(() => {
+      expect(resolveAppEntryStateMock).toHaveBeenCalledTimes(2);
+    });
+    expect(screen.getByText('agents content')).toBeInTheDocument();
+    expect(screen.queryByText('common.initializing')).not.toBeInTheDocument();
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
+
   it('renders persistent navigation on authenticated application pages', async () => {
     pathnameMock.mockReturnValue('/secrets');
     resolveAppEntryStateMock.mockResolvedValue({

@@ -23,7 +23,7 @@ export function PaginationControls({
   return (
     <nav
       aria-label={t('common.pagination')}
-      className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
     >
       <span className="text-sm text-muted-foreground">
         {start}–{end} {t('common.of')} {total}

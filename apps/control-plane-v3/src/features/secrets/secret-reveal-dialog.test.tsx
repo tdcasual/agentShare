@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Secret } from '@/lib/vaultgate-api';
 import { SecretRevealDialog } from './secret-reveal-dialog';
 
@@ -29,6 +29,10 @@ describe('SecretRevealDialog', () => {
     revealSecretMock.mockResolvedValue('super-secret-value');
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('loads plaintext only after the reveal dialog is opened', async () => {
     render(<SecretRevealDialog secret={secret} open onOpenChange={vi.fn()} />);
 
@@ -50,5 +54,31 @@ describe('SecretRevealDialog', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('secrets.copyFailed');
     expect(screen.getByText('super-secret-value')).toBeInTheDocument();
+  });
+
+  it('does not restart the auto-hide countdown when onOpenChange identity changes', async () => {
+    vi.useFakeTimers();
+    const onOpenChange = vi.fn();
+    const { rerender } = render(
+      <SecretRevealDialog secret={secret} open onOpenChange={onOpenChange} />
+    );
+
+    // Flush the reveal promise so the countdown starts.
+    await act(async () => {});
+    expect(screen.getByText('super-secret-value')).toBeInTheDocument();
+
+    // Re-render with a fresh inline closure every 500ms (what the parent page
+    // does on each render). REVEAL_SECONDS is 30, so 62 half-second ticks
+    // (31s) must still auto-close the dialog exactly once.
+    for (let i = 0; i < 62; i += 1) {
+      rerender(
+        <SecretRevealDialog secret={secret} open onOpenChange={() => onOpenChange(false)} />
+      );
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+    }
+
+    expect(onOpenChange).toHaveBeenCalledTimes(1);
   });
 });

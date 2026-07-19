@@ -39,6 +39,17 @@ def _validate_audit_action(action: str) -> None:
         raise ValueError(f"Unsupported audit action: {action}")
 
 
+def _fit_column(value: str | None, limit: int = 255) -> str | None:
+    """Truncate a value to fit its bounded String column.
+
+    PostgreSQL rejects over-length values with StringDataRightTruncation,
+    turning attacker-controlled input (request ids, path params) into 500s.
+    """
+    if value is None:
+        return None
+    return value[:limit]
+
+
 def add_admin_audit(
     db: AsyncSession,
     request: Request,
@@ -53,14 +64,14 @@ def add_admin_audit(
     _validate_audit_action(action)
     log = AuditLog(
         actor_type=principal.auth_type,
-        actor_id=principal.credential_id,
-        actor_label=principal.user.email,
+        actor_id=_fit_column(principal.credential_id),
+        actor_label=_fit_column(principal.user.email),
         resource_type=resource_type,
-        resource_id=resource_id,
-        resource_label=resource_label,
+        resource_id=_fit_column(resource_id),
+        resource_label=_fit_column(resource_label),
         action=action,
         result="success",
-        request_id=getattr(request.state, "request_id", None),
+        request_id=_fit_column(getattr(request.state, "request_id", None)),
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
         log_metadata=metadata or {},
@@ -81,11 +92,11 @@ async def write_auth_failure_audit(
     _validate_audit_action(action)
     log = AuditLog(
         actor_type=actor_type,
-        actor_label=actor_label[:255],
+        actor_label=_fit_column(actor_label),
         action=action,
         result="denied",
         reason=reason,
-        request_id=getattr(request.state, "request_id", None),
+        request_id=_fit_column(getattr(request.state, "request_id", None)),
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
@@ -113,15 +124,15 @@ async def write_vault_audit(
         token_prefix=token.key_prefix,
         secret_id=secret.id if secret is not None else None,
         actor_type="agent_token",
-        actor_id=token.id,
-        actor_label=token.key_prefix,
+        actor_id=_fit_column(token.id),
+        actor_label=_fit_column(token.key_prefix),
         resource_type="secret" if resource_id else None,
-        resource_id=resource_id,
-        resource_label=resource_label,
+        resource_id=_fit_column(resource_id),
+        resource_label=_fit_column(resource_label),
         action=action,
         result=result,
         reason=reason,
-        request_id=getattr(request.state, "request_id", None),
+        request_id=_fit_column(getattr(request.state, "request_id", None)),
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )

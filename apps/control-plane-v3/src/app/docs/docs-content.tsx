@@ -3,21 +3,24 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Check, Copy, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
 import { useI18n } from '@/components/i18n-provider';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function DocsContent() {
   const { t } = useI18n();
-  const [origin, setOrigin] = useState('https://vaultgate.example.com');
+  // 挂载前为 null：SSR/首帧渲染骨架，避免假 origin 闪一下再替换
+  const [origin, setOrigin] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
 
   useEffect(() => setOrigin(window.location.origin), []);
 
-  const command = `curl --fail-with-body \\\n  -H "Authorization: Bearer YOUR_TOKEN" \\\n  "${origin}/api/vault/secrets"`;
+  const command = `curl --fail-with-body \\\n  -H "Authorization: Bearer YOUR_TOKEN" \\\n  "${origin ?? ''}/api/vault/secrets"`;
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-5xl space-y-9 p-4 sm:p-6 lg:p-8">
+    <main id="main-content" className="mx-auto w-full max-w-5xl space-y-8 p-4 sm:p-6 lg:p-8">
       <header className="border-b pb-6">
         <Button asChild variant="ghost" size="sm">
           <Link href="/">
@@ -51,8 +54,8 @@ export function DocsContent() {
           />
           <DocStep number="03" title={t('docs.callApiTitle')} description={t('docs.step3')} />
         </ol>
-        <div className="relative overflow-hidden rounded-lg border bg-foreground text-background">
-          <div className="flex items-center justify-between border-b border-background/20 px-4 py-2 text-xs text-background/70">
+        <div className="relative overflow-hidden rounded-lg border bg-muted text-foreground">
+          <div className="flex items-center justify-between border-b px-4 py-2 text-xs text-muted-foreground">
             <span>shell</span>
             <button
               type="button"
@@ -61,23 +64,30 @@ export function DocsContent() {
                   await navigator.clipboard.writeText(command);
                   setCopied(true);
                   setCopyError(false);
+                  toast.success(t('common.copySuccess'));
                 } catch {
                   setCopyError(true);
                 }
               }}
-              className="inline-flex min-h-11 items-center gap-2 px-2 text-background hover:text-background/80"
+              className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? t('common.copied') : t('common.copy')}
             </button>
           </div>
-          <pre
-            tabIndex={0}
-            aria-label={t('docs.commandLabel')}
-            className="overflow-x-auto p-4 text-sm leading-6 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-          >
-            <code>{command}</code>
-          </pre>
+          {origin === null ? (
+            <div className="p-4">
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : (
+            <pre
+              tabIndex={0}
+              aria-label={t('docs.commandLabel')}
+              className="overflow-x-auto p-4 text-sm leading-6 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            >
+              <code>{command}</code>
+            </pre>
+          )}
         </div>
         {copyError && (
           <p role="alert" className="text-sm text-destructive">
@@ -96,7 +106,7 @@ export function DocsContent() {
             href="/api/docs"
             target="_blank"
             rel="noreferrer"
-            className="group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3 hover:bg-accent/50"
+            className="group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div>
               <p className="font-medium">{t('docs.swagger')}</p>
@@ -108,7 +118,7 @@ export function DocsContent() {
             href="/api/openapi.json"
             target="_blank"
             rel="noreferrer"
-            className="group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3 hover:bg-accent/50"
+            className="group flex min-h-20 items-center justify-between gap-4 rounded-lg border px-4 py-3 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div>
               <p className="font-medium">{t('docs.openapi')}</p>
@@ -148,7 +158,7 @@ function DocStep({
       {href ? (
         <Link
           href={href}
-          className="grid min-h-20 grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 px-2 py-4 hover:bg-accent/50 sm:px-3"
+          className="grid min-h-20 grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 px-2 py-4 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-3"
         >
           {content}
         </Link>

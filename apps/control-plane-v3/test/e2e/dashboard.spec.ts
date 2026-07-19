@@ -8,7 +8,9 @@ test.describe('dashboard', () => {
 
   test('displays dashboard heading', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: /欢迎|VaultGate/ })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /安全控制台|Security control plane/ })
+    ).toBeVisible();
   });
 
   test('navigates to secrets page', async ({ page }) => {

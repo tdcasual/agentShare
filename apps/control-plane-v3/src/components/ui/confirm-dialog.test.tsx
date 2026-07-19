@@ -69,4 +69,69 @@ describe('ConfirmDialog', () => {
     expect(buttons[0]).toBeDisabled();
     expect(buttons[1]).toBeDisabled();
   });
+
+  it('ignores a same-frame double click on the confirm button', () => {
+    const onConfirm = vi.fn();
+    render(
+      <ConfirmDialog isOpen={true} onClose={vi.fn()} onConfirm={onConfirm} confirmText="Confirm" />
+    );
+    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    fireEvent.click(confirmButton);
+    fireEvent.click(confirmButton);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-enables the confirm button after the dialog closes and reopens', () => {
+    const onConfirm = vi.fn();
+    const { rerender } = render(
+      <ConfirmDialog isOpen={true} onClose={vi.fn()} onConfirm={onConfirm} confirmText="Confirm" />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <ConfirmDialog isOpen={false} onClose={vi.fn()} onConfirm={onConfirm} confirmText="Confirm" />
+    );
+    rerender(
+      <ConfirmDialog isOpen={true} onClose={vi.fn()} onConfirm={onConfirm} confirmText="Confirm" />
+    );
+
+    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    expect(confirmButton).toBeEnabled();
+    fireEvent.click(confirmButton);
+    expect(onConfirm).toHaveBeenCalledTimes(2);
+  });
+
+  it('re-enables the confirm button when a failed action stops loading', () => {
+    const onConfirm = vi.fn();
+    const { rerender } = render(
+      <ConfirmDialog isOpen={true} onClose={vi.fn()} onConfirm={onConfirm} confirmText="Confirm" />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    // Parent starts async work, then fails and keeps the dialog open.
+    rerender(
+      <ConfirmDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={onConfirm}
+        confirmText="Confirm"
+        isLoading={true}
+      />
+    );
+    rerender(
+      <ConfirmDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={onConfirm}
+        confirmText="Confirm"
+        isLoading={false}
+      />
+    );
+
+    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    expect(confirmButton).toBeEnabled();
+    fireEvent.click(confirmButton);
+    expect(onConfirm).toHaveBeenCalledTimes(2);
+  });
 });

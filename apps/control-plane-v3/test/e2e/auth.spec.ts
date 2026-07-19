@@ -17,7 +17,9 @@ test.describe('authentication flow', () => {
   test('shows dashboard for authenticated admin', async ({ page }) => {
     await mockSession(page);
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: /欢迎|VaultGate/ })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /安全控制台|Security control plane/ })
+    ).toBeVisible();
   });
 
   test('logout sends DELETE to session endpoint', async ({ page }) => {

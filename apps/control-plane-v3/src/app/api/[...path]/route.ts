@@ -13,6 +13,7 @@ const API_TIMEOUT_MS = Number(process.env.VAULTGATE_API_TIMEOUT_MS || 15_000);
 // Only forward these request headers to the backend.
 // cookie: required so backend session cookies authenticate management requests.
 // authorization: required for runtime endpoints that use Bearer tokens.
+// user-agent: required so backend audit logs record the real client.
 const FORWARD_REQUEST_HEADERS = [
   'content-type',
   'accept',
@@ -22,6 +23,7 @@ const FORWARD_REQUEST_HEADERS = [
   'x-bootstrap-token',
   'origin',
   'referer',
+  'user-agent',
 ];
 
 // Only forward these response headers back to the client
@@ -63,6 +65,14 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
         headers[key] = value;
       }
     });
+
+    // Preserve the client address for backend auditing. Node runtime has no
+    // reliable socket IP, so forward the existing X-Forwarded-For chain as-is
+    // and fall back to X-Real-IP when the chain is absent.
+    const forwardedFor = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip');
+    if (forwardedFor) {
+      headers['x-forwarded-for'] = forwardedFor;
+    }
 
     // Forward request to backend
     const response = await fetch(targetUrl, {

@@ -40,6 +40,7 @@ export function SimpleThemeToggle({ className }: { className?: string }) {
         'border border-primary/20 bg-card/80',
         'hover:bg-primary/10',
         'transition-colors duration-300',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
         className
       )}
       aria-label={isDark ? t('settings.theme.switchToLight') : t('settings.theme.switchToDark')}

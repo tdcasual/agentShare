@@ -41,7 +41,7 @@ function ErrorFallback({
   const { t } = useI18n();
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center p-4">
+    <main id="main-content" className="flex min-h-[60vh] items-center justify-center p-4">
       <Card className="w-full max-w-lg text-center" role="alert" aria-live="assertive">
         {/* 错误图标 */}
         <div className="mb-4 flex justify-center text-destructive" aria-hidden="true">
@@ -76,7 +76,7 @@ function ErrorFallback({
         {/* 提示 */}
         <p className="mt-4 text-xs text-muted-foreground">{t('errorBoundary.contactSupport')}</p>
       </Card>
-    </div>
+    </main>
   );
 }
 

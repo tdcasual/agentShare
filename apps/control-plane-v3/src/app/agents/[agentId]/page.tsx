@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { ArrowLeft, KeyRound, ShieldCheck, ShieldOff } from 'lucide-react';
 import { issueToken, setAgentStatus, useAgent, useAgentTokens } from '@/domains/agent';
@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginationControls } from '@/components/ui/pagination-controls';
@@ -38,8 +39,14 @@ const TTL_OPTIONS = [
   { value: '2592000', seconds: 2592000 },
 ] as const;
 
+type WorkspaceChange =
+  | { kind: 'token'; tokenId: string }
+  | { kind: 'page'; offset: number }
+  | { kind: 'navigate'; href: string };
+
 export default function AgentDetailPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const params = useParams<{ agentId: string }>();
   const { agent, isLoading, error, refresh } = useAgent(params.agentId);
   const [tokenOffset, setTokenOffset] = useState(0);
@@ -49,12 +56,13 @@ export default function AgentDetailPage() {
     isLoading: tokensLoading,
     error: tokensError,
     refresh: refreshTokens,
+    data: tokensData,
   } = useAgentTokens(params.agentId, { limit: TOKEN_PAGE_SIZE, offset: tokenOffset });
   const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null);
   const [grantsDirty, setGrantsDirty] = useState(false);
-  const [pendingWorkspaceChange, setPendingWorkspaceChange] = useState<
-    { kind: 'token'; tokenId: string } | { kind: 'page'; offset: number } | null
-  >(null);
+  const [pendingWorkspaceChange, setPendingWorkspaceChange] = useState<WorkspaceChange | null>(
+    null
+  );
   const [tokenName, setTokenName] = useState('');
   const [tokenDescription, setTokenDescription] = useState('');
   const [ttl, setTtl] = useState('none');
@@ -65,12 +73,25 @@ export default function AgentDetailPage() {
   const [confirmDisable, setConfirmDisable] = useState(false);
 
   useEffect(() => {
+    // SWR key 变化（翻页/刷新）期间 data 为 undefined：保留当前选择，
+    // 等数据到达后再做修正，避免误清空用户已选的 Token。
+    if (tokensData === undefined) {
+      return;
+    }
     if (tokens.length === 0) {
       setSelectedTokenId(null);
     } else if (!selectedTokenId || !tokens.some((token) => token.id === selectedTokenId)) {
       setSelectedTokenId(tokens[0].id);
     }
-  }, [selectedTokenId, tokens]);
+  }, [selectedTokenId, tokens, tokensData]);
+
+  useEffect(() => {
+    // 末页最后一个 token 被撤销后列表为空：回退一页，
+    // 避免卡在没有 PaginationControls 的空态。
+    if (tokensData !== undefined && tokens.length === 0 && tokenOffset > 0) {
+      setTokenOffset((current) => Math.max(0, current - TOKEN_PAGE_SIZE));
+    }
+  }, [tokens, tokensData, tokenOffset]);
 
   useEffect(() => {
     if (!grantsDirty) {
@@ -80,8 +101,47 @@ export default function AgentDetailPage() {
       event.preventDefault();
       event.returnValue = '';
     };
+    // Next.js 客户端导航不会触发 beforeunload：在捕获阶段拦截同源链接点击，
+    // 弹出与切换 Token / 翻页一致的放弃确认。
+    const interceptNavigation = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      const anchor =
+        event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
+      if (!anchor || (anchor.target && anchor.target !== '_self')) {
+        return;
+      }
+      if (anchor.hasAttribute('download')) {
+        return;
+      }
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin) {
+        return;
+      }
+      // 指向当前页（完全相同或仅 hash 不同）的链接不会离开页面，不拦截
+      if (url.pathname === window.location.pathname && url.search === window.location.search) {
+        return;
+      }
+      event.preventDefault();
+      setPendingWorkspaceChange({
+        kind: 'navigate',
+        href: `${url.pathname}${url.search}${url.hash}`,
+      });
+    };
+    document.addEventListener('click', interceptNavigation, true);
     window.addEventListener('beforeunload', warnBeforeUnload);
-    return () => window.removeEventListener('beforeunload', warnBeforeUnload);
+    return () => {
+      document.removeEventListener('click', interceptNavigation, true);
+      window.removeEventListener('beforeunload', warnBeforeUnload);
+    };
   }, [grantsDirty]);
 
   const selectedToken = tokens.find((token) => token.id === selectedTokenId) ?? null;
@@ -96,14 +156,14 @@ export default function AgentDetailPage() {
     applyWorkspaceChange(change);
   }
 
-  function applyWorkspaceChange(
-    change: { kind: 'token'; tokenId: string } | { kind: 'page'; offset: number }
-  ) {
+  function applyWorkspaceChange(change: WorkspaceChange) {
     setGrantsDirty(false);
     if (change.kind === 'token') {
       setSelectedTokenId(change.tokenId);
-    } else {
+    } else if (change.kind === 'page') {
       setTokenOffset(change.offset);
+    } else {
+      router.push(change.href);
     }
   }
 
@@ -167,11 +227,11 @@ export default function AgentDetailPage() {
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-7 p-4 sm:p-6 lg:p-8">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
       <header className="border-b pb-6">
         <Link
           href="/agents"
-          className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ArrowLeft className="h-4 w-4" />
           {t('agents.backToAgents')}
@@ -182,7 +242,7 @@ export default function AgentDetailPage() {
               <h1 className="min-w-0 truncate text-3xl font-semibold tracking-tight">
                 {agent.name}
               </h1>
-              <Badge variant={agent.status === 'active' ? 'default' : 'secondary'}>
+              <Badge variant={agent.status === 'active' ? 'success' : 'secondary'}>
                 {t(`agents.status.${agent.status}`)}
               </Badge>
             </div>
@@ -203,14 +263,7 @@ export default function AgentDetailPage() {
         </div>
       </header>
 
-      {actionError && (
-        <p
-          role="alert"
-          className="border-y border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
-        >
-          {actionError}
-        </p>
-      )}
+      {actionError && <InlineAlert>{actionError}</InlineAlert>}
       {issued && <OneTimeToken token={issued} onDone={() => setIssued(null)} />}
 
       <ConfirmDialog
@@ -239,7 +292,7 @@ export default function AgentDetailPage() {
         variant="danger"
       />
 
-      <section aria-labelledby="issue-token-heading" className="border-b pb-7">
+      <section aria-labelledby="issue-token-heading" className="border-b pb-6">
         <div className="mb-4">
           <h2 id="issue-token-heading" className="text-lg font-semibold">
             {t('agents.issueToken')}
@@ -248,6 +301,11 @@ export default function AgentDetailPage() {
           {grantsDirty && (
             <p role="status" className="mt-2 text-sm text-status-warning-subtle-foreground">
               {t('agents.saveGrantsBeforeIssuing')}
+            </p>
+          )}
+          {agent.status !== 'active' && (
+            <p role="status" className="mt-2 text-sm text-muted-foreground">
+              {t('agents.issueTokenDisabledAgent')}
             </p>
           )}
         </div>
@@ -289,7 +347,12 @@ export default function AgentDetailPage() {
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" loading={saving} disabled={grantsDirty} leftIcon={<KeyRound />}>
+          <Button
+            type="submit"
+            loading={saving}
+            disabled={grantsDirty || agent.status !== 'active'}
+            leftIcon={<KeyRound />}
+          >
             {t('agents.issueToken')}
           </Button>
         </form>

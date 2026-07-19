@@ -27,7 +27,7 @@ export function AuditMetric({
         ? 'text-status-danger'
         : 'text-foreground';
   return (
-    <div className="border-r p-4 last:border-r-0 sm:p-5">
+    <div className="bg-background p-4 sm:p-5">
       <p className={`text-2xl font-semibold tabular-nums ${color}`}>
         {loading || value === undefined ? '—' : formatter.format(value)}
       </p>
@@ -107,7 +107,7 @@ export function AuditEventCard({ log }: { log: AuditLog }) {
       </dl>
       {(log.reason || log.request_id) && (
         <details className="group mt-3 text-sm">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-muted-foreground">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
             {t('audit.technicalDetails')}
           </summary>
@@ -134,12 +134,12 @@ export function AuditEventCard({ log }: { log: AuditLog }) {
 function AuditResultBadge({ result }: { result: AuditLog['result'] }) {
   const { t } = useI18n();
   return result === 'success' ? (
-    <Badge className="gap-1 bg-status-success-subtle text-status-success-subtle-foreground hover:bg-status-success-subtle">
+    <Badge variant="success" className="gap-1">
       <CheckCircle2 className="h-3 w-3" />
       {t('audit.granted')}
     </Badge>
   ) : (
-    <Badge variant="destructive" className="gap-1">
+    <Badge variant="danger" className="gap-1">
       <XCircle className="h-3 w-3" />
       {t('audit.denied')}
     </Badge>

@@ -21,6 +21,10 @@ class AgentPrincipal:
 
 async def resolve_agent_principal(request: Request, db: AsyncSession) -> AgentPrincipal:
     authorization = request.headers.get("authorization", "")
+    if not authorization:
+        # No credential supplied at all: reject without writing an audit row so
+        # unauthenticated clients cannot flood audit_logs.
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Agent token required")
     if not authorization.startswith("Bearer "):
         await write_auth_failure_audit(
             db,

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
@@ -73,7 +74,7 @@ export default function SecretsPage() {
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-7 p-4 sm:p-6 lg:p-8">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
       <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -112,7 +113,7 @@ export default function SecretsPage() {
           {search && (
             <button
               type="button"
-              className="absolute right-1 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground"
+              className="absolute right-1 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => {
                 setSearch('');
                 setOffset(0);
@@ -148,19 +149,18 @@ export default function SecretsPage() {
       </section>
 
       {deleteError && (
-        <div
-          role="alert"
-          className="flex items-start justify-between gap-4 border-y border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
-        >
-          <span>{deleteError}</span>
-          <button
-            type="button"
-            className="underline underline-offset-4"
-            onClick={() => setDeleteError(null)}
-          >
-            {t('common.close')}
-          </button>
-        </div>
+        <InlineAlert>
+          <div className="flex items-start justify-between gap-4">
+            <span>{deleteError}</span>
+            <button
+              type="button"
+              className="rounded-sm underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={() => setDeleteError(null)}
+            >
+              {t('common.close')}
+            </button>
+          </div>
+        </InlineAlert>
       )}
 
       <section aria-live="polite" aria-busy={isLoading}>

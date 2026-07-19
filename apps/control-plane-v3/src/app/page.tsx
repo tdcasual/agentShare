@@ -35,13 +35,13 @@ export default function VaultGateDashboard() {
 
   return (
     <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-5 border-b pb-7 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            {t('dashboard.controlPlane')}
+            VaultGate
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {t('dashboard.title')}
+            {t('dashboard.controlPlane')}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('dashboard.subtitle')}</p>
         </div>
@@ -161,7 +161,7 @@ export default function VaultGateDashboard() {
           </dl>
           <Link
             href="/docs"
-            className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary hover:underline"
+            className="inline-flex min-h-11 items-center gap-2 rounded-md text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {t('dashboard.openDocs')}
             <ArrowRight className="h-4 w-4" />
@@ -216,7 +216,7 @@ function WorkflowStep({
   return (
     <Link
       href={href}
-      className="group grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-2 py-4 hover:bg-accent/50 sm:px-3"
+      className="group grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-2 py-4 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-3"
     >
       {complete ? (
         <CheckCircle2 className="h-5 w-5 text-status-success" />

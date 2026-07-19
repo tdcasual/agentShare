@@ -88,14 +88,8 @@ async def login(
     )
     limited = await check_persistent_login_rate_limit(db, request, rate_config, body.email)
     if limited is not None:
-        await write_auth_failure_audit(
-            db,
-            request,
-            action="admin.login.failed",
-            actor_type="anonymous",
-            actor_label=body.email,
-            reason="rate_limited",
-        )
+        # No audit row here: recording blocked attempts would let an attacker
+        # keep the account locked forever with one request per window.
         return limited  # type: ignore[return-value]
     user = await authenticate_password(db, body.email, body.password)
     if user is None:
@@ -104,7 +98,7 @@ async def login(
             request,
             action="admin.login.failed",
             actor_type="anonymous",
-            actor_label=body.email,
+            actor_label=body.email.strip().lower(),
             reason="invalid_credentials",
         )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")

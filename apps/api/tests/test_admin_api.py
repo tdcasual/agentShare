@@ -380,3 +380,49 @@ def test_admin_reveal_audit_failure_does_not_return_plaintext(client: TestClient
 
     assert response.status_code == 500
     assert "never-return-this" not in response.text
+
+
+def test_oversized_request_id_is_truncated_in_audit(client: TestClient) -> None:
+    """An over-length X-Request-ID must be truncated to the String(255) column
+    instead of failing the audit insert (StringDataRightTruncation on PG)."""
+    bootstrap_and_login(client)
+    oversized_request_id = "req-" + ("x" * 400)
+
+    created = client.post(
+        "/api/admin/secrets",
+        json={"name": "github", "type": "api_key", "value": "gh-secret"},
+        headers={"X-Request-ID": oversized_request_id},
+    )
+    assert created.status_code == 201
+    assert created.headers["x-request-id"] == oversized_request_id[:255]
+
+    audit = client.get("/api/admin/audit-logs", params={"action": "secret.create"})
+    assert audit.status_code == 200
+    assert audit.json()["total"] == 1
+    assert audit.json()["items"][0]["request_id"] == oversized_request_id[:255]
+
+
+def test_deleting_secret_cascades_token_grants(client: TestClient) -> None:
+    """SQLite must enforce PRAGMA foreign_keys so ON DELETE CASCADE removes
+    grant rows instead of leaving orphans (Secret.grants uses passive_deletes)."""
+    bootstrap_and_login(client)
+    secret = client.post(
+        "/api/admin/secrets",
+        json={"name": "github", "type": "api_key", "value": "gh-secret"},
+    ).json()
+    agent = client.post("/api/admin/agents", json={"name": "deploy"}).json()
+    issued = client.post(
+        f"/api/admin/agents/{agent['id']}/tokens",
+        json={"name": "primary"},
+    ).json()
+    granted = client.put(
+        f"/api/admin/tokens/{issued['id']}/grants",
+        json={"secret_ids": [secret["id"]]},
+    )
+    assert granted.status_code == 200
+
+    assert client.delete(f"/api/admin/secrets/{secret['id']}").status_code == 204
+
+    grants = client.get(f"/api/admin/tokens/{issued['id']}/grants")
+    assert grants.status_code == 200
+    assert grants.json() == {"secret_ids": []}

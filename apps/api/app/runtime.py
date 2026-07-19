@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from sqlalchemy import event
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
@@ -54,6 +55,15 @@ def build_runtime(settings: Settings) -> AppRuntime:
         })
 
     engine = create_async_engine(async_url, **engine_kwargs)
+    if is_sqlite:
+        # SQLite ships with foreign key enforcement disabled; relationships such
+        # as Secret.grants rely on ON DELETE CASCADE via passive_deletes=True.
+        @event.listens_for(engine.sync_engine, "connect")
+        def _enable_sqlite_foreign_keys(dbapi_connection: Any, _connection_record: Any) -> None:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+
     session_factory = async_sessionmaker(
         bind=engine,
         expire_on_commit=False,

@@ -35,6 +35,28 @@ export class ApiError extends Error {
   }
 }
 
+// Session expiry: any 401 from a non-session endpoint means the admin session
+// is gone, so bounce to the login page instead of leaving a stale error on
+// screen. Session endpoints are excluded so the route guard and login form
+// can handle their own 401s.
+function redirectToLoginOnSessionExpiry(path: string): void {
+  if (typeof window === 'undefined' || typeof window.location?.replace !== 'function') {
+    return;
+  }
+  if (path.startsWith('/api/admin/session')) {
+    return;
+  }
+  const currentPath = window.location.pathname;
+  if (currentPath === '/login' || currentPath === '/setup') {
+    return;
+  }
+  try {
+    window.location.replace('/login');
+  } catch {
+    // jsdom and hardened browsers may block programmatic navigation
+  }
+}
+
 async function requestJson<T>(path: string, init: RequestOptions = {}): Promise<T> {
   const { timeout = 30_000, ...requestInit } = init;
   const controller = new AbortController();
@@ -66,6 +88,9 @@ async function requestJson<T>(path: string, init: RequestOptions = {}): Promise<
       }
     }
     if (!response.ok) {
+      if (response.status === 401) {
+        redirectToLoginOnSessionExpiry(path);
+      }
       throw new ApiError(response.status, errorDetail(payload, response.statusText));
     }
     return payload as T;

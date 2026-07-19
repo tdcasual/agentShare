@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 import sqlalchemy as sa
 from sqlalchemy import orm as so
 
-from .admin_session import _as_utc
+from app.time_utils import as_utc
+
 from .base import Base
 
 if TYPE_CHECKING:
@@ -80,7 +81,7 @@ class AgentToken(Base):
     def is_expired(self, now: datetime | None = None) -> bool:
         if self.expires_at is None:
             return False
-        return _as_utc(now or datetime.now(UTC)) >= _as_utc(self.expires_at)
+        return as_utc(now or datetime.now(UTC)) >= as_utc(self.expires_at)
 
     def is_valid(self, now: datetime | None = None) -> bool:
         return (

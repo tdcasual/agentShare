@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, EyeOff, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { revealSecret } from '@/domains/secret';
 import type { Secret } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
@@ -34,6 +35,13 @@ export function SecretRevealDialog({
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
   const [remaining, setRemaining] = useState(REVEAL_SECONDS);
+
+  // 父组件常传入内联闭包，用 ref 跟踪最新的 onOpenChange，
+  // 避免倒计时 effect 因回调引用变化而反复重建 interval。
+  const onOpenChangeRef = useRef(onOpenChange);
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange;
+  });
 
   useEffect(() => {
     if (!open || !secret) {
@@ -78,14 +86,14 @@ export function SecretRevealDialog({
         if (current <= 1) {
           window.clearInterval(timer);
           setValue(null);
-          onOpenChange(false);
+          onOpenChangeRef.current(false);
           return REVEAL_SECONDS;
         }
         return current - 1;
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [onOpenChange, open, value]);
+  }, [open, value]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -145,6 +153,7 @@ export function SecretRevealDialog({
                 await navigator.clipboard.writeText(value);
                 setCopied(true);
                 setCopyError(null);
+                toast.success(t('common.copySuccess'));
               } catch {
                 setCopyError(t('secrets.copyFailed'));
               }

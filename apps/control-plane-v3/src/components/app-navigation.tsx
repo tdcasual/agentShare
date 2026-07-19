@@ -40,17 +40,17 @@ export function AppNavigation() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b bg-background/95 supports-[backdrop-filter]:bg-background/90">
-        <div className="mx-auto flex min-h-[64px] max-w-screen-2xl items-center gap-[8px] px-[12px] sm:gap-6 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-40 border-b bg-background/95 supports-[backdrop-filter]:bg-background/90 supports-[backdrop-filter]:backdrop-blur">
+        <div className="mx-auto flex min-h-16 max-w-screen-2xl items-center gap-2 px-3 sm:gap-6 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2 font-semibold tracking-tight"
+            className="flex min-h-11 min-w-11 shrink-0 items-center gap-2 rounded-md font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span
-              className="flex h-[28px] w-[28px] items-center justify-center rounded-md bg-foreground text-background"
+              className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground text-background"
               aria-hidden="true"
             >
-              <ShieldCheck className="h-[16px] w-[16px]" />
+              <ShieldCheck className="h-4 w-4" />
             </span>
             <span className="hidden min-[360px]:inline">VaultGate</span>
           </Link>
@@ -68,9 +68,9 @@ export function AppNavigation() {
                     href={href}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'relative inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+                      'relative inline-flex h-full items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                       active &&
-                        'text-foreground after:absolute after:inset-x-3 after:bottom-[-11px] after:h-0.5 after:bg-primary'
+                        'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary'
                     )}
                   >
                     {t(`navigation.${label}`)}
@@ -81,9 +81,9 @@ export function AppNavigation() {
                 href="/docs"
                 aria-current={pathname.startsWith('/docs') ? 'page' : undefined}
                 className={cn(
-                  'relative inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+                  'relative inline-flex h-full items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                   pathname.startsWith('/docs') &&
-                    'text-foreground after:absolute after:inset-x-3 after:bottom-[-11px] after:h-0.5 after:bg-primary'
+                    'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary'
                 )}
               >
                 {t('navigation.docs')}
@@ -92,9 +92,9 @@ export function AppNavigation() {
                 href="/settings/management-tokens"
                 aria-current={pathname.startsWith('/settings') ? 'page' : undefined}
                 className={cn(
-                  'relative inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+                  'relative inline-flex h-full items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                   pathname.startsWith('/settings') &&
-                    'text-foreground after:absolute after:inset-x-3 after:bottom-[-11px] after:h-0.5 after:bg-primary'
+                    'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary'
                 )}
               >
                 {t('navigation.managementTokens')}
@@ -106,7 +106,7 @@ export function AppNavigation() {
             <SimpleThemeToggle className="border-transparent bg-transparent" />
             <Link
               href="/logout"
-              className="hidden min-h-11 items-center gap-2 px-3 text-sm text-muted-foreground hover:text-foreground md:flex"
+              className="hidden min-h-11 items-center gap-2 rounded-md px-3 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
             >
               <LogOut className="h-4 w-4" />
               {t('navigation.logout')}
@@ -115,10 +115,10 @@ export function AppNavigation() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
                   aria-label={t('navigation.more')}
                 >
-                  <MoreHorizontal className="h-[20px] w-[20px]" />
+                  <MoreHorizontal className="h-5 w-5" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-44">
@@ -160,8 +160,9 @@ export function AppNavigation() {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium text-foreground/75',
-                  active && 'text-foreground'
+                  'relative flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                  active &&
+                    'text-primary before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-primary'
                 )}
               >
                 <Icon className="h-5 w-5" />

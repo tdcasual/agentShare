@@ -3,6 +3,7 @@ import {
   ApiError,
   createManagementToken,
   getBootstrapStatus,
+  getCurrentSession,
   listAgents,
   login,
   replaceTokenGrants,
@@ -16,6 +17,7 @@ import {
 describe('vaultgate-api', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   describe('ApiError', () => {
@@ -142,6 +144,62 @@ describe('vaultgate-api', () => {
     await expect(getBootstrapStatus()).rejects.toMatchObject({
       status: 422,
       detail: 'Field required; Value is too long',
+    });
+  });
+
+  describe('session expiry redirect', () => {
+    function mockUnauthorized() {
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValue(
+            new Response(JSON.stringify({ detail: 'Authentication required' }), { status: 401 })
+          )
+      );
+    }
+
+    // jsdom forbids spying on window.location directly, so stub a minimal window
+    // exposing just what requestJson touches.
+    function stubWindowLocation(pathname: string) {
+      const replaceMock = vi.fn();
+      vi.stubGlobal('window', {
+        setTimeout: globalThis.setTimeout.bind(globalThis),
+        clearTimeout: globalThis.clearTimeout.bind(globalThis),
+        location: { pathname, replace: replaceMock },
+      });
+      return replaceMock;
+    }
+
+    it('redirects to /login when a non-session request returns 401', async () => {
+      mockUnauthorized();
+      const replaceMock = stubWindowLocation('/secrets');
+
+      await expect(listSecrets()).rejects.toMatchObject({ status: 401 });
+      expect(replaceMock).toHaveBeenCalledWith('/login');
+    });
+
+    it('does not redirect for session endpoint 401s', async () => {
+      mockUnauthorized();
+      const replaceMock = stubWindowLocation('/secrets');
+
+      await expect(getCurrentSession()).rejects.toMatchObject({ status: 401 });
+      expect(replaceMock).not.toHaveBeenCalled();
+    });
+
+    it('does not redirect while already on the login or setup page', async () => {
+      mockUnauthorized();
+      const replaceMock = stubWindowLocation('/login');
+
+      await expect(listSecrets()).rejects.toMatchObject({ status: 401 });
+      expect(replaceMock).not.toHaveBeenCalled();
+
+      vi.unstubAllGlobals();
+      mockUnauthorized();
+      const setupReplaceMock = stubWindowLocation('/setup');
+
+      await expect(listSecrets()).rejects.toMatchObject({ status: 401 });
+      expect(setupReplaceMock).not.toHaveBeenCalled();
     });
   });
 });

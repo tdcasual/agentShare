@@ -83,3 +83,24 @@ def test_audit_failure_does_not_return_secret_plaintext(client: TestClient) -> N
 
     assert response.status_code == 500
     assert "allowed-value" not in response.text
+
+
+def test_vault_access_with_oversized_secret_id_is_truncated_in_audit(client: TestClient) -> None:
+    """An over-length secret_id path parameter must be truncated before the
+    audit insert, returning a clean 4xx instead of a 500 on PostgreSQL."""
+    _agent_id, _token_id, token, _ = _create_runtime_fixture(client)
+    oversized_secret_id = "s" * 400
+
+    response = client.get(
+        f"/api/vault/secrets/{oversized_secret_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 403
+
+    audit = client.get(
+        "/api/admin/audit-logs",
+        params={"action": "secret.read", "result": "denied"},
+    )
+    assert audit.status_code == 200
+    assert audit.json()["total"] == 1
+    assert audit.json()["items"][0]["resource_id"] == oversized_secret_id[:255]

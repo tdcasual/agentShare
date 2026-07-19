@@ -6,6 +6,7 @@ import { LockKeyhole, Mail } from 'lucide-react';
 import { ApiError, login, type LoginInput } from '@/lib/vaultgate-api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
@@ -31,6 +32,8 @@ export default function LoginPage() {
     } catch (submitError) {
       if (submitError instanceof ApiError && submitError.status === 401) {
         setError(t('auth.login.failed'));
+      } else if (submitError instanceof ApiError && submitError.status === 429) {
+        setError(t('auth.login.rateLimited'));
       } else if (submitError instanceof ApiError && submitError.status === 0) {
         setError(t('common.networkError'));
       } else {
@@ -44,14 +47,14 @@ export default function LoginPage() {
   return (
     <main
       id="main-content"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12"
+      className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 sm:py-12"
     >
       {/* Header controls */}
       <div className="safe-area-inset-top fixed right-4 top-4 z-toast flex items-center gap-3">
         <SimpleThemeToggle />
       </div>
 
-      <Card className="relative z-10 w-full max-w-xl">
+      <Card className="w-full max-w-md">
         <div className="space-y-3 p-6 sm:space-y-5 sm:p-8 lg:space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
@@ -107,15 +110,7 @@ export default function LoginPage() {
             </div>
 
             {/* Status message */}
-            {error && (
-              <div
-                role="alert"
-                aria-live="polite"
-                className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-              >
-                {error}
-              </div>
-            )}
+            {error && <InlineAlert>{error}</InlineAlert>}
 
             <Button className="w-full" type="submit" loading={isSubmitting}>
               {t('auth.login.signIn')}

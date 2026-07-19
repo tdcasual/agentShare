@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
 from app.orm import AdminSession, AgentToken, AuditLog, IdempotencyRecord, ManagementToken
-from app.orm.admin_session import _as_utc
+from app.time_utils import as_utc
 
 
 def should_update_last_used(
@@ -17,7 +17,7 @@ def should_update_last_used(
 ) -> bool:
     if last_used_at is None:
         return True
-    return _as_utc(now) - _as_utc(last_used_at) >= timedelta(seconds=interval_seconds)
+    return as_utc(now) - as_utc(last_used_at) >= timedelta(seconds=interval_seconds)
 
 
 async def cleanup_expired_records(db: AsyncSession, settings: Settings) -> None:

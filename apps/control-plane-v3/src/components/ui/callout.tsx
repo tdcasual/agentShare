@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
-const calloutVariants = cva('flex items-start gap-3 rounded-xl p-4 text-sm', {
+const calloutVariants = cva('flex items-start gap-3 rounded-lg p-4 text-sm', {
   variants: {
     variant: {
       brand:

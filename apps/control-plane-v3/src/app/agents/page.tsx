@@ -8,9 +8,11 @@ import { useI18n } from '@/components/i18n-provider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PAGE_SIZE = 25;
 
@@ -46,8 +48,8 @@ export default function AgentsPage() {
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-7 p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
+      <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             VaultGate
@@ -88,11 +90,7 @@ export default function AgentsPage() {
                 maxLength={2000}
               />
             </div>
-            {formError && (
-              <p role="alert" className="text-sm text-destructive">
-                {formError}
-              </p>
-            )}
+            {formError && <InlineAlert>{formError}</InlineAlert>}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setShowCreate(false)}>
                 {t('common.cancel')}
@@ -107,14 +105,12 @@ export default function AgentsPage() {
 
       {isLoading ? (
         <div className="space-y-3 border-y py-4" aria-label={t('common.loading')}>
-          <div className="h-16 animate-pulse rounded-md bg-muted" />
-          <div className="h-16 animate-pulse rounded-md bg-muted" />
-          <div className="h-16 animate-pulse rounded-md bg-muted" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
         </div>
       ) : error ? (
-        <p role="alert" className="text-sm text-destructive">
-          {error.message}
-        </p>
+        <InlineAlert>{error.message}</InlineAlert>
       ) : agents.length === 0 ? (
         <EmptyState
           title={t('agents.empty')}
@@ -133,7 +129,7 @@ export default function AgentsPage() {
             <Link
               key={agent.id}
               href={`/agents/${agent.id}`}
-              className="group grid gap-2 px-2 py-5 transition-colors hover:bg-accent/40 sm:grid-cols-[1fr_auto] sm:px-3"
+              className="group grid gap-2 px-2 py-5 transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[1fr_auto] sm:px-3"
             >
               <div>
                 <div className="flex items-center gap-3">
@@ -147,7 +143,7 @@ export default function AgentsPage() {
                   {agent.description || t('agents.noDescription')}
                 </p>
               </div>
-              <span className="self-center text-xs uppercase tracking-wider text-muted-foreground">
+              <span className="self-center text-xs text-muted-foreground">
                 {t(`agents.status.${agent.status}`)}
               </span>
             </Link>

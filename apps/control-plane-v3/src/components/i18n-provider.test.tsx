@@ -13,6 +13,12 @@ function LocaleProbe() {
   );
 }
 
+function InterpolationProbe({ name }: { name: string }) {
+  const { t } = useI18n();
+
+  return <span data-testid="interpolated">{t('secrets.revealTitle', { name })}</span>;
+}
+
 describe('I18nProvider', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -42,5 +48,17 @@ describe('I18nProvider', () => {
   it('restores the saved locale when the locale cookie is missing', () => {
     expect(resolveClientLocalePreference('zh-CN', null, 'en')).toBe('en');
     expect(resolveClientLocalePreference('en', 'en', 'zh-CN')).toBe('en');
+  });
+
+  it('interpolates values containing special replacement patterns literally', () => {
+    render(
+      <I18nProvider initialLocale="en">
+        <InterpolationProbe name="prod$&db$'x" />
+      </I18nProvider>
+    );
+
+    const text = screen.getByTestId('interpolated').textContent;
+    expect(text).toContain("prod$&db$'x");
+    expect(text).not.toContain('{name}');
   });
 });

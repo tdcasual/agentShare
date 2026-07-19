@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Check, CheckCircle2, Copy, KeyRound, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { revokeToken, rotateToken, saveGrants, useTokenGrants } from '@/domains/agent';
 import { useSecrets } from '@/domains/secret';
 import type { AgentToken, IssuedAgentToken, SecretType } from '@/lib/vaultgate-api';
@@ -51,6 +52,7 @@ export function OneTimeToken({ token, onDone }: { token: IssuedAgentToken; onDon
             try {
               await navigator.clipboard.writeText(token.token);
               setCopied(true);
+              toast.success(t('common.copySuccess'));
             } catch {
               setCopyError(true);
             }
@@ -63,7 +65,7 @@ export function OneTimeToken({ token, onDone }: { token: IssuedAgentToken; onDon
         </Button>
       </div>
       {copyError && (
-        <p role="alert" className="mt-2 text-sm">
+        <p role="alert" className="mt-2 text-sm text-destructive">
           {t('agents.copyFailed')}
         </p>
       )}
@@ -86,13 +88,13 @@ export function TokenListItem({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`w-full px-3 py-4 text-left transition-colors ${selected ? 'bg-accent text-foreground' : 'hover:bg-accent/50'}`}
+      className={`w-full px-3 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${selected ? 'bg-accent text-foreground' : 'hover:bg-accent/50'}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="truncate font-medium">{token.name}</span>
-            <Badge variant={token.status === 'active' ? 'default' : 'secondary'}>
+            <Badge variant={token.status === 'active' ? 'success' : 'secondary'}>
               {t(`agents.tokenStatus.${token.status}`)}
             </Badge>
           </div>
@@ -181,13 +183,13 @@ export function TokenAccessPanel({
   }
 
   return (
-    <Card className="min-w-0 overflow-hidden shadow-none lg:sticky lg:top-20">
+    <Card className="min-w-0 overflow-hidden lg:sticky lg:top-20">
       <div className="border-b p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="truncate text-lg font-semibold">{token.name}</h3>
-              <Badge variant={token.status === 'active' ? 'default' : 'secondary'}>
+              <Badge variant={token.status === 'active' ? 'success' : 'secondary'}>
                 {t(`agents.tokenStatus.${token.status}`)}
               </Badge>
             </div>
@@ -338,7 +340,7 @@ export function TokenAccessPanel({
               >
                 <input
                   type="checkbox"
-                  className="mt-0.5 h-4 w-4"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                   checked={selectedSet.has(secret.id)}
                   onChange={(event) =>
                     updateSelection(
@@ -424,7 +426,7 @@ function formatDate(value: string, locale: string) {
 
 export function AgentDetailSkeleton() {
   return (
-    <main id="main-content" className="mx-auto max-w-screen-2xl space-y-6 p-6 lg:p-8">
+    <main id="main-content" className="mx-auto max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
       <Skeleton className="h-8 w-64" />
       <Skeleton className="h-20 w-full" />
       <TokenWorkspaceSkeleton />

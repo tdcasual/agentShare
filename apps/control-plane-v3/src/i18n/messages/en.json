@@ -8,6 +8,8 @@
     "confirmPassword": "Confirm password",
     "createAccount": "Create admin account",
     "passwordMismatch": "Passwords do not match",
+    "passwordTooWeak": "Password must be at least 12 characters and include uppercase, lowercase, number, and special characters.",
+    "passwordTooLong": "Password is too long: encryption supports at most 72 UTF-8 bytes. Please use a shorter password.",
     "failed": "Initialization failed. Please check password strength and try again.",
     "statusFailed": "VaultGate could not confirm whether setup is complete. To prevent duplicate initialization, setup is unavailable until the service can be reached."
   },
@@ -18,9 +20,8 @@
       "email": "Email",
       "password": "Password",
       "signIn": "Sign In",
-      "signingIn": "Signing in...",
       "failed": "Login failed. Please check your credentials.",
-      "pageTitle": "VaultGate - Secure Key Storage & Token Issuance"
+      "rateLimited": "Too many login attempts. Please try again later."
     },
     "logout": {
       "signingOut": "Signing out...",
@@ -29,45 +30,34 @@
     }
   },
   "common": {
-    "active": "Active",
-    "all": "All",
-    "back": "Back",
     "cancel": "Cancel",
     "close": "Close",
-    "confirm": "Confirm",
     "copied": "Copied",
     "copy": "Copy",
+    "copySuccess": "Copied to clipboard.",
     "create": "Create",
     "delete": "Delete",
     "done": "Done",
     "edit": "Edit",
-    "error": "Error",
     "initializing": "Initializing Control Plane...",
     "entryStateLoadFailed": "Failed to resolve the application entry state.",
     "loading": "Loading...",
-    "loadingEllipsis": "Loading...",
-    "new": "New",
     "next": "Next",
     "previous": "Previous",
     "of": "of",
     "pagination": "Pagination",
     "retry": "Retry",
-    "save": "Save",
-    "search": "Search",
     "serviceUnavailable": "Service Unavailable",
     "serviceUnavailableDescription": "Unable to connect to the backend service. Please check your connection and try again.",
-    "total": "total",
     "pageNotFoundTitle": "Page not found",
     "pageNotFoundDescription": "Sorry, we couldn't find the page you're looking for. It might have moved or never existed.",
     "backToHome": "Back to home",
     "preparingPage": "Preparing page...",
-    "unknown": "Unknown",
     "unknownError": "Unknown error",
     "networkError": "VaultGate could not be reached. Check the network or service status and try again.",
     "serverError": "VaultGate could not complete the request. Please try again shortly.",
     "skipToContent": "Skip to main content",
     "refreshPage": "Refresh page",
-    "tryAgainLater": "Please try again later",
     "unexpectedErrorTitle": "Something went wrong",
     "unexpectedErrorDescription": "An unexpected error occurred. Please try again."
   },
@@ -90,24 +80,13 @@
   },
   "modal": {
     "cancel": "Cancel",
-    "confirm": "Confirm",
-    "defaultConfirmMessage": "Are you sure you want to proceed with this action?"
+    "confirm": "Confirm"
   },
   "errorBoundary": {
     "title": "Something went wrong",
     "contactSupport": "If the issue persists, please contact technical support"
   },
-  "forbiddenState": {
-    "title": "Access restricted",
-    "noPermission": "You do not have permission to access this page",
-    "noPermissionWithResource": "You do not have permission to access \"{resource}\"",
-    "currentRole": "Current",
-    "notLoggedIn": "Not logged in",
-    "requiredRole": "Required",
-    "contactAdmin": "If you need access, please contact the system administrator"
-  },
   "dashboard": {
-    "title": "VaultGate",
     "subtitle": "Manage sensitive data, runtime identities, and least-privilege access.",
     "controlPlane": "Security control plane",
     "securityStatus": "Security status",
@@ -131,35 +110,10 @@
     "deniedRequests": "Denied Agent requests",
     "valueReads": "Secret value reads",
     "openDocs": "Open the Runtime API guide",
-    "manageTokens": "Manage Tokens",
-    "ready": "VaultGate is Ready",
-    "readyDesc": "Your secure key storage service is running. Create secrets, issue tokens, and monitor access through the audit log.",
     "totalSecrets": "Total Secrets",
-    "activeTokens": "Active Tokens",
     "activeAgents": "Active Agents",
     "recentActivity": "Recent Activity (24h)",
-    "quickActions": "Quick Actions",
-    "createSecret": "Create Secret",
-    "createSecretDesc": "Add a new password or API key",
-    "createToken": "Create Token",
-    "createTokenDesc": "Issue a new access token",
-    "viewAudit": "View Audit Log",
-    "viewAuditDesc": "Check access history",
-    "browse": "Browse",
-    "secrets": "Secrets",
-    "tokens": "Tokens",
-    "agents": "Agents",
-    "auditLogs": "Audit Logs",
-    "apiDocs": "API Documentation",
-    "apiReference": "API Quick Reference",
-    "publicEndpoints": "Public endpoints (no authentication):",
-    "agentAccess": "Agent access (Bearer token required):",
-    "healthCheck": "Health check",
-    "apiDocumentation": "API documentation (Swagger)",
-    "openapiSchema": "OpenAPI schema",
-    "listSecrets": "List accessible secrets",
-    "getSecret": "Get secret with field filtering",
-    "getSecretValue": "Get only secret value"
+    "createSecret": "Create Secret"
   },
   "agents": {
     "title": "Agents",
@@ -189,12 +143,13 @@
     "issueToken": "Issue Token",
     "issueTokenDescription": "Use separate tokens for separate jobs and choose the shortest practical lifetime.",
     "saveGrantsBeforeIssuing": "Save or discard the current grant changes before issuing another token.",
+    "issueTokenDisabledAgent": "This Agent is disabled. Re-enable it to issue new tokens.",
     "ttl": {
-      "none": "No expiry",
       "3600": "1 hour",
       "86400": "24 hours",
       "604800": "7 days",
-      "2592000": "30 days"
+      "2592000": "30 days",
+      "none": "No expiry"
     },
     "tokens": "Agent Tokens",
     "tokensDescription": "Select a token to inspect its state and maintain its Secret access.",
@@ -259,7 +214,6 @@
     "newSecret": "New Secret",
     "createSecret": "Create Secret",
     "saveChanges": "Save changes",
-    "loading": "Loading secrets...",
     "loadFailed": "Failed to load secrets",
     "emptyTitle": "No secrets yet",
     "emptyDesc": "Create your first secret, then grant it to the tokens that need it.",
@@ -344,7 +298,6 @@
     "status": "Status",
     "events": "Events",
     "resultCount": "{count} events",
-    "loading": "Loading audit logs...",
     "loadFailed": "Failed to load audit logs",
     "emptyTitle": "No audit events yet",
     "emptyDesc": "Administrator operations and Agent access will appear here.",
@@ -419,12 +372,8 @@
   },
   "settings": {
     "theme": {
-      "dark": "Dark",
-      "light": "Light",
-      "system": "System",
       "switchToDark": "Switch to dark mode",
-      "switchToLight": "Switch to light mode",
-      "title": "Theme"
+      "switchToLight": "Switch to light mode"
     }
   }
 }
