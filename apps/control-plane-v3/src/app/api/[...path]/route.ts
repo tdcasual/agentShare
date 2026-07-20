@@ -67,9 +67,22 @@ async function handleRequest(request: NextRequest, { params }: RouteParams): Pro
     });
 
     // Preserve the client address for backend auditing. Node runtime has no
-    // reliable socket IP, so forward the existing X-Forwarded-For chain as-is
-    // and fall back to X-Real-IP when the chain is absent.
-    const forwardedFor = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip');
+    // reliable socket IP, so derive it from X-Forwarded-For. Only the last
+    // chain entry is trustworthy because the edge proxy appends the peer it
+    // actually observes, while earlier entries can be spoofed by the client:
+    // - Caddy topology: the edge overwrites X-Forwarded-For with a single
+    //   entry (the real client IP), so the last entry is that IP.
+    // - Traefik topology (Coolify): the edge appends the client IP it sees to
+    //   any client-supplied chain, so the last entry is the edge-observed IP.
+    // Forward that single entry and fall back to X-Real-IP when no chain
+    // exists.
+    const forwardedChain = request.headers.get('x-forwarded-for');
+    const lastHop = forwardedChain
+      ?.split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0)
+      .pop();
+    const forwardedFor = lastHop ?? request.headers.get('x-real-ip');
     if (forwardedFor) {
       headers['x-forwarded-for'] = forwardedFor;
     }

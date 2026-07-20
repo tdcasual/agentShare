@@ -1,0 +1,159 @@
+# =============================================================================
+# Coolify deployment — select this file as the compose file in the Coolify UI.
+#
+# This stack targets the Coolify platform (v4+): Coolify owns the edge
+# (Traefik reverse proxy, managed TLS, routing), so there is intentionally
+# no Caddy service, no custom networks, and no static IPs. Coolify attaches
+# the services to its own proxy network.
+#
+# Only the `web` service needs a domain assigned in Coolify. The browser
+# always talks to the same-origin /api proxy inside `web`; `api` and
+# `postgres` stay internal to the compose network.
+# =============================================================================
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: apps/postgres/Dockerfile
+    command:
+      - postgres
+      - -c
+      - fsync=on
+      - -c
+      - synchronous_commit=on
+      - -c
+      - full_page_writes=on
+      - -c
+      - wal_compression=on
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vaultgate}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_PASSWORD_FILE: ${POSTGRES_PASSWORD_FILE:-}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:---data-checksums}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ${VAULTGATE_SECRETS_DIR:-./.vaultgate-secrets}:/run/secrets/vaultgate:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vaultgate}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    stop_grace_period: 2m
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      # Leave DATABASE_URL empty to wire the API to the bundled postgres
+      # service through the structured POSTGRES_* settings below. Set it
+      # explicitly (URL-encoded) only when using an external database.
+      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_URL_FILE: ${DATABASE_URL_FILE:-}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-vaultgate}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_PASSWORD_FILE: ${POSTGRES_PASSWORD_FILE:-}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      ENCRYPTION_KEY_FILE: ${ENCRYPTION_KEY_FILE:-}
+      ENCRYPTION_ACTIVE_KEY_ID: ${ENCRYPTION_ACTIVE_KEY_ID:-current}
+      ENCRYPTION_KEYRING: ${ENCRYPTION_KEYRING:-{}}
+      ENCRYPTION_KEYRING_FILE: ${ENCRYPTION_KEYRING_FILE:-}
+      BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN:-}
+      BOOTSTRAP_TOKEN_FILE: ${BOOTSTRAP_TOKEN_FILE:-}
+      SESSION_SECURE: ${SESSION_SECURE:-true}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-vaultgate_session}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-43200}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      CORS_ALLOW_CREDENTIALS: ${CORS_ALLOW_CREDENTIALS:-true}
+      # Coolify's Traefik edge runs on the docker bridge ranges; the API only
+      # trusts X-Forwarded-For from these proxies. Narrow this if you know the
+      # exact proxy subnet.
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-172.16.0.0/12}
+      AUTH_RATE_LIMIT_MAX_ATTEMPTS: ${AUTH_RATE_LIMIT_MAX_ATTEMPTS:-5}
+      AUTH_RATE_LIMIT_WINDOW_SECONDS: ${AUTH_RATE_LIMIT_WINDOW_SECONDS:-300}
+      LAST_USED_WRITE_INTERVAL_SECONDS: ${LAST_USED_WRITE_INTERVAL_SECONDS:-300}
+      CREDENTIAL_RETENTION_DAYS: ${CREDENTIAL_RETENTION_DAYS:-30}
+      AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-365}
+      IDEMPOTENCY_RETENTION_DAYS: ${IDEMPOTENCY_RETENTION_DAYS:-7}
+      MAX_REQUEST_BODY_BYTES: ${MAX_REQUEST_BODY_BYTES:-2097152}
+      MIGRATION_LOCK_TIMEOUT_SECONDS: ${MIGRATION_LOCK_TIMEOUT_SECONDS:-120}
+      RUN_DB_MIGRATIONS_ON_STARTUP: ${RUN_DB_MIGRATIONS_ON_STARTUP:-true}
+    expose:
+      - "8000"
+    volumes:
+      - ${VAULTGATE_SECRETS_DIR:-./.vaultgate-secrets}:/run/secrets/vaultgate:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/control-plane-v3/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      VAULTGATE_API_URL: ${VAULTGATE_API_URL:-http://api:8000}
+      VAULTGATE_API_TIMEOUT_MS: ${VAULTGATE_API_TIMEOUT_MS:-30000}
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then((res)=>{if(!res.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /srv/vaultgate/apps/control-plane-v3/.next/cache
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+
+volumes:
+  postgres-data:

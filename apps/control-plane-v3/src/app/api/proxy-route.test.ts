@@ -35,7 +35,7 @@ describe('API route proxy headers', () => {
     expect(forwardedHeaders.get('x-untrusted-header')).toBeNull();
   });
 
-  it('forwards the client user-agent and IP address to the backend', async () => {
+  it('forwards the client user-agent and the rightmost X-Forwarded-For entry to the backend', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ items: [], total: 0 }), {
         status: 200,
@@ -57,8 +57,29 @@ describe('API route proxy headers', () => {
     expect(response.status).toBe(200);
     const forwardedHeaders = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
     expect(forwardedHeaders.get('user-agent')).toBe('Mozilla/5.0 (VaultGate Admin)');
-    // An existing X-Forwarded-For chain is forwarded as-is.
-    expect(forwardedHeaders.get('x-forwarded-for')).toBe('203.0.113.10, 70.41.3.18');
+    // Only the rightmost entry is forwarded: the edge proxy appends the client
+    // IP it observes, while earlier entries may be client-spoofed.
+    expect(forwardedHeaders.get('x-forwarded-for')).toBe('70.41.3.18');
+  });
+
+  it('forwards a single-entry X-Forwarded-For unchanged, ignoring empty entries', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ items: [], total: 0 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const request = new NextRequest('http://localhost/api/admin/audit-logs', {
+      headers: { 'x-forwarded-for': ' 198.51.100.9 , ' },
+    });
+
+    await GET(request, {
+      params: Promise.resolve({ path: ['admin', 'audit-logs'] }),
+    });
+
+    const forwardedHeaders = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(forwardedHeaders.get('x-forwarded-for')).toBe('198.51.100.9');
   });
 
   it('builds x-forwarded-for from x-real-ip when no chain exists', async () => {
@@ -71,6 +92,26 @@ describe('API route proxy headers', () => {
     vi.stubGlobal('fetch', fetchMock);
     const request = new NextRequest('http://localhost/api/admin/audit-logs', {
       headers: { 'x-real-ip': '198.51.100.7' },
+    });
+
+    await GET(request, {
+      params: Promise.resolve({ path: ['admin', 'audit-logs'] }),
+    });
+
+    const forwardedHeaders = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(forwardedHeaders.get('x-forwarded-for')).toBe('198.51.100.7');
+  });
+
+  it('falls back to x-real-ip when the chain has only empty entries', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ items: [], total: 0 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const request = new NextRequest('http://localhost/api/admin/audit-logs', {
+      headers: { 'x-forwarded-for': ' , , ', 'x-real-ip': '198.51.100.7' },
     });
 
     await GET(request, {

@@ -26,7 +26,7 @@ Important groups:
 | Management Tokens | `/api/admin/management-tokens` |
 | Secrets | `/api/admin/secrets` |
 | Agents | `/api/admin/agents` |
-| Agent Tokens and grants | `/api/admin/tokens/*` |
+| Agent Tokens and grants | `/api/admin/agents/{id}/tokens`, `/api/admin/tokens/*` |
 | Audit | `/api/admin/audit-logs`, `/api/admin/audit-stats` |
 
 Agent runtime endpoints use `/api/vault/*` and accept only `vg_` Tokens:
@@ -89,17 +89,24 @@ cp ops/compose/prod.env.example .env.production
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ```
 
+Deploying on Coolify instead of the bundled Caddy stack? Use `docker-compose.coolify.yml` and follow `docs/guides/coolify-deployment.md`.
+
 Generate the encryption key:
 
 ```bash
 python3 -c 'import secrets,base64; print(base64.b64encode(secrets.token_bytes(32)).decode())'
 ```
 
-Before upgrading an existing deployment, back up PostgreSQL. Container startup runs `alembic upgrade head`; the migration preserves current users, Secrets, Tokens, grants, and audit records while introducing Agents and server-side administrator authentication.
+Before upgrading an existing deployment, back up PostgreSQL. Container startup runs `alembic upgrade head`; the migration preserves current users, Secrets, Tokens, grants, and audit records while introducing Agents and server-side administrator authentication. The `20260720_01` migration renames duplicate Secret and Token names by appending ` (2)` suffixes before creating the unique name indexes, so existing data is preserved.
 
 See:
 
 - `docs/guides/deployment-manual.md`
-- `docs/guides/production-security.md`
+- `docs/guides/production-deployment.md`
+- `docs/guides/coolify-deployment.md`
 - `docs/guides/production-operations.md`
+- `docs/guides/production-security.md`
+- `docs/guides/data-durability.md`
+- `docs/guides/monitoring.md`
+- `docs/guides/troubleshooting.md`
 - `docs/guides/agent-quickstart.md`

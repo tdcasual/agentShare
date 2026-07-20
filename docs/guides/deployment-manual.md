@@ -1,5 +1,7 @@
 # Deployment Manual
 
+> Deploying on the Coolify platform (managed Traefik edge and TLS)? Follow [coolify-deployment.md](coolify-deployment.md) instead; this manual covers the self-managed Caddy stack.
+
 ## Production prerequisites
 
 - Docker and Docker Compose v2+
@@ -16,9 +18,10 @@ cp ops/compose/prod.env.example .env.production
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ```
 
-Verify:
+Verify (`smoke-test.sh` requires `PUBLIC_HOST`, so export the production environment first, like `deploy.yml` does):
 
 ```bash
+set -a; . ./.env.production; set +a
 ./scripts/ops/smoke-test.sh
 ```
 
@@ -36,10 +39,11 @@ Open `https://YOUR_DOMAIN/setup` to create the single administrator. Administrat
 ./scripts/ops/backup-postgres.sh
 docker compose --env-file .env.production -f docker-compose.prod.yml pull
 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+set -a; . ./.env.production; set +a
 ./scripts/ops/smoke-test.sh
 ```
 
-The migration preserves existing administrator data, Secrets, Token hashes, grants, and audit records. Existing Tokens are assigned to a migration Agent.
+The migration preserves existing administrator data, Secrets, Token hashes, grants, and audit records. Existing Tokens are assigned to a migration Agent. The `20260720_01` migration renames duplicate Secret and Token names by appending ` (2)` suffixes before creating the unique name indexes, so existing data is preserved.
 
 ## Recovery
 

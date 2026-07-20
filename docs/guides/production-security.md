@@ -46,6 +46,8 @@ Review the latest security workflow before promoting an image. A passing source 
 ## Secret rotation
 
 - Rotate Agent and management Tokens through the admin API or control plane; revoke the replaced credential after dependants have switched.
+- Since 2026-07-20 a revoked Token cannot be rotated: rotation returns `409` and a new Token must be issued instead. Expired Tokens still rotate normally.
+- Secret names are globally unique and Token names are unique per Agent; duplicates are rejected with `409`. On upgrade, the `20260720_01` migration preserves existing data by appending ` (2)` suffixes to duplicate names before creating the unique indexes.
 - Rotate database credentials through the deployment secret store and restart the affected services.
 - New ciphertext records the active key id. Keep old keys in `ENCRYPTION_KEYRING` until all data is re-encrypted, then remove them.
 - Keep active and historical keys in a versioned secret store plus an offline, dual-control recovery copy.

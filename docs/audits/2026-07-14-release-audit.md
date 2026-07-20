@@ -193,7 +193,7 @@
 
 ### L2. 现有 UI 审计报告已过期
 
-- **位置**：`apps/control-plane-v3/AUDIT-REPORT.md`
+- **位置**：`docs/audits/2026-07-13-control-plane-ui-audit.md`（原 `apps/control-plane-v3/AUDIT-REPORT.md`）
 - 多项 Critical/High 已在后续提交修复（AlertTriangle、EmptyState、Callout、Badge span、按钮 loading、theme color 等），但报告未标注 resolved，仍把已修问题列为待办。
 - 建议保留历史报告但增加审计 commit、状态和 superseded 链接，避免重复劳动。
 

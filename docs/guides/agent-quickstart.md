@@ -2,6 +2,15 @@
 
 An Agent uses a `vg_` Token. The administrator creates the Agent, issues its Token, and explicitly selects the Secrets visible to that Token.
 
+## In the console
+
+The in-app `/docs` page condenses the flow into three steps — create a Secret, issue and grant a Token, call the Runtime API. The full administrator path in the UI:
+
+1. Open **Agents** in the navigation (`/agents`) and select an Agent to open its detail page.
+2. Click **Issue Token** to create a `vg_` Token; the plaintext is shown once. Issuing is blocked while the grant panel has unsaved changes.
+3. In the grant panel, tick the Secrets the Token may read, then click **Save access** — ticking boxes alone applies nothing.
+4. `vgm_` management Tokens for administrator automation live under **Management Tokens** (`/settings/management-tokens`).
+
 Keep Tokens out of source code and logs:
 
 ```bash

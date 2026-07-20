@@ -57,6 +57,8 @@
 
 ## 3. 验证结果
 
+> 时点标注：本节数字为 2026-07-19 再审计完成时点的快照；2026-07-20 追加修复后的最新验证见 `2026-07-20-ui-ux-live-audit.md` 与 `scripts/ops/verify-control-plane.sh` 的最新运行。
+
 再审计修复完成后以 `scripts/ops/verify-control-plane.sh` 全量复验，全部通过：
 
 - 后端：`ruff check` 通过；`mypy` 51 文件无错误；`pytest apps/api/tests` **126 通过** + `tests/ops` **68 通过**，合并覆盖率 **90.32%**（门槛 80%）。

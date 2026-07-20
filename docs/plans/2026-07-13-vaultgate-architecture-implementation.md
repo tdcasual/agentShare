@@ -227,7 +227,7 @@
 
 **Files:**
 - Update: `docs/audits/2026-07-14-release-audit.md`
-- Update: `apps/control-plane-v3/AUDIT-REPORT.md`
+- Update: `apps/control-plane-v3/AUDIT-REPORT.md`（后移至 `docs/audits/2026-07-13-control-plane-ui-audit.md`）
 - Update/delete: `.learnings/ERRORS.md` entries as resolved
 
 **Steps:**

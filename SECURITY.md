@@ -13,3 +13,7 @@ five business days and coordinate disclosure after a fix is available.
 
 Immediately revoke and rotate any credential that may have been exposed. Never include live Secret,
 `vg_`, `vgm_`, session, bootstrap, database, or deployment credentials in a report.
+
+## Security Model
+
+See [docs/guides/production-security.md](docs/guides/production-security.md) for the security model: trust boundaries, required configuration, and application protections.
