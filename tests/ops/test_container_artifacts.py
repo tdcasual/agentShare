@@ -37,7 +37,7 @@ def test_compose_includes_web_and_api_services() -> None:
 def test_api_dockerfile_exposes_runtime_contract() -> None:
     dockerfile = (ROOT / "apps/api/Dockerfile").read_text()
     entrypoint = (ROOT / "apps/api/docker-entrypoint.sh").read_text()
-    assert "FROM python:3.12-slim" in dockerfile
+    assert "FROM python:3.12-slim@sha256:" in dockerfile
     assert "requirements.lock" in dockerfile
     assert "pip install" in dockerfile
     assert "-r requirements.lock" in dockerfile
@@ -68,7 +68,8 @@ def test_api_runtime_lockfile_exists() -> None:
 
 def test_web_dockerfile_builds_next_app() -> None:
     dockerfile = (ROOT / "apps/control-plane-v3/Dockerfile").read_text()
-    assert "FROM node:22-bookworm-slim AS deps" in dockerfile
+    assert "FROM node:22-bookworm-slim@sha256:" in dockerfile
+    assert " AS deps" in dockerfile
     assert "npm ci" in dockerfile
     assert "npm run build" in dockerfile
     assert ".next/standalone" in dockerfile

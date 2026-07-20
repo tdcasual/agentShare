@@ -1,18 +1,18 @@
 # ============================================================
 # Stage 1: Builder — install dependencies
 # ============================================================
-FROM python:3.12-slim AS builder
+FROM python:3.12-slim@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de AS builder
 
 WORKDIR /build
 
 # Install build dependencies
 COPY apps/api/pyproject.toml apps/api/requirements.lock ./
-RUN pip install --no-cache-dir --prefix=/install -r requirements.lock
+RUN pip install --no-cache-dir --require-hashes --prefix=/install -r requirements.lock
 
 # ============================================================
 # Stage 2: Runner — minimal production image
 # ============================================================
-FROM python:3.12-slim
+FROM python:3.12-slim@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

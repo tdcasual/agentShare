@@ -24,9 +24,10 @@ def test_production_compose_includes_caddy() -> None:
 def test_caddy_image_is_rebuilt_with_patched_go_toolchain() -> None:
     dockerfile = (ROOT / "apps/caddy/Dockerfile").read_text()
 
-    assert "FROM golang:1.26.5-alpine3.23 AS builder" in dockerfile
+    assert "FROM golang:1.26.5-alpine3.23@sha256:" in dockerfile
+    assert " AS builder" in dockerfile
     assert "github.com/caddyserver/caddy/v2/cmd/caddy@v2.11.4" in dockerfile
-    assert "FROM alpine:3.23" in dockerfile
+    assert "FROM alpine:3.23@sha256:" in dockerfile
     assert "apk upgrade" in dockerfile
     assert 'CMD ["caddy", "run"' in dockerfile
 

@@ -97,3 +97,31 @@ docker compose --env-file .env.production --env-file .release.env -f docker-comp
 curl -fsS -H "Authorization: Bearer ${VGM_TOKEN}" \
   "https://${PUBLIC_HOST}/api/admin/audit-logs?limit=50" | grep '<request-id>'
 ```
+
+## Supply Chain Pinning
+
+Base images in every Dockerfile are pinned by digest (`FROM image:tag@sha256:<digest>`),
+and the API runtime dependencies are locked with hashes in `apps/api/requirements.lock`
+(installed with `pip install --require-hashes`). The tag is kept for readability; the
+digest is what Docker actually pulls.
+
+Upgrading a base image:
+
+1. Resolve the current digest for the new tag:
+   `docker buildx imagetools inspect <image>:<tag>` (use the top-level index digest so
+   multi-arch builds keep working).
+2. Update the `FROM image:tag@sha256:<digest>` line in the Dockerfile.
+3. Open a PR — the Docker Images workflow (`.github/workflows/docker-images.yml`) builds
+   the image and runs a Trivy scan before anything is pushed to GHCR. Only merge when the
+   scan is clean.
+
+Regenerating the API dependency lock after changing `apps/api/pyproject.toml` (run inside
+the Python 3.12 container toolchain so the pins match the runtime):
+
+```bash
+docker run --rm -v "$PWD/apps/api:/work" -w /work python:3.12-slim \
+  sh -c "pip install pip-tools && pip-compile --generate-hashes --output-file=requirements.lock pyproject.toml"
+```
+
+CI audits the locked dependencies with `pip-audit -r requirements.lock`; review its output
+before merging dependency bumps.
