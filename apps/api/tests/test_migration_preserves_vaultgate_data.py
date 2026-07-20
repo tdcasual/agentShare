@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.exc import IntegrityError
 
 from alembic import command
 
@@ -133,3 +135,83 @@ def test_migrated_schema_matches_orm_metadata(tmp_path, monkeypatch) -> None:
     command.upgrade(config, "head")
 
     command.check(config)
+
+
+def test_upgrade_dedupes_names_before_adding_unique_indexes(tmp_path, monkeypatch) -> None:
+    database_url = f"sqlite:///{tmp_path / 'dedupe.db'}"
+    monkeypatch.setenv("DATABASE_URL", database_url)
+    config = _alembic_config(database_url)
+    command.upgrade(config, "20260715_01")
+
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO users (id, email, password_hash) "
+                "VALUES ('admin-id', 'admin@example.com', 'password-hash')"
+            )
+        )
+        for agent_id, name in (("agent-a", "deploy"), ("agent-b", "backup")):
+            connection.execute(
+                text("INSERT INTO agents (id, user_id, name, status) VALUES (:id, 'admin-id', :name, 'active')"),
+                {"id": agent_id, "name": name},
+            )
+        for secret_id, name, created_at in (
+            ("secret-1", "github", "2026-01-01 00:00:00"),
+            ("secret-2", "github", "2026-01-02 00:00:00"),
+            ("secret-3", "solo", "2026-01-01 00:00:00"),
+        ):
+            connection.execute(
+                text(
+                    "INSERT INTO secrets (id, user_id, type, name, value_encrypted, tags, metadata, created_at) "
+                    "VALUES (:id, 'admin-id', 'api_key', :name, 'ciphertext', '[]', '{}', :created_at)"
+                ),
+                {"id": secret_id, "name": name, "created_at": created_at},
+            )
+        for token_id, agent_id, name, created_at in (
+            ("token-1", "agent-a", "primary", "2026-01-01 00:00:00"),
+            ("token-2", "agent-a", "primary", "2026-01-02 00:00:00"),
+            ("token-3", "agent-b", "primary", "2026-01-01 00:00:00"),
+        ):
+            connection.execute(
+                text(
+                    "INSERT INTO agent_tokens (id, user_id, agent_id, key_hash, key_prefix, name, status, created_at) "
+                    "VALUES (:id, 'admin-id', :agent_id, :key_hash, 'vg_abcd', :name, 'active', :created_at)"
+                ),
+                {"id": token_id, "agent_id": agent_id, "key_hash": f"hash-{token_id}", "name": name, "created_at": created_at},
+            )
+
+    command.upgrade(config, "head")
+
+    # The earliest-created row of each duplicate group keeps the original name.
+    with engine.connect() as connection:
+        secrets = connection.execute(text("SELECT id, name FROM secrets ORDER BY id")).all()
+        tokens = connection.execute(text("SELECT id, name FROM agent_tokens ORDER BY id")).all()
+    assert dict(secrets) == {
+        "secret-1": "github",
+        "secret-2": "github (2)",
+        "secret-3": "solo",
+    }
+    assert dict(tokens) == {
+        "token-1": "primary",
+        "token-2": "primary (2)",
+        "token-3": "primary",  # different agent: untouched
+    }
+
+    indexes = {index["name"]: index for index in inspect(engine).get_indexes("secrets")}
+    assert indexes["uq_secrets_name"]["column_names"] == ["name"]
+    assert indexes["uq_secrets_name"]["unique"]
+    token_indexes = {index["name"]: index for index in inspect(engine).get_indexes("agent_tokens")}
+    assert token_indexes["uq_agent_tokens_agent_id_name"]["column_names"] == ["agent_id", "name"]
+    assert token_indexes["uq_agent_tokens_agent_id_name"]["unique"]
+
+    # The unique index rejects new duplicates.
+    with pytest.raises(IntegrityError), engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO secrets (id, user_id, type, name, value_encrypted, tags, metadata) "
+                "VALUES ('secret-4', 'admin-id', 'api_key', 'github', 'ciphertext', '[]', '{}')"
+            )
+        )
+
+    engine.dispose()

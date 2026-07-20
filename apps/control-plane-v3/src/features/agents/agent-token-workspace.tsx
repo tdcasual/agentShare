@@ -146,6 +146,8 @@ export function TokenAccessPanel({
   const [confirmation, setConfirmation] = useState<'rotate' | 'revoke' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // 已吊销 Token 的授权变更不会生效：禁用整个授权面板，轮换回 active 后自动恢复
+  const grantsDisabled = token.status !== 'active';
 
   useEffect(() => {
     if (!selectionDirty) {
@@ -257,7 +259,7 @@ export function TokenAccessPanel({
         variant="danger"
       />
 
-      <fieldset className="min-w-0 p-5 disabled:opacity-70" disabled={saving}>
+      <fieldset className="min-w-0 p-5 disabled:opacity-70" disabled={saving || grantsDisabled}>
         <legend className="px-1 text-sm font-semibold">{t('agents.secretAccess')}</legend>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>{t('agents.selectedSecrets', { count: selected.length })}</span>
@@ -267,6 +269,11 @@ export function TokenAccessPanel({
             </span>
           )}
         </div>
+        {grantsDisabled && (
+          <p role="status" className="mt-2 text-sm text-muted-foreground">
+            {t('agents.grantsDisabledRevoked')}
+          </p>
+        )}
 
         <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
           <div className="relative">

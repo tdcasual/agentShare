@@ -144,6 +144,7 @@
     "issueTokenDescription": "Use separate tokens for separate jobs and choose the shortest practical lifetime.",
     "saveGrantsBeforeIssuing": "Save or discard the current grant changes before issuing another token.",
     "issueTokenDisabledAgent": "This Agent is disabled. Re-enable it to issue new tokens.",
+    "grantsDisabledRevoked": "This token has been revoked. Grant changes will have no effect.",
     "ttl": {
       "3600": "1 hour",
       "86400": "24 hours",

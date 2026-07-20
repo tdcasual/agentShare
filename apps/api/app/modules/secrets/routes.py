@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api_schemas import ReencryptResponse, SecretPageResponse, SecretResponse, SecretValueResponse
@@ -90,23 +91,27 @@ async def create_secret(
         secret_metadata=body.metadata,
     )
     db.add(secret)
-    await db.flush()
-    add_admin_audit(
-        db,
-        request,
-        principal,
-        action="secret.create",
-        resource_type="secret",
-        resource_id=secret.id,
-        resource_label=secret.name,
-    )
-    await db.flush()
-    payload = serialize_secret(secret)
-    concurrent_replay = await commit_idempotent_response(
-        db, principal.user.id, idempotency, payload, status_code=201
-    )
-    if concurrent_replay is not None:
-        return concurrent_replay
+    try:
+        await db.flush()
+        add_admin_audit(
+            db,
+            request,
+            principal,
+            action="secret.create",
+            resource_type="secret",
+            resource_id=secret.id,
+            resource_label=secret.name,
+        )
+        await db.flush()
+        payload = serialize_secret(secret)
+        concurrent_replay = await commit_idempotent_response(
+            db, principal.user.id, idempotency, payload, status_code=201
+        )
+        if concurrent_replay is not None:
+            return concurrent_replay
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Secret name already exists") from exc
     await db.refresh(secret)
     return payload
 
@@ -187,16 +192,20 @@ async def update_secret(
         secret.value_encrypted = get_encryption_service().encrypt(changes.pop("value"))
     for field, value in changes.items():
         setattr(secret, field, value)
-    add_admin_audit(
-        db,
-        request,
-        principal,
-        action="secret.update",
-        resource_type="secret",
-        resource_id=secret.id,
-        resource_label=secret.name,
-    )
-    await db.commit()
+    try:
+        add_admin_audit(
+            db,
+            request,
+            principal,
+            action="secret.update",
+            resource_type="secret",
+            resource_id=secret.id,
+            resource_label=secret.name,
+        )
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Secret name already exists") from exc
     await db.refresh(secret)
     return serialize_secret(secret)
 

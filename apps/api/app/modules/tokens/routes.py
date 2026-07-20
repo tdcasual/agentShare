@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api_schemas import GrantResponse, IssuedAgentTokenResponse
@@ -57,24 +58,31 @@ async def issue_token(
         expires_at=expires_from_ttl(body.ttl_seconds),
     )
     db.add(token)
-    await db.flush()
-    add_admin_audit(
-        db,
-        request,
-        principal,
-        action="agent_token.issue",
-        resource_type="agent_token",
-        resource_id=token.id,
-        resource_label=f"{agent.name}/{token.name}",
-    )
-    payload = serialize_token(token)
-    payload["token"] = raw_value
-    concurrent_replay = await commit_idempotent_response(
-        db, principal.user.id, idempotency, payload, status_code=201
-    )
-    if concurrent_replay is not None:
-        response.headers["Cache-Control"] = "no-store"
-        return concurrent_replay
+    try:
+        await db.flush()
+        add_admin_audit(
+            db,
+            request,
+            principal,
+            action="agent_token.issue",
+            resource_type="agent_token",
+            resource_id=token.id,
+            resource_label=f"{agent.name}/{token.name}",
+        )
+        payload = serialize_token(token)
+        payload["token"] = raw_value
+        concurrent_replay = await commit_idempotent_response(
+            db, principal.user.id, idempotency, payload, status_code=201
+        )
+        if concurrent_replay is not None:
+            response.headers["Cache-Control"] = "no-store"
+            return concurrent_replay
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Token name already exists for this agent",
+        ) from exc
     await db.refresh(token)
     response.headers["Cache-Control"] = "no-store"
     return payload

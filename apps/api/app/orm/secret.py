@@ -49,6 +49,9 @@ class Secret(Base):
     __table_args__ = (
         sa.Index("idx_secrets_user_id", "user_id"),
         sa.Index("idx_secrets_type", "type"),
+        # Unique index (not a table constraint) so the migration can use
+        # create_index without rebuilding the table on SQLite.
+        sa.Index("uq_secrets_name", "name", unique=True),
         sa.CheckConstraint(
             sa.text(f"type IN ({', '.join(repr(t) for t in SecretType.all_values())})"),
             name="check_secret_type",

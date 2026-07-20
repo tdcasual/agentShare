@@ -426,3 +426,75 @@ def test_deleting_secret_cascades_token_grants(client: TestClient) -> None:
     grants = client.get(f"/api/admin/tokens/{issued['id']}/grants")
     assert grants.status_code == 200
     assert grants.json() == {"secret_ids": []}
+
+
+def test_duplicate_secret_name_is_rejected(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    payload = {"name": "github", "type": "api_key", "value": "gh-secret"}
+    assert client.post("/api/admin/secrets", json=payload).status_code == 201
+
+    conflict = client.post("/api/admin/secrets", json=payload)
+    assert conflict.status_code == 409
+    assert conflict.json()["detail"] == "Secret name already exists"
+
+    listed = client.get("/api/admin/secrets")
+    assert listed.json()["total"] == 1
+
+
+def test_renaming_secret_to_existing_name_is_rejected(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    client.post(
+        "/api/admin/secrets",
+        json={"name": "github", "type": "api_key", "value": "gh-secret"},
+    )
+    second = client.post(
+        "/api/admin/secrets",
+        json={"name": "database", "type": "password", "value": "db-secret"},
+    ).json()
+
+    conflict = client.patch(f"/api/admin/secrets/{second['id']}", json={"name": "github"})
+    assert conflict.status_code == 409
+    assert conflict.json()["detail"] == "Secret name already exists"
+
+    unchanged = client.get(f"/api/admin/secrets/{second['id']}")
+    assert unchanged.json()["name"] == "database"
+
+
+def test_secret_name_uniqueness_is_case_sensitive(client: TestClient) -> None:
+    # SQLite's default BINARY collation and PostgreSQL's default collation are
+    # both case-sensitive, so 'Github' does not conflict with 'github'.
+    bootstrap_and_login(client)
+    assert client.post(
+        "/api/admin/secrets",
+        json={"name": "github", "type": "api_key", "value": "gh-secret"},
+    ).status_code == 201
+    assert client.post(
+        "/api/admin/secrets",
+        json={"name": "Github", "type": "api_key", "value": "other-secret"},
+    ).status_code == 201
+
+
+def test_agent_token_names_are_unique_per_agent(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    agent = client.post("/api/admin/agents", json={"name": "deploy"}).json()
+    other_agent = client.post("/api/admin/agents", json={"name": "backup"}).json()
+
+    issued = client.post(
+        f"/api/admin/agents/{agent['id']}/tokens",
+        json={"name": "primary"},
+    )
+    assert issued.status_code == 201
+
+    conflict = client.post(
+        f"/api/admin/agents/{agent['id']}/tokens",
+        json={"name": "primary"},
+    )
+    assert conflict.status_code == 409
+    assert conflict.json()["detail"] == "Token name already exists for this agent"
+
+    # The same name under a different agent is allowed.
+    other = client.post(
+        f"/api/admin/agents/{other_agent['id']}/tokens",
+        json={"name": "primary"},
+    )
+    assert other.status_code == 201

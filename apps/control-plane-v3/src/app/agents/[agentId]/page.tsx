@@ -81,7 +81,10 @@ export default function AgentDetailPage() {
     if (tokens.length === 0) {
       setSelectedTokenId(null);
     } else if (!selectedTokenId || !tokens.some((token) => token.id === selectedTokenId)) {
-      setSelectedTokenId(tokens[0].id);
+      // 列表按 created_at desc 排列，首个可能是刚吊销的 Token：
+      // 优先选第一个活跃 Token，没有活跃 Token 才回退列表首个。
+      const fallback = tokens.find((token) => token.status === 'active') ?? tokens[0];
+      setSelectedTokenId(fallback.id);
     }
   }, [selectedTokenId, tokens, tokensData]);
 

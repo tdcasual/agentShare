@@ -19,8 +19,8 @@ const activeAgent = {
   status: 'active',
 } as Agent;
 
-const tokenA = { id: 'token-a', name: 'Token A' } as AgentToken;
-const tokenB = { id: 'token-b', name: 'Token B' } as AgentToken;
+const tokenA = { id: 'token-a', name: 'Token A', status: 'active' } as AgentToken;
+const tokenB = { id: 'token-b', name: 'Token B', status: 'active' } as AgentToken;
 
 interface AgentState {
   agent: Agent | undefined;
@@ -133,6 +133,27 @@ describe('AgentDetailPage', () => {
 
     // The offset self-corrects back to page 1 instead of stranding on an empty state.
     expect(await screen.findByRole('button', { name: 'Token 01' })).toBeInTheDocument();
+  });
+
+  it('selects the first active token when the list starts with a revoked token', async () => {
+    allTokens = [
+      { id: 'token-r', name: 'Token Revoked', status: 'revoked' } as AgentToken,
+      tokenA,
+      tokenB,
+    ];
+
+    render(<AgentDetailPage />);
+
+    // The list is sorted by created_at desc, so a freshly revoked token can sit
+    // on top; the panel should still default to the first active token.
+    expect(await screen.findByRole('button', { name: 'Token A' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'Token Revoked' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
   });
 
   it('disables token issuance for a disabled agent', async () => {

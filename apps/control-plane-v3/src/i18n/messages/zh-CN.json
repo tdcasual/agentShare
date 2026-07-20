@@ -16,7 +16,7 @@
   "auth": {
     "login": {
       "title": "登录",
-      "subtitle": "输入凭据以访问VaultGate",
+      "subtitle": "输入凭据以访问 VaultGate",
       "email": "邮箱",
       "password": "密码",
       "signIn": "登录",
@@ -144,6 +144,7 @@
     "issueTokenDescription": "为不同任务签发独立 Token，并尽量设置最短可用有效期。",
     "saveGrantsBeforeIssuing": "请先保存或放弃当前授权更改，再签发新 Token。",
     "issueTokenDisabledAgent": "该 Agent 已停用，重新启用后才能签发新 Token。",
+    "grantsDisabledRevoked": "该 Token 已吊销，授权变更不会生效。",
     "ttl": {
       "3600": "1 小时",
       "86400": "24 小时",
@@ -202,7 +203,7 @@
     "createSecretTitle": "创建密钥",
     "issueTokenTitle": "签发并授权 Token",
     "callApiTitle": "调用 Runtime API",
-    "step1": "访问仪表板创建密钥（Secrets）。",
+    "step1": "访问概览创建密钥（Secrets）。",
     "step2": "打开 Agent，签发 Token 并选择允许访问的密钥。",
     "step3": "使用 Token 通过 Bearer 认证调用 Runtime API：",
     "commandLabel": "Runtime API Shell 命令",

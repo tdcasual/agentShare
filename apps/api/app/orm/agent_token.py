@@ -34,6 +34,9 @@ class AgentToken(Base):
         sa.Index("idx_agent_tokens_key_hash", "key_hash"),
         sa.Index("idx_agent_tokens_expires_at", "expires_at"),
         sa.UniqueConstraint("key_hash", name="uq_agent_tokens_key_hash"),
+        # Unique indexes (not table constraints) so the migration can use
+        # create_index without rebuilding tables on SQLite.
+        sa.Index("uq_agent_tokens_agent_id_name", "agent_id", "name", unique=True),
         sa.CheckConstraint(
             sa.text(
                 f"status IN ({', '.join(repr(value) for value in AgentTokenStatus.all_values())})"
