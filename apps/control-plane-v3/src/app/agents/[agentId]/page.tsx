@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, KeyRound, ShieldCheck, ShieldOff } from 'lucide-react';
 import { issueToken, setAgentStatus, useAgent, useAgentTokens } from '@/domains/agent';
 import type { IssuedAgentToken } from '@/lib/vaultgate-api';
@@ -42,7 +42,8 @@ const TTL_OPTIONS = [
 type WorkspaceChange =
   | { kind: 'token'; tokenId: string }
   | { kind: 'page'; offset: number }
-  | { kind: 'navigate'; href: string };
+  | { kind: 'navigate'; href: string }
+  | { kind: 'history' };
 
 export default function AgentDetailPage() {
   const { t } = useI18n();
@@ -71,6 +72,8 @@ export default function AgentDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [statusSaving, setStatusSaving] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
+  // 确认离开后的放行标志：history.go(-2) 触发的 popstate 直接放行
+  const historyBypassRef = useRef(false);
 
   useEffect(() => {
     // SWR key 变化（翻页/刷新）期间 data 为 undefined：保留当前选择，
@@ -139,11 +142,24 @@ export default function AgentDetailPage() {
         href: `${url.pathname}${url.search}${url.hash}`,
       });
     };
+    // 浏览器前进/后退哨兵：dirty 期间压入同 URL 哨兵条目，popstate 时
+    // 立即重新覆盖（用户视觉上未离开）并弹出与链接拦截一致的放弃确认。
+    // 哨兵与页面同 URL，不可见；确认离开走 history.go(-2) 跳过它，不会留下幻影条目。
+    window.history.pushState({ __vgGuard: true }, '');
+    const handlePopState = () => {
+      if (historyBypassRef.current) {
+        return;
+      }
+      window.history.pushState({ __vgGuard: true }, '');
+      setPendingWorkspaceChange({ kind: 'history' });
+    };
     document.addEventListener('click', interceptNavigation, true);
     window.addEventListener('beforeunload', warnBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
     return () => {
       document.removeEventListener('click', interceptNavigation, true);
       window.removeEventListener('beforeunload', warnBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, [grantsDirty]);
 
@@ -165,8 +181,13 @@ export default function AgentDetailPage() {
       setSelectedTokenId(change.tokenId);
     } else if (change.kind === 'page') {
       setTokenOffset(change.offset);
+    } else if (change.kind === 'history') {
+      // 浏览器前进/后退确认离开：放行并跳过哨兵与本页两条记录
+      historyBypassRef.current = true;
+      window.history.go(-2);
     } else {
-      router.push(change.href);
+      // dirty 期间栈顶是同 URL 哨兵：replace 覆盖它，避免留下指向本页的幻影条目
+      router.replace(change.href);
     }
   }
 

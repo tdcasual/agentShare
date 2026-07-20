@@ -32,7 +32,8 @@ export interface ConfirmDialogProps {
  * The action stays open while isLoading so the caller can run async work and
  * close via state on success. A local pending state disables the confirm
  * button synchronously on first click so a same-frame double click cannot
- * fire onConfirm twice before the parent's async setState lands.
+ * fire onConfirm twice before the parent's async setState lands. A 40s
+ * watchdog releases the buttons if the caller's isLoading never settles.
  */
 export function ConfirmDialog({
   isOpen,
@@ -47,6 +48,8 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const { t } = useI18n();
   const [isPending, setIsPending] = useState(false);
+  // 看门狗：调用方 isLoading 永不回落（请求永不 settle）时避免双按钮软锁
+  const [watchdogExpired, setWatchdogExpired] = useState(false);
 
   // 对话框关闭、或异步操作结束（isLoading 回落）时复位，允许失败重试
   useEffect(() => {
@@ -55,7 +58,21 @@ export function ConfirmDialog({
     }
   }, [isOpen, isLoading]);
 
-  const busy = Boolean(isLoading) || isPending;
+  // isLoading 连续为 true 超过 40 秒（略大于 API 30 秒超时）视为卡死：
+  // 复位本地 pending 并不再让 isLoading 参与禁用，允许用户重试或取消。
+  useEffect(() => {
+    if (!isLoading) {
+      setWatchdogExpired(false);
+      return;
+    }
+    const watchdog = window.setTimeout(() => {
+      setIsPending(false);
+      setWatchdogExpired(true);
+    }, 40_000);
+    return () => window.clearTimeout(watchdog);
+  }, [isLoading]);
+
+  const busy = !watchdogExpired && (Boolean(isLoading) || isPending);
 
   return (
     <AlertDialog

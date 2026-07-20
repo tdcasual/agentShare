@@ -102,14 +102,20 @@ def _backup_stale_local_dev_database(database_path: Path) -> Path:
 def migrate_db(
     database_url: str | None = None,
     *,
+    settings: Settings | None = None,
     recover_default_dev_sqlite: bool = False,
 ) -> Path | None:
-    resolved_database_url = database_url or Settings().database_url
+    resolved_settings = settings or Settings()
+    resolved_database_url = database_url or resolved_settings.database_url
     config = _build_alembic_config(resolved_database_url)
 
     try:
         if make_url(resolved_database_url).get_backend_name() == "postgresql":
-            _upgrade_postgres_with_advisory_lock(config, resolved_database_url)
+            _upgrade_postgres_with_advisory_lock(
+                config,
+                resolved_database_url,
+                resolved_settings.migration_lock_timeout_seconds,
+            )
         else:
             command.upgrade(config, "head")
         return None
@@ -132,9 +138,11 @@ def migrate_db(
         return backup_path
 
 
-def _upgrade_postgres_with_advisory_lock(config: Config, database_url: str) -> None:
-    timeout_seconds = Settings().migration_lock_timeout_seconds
-
+def _upgrade_postgres_with_advisory_lock(
+    config: Config,
+    database_url: str,
+    timeout_seconds: int,
+) -> None:
     engine = create_engine(database_url, poolclass=NullPool)
     deadline = time.monotonic() + timeout_seconds
     try:

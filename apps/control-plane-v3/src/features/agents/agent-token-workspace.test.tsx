@@ -59,6 +59,8 @@ describe('TokenAccessPanel', () => {
     expect(screen.getByRole('button', { name: 'agents.selectPage' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'agents.clearSelection' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'agents.saveAccess' })).toBeDisabled();
+    // Backend rejects rotate for revoked tokens, so the action is disabled up front.
+    expect(screen.getByRole('button', { name: 'agents.rotate' })).toBeDisabled();
   });
 
   it('keeps grant editing enabled when the selected token is active', () => {
@@ -68,5 +70,6 @@ describe('TokenAccessPanel', () => {
     expect(screen.getByRole('checkbox', { name: /Production database/ })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'agents.selectPage' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'agents.clearSelection' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'agents.rotate' })).toBeEnabled();
   });
 });

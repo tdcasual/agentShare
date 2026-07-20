@@ -97,10 +97,17 @@ async def rotate_token(
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
     token = await owned_token(db, principal.user.id, token_id)
+    if token.status == AgentTokenStatus.REVOKED:
+        # Revocation is an explicit human action; rotation must not undo it.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Revoked token cannot be rotated; issue a new token instead",
+        )
+    agent = await owned_agent(db, principal.user.id, token.agent_id)
+    if agent.status != AgentStatus.ACTIVE:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Agent is disabled")
     raw_value, token.key_hash, token.key_prefix = generate_credential("vg_")
     token.expires_at = renew_expiration(token.created_at, token.expires_at)
-    token.status = AgentTokenStatus.ACTIVE
-    token.revoked_at = None
     add_admin_audit(
         db,
         request,

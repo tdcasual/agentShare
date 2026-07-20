@@ -318,7 +318,7 @@ def create_app(
 
         # Ephemeral SQLite app starts need in-process migration
         if _uses_embedded_sqlite(settings.database_url):
-            db_module.migrate_db(settings.database_url)
+            db_module.migrate_db(settings.database_url, settings=settings)
 
         runtime_obj: AppRuntime = app_instance.state.runtime
         async with runtime_obj.session_factory() as maintenance_db:

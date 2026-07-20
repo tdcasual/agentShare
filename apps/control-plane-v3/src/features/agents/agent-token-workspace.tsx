@@ -204,7 +204,7 @@ export function TokenAccessPanel({
               size="sm"
               variant="ghost"
               loading={pendingAction === 'rotate'}
-              disabled={pendingAction !== null}
+              disabled={token.status !== 'active' || pendingAction !== null}
               leftIcon={<RotateCcw />}
               onClick={() => setConfirmation('rotate')}
             >

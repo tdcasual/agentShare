@@ -44,14 +44,16 @@
 - **UX-7** 再清 10 个死 i18n 键（双语同步）。
 - **UX-8** F-2 拦截误伤指向当前页的链接 → 排除同 path+search。
 
-### 记录在案（不修复）
+### 记录在案（原始评估）与 2026-07-20 追加修复
 
-- **R-2 浏览器前进/后退绕过未保存授权拦截**：click 捕获 + beforeunload 无法覆盖 popstate；history sentinel 方案会留下幻影历史条目，副作用大于收益（损失仅为可快速重做的勾选状态）。接受该缺口。
-- **B-低2** `db.py` 迁移锁超时每次新建 `Settings()` 而非复用调用方配置：容器/CLI 路径均走环境变量，生产无影响；仅编程式嵌入场景不一致。
-- **B-低4** 开发拓扑（无 Caddy）下审计 IP 为 web 容器 IP：fail-closed 方向安全，精确性换伪造面，维持不信任。
-- **B-低6** 时钟回拨可使限流暂时失效（fail-open）：需时钟回拨或直接改库，方向是放宽而非锁定，危害小。
-- **L-3** ConfirmDialog 在调用方 `isLoading` 永不回落时软锁死：全部调用方 finally 复位 + 30s 超时，现实路径不可达。
-- **L-4** 无前置代理直连 Next 时客户端 IP 仍丢失：dev 均为 localhost，无实际影响。
+- **R-2 浏览器前进/后退绕过未保存授权拦截**：【已修复 2026-07-20】history sentinel 方案实现——dirty 时压入同 URL 哨兵，popstate 触发即重压并弹确认；确认后 `history.go(-2)` 离开、链接确认改 `router.replace` 覆盖哨兵，均无幻影历史条目；jsdom 真实 history 栈单测覆盖。
+- **已撤销 Token 可被 rotate"复活"**（原 full-audit §7 设计问题）：【已修复 2026-07-20】revoked 状态 rotate 一律 409（agent token 与 management token 一致），expired 仍可正常轮换续期；前端同步禁用 revoked 的轮换按钮。
+- **B-低2 `db.py` 迁移锁超时每次新建 `Settings()`**：【已修复 2026-07-20】`migrate_db` 支持注入 settings，lifespan 复用应用实例。
+- **L-3 ConfirmDialog `isLoading` 卡死软锁**：【已修复 2026-07-20】40 秒看门狗（大于 API 30s 超时）自动解禁，可重试或取消。
+- **B-低4 开发拓扑审计 IP 为 web 容器 IP**：维持不修——fail-closed 方向安全，精确性换伪造面。
+- **B-低6 时钟回拨可使限流暂时失效**：维持不修——需可信时间源，无可行修；方向是放宽而非锁定，危害小。
+- **L-4 无前置代理直连 Next 时客户端 IP 丢失**：维持不修——dev 均为 localhost，无实际影响。
+- **幂等记录将含明文 token 的响应加密存库 7 天**（原 full-audit §7）：维持设计——可重放是幂等语义本身，响应已加密存储，保留期可配（`IDEMPOTENCY_RETENTION_DAYS`）。
 
 ## 3. 验证结果
 

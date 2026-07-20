@@ -351,6 +351,7 @@ function TokenRow({
           size="sm"
           variant="outline"
           onClick={onRotate}
+          disabled={revoked}
           leftIcon={<RotateCcw />}
         >
           {t('managementTokens.rotate')}

@@ -301,9 +301,14 @@ async def rotate_management_token(
     token = await db.get(ManagementToken, token_id)
     if token is None or token.user_id != principal.user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Management token not found")
+    if token.revoked_at is not None:
+        # Revocation is an explicit human action; rotation must not undo it.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Revoked token cannot be rotated; create a new token instead",
+        )
     raw_value, token.key_hash, token.key_prefix = generate_credential("vgm_")
     token.expires_at = renew_expiration(token.created_at, token.expires_at)
-    token.revoked_at = None
     add_admin_audit(
         db,
         request,

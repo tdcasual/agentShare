@@ -88,12 +88,12 @@ def test_postgres_migration_upgrade_waits_for_and_releases_advisory_lock(monkeyp
     monkeypatch.setattr(db_module.command, "upgrade", fake_upgrade)
     monkeypatch.setattr(db_module.time, "monotonic", lambda: next(monotonic_values))
     monkeypatch.setattr(db_module.time, "sleep", lambda _seconds: None)
-    monkeypatch.setenv("MIGRATION_LOCK_TIMEOUT_SECONDS", "3")
     config = Config()
 
     db_module._upgrade_postgres_with_advisory_lock(
         config,
         "postgresql://vaultgate:password@db/vaultgate",
+        3,
     )
 
     assert upgrade_saw_connection is True
@@ -101,6 +101,22 @@ def test_postgres_migration_upgrade_waits_for_and_releases_advisory_lock(monkeyp
     assert connection.commits == 3
     assert engine.disposed is True
     assert "connection" not in config.attributes
+
+
+def test_migrate_db_passes_settings_lock_timeout_to_postgres_upgrade(monkeypatch) -> None:
+    captured: dict[str, int] = {}
+
+    def fake_upgrade(_config: Config, _database_url: str, timeout_seconds: int) -> None:
+        captured["timeout_seconds"] = timeout_seconds
+
+    monkeypatch.setattr(db_module, "_upgrade_postgres_with_advisory_lock", fake_upgrade)
+
+    migrate_db(
+        "postgresql://vaultgate:password@db/vaultgate",
+        settings=Settings(migration_lock_timeout_seconds=7),
+    )
+
+    assert captured["timeout_seconds"] == 7
 
 
 def test_migrate_db_uses_the_explicit_target_when_environment_differs(

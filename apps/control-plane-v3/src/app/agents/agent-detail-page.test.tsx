@@ -1,13 +1,19 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Agent, AgentToken } from '@/lib/vaultgate-api';
 import AgentDetailPage from './[agentId]/page';
 
 const pushMock = vi.fn();
+const replaceMock = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ agentId: 'agent-1' }),
-  useRouter: () => ({ push: pushMock, replace: vi.fn(), refresh: vi.fn(), back: vi.fn() }),
+  useRouter: () => ({
+    push: pushMock,
+    replace: replaceMock,
+    refresh: vi.fn(),
+    back: vi.fn(),
+  }),
   usePathname: () => '/agents/agent-1',
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -183,9 +189,12 @@ describe('AgentDetailPage', () => {
     // The navigation is held back behind the discard confirmation.
     expect(await screen.findByText('agents.discardGrantsTitle')).toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
+    expect(replaceMock).not.toHaveBeenCalled();
 
+    // Confirming replaces the sentinel entry instead of pushing a phantom one.
     fireEvent.click(screen.getByRole('button', { name: 'agents.discardGrants' }));
-    expect(pushMock).toHaveBeenCalledWith('/agents');
+    expect(replaceMock).toHaveBeenCalledWith('/agents');
+    expect(pushMock).not.toHaveBeenCalled();
   });
 
   it('ignores links that only change the hash of the current page', async () => {
@@ -202,5 +211,42 @@ describe('AgentDetailPage', () => {
     // Same-page hash links must not trigger the discard confirmation.
     expect(screen.queryByText('agents.discardGrantsTitle')).not.toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it('guards browser back navigation with the discard confirmation', async () => {
+    window.history.replaceState({}, '', '/previous');
+    window.history.pushState({}, '', '/agents/agent-1');
+    const baseline = window.history.length;
+
+    render(<AgentDetailPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'mark grants dirty' }));
+
+    // The dirty guard pushed one same-URL sentinel entry.
+    expect(window.history.length).toBe(baseline + 1);
+
+    // Browser Back is re-covered and the discard dialog opens instead.
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(await screen.findByText('agents.discardGrantsTitle')).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/agents/agent-1');
+
+    // Cancel: stay on the page, guard still active, no history growth.
+    fireEvent.click(screen.getByRole('button', { name: 'modal.cancel' }));
+    expect(screen.queryByText('agents.discardGrantsTitle')).not.toBeInTheDocument();
+    expect(window.history.length).toBe(baseline + 1);
+
+    // Back again reopens the dialog; confirming leaves two entries back.
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(await screen.findByText('agents.discardGrantsTitle')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'agents.discardGrants' }));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(window.location.pathname).toBe('/previous');
   });
 });

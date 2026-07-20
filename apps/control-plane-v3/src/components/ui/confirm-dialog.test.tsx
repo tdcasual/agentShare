@@ -1,8 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { ConfirmDialog } from './confirm-dialog';
 
 describe('ConfirmDialog', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('does not render when closed', () => {
     render(
       <ConfirmDialog
@@ -133,5 +137,35 @@ describe('ConfirmDialog', () => {
     expect(confirmButton).toBeEnabled();
     fireEvent.click(confirmButton);
     expect(onConfirm).toHaveBeenCalledTimes(2);
+  });
+
+  it('releases the buttons via watchdog when loading never settles', () => {
+    vi.useFakeTimers();
+    const onConfirm = vi.fn();
+    render(
+      <ConfirmDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={onConfirm}
+        confirmText="Confirm"
+        isLoading={true}
+      />
+    );
+
+    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    expect(confirmButton).toBeDisabled();
+
+    // isLoading stuck true past the 40s watchdog: the dialog unlocks for retry.
+    act(() => {
+      vi.advanceTimersByTime(39_000);
+    });
+    expect(confirmButton).toBeDisabled();
+    act(() => {
+      vi.advanceTimersByTime(1_000);
+    });
+    expect(confirmButton).toBeEnabled();
+
+    fireEvent.click(confirmButton);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 });

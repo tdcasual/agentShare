@@ -498,3 +498,72 @@ def test_agent_token_names_are_unique_per_agent(client: TestClient) -> None:
         json={"name": "primary"},
     )
     assert other.status_code == 201
+
+
+def test_revoked_tokens_cannot_be_rotated(client: TestClient) -> None:
+    """Revocation is a deliberate human action; rotation must not resurrect a
+    revoked credential. Expired tokens stay rotatable (see
+    test_rotation_renews_expired_tokens_using_their_original_ttl)."""
+    bootstrap_and_login(client)
+    agent = client.post("/api/admin/agents", json={"name": "runtime"}).json()
+    agent_token = client.post(
+        f"/api/admin/agents/{agent['id']}/tokens",
+        json={"name": "primary"},
+    ).json()
+    management = client.post("/api/admin/management-tokens", json={"name": "automation"}).json()
+
+    assert client.delete(f"/api/admin/tokens/{agent_token['id']}").status_code == 204
+    assert client.delete(f"/api/admin/management-tokens/{management['id']}").status_code == 204
+
+    rotated_agent = client.post(f"/api/admin/tokens/{agent_token['id']}/rotate")
+    assert rotated_agent.status_code == 409
+    assert rotated_agent.json()["detail"] == "Revoked token cannot be rotated; issue a new token instead"
+    rotated_management = client.post(f"/api/admin/management-tokens/{management['id']}/rotate")
+    assert rotated_management.status_code == 409
+    assert rotated_management.json()["detail"] == "Revoked token cannot be rotated; create a new token instead"
+
+    # The revoked credential stays unusable.
+    vault = client.get(
+        "/api/vault/me",
+        headers={"Authorization": f"Bearer {agent_token['token']}"},
+    )
+    assert vault.status_code == 401
+    admin = client.get(
+        "/api/admin/secrets",
+        headers={"Authorization": f"Bearer {management['token']}"},
+    )
+    assert admin.status_code == 401
+
+
+def test_active_agent_token_rotation_issues_new_credential(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    agent = client.post("/api/admin/agents", json={"name": "runtime"}).json()
+    issued = client.post(
+        f"/api/admin/agents/{agent['id']}/tokens",
+        json={"name": "primary"},
+    ).json()
+
+    rotated = client.post(f"/api/admin/tokens/{issued['id']}/rotate")
+    assert rotated.status_code == 200
+    assert rotated.json()["token"] != issued["token"]
+
+    new_headers = {"Authorization": f"Bearer {rotated.json()['token']}"}
+    old_headers = {"Authorization": f"Bearer {issued['token']}"}
+    assert client.get("/api/vault/me", headers=new_headers).status_code == 200
+    assert client.get("/api/vault/me", headers=old_headers).status_code == 401
+
+
+def test_disabled_agent_tokens_cannot_be_rotated(client: TestClient) -> None:
+    """Aligned with issue_token, which rejects token issuance for disabled agents."""
+    bootstrap_and_login(client)
+    agent = client.post("/api/admin/agents", json={"name": "runtime"}).json()
+    token = client.post(
+        f"/api/admin/agents/{agent['id']}/tokens",
+        json={"name": "primary"},
+    ).json()
+    disabled = client.patch(f"/api/admin/agents/{agent['id']}", json={"status": "disabled"})
+    assert disabled.status_code == 200
+
+    rotated = client.post(f"/api/admin/tokens/{token['id']}/rotate")
+    assert rotated.status_code == 409
+    assert rotated.json()["detail"] == "Agent is disabled"
