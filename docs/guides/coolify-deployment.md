@@ -180,9 +180,11 @@ with the old revision instead of rolling back code alone.
   UI (or `docker compose -f docker-compose.coolify.yml ...` on the host) instead.
 - Known Coolify quirk with multi-network services: the proxy can occasionally route to a
   container IP on a network it does not share after redeploys
-  ([coolify#6215](https://github.com/coollabsio/coolify/issues/6215)). If the domain starts
-  returning 504 while the containers are healthy, redeploy (or restart `coolify-proxy`)
-  first.
+  ([coolify#6215](https://github.com/coollabsio/coolify/issues/6215)). The compose file pins
+  Traefik to `${COOLIFY_RESOURCE_UUID}`, the per-deployment network that Coolify injects and
+  shares with its proxy. If the domain still returns 504 while the containers are healthy,
+  confirm that the generated `web` labels retain `traefik.docker.network=<resource-uuid>`,
+  then redeploy or restart `coolify-proxy`.
 
 ## Differences from the standard production deployment
 

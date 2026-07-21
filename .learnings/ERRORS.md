@@ -36,6 +36,38 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260721-001] sandbox-git-index-read-only
+
+**Logged**: 2026-07-21T14:25:55Z
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+The managed workspace permits source edits but exposes `.git` as read-only to sandboxed commands.
+
+### Error
+
+```text
+fatal: Unable to create '/home/tdcasual/codework/agentShare/.git/index.lock': Read-only file system
+```
+
+### Context
+- `git add` and `git commit` were attempted after the source and tests had been validated.
+- The failure did not modify the index or repository history.
+
+### Suggested Fix
+Run Git index-writing commands with the workspace's approved escalated permissions.
+
+### Resolution
+Retried the Git operation with explicit approval for `.git` writes.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `.git/index`
+
+---
+
 ## [ERR-20260717-004] durability-drill-host-variable-collision
 
 **Logged**: 2026-07-17T05:40:00Z
