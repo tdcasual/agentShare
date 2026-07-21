@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_api_dev_dependencies_include_test_client_transport() -> None:
     pyproject = tomllib.loads((ROOT / "apps/api/pyproject.toml").read_text())
 
-    assert "httpx2>=2.5.0" in pyproject["project"]["optional-dependencies"]["dev"]
+    assert "httpx>=0.28.1" in pyproject["project"]["optional-dependencies"]["dev"]
 
 
 def test_container_artifacts_exist() -> None:

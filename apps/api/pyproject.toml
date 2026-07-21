@@ -21,7 +21,7 @@ dependencies = [
 dev = [
   "pytest>=8.4.1",
   "pytest-cov>=6.0",
-  "httpx2>=2.5.0",
+  "httpx>=0.28.1",
   "mypy>=1.0",
   "bandit>=1.7",
   "pip-audit>=2.0",
@@ -43,6 +43,7 @@ Documentation = "https://github.com/tdcasual/vaultgate/blob/main/README.md"
 python_version = "3.12"
 warn_return_any = true
 warn_unused_ignores = true
+disallow_untyped_defs = true
 ignore_missing_imports = true
 exclude = ["tests/"]
 

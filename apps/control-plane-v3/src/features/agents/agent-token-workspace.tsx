@@ -406,7 +406,7 @@ export function TokenAccessPanel({
             {t('agents.saveAccess')}
           </Button>
           {saved && (
-            <p role="status" className="text-sm text-status-success">
+            <p role="status" className="text-sm text-status-success-subtle-foreground">
               {t('agents.accessSaved')}
             </p>
           )}

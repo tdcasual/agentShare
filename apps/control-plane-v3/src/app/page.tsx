@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { mutate } from 'swr';
 import {
   ArrowRight,
   Bot,
@@ -15,23 +16,51 @@ import {
 import { useSecrets } from '@/domains/secret';
 import { useAgents } from '@/domains/agent';
 import { useAuditStats } from '@/domains/audit';
+import { buildApiPath } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function VaultGateDashboard() {
   const { t, locale } = useI18n();
-  const { total: totalSecrets, isLoading: secretsLoading } = useSecrets({ limit: 1 });
-  const { total: activeAgents, isLoading: agentsLoading } = useAgents({
+  const {
+    total: totalSecrets,
+    isLoading: secretsLoading,
+    error: secretsError,
+    refresh: refreshSecrets,
+  } = useSecrets({ limit: 1 });
+  const {
+    total: activeAgents,
+    isLoading: agentsLoading,
+    error: agentsError,
+    refresh: refreshAgents,
+  } = useAgents({
     limit: 1,
     status: 'active',
   });
   const [activityWindowStart] = useState(() =>
     new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   );
-  const { stats, isLoading: statsLoading } = useAuditStats({ created_from: activityWindowStart });
+  const {
+    stats,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useAuditStats({
+    created_from: activityWindowStart,
+  });
   const number = new Intl.NumberFormat(locale);
   const denied = stats?.denied ?? 0;
+  // 任一数据源失败时安全状态不可信：显示中性"无法确认"，而不是绿色"无拒绝"
+  const statusFailed = Boolean(secretsError || agentsError || statsError);
+
+  function retryStatus() {
+    void Promise.all([
+      refreshSecrets(),
+      refreshAgents(),
+      // useAuditStats 未暴露 mutate，用全局 mutate 按相同 key 重校验
+      mutate(buildApiPath('/api/admin/audit-stats', { created_from: activityWindowStart })),
+    ]);
+  }
 
   return (
     <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
@@ -55,29 +84,51 @@ export default function VaultGateDashboard() {
 
       <section
         aria-label={t('dashboard.securityStatus')}
-        className={`grid gap-4 border-y px-1 py-5 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center ${denied > 0 ? 'border-status-warning/40' : 'border-status-success/30'}`}
+        className={`grid gap-4 border-y px-1 py-5 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center ${
+          statusFailed ? '' : denied > 0 ? 'border-status-warning/40' : 'border-status-success/30'
+        }`}
       >
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-full ${denied > 0 ? 'bg-status-warning-subtle text-status-warning-subtle-foreground' : 'bg-status-success-subtle text-status-success-subtle-foreground'}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-full ${
+            statusFailed
+              ? 'bg-muted text-muted-foreground'
+              : denied > 0
+                ? 'bg-status-warning-subtle text-status-warning-subtle-foreground'
+                : 'bg-status-success-subtle text-status-success-subtle-foreground'
+          }`}
         >
-          {denied > 0 ? <ShieldAlert className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
+          {statusFailed || denied > 0 ? (
+            <ShieldAlert className="h-5 w-5" />
+          ) : (
+            <ShieldCheck className="h-5 w-5" />
+          )}
         </div>
         <div>
           <h2 className="font-semibold text-foreground">
-            {t(denied > 0 ? 'dashboard.deniedDetected' : 'dashboard.noDenied')}
+            {statusFailed
+              ? t('dashboard.statusUnknown')
+              : t(denied > 0 ? 'dashboard.deniedDetected' : 'dashboard.noDenied')}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t(denied > 0 ? 'dashboard.deniedDetectedDesc' : 'dashboard.noDeniedDesc', {
-              count: denied,
-            })}
+            {statusFailed
+              ? t('dashboard.statusUnknownDesc')
+              : t(denied > 0 ? 'dashboard.deniedDetectedDesc' : 'dashboard.noDeniedDesc', {
+                  count: denied,
+                })}
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/audit">
-            {t('dashboard.reviewAudit')}
-            <ArrowRight />
-          </Link>
-        </Button>
+        {statusFailed ? (
+          <Button variant="outline" onClick={retryStatus}>
+            {t('common.retry')}
+          </Button>
+        ) : (
+          <Button asChild variant="outline">
+            <Link href="/audit">
+              {t('dashboard.reviewAudit')}
+              <ArrowRight />
+            </Link>
+          </Button>
+        )}
       </section>
 
       <section aria-label={t('dashboard.summary')} className="grid border-y sm:grid-cols-3">
@@ -86,6 +137,7 @@ export default function VaultGateDashboard() {
           label={t('dashboard.totalSecrets')}
           value={totalSecrets}
           loading={secretsLoading}
+          failed={Boolean(secretsError)}
           formatter={number}
         />
         <Metric
@@ -93,6 +145,7 @@ export default function VaultGateDashboard() {
           label={t('dashboard.activeAgents')}
           value={activeAgents}
           loading={agentsLoading}
+          failed={Boolean(agentsError)}
           formatter={number}
         />
         <Metric
@@ -100,6 +153,7 @@ export default function VaultGateDashboard() {
           label={t('dashboard.recentActivity')}
           value={stats?.total ?? 0}
           loading={statsLoading}
+          failed={Boolean(statsError)}
           formatter={number}
         />
       </section>
@@ -142,6 +196,7 @@ export default function VaultGateDashboard() {
               label={t('dashboard.grantedRequests')}
               value={stats?.granted}
               loading={statsLoading}
+              failed={Boolean(statsError)}
               formatter={number}
               tone="success"
             />
@@ -149,6 +204,7 @@ export default function VaultGateDashboard() {
               label={t('dashboard.deniedRequests')}
               value={stats?.denied}
               loading={statsLoading}
+              failed={Boolean(statsError)}
               formatter={number}
               tone="danger"
             />
@@ -156,6 +212,7 @@ export default function VaultGateDashboard() {
               label={t('dashboard.valueReads')}
               value={stats?.value_reads}
               loading={statsLoading}
+              failed={Boolean(statsError)}
               formatter={number}
             />
           </dl>
@@ -177,12 +234,14 @@ function Metric({
   label,
   value,
   loading,
+  failed,
   formatter,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
   loading: boolean;
+  failed?: boolean;
   formatter: Intl.NumberFormat;
 }) {
   return (
@@ -193,6 +252,8 @@ function Metric({
       <div>
         {loading ? (
           <Skeleton className="h-8 w-16" />
+        ) : failed ? (
+          <p className="text-2xl font-semibold tabular-nums text-muted-foreground">—</p>
         ) : (
           <p className="text-2xl font-semibold tabular-nums">{formatter.format(value)}</p>
         )}
@@ -236,18 +297,20 @@ function ActivityRow({
   label,
   value,
   loading,
+  failed,
   formatter,
   tone,
 }: {
   label: string;
   value?: number;
   loading: boolean;
+  failed?: boolean;
   formatter: Intl.NumberFormat;
   tone?: 'success' | 'danger';
 }) {
   const color =
     tone === 'success'
-      ? 'text-status-success'
+      ? 'text-status-success-subtle-foreground'
       : tone === 'danger'
         ? 'text-status-danger'
         : 'text-foreground';
@@ -255,7 +318,7 @@ function ActivityRow({
     <div className="flex min-h-14 items-center justify-between gap-4 px-2 sm:px-3">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className={`font-semibold tabular-nums ${color}`}>
-        {loading ? '—' : formatter.format(value ?? 0)}
+        {loading || failed ? '—' : formatter.format(value ?? 0)}
       </dd>
     </div>
   );

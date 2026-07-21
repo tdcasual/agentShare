@@ -5,11 +5,11 @@ This module creates and configures the FastAPI application for VaultGate.
 import json
 import logging
 import uuid
-from collections.abc import Callable, Iterable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterable
 from contextlib import asynccontextmanager
 from time import monotonic
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -81,7 +81,10 @@ def _uses_embedded_sqlite(database_url: str) -> bool:
 
 def add_request_logging_middleware(app: FastAPI) -> None:
     @app.middleware("http")
-    async def log_request(request: Request, call_next):
+    async def log_request(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
         started_at = monotonic()
         request_id = (request.headers.get("x-request-id") or str(uuid.uuid4()))[:255]
         request.state.request_id = request_id
@@ -169,7 +172,10 @@ def add_security_headers_middleware(app: FastAPI, settings: Settings) -> None:
     """Add core security response headers."""
 
     @app.middleware("http")
-    async def inject_security_headers(request: Request, call_next):
+    async def inject_security_headers(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
         response = await call_next(request)
 
         # X-Content-Type-Options: prevent MIME-type sniffing
@@ -223,7 +229,10 @@ def add_csrf_middleware(app: FastAPI, settings: Settings) -> None:
     )
 
     @app.middleware("http")
-    async def enforce_csrf_origin(request: Request, call_next):
+    async def enforce_csrf_origin(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
         # 1) Safe methods always pass through
         if request.method in _CSRF_SAFE_METHODS:
             return await call_next(request)
@@ -312,7 +321,7 @@ def create_app(
     current_runtime = runtime or build_runtime(current_settings)
 
     @asynccontextmanager
-    async def lifespan(app_instance: FastAPI):
+    async def lifespan(app_instance: FastAPI) -> AsyncIterator[None]:
         settings = app_instance.state.settings
         startup_logger.info("VaultGate starting (env=%s)", settings.app_env)
 

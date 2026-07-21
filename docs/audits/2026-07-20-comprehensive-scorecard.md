@@ -62,3 +62,15 @@
 5. vitest 覆盖率阈值（ratchet：整体锚定现状，薄页面单独设底线）。
 6. 深色 destructive 对比度修正（token 调整至 ≥4.5:1）；management-tokens 一次性横幅移至列表上方。
 7. ops 脚本对缺失 `.release.env` 容错（存在才传参）；恢复 runbook 补完整命令；`.gitignore` 补两个 release env 文件。
+
+## 修复记录（2026-07-20，全部 7 项已实施）
+
+1. **dashboard 诚实化** ✅：三 hook 接 error；任一失败时安全状态区改中性灰"无法确认安全状态"+重试按钮（SWR 重校验）；指标与 24h 活动失败时显示 "—" 而非 0；新增 `dashboard.statusUnknown/statusUnknownDesc` 双语键与失败态测试。
+2. **Coolify 隔离网络** ✅（附重要更正）：compose 加 `default`+`internal` 双网络（web 双挂、api/postgres 仅 internal）。核实 Coolify v4 源码发现其 compose 解析器会把所有服务强制接入 per-deployment UUID 网络——"同主机任意容器可直连 api"的原前提对 Coolify 部署并不完全成立（每部署独立网络 + bridge L3 隔离，其他部署的容器本就不可达 api）；本次隔离在纯 compose 下完全生效，在 Coolify 上收敛为纵深防御。契约测试改断言隔离拓扑（12 项）。
+3. **健康直通路由** ✅：新增 `src/lib/upstream-health-probe.ts` + `/healthz`、`/readyz` 路由（透传状态码/body、no-store、异常 503）；公网 `curl /readyz` 在 Coolify 拓扑端到端可行（4 个 vitest）。指南冒烟/监控小节同步。
+4. **依赖与 mypy** ✅：pyproject 删 `httpx2` 补 `httpx>=0.28.1`，dev lock 容器内重生成（runtime lock 容器内重生成 diff 证明从未含 httpx2，哈希完整）；`disallow_untyped_defs` 开启（暴露面仅 7 处全修），login 返回注解改正、最后一个 `type: ignore` 消除。
+5. **覆盖率门禁** ✅：vitest thresholds 锚定 73.5/67.5/62.5/74.5（基线 −0.5 防抖），正反向验证通过，ratchet 策略注释。
+6. **对比度与横幅** ✅：深色 `--destructive` 62%→56%（脚本验算 3.74→**4.80:1**）；浅色 success 小字改 subtle-foreground（**9.13:1**）；management-tokens 一次性横幅移到表单上方 + `role="status"` + scrollIntoView。
+7. **运维容错** ✅：6 个 ops 脚本 `.release.env` 缺失自动跳过（参数截取实测）；恢复 runbook 补完整命令序列；`.gitignore` 补两个 release env 文件。
+
+**修复后复评（同口径自评）**：安全 7.5→**8.5**（隔离+信任边界文档化，原 −1.5 项收敛为纵深防御残余）；代码质量 8.5→**9**（依赖实锤错误消除、mypy strict）；测试 8→**8.5**（前端覆盖率有门禁）；UI/UX 7.5→**8.5**（dashboard 诚实化、对比度达标、横幅可达）；文档运维 8→**9**（Coolify 探针端到端可行、runbook 命令级、脚本容错）。加权总评 7.8→**约 8.7/10**。

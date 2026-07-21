@@ -24,9 +24,27 @@ def test_postgres_backup_uses_pg_dump() -> None:
     assert "BACKUP_DIR" in script
     assert ': "${POSTGRES_DB:?' not in script
     assert ': "${POSTGRES_USER:?' not in script
-    assert "--env-file \"${COMPOSE_RELEASE_ENV_FILE}\"" in script
     assert "sh -c" in script
     assert "DATABASE_URL" not in script
+
+
+def test_release_env_file_is_optional_in_compose_invocations() -> None:
+    """Ops scripts must tolerate a missing .release.env (only deploy.yml has one)."""
+    for relative_path in (
+        "scripts/ops/backup-postgres.sh",
+        "scripts/ops/restore-postgres.sh",
+        "scripts/ops/snapshot-postgres-volume.sh",
+        "scripts/ops/check-postgres-durability.sh",
+        "scripts/ops/verify-key-recovery.sh",
+        "scripts/ops/export-audit-log.sh",
+    ):
+        script = (ROOT / relative_path).read_text()
+        assert 'if [ -f "${COMPOSE_RELEASE_ENV_FILE}" ]; then' in script, relative_path
+        assert 'release_env_file_args="--env-file ${COMPOSE_RELEASE_ENV_FILE}"' in script, (
+            relative_path
+        )
+        assert '--env-file "${COMPOSE_ENV_FILE}" ${release_env_file_args}' in script, relative_path
+        assert '--env-file "${COMPOSE_RELEASE_ENV_FILE}" \\' not in script, relative_path
 
 
 def test_postgres_restore_documents_safe_restore_order() -> None:
@@ -35,7 +53,6 @@ def test_postgres_restore_documents_safe_restore_order() -> None:
     assert "docker compose" in script
     assert ': "${POSTGRES_DB:?' not in script
     assert ': "${POSTGRES_USER:?' not in script
-    assert "--env-file \"${COMPOSE_RELEASE_ENV_FILE}\"" in script
     assert "--single-transaction" in script
     assert "--exit-on-error" in script
     assert "Stop API writes" in script

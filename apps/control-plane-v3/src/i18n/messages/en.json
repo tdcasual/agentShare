@@ -93,6 +93,8 @@
     "summary": "Operational summary",
     "noDenied": "No denied access in the last 24 hours",
     "noDeniedDesc": "All Agent requests matched the current token grants.",
+    "statusUnknown": "Security status unknown",
+    "statusUnknownDesc": "Security data could not be loaded, so the current status may be inaccurate. Please retry.",
     "deniedDetected": "Denied access detected in the last 24 hours",
     "deniedDetectedDesc": "{count} requests were blocked by policy. Review their source and grants.",
     "reviewAudit": "Review audit",

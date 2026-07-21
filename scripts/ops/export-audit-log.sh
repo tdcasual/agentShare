@@ -10,6 +10,13 @@ set -eu
 : "${COMPOSE_RELEASE_ENV_FILE:=.release.env}"
 : "${API_SERVICE:=api}"
 
+# The release env file pins image digests during deploys. It is optional for
+# local/ops invocations: only pass it to docker compose when it exists.
+release_env_file_args=""
+if [ -f "${COMPOSE_RELEASE_ENV_FILE}" ]; then
+  release_env_file_args="--env-file ${COMPOSE_RELEASE_ENV_FILE}"
+fi
+
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "${AUDIT_EXPORT_DIR}"
 chain_state_file="${AUDIT_EXPORT_DIR}/.chain-head"
@@ -30,7 +37,8 @@ if [ -n "${AUDIT_EXPORT_SINCE:-}" ]; then
   set -- "$@" --since "${AUDIT_EXPORT_SINCE}"
 fi
 
-docker compose --env-file "${COMPOSE_ENV_FILE}" --env-file "${COMPOSE_RELEASE_ENV_FILE}" \
+# Intentional word splitting: release_env_file_args is empty or two words.
+docker compose --env-file "${COMPOSE_ENV_FILE}" ${release_env_file_args} \
   -f "${COMPOSE_FILE}" exec -T "${API_SERVICE}" "$@" > "${temporary_file}"
 mv "${temporary_file}" "${export_file}"
 sha256sum "${export_file}" > "${export_file}.sha256"

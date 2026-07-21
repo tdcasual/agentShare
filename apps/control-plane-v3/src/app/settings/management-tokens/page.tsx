@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { Check, Clipboard, KeyRound, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -53,6 +53,14 @@ export default function ManagementTokensPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const issuedBannerRef = useRef<HTMLDivElement>(null);
+
+  // 一次性明文横幅出现在列表上方后，滚动到可见位置（role="status" 负责读屏播报）
+  useEffect(() => {
+    if (issued) {
+      issuedBannerRef.current?.scrollIntoView?.({ block: 'nearest' });
+    }
+  }, [issued]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -116,6 +124,48 @@ export default function ManagementTokensPage() {
           {t('managementTokens.description')}
         </p>
       </header>
+
+      {issued && (
+        <div ref={issuedBannerRef} role="status">
+          <Callout variant="warning" icon={<KeyRound className="h-5 w-5" />}>
+            <div className="space-y-3">
+              <p className="font-semibold">{t('managementTokens.issuedTitle')}</p>
+              <p className="text-sm">{t('managementTokens.issuedDescription')}</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-background px-3 py-2 text-sm">
+                  {issued.token}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  leftIcon={copied ? <Check /> : <Clipboard />}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(issued.token);
+                      setCopied(true);
+                      toast.success(t('common.copySuccess'));
+                    } catch {
+                      setActionError(t('managementTokens.copyFailed'));
+                    }
+                  }}
+                >
+                  {t(copied ? 'common.copied' : 'common.copy')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setIssued(null);
+                    setCopied(false);
+                  }}
+                >
+                  {t('common.done')}
+                </Button>
+              </div>
+            </div>
+          </Callout>
+        </div>
+      )}
 
       <section className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <form className="space-y-4 border-y py-5" onSubmit={submit}>
@@ -215,46 +265,6 @@ export default function ManagementTokensPage() {
           />
         </section>
       </section>
-
-      {issued && (
-        <Callout variant="warning" icon={<KeyRound className="h-5 w-5" />}>
-          <div className="space-y-3">
-            <p className="font-semibold">{t('managementTokens.issuedTitle')}</p>
-            <p className="text-sm">{t('managementTokens.issuedDescription')}</p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-background px-3 py-2 text-sm">
-                {issued.token}
-              </code>
-              <Button
-                type="button"
-                variant="outline"
-                leftIcon={copied ? <Check /> : <Clipboard />}
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(issued.token);
-                    setCopied(true);
-                    toast.success(t('common.copySuccess'));
-                  } catch {
-                    setActionError(t('managementTokens.copyFailed'));
-                  }
-                }}
-              >
-                {t(copied ? 'common.copied' : 'common.copy')}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setIssued(null);
-                  setCopied(false);
-                }}
-              >
-                {t('common.done')}
-              </Button>
-            </div>
-          </div>
-        </Callout>
-      )}
 
       <ConfirmDialog
         isOpen={Boolean(confirmTarget)}

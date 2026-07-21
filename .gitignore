@@ -25,6 +25,8 @@ agent_share_playwright_*.db
 .env
 .env.local
 .env.production
+.release.env
+.resolved-release.env
 .vaultgate-secrets/
 *.pem
 *.key

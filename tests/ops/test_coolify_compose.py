@@ -14,11 +14,18 @@ def _read_compose() -> str:
 def _service_block(compose: str, service: str) -> str:
     """Return the YAML block of one top-level service (keys indented by two)."""
     match = re.search(
-        rf"\n  {re.escape(service)}:\n(.*?)(?=\n  \S|\nvolumes:|\Z)",
+        rf"\n  {re.escape(service)}:\n(.*?)(?=\n  \S|\n\S|\Z)",
         compose,
         re.DOTALL,
     )
     assert match, f"service {service} missing"
+    return match.group(1)
+
+
+def _networks_block(compose: str) -> str:
+    """Return the top-level networks section."""
+    match = re.search(r"\nnetworks:\n(.*?)(?=\n\S|\Z)", compose, re.DOTALL)
+    assert match, "top-level networks section missing"
     return match.group(1)
 
 
@@ -33,11 +40,33 @@ def test_coolify_compose_has_no_caddy() -> None:
     assert "Caddyfile" not in compose
 
 
-def test_coolify_compose_has_no_custom_networks_or_static_ips() -> None:
+def test_coolify_compose_declares_default_and_internal_networks() -> None:
+    """Coolify owns routing on `default`; `internal` isolates api/postgres."""
+    block = _networks_block(_read_compose())
+    assert "default: {}" in block
+    assert "internal: {}" in block
+
+
+def test_coolify_compose_has_no_static_ips() -> None:
     compose = _read_compose()
-    assert "\nnetworks:" not in compose
     assert "ipv4_address" not in compose
+    assert "ipv6_address" not in compose
     assert "ipam:" not in compose
+
+
+def test_coolify_api_and_postgres_are_not_on_the_default_network() -> None:
+    """Only web may sit on the proxy-reachable default network."""
+    compose = _read_compose()
+    for service in ("api", "postgres"):
+        block = _service_block(compose, service)
+        assert "networks:\n      - internal\n" in block, f"{service} must join internal"
+        assert "- default" not in block, f"{service} must not join default"
+
+
+def test_coolify_web_joins_default_and_internal() -> None:
+    block = _service_block(_read_compose(), "web")
+    assert "      - default\n" in block
+    assert "      - internal\n" in block
 
 
 def test_coolify_compose_publishes_no_ports() -> None:

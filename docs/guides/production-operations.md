@@ -29,12 +29,35 @@ The primary recovery path is storage snapshot plus WAL/PITR. See
 
 ## Restore
 
+`scripts/ops/restore-postgres.sh` restores a custom-format dump produced by
+`backup-postgres.sh` through `pg_restore --clean --if-exists --no-owner --single-transaction
+--exit-on-error`. `BACKUP_FILE` is required. The compose wiring follows the same
+`COMPOSE_FILE` / `COMPOSE_ENV_FILE` defaults as the backup script; `.release.env`
+(`COMPOSE_RELEASE_ENV_FILE`) is passed to `docker compose` only when the file exists, so
+local drills need just `.env.production`.
+
+Full sequence against the standard production stack:
+
 ```bash
-./scripts/ops/restore-postgres.sh
+# 1. Stop API writes so no session or audit rows land mid-restore.
+docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml stop api
+
+# 2. Restore into the bundled postgres service. The target database must be
+#    disposable or in maintenance mode.
+BACKUP_FILE=./backups/postgres/postgres-20260101T000000Z.dump \
+  ./scripts/ops/restore-postgres.sh
+
+# 3. Start the stack; the API entrypoint re-applies any migrations newer than
+#    the dump (alembic upgrade head) before serving traffic.
+docker compose --env-file .env.production --env-file .release.env -f docker-compose.prod.yml up -d
+
+# 4. Verify readiness and run one synthetic Agent read.
+./scripts/ops/smoke-test.sh
 ```
 
 - Practice restore drills regularly on a non-production environment.
-- Verify data integrity after restore.
+- Verify data integrity after restore (see the Recovery section of
+  [`deployment-manual.md`](deployment-manual.md)).
 
 ## Incident Response
 

@@ -93,6 +93,8 @@
     "summary": "运行概览",
     "noDenied": "过去 24 小时未发现拒绝访问",
     "noDeniedDesc": "所有 Agent 请求均符合当前 Token 授权范围。",
+    "statusUnknown": "无法确认安全状态",
+    "statusUnknownDesc": "安全数据加载失败，当前状态可能不准确。请重试。",
     "deniedDetected": "过去 24 小时发现拒绝访问",
     "deniedDetectedDesc": "共有 {count} 次请求被策略拒绝，建议检查来源和授权配置。",
     "reviewAudit": "检查审计",

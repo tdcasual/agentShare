@@ -80,7 +80,7 @@ async def login(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> dict[str, str]:
+) -> Response | dict[str, str]:
     settings = request.app.state.settings
     rate_config = RateLimitConfig(
         settings.auth_rate_limit_max_attempts,
@@ -90,7 +90,7 @@ async def login(
     if limited is not None:
         # No audit row here: recording blocked attempts would let an attacker
         # keep the account locked forever with one request per window.
-        return limited  # type: ignore[return-value]
+        return limited
     user = await authenticate_password(db, body.email, body.password)
     if user is None:
         await write_auth_failure_audit(
