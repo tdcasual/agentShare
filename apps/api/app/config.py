@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     # Rate limiting
     auth_rate_limit_max_attempts: int = 5
     auth_rate_limit_window_seconds: int = 300
+    # Global cap on failed logins from one IP across ALL accounts; stops
+    # credential spraying where each account receives only a few attempts.
+    auth_rate_limit_ip_max_attempts: int = 20
     trusted_proxy_cidrs: str = ""
 
     # Data lifecycle

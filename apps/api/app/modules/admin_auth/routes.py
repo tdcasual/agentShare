@@ -85,6 +85,7 @@ async def login(
     rate_config = RateLimitConfig(
         settings.auth_rate_limit_max_attempts,
         settings.auth_rate_limit_window_seconds,
+        settings.auth_rate_limit_ip_max_attempts,
     )
     limited = await check_persistent_login_rate_limit(db, request, rate_config, body.email)
     if limited is not None:

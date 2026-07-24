@@ -17,6 +17,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Callout } from '@/components/ui/callout';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
@@ -40,6 +48,7 @@ export default function ManagementTokensPage() {
     `/api/admin/management-tokens?limit=${PAGE_SIZE}&offset=${offset}`,
     () => listManagementTokens({ limit: PAGE_SIZE, offset })
   );
+  const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [ttl, setTtl] = useState('2592000');
@@ -76,6 +85,7 @@ export default function ManagementTokensPage() {
       setCopied(false);
       setName('');
       setDescription('');
+      setShowCreate(false);
       setOffset(0);
       await mutate();
     } catch (caught) {
@@ -112,17 +122,19 @@ export default function ManagementTokensPage() {
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
-      <header className="border-b pb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          VaultGate
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          {t('managementTokens.title')}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          {t('managementTokens.description')}
-        </p>
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-5 p-4 sm:p-6 lg:p-8">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+        <div className="flex items-baseline gap-2.5">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            {t('managementTokens.title')}
+          </h1>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {t('managementTokens.count', { count: data?.total ?? 0 })}
+          </span>
+        </div>
+        <Button size="sm" leftIcon={<Plus />} onClick={() => setShowCreate(true)}>
+          {t('managementTokens.new')}
+        </Button>
       </header>
 
       {issued && (
@@ -130,7 +142,6 @@ export default function ManagementTokensPage() {
           <Callout variant="warning" icon={<KeyRound className="h-5 w-5" />}>
             <div className="space-y-3">
               <p className="font-semibold">{t('managementTokens.issuedTitle')}</p>
-              <p className="text-sm">{t('managementTokens.issuedDescription')}</p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-background px-3 py-2 text-sm">
                   {issued.token}
@@ -167,104 +178,112 @@ export default function ManagementTokensPage() {
         </div>
       )}
 
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-        <form className="space-y-4 border-y py-5" onSubmit={submit}>
-          <div>
-            <h2 className="text-lg font-semibold">{t('managementTokens.createTitle')}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t('managementTokens.createDescription')}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="management-token-name">{t('managementTokens.name')}</Label>
-            <Input
-              id="management-token-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={255}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="management-token-description">
-              {t('managementTokens.tokenDescription')}
-            </Label>
-            <Input
-              id="management-token-description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              maxLength={2000}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="management-token-ttl">{t('managementTokens.ttl')}</Label>
-            <Select value={ttl} onValueChange={setTtl}>
-              <SelectTrigger id="management-token-ttl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t('managementTokens.ttlNone')}</SelectItem>
-                <SelectItem value="86400">{t('managementTokens.ttlDay')}</SelectItem>
-                <SelectItem value="604800">{t('managementTokens.ttlWeek')}</SelectItem>
-                <SelectItem value="2592000">{t('managementTokens.ttlMonth')}</SelectItem>
-                <SelectItem value="31536000">{t('managementTokens.ttlYear')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {formError && <InlineAlert>{formError}</InlineAlert>}
-          <Button type="submit" loading={saving} leftIcon={<Plus />}>
-            {t('managementTokens.create')}
-          </Button>
-        </form>
+      {actionError && <InlineAlert>{actionError}</InlineAlert>}
 
-        <section aria-live="polite" className="space-y-4">
-          <div className="flex items-end justify-between gap-4 border-b pb-4">
-            <div>
-              <h2 className="text-lg font-semibold">{t('managementTokens.listTitle')}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t('managementTokens.count', { count: data?.total ?? 0 })}
-              </p>
-            </div>
-            <KeyRound className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+      <section aria-live="polite">
+        {isLoading ? (
+          <div className="space-y-3 border-y py-3" aria-label={t('common.loading')}>
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
           </div>
-          {actionError && <InlineAlert>{actionError}</InlineAlert>}
-          {isLoading ? (
-            <div className="space-y-3 border-y py-4" aria-label={t('common.loading')}>
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          ) : error ? (
-            <InlineAlert>{error.message}</InlineAlert>
-          ) : !data?.items.length ? (
-            <EmptyState
-              title={t('managementTokens.emptyTitle')}
-              description={t('managementTokens.emptyDescription')}
-              icon={<KeyRound className="h-6 w-6" />}
-              className="border-y"
-            />
-          ) : (
-            <div className="divide-y border-y">
-              {data.items.map((token) => (
-                <TokenRow
-                  key={token.id}
-                  token={token}
-                  locale={locale}
-                  onRevoke={() => setConfirmTarget({ token, action: 'revoke' })}
-                  onRotate={() => setConfirmTarget({ token, action: 'rotate' })}
-                  t={t}
-                />
-              ))}
-            </div>
-          )}
-          <PaginationControls
-            offset={offset}
-            limit={PAGE_SIZE}
-            total={data?.total ?? 0}
-            onOffsetChange={setOffset}
+        ) : error ? (
+          <InlineAlert>{error.message}</InlineAlert>
+        ) : !data?.items.length ? (
+          <EmptyState
+            title={t('managementTokens.emptyTitle')}
+            icon={<KeyRound className="h-6 w-6" />}
+            action={
+              <Button size="sm" leftIcon={<Plus />} onClick={() => setShowCreate(true)}>
+                {t('managementTokens.new')}
+              </Button>
+            }
+            className="border-y"
           />
-        </section>
+        ) : (
+          <div className="divide-y border-y">
+            {data.items.map((token) => (
+              <TokenRow
+                key={token.id}
+                token={token}
+                locale={locale}
+                onRevoke={() => setConfirmTarget({ token, action: 'revoke' })}
+                onRotate={() => setConfirmTarget({ token, action: 'rotate' })}
+                t={t}
+              />
+            ))}
+          </div>
+        )}
       </section>
+
+      <PaginationControls
+        offset={offset}
+        limit={PAGE_SIZE}
+        total={data?.total ?? 0}
+        onOffsetChange={setOffset}
+      />
+
+      <Dialog open={showCreate} onOpenChange={(open) => !saving && setShowCreate(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('managementTokens.createTitle')}</DialogTitle>
+            <DialogDescription>{t('managementTokens.createDescription')}</DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={submit}>
+            <div className="space-y-2">
+              <Label htmlFor="management-token-name">{t('managementTokens.name')}</Label>
+              <Input
+                id="management-token-name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={255}
+                required
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="management-token-description">
+                {t('managementTokens.tokenDescription')}
+              </Label>
+              <Input
+                id="management-token-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                maxLength={2000}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="management-token-ttl">{t('managementTokens.ttl')}</Label>
+              <Select value={ttl} onValueChange={setTtl}>
+                <SelectTrigger id="management-token-ttl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t('managementTokens.ttlNone')}</SelectItem>
+                  <SelectItem value="86400">{t('managementTokens.ttlDay')}</SelectItem>
+                  <SelectItem value="604800">{t('managementTokens.ttlWeek')}</SelectItem>
+                  <SelectItem value="2592000">{t('managementTokens.ttlMonth')}</SelectItem>
+                  <SelectItem value="31536000">{t('managementTokens.ttlYear')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {formError && <InlineAlert>{formError}</InlineAlert>}
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowCreate(false)}
+                disabled={saving}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" loading={saving}>
+                {t('managementTokens.create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         isOpen={Boolean(confirmTarget)}
@@ -317,49 +336,37 @@ function TokenRow({
     : expired
       ? 'managementTokens.expired'
       : 'managementTokens.active';
+  const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
   return (
-    <div className="grid gap-3 px-2 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:px-3">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-medium">{token.name}</h3>
+    <div className="flex min-w-0 items-center gap-3 px-2 py-2.5 transition-colors hover:bg-accent/40 sm:px-3">
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+          <h2 className="truncate text-sm font-medium">{token.name}</h2>
           <Badge variant={revoked || expired ? 'danger' : 'success'}>{t(statusKey)}</Badge>
+          <span className="font-mono text-xs text-muted-foreground">{token.key_prefix}…</span>
         </div>
-        {token.description && (
-          <p className="mt-1 text-sm text-muted-foreground">{token.description}</p>
-        )}
-        <p className="mt-1 font-mono text-xs text-muted-foreground">{token.key_prefix}...</p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          {token.description && <span>{token.description} · </span>}
           {t('managementTokens.expiresAt', {
             date: token.expires_at
-              ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                  new Date(token.expires_at)
-                )
+              ? date.format(new Date(token.expires_at))
               : t('managementTokens.never'),
           })}
           {' · '}
           {t('managementTokens.lastUsedAt', {
             date: token.last_used_at
-              ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                  new Date(token.last_used_at)
-                )
+              ? date.format(new Date(token.last_used_at))
               : t('managementTokens.never'),
           })}
+          {token.revoked_at &&
+            ` · ${t('managementTokens.revokedAt', { date: date.format(new Date(token.revoked_at)) })}`}
         </p>
-        {token.revoked_at && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t('managementTokens.revokedAt', {
-              date: new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                new Date(token.revoked_at)
-              ),
-            })}
-          </p>
-        )}
       </div>
-      <div className="flex items-center gap-2 sm:self-center">
+      <div className="flex shrink-0 items-center gap-1">
         <Button
           type="button"
           size="sm"
-          variant="outline"
+          variant="ghost"
           onClick={onRotate}
           disabled={revoked}
           leftIcon={<RotateCcw />}
@@ -373,6 +380,7 @@ function TokenRow({
           onClick={onRevoke}
           disabled={revoked || expired}
           leftIcon={revoked ? <Check /> : <Trash2 />}
+          className={revoked ? '' : 'text-destructive hover:text-destructive'}
         >
           {t(revoked ? 'managementTokens.revoked' : 'managementTokens.revoke')}
         </Button>

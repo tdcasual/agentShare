@@ -100,6 +100,7 @@ def test_coolify_api_passes_required_environment_keys() -> None:
         "CORS_ALLOWED_ORIGINS:",
         "SESSION_SECURE:",
         "TRUSTED_PROXY_CIDRS:",
+        "AUTH_RATE_LIMIT_IP_MAX_ATTEMPTS:",
     ):
         assert key in block, f"{key} missing from api environment"
 
@@ -109,6 +110,8 @@ def test_coolify_postgres_volume() -> None:
     block = _service_block(compose, "postgres")
     assert "postgres-data:/var/lib/postgresql/data" in block
     assert "\nvolumes:\n  postgres-data:" in compose
+    assert "postgres-backups:/var/lib/postgresql/backups" in block
+    assert "\n  postgres-backups:" in compose
 
 
 def test_coolify_services_wait_for_healthy_dependencies() -> None:

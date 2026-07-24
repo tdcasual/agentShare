@@ -251,31 +251,30 @@ export default function AgentDetailPage() {
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
-      <header className="border-b pb-6">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-5 p-4 sm:p-6 lg:p-8">
+      <header className="border-b pb-4">
         <Link
           href="/agents"
-          className="inline-flex min-h-11 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           {t('agents.backToAgents')}
         </Link>
-        <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="min-w-0 truncate text-3xl font-semibold tracking-tight">
-                {agent.name}
-              </h1>
-              <Badge variant={agent.status === 'active' ? 'success' : 'secondary'}>
-                {t(`agents.status.${agent.status}`)}
-              </Badge>
-            </div>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              {agent.description || t('agents.noDescription')}
-            </p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <h1 className="min-w-0 truncate text-xl font-semibold tracking-tight">{agent.name}</h1>
+            <Badge variant={agent.status === 'active' ? 'success' : 'secondary'}>
+              {t(`agents.status.${agent.status}`)}
+            </Badge>
+            {agent.description && (
+              <span className="hidden max-w-[36ch] truncate text-xs text-muted-foreground sm:inline">
+                {agent.description}
+              </span>
+            )}
           </div>
           <Button
-            variant="secondary"
+            variant="outline"
+            size="sm"
             loading={statusSaving}
             leftIcon={agent.status === 'active' ? <ShieldOff /> : <ShieldCheck />}
             onClick={() =>
@@ -316,23 +315,17 @@ export default function AgentDetailPage() {
         variant="danger"
       />
 
-      <section aria-labelledby="issue-token-heading" className="border-b pb-6">
-        <div className="mb-4">
-          <h2 id="issue-token-heading" className="text-lg font-semibold">
-            {t('agents.issueToken')}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t('agents.issueTokenDescription')}</p>
-          {grantsDirty && (
-            <p role="status" className="mt-2 text-sm text-status-warning-subtle-foreground">
-              {t('agents.saveGrantsBeforeIssuing')}
-            </p>
-          )}
-          {agent.status !== 'active' && (
-            <p role="status" className="mt-2 text-sm text-muted-foreground">
-              {t('agents.issueTokenDisabledAgent')}
-            </p>
-          )}
-        </div>
+      <section aria-label={t('agents.issueToken')} className="border-b pb-5">
+        {grantsDirty && (
+          <p role="status" className="mb-2 text-xs text-status-warning-subtle-foreground">
+            {t('agents.saveGrantsBeforeIssuing')}
+          </p>
+        )}
+        {agent.status !== 'active' && (
+          <p role="status" className="mb-2 text-xs text-muted-foreground">
+            {t('agents.issueTokenDisabledAgent')}
+          </p>
+        )}
         <form
           className="grid gap-4 lg:grid-cols-[minmax(180px,0.8fr)_minmax(240px,1.2fr)_190px_auto] lg:items-end"
           onSubmit={createToken}
@@ -382,12 +375,7 @@ export default function AgentDetailPage() {
         </form>
       </section>
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold">{t('agents.tokens')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t('agents.tokensDescription')}</p>
-        </div>
-
+      <section aria-label={t('agents.tokens')} className="space-y-3">
         {tokensLoading ? (
           <TokenWorkspaceSkeleton />
         ) : tokensError ? (

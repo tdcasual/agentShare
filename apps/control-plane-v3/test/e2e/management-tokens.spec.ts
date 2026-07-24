@@ -24,6 +24,7 @@ test.describe('Management token settings', () => {
     await expect(page.getByText('Deploy Automation')).toBeVisible();
     await expect(page.getByText('Production deployment API access')).toBeVisible();
 
+    await page.getByRole('button', { name: '新建 Token' }).click();
     await page.getByLabel('Token 名称').fill('Backup Automation');
     await page.getByRole('button', { name: '签发 Token' }).click();
     await expect(page.getByText('请立即复制此 Token')).toBeVisible();

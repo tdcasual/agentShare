@@ -229,9 +229,13 @@ def test_dev_runtime_bootstrap_uses_the_development_lock() -> None:
     assert 'bin/pip" check' in script
 
 
-def test_development_lock_includes_runtime_lock() -> None:
+def test_development_lock_is_a_complete_hashed_graph() -> None:
     lockfile = (ROOT / "apps/api/requirements-dev.lock").read_text()
-    assert "-r requirements.lock" in lockfile
+    assert "pip-compile --extra=dev --generate-hashes" in lockfile
+    assert "pytest==" in lockfile
+    assert "fastapi==" in lockfile
+    assert "--hash=sha256:" in lockfile
+    assert "-r requirements.lock" not in lockfile
 
 
 def test_repo_verification_script_is_present() -> None:

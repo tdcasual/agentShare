@@ -77,23 +77,17 @@ describe('VaultGateDashboard', () => {
     expect(screen.getByText('dashboard.controlPlane')).toBeInTheDocument();
   });
 
-  it('renders primary workflow links', () => {
+  it('renders the primary action and audit shortcut', () => {
     render(<VaultGateDashboard />);
     expect(screen.getByText('dashboard.createSecret')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.workflowAgents')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.workflowAudit')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.reviewAudit')).toBeInTheDocument();
   });
 
-  it('renders the configuration path', () => {
+  it('renders the 24 hour activity metrics', () => {
     render(<VaultGateDashboard />);
-    expect(screen.getByText('dashboard.setupPath')).toBeInTheDocument();
-  });
-
-  it('renders the 24 hour activity summary', () => {
-    render(<VaultGateDashboard />);
-    expect(screen.getByText('dashboard.activity24h')).toBeInTheDocument();
     expect(screen.getByText('88')).toBeInTheDocument();
     expect(screen.getByText('24')).toBeInTheDocument();
+    expect(screen.getByText('10')).toBeInTheDocument();
   });
 
   it('uses server totals instead of the current page length', () => {

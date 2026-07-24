@@ -17,14 +17,14 @@ export function EmptyState({
   ...props
 }: EmptyStateProps) {
   return (
-    <div className={cn('p-8 text-center', className)} {...props}>
+    <div className={cn('p-6 text-center', className)} {...props}>
       {icon && (
-        <div className="mb-4 text-muted-foreground" aria-hidden="true">
+        <div className="mb-2 text-muted-foreground" aria-hidden="true">
           {icon}
         </div>
       )}
-      <h3 className="mb-2 font-semibold text-foreground">{title}</h3>
-      {description && <p className="mb-4 text-sm text-muted-foreground">{description}</p>}
+      <h2 className="mb-1 text-sm font-semibold text-foreground">{title}</h2>
+      {description && <p className="mb-3 text-sm text-muted-foreground">{description}</p>}
       {action}
     </div>
   );

@@ -31,6 +31,31 @@ def test_login_rate_limit_is_scoped_by_ip_and_email(client: TestClient) -> None:
     assert other_identity.status_code == 401
 
 
+def test_bootstrap_validation_does_not_echo_sensitive_input(client: TestClient) -> None:
+    rejected_password = "LeakMe9!"
+    response = client.post(
+        "/api/admin/bootstrap/init",
+        json={"email": "admin@example.com", "password": rejected_password},
+    )
+
+    assert response.status_code == 422
+    password_errors = [
+        error for error in response.json()["detail"] if error["loc"][-1] == "password"
+    ]
+    assert password_errors
+    assert all("input" not in error for error in password_errors)
+    assert rejected_password not in response.text
+
+
+def test_bootstrap_custom_validation_errors_remain_serializable(client: TestClient) -> None:
+    response = client.post(
+        "/api/admin/bootstrap/init",
+        json={"email": "invalid", "password": ADMIN_PASSWORD},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"][-1] == "email"
+
 def test_sqlite_repeated_successful_logins_do_not_error(client: TestClient) -> None:
     """Regression: naive datetimes read back from SQLite must not break the
     persistent rate-limit window comparison after a successful login."""
@@ -95,6 +120,71 @@ def test_rate_limited_login_does_not_write_failure_audit(client: TestClient) -> 
     assert denied.status_code == 200
     assert denied.json()["total"] == 2
     assert {item["reason"] for item in denied.json()["items"]} == {"invalid_credentials"}
+
+
+def test_login_rate_limit_blocks_cross_account_spray_from_one_ip(client: TestClient) -> None:
+    """Credential spraying: each account stays under the per-identity cap, but
+    the aggregate failure count from a single IP trips the global IP limit."""
+    created = client.post(
+        "/api/admin/bootstrap/init",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+    )
+    assert created.status_code == 201
+    client.app.state.settings.auth_rate_limit_max_attempts = 10
+    client.app.state.settings.auth_rate_limit_ip_max_attempts = 3
+
+    for email in ("victim1@example.com", "victim2@example.com", "victim3@example.com"):
+        assert client.post(
+            "/api/admin/session/login",
+            json={"email": email, "password": "wrong-password"},
+        ).status_code == 401
+
+    # A fourth account, still below the per-identity cap, is blocked by IP.
+    blocked = client.post(
+        "/api/admin/session/login",
+        json={"email": "victim4@example.com", "password": "wrong-password"},
+    )
+    assert blocked.status_code == 429
+
+
+def test_ip_login_rate_limit_resets_after_a_successful_login(client: TestClient) -> None:
+    """A successful login from the IP clears the spray counter so shared NAT
+    gateways are not locked out by one user's mistyped password."""
+    created = client.post(
+        "/api/admin/bootstrap/init",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+    )
+    assert created.status_code == 201
+    # Once the successful login sets a session cookie, subsequent state-changing
+    # requests must carry a valid Origin to pass the CSRF middleware.
+    client.headers["Origin"] = "http://localhost:3000"
+    client.app.state.settings.auth_rate_limit_max_attempts = 10
+    client.app.state.settings.auth_rate_limit_ip_max_attempts = 3
+
+    for _ in range(2):
+        assert client.post(
+            "/api/admin/session/login",
+            json={"email": ADMIN_EMAIL, "password": "wrong-password"},
+        ).status_code == 401
+
+    assert client.post(
+        "/api/admin/session/login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+    ).status_code == 200
+
+    # The window restarted at the successful login: three more failures are
+    # allowed before the IP cap (3) trips on the fourth attempt.
+    for _ in range(3):
+        assert client.post(
+            "/api/admin/session/login",
+            json={"email": ADMIN_EMAIL, "password": "wrong-password"},
+        ).status_code == 401
+
+    blocked = client.post(
+        "/api/admin/session/login",
+        json={"email": ADMIN_EMAIL, "password": "wrong-password"},
+    )
+    assert blocked.status_code == 429
 
 
 def test_unknown_email_login_performs_dummy_password_check(

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Filter, Search, ShieldAlert } from 'lucide-react';
+import { Search, ShieldAlert } from 'lucide-react';
 import { useAuditActions, useAuditLogs, useAuditStats } from '@/domains/audit';
 import type { AuditQuery } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
@@ -73,24 +73,15 @@ export default function AuditPage() {
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
-      <header className="border-b pb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          VaultGate
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-          {t('audit.title')}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('audit.description')}</p>
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-5 p-4 sm:p-6 lg:p-8">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('audit.title')}</h1>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {t('audit.resultCount', { count: total })}
+        </span>
       </header>
 
-      <section aria-labelledby="audit-summary-heading" className="space-y-3">
-        <div>
-          <h2 id="audit-summary-heading" className="text-sm font-semibold">
-            {t('audit.summary')}
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">{t('audit.globalSummaryHint')}</p>
-        </div>
+      <section aria-label={t('audit.summary')} className="space-y-2">
         {statsError && <InlineAlert>{t('audit.statsLoadFailed')}</InlineAlert>}
         <div className="grid grid-cols-2 gap-px border-y bg-border sm:grid-cols-4">
           <AuditMetric
@@ -122,12 +113,38 @@ export default function AuditPage() {
         </div>
       </section>
 
-      <section aria-labelledby="audit-filter-heading" className="space-y-4 border-b pb-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="audit-filter-heading" className="flex items-center gap-2 text-sm font-semibold">
-            <Filter className="h-4 w-4" />
-            {t('audit.filters')}
-          </h2>
+      <section aria-label={t('audit.filters')} className="space-y-3 border-b pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('audit.resultFilter')}>
+            {(['all', 'success', 'denied'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={result === value}
+                onClick={() => {
+                  setResult(value);
+                  setOffset(0);
+                }}
+                className={`min-h-11 rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  result === value
+                    ? value === 'denied'
+                      ? 'border-status-danger bg-status-danger-subtle text-status-danger-subtle-foreground'
+                      : value === 'success'
+                        ? 'border-status-success bg-status-success-subtle text-status-success-subtle-foreground'
+                        : 'border-primary bg-primary text-primary-foreground'
+                    : 'bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+              >
+                {t(
+                  value === 'all'
+                    ? 'audit.all'
+                    : value === 'success'
+                      ? 'audit.granted'
+                      : 'audit.denied'
+                )}
+              </button>
+            ))}
+          </div>
           {filtered && (
             <Button variant="ghost" size="sm" onClick={resetFilters}>
               {t('audit.clearFilters')}
@@ -135,38 +152,7 @@ export default function AuditPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label={t('audit.resultFilter')}>
-          {(['all', 'success', 'denied'] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={result === value}
-              onClick={() => {
-                setResult(value);
-                setOffset(0);
-              }}
-              className={`min-h-11 rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                result === value
-                  ? value === 'denied'
-                    ? 'border-status-danger bg-status-danger-subtle text-status-danger-subtle-foreground'
-                    : value === 'success'
-                      ? 'border-status-success bg-status-success-subtle text-status-success-subtle-foreground'
-                      : 'border-primary bg-primary text-primary-foreground'
-                  : 'bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
-              }`}
-            >
-              {t(
-                value === 'all'
-                  ? 'audit.all'
-                  : value === 'success'
-                    ? 'audit.granted'
-                    : 'audit.denied'
-              )}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="audit-actor">{t('audit.actor')}</Label>
             <div className="relative">
@@ -269,13 +255,7 @@ export default function AuditPage() {
         </div>
       </section>
 
-      <section aria-live="polite" aria-busy={isLoading} className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">{t('audit.events')}</h2>
-          <span className="text-sm tabular-nums text-muted-foreground">
-            {t('audit.resultCount', { count: total })}
-          </span>
-        </div>
+      <section aria-label={t('audit.events')} aria-live="polite" aria-busy={isLoading}>
         {isLoading ? (
           <AuditSkeleton />
         ) : error ? (

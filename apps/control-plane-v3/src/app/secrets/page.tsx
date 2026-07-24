@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit3, Eye, Globe2, KeyRound, Plus, Search, Shield, Trash2, X } from 'lucide-react';
+import { Edit3, Eye, KeyRound, Plus, Search, Shield, Trash2, X } from 'lucide-react';
 import { deleteSecret, useSecrets } from '@/domains/secret';
 import type { Secret, SecretType } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
@@ -67,34 +67,24 @@ export default function SecretsPage() {
     }
   }
 
-  function resetFilters() {
-    setSearch('');
-    setTypeFilter('all');
-    setOffset(0);
-  }
-
   return (
-    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-8 p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            VaultGate
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+    <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-5 p-4 sm:p-6 lg:p-8">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+        <div className="flex items-baseline gap-2.5">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
             {t('secrets.title')}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t('secrets.description')}</p>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {t('secrets.resultCount', { count: total })}
+          </span>
         </div>
-        <Button leftIcon={<Plus />} onClick={() => setEditing('new')}>
+        <Button size="sm" leftIcon={<Plus />} onClick={() => setEditing('new')}>
           {t('secrets.newSecret')}
         </Button>
       </header>
 
-      <section
-        aria-label={t('secrets.filterLabel')}
-        className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px_auto]"
-      >
-        <div className="relative">
+      <section aria-label={t('secrets.filterLabel')} className="flex gap-3">
+        <div className="relative min-w-0 flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
@@ -131,7 +121,7 @@ export default function SecretsPage() {
             setOffset(0);
           }}
         >
-          <SelectTrigger aria-label={t('secrets.filterType')}>
+          <SelectTrigger aria-label={t('secrets.filterType')} className="w-40 shrink-0 sm:w-44">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -143,9 +133,6 @@ export default function SecretsPage() {
             ))}
           </SelectContent>
         </Select>
-        <div className="flex min-h-11 items-center text-sm tabular-nums text-muted-foreground md:justify-end">
-          {t('secrets.resultCount', { count: total })}
-        </div>
       </section>
 
       {deleteError && (
@@ -172,7 +159,7 @@ export default function SecretsPage() {
             description={error.message}
             icon={<Shield className="h-6 w-6" />}
             action={
-              <Button variant="outline" onClick={() => void refresh()}>
+              <Button variant="outline" size="sm" onClick={() => void refresh()}>
                 {t('common.retry')}
               </Button>
             }
@@ -181,15 +168,22 @@ export default function SecretsPage() {
         ) : secrets.length === 0 ? (
           <EmptyState
             title={t(filtered ? 'secrets.noResultsTitle' : 'secrets.emptyTitle')}
-            description={t(filtered ? 'secrets.noResultsDesc' : 'secrets.emptyDesc')}
             icon={<KeyRound className="h-6 w-6" />}
             action={
               filtered ? (
-                <Button variant="outline" onClick={resetFilters}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearch('');
+                    setTypeFilter('all');
+                    setOffset(0);
+                  }}
+                >
                   {t('secrets.clearFilters')}
                 </Button>
               ) : (
-                <Button leftIcon={<Plus />} onClick={() => setEditing('new')}>
+                <Button size="sm" leftIcon={<Plus />} onClick={() => setEditing('new')}>
                   {t('secrets.newSecret')}
                 </Button>
               )
@@ -259,52 +253,62 @@ function SecretRow({
 }) {
   const { t } = useI18n();
   return (
-    <article className="grid min-w-0 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-3">
-      <div className="min-w-0">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <h2 className="min-w-0 truncate font-medium text-foreground">{secret.name}</h2>
-          <Badge variant="secondary" className="font-normal">
+    <article className="group flex min-w-0 items-center gap-3 px-2 py-2.5 transition-colors hover:bg-accent/40 sm:px-3">
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+          <h2 className="min-w-0 truncate text-sm font-medium text-foreground">{secret.name}</h2>
+          <Badge variant="secondary" className="px-1.5 py-0 text-[11px] font-normal">
             {t(`secrets.types.${secret.type}`)}
           </Badge>
-        </div>
-        <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          {secret.url && (
-            <span className="flex min-w-0 items-center gap-1.5">
-              <Globe2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <span className="max-w-[36ch] truncate">{secret.url}</span>
+          {secret.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-sm bg-muted px-1.5 text-[11px] text-muted-foreground"
+            >
+              {tag}
             </span>
-          )}
-          {secret.username && <span className="max-w-[28ch] truncate">{secret.username}</span>}
-          {secret.description && <span className="line-clamp-1">{secret.description}</span>}
+          ))}
         </div>
-        {secret.tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {secret.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-sm bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+        {(secret.url || secret.username || secret.description) && (
+          <p className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+            {secret.url && <span className="max-w-[32ch] truncate">{secret.url}</span>}
+            {secret.username && <span className="max-w-[24ch] truncate">{secret.username}</span>}
+            {secret.description && (
+              <span className="min-w-0 flex-1 truncate">{secret.description}</span>
+            )}
+          </p>
         )}
       </div>
-      <div className="flex flex-wrap gap-1 sm:justify-end">
-        <Button variant="ghost" size="sm" leftIcon={<Eye />} onClick={onReveal}>
-          {t('secrets.reveal')}
-        </Button>
-        <Button variant="ghost" size="sm" leftIcon={<Edit3 />} onClick={onEdit}>
-          {t('common.edit')}
+      <div className="flex shrink-0 gap-0.5">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-11 px-0"
+          onClick={onReveal}
+          aria-label={t('secrets.reveal')}
+          title={t('secrets.reveal')}
+        >
+          <Eye />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          leftIcon={<Trash2 />}
-          className="text-destructive hover:text-destructive"
-          onClick={onDelete}
+          className="w-11 px-0"
+          onClick={onEdit}
+          aria-label={t('common.edit')}
+          title={t('common.edit')}
         >
-          {t('common.delete')}
+          <Edit3 />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-11 px-0 text-destructive hover:text-destructive"
+          onClick={onDelete}
+          aria-label={t('common.delete')}
+          title={t('common.delete')}
+        >
+          <Trash2 />
         </Button>
       </div>
     </article>
@@ -314,13 +318,13 @@ function SecretRow({
 function SecretListSkeleton() {
   return (
     <div className="divide-y border-y" aria-hidden="true">
-      {Array.from({ length: 6 }, (_, index) => (
-        <div key={index} className="space-y-3 py-5 sm:px-3">
+      {Array.from({ length: 8 }, (_, index) => (
+        <div key={index} className="space-y-2 px-3 py-3">
           <div className="flex gap-2">
-            <Skeleton className="h-5 w-48" />
-            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-4 w-16" />
           </div>
-          <Skeleton className="h-4 w-full max-w-xl" />
+          <Skeleton className="h-3 w-full max-w-md" />
         </div>
       ))}
     </div>

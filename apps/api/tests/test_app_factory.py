@@ -121,6 +121,22 @@ def test_readiness_endpoint_checks_database_and_encryption(client):
     }
 
 
+def test_readiness_endpoint_requires_encryption_round_trip(client, monkeypatch):
+    from app.services.encryption import get_encryption_service
+
+    service = get_encryption_service()
+    monkeypatch.setattr(service, "decrypt", lambda encrypted: "unexpected")
+
+    response = client.get("/readyz")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "degraded",
+        "database": "ok",
+        "encryption": "unavailable",
+    }
+
+
 def test_readiness_endpoint_does_not_expose_dependency_errors(client):
     class BrokenEngine:
         def connect(self):

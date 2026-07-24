@@ -10,6 +10,8 @@ from contextlib import asynccontextmanager
 from time import monotonic
 
 from fastapi import FastAPI, Request, Response
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -27,6 +29,9 @@ request_logger = logging.getLogger("app.request")
 startup_logger = logging.getLogger("app.startup")
 AppConfigurer = Callable[[FastAPI, Settings], None]
 RouteRegistrar = Callable[[FastAPI], None]
+SENSITIVE_VALIDATION_FIELDS = frozenset({"password", "secret", "token"})
+
+
 class RequestBodyTooLarge(Exception):
     pass
 
@@ -146,7 +151,9 @@ def register_core_routes(app: FastAPI) -> None:
         try:
             from app.services.encryption import get_encryption_service
             svc = get_encryption_service()
-            svc.encrypt("healthcheck")  # round-trip test
+            encrypted = svc.encrypt("healthcheck")
+            if svc.decrypt(encrypted) != "healthcheck":
+                raise ValueError("Encryption readiness round-trip failed")
             checks["encryption"] = "ok"
         except Exception:
             startup_logger.exception("Readiness check: encryption failed")
@@ -192,6 +199,26 @@ def add_security_headers_middleware(app: FastAPI, settings: Settings) -> None:
 
 def add_request_size_middleware(app: FastAPI, settings: Settings) -> None:
     app.add_middleware(RequestSizeLimitMiddleware, max_bytes=settings.max_request_body_bytes)
+
+
+def add_validation_error_handler(app: FastAPI) -> None:
+    @app.exception_handler(RequestValidationError)
+    async def redact_sensitive_validation_inputs(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        del request
+        errors: list[dict[str, object]] = []
+        for error in exc.errors():
+            sanitized = dict(error)
+            location = sanitized.get("loc")
+            if isinstance(location, tuple) and any(
+                isinstance(part, str) and part.lower() in SENSITIVE_VALIDATION_FIELDS
+                for part in location
+            ):
+                sanitized.pop("input", None)
+            errors.append(sanitized)
+        return JSONResponse(status_code=422, content=jsonable_encoder({"detail": errors}))
 
 
 def add_cors_middleware(app: FastAPI, settings: Settings) -> None:
@@ -283,6 +310,7 @@ def add_csrf_middleware(app: FastAPI, settings: Settings) -> None:
 
 
 def configure_default_app(app: FastAPI, settings: Settings) -> None:
+    add_validation_error_handler(app)
     add_cors_middleware(app, settings)
     add_csrf_middleware(app, settings)
     add_request_size_middleware(app, settings)

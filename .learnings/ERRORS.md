@@ -1311,3 +1311,363 @@ Added `apps/postgres/Dockerfile`, rebuilt gosu 1.19 with Go 1.26.5, published/sc
 - Related Files: `apps/postgres/Dockerfile`, `docker-compose.yml`, `docker-compose.prod.yml`, `.github/workflows/docker-images.yml`, `.github/workflows/security.yml`
 
 ---
+## [ERR-20260723-001] coolify-wrapper-large-compose-redaction
+
+**Logged**: 2026-07-23T14:24:00Z
+**Priority**: critical
+**Status**: pending
+**Area**: infra
+
+### Summary
+The Coolify wrapper exposed sensitive Compose environment values and failed to process a large Docker Compose application response.
+
+### Error
+
+```text
+jq: Argument list too long
+jq: Cannot index number with string "created_at"
+applications get returned unredacted sensitive environment values inside docker_compose
+```
+
+### Context
+- Read-only inspection targeted the exact VaultGate Coolify application on Coolify 4.1.2.
+- `applications get` redacted some top-level fields but did not recursively redact credentials embedded in `docker_compose`.
+- `status`, `deployments latest`, and `troubleshoot application` failed while processing the same large Compose resource.
+- No credential values are recorded in this entry.
+
+### Suggested Fix
+Stream API responses through recursive redaction before rendering, never pass the full response through shell arguments, and make deployment/status parsers tolerate the Coolify 4.1.2 response shape.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh`
+
+---
+
+## [ERR-20260723-002] sandbox-public-dns-resolution
+
+**Logged**: 2026-07-23T15:05:00Z
+**Priority**: low
+**Status**: pending
+**Area**: infra
+
+### Summary
+Public deployment checks cannot resolve external hostnames inside the default workspace sandbox.
+
+### Error
+
+```text
+curl: (6) Could not resolve host: ashare.infinitas.fun
+```
+
+### Context
+- Read-only health, readiness, authorization-boundary, CORS, and redirect checks were attempted from the restricted sandbox.
+- The same deployment had already been reachable when commands were run with approved external-network access.
+- This is an execution-environment limitation, not evidence of application downtime.
+
+### Suggested Fix
+Run public HTTP and Coolify API verification with approved external-network access after the sandbox attempt fails with DNS resolution errors.
+
+### Metadata
+- Reproducible: yes
+- Related Files: none
+
+---
+
+## [ERR-20260724-001] exec-orchestration-string-quoting
+
+**Logged**: 2026-07-24T00:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A read-only multi-command orchestration script failed to parse because a JavaScript string contained unescaped shell quoting.
+
+### Error
+
+```text
+SyntaxError: Unexpected string
+```
+
+### Context
+- The command was intended only to inspect backup artifacts, Coolify command help, tests, and the worktree diff.
+- No command executed and no local or external state changed.
+
+### Suggested Fix
+Use independent `exec_command` calls with simple quoted strings when shell expressions contain nested quoting.
+
+### Resolution
+The checks were split into simple commands and completed successfully.
+
+### Metadata
+- Reproducible: yes
+- Related Files: none
+
+---
+
+## [ERR-20260724-002] unhashed-development-lock
+
+**Logged**: 2026-07-24T00:20:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The Python development lock cannot be installed because it includes a hashed runtime lock but lists its own development packages without hashes.
+
+### Error
+
+```text
+ERROR: Hashes are required in --require-hashes mode, but they are missing from some requirements.
+pytest: not found
+```
+
+### Context
+- Reproduced in the same Python 3.12 major version used by CI.
+- `requirements-dev.lock` includes `-r requirements.lock`; hashes in the included file make pip require hashes for every development dependency too.
+- The failure occurs in the repository's documented `bootstrap-dev-runtime.sh` installation path before tests start.
+
+### Suggested Fix
+Generate the complete development dependency graph with `pip-compile --extra dev --generate-hashes` under Python 3.12, then rerun the bootstrap and full test suite.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/requirements-dev.lock`, `scripts/ops/bootstrap-dev-runtime.sh`, `.github/workflows/ci.yml`
+
+### Resolution
+- **Resolved**: 2026-07-24T14:45:00Z
+- **Notes**: Regenerated a complete Python 3.12 development graph with hashes for runtime and dev dependencies, and updated the ops contract to enforce the new reproducible-lock strategy.
+
+---
+
+## [ERR-20260724-003] generated-lock-ownership
+
+**Logged**: 2026-07-24T14:35:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The Python 3.12 container generated the development lock as `nobody:nogroup`, and sandbox escalation could not change its owner.
+
+### Error
+
+```text
+chown: changing ownership of 'apps/api/requirements-dev.lock': Operation not permitted
+```
+
+### Context
+- The generated file content was complete and readable.
+- The parent project directory remained writable by the workspace user.
+
+### Suggested Fix
+Move the generated file to a temporary path and copy it back so the workspace user creates the replacement inode.
+
+### Resolution
+Recovered ownership through a content-preserving move and copy; no generated data was discarded.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/requirements-dev.lock`
+
+---
+
+## [ERR-20260724-004] mypy-internal-error-python312
+
+**Logged**: 2026-07-24T15:00:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The final Python 3.12 quality gate reached a mypy 2.3.0 internal error before ruff, Bandit, and pip-audit ran.
+
+### Error
+
+```text
+error: INTERNAL ERROR -- Please try using mypy master on GitHub
+version: 2.3.0
+```
+
+### Context
+- The same complete hashed development lock installed successfully.
+- Backend and ops pytest had already passed 229 tests under Python 3.12.
+- The combined shell used `&&`, so later security checks correctly did not run after mypy failed.
+
+### Suggested Fix
+Rerun mypy with `--show-traceback`, identify the triggering module or dependency interaction, and fix or pin the verified toolchain rather than suppressing type checking.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/requirements-dev.lock`, `apps/api/pyproject.toml`
+
+### Resolution
+- **Resolved**: 2026-07-24T15:05:00Z
+- **Notes**: The traceback showed `sqlite3.OperationalError: unable to open database file`; the source tree was intentionally mounted read-only. Pointing mypy's cache to `/tmp` and running ruff with `--no-cache` preserve the read-only test mount while restoring both static-analysis gates.
+
+---
+
+## [ERR-20260724-005] compose-validation-placeholders
+
+**Logged**: 2026-07-24T15:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: config
+
+### Summary
+The production Compose parse check omitted required Caddy placeholder variables.
+
+### Error
+
+```text
+ACME_EMAIL is required
+CADDY_IMAGE is required
+```
+
+### Context
+- The check was configuration-only and did not start containers.
+- No production value is needed; explicit non-secret placeholders are sufficient for interpolation validation.
+
+### Suggested Fix
+Pass all required image and ACME placeholders in the validation command.
+
+### Resolution
+The validation command was corrected to include all explicit non-secret placeholders and strict `&&` chaining so a failed parse cannot print a success marker.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `docker-compose.prod.yml`
+
+---
+
+## [ERR-20260724-006] synthetic-postgres-port-conflict
+
+**Logged**: 2026-07-24T15:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The local Docker synthetic flow could not bind PostgreSQL because host port 5432 was already allocated.
+
+### Error
+
+```text
+Bind for 127.0.0.1:5432 failed: port is already allocated
+```
+
+### Context
+- All three synthetic images built successfully before the bind failure.
+- The script's EXIT trap removed its containers, network, and data volume.
+- The conflict is local-only and does not indicate a production deployment failure.
+
+### Suggested Fix
+Run the synthetic flow with an unused configurable PostgreSQL host port, then complete Playwright integration tests.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `scripts/ops/run-synthetic-flow.sh`, `docker-compose.yml`
+
+### Resolution
+- **Resolved**: 2026-07-24T15:20:00Z
+- **Notes**: Re-ran with isolated localhost ports (`55432`, `58000`, `53100`); all services became healthy and the Playwright real-stack credential lifecycle passed. The script removed all temporary resources.
+
+---
+
+## [ERR-20260724-007] read-only-audit-approval-timeout
+
+**Logged**: 2026-07-24T15:05:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A combined local-inspection and npm-audit command did not start because automatic escalation review timed out.
+
+### Error
+
+```text
+The automatic permission approval review did not finish before its deadline.
+```
+
+### Context
+- The command requested only read-only package and Compose evidence.
+- No command segment executed and no state changed.
+
+### Suggested Fix
+Split local inspection from the network audit and retry the already-approved `npm audit` command once.
+
+### Resolution
+The checks were separated into a sandbox-local inspection and a scoped network audit retry.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: `docker-compose.yml`, `apps/control-plane-v3/package-lock.json`
+
+---
+
+## [ERR-20260724-008] synthetic-flow-approval-timeout
+
+**Logged**: 2026-07-24T15:15:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The synthetic flow retry with isolated host ports did not start because automatic escalation review timed out.
+
+### Error
+
+```text
+The automatic permission approval review did not finish before its deadline.
+```
+
+### Context
+- The exact repository script had previously been approved and run; only environment-selected host ports differed.
+- No container, volume, file, or external state was created by the rejected call.
+
+### Suggested Fix
+Retry once as permitted; if review times out again, make collision-resistant synthetic ports the script defaults and use the already-approved exact script prefix.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: `scripts/ops/run-synthetic-flow.sh`, `docker-compose.yml`
+
+### Resolution
+- **Resolved**: 2026-07-24T15:20:00Z
+- **Notes**: The scoped retry was approved and completed successfully.
+
+---
+
+## [ERR-20260724-009] git-index-readonly-sandbox
+
+**Logged**: 2026-07-24T15:30:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: config
+
+### Summary
+The default workspace sandbox could read `.git` but could not create `index.lock` for the deployment commit.
+
+### Error
+
+```text
+fatal: Unable to create '.git/index.lock': Read-only file system
+```
+
+### Context
+- The working tree itself was writable and all project changes were already verified.
+- No partial commit or stale lock was created.
+
+### Suggested Fix
+Run the scoped `git add`/`git commit` operation with approved Git metadata write access.
+
+### Resolution
+The exact commit operation succeeded with controlled escalation.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `.git/index`
+
+---

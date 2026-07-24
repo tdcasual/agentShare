@@ -42,6 +42,7 @@ services:
       POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS:---data-checksums}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - postgres-backups:/var/lib/postgresql/backups
       - ${VAULTGATE_SECRETS_DIR:-./.vaultgate-secrets}:/run/secrets/vaultgate:ro
     networks:
       - internal
@@ -102,6 +103,7 @@ services:
       # known.
       TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-172.16.0.0/12}
       AUTH_RATE_LIMIT_MAX_ATTEMPTS: ${AUTH_RATE_LIMIT_MAX_ATTEMPTS:-5}
+      AUTH_RATE_LIMIT_IP_MAX_ATTEMPTS: ${AUTH_RATE_LIMIT_IP_MAX_ATTEMPTS:-20}
       AUTH_RATE_LIMIT_WINDOW_SECONDS: ${AUTH_RATE_LIMIT_WINDOW_SECONDS:-300}
       LAST_USED_WRITE_INTERVAL_SECONDS: ${LAST_USED_WRITE_INTERVAL_SECONDS:-300}
       CREDENTIAL_RETENTION_DAYS: ${CREDENTIAL_RETENTION_DAYS:-30}
@@ -187,3 +189,4 @@ networks:
 
 volumes:
   postgres-data:
+  postgres-backups:

@@ -185,9 +185,6 @@ export function SecretEditorDialog({
               spellCheck={false}
               autoComplete="off"
             />
-            {secret && (
-              <p className="text-xs text-muted-foreground">{t('secrets.createForm.valueHint')}</p>
-            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

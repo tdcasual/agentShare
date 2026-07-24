@@ -14,5 +14,6 @@
 | 2026-07-19 | [2026-07-19-post-fix-reaudit.md](2026-07-19-post-fix-reaudit.md) | 修复后再审计（含 2026-07-20 追加修复记录） | 已闭环：全部通过；验证数字为 07-19 时点快照，以最新验证为准 |
 | 2026-07-20 | [2026-07-20-ui-ux-live-audit.md](2026-07-20-ui-ux-live-audit.md) | 真实栈 + Playwright 实测走查（UI/UX 与业务流） | 最新一轮：核心业务流全通，发现项已修复/闭环；以最新验证为准 |
 | 2026-07-20 | [2026-07-20-comprehensive-scorecard.md](2026-07-20-comprehensive-scorecard.md) | 五维度评分式全面审计（总评 7.8/10） | 最新评分基线；改进优先级见报告末节 |
+| 2026-07-23 | [2026-07-23-production-audit.md](2026-07-23-production-audit.md) | 当前工作树 + Coolify 生产部署全面审计与七维评分 | 最新：7.2/10，条件不通过；管理员与登录后生产业务流待合规凭据闭环 |
 
 统一口径：各报告中的测试数字均为对应报告时点的快照；仓库最新状态以 `scripts/ops/verify-control-plane.sh` 的最新运行为准。

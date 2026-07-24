@@ -27,11 +27,11 @@ export function AuditMetric({
         ? 'text-status-danger'
         : 'text-foreground';
   return (
-    <div className="bg-background p-4 sm:p-5">
-      <p className={`text-2xl font-semibold tabular-nums ${color}`}>
+    <div className="bg-background px-4 py-3">
+      <p className={`text-xl font-semibold tabular-nums ${color}`}>
         {loading || value === undefined ? '—' : formatter.format(value)}
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }

@@ -38,7 +38,6 @@ export function OneTimeToken({ token, onDone }: { token: IssuedAgentToken; onDon
   return (
     <Callout variant="warning" icon={<KeyRound className="h-4 w-4" />}>
       <p className="font-medium">{t('agents.copyNow')}</p>
-      <p className="mt-1 text-sm">{t('agents.copyNowDescription')}</p>
       <code className="mt-3 block break-all rounded-md border bg-background p-3 text-sm">
         {token.token}
       </code>
@@ -88,7 +87,7 @@ export function TokenListItem({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`w-full px-3 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${selected ? 'bg-accent text-foreground' : 'hover:bg-accent/50'}`}
+      className={`w-full px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${selected ? 'bg-accent text-foreground' : 'hover:bg-accent/50'}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -186,7 +185,7 @@ export function TokenAccessPanel({
 
   return (
     <Card className="min-w-0 overflow-hidden lg:sticky lg:top-20">
-      <div className="border-b p-5">
+      <div className="border-b p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -259,7 +258,7 @@ export function TokenAccessPanel({
         variant="danger"
       />
 
-      <fieldset className="min-w-0 p-5 disabled:opacity-70" disabled={saving || grantsDisabled}>
+      <fieldset className="min-w-0 p-4 disabled:opacity-70" disabled={saving || grantsDisabled}>
         <legend className="px-1 text-sm font-semibold">{t('agents.secretAccess')}</legend>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>{t('agents.selectedSecrets', { count: selected.length })}</span>

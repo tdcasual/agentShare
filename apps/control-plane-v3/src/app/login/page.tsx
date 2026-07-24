@@ -61,7 +61,6 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
               {t('auth.login.title')}
             </h1>
-            <p className="mx-auto max-w-sm text-muted-foreground">{t('auth.login.subtitle')}</p>
           </div>
 
           {/* Form */}

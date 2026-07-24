@@ -131,7 +131,15 @@ Two options:
 
 1. **Bundled postgres + `scripts/ops/backup-postgres.sh`** — the script runs `pg_dump`
    (custom format) through `docker compose exec` and keeps the last 30 dumps. On Coolify,
-   schedule it from the host cron or a Coolify scheduled task, pointing it at this stack:
+   `docker-compose.coolify.yml` mounts the independent `postgres-backups` volume at
+   `/var/lib/postgresql/backups`. A Coolify scheduled task can run directly in the `postgres`
+   container without host checkout assumptions:
+
+   ```sh
+   sh -ec 'umask 077; stamp=$(date -u +%Y%m%dT%H%M%SZ); pg_dump --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --format=custom --file="/var/lib/postgresql/backups/postgres-${stamp}.dump"; find /var/lib/postgresql/backups -name "postgres-*.dump" -type f -mtime +30 -delete'
+   ```
+
+   Alternatively, schedule the repository script from host cron, pointing it at this stack:
 
    ```bash
    COMPOSE_FILE=docker-compose.coolify.yml COMPOSE_ENV_FILE=.env \
