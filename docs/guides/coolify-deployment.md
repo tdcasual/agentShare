@@ -136,8 +136,11 @@ Two options:
    container without host checkout assumptions:
 
    ```sh
-   sh -ec 'umask 077; stamp=$(date -u +%Y%m%dT%H%M%SZ); pg_dump --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --format=custom --file="/var/lib/postgresql/backups/postgres-${stamp}.dump"; find /var/lib/postgresql/backups -name "postgres-*.dump" -type f -mtime +30 -delete'
+   umask 077; f=/var/lib/postgresql/backups/$(date -u +%Y%m%dT%H%M%SZ).dump; pg_dump -U"$POSTGRES_USER" -Fc -f"$f" "$POSTGRES_DB"; pg_restore -l "$f" >/dev/null; find /var/lib/postgresql/backups -name "*.dump" -mtime +30 -delete
    ```
+
+   This command is intentionally kept below Coolify's 255-character scheduled-task limit.
+   The `pg_restore -l` check makes the task fail if the custom-format archive is unreadable.
 
    Alternatively, schedule the repository script from host cron, pointing it at this stack:
 

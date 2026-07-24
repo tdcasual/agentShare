@@ -1341,6 +1341,8 @@ Stream API responses through recursive redaction before rendering, never pass th
 ### Metadata
 - Reproducible: yes
 - Related Files: `/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh`
+- Recurrence-Count: 2
+- Last-Seen: 2026-07-24
 
 ---
 
@@ -1669,5 +1671,104 @@ The exact commit operation succeeded with controlled escalation.
 ### Metadata
 - Reproducible: yes
 - Related Files: `.git/index`
+
+---
+
+## [ERR-20260724-010] unsafe-coolify-metadata-capture-rejected
+
+**Logged**: 2026-07-24T15:40:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra
+
+### Summary
+A proposed metadata verification command was rejected because it would first persist the full, known-unredacted Coolify application response in `/tmp`.
+
+### Error
+
+```text
+Rejected due to unacceptable risk: applications get output is known to include unredacted production secrets.
+```
+
+### Context
+- The intended final output contained only safe metadata, but the intermediate file would still have contained production secrets.
+- The command did not execute and no temporary secret file was created.
+
+### Suggested Fix
+Do not call or capture the unsafe endpoint. Verify deployment using secret-free resource resolution, storage/task APIs, public HTTP behavior, and Git/Coolify deployment receipts.
+
+### Resolution
+Abandoned the unsafe approach and used only secret-free verification sources.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh`
+- See Also: ERR-20260723-001
+
+---
+
+## [ERR-20260724-011] coolify-scheduled-task-command-limit
+
+**Logged**: 2026-07-24T15:25:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: infra
+
+### Summary
+Coolify 4.1.2 rejected the PostgreSQL backup task because its command exceeded the database column's 255-character limit.
+
+### Error
+
+```text
+SQLSTATE[22001]: value too long for type character varying(255)
+```
+
+### Context
+- The API returned HTTP 500 rather than a validation error.
+- The failed insert did not create a scheduled task.
+- No database backup or application data was modified.
+
+### Suggested Fix
+Keep scheduled-task commands under 255 characters or call a short script already present in the target container.
+
+### Resolution
+Condensed the command while preserving timestamped custom-format dumps and 30-day rotation.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `docs/guides/coolify-deployment.md`
+
+---
+
+## [ERR-20260724-012] tty-secret-input-echo
+
+**Logged**: 2026-07-24T15:35:00Z
+**Priority**: critical
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The production acceptance process read its password from a TTY without disabling terminal echo, so the user-provided password appeared once in tool output.
+
+### Error
+
+```text
+Sensitive stdin was echoed by terminal line discipline.
+```
+
+### Context
+- The password was not embedded in a command, written to a file, or included in application output.
+- The acceptance script waited for EOF because it used a whole-stdin read; sending a newline alone did not start the test.
+- The leaked value is intentionally not recorded in this entry.
+
+### Suggested Fix
+For secret stdin, use a non-TTY pipe and read exactly one line, or explicitly disable echo before reading. Never use a whole-stdin read for an interactive secret.
+
+### Resolution
+All subsequent credential-assisted checks use non-TTY one-line input with no echo and no persistence.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `/tmp/vaultgate-live-acceptance.mjs`
 
 ---
