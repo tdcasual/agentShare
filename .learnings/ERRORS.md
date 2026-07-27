@@ -327,6 +327,39 @@ the temporary file from the container, host, and local machine.
 
 ---
 
+## [ERR-20260727-009] docker-ps-unsupported-service-field
+
+**Logged**: 2026-07-27T13:25:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+The installed Docker CLI formatter does not expose `.Service` in `docker ps` container context.
+
+### Error
+
+```text
+can't evaluate field Service in type *formatter.ContainerContext
+```
+
+### Context
+- The command was a final read-only production status check.
+- Container names already include the Compose service and resource UUID.
+
+### Suggested Fix
+Use `.Names`, `.Status`, and `.Image`, or read the scoped `com.docker.compose.service` label.
+
+### Resolution
+Re-ran with supported fields and confirmed all three production containers were healthy on the
+expected deployed revision.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `.learnings/ERRORS.md`
+
+---
+
 ## [ERR-20260721-001] sandbox-git-index-read-only
 
 **Logged**: 2026-07-21T14:25:55Z
