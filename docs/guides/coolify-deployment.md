@@ -198,10 +198,12 @@ with the old revision instead of rolling back code alone.
 - Known Coolify quirk with multi-network services: the proxy can occasionally route to a
   container IP on a network it does not share after redeploys
   ([coolify#6215](https://github.com/coollabsio/coolify/issues/6215)). The compose file pins
-  Traefik to `${COOLIFY_RESOURCE_UUID}`, the per-deployment network that Coolify injects and
-  shares with its proxy. If the domain still returns 504 while the containers are healthy,
-  confirm that the generated `web` labels retain `traefik.docker.network=<resource-uuid>`,
-  then redeploy or restart `coolify-proxy`.
+  Traefik to `tr01vb13cz2sj4wrm4y009cr`, the exact network that Coolify injects for this
+  production resource and shares with its proxy. Coolify 4.1.2 preserves variable expressions
+  in this label verbatim, so a portable `${...}` expression is not safe here. When cloning or
+  migrating the application, replace the pinned value with the new resource UUID. If the domain
+  still returns 504 while the containers are healthy, confirm that the generated `web` labels
+  retain `traefik.docker.network=<resource-uuid>`, then redeploy or restart `coolify-proxy`.
 
 ## Differences from the standard production deployment
 

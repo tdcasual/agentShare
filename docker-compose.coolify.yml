@@ -158,8 +158,9 @@ services:
       - internal
     labels:
       # The proxy only joins Coolify's per-resource network. Pin Traefik to
-      # that network so it cannot select the unreachable default/internal IP.
-      - "traefik.docker.network=${COOLIFY_RESOURCE_UUID:-coolify}"
+      # that exact network so it cannot select the unreachable default/internal
+      # IP. Coolify 4.1.2 preserves variable expressions in this label verbatim.
+      - "traefik.docker.network=tr01vb13cz2sj4wrm4y009cr"
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then((res)=>{if(!res.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 10s

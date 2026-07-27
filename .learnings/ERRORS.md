@@ -254,6 +254,44 @@ upgrade directive on the request protocol, and verified both Chromium CSP and We
 
 ---
 
+## [ERR-20260727-007] coolify-traefik-network-label-interpolation
+
+**Logged**: 2026-07-27T12:35:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra
+
+### Summary
+Coolify 4.1.2 preserved a Compose variable expression in `traefik.docker.network` as a literal,
+causing the first post-fix deployment to return 504 while every application container was healthy.
+
+### Error
+
+```text
+traefik.docker.network=${COOLIFY_RESOURCE_UUID:-coolify}
+GET /healthz -> 504
+```
+
+### Context
+- The proxy and Web container shared the exact per-resource network and could communicate directly.
+- The Web container label still contained the unexpanded expression, so Traefik could not select
+  that network for the generated router.
+- Direct host and proxy-container requests to the new Web container returned 200.
+
+### Suggested Fix
+Pin `traefik.docker.network` to the exact Coolify resource UUID for this deployment and require the
+value to be updated explicitly when cloning or migrating the application.
+
+### Resolution
+Replaced the variable expression with `tr01vb13cz2sj4wrm4y009cr`, updated its Compose contract test
+and deployment guide, and scheduled an immediate redeploy and public health verification.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `docker-compose.coolify.yml`, `tests/ops/test_coolify_compose.py`
+
+---
+
 ## [ERR-20260721-001] sandbox-git-index-read-only
 
 **Logged**: 2026-07-21T14:25:55Z
@@ -1559,8 +1597,8 @@ Stream API responses through recursive redaction before rendering, never pass th
 ### Metadata
 - Reproducible: yes
 - Related Files: `/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh`
-- Recurrence-Count: 2
-- Last-Seen: 2026-07-24
+- Recurrence-Count: 3
+- Last-Seen: 2026-07-27
 
 ---
 

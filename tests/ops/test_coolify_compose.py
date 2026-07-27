@@ -71,7 +71,7 @@ def test_coolify_web_joins_default_and_internal() -> None:
 
 def test_coolify_web_pins_traefik_to_resource_network() -> None:
     block = _service_block(_read_compose(), "web")
-    assert 'traefik.docker.network=${COOLIFY_RESOURCE_UUID:-coolify}' in block
+    assert "traefik.docker.network=tr01vb13cz2sj4wrm4y009cr" in block
 
 
 def test_coolify_compose_publishes_no_ports() -> None:
