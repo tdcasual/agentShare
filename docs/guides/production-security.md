@@ -33,13 +33,15 @@ are mutually exclusive, and key recovery can be verified without exposing key ma
 - Secret value responses use `Cache-Control: no-store`.
 - Structured audit snapshots remain understandable after resources are removed.
 
-## Security verification
+## Security verification and security headers
 
 - `.github/workflows/docker-images.yml` builds each commit image once, scans that exact local artifact with Trivy, and only pushes it after the scan passes.
 - `.github/workflows/security.yml` independently rescans the published API, web, Caddy, and PostgreSQL `latest` images on a weekly schedule or manual dispatch.
 - Trivy fails the workflow when a published image contains a fixed Critical or High vulnerability.
 - The PostgreSQL image preserves the official PostgreSQL 16 runtime and entrypoint while rebuilding its `gosu` helper with the patched Go toolchain declared in `apps/postgres/Dockerfile`.
-- Caddy adds security headers including HSTS, `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` at the public boundary.
+- Caddy adds edge headers including HSTS, `X-Content-Type-Options`, `X-Frame-Options`, and
+  `Referrer-Policy`. The web application owns Content Security Policy because it generates a
+  per-request nonce for Next.js and the theme bootstrap script; Caddy must not replace that header.
 
 Review the latest security workflow before promoting an image. A passing source build does not replace an image scan.
 

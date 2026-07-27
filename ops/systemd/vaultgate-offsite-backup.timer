@@ -1,0 +1,11 @@
+[Unit]
+Description=Run VaultGate offsite backup after the local Coolify backup
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 UTC
+Persistent=true
+RandomizedDelaySec=5m
+Unit=vaultgate-offsite-backup.service
+
+[Install]
+WantedBy=timers.target

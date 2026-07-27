@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { ThemeProvider } from '@/components/theme-provider';
 import { I18nProvider } from '@/components/i18n-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -55,9 +55,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
+  const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()]);
   const locale = resolveLayoutLocale(cookieStore.get('app-locale')?.value);
   const skipLinkLabel = getSkipLinkLabel(locale);
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange={false}
+          nonce={nonce}
         >
           <I18nProvider initialLocale={locale}>
             <ErrorBoundary>

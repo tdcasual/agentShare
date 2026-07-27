@@ -9,7 +9,16 @@ export default defineConfig({
     globals: true,
     pool: 'threads',
     setupFiles: ['./test/setup.ts'],
-    exclude: ['node_modules', 'test/e2e', 'test/integration', 'dist', '.idea', '.git', '.cache'],
+    exclude: [
+      'node_modules',
+      'test/e2e',
+      'test/integration',
+      'test/performance',
+      'dist',
+      '.idea',
+      '.git',
+      '.cache',
+    ],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'src/test/', '**/*.d.ts', '**/*.config.*'],

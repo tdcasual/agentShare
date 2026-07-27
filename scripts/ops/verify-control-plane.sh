@@ -35,6 +35,7 @@ fi
   npm run test:coverage
   npm run build
   npm run test:e2e
+  npm run test:performance
 )
 
 if [ "${RUN_SYNTHETIC_FLOW:-0}" = "1" ]; then

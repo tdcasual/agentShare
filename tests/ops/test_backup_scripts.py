@@ -11,6 +11,8 @@ def test_backup_and_restore_scripts_exist_and_are_executable() -> None:
     for relative_path in (
         "scripts/ops/backup-postgres.sh",
         "scripts/ops/restore-postgres.sh",
+        "scripts/ops/backup-postgres-offsite.sh",
+        "scripts/ops/restore-postgres-offsite-drill.sh",
     ):
         script = ROOT / relative_path
         assert script.exists()
@@ -64,3 +66,46 @@ def test_production_operations_guide_includes_backup_and_restore_drills() -> Non
     assert "## Backup" in guide
     assert "## Restore" in guide
     assert "postgres" in guide.lower()
+
+
+def test_offsite_backup_is_encrypted_scoped_and_rotated() -> None:
+    script = (ROOT / "scripts/ops/backup-postgres-offsite.sh").read_text()
+
+    assert 'RESTIC_REPOSITORY:?' in script
+    assert 'RESTIC_PASSWORD_FILE:?' in script
+    assert "com.docker.compose.project=${RESOURCE_UUID}" in script
+    assert "com.docker.compose.service=postgres" in script
+    assert "pg_dump" in script
+    assert "pg_restore -l" in script
+    assert "restic_command backup" in script
+    assert 'sftp.args=${RESTIC_SFTP_ARGS}' in script
+    assert "--keep-daily 14" in script
+    assert "--keep-weekly 8" in script
+    assert "--keep-monthly 12" in script
+    assert "--prune" in script
+
+
+def test_offsite_restore_drill_uses_an_ephemeral_database() -> None:
+    script = (ROOT / "scripts/ops/restore-postgres-offsite-drill.sh").read_text()
+
+    assert "restic_command dump" in script
+    assert "latest /vaultgate-postgres.dump" in script
+    assert 'sftp.args=${RESTIC_SFTP_ARGS}' in script
+    assert "docker run" in script
+    assert "--tmpfs /var/lib/postgresql/data" in script
+    assert "pg_restore" in script
+    assert "information_schema.tables" in script
+    assert "alembic_version" in script
+    assert "docker rm -f" in script
+
+
+def test_offsite_backup_has_a_persistent_daily_systemd_timer() -> None:
+    service = (ROOT / "ops/systemd/vaultgate-offsite-backup.service").read_text()
+    timer = (ROOT / "ops/systemd/vaultgate-offsite-backup.timer").read_text()
+
+    assert "EnvironmentFile=/etc/vaultgate/offsite-backup.env" in service
+    assert "Environment=HOME=/root" in service
+    assert "NoNewPrivileges=true" in service
+    assert "ProtectSystem=strict" in service
+    assert "OnCalendar=*-*-* 04:00:00 UTC" in timer
+    assert "Persistent=true" in timer

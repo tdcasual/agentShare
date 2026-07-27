@@ -247,9 +247,32 @@ def test_repo_verification_runs_browser_flows() -> None:
     script = (ROOT / "scripts/ops/verify-control-plane.sh").read_text()
 
     assert "npm run test:e2e" in script
+    assert "npm run test:performance" in script
     assert script.index("npm run build") < script.index("npm run test:e2e")
     assert 'ENCRYPTION_KEY="verification-only-not-a-production-key" docker compose config' in script
     assert "RUN_SYNTHETIC_FLOW" in script
+
+
+def test_browser_matrix_and_accessibility_gate_are_configured() -> None:
+    config = (ROOT / "apps/control-plane-v3/playwright.config.ts").read_text()
+    package = (ROOT / "apps/control-plane-v3/package.json").read_text()
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+
+    assert "mobile-chrome" in config
+    assert "Desktop Safari" in config
+    assert "test:a11y" in package
+    assert "@axe-core/playwright" in package
+    assert "playwright install --with-deps chromium webkit" in workflow
+
+
+def test_synthetic_flow_enforces_a_small_load_budget() -> None:
+    script = (ROOT / "scripts/ops/run-synthetic-flow.sh").read_text()
+    load_smoke = (ROOT / "scripts/ops/load-smoke.mjs").read_text()
+
+    assert "load-smoke.mjs" in script
+    assert "LOAD_CONCURRENCY" in load_smoke
+    assert "LOAD_P95_BUDGET_MS" in load_smoke
+    assert "['/healthz', '/readyz']" in load_smoke
 
 
 def test_synthetic_flow_uses_a_fresh_compose_stack() -> None:
@@ -257,6 +280,9 @@ def test_synthetic_flow_uses_a_fresh_compose_stack() -> None:
     spec = (ROOT / "apps/control-plane-v3/test/integration/vaultgate.synthetic.spec.ts").read_text()
     assert "docker compose" in script
     assert "down -v" in script
+    assert 'POSTGRES_PORT="${POSTGRES_PORT:-55432}"' in script
+    assert 'API_PORT="${API_PORT:-58000}"' in script
+    assert 'WEB_PORT="${WEB_PORT:-53100}"' in script
     assert "npm run test:integration" in script
     assert "/api/vault/secrets" in spec
     assert "/api/admin/audit-logs" in spec
@@ -315,7 +341,10 @@ def test_ci_audits_locked_api_runtime_dependencies() -> None:
     ci_workflow = (ROOT / ".github/workflows/ci.yml").read_text()
 
     assert "pip-audit -r requirements.lock" in ci_workflow
-    assert "npm audit --registry=https://registry.npmjs.org --audit-level=high" in ci_workflow
+    assert "npm run audit:dependencies" in ci_workflow
+    audit_script = (ROOT / "apps/control-plane-v3/scripts/audit-dependencies.mjs").read_text()
+    assert "--omit=dev" in audit_script
+    assert "GHSA-mh99-v99m-4gvg" in audit_script
 
 
 def test_frontend_dead_design_token_layer_is_removed() -> None:

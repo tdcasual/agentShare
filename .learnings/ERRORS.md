@@ -36,6 +36,224 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260727-001] npm-audit-mirror-endpoint
+
+**Logged**: 2026-07-27T10:10:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The configured npm mirror does not implement npm's security audit endpoint, so a plain
+`npm audit` fails instead of reporting the dependency state.
+
+### Error
+
+```text
+404 Not Found - POST https://registry.npmmirror.com/-/npm/v1/security/audits/quick
+[NOT_IMPLEMENTED] /-/npm/v1/security/* not implemented yet
+```
+
+### Context
+- The user-level npm registry is `https://registry.npmmirror.com/`.
+- Package installation is supported by that mirror, but security auditing is not.
+- The failure can hide newly published advisories if automation treats it as an empty report.
+
+### Suggested Fix
+Run security audits against `https://registry.npmjs.org` explicitly and make the project audit
+script independent of the user's configured installation registry.
+
+### Resolution
+Re-ran the audit with `--registry=https://registry.npmjs.org` and treated a non-zero audit exit
+as a real gate rather than an empty result.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package.json`
+
+---
+
+## [ERR-20260727-002] server-ops-ansible-missing
+
+**Logged**: 2026-07-27T10:20:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: infra
+
+### Summary
+The server-ops skill documents Ansible as its control plane, but neither `ansible` nor
+`ansible-playbook` is installed in the current environment.
+
+### Error
+
+```text
+zsh: command not found: ansible
+```
+
+### Context
+- The inventory is readable and contains exact SSH targets.
+- The first attempt was also cancelled by an approval timeout before execution.
+- OpenSSH is installed and can perform the same scoped host checks.
+
+### Suggested Fix
+Install Ansible in the maintained control environment or add a skill-provided wrapper that
+bootstraps a pinned Ansible runtime.
+
+### Resolution
+Used direct OpenSSH against the exact inventory hosts for this scoped backup task instead of
+modifying the control environment.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `/home/tdcasual/.agents/skills/server-ops/inventory/hosts.yml`
+
+---
+
+## [ERR-20260727-003] next-proxy-matcher-static-analysis
+
+**Logged**: 2026-07-27T10:33:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+Next.js 16 rejected a proxy matcher referenced through a module constant even though the value was
+a static string.
+
+### Error
+
+```text
+Next.js can't recognize the exported config field in route. matcher[0] needs to be a static string.
+```
+
+### Context
+- `proxy.ts` exported `config.matcher: [STATIC_ASSET_PATH]`.
+- Turbopack requires the matcher value to be directly statically parseable.
+
+### Suggested Fix
+Keep proxy matcher strings inline in the exported `config` object.
+
+### Resolution
+Replaced the constant reference with the same literal matcher string.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/proxy.ts`
+
+---
+
+## [ERR-20260727-004] restic-sftp-command-environment
+
+**Logged**: 2026-07-27T11:16:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra
+
+### Summary
+Restic 0.16 ignored `RESTIC_SFTP_COMMAND` as an environment-only setting and attempted the SFTP
+repository with the default SSH identity.
+
+### Error
+
+```text
+Permission denied (publickey,password)
+unable to start the sftp session
+```
+
+### Context
+- A direct SFTP test with the dedicated identity succeeded.
+- The target forced-SFTP account remained correctly restricted.
+- Repository initialization failed before creating repository data.
+
+### Suggested Fix
+Pass identity and strict host-key parameters explicitly as `-o sftp.args=...` on every restic
+call. `sftp.command` replaces the complete SSH command and therefore also requires a destination
+and subsystem; it is not the right option for adding identity arguments.
+
+### Resolution
+Added a `restic_command` wrapper that applies the explicit `sftp.args` option when configured.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `scripts/ops/backup-postgres-offsite.sh`
+
+---
+
+## [ERR-20260727-005] npm-audit-restricted-network
+
+**Logged**: 2026-07-27T12:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The dependency gate received no JSON when the npm audit subprocess could not reach the official
+registry from the restricted sandbox.
+
+### Error
+
+```text
+Error: npm audit returned no JSON output
+```
+
+### Context
+- The project audit script already overrides the unsupported user-level mirror with the official registry.
+- The failure happened before vulnerability data was returned and was not evidence of a clean or vulnerable tree.
+
+### Suggested Fix
+Run the same scoped dependency gate with approved registry network access and require valid JSON
+before interpreting the vulnerability result.
+
+### Resolution
+Re-ran `npm run audit:dependencies` with approved network access. Production dependencies were
+clean and the only development advisory matched the exact temporary allowlist.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/scripts/audit-dependencies.mjs`
+- See Also: ERR-20260727-001
+
+---
+
+## [ERR-20260727-006] nonce-csp-browser-compatibility
+
+**Logged**: 2026-07-27T12:10:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+The first nonce CSP browser run blocked Sonner's runtime stylesheet in Chromium and upgraded local
+HTTP subresources to HTTPS in WebKit.
+
+### Error
+
+```text
+Applying inline style violates style-src ...
+Error performing TLS handshake: An unexpected TLS packet was received.
+```
+
+### Context
+- Sonner 2.0.7 injects a deterministic `<style>` element without exposing a nonce option.
+- `upgrade-insecure-requests` was emitted for every production build request, including the local
+  HTTP server used by WebKit tests.
+- WebKit upgraded the local CSS and JavaScript URLs to HTTPS, so the application never hydrated.
+
+### Suggested Fix
+Authorize deterministic third-party styles with exact hashes and emit
+`upgrade-insecure-requests` only when the incoming request is already HTTPS, including through a
+trusted `x-forwarded-proto` value.
+
+### Resolution
+Added exact Sonner stylesheet hashes while keeping script `unsafe-inline` disabled, conditioned the
+upgrade directive on the request protocol, and verified both Chromium CSP and WebKit auth flows.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/proxy.ts`, `apps/control-plane-v3/test/e2e/security-headers.spec.ts`
+
+---
+
 ## [ERR-20260721-001] sandbox-git-index-read-only
 
 **Logged**: 2026-07-21T14:25:55Z
@@ -1570,10 +1788,15 @@ Run the synthetic flow with an unused configurable PostgreSQL host port, then co
 ### Metadata
 - Reproducible: yes
 - Related Files: `scripts/ops/run-synthetic-flow.sh`, `docker-compose.yml`
+- Recurrence-Count: 2
+- First-Seen: 2026-07-24
+- Last-Seen: 2026-07-27
 
 ### Resolution
 - **Resolved**: 2026-07-24T15:20:00Z
-- **Notes**: Re-ran with isolated localhost ports (`55432`, `58000`, `53100`); all services became healthy and the Playwright real-stack credential lifecycle passed. The script removed all temporary resources.
+- **Notes**: The 2026-07-24 run passed with isolated localhost ports, but the script defaults
+  were unchanged and the conflict recurred on 2026-07-27. The script now uses `55432`, `58000`,
+  and `53100` by default while preserving environment overrides.
 
 ---
 

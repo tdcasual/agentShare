@@ -1,0 +1,20 @@
+[Unit]
+Description=VaultGate encrypted offsite PostgreSQL backup
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment=HOME=/root
+EnvironmentFile=/etc/vaultgate/offsite-backup.env
+ExecStart=/usr/local/sbin/vaultgate-offsite-backup
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/vaultgate-offsite /root/.cache/restic
+
+[Install]
+WantedBy=multi-user.target

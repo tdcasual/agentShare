@@ -56,6 +56,18 @@ def test_caddyfile_sets_security_headers() -> None:
     assert "X-Content-Type-Options" in caddyfile
     assert "X-Frame-Options" in caddyfile
     assert "Referrer-Policy" in caddyfile
+    assert "Content-Security-Policy" not in caddyfile
+
+
+def test_next_proxy_owns_nonce_content_security_policy() -> None:
+    proxy = (ROOT / "apps/control-plane-v3/src/proxy.ts").read_text()
+    next_config = (ROOT / "apps/control-plane-v3/next.config.mjs").read_text()
+
+    assert "Content-Security-Policy" in proxy
+    assert "'nonce-${nonce}'" in proxy
+    assert "script-src" in proxy
+    assert "script-src 'self' 'unsafe-inline'" not in proxy
+    assert "Content-Security-Policy" not in next_config
 
 
 def test_caddy_routes_frontend_docs_without_shadowing_them() -> None:

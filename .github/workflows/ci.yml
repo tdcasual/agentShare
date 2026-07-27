@@ -50,7 +50,11 @@ jobs:
 
       - name: Audit npm dependencies
         working-directory: apps/control-plane-v3
-        run: npm audit --registry=https://registry.npmjs.org --audit-level=high
+        run: npm run audit:dependencies
+
+      - name: Install browser test engines
+        working-directory: apps/control-plane-v3
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Run unified control plane verification
         run: RUN_SYNTHETIC_FLOW=1 ./scripts/ops/verify-control-plane.sh

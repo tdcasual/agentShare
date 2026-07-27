@@ -27,6 +27,24 @@ The primary recovery path is storage snapshot plus WAL/PITR. See
 - Treat dumps as confidential: Secret values are stored as ciphertext, but names, URLs, usernames,
   metadata, and audit records are plaintext. Encrypt backup storage and restrict access to it.
 
+### Encrypted off-host backup
+
+`scripts/ops/backup-postgres-offsite.sh` locates the exact Coolify PostgreSQL container by Compose
+project and service labels, creates and validates a custom-format dump, then sends it to an encrypted
+restic repository. It retains 14 daily, 8 weekly, and 12 monthly snapshots. Required configuration:
+
+```dotenv
+RESTIC_REPOSITORY=sftp:vaultgate-backup@backup-host:/srv/vaultgate-backups/repository
+RESTIC_PASSWORD_FILE=/root/.config/vaultgate-backup/restic-password
+RESTIC_SFTP_ARGS="-i /root/.ssh/vaultgate-backup -o BatchMode=yes -o StrictHostKeyChecking=yes"
+VAULTGATE_RESOURCE_UUID=<exact-coolify-resource-uuid>
+```
+
+Install `ops/systemd/vaultgate-offsite-backup.service` and `.timer` on the database host. The timer
+runs at 04:00 UTC with a randomized delay, after the Coolify-local 03:17 backup. Keep the restic
+password outside the repository; escrow a separately encrypted recovery copy so loss of the source
+host does not make the off-host repository unreadable.
+
 ## Restore
 
 `scripts/ops/restore-postgres.sh` restores a custom-format dump produced by
@@ -59,6 +77,18 @@ docker compose --env-file .env.production --env-file .release.env -f docker-comp
 - Verify data integrity after restore (see the Recovery section of
   [`deployment-manual.md`](deployment-manual.md)).
 
+To test an off-host snapshot without stopping or writing to production, run:
+
+```bash
+RESTIC_REPOSITORY=<repository> \
+RESTIC_PASSWORD_FILE=<password-file> \
+  ./scripts/ops/restore-postgres-offsite-drill.sh
+```
+
+The drill downloads the latest tagged snapshot, restores it into a temporary PostgreSQL 16
+container backed by tmpfs, verifies public tables and the Alembic version row, then deletes the
+container and plaintext archive.
+
 ## Incident Response
 
 1. Check deploy logs if a release just completed.
@@ -79,6 +109,9 @@ failures, audit IPs, crash loops), see [`troubleshooting.md`](troubleshooting.md
 - **Key recovery**: `scripts/ops/verify-key-recovery.sh`
 - **Audit export**: `scripts/ops/export-audit-log.sh`
 - **Recovery drill**: `scripts/ops/run-durability-drill.sh`
+- **Off-host backup**: `scripts/ops/backup-postgres-offsite.sh` and
+  `vaultgate-offsite-backup.timer`
+- **Off-host restore drill**: `scripts/ops/restore-postgres-offsite-drill.sh`
 - **Prometheus alerts**: `ops/monitoring/vaultgate-alerts.yml` — exporter setup, scrape
   configuration, and alert-chain testing are covered in [`monitoring.md`](monitoring.md)
 

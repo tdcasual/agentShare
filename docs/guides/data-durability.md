@@ -145,7 +145,24 @@ later files continue the previous export's chain. Place the entire destination o
 and protect the chain-head file with the same retention policy. Configure retention so audit rows
 are exported before they are removed from PostgreSQL.
 
-## 8. Recovery drills
+## 8. Encrypted off-host logical backups
+
+For bundled PostgreSQL on Coolify, use `scripts/ops/backup-postgres-offsite.sh` as an independent
+recovery path in addition to the stack-local `postgres-backups` volume. The script validates the
+dump with `pg_restore -l` before restic encrypts and transfers it. The destination account should
+be limited to forced SFTP and a dedicated directory; it must not have an interactive shell or
+access to the application host.
+
+The restic password must survive loss of the database host without being stored in plaintext next
+to the repository. One option is a target-held recovery private key plus an RSA-OAEP encrypted copy
+of the password. During a drill, decrypt it only into tmpfs, run the restore, and remove it through
+a shell trap.
+
+The shipped systemd timer retains 14 daily, 8 weekly, and 12 monthly snapshots. Monitor both timer
+execution and repository growth. A successful upload is not proof of recovery; run
+`scripts/ops/restore-postgres-offsite-drill.sh` at least monthly.
+
+## 9. Recovery drills
 
 Use dedicated environment and release files; the drill rejects production-like project names:
 
@@ -161,7 +178,7 @@ The drill starts an isolated stack, writes a marker, verifies WAL archival and t
 keyring, restarts PostgreSQL, and confirms the marker survives. Provide `DRILL_SNAPSHOT_HOOK` to
 exercise the storage-provider snapshot path. Run at least quarterly and record measured RPO/RTO.
 
-## Optional logical backup
+## Optional deployment-time logical backup
 
 Set `ENABLE_LOGICAL_BACKUP=true` to retain the deployment-time `pg_dump` safeguard. Logical backups
 are useful for portability and selective restores, but remain optional when tested snapshot/PITR

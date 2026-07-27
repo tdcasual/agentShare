@@ -15,6 +15,10 @@ async function readNextConfigSource() {
   return readFile(path.join(appDir, '../../next.config.mjs'), 'utf8');
 }
 
+async function readProxySource() {
+  return readFile(path.join(appDir, '../proxy.ts'), 'utf8');
+}
+
 describe('root layout localization', () => {
   it('derives document lang and skip link copy from the persisted locale', async () => {
     const source = await readLayoutSource();
@@ -52,10 +56,22 @@ describe('root layout localization', () => {
     expect(skipLinkPosition).toBeLessThan(routeGuardPosition);
   });
 
-  it('allows Next hydration scripts while restricting scripts to this origin', async () => {
-    const source = await readNextConfigSource();
+  it('passes the request nonce to the theme bootstrap script', async () => {
+    const source = await readLayoutSource();
 
-    expect(source).toContain("script-src 'self' 'unsafe-inline'");
-    expect(source).not.toMatch(/script-src[^\n]*https?:/);
+    expect(source).toMatch(/headers\(\)/);
+    expect(source).toContain("requestHeaders.get('x-nonce')");
+    expect(source).toContain('nonce={nonce}');
+  });
+
+  it('uses a dynamic nonce policy instead of unsafe inline scripts', async () => {
+    const [proxySource, configSource] = await Promise.all([
+      readProxySource(),
+      readNextConfigSource(),
+    ]);
+
+    expect(proxySource).toContain("'nonce-${nonce}'");
+    expect(proxySource).not.toMatch(/script-src[^\n]*unsafe-inline/);
+    expect(configSource).not.toContain('Content-Security-Policy');
   });
 });

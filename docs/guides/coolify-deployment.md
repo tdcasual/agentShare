@@ -154,6 +154,12 @@ Two options:
    file exists, so the same script works unchanged in a plain Coolify checkout. Store the
    dumps off the server.
 
+   For the off-host layer, install `scripts/ops/backup-postgres-offsite.sh` with the systemd
+   service and timer under `ops/systemd/`. It encrypts the validated dump into a restic SFTP
+   repository and retains 14 daily, 8 weekly, and 12 monthly snapshots. Validate recovery with
+   `scripts/ops/restore-postgres-offsite-drill.sh`; the drill uses a temporary PostgreSQL
+   container and never writes to the production database.
+
 2. **Coolify managed PostgreSQL** — replace the bundled `postgres` service with a Coolify
    database resource and set `DATABASE_URL` (URL-encoded) on the `api` service. You get
    Coolify's built-in scheduled backups, but you give up the stack-local volume and must keep
