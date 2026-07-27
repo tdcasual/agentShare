@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { existsSync } from 'node:fs';
 
+const externalBaseUrl = process.env.VAULTGATE_E2E_BASE_URL;
 const systemChrome =
   process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
   (existsSync('/usr/bin/google-chrome') ? '/usr/bin/google-chrome' : undefined);
@@ -11,15 +12,17 @@ export default defineConfig({
   workers: 2,
   reporter: [['list']],
   use: {
-    baseURL: 'http://127.0.0.1:3100',
+    baseURL: externalBaseUrl ?? 'http://127.0.0.1:3100',
     trace: 'retain-on-failure',
   },
-  webServer: {
-    command: 'PORT=3100 npm start',
-    url: 'http://127.0.0.1:3100',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: externalBaseUrl
+    ? undefined
+    : {
+        command: 'PORT=3100 npm start',
+        url: 'http://127.0.0.1:3100',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
   projects: [
     {
       name: 'chromium',

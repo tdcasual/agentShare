@@ -292,6 +292,41 @@ and deployment guide, and scheduled an immediate redeploy and public health veri
 
 ---
 
+## [ERR-20260727-008] docker-cp-read-only-rootfs
+
+**Logged**: 2026-07-27T13:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+Docker refused to copy a non-secret maintenance script into an API container whose root filesystem
+is read-only, even though the destination was the separately mounted `/tmp` tmpfs.
+
+### Error
+
+```text
+Error response from daemon: container rootfs is marked read-only
+```
+
+### Context
+- The container hardening was working as configured and no application data changed.
+- `/tmp` remained writable from inside the running container.
+
+### Suggested Fix
+Stream non-secret maintenance input through `docker exec -i` to a process that writes inside the
+container's tmpfs, without disabling the read-only root filesystem.
+
+### Resolution
+Used `docker exec -i` to write the script into `/tmp`, completed the scoped operation, and deleted
+the temporary file from the container, host, and local machine.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `docker-compose.coolify.yml`
+
+---
+
 ## [ERR-20260721-001] sandbox-git-index-read-only
 
 **Logged**: 2026-07-21T14:25:55Z
@@ -2005,7 +2040,7 @@ Condensed the command while preserving timestamped custom-format dumps and 30-da
 
 **Logged**: 2026-07-24T15:35:00Z
 **Priority**: critical
-**Status**: resolved
+**Status**: pending
 **Area**: tests
 
 ### Summary
@@ -2020,16 +2055,25 @@ Sensitive stdin was echoed by terminal line discipline.
 ### Context
 - The password was not embedded in a command, written to a file, or included in application output.
 - The acceptance script waited for EOF because it used a whole-stdin read; sending a newline alone did not start the test.
+- On 2026-07-27 the failure recurred even after local and remote terminal echo were disabled and
+  again when Bash `read -s` fed the value through a pipe. The tool surfaced the characters sent by
+  `write_stdin`, independently of the child process's echo settings.
 - The leaked value is intentionally not recorded in this entry.
 
 ### Suggested Fix
-For secret stdin, use a non-TTY pipe and read exactly one line, or explicitly disable echo before reading. Never use a whole-stdin read for an interactive secret.
+Do not transmit secrets through PTY or `write_stdin` in this execution environment. Use a
+product-supported secret input channel that redacts tool arguments and stdin, or require the user
+to rotate/set the secret outside the captured agent tool stream.
 
 ### Resolution
-All subsequent credential-assisted checks use non-TTY one-line input with no echo and no persistence.
+The production operation completed and temporary files were removed, but the tooling defect remains
+unresolved. No further credential input is permitted through this mechanism.
 
 ### Metadata
 - Reproducible: yes
 - Related Files: `/tmp/vaultgate-live-acceptance.mjs`
+- Recurrence-Count: 3
+- First-Seen: 2026-07-24
+- Last-Seen: 2026-07-27
 
 ---
