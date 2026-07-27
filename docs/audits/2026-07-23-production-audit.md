@@ -6,7 +6,7 @@
 
 本轮按 7 月 24 日复审的剩余问题逐项修复，并对当前源代码、Docker 合成栈、生产基础设施和
 `https://ashare.infinitas.fun` 重新取证。Coolify 资源 `vaultgate`（UUID
-`tr01vb13cz2sj4wrm4y009cr`）现运行提交 `4dfa6b4`，API、Web、PostgreSQL 三个容器均为
+`tr01vb13cz2sj4wrm4y009cr`）现运行提交 `f2313ce`，API、Web、PostgreSQL 三个容器均为
 `healthy`。管理员邮箱为 `tdcasual@outlook.com`，已按用户指定凭据完成真实登录和完整业务
 流验收；凭据、Token、数据库密码、加密密钥和备份密码均不记录在仓库或本报告中。
 
@@ -55,7 +55,7 @@
 - **隔离恢复演练**：最新异机快照恢复到 tmpfs 上的临时 PostgreSQL 16 容器，结果为
   `tables=10 migrations=1`；容器、dump、瞬态 systemd 服务和运行期密码均在退出后清理。
 - **部署闭环**：首次部署暴露 Coolify 4.1.2 不展开 `traefik.docker.network` 标签变量的问题，
-  产生 504；改为精确资源网络后重新部署，三个镜像均对应 `4dfa6b4`，公网 `/healthz` 和
+  产生 504；改为精确资源网络后重新部署，最终三个镜像均对应 `f2313ce`，公网 `/healthz` 和
   `/readyz` 均恢复 200，随后完成上述部署版浏览器、性能、负载和业务流测试。
 
 ### 1.2 当前风险与后续动作
