@@ -13,6 +13,14 @@ def _validate_bcrypt_password_length(value: str) -> str:
     return value
 
 
+def _validate_password_policy(value: str) -> str:
+    _validate_bcrypt_password_length(value)
+    required_patterns = (r"[a-z]", r"[A-Z]", r"\d", r"[^A-Za-z0-9]")
+    if not all(re.search(pattern, value) for pattern in required_patterns):
+        raise ValueError("Password must contain upper, lower, digit, and special characters")
+    return value
+
+
 class BootstrapRequest(BaseModel):
     email: str = Field(min_length=3, max_length=255)
     password: str = Field(min_length=12, max_length=1024)
@@ -28,11 +36,7 @@ class BootstrapRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password(cls, value: str) -> str:
-        _validate_bcrypt_password_length(value)
-        required_patterns = (r"[a-z]", r"[A-Z]", r"\d", r"[^A-Za-z0-9]")
-        if not all(re.search(pattern, value) for pattern in required_patterns):
-            raise ValueError("Password must contain upper, lower, digit, and special characters")
-        return value
+        return _validate_password_policy(value)
 
 
 class LoginRequest(BaseModel):
@@ -43,6 +47,21 @@ class LoginRequest(BaseModel):
     @classmethod
     def validate_password_length(cls, value: str) -> str:
         return _validate_bcrypt_password_length(value)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=1024)
+    new_password: str = Field(min_length=12, max_length=1024)
+
+    @field_validator("current_password")
+    @classmethod
+    def validate_current_password_length(cls, value: str) -> str:
+        return _validate_bcrypt_password_length(value)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, value: str) -> str:
+        return _validate_password_policy(value)
 
 
 class ManagementTokenCreate(BaseModel):

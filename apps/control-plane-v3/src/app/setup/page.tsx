@@ -11,24 +11,7 @@ import { Label } from '@/components/ui/label';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
 import { useI18n } from '@/components/i18n-provider';
 import { ApiError, bootstrap, getBootstrapStatus } from '@/lib/vaultgate-api';
-
-// 与后端 apps/api/app/modules/admin_auth/schemas.py 的密码策略保持一致：
-// 至少 12 位，含大小写字母、数字、特殊字符，且不超过 72 个 UTF-8 字节（bcrypt 上限）。
-const MIN_PASSWORD_LENGTH = 12;
-const MAX_PASSWORD_UTF8_BYTES = 72;
-
-function checkPasswordPolicy(password: string): 'tooLong' | 'tooWeak' | null {
-  if (new TextEncoder().encode(password).length > MAX_PASSWORD_UTF8_BYTES) {
-    return 'tooLong';
-  }
-  const meetsPolicy =
-    password.length >= MIN_PASSWORD_LENGTH &&
-    /[a-z]/.test(password) &&
-    /[A-Z]/.test(password) &&
-    /\d/.test(password) &&
-    /[^A-Za-z0-9]/.test(password);
-  return meetsPolicy ? null : 'tooWeak';
-}
+import { checkPasswordPolicy } from '@/lib/password-policy';
 
 export default function SetupPage() {
   const { t } = useI18n();

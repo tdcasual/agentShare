@@ -36,6 +36,133 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260729-001] pytest-pty-selection-deadlock
+
+**Logged**: 2026-07-29T00:25:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: tests
+
+### Summary
+The host pytest runner can wait indefinitely when collecting a file or the full API suite through the managed PTY, while exact node-id execution completes.
+
+### Error
+
+```text
+pytest remained in the first TestClient fixture without a failure for more than 10 minutes
+```
+
+### Context
+- The new admin API file passed 23 tests before the runner issue appeared.
+- The exact first node-id later passed in 0.96 seconds through `pytest.main()`.
+- Full-file, `-k`, and all-suite selection stalled in the first TestClient fixture under both Python 3.14 and a temporary Python 3.11 environment.
+- mypy, Ruff, migration policy, 96 ops tests, frontend tests, and deployed API behavior are independent of this runner limitation.
+
+### Suggested Fix
+Reproduce in the CI Python 3.12 non-PTY environment and inspect AnyIO/TestClient portal teardown and the managed executor's process wrapping.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/tests/conftest.py`, `scripts/ops/verify-control-plane.sh`
+
+---
+
+## [ERR-20260728-004] playwright-next-route-alert-collision
+
+**Logged**: 2026-07-28T10:10:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A Playwright alert-role assertion also matched Next.js's empty route announcer.
+
+### Error
+
+```text
+strict mode violation: getByRole('alert') resolved to 2 elements
+```
+
+### Context
+- The application login error was visible and correct in Chromium, mobile Chromium, and WebKit.
+- Next.js also renders `#__next-route-announcer__` with `role="alert"`.
+
+### Suggested Fix
+Locate the specific error copy when asserting page-level alerts in Next.js browser tests.
+
+### Resolution
+Changed the assertion to the exact visible login error text.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/test/e2e/security-settings.spec.ts`
+
+---
+
+## [ERR-20260728-003] frontend-lint-prefer-const
+
+**Logged**: 2026-07-28T10:05:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The frontend lint gate rejected a test-local variable declared with `let` that was never reassigned.
+
+### Error
+
+```text
+error  'user' is never reassigned. Use 'const' instead  prefer-const
+```
+
+### Context
+- Found in the new security settings page test before build or browser tests ran.
+
+### Suggested Fix
+Use `const` for the test interaction helper result.
+
+### Resolution
+Changed the declaration to `const` and reran the gate.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/src/app/settings/security/page.test.tsx`
+
+---
+
+## [ERR-20260728-002] duplicate-vitest-run-option
+
+**Logged**: 2026-07-28T10:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The targeted frontend test command passed `--run` twice because the npm script already includes it.
+
+### Error
+
+```text
+Expected a single value for option "--run", received [true, true]
+```
+
+### Context
+- Attempted `npm run test:unit -- --run <test files>`.
+- `test:unit` already expands to `vitest --run`.
+- Type checking in the preceding command completed successfully.
+
+### Suggested Fix
+Pass only test file paths after `npm run test:unit --`.
+
+### Resolution
+Reran the targeted tests without the duplicate option.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/package.json`
+
+---
+
 ## [ERR-20260727-001] npm-audit-mirror-endpoint
 
 **Logged**: 2026-07-27T10:10:00Z
@@ -604,6 +731,8 @@ Re-ran the approved `npm run build` command outside the sandbox; the production 
 ### Metadata
 - Reproducible: yes
 - Related Files: `apps/control-plane-v3/src/app/globals.css`
+- Recurrence-Count: 2
+- Last-Seen: 2026-07-28
 
 ---
 
@@ -2108,5 +2237,38 @@ unresolved. No further credential input is permitted through this mechanism.
 - Recurrence-Count: 3
 - First-Seen: 2026-07-24
 - Last-Seen: 2026-07-27
+
+---
+
+## [ERR-20260728-001] managed-approval-review-timeout
+
+**Logged**: 2026-07-28T09:03:34Z
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+An already-scoped read-only SSH health query did not run because the automatic permission reviewer timed out.
+
+### Error
+
+```text
+The automatic permission approval review did not finish before its deadline.
+```
+
+### Context
+- The failed operation was the final `docker ps` health confirmation for the exact Coolify project.
+- The timeout occurred in approval review before remote execution, so it was not evidence of a production failure.
+- Other calls grouped in the same orchestration did not return their output after the rejected promise.
+
+### Suggested Fix
+Retry a read-only check once as permitted, and keep local report validation separate from approval-gated network calls so a reviewer timeout cannot hide unrelated results.
+
+### Resolution
+The single retry succeeded; Web, API, and PostgreSQL all remained healthy.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: `docs/audits/2026-07-28-production-functional-acceptance.md`
 
 ---

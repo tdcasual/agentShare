@@ -20,7 +20,8 @@
       "password": "Password",
       "signIn": "Sign In",
       "failed": "Login failed. Please check your credentials.",
-      "rateLimited": "Too many login attempts. Please try again later."
+      "rateLimited": "Too many login attempts. Please try again later.",
+      "passwordChanged": "Password changed. Sign in again with your new password."
     },
     "logout": {
       "signingOut": "Signing out...",
@@ -70,6 +71,7 @@
     "audit": "Audit",
     "docs": "Docs",
     "managementTokens": "Management Tokens",
+    "settings": "Settings",
     "logout": "Log out"
   },
   "metadata": {
@@ -305,7 +307,8 @@
       "admin_login": "Administrator sign in",
       "admin_login_failed": "Failed administrator sign in",
       "agent_auth_failed": "Failed Agent authentication",
-      "admin_logout": "Administrator sign out"
+      "admin_logout": "Administrator sign out",
+      "admin_password_change": "Change administrator password"
     }
   },
   "managementTokens": {
@@ -343,6 +346,31 @@
     "copyFailed": "The token could not be copied. Select it and copy it manually."
   },
   "settings": {
+    "navigation": {
+      "label": "Settings navigation",
+      "security": "Security",
+      "managementTokens": "Management Tokens"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Manage administrator sign-in security.",
+      "changePassword": "Change password",
+      "passwordHint": "Use at least 12 characters with uppercase, lowercase, a number, and a special character.",
+      "sessionWarning": "Changing your password signs out every administrator session, including this one. Management tokens remain active.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Change password",
+      "required": "This field is required.",
+      "passwordMismatch": "New passwords do not match.",
+      "passwordTooWeak": "Use at least 12 characters with uppercase, lowercase, a number, and a special character.",
+      "passwordTooLong": "Password must not exceed 72 UTF-8 bytes.",
+      "currentPasswordIncorrect": "Current password is incorrect.",
+      "passwordReuse": "New password must be different from the current password.",
+      "passwordRejected": "The new password does not meet the password policy."
+    },
     "theme": {
       "switchToDark": "Switch to dark mode",
       "switchToLight": "Switch to light mode"

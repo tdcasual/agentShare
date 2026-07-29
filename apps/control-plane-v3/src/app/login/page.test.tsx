@@ -23,6 +23,7 @@ const mockedLogin = vi.mocked(login);
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.sessionStorage.clear();
   });
 
   it('renders the login form', () => {
@@ -32,6 +33,14 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText(/auth\.login\.email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/auth\.login\.password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /auth\.login\.signIn/i })).toBeInTheDocument();
+  });
+
+  it('shows and consumes the password-changed notice', async () => {
+    window.sessionStorage.setItem('vaultgate-password-changed', '1');
+    render(<LoginPage />);
+
+    expect(await screen.findByRole('status')).toHaveTextContent('auth.login.passwordChanged');
+    expect(window.sessionStorage.getItem('vaultgate-password-changed')).toBeNull();
   });
 
   it('submits credentials on form submit', async () => {

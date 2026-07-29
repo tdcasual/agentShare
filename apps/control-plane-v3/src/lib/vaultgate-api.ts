@@ -116,6 +116,10 @@ export interface LoginInput {
   email: string;
   password: string;
 }
+export interface PasswordChangeInput {
+  current_password: string;
+  new_password: string;
+}
 export type Secret = ApiSchemas['SecretResponse'];
 export type SecretType = ApiSchemas['SecretType'];
 export interface SecretCreateInput {
@@ -184,6 +188,11 @@ export const login = (input: LoginInput) =>
   });
 export const logout = () => requestJson<void>('/api/admin/session', { method: 'DELETE' });
 export const getCurrentSession = () => requestJson<AdminSession>('/api/admin/session');
+export const changePassword = (input: PasswordChangeInput) =>
+  requestJson<void>('/api/admin/password', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
 
 export const listManagementTokens = (query: PageQuery = {}) =>
   requestJson<PageResponse<ManagementToken>>(buildApiPath('/api/admin/management-tokens', query));

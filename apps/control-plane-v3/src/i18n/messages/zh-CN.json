@@ -20,7 +20,8 @@
       "password": "密码",
       "signIn": "登录",
       "failed": "登录失败，请检查凭据。",
-      "rateLimited": "登录尝试次数过多，请稍后再试。"
+      "rateLimited": "登录尝试次数过多，请稍后再试。",
+      "passwordChanged": "密码已修改，请使用新密码重新登录。"
     },
     "logout": {
       "signingOut": "正在注销...",
@@ -70,6 +71,7 @@
     "audit": "审计",
     "docs": "文档",
     "managementTokens": "管理 Token",
+    "settings": "设置",
     "logout": "退出"
   },
   "metadata": {
@@ -305,7 +307,8 @@
       "admin_login": "管理员登录",
       "admin_login_failed": "管理员登录失败",
       "agent_auth_failed": "Agent 认证失败",
-      "admin_logout": "管理员退出"
+      "admin_logout": "管理员退出",
+      "admin_password_change": "修改管理员密码"
     }
   },
   "managementTokens": {
@@ -343,6 +346,31 @@
     "copyFailed": "无法复制 Token，请手动选择并复制。"
   },
   "settings": {
+    "navigation": {
+      "label": "设置导航",
+      "security": "安全",
+      "managementTokens": "管理 Token"
+    },
+    "security": {
+      "title": "安全",
+      "description": "管理管理员登录安全。",
+      "changePassword": "修改密码",
+      "passwordHint": "至少 12 个字符，并包含大写字母、小写字母、数字和特殊字符。",
+      "sessionWarning": "修改密码后，所有管理员会话（包括当前会话）都会退出。管理 Token 不受影响。",
+      "currentPassword": "当前密码",
+      "newPassword": "新密码",
+      "confirmPassword": "确认新密码",
+      "showPassword": "显示密码",
+      "hidePassword": "隐藏密码",
+      "submit": "修改密码",
+      "required": "此字段为必填项。",
+      "passwordMismatch": "两次输入的新密码不一致。",
+      "passwordTooWeak": "密码至少 12 个字符，且需包含大写字母、小写字母、数字和特殊字符。",
+      "passwordTooLong": "密码不能超过 72 个 UTF-8 字节。",
+      "currentPasswordIncorrect": "当前密码不正确。",
+      "passwordReuse": "新密码不能与当前密码相同。",
+      "passwordRejected": "新密码不符合密码策略。"
+    },
     "theme": {
       "switchToDark": "切换到深色模式",
       "switchToLight": "切换到浅色模式"

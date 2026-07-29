@@ -213,7 +213,8 @@ def add_validation_error_handler(app: FastAPI) -> None:
             sanitized = dict(error)
             location = sanitized.get("loc")
             if isinstance(location, tuple) and any(
-                isinstance(part, str) and part.lower() in SENSITIVE_VALIDATION_FIELDS
+                isinstance(part, str)
+                and any(field in part.lower() for field in SENSITIVE_VALIDATION_FIELDS)
                 for part in location
             ):
                 sanitized.pop("input", None)

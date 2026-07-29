@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +20,12 @@ from app.api_schemas import (
 from app.client_ip import get_client_ip
 from app.db import get_async_db
 from app.idempotency import commit_idempotent_response, replay_idempotent_response
-from app.modules.admin_auth.schemas import BootstrapRequest, LoginRequest, ManagementTokenCreate
+from app.modules.admin_auth.schemas import (
+    BootstrapRequest,
+    LoginRequest,
+    ManagementTokenCreate,
+    PasswordChangeRequest,
+)
 from app.modules.admin_auth.service import (
     AdminPrincipal,
     authenticate_password,
@@ -170,6 +175,77 @@ async def logout(
             resource_label=principal.user.email,
         )
         await db.commit()
+    response.delete_cookie(request.app.state.settings.session_cookie_name, path="/")
+
+
+@router.patch("/password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    body: PasswordChangeRequest,
+    request: Request,
+    response: Response,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> None:
+    if principal.auth_type != "session":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session authentication required")
+
+    current_matches = bcrypt.checkpw(
+        body.current_password.encode(),
+        principal.user.password_hash.encode(),
+    )
+    if not current_matches:
+        add_admin_audit(
+            db,
+            request,
+            principal,
+            action="admin.password.change",
+            resource_type="admin_user",
+            resource_id=principal.user.id,
+            resource_label=principal.user.email,
+            result="denied",
+            reason="current_password_invalid",
+        )
+        await db.commit()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+
+    if bcrypt.checkpw(body.new_password.encode(), principal.user.password_hash.encode()):
+        add_admin_audit(
+            db,
+            request,
+            principal,
+            action="admin.password.change",
+            resource_type="admin_user",
+            resource_id=principal.user.id,
+            resource_label=principal.user.email,
+            result="denied",
+            reason="password_reuse",
+        )
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="New password must be different from the current password",
+        )
+
+    now = datetime.now(UTC)
+    principal.user.password_hash = bcrypt.hashpw(
+        body.new_password.encode(),
+        bcrypt.gensalt(),
+    ).decode()
+    await db.execute(
+        update(AdminSession)
+        .where(AdminSession.user_id == principal.user.id, AdminSession.revoked_at.is_(None))
+        .values(revoked_at=now)
+    )
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="admin.password.change",
+        resource_type="admin_user",
+        resource_id=principal.user.id,
+        resource_label=principal.user.email,
+    )
+    await db.commit()
     response.delete_cookie(request.app.state.settings.session_cookie_name, path="/")
 
 

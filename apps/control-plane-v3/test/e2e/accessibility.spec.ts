@@ -2,7 +2,14 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { mockSession } from './fixtures';
 
-const routes = ['/', '/agents', '/secrets', '/audit', '/settings/management-tokens'] as const;
+const routes = [
+  '/',
+  '/agents',
+  '/secrets',
+  '/audit',
+  '/settings/security',
+  '/settings/management-tokens',
+] as const;
 
 test.describe('WCAG A and AA', () => {
   test.beforeEach(async ({ page }) => mockSession(page));

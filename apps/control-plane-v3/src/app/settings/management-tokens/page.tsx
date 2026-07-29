@@ -13,6 +13,7 @@ import {
   type ManagementToken,
 } from '@/lib/vaultgate-api';
 import { useI18n } from '@/components/i18n-provider';
+import { SettingsNavigation } from '@/components/settings-navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Callout } from '@/components/ui/callout';
@@ -123,6 +124,7 @@ export default function ManagementTokensPage() {
 
   return (
     <main id="main-content" className="mx-auto w-full max-w-screen-2xl space-y-5 p-4 sm:p-6 lg:p-8">
+      <SettingsNavigation />
       <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
         <div className="flex items-baseline gap-2.5">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">

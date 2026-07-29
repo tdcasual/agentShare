@@ -1,12 +1,13 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LockKeyhole, Mail } from 'lucide-react';
 import { ApiError, login, type LoginInput } from '@/lib/vaultgate-api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { InlineAlert } from '@/components/ui/inline-alert';
+import { Callout } from '@/components/ui/callout';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SimpleThemeToggle } from '@/components/theme-toggle';
@@ -18,6 +19,19 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ email: '', password: '' });
+  const [passwordChanged, setPasswordChanged] = useState(false);
+
+  useEffect(() => {
+    const noticeKey = 'vaultgate-password-changed';
+    try {
+      if (window.sessionStorage.getItem(noticeKey) === '1') {
+        setPasswordChanged(true);
+        window.sessionStorage.removeItem(noticeKey);
+      }
+    } catch {
+      // Login remains available when browser storage is disabled.
+    }
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,6 +79,11 @@ export default function LoginPage() {
 
           {/* Form */}
           <form className="space-y-5" onSubmit={handleSubmit}>
+            {passwordChanged && (
+              <Callout variant="info" role="status">
+                {t('auth.login.passwordChanged')}
+              </Callout>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">{t('auth.login.email')}</Label>
               <div className="relative">

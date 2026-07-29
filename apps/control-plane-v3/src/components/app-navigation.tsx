@@ -89,7 +89,7 @@ export function AppNavigation() {
                 {t('navigation.docs')}
               </Link>
               <Link
-                href="/settings/management-tokens"
+                href="/settings/security"
                 aria-current={pathname.startsWith('/settings') ? 'page' : undefined}
                 className={cn(
                   'relative inline-flex h-full items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
@@ -97,7 +97,7 @@ export function AppNavigation() {
                     'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary'
                 )}
               >
-                {t('navigation.managementTokens')}
+                {t('navigation.settings')}
               </Link>
             </div>
           </nav>
@@ -129,9 +129,9 @@ export function AppNavigation() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings/management-tokens" className="min-h-11">
+                  <Link href="/settings/security" className="min-h-11">
                     <Settings />
-                    {t('navigation.managementTokens')}
+                    {t('navigation.settings')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

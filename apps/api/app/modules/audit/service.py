@@ -29,6 +29,7 @@ AUDIT_ACTIONS = (
     "admin.login",
     "admin.login.failed",
     "admin.logout",
+    "admin.password.change",
     "agent_auth.failed",
 )
 AUDIT_ACTION_SET = frozenset(AUDIT_ACTIONS)
@@ -59,6 +60,8 @@ def add_admin_audit(
     resource_type: str,
     resource_id: str,
     resource_label: str,
+    result: str = "success",
+    reason: str | None = None,
     metadata: dict | None = None,
 ) -> AuditLog:
     _validate_audit_action(action)
@@ -70,7 +73,8 @@ def add_admin_audit(
         resource_id=_fit_column(resource_id),
         resource_label=_fit_column(resource_label),
         action=action,
-        result="success",
+        result=result,
+        reason=reason,
         request_id=_fit_column(getattr(request.state, "request_id", None)),
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),

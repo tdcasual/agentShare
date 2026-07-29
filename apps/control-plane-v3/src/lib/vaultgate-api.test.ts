@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ApiError,
+  changePassword,
   createManagementToken,
   getBootstrapStatus,
   getCurrentSession,
@@ -123,6 +124,28 @@ describe('vaultgate-api', () => {
       'no-store'
     );
     expect(fetchMock.mock.calls[3]?.[1]).toMatchObject({ method: 'DELETE' });
+  });
+
+  it('uses the password change endpoint and exact request body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await changePassword({
+      current_password: 'Curr3nt!Password2026',
+      new_password: 'N3w!Password#2026',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/admin/password',
+      expect.objectContaining({
+        method: 'PATCH',
+        credentials: 'include',
+        body: JSON.stringify({
+          current_password: 'Curr3nt!Password2026',
+          new_password: 'N3w!Password#2026',
+        }),
+      })
+    );
   });
 
   it('extracts FastAPI validation messages from structured errors', async () => {

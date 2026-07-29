@@ -11,6 +11,7 @@ from app.runtime import build_runtime
 
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "Str0ng!Admin#2026"
+NEW_ADMIN_PASSWORD = "N3w!Admin#Password2026"
 BOOTSTRAP_TOKEN = "bootstrap-token-with-at-least-32-bytes"
 
 
@@ -95,6 +96,124 @@ def test_bootstrap_rejects_passwords_over_bcrypt_byte_limit(client: TestClient) 
         )
         assert response.status_code == 422
         assert "72 UTF-8 bytes" in response.text
+
+
+def test_password_change_revokes_all_sessions_and_updates_login(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    other_session = TestClient(client.app)
+    assert other_session.post(
+        "/api/admin/session/login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+    ).status_code == 200
+
+    changed = client.patch(
+        "/api/admin/password",
+        json={"current_password": ADMIN_PASSWORD, "new_password": NEW_ADMIN_PASSWORD},
+    )
+    assert changed.status_code == 204
+    assert client.get("/api/admin/session").status_code == 401
+    assert other_session.get("/api/admin/session").status_code == 401
+    assert client.post(
+        "/api/admin/session/login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+    ).status_code == 401
+    assert client.post(
+        "/api/admin/session/login",
+        json={"email": ADMIN_EMAIL, "password": NEW_ADMIN_PASSWORD},
+    ).status_code == 200
+
+    audit = client.get(
+        "/api/admin/audit-logs",
+        params={"action": "admin.password.change"},
+    )
+    assert audit.status_code == 200
+    assert audit.json()["total"] == 1
+    assert audit.json()["items"][0]["result"] == "success"
+    assert audit.json()["items"][0]["reason"] is None
+
+
+def test_password_change_rejects_bad_current_password_and_reuse(client: TestClient) -> None:
+    bootstrap_and_login(client)
+
+    rejected = client.patch(
+        "/api/admin/password",
+        json={"current_password": "Wr0ng!Password2026", "new_password": NEW_ADMIN_PASSWORD},
+    )
+    assert rejected.status_code == 400
+    assert client.get("/api/admin/session").status_code == 200
+    assert client.post(
+        "/api/admin/session/login",
+        json={"email": ADMIN_EMAIL, "password": NEW_ADMIN_PASSWORD},
+    ).status_code == 401
+
+    reused = client.patch(
+        "/api/admin/password",
+        json={"current_password": ADMIN_PASSWORD, "new_password": ADMIN_PASSWORD},
+    )
+    assert reused.status_code == 409
+    assert client.get("/api/admin/session").status_code == 200
+
+    audit = client.get(
+        "/api/admin/audit-logs",
+        params={"action": "admin.password.change"},
+    )
+    assert audit.status_code == 200
+    assert audit.json()["total"] == 2
+    assert {item["result"] for item in audit.json()["items"]} == {"denied"}
+    assert {item["reason"] for item in audit.json()["items"]} == {
+        "current_password_invalid",
+        "password_reuse",
+    }
+
+
+def test_password_change_requires_session_and_preserves_management_tokens(
+    client: TestClient,
+) -> None:
+    bootstrap_and_login(client)
+    created = client.post("/api/admin/management-tokens", json={"name": "automation"})
+    assert created.status_code == 201
+    machine = TestClient(
+        client.app,
+        headers={"Authorization": f"Bearer {created.json()['token']}"},
+    )
+
+    rejected = machine.patch(
+        "/api/admin/password",
+        json={"current_password": ADMIN_PASSWORD, "new_password": NEW_ADMIN_PASSWORD},
+    )
+    assert rejected.status_code == 400
+
+    assert client.patch(
+        "/api/admin/password",
+        json={"current_password": ADMIN_PASSWORD, "new_password": NEW_ADMIN_PASSWORD},
+    ).status_code == 204
+    assert machine.get("/api/admin/session").status_code == 200
+
+
+def test_password_change_validates_policy_without_echoing_passwords(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    rejected_current = "A" * 73
+    rejected_new = "weak-password"
+    response = client.patch(
+        "/api/admin/password",
+        json={"current_password": rejected_current, "new_password": rejected_new},
+    )
+
+    assert response.status_code == 422
+    assert rejected_current not in response.text
+    assert rejected_new not in response.text
+    assert all("input" not in error for error in response.json()["detail"])
+
+
+def test_password_change_requires_valid_csrf_origin(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    del client.headers["Origin"]
+
+    response = client.patch(
+        "/api/admin/password",
+        json={"current_password": ADMIN_PASSWORD, "new_password": NEW_ADMIN_PASSWORD},
+    )
+    assert response.status_code == 403
 
 
 def test_management_token_is_separate_from_agent_tokens(client: TestClient) -> None:
