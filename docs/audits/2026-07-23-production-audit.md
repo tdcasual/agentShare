@@ -1,6 +1,71 @@
-# VaultGate 项目与生产部署全面审计（初审 2026-07-23，复审至 2026-07-28）
+# VaultGate 项目与生产部署全面审计（初审 2026-07-23，复审至 2026-07-29）
 
-## 0. 生产复验更新（2026-07-28）
+## 0. 管理员改密功能部署复审（2026-07-29）
+
+**当前总评：9.3 / 10，Pass。** `PATCH /api/admin/password`、安全设置页、设置导航、改密审计和
+全 Session 撤销已在提交 `7a4e533` 实现并部署至 `https://ashare.infinitas.fun`。Coolify 部署
+`hzse9ya99hr23ab5xkvxiifd` 状态为 `finished`；Web、API、PostgreSQL 均运行镜像
+`7a4e533bc1ef46b46ea5e55994b9f4ba289f8ce4` 且持续 `healthy`。公网 `/healthz`、`/readyz` 和
+`/settings/security` 分别通过健康、数据库/加密就绪和新路由检查。
+
+| 维度 | 权重 | 当前评分 | 证据与结论 |
+|---|---:|---:|---|
+| 安全与隐私 | 20% | 9.4 | Session-only、CSRF、密码策略、422 脱敏、全会话撤销和审计闭环；生产依赖 0 漏洞 |
+| 架构与代码质量 | 15% | 9.2 | 复用后端/前端密码策略，认证、审计与设置导航边界清晰；无新增迁移或隐式凭据状态 |
+| 测试与可靠性 | 15% | 9.2 | 新 API 23 项、ops 96 项、前端 127 项、三浏览器 78 项及生产镜像 21 项通过；本机全量 pytest runner 有 PTY 阻塞 |
+| UI/UX 与可访问性 | 15% | 9.4 | 安全页字段级错误、可见性按钮、加载态和重新登录闭环；六个关键页 axe A/AA 三浏览器通过 |
+| 性能与资源效率 | 10% | 9.2 | 部署后桌面/移动 CWV 预算通过；仍缺 RUM、长时间 soak 与峰值写负载 |
+| 部署、运维与恢复 | 15% | 9.4 | 精确 UUID 部署、镜像提交和三容器健康交叉验证；异机备份/恢复基线延续通过 |
+| 文档与开发体验 | 10% | 9.1 | OpenAPI 类型、双语文案、测试和审计同步；Coolify 大响应 wrapper 仍有解析缺陷 |
+| **加权总分** | **100%** | **9.3** | **功能已发布，当前无 Critical/High 发布阻塞项** |
+
+### 0.1 新接口与行为审计
+
+- **认证边界**：只接受 Admin Session；Management Token 调用返回 400，匿名访问仍由统一
+  principal 依赖拒绝。密码修改不会隐式撤销 Management Token。
+- **密码安全**：当前密码通过 bcrypt 验证；新密码与 bootstrap 共用至少 12 字符、大小写、
+  数字、特殊字符和最多 72 UTF-8 字节规则；新旧相同返回 409。
+- **会话与原子性**：更新 bcrypt hash、撤销该用户全部未撤销 Session、写入成功审计并提交，
+  随后删除当前 Cookie；错误当前密码和复用只写 denied 审计，不撤销会话。
+- **敏感输入**：验证异常处理器由精确字段名扩展到含 `password`/`secret`/`token` 的字段，
+  `current_password` 和 `new_password` 的 422 均不回显 `input`。
+- **用户体验**：`/settings/security` 提供当前/新/确认密码、Eye/EyeOff 控件、字段级
+  `aria-invalid`/`aria-describedby`、提交锁定和一次性登录成功提示；设置页使用共享子导航。
+- **存储退化**：浏览器禁用 `sessionStorage` 时只丢失一次性提示，不会把已成功改密误报为
+  服务端失败，也不会阻止重新登录。
+
+### 0.2 验证证据
+
+- mypy 51 文件、Ruff、迁移策略、ESLint、Prettier、TypeScript、OpenAPI 类型漂移和生产构建
+  均通过；Compose 展开正常；Bandit 为 0 Medium/High。
+- 新后端文件 **23 passed**；ops **96 passed**；前端 **34 files / 127 passed**，安全页行覆盖率
+  `93.33%`；本地三浏览器 **78 passed**，部署域名三浏览器 **78 passed**。
+- 当前生产 API 镜像配合隔离 tmpfs PostgreSQL 执行 **21/21**：双 Session、Management Token、
+  CSRF、400/409/422、验证脱敏、错误后会话存活、204、全 Session 撤销、旧/新密码、Token 保留、
+  success/denied 审计和清理全部通过；生产数据库未连接或修改，临时容器/网络清理为 0。
+- 部署后 CWV：桌面 TTFB `295.1ms`、FCP `412ms`、LCP `860ms`、CLS `0`、INP `32ms`；
+  Pixel 7 TTFB `275.1ms`、FCP/LCP `404ms`、CLS `0`、INP `16ms`，均在预算内。
+- Python lock 的 pip-audit 为 0；npm 生产依赖为 0。完整开发树只命中精确公告
+  `GHSA-mh99-v99m-4gvg`，与仓库唯一 allowlist 一致，仍作为 Medium 供应链风险持续跟踪。
+
+### 0.3 当前剩余风险
+
+当前风险为 Critical 0、High 0、Medium 5、Low 2：
+
+1. **Medium：开发依赖公告**。仅开发期 glob/ESLint/OpenAPI 工具链命中
+   `GHSA-mh99-v99m-4gvg`；强制修复会降级到不兼容主版本，生产树不受影响。
+2. **Medium：性能证据边界**。已有 CWV 与短负载，但没有 RUM、长时间 soak、峰值写负载和
+   PostgreSQL 容量曲线。
+3. **Medium：Coolify wrapper**。`deployments wait` 仍会对大型日志触发
+   `jq: Argument list too long`；本轮以精确部署日志、公网端点和容器镜像/健康交叉验证。
+4. **Medium：容量监控**。生产主机和异机备份仓库需要持续 85%/92% 分级告警及月度恢复演练。
+5. **Medium：本地 pytest runner**。本机受管 PTY 在整文件/全量 TestClient 收集时会等待；精确
+   node-id 可通过，但本轮未重新宣称全量 API+ops 覆盖率。应以 CI Python 3.12 非 PTY 门禁复核。
+6. **Low：样式属性 CSP**。脚本 nonce 策略已严格，React 动态样式仍需
+   `style-src-attr 'unsafe-inline'` 兼容。
+7. **Low：人工可访问性**。axe 自动检查通过，不替代 VoiceOver/NVDA、200% 缩放和纯键盘人工验收。
+
+## 0.4 生产复验更新（2026-07-28）
 
 **当前状态：Pass。** 管理员密码已通过隐藏输入完成轮换，生产库 bcrypt 格式、真实公网登录、
 退出和验证会话撤销均已通过。此前 `H-20260727-01` 管理员弱密码风险关闭。密码轮换后重新执行

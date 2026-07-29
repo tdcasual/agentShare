@@ -1,4 +1,4 @@
-# VaultGate 生产功能验收（2026-07-28）
+# VaultGate 生产功能验收（2026-07-28，改密功能复验至 2026-07-29）
 
 ## 1. 结论
 
@@ -16,10 +16,10 @@
 |---|---|
 | Coolify 资源 | `vaultgate` / `tr01vb13cz2sj4wrm4y009cr` |
 | Coolify | `4.1.2`，控制面 `ready` |
-| 生产镜像提交 | `f2313cef9384f41aa63b409e42f20f0e888d075d` |
-| Web | 运行约 20 小时，`healthy` |
-| API | 运行约 20 小时，`healthy` |
-| PostgreSQL | 运行约 20 小时，`healthy` |
+| 生产镜像提交 | `7a4e533bc1ef46b46ea5e55994b9f4ba289f8ce4` |
+| Web | 部署后持续 `healthy` |
+| API | 部署后持续 `healthy` |
+| PostgreSQL | 部署后持续 `healthy` |
 | Traefik 网络 | Web 精确绑定 `tr01vb13cz2sj4wrm4y009cr` |
 | 就绪探针 | HTTP 200；database `ok`，encryption `ok` |
 | 管理员初始化 | `setup_required=false` |
@@ -38,7 +38,7 @@
 | 登录错误态与提交中禁用 | 通过 | Chromium、移动 Chrome、WebKit UI 用例通过 |
 | 管理员密码登录 | 通过 | 2026-07-28 09:17:47 UTC 真实公网登录成功 |
 | 登录后退出 | 通过 | 同一验证流程真实退出成功，会话已撤销 |
-| 管理员密码修改入口 | 缺失 | 本次运维轮换完成，但产品仍无认证后修改 API/UI |
+| 管理员密码修改入口 | 通过 | Session-only API、安全设置页、全会话撤销、审计及重新登录均已部署验证 |
 
 ### 3.2 Management Token
 
@@ -99,21 +99,23 @@
 | 越权拒绝记录 | 通过 | 两次跨 Grant 请求均可按资源 ID 查询 |
 | 审计筛选 | 通过 | result/resource_id 组合筛选正常 |
 | 审计统计 | 通过 | denied 和 value_reads 计数包含本轮事件 |
+| 管理员改密审计 | 通过 | success、current_password_invalid、password_reuse 均可查询且不含密码 |
 
 ## 4. 浏览器与界面
 
-密码轮换后，生产域名重新执行 **69 项**，结果 **69 passed**：
+改密功能部署后，生产域名重新执行 **78 项**，结果 **78 passed**：
 
 - Desktop Chromium、Pixel 7 Mobile Chrome、Desktop Safari/WebKit 全部通过。
 - Dashboard、Secrets、Agents、Audit、Management Tokens 和 Docs 导航正常。
 - Agent 切换 Token 时的未保存 Grant 保护正常。
 - 登录成功、错误凭据、API 不可用、提交中禁用和退出行为正常。
-- 五个核心页面 axe WCAG A/AA 自动检查无违规。
+- 六个核心页面（含 `/settings/security`）axe WCAG A/AA 自动检查无违规。
 - CSP nonce 用例通过，框架和主题脚本未被生产 CSP 阻止。
 
 这些 UI 用例在生产域名加载真实页面、资源和 CSP，但业务数据由 Playwright route mock 提供；
 因此本报告另以第 3 节的 **50 项真实生产 API 操作**验证后端和数据库；密码轮换后又执行
-**36 项真实生产 API 回归**，二者不与 UI Mock 混为一谈。
+**36 项真实生产 API 回归**。本次改密功能另对生产 API 镜像与隔离 tmpfs PostgreSQL 执行
+**21/21** 真实 HTTP 验收，未连接生产数据库；三类证据不与 UI Mock 混为一谈。
 
 ## 5. 安全响应与性能
 
@@ -122,8 +124,8 @@
 
 | 场景 | TTFB | FCP | LCP | CLS | INP | 结果 |
 |---|---:|---:|---:|---:|---:|---|
-| Desktop Chrome | 483.2ms | 648ms | 1224ms | 0 | 24ms | 通过 |
-| Pixel 7 | 326.5ms | 468ms | 468ms | 0 | 24ms | 通过 |
+| Desktop Chrome（改密部署后） | 295.1ms | 412ms | 860ms | 0 | 32ms | 通过 |
+| Pixel 7（改密部署后） | 275.1ms | 404ms | 404ms | 0 | 16ms | 通过 |
 
 密码轮换后低强度只读负载为 100 请求、并发 10：失败 0，P50 `96.6ms`，P95 `253.9ms`，
 P99 `316.7ms`。该结果只代表短时健康端点基线，不等同于容量测试或写负载压测。
@@ -149,16 +151,11 @@ P99 `316.7ms`。该结果只代表短时健康端点基线，不等同于容量�
 09:17:47 UTC 的真实公网登录和退出均成功，过去一小时唯一验证会话为 revoked。此前 High 风险
 关闭，报告不记录密码或哈希。
 
-### Medium：缺少认证后的密码修改功能
+### 已关闭 Medium：缺少认证后的密码修改功能
 
-系统只支持 bootstrap 创建密码和 session 登录，没有“当前密码 + 新密码”的修改接口、UI、审计
-动作和会话撤销流程。这使日常密码轮换依赖数据库运维，是实际产品功能缺口。建议补齐：
-
-1. 仅允许 session 身份调用的密码修改 API。
-2. 校验当前密码和与 bootstrap 相同的新密码策略。
-3. 更新 bcrypt hash 后撤销该用户全部其他 Session。
-4. 写入不含敏感字段的 `admin.password.change` 审计记录。
-5. 在设置页增加密码修改表单、错误态和成功后重新登录流程。
+提交 `7a4e533` 已补齐 Session-only API、安全设置 UI、统一密码策略、全 Session 撤销、
+`admin.password.change` success/denied 审计、422 脱敏和成功后重新登录。生产镜像隔离验收
+21/21、部署域名三浏览器 78/78 均通过，日常轮换不再依赖数据库定向操作。
 
 ## 8. 验收状态
 
@@ -171,4 +168,5 @@ P99 `316.7ms`。该结果只代表短时健康端点基线，不等同于容量�
 | 性能与短时稳定性 | 通过 |
 | 测试数据清理 | 通过 |
 | 新管理员密码 | **轮换完成，真实登录/退出通过** |
+| 认证后密码修改 | **已部署；生产镜像 21/21、部署域名 UI 三浏览器通过** |
 | 综合结论 | **Pass** |
