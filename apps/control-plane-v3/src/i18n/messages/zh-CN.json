@@ -67,6 +67,7 @@
     "more": "更多操作",
     "dashboard": "概览",
     "secrets": "密钥",
+    "spaces": "空间",
     "agents": "Agent",
     "audit": "审计",
     "docs": "文档",
@@ -104,6 +105,39 @@
     "activeAgents": "活跃 Agent",
     "recentActivity": "事件（24小时）",
     "createSecret": "创建密钥"
+  },
+  "spaces": {
+    "title": "共享空间",
+    "new": "新建空间",
+    "name": "空间名称",
+    "description": "说明",
+    "createDescription": "创建独立的 Agent 协作边界。",
+    "resultCount": "共 {count} 个空间",
+    "memberCount": "{count} 个 Token 成员",
+    "empty": "尚无共享空间",
+    "noTokens": "请先为 Agent 签发 Token",
+    "listLabel": "共享空间列表",
+    "roleFor": "{name} 的空间角色",
+    "saveMembers": "保存成员",
+    "unsaved": "成员设置尚未保存",
+    "archive": "归档",
+    "reactivate": "重新启用",
+    "deleteTitle": "删除共享空间？",
+    "deleteMessage": "确定删除 {name}？空间内仍有密钥时无法删除。",
+    "createFailed": "无法创建共享空间",
+    "updateFailed": "无法更新共享空间",
+    "deleteFailed": "无法删除共享空间",
+    "saveFailed": "无法保存空间成员",
+    "tokenLimit": "当前共有 {count} 个 Token，仅显示前 200 个。",
+    "status": {
+      "active": "启用",
+      "archived": "已归档"
+    },
+    "roles": {
+      "reader": "只读",
+      "contributor": "贡献者",
+      "maintainer": "维护者"
+    }
   },
   "agents": {
     "title": "Agent",

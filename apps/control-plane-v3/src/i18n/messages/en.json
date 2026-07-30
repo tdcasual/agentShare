@@ -67,6 +67,7 @@
     "more": "More actions",
     "dashboard": "Dashboard",
     "secrets": "Secrets",
+    "spaces": "Spaces",
     "agents": "Agents",
     "audit": "Audit",
     "docs": "Docs",
@@ -104,6 +105,39 @@
     "activeAgents": "Active Agents",
     "recentActivity": "Events (24h)",
     "createSecret": "Create Secret"
+  },
+  "spaces": {
+    "title": "Shared spaces",
+    "new": "New space",
+    "name": "Space name",
+    "description": "Description",
+    "createDescription": "Create an isolated Agent collaboration boundary.",
+    "resultCount": "{count} spaces",
+    "memberCount": "{count} Token members",
+    "empty": "No shared spaces yet",
+    "noTokens": "Issue an Agent Token first",
+    "listLabel": "Shared space list",
+    "roleFor": "Space role for {name}",
+    "saveMembers": "Save members",
+    "unsaved": "Member settings are not saved",
+    "archive": "Archive",
+    "reactivate": "Reactivate",
+    "deleteTitle": "Delete shared space?",
+    "deleteMessage": "Delete {name}? Spaces containing Secrets cannot be deleted.",
+    "createFailed": "Unable to create shared space",
+    "updateFailed": "Unable to update shared space",
+    "deleteFailed": "Unable to delete shared space",
+    "saveFailed": "Unable to save space members",
+    "tokenLimit": "There are {count} Tokens; only the first 200 are shown.",
+    "status": {
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "roles": {
+      "reader": "Reader",
+      "contributor": "Contributor",
+      "maintainer": "Maintainer"
+    }
   },
   "agents": {
     "title": "Agents",

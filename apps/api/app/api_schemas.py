@@ -57,6 +57,9 @@ class SecretResponse(BaseModel):
     description: str | None
     tags: list[str]
     metadata: dict[str, Any]
+    space_id: str | None
+    created_by_agent_id: str | None
+    version: int
     created_at: str
     updated_at: str
 
@@ -92,6 +95,10 @@ class AgentTokenResponse(BaseModel):
 
 class IssuedAgentTokenResponse(AgentTokenResponse):
     token: str
+
+
+class AgentTokenOptionResponse(AgentTokenResponse):
+    agent_name: str
 
 
 class GrantResponse(BaseModel):
@@ -131,8 +138,51 @@ class VaultIdentityResponse(BaseModel):
     token_name: str
 
 
+class VaultSpaceResponse(BaseModel):
+    id: str
+    name: str
+    description: str | None
+    status: Literal["active", "archived"]
+    created_at: str
+    updated_at: str
+
+
+class VaultAccessibleSpaceResponse(VaultSpaceResponse):
+    role: Literal["reader", "contributor", "maintainer"]
+
+
+class SpaceMembershipResponse(BaseModel):
+    token_id: str
+    role: Literal["reader", "contributor", "maintainer"]
+    status: Literal["active", "revoked"]
+
+
+class SpaceMembershipListResponse(BaseModel):
+    members: list[SpaceMembershipResponse]
+
+
+class VaultSecretResponse(SecretResponse):
+    permissions: list[Literal["read", "create", "update"]]
+    access_source: Literal["direct", "space", "both"]
+
+
 class SecretListResponse(BaseModel):
     items: list[SecretResponse]
+
+
+class VaultSecretPageResponse(BaseModel):
+    items: list[VaultSecretResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+class VaultSpaceListResponse(BaseModel):
+    items: list[VaultAccessibleSpaceResponse]
+
+
+class VaultSpacePageResponse(BaseModel):
+    items: list[VaultSpaceResponse]
 
 
 class SecretPageResponse(SecretListResponse):
@@ -150,6 +200,13 @@ class AgentPageResponse(BaseModel):
 
 class AgentTokenPageResponse(BaseModel):
     items: list[AgentTokenResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+class AgentTokenOptionPageResponse(BaseModel):
+    items: list[AgentTokenOptionResponse]
     total: int
     limit: int
     offset: int

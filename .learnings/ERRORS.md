@@ -36,6 +36,40 @@ The dev extra now declares the TestClient transport, deployment and verification
 
 ---
 
+## [ERR-20260730-001] apply-patch-large-add-file-prefix
+
+**Logged**: 2026-07-30T00:00:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: backend
+
+### Summary
+A large multi-file patch was rejected because one line in an Add File block lacked the required `+` prefix.
+
+### Error
+
+```text
+apply_patch verification failed: invalid hunk ... is not a valid hunk header
+```
+
+### Context
+- The patch attempted to add access and Vault Space modules in one operation.
+- `apply_patch` rejected the operation atomically, so none of those files were partially written.
+- A second cross-file patch was rejected when an English translation context differed by capitalization.
+
+### Suggested Fix
+Split large additions into smaller patches and verify every Add File line carries a patch prefix.
+
+### Resolution
+The change was split into smaller patches before retrying.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/app/modules/access/service.py`, `apps/api/app/modules/spaces/routes.py`
+- Recurrence-Count: 2
+
+---
+
 ## [ERR-20260729-001] pytest-pty-selection-deadlock
 
 **Logged**: 2026-07-29T00:25:00Z
@@ -1063,6 +1097,7 @@ zsh:1: no matches found: src/app/api/[...path]/route.ts
 ### Context
 - zsh interpreted `[...path]` as a filename glob instead of a literal route directory.
 - Other parallel audit checks completed, and no application state changed.
+- The same mistake recurred on 2026-07-30 while reading `agents/[agentId]/page.tsx` and again while running Prettier on `src/app/api/[...path]/route.ts`.
 
 ### Suggested Fix
 Quote paths containing square brackets, for example `sed -n '1,220p' 'src/app/api/[...path]/route.ts'`.
@@ -1072,7 +1107,9 @@ Continued the audit with quoted bracket-route paths.
 
 ### Metadata
 - Reproducible: yes
-- Related Files: `apps/control-plane-v3/src/app/api/[...path]/route.ts`
+- Related Files: `apps/control-plane-v3/src/app/api/[...path]/route.ts`, `apps/control-plane-v3/src/app/agents/[agentId]/page.tsx`
+- Recurrence-Count: 3
+- Last-Seen: 2026-07-30
 
 ---
 
@@ -2270,5 +2307,36 @@ The single retry succeeded; Web, API, and PostgreSQL all remained healthy.
 ### Metadata
 - Reproducible: unknown
 - Related Files: `docs/audits/2026-07-28-production-functional-acceptance.md`
+
+---
+
+## [ERR-20260730-002] synthetic-collaboration-validation
+
+**Logged**: 2026-07-30T14:27:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: tests
+
+### Summary
+The first real HTTP shared-space smoke attempt returned `422 Unprocessable Entity` during Agent contribution.
+
+### Error
+
+```text
+POST /api/vault/spaces/{space_id}/secrets -> 422
+```
+
+### Context
+- The request used a contributor membership, an `Idempotency-Key`, and a valid Secret payload.
+- The response body was not included in the initial assertion, so the exact validation field requires one diagnostic rerun.
+- The same run also showed that invoking `npx prettier` from the repository root attempted a registry lookup instead of using the installed frontend dependency.
+
+### Suggested Fix
+Include the response body in the assertion, rerun from the frontend package directory, and keep local tool invocations scoped to the package that owns the dependency.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/test/integration/vaultgate.synthetic.spec.ts`
+- See Also: ERR-20260730-001
 
 ---

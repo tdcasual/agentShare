@@ -20,6 +20,8 @@ const FORWARD_REQUEST_HEADERS = [
   'x-request-id',
   'cookie',
   'authorization',
+  'idempotency-key',
+  'if-match',
   'x-bootstrap-token',
   'origin',
   'referer',

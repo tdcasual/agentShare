@@ -27,14 +27,25 @@ Important groups:
 | Secrets | `/api/admin/secrets` |
 | Agents | `/api/admin/agents` |
 | Agent Tokens and grants | `/api/admin/agents/{id}/tokens`, `/api/admin/tokens/*` |
+| Shared Spaces | `/api/admin/spaces`, `/api/admin/spaces/{id}/memberships` |
 | Audit | `/api/admin/audit-logs`, `/api/admin/audit-stats` |
 
 Agent runtime endpoints use `/api/vault/*` and accept only `vg_` Tokens:
 
 - `GET /api/vault/me`
+- `GET /api/vault/spaces`
 - `GET /api/vault/secrets`
+- `POST /api/vault/spaces/{space_id}/secrets` (contributor/maintainer)
 - `GET /api/vault/secrets/{id}`
+- `PATCH /api/vault/secrets/{id}` (creator or maintainer, with `If-Match`)
 - `GET /api/vault/secrets/{id}/value`
+
+Shared Spaces let multiple `vg_` Tokens discover the same credentials without
+copying grants. Administrators create a Space under `/spaces`, assign each Token
+the `reader`, `contributor`, or `maintainer` role, and can revoke membership at
+any time. A contributor can create credentials and update credentials created by
+its own Agent; a maintainer can update any credential in that Space. Existing
+Direct Grants remain read-only and continue to work independently.
 
 `vg_` and `vgm_` credentials are rejected outside their respective API boundary.
 

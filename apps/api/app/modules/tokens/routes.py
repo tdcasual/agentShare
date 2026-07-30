@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy import delete, select
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api_schemas import GrantResponse, IssuedAgentTokenResponse
+from app.api_schemas import AgentTokenOptionPageResponse, GrantResponse, IssuedAgentTokenResponse
 from app.db import get_async_db
 from app.idempotency import commit_idempotent_response, replay_idempotent_response
 from app.modules.admin_auth.service import (
@@ -21,9 +21,35 @@ from app.modules.agents.service import owned_agent
 from app.modules.audit.service import add_admin_audit
 from app.modules.tokens.schemas import AgentTokenCreate, GrantReplace
 from app.modules.tokens.service import owned_token, serialize_token
-from app.orm import AgentStatus, AgentToken, AgentTokenStatus, Secret, TokenSecretGrant
+from app.orm import Agent, AgentStatus, AgentToken, AgentTokenStatus, Secret, TokenSecretGrant
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Tokens"])
+
+
+@router.get("/tokens", response_model=AgentTokenOptionPageResponse)
+async def list_all_tokens(
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    total = await db.scalar(
+        select(func.count(AgentToken.id)).where(AgentToken.user_id == principal.user.id)
+    )
+    rows = await db.execute(
+        select(AgentToken, Agent.name)
+        .join(Agent, Agent.id == AgentToken.agent_id)
+        .where(AgentToken.user_id == principal.user.id)
+        .order_by(Agent.name, AgentToken.name, AgentToken.id)
+        .limit(limit)
+        .offset(offset)
+    )
+    return {
+        "items": [{**serialize_token(token), "agent_name": agent_name} for token, agent_name in rows],
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }
 
 @router.post(
     "/agents/{agent_id}/tokens",

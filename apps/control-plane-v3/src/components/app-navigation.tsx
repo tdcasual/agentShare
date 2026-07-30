@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Bot,
   BookOpen,
+  Boxes,
   FileKey2,
   LayoutDashboard,
   LogOut,
@@ -26,6 +27,7 @@ import { cn } from '@/lib/utils';
 const ITEMS = [
   { href: '/', label: 'dashboard', icon: LayoutDashboard },
   { href: '/secrets', label: 'secrets', icon: FileKey2 },
+  { href: '/spaces', label: 'spaces', icon: Boxes },
   { href: '/agents', label: 'agents', icon: Bot },
   { href: '/audit', label: 'audit', icon: ShieldCheck },
 ] as const;
@@ -57,7 +59,7 @@ export function AppNavigation() {
 
           <nav
             aria-label={t('navigation.label')}
-            className="hidden min-w-0 flex-1 self-stretch md:block"
+            className="hidden min-w-0 flex-1 self-stretch lg:block"
           >
             <div className="flex h-full items-center gap-1">
               {ITEMS.map(({ href, label }) => {
@@ -106,7 +108,7 @@ export function AppNavigation() {
             <SimpleThemeToggle className="border-transparent bg-transparent" />
             <Link
               href="/logout"
-              className="hidden min-h-11 items-center gap-2 rounded-md px-3 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
+              className="hidden min-h-11 items-center gap-2 rounded-md px-3 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:flex"
             >
               <LogOut className="h-4 w-4" />
               {t('navigation.logout')}
@@ -115,7 +117,7 @@ export function AppNavigation() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
                   aria-label={t('navigation.more')}
                 >
                   <MoreHorizontal className="h-5 w-5" />
@@ -149,9 +151,9 @@ export function AppNavigation() {
 
       <nav
         aria-label={t('navigation.mobileLabel')}
-        className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActivePath(pathname, href);
             return (

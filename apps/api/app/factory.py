@@ -387,6 +387,7 @@ def create_app(
             {"name": "Admin Secrets", "description": "管理员 Secret 管理。"},
             {"name": "Admin Agents", "description": "Agent 生命周期。"},
             {"name": "Admin Tokens", "description": "Agent Token 与逐 Secret 授权。"},
+            {"name": "Admin Spaces", "description": "共享空间与 Token 成员角色。"},
             {"name": "Admin Audit", "description": "结构化审计查询与统计。"},
             {"name": "Vault", "description": "仅供 vg_ Agent Token 使用的运行时 API。"},
         ],

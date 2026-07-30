@@ -13,6 +13,7 @@ from .base import Base
 
 if TYPE_CHECKING:
     from .agent import Agent
+    from .space_token_membership import SpaceTokenMembership
     from .token_secret_grant import TokenSecretGrant
     from .user import User
 
@@ -77,6 +78,10 @@ class AgentToken(Base):
     user: so.Mapped[User] = so.relationship(back_populates="agent_tokens")
     agent: so.Mapped[Agent] = so.relationship(back_populates="tokens")
     grants: so.Mapped[list[TokenSecretGrant]] = so.relationship(
+        back_populates="token",
+        cascade="all, delete-orphan",
+    )
+    space_memberships: so.Mapped[list[SpaceTokenMembership]] = so.relationship(
         back_populates="token",
         cascade="all, delete-orphan",
     )

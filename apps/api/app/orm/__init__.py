@@ -12,8 +12,10 @@ from app.orm.base import Base
 from app.orm.idempotency_record import IdempotencyRecord
 from app.orm.management_token import ManagementToken
 from app.orm.secret import Secret
+from app.orm.space_token_membership import SpaceMembershipStatus, SpaceRole, SpaceTokenMembership
 from app.orm.token_secret_grant import TokenSecretGrant
 from app.orm.user import User
+from app.orm.vault_space import VaultSpace, VaultSpaceStatus
 
 __all__ = [
     "Base",
@@ -23,9 +25,14 @@ __all__ = [
     "Agent",
     "AgentStatus",
     "Secret",
+    "VaultSpace",
+    "VaultSpaceStatus",
     "AgentToken",
     "AgentTokenStatus",
     "TokenSecretGrant",
+    "SpaceTokenMembership",
+    "SpaceRole",
+    "SpaceMembershipStatus",
     "AuditLog",
     "IdempotencyRecord",
 ]

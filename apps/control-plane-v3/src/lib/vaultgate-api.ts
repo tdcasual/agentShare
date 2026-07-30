@@ -131,6 +131,7 @@ export interface SecretCreateInput {
   description?: string;
   tags?: string[];
   metadata?: Record<string, unknown>;
+  space_id?: string | null;
 }
 export interface SecretUpdateInput {
   name?: string;
@@ -141,13 +142,17 @@ export interface SecretUpdateInput {
   description?: string | null;
   tags?: string[];
   metadata?: Record<string, unknown>;
+  space_id?: string | null;
 }
 export type Agent = ApiSchemas['AgentResponse'];
 export type AgentToken = ApiSchemas['AgentTokenResponse'];
+export type AgentTokenOption = ApiSchemas['AgentTokenOptionResponse'];
 export type IssuedAgentToken = ApiSchemas['IssuedAgentTokenResponse'];
 export type ManagementToken = ApiSchemas['ManagementTokenSummary'];
 export type IssuedManagementToken = ApiSchemas['ManagementTokenIssued'];
 export type AuditLog = ApiSchemas['AuditLogResponse'];
+export type VaultSpace = ApiSchemas['VaultSpaceResponse'];
+export type SpaceMembership = ApiSchemas['SpaceMembershipResponse'];
 
 export interface PageQuery {
   limit?: number;
@@ -225,11 +230,37 @@ export const deleteSecret = (id: string) =>
 export const revealSecret = (id: string) =>
   requestJson<{ value: string }>(`/api/admin/secrets/${id}/value`);
 
+export const listSpaces = () => requestJson<{ items: VaultSpace[] }>('/api/admin/spaces');
+export const createSpace = (input: { name: string; description?: string }) =>
+  requestJson<VaultSpace>('/api/admin/spaces', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+export const updateSpace = (
+  id: string,
+  input: Partial<Pick<VaultSpace, 'name' | 'description' | 'status'>>
+) =>
+  requestJson<VaultSpace>(`/api/admin/spaces/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+export const deleteSpace = (id: string) =>
+  requestJson<void>(`/api/admin/spaces/${id}`, { method: 'DELETE' });
+export const getSpaceMemberships = (id: string) =>
+  requestJson<{ members: SpaceMembership[] }>(`/api/admin/spaces/${id}/memberships`);
+export const replaceSpaceMemberships = (id: string, members: SpaceMembership[]) =>
+  requestJson<{ members: SpaceMembership[] }>(`/api/admin/spaces/${id}/memberships`, {
+    method: 'PUT',
+    body: JSON.stringify({ members }),
+  });
+
 export const listAgents = (query: PageQuery & { status?: Agent['status'] } = {}) =>
   requestJson<PageResponse<Agent>>(buildApiPath('/api/admin/agents', query));
 export const getAgent = (id: string) => requestJson<Agent>(`/api/admin/agents/${id}`);
 export const listAgentTokens = (agentId: string, query: PageQuery = {}) =>
   requestJson<PageResponse<AgentToken>>(buildApiPath(`/api/admin/agents/${agentId}/tokens`, query));
+export const listAllAgentTokens = (query: PageQuery = {}) =>
+  requestJson<PageResponse<AgentTokenOption>>(buildApiPath('/api/admin/tokens', query));
 export const createAgent = (input: { name: string; description?: string }) =>
   requestJson<Agent>('/api/admin/agents', { method: 'POST', body: JSON.stringify(input) });
 export const updateAgent = (

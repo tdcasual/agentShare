@@ -19,6 +19,9 @@ const secret: Secret = {
   description: null,
   tags: [],
   metadata: {},
+  space_id: null,
+  created_by_agent_id: null,
+  version: 1,
   created_at: '2026-07-01T00:00:00Z',
   updated_at: '2026-07-01T00:00:00Z',
 };

@@ -31,6 +31,10 @@ AUDIT_ACTIONS = (
     "admin.logout",
     "admin.password.change",
     "agent_auth.failed",
+    "space.create",
+    "space.update",
+    "space.delete",
+    "space.memberships.replace",
 )
 AUDIT_ACTION_SET = frozenset(AUDIT_ACTIONS)
 
@@ -109,7 +113,7 @@ async def write_auth_failure_audit(
     return log
 
 
-async def write_vault_audit(
+def add_vault_audit(
     db: AsyncSession,
     request: Request,
     token: AgentToken,
@@ -141,5 +145,29 @@ async def write_vault_audit(
         user_agent=request.headers.get("user-agent"),
     )
     db.add(log)
+    return log
+
+
+async def write_vault_audit(
+    db: AsyncSession,
+    request: Request,
+    token: AgentToken,
+    *,
+    action: str,
+    result: str,
+    secret: Secret | None = None,
+    requested_secret_id: str | None = None,
+    reason: str | None = None,
+) -> AuditLog:
+    log = add_vault_audit(
+        db,
+        request,
+        token,
+        action=action,
+        result=result,
+        secret=secret,
+        requested_secret_id=requested_secret_id,
+        reason=reason,
+    )
     await db.commit()
     return log

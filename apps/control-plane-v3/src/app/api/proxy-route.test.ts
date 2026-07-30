@@ -35,6 +35,34 @@ describe('API route proxy headers', () => {
     expect(forwardedHeaders.get('x-untrusted-header')).toBeNull();
   });
 
+  it('forwards runtime write-concurrency headers', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 'secret-1' }), {
+        status: 201,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const request = new NextRequest('http://localhost/api/vault/spaces/space-1/secrets', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: 'Bearer vg_runtime',
+        'idempotency-key': 'contribution-1',
+        'if-match': '1',
+      },
+      body: JSON.stringify({ name: 'shared', type: 'password', value: 'value' }),
+    });
+
+    await POST(request, {
+      params: Promise.resolve({ path: ['vault', 'spaces', 'space-1', 'secrets'] }),
+    });
+
+    const forwardedHeaders = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(forwardedHeaders.get('idempotency-key')).toBe('contribution-1');
+    expect(forwardedHeaders.get('if-match')).toBe('1');
+  });
+
   it('forwards the client user-agent and the rightmost X-Forwarded-For entry to the backend', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ items: [], total: 0 }), {

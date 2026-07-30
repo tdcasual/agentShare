@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     from .agent_token import AgentToken
     from .management_token import ManagementToken
     from .secret import Secret
+    from .space_token_membership import SpaceTokenMembership
+    from .vault_space import VaultSpace
 
 
 class User(Base):
@@ -67,6 +69,14 @@ class User(Base):
         cascade="all, delete-orphan",
     )
     management_tokens: so.WriteOnlyMapped[ManagementToken] = so.relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    vault_spaces: so.Mapped[list[VaultSpace]] = so.relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    space_token_memberships: so.WriteOnlyMapped[SpaceTokenMembership] = so.relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )

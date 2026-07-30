@@ -12,7 +12,7 @@ from app.modules.admin_auth.service import AdminPrincipal, get_admin_principal
 from app.modules.audit.service import add_admin_audit
 from app.modules.secrets.schemas import SecretCreate, SecretUpdate
 from app.modules.secrets.service import serialize_secret
-from app.orm import Secret
+from app.orm import Secret, VaultSpace, VaultSpaceStatus
 from app.orm.secret import SecretType
 from app.query_utils import contains_pattern
 from app.services.encryption import get_encryption_service
@@ -26,6 +26,23 @@ async def _owned_secret(db: AsyncSession, user_id: str, secret_id: str) -> Secre
     if secret is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found")
     return secret
+
+
+async def _owned_active_space(
+    db: AsyncSession,
+    user_id: str,
+    space_id: str,
+) -> VaultSpace:
+    space = await db.scalar(
+        select(VaultSpace).where(
+            VaultSpace.id == space_id,
+            VaultSpace.user_id == user_id,
+            VaultSpace.status == VaultSpaceStatus.ACTIVE,
+        )
+    )
+    if space is None:
+        raise HTTPException(status_code=404, detail="Space not found")
+    return space
 
 
 @router.get("", response_model=SecretPageResponse)
@@ -79,8 +96,11 @@ async def create_secret(
     )
     if replay is not None:
         return replay
+    if body.space_id is not None:
+        await _owned_active_space(db, principal.user.id, body.space_id)
     secret = Secret(
         user_id=principal.user.id,
+        space_id=body.space_id,
         name=body.name,
         type=body.type,
         url=body.url,
@@ -186,10 +206,13 @@ async def update_secret(
 ) -> dict:
     secret = await _owned_secret(db, principal.user.id, secret_id)
     changes = body.model_dump(exclude_unset=True)
+    if "space_id" in changes and changes["space_id"] is not None:
+        await _owned_active_space(db, principal.user.id, changes["space_id"])
     if "metadata" in changes:
         secret.secret_metadata = changes.pop("metadata")
     if "value" in changes:
         secret.value_encrypted = get_encryption_service().encrypt(changes.pop("value"))
+    secret.version += 1
     for field, value in changes.items():
         setattr(secret, field, value)
     try:

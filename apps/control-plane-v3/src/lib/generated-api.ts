@@ -318,6 +318,77 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/admin/spaces': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Spaces */
+    get: operations['list_spaces_api_admin_spaces_get'];
+    put?: never;
+    /** Create Space */
+    post: operations['create_space_api_admin_spaces_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/admin/spaces/{space_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Space */
+    delete: operations['delete_space_api_admin_spaces__space_id__delete'];
+    options?: never;
+    head?: never;
+    /** Update Space */
+    patch: operations['update_space_api_admin_spaces__space_id__patch'];
+    trace?: never;
+  };
+  '/api/admin/spaces/{space_id}/memberships': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Memberships */
+    get: operations['get_memberships_api_admin_spaces__space_id__memberships_get'];
+    /** Replace Memberships */
+    put: operations['replace_memberships_api_admin_spaces__space_id__memberships_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/admin/tokens': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List All Tokens */
+    get: operations['list_all_tokens_api_admin_tokens_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/admin/tokens/{token_id}': {
     parameters: {
       query?: never;
@@ -418,7 +489,8 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /** Update Secret */
+    patch: operations['update_secret_api_vault_secrets__secret_id__patch'];
     trace?: never;
   };
   '/api/vault/secrets/{secret_id}/value': {
@@ -432,6 +504,40 @@ export interface paths {
     get: operations['reveal_secret_api_vault_secrets__secret_id__value_get'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/vault/spaces': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Spaces */
+    get: operations['list_spaces_api_vault_spaces_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/vault/spaces/{space_id}/secrets': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Secret */
+    post: operations['create_secret_api_vault_spaces__space_id__secrets_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -557,6 +663,53 @@ export interface components {
       /** Updated At */
       updated_at: string;
     };
+    /**
+     * AgentSecretCreate
+     * @description Agent contribution payload; the target Space comes from the URL.
+     */
+    AgentSecretCreate: {
+      /** Description */
+      description?: string | null;
+      /** Metadata */
+      metadata?: {
+        [key: string]: unknown;
+      };
+      /** Name */
+      name: string;
+      /** Space Id */
+      space_id?: string | null;
+      /** Tags */
+      tags?: string[];
+      type: components['schemas']['SecretType'];
+      /** Url */
+      url?: string | null;
+      /** Username */
+      username?: string | null;
+      /** Value */
+      value: string;
+    };
+    /** AgentSecretUpdate */
+    AgentSecretUpdate: {
+      /** Description */
+      description?: string | null;
+      /** Metadata */
+      metadata?: {
+        [key: string]: unknown;
+      } | null;
+      /** Name */
+      name?: string | null;
+      /** Space Id */
+      space_id?: string | null;
+      /** Tags */
+      tags?: string[] | null;
+      type?: components['schemas']['SecretType'] | null;
+      /** Url */
+      url?: string | null;
+      /** Username */
+      username?: string | null;
+      /** Value */
+      value?: string | null;
+    };
     /** AgentTokenCreate */
     AgentTokenCreate: {
       /** Description */
@@ -565,6 +718,43 @@ export interface components {
       name: string;
       /** Ttl Seconds */
       ttl_seconds?: number | null;
+    };
+    /** AgentTokenOptionPageResponse */
+    AgentTokenOptionPageResponse: {
+      /** Items */
+      items: components['schemas']['AgentTokenOptionResponse'][];
+      /** Limit */
+      limit: number;
+      /** Offset */
+      offset: number;
+      /** Total */
+      total: number;
+    };
+    /** AgentTokenOptionResponse */
+    AgentTokenOptionResponse: {
+      /** Agent Id */
+      agent_id: string;
+      /** Agent Name */
+      agent_name: string;
+      /** Created At */
+      created_at: string;
+      /** Description */
+      description: string | null;
+      /** Expires At */
+      expires_at: string | null;
+      /** Id */
+      id: string;
+      /** Key Prefix */
+      key_prefix: string;
+      /** Last Used At */
+      last_used_at: string | null;
+      /** Name */
+      name: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'active' | 'revoked';
     };
     /** AgentTokenPageResponse */
     AgentTokenPageResponse: {
@@ -790,6 +980,27 @@ export interface components {
       /** Revoked At */
       revoked_at: string | null;
     };
+    /** MembershipInput */
+    MembershipInput: {
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: 'reader' | 'contributor' | 'maintainer';
+      /**
+       * Status
+       * @default active
+       * @enum {string}
+       */
+      status: 'active' | 'revoked';
+      /** Token Id */
+      token_id: string;
+    };
+    /** MembershipReplace */
+    MembershipReplace: {
+      /** Members */
+      members: components['schemas']['MembershipInput'][];
+    };
     /** PasswordChangeRequest */
     PasswordChangeRequest: {
       /** Current Password */
@@ -812,6 +1023,8 @@ export interface components {
       };
       /** Name */
       name: string;
+      /** Space Id */
+      space_id?: string | null;
       /** Tags */
       tags?: string[];
       type: components['schemas']['SecretType'];
@@ -821,11 +1034,6 @@ export interface components {
       username?: string | null;
       /** Value */
       value: string;
-    };
-    /** SecretListResponse */
-    SecretListResponse: {
-      /** Items */
-      items: components['schemas']['SecretResponse'][];
     };
     /** SecretPageResponse */
     SecretPageResponse: {
@@ -842,6 +1050,8 @@ export interface components {
     SecretResponse: {
       /** Created At */
       created_at: string;
+      /** Created By Agent Id */
+      created_by_agent_id: string | null;
       /** Description */
       description: string | null;
       /** Id */
@@ -852,6 +1062,8 @@ export interface components {
       };
       /** Name */
       name: string;
+      /** Space Id */
+      space_id: string | null;
       /** Tags */
       tags: string[];
       type: components['schemas']['SecretType'];
@@ -861,6 +1073,8 @@ export interface components {
       url: string | null;
       /** Username */
       username: string | null;
+      /** Version */
+      version: number;
     };
     /**
      * SecretType
@@ -888,6 +1102,8 @@ export interface components {
       } | null;
       /** Name */
       name?: string | null;
+      /** Space Id */
+      space_id?: string | null;
       /** Tags */
       tags?: string[] | null;
       type?: components['schemas']['SecretType'] | null;
@@ -903,6 +1119,42 @@ export interface components {
       /** Value */
       value: string;
     };
+    /** SpaceCreate */
+    SpaceCreate: {
+      /** Description */
+      description?: string | null;
+      /** Name */
+      name: string;
+    };
+    /** SpaceMembershipListResponse */
+    SpaceMembershipListResponse: {
+      /** Members */
+      members: components['schemas']['SpaceMembershipResponse'][];
+    };
+    /** SpaceMembershipResponse */
+    SpaceMembershipResponse: {
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: 'reader' | 'contributor' | 'maintainer';
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'active' | 'revoked';
+      /** Token Id */
+      token_id: string;
+    };
+    /** SpaceUpdate */
+    SpaceUpdate: {
+      /** Description */
+      description?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Status */
+      status?: ('active' | 'archived') | null;
+    };
     /** ValidationError */
     ValidationError: {
       /** Context */
@@ -916,6 +1168,29 @@ export interface components {
       /** Error Type */
       type: string;
     };
+    /** VaultAccessibleSpaceResponse */
+    VaultAccessibleSpaceResponse: {
+      /** Created At */
+      created_at: string;
+      /** Description */
+      description: string | null;
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: 'reader' | 'contributor' | 'maintainer';
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'active' | 'archived';
+      /** Updated At */
+      updated_at: string;
+    };
     /** VaultIdentityResponse */
     VaultIdentityResponse: {
       /** Agent Id */
@@ -926,6 +1201,82 @@ export interface components {
       token_id: string;
       /** Token Name */
       token_name: string;
+    };
+    /** VaultSecretPageResponse */
+    VaultSecretPageResponse: {
+      /** Items */
+      items: components['schemas']['VaultSecretResponse'][];
+      /** Limit */
+      limit: number;
+      /** Offset */
+      offset: number;
+      /** Total */
+      total: number;
+    };
+    /** VaultSecretResponse */
+    VaultSecretResponse: {
+      /**
+       * Access Source
+       * @enum {string}
+       */
+      access_source: 'direct' | 'space' | 'both';
+      /** Created At */
+      created_at: string;
+      /** Created By Agent Id */
+      created_by_agent_id: string | null;
+      /** Description */
+      description: string | null;
+      /** Id */
+      id: string;
+      /** Metadata */
+      metadata: {
+        [key: string]: unknown;
+      };
+      /** Name */
+      name: string;
+      /** Permissions */
+      permissions: ('read' | 'create' | 'update')[];
+      /** Space Id */
+      space_id: string | null;
+      /** Tags */
+      tags: string[];
+      type: components['schemas']['SecretType'];
+      /** Updated At */
+      updated_at: string;
+      /** Url */
+      url: string | null;
+      /** Username */
+      username: string | null;
+      /** Version */
+      version: number;
+    };
+    /** VaultSpaceListResponse */
+    VaultSpaceListResponse: {
+      /** Items */
+      items: components['schemas']['VaultAccessibleSpaceResponse'][];
+    };
+    /** VaultSpacePageResponse */
+    VaultSpacePageResponse: {
+      /** Items */
+      items: components['schemas']['VaultSpaceResponse'][];
+    };
+    /** VaultSpaceResponse */
+    VaultSpaceResponse: {
+      /** Created At */
+      created_at: string;
+      /** Description */
+      description: string | null;
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'active' | 'archived';
+      /** Updated At */
+      updated_at: string;
     };
   };
   responses: never;
@@ -1724,6 +2075,221 @@ export interface operations {
       };
     };
   };
+  list_spaces_api_admin_spaces_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VaultSpacePageResponse'];
+        };
+      };
+    };
+  };
+  create_space_api_admin_spaces_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SpaceCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VaultSpaceResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_space_api_admin_spaces__space_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        space_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_space_api_admin_spaces__space_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        space_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SpaceUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VaultSpaceResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_memberships_api_admin_spaces__space_id__memberships_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        space_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SpaceMembershipListResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  replace_memberships_api_admin_spaces__space_id__memberships_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        space_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MembershipReplace'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SpaceMembershipListResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_all_tokens_api_admin_tokens_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentTokenOptionPageResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   revoke_token_api_admin_tokens__token_id__delete: {
     parameters: {
       query?: never;
@@ -1872,7 +2438,11 @@ export interface operations {
   };
   list_secrets_api_vault_secrets_get: {
     parameters: {
-      query?: never;
+      query?: {
+        space_id?: string | null;
+        limit?: number;
+        offset?: number;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -1885,7 +2455,16 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['SecretListResponse'];
+          'application/json': components['schemas']['VaultSecretPageResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
@@ -1907,7 +2486,44 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['SecretResponse'];
+          'application/json': components['schemas']['VaultSecretResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_secret_api_vault_secrets__secret_id__patch: {
+    parameters: {
+      query?: never;
+      header: {
+        'If-Match': number;
+      };
+      path: {
+        secret_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AgentSecretUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VaultSecretResponse'];
         };
       };
       /** @description Validation Error */
@@ -1939,6 +2555,61 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['SecretValueResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_spaces_api_vault_spaces_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VaultSpaceListResponse'];
+        };
+      };
+    };
+  };
+  create_secret_api_vault_spaces__space_id__secrets_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        space_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AgentSecretCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VaultSecretResponse'];
         };
       };
       /** @description Validation Error */

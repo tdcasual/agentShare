@@ -40,6 +40,7 @@ class SecretCreate(BaseModel):
     description: str | None = Field(default=None, max_length=5000)
     tags: list[SecretTag] = Field(default_factory=list, max_length=100)
     metadata: dict[str, Any] = Field(default_factory=dict)
+    space_id: str | None = Field(default=None, max_length=255)
 
     @field_validator("tags")
     @classmethod
@@ -64,6 +65,7 @@ class SecretUpdate(BaseModel):
     description: str | None = Field(default=None, max_length=5000)
     tags: list[SecretTag] | None = Field(default=None, max_length=100)
     metadata: dict[str, Any] | None = None
+    space_id: str | None = Field(default=None, max_length=255)
 
     @field_validator("tags")
     @classmethod
@@ -83,4 +85,24 @@ class SecretUpdate(BaseModel):
         null_fields = required_fields.intersection(self.model_fields_set)
         if any(getattr(self, field) is None for field in null_fields):
             raise ValueError("name, type, value, tags, and metadata cannot be null")
+        return self
+
+
+class AgentSecretCreate(SecretCreate):
+    """Agent contribution payload; the target Space comes from the URL."""
+
+    @model_validator(mode="after")
+    def reject_body_space(self) -> Self:
+        if "space_id" in self.model_fields_set:
+            raise ValueError("space_id must be provided in the URL")
+        return self
+
+
+class AgentSecretUpdate(SecretUpdate):
+    @model_validator(mode="after")
+    def require_change(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("at least one field must be provided")
+        if "space_id" in self.model_fields_set:
+            raise ValueError("Agents cannot move Secrets between Spaces")
         return self

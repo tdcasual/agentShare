@@ -13,6 +13,9 @@ def serialize_secret(secret: Secret) -> dict:
         "description": secret.description,
         "tags": secret.tags,
         "metadata": secret.secret_metadata,
+        "space_id": secret.space_id,
+        "created_by_agent_id": secret.created_by_agent_id,
+        "version": secret.version,
         "created_at": secret.created_at.isoformat(),
         "updated_at": secret.updated_at.isoformat(),
     }

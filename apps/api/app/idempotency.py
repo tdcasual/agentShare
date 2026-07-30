@@ -18,6 +18,8 @@ from app.services.encryption import get_encryption_service
 class IdempotencyContext:
     key: str
     request_hash: str
+    principal_type: str
+    principal_id: str
 
 
 def _decode_response(encrypted_payload: str) -> dict[str, Any]:
@@ -46,6 +48,9 @@ async def replay_idempotent_response(
     request: Request,
     user_id: str,
     payload: Any,
+    *,
+    principal_type: str = "admin",
+    principal_id: str | None = None,
 ) -> tuple[IdempotencyContext | None, dict[str, Any] | None]:
     raw_key = request.headers.get("idempotency-key")
     if raw_key is None:
@@ -56,10 +61,18 @@ async def replay_idempotent_response(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Idempotency-Key must contain 8 to 255 characters",
         )
-    context = IdempotencyContext(key=key, request_hash=_request_hash(request, payload))
+    resolved_principal_id = principal_id or user_id
+    context = IdempotencyContext(
+        key=key,
+        request_hash=_request_hash(request, payload),
+        principal_type=principal_type,
+        principal_id=resolved_principal_id,
+    )
     record = await db.scalar(
         select(IdempotencyRecord).where(
             IdempotencyRecord.user_id == user_id,
+            IdempotencyRecord.principal_type == context.principal_type,
+            IdempotencyRecord.principal_id == context.principal_id,
             IdempotencyRecord.key == key,
         )
     )
@@ -87,6 +100,8 @@ def store_idempotent_response(
     db.add(
         IdempotencyRecord(
             user_id=user_id,
+            principal_type=context.principal_type,
+            principal_id=context.principal_id,
             key=context.key,
             request_hash=context.request_hash,
             status_code=status_code,
@@ -114,6 +129,8 @@ async def commit_idempotent_response(
         record = await db.scalar(
             select(IdempotencyRecord).where(
                 IdempotencyRecord.user_id == user_id,
+                IdempotencyRecord.principal_type == context.principal_type,
+                IdempotencyRecord.principal_id == context.principal_id,
                 IdempotencyRecord.key == context.key,
             )
         )

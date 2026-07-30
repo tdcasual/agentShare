@@ -17,6 +17,7 @@ from .base import Base
 if TYPE_CHECKING:
     from .token_secret_grant import TokenSecretGrant
     from .user import User
+    from .vault_space import VaultSpace
 
 
 class SecretType(StrEnum):
@@ -64,6 +65,22 @@ class Secret(Base):
         sa.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
+    space_id: so.Mapped[str | None] = so.mapped_column(
+        sa.String(255),
+        sa.ForeignKey("vault_spaces.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    created_by_agent_id: so.Mapped[str | None] = so.mapped_column(
+        sa.String(255),
+        sa.ForeignKey("agents.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    created_by_token_id: so.Mapped[str | None] = so.mapped_column(
+        sa.String(255),
+        sa.ForeignKey("agent_tokens.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    version: so.Mapped[int] = so.mapped_column(sa.Integer, default=1, nullable=False)
     type: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
     name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
     url: so.Mapped[str | None] = so.mapped_column(sa.Text, nullable=True)
@@ -90,6 +107,7 @@ class Secret(Base):
 
     # Relationships
     user: so.Mapped[User] = so.relationship(back_populates="secrets")
+    space: so.Mapped[VaultSpace | None] = so.relationship(back_populates="secrets")
     grants: so.WriteOnlyMapped[TokenSecretGrant] = so.relationship(
         back_populates="secret",
         cascade="all, delete-orphan",
