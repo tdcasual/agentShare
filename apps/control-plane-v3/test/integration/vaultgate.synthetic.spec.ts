@@ -120,6 +120,27 @@ test('completes the real VaultGate credential lifecycle', async () => {
   });
   expect(memberships.ok()).toBeTruthy();
 
+  const writeDurations: number[] = [];
+  const writeStatuses = await Promise.all(
+    Array.from({ length: 30 }, async (_, index) => {
+      const startedAt = performance.now();
+      const response = await runtimeA.post(`/api/vault/spaces/${sharedSpaceId}/secrets`, {
+        headers: { 'Idempotency-Key': `synthetic-load-${String(index).padStart(3, '0')}` },
+        data: {
+          name: `Synthetic Load ${String(index).padStart(3, '0')}`,
+          type: 'api_key',
+          value: `load-value-${index}`,
+        },
+      });
+      writeDurations.push(performance.now() - startedAt);
+      return response.status();
+    })
+  );
+  expect(writeStatuses).toEqual(Array.from({ length: 30 }, () => 201));
+  writeDurations.sort((left, right) => left - right);
+  const writeP95 = writeDurations[Math.ceil(writeDurations.length * 0.95) - 1];
+  expect(writeP95).toBeLessThan(2_000);
+
   const runtimeB = await playwrightRequest.newContext({
     baseURL: origin,
     extraHTTPHeaders: { Authorization: `Bearer ${runtimeTokens[1]}` },

@@ -20,16 +20,24 @@ export default defineConfig({
       '.cache',
     ],
     coverage: {
+      include: ['src/**/*.{ts,tsx}'],
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'src/test/', '**/*.d.ts', '**/*.config.*'],
-      // Ratchet 策略：阈值锚定在实测值向下取整减 0.5（基线 74.84/68.44/63.03/75.59，
-      // 留 0.5 防抖动），只许升不许降——提升覆盖率后把阈值同步上调；
-      // 薄页面（secrets/agents/agent-token-workspace、domains/*）后续专项提升。
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        'src/lib/generated-api.ts',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/*.test.{ts,tsx}',
+      ],
+      // Ratchet strategy: instrument all source files, including modules that
+      // no test imports yet. Thresholds sit 0.5 points below the measured
+      // full-source baseline (61.77/59.44/51.03/62.23) and only move upward.
       thresholds: {
-        statements: 73.5,
-        branches: 67.5,
-        functions: 62.5,
-        lines: 74.5,
+        statements: 61.27,
+        branches: 58.94,
+        functions: 50.53,
+        lines: 61.73,
       },
     },
   },

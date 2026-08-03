@@ -28,6 +28,9 @@ def test_postgres_backup_uses_pg_dump() -> None:
     assert ': "${POSTGRES_USER:?' not in script
     assert "sh -c" in script
     assert "DATABASE_URL" not in script
+    assert "umask 077" in script
+    assert 'chmod 700 "${BACKUP_DIR}"' in script
+    assert 'chmod 600 "${backup_file}"' in script
 
 
 def test_release_env_file_is_optional_in_compose_invocations() -> None:

@@ -12,12 +12,12 @@ import sys
 from pathlib import Path
 
 import pytest
-from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import create_app
 from app.orm import Base  # noqa: F401  # triggers all model registration
 from app.runtime import build_runtime
+from tests.asgi_client import TestClient
 
 # Suppress encryption key requirement in test environment
 os.environ.setdefault(
@@ -97,5 +97,8 @@ def test_app(test_settings: Settings):
 @pytest.fixture
 def client(test_app):
     """Provide a TestClient wired to the test app."""
-    with TestClient(test_app) as c:
+    c = TestClient(test_app)
+    try:
         yield c
+    finally:
+        c.close()

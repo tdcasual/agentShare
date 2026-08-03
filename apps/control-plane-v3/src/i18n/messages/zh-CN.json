@@ -116,7 +116,10 @@
     "memberCount": "{count} 个 Token 成员",
     "empty": "尚无共享空间",
     "noTokens": "请先为 Agent 签发 Token",
+    "noMatchingTokens": "没有匹配的 Agent Token",
     "listLabel": "共享空间列表",
+    "searchTokens": "搜索 Agent Token",
+    "clearTokenSearch": "清除 Token 搜索",
     "roleFor": "{name} 的空间角色",
     "saveMembers": "保存成员",
     "unsaved": "成员设置尚未保存",
@@ -128,7 +131,9 @@
     "updateFailed": "无法更新共享空间",
     "deleteFailed": "无法删除共享空间",
     "saveFailed": "无法保存空间成员",
-    "tokenLimit": "当前共有 {count} 个 Token，仅显示前 200 个。",
+    "discardTitle": "放弃未保存的成员设置？",
+    "discardMessage": "切换空间或离开当前页面将放弃尚未保存的成员设置。",
+    "discard": "放弃更改",
     "status": {
       "active": "启用",
       "archived": "已归档"

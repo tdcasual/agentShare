@@ -2,11 +2,11 @@ import json
 import logging
 
 from fastapi import APIRouter
-from fastapi.testclient import TestClient
 
 from app import factory as factory_module
 from app.config import Settings
 from app.factory import create_app
+from tests.asgi_client import TestClient
 
 
 def test_request_logging_emits_structured_record(client, caplog) -> None:

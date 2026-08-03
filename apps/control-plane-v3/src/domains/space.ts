@@ -9,6 +9,8 @@ import {
   listSpaces,
   replaceSpaceMemberships,
   updateSpace as apiUpdateSpace,
+  buildApiPath,
+  type AgentTokenOptionQuery,
   type SpaceMembership,
   type VaultSpace,
 } from '@/lib/vaultgate-api';
@@ -27,8 +29,9 @@ export function useSpaceMemberships(spaceId: string | null) {
   return { members: state.data?.members ?? [], ...state, refresh: state.mutate };
 }
 
-export function useAllAgentTokens() {
-  const state = useSWR(TOKENS_KEY, () => listAllAgentTokens({ limit: 200, offset: 0 }));
+export function useAllAgentTokens(query: AgentTokenOptionQuery = {}) {
+  const key = buildApiPath(TOKENS_KEY, query);
+  const state = useSWR(key, () => listAllAgentTokens(query));
   return {
     tokens: state.data?.items ?? [],
     total: state.data?.total ?? 0,

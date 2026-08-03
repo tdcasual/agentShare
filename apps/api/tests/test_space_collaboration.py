@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from fastapi.testclient import TestClient
+import asyncio
 
+from sqlalchemy import text
+
+from tests.asgi_client import TestClient
 from tests.test_admin_api import bootstrap_and_login
 
 
@@ -178,3 +181,95 @@ def test_agent_idempotency_keys_are_isolated_per_token(client: TestClient) -> No
     listed = client.get("/api/admin/secrets")
     assert listed.status_code == 200
     assert listed.json()["total"] == 2
+
+    filtered = client.get("/api/admin/tokens?limit=1&offset=0&search=second")
+    assert filtered.status_code == 200
+    assert filtered.json()["total"] == 1
+    assert filtered.json()["items"][0]["agent_name"] == "second"
+
+
+def test_maintainer_revocation_and_archiving_take_effect_immediately(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    contributor = _issue_agent_token(client, "writer")
+    maintainer = _issue_agent_token(client, "maintainer")
+    space = client.post("/api/admin/spaces", json={"name": "Operations"}).json()
+    assert client.put(
+        f"/api/admin/spaces/{space['id']}/memberships",
+        json={
+            "members": [
+                {"token_id": contributor["id"], "role": "contributor"},
+                {"token_id": maintainer["id"], "role": "maintainer"},
+            ]
+        },
+    ).status_code == 200
+
+    created = client.post(
+        f"/api/vault/spaces/{space['id']}/secrets",
+        headers=_agent_headers(contributor["token"], idempotency_key="maintainer-test-create"),
+        json={"name": "shared", "type": "password", "value": "initial"},
+    )
+    assert created.status_code == 201
+    secret = created.json()
+
+    maintained = client.patch(
+        f"/api/vault/secrets/{secret['id']}",
+        headers={**_agent_headers(maintainer["token"]), "If-Match": "1"},
+        json={"value": "maintained"},
+    )
+    assert maintained.status_code == 200
+    assert maintained.json()["version"] == 2
+
+    assert client.put(
+        f"/api/admin/spaces/{space['id']}/memberships",
+        json={
+            "members": [
+                {
+                    "token_id": contributor["id"],
+                    "role": "contributor",
+                    "status": "revoked",
+                },
+                {"token_id": maintainer["id"], "role": "maintainer"},
+            ]
+        },
+    ).status_code == 200
+    assert (
+        client.get(
+            f"/api/vault/secrets/{secret['id']}", headers=_agent_headers(contributor["token"])
+        ).status_code
+        == 403
+    )
+
+    assert client.patch(
+        f"/api/admin/spaces/{space['id']}", json={"status": "archived"}
+    ).status_code == 200
+    assert (
+        client.get(
+            f"/api/vault/secrets/{secret['id']}", headers=_agent_headers(maintainer["token"])
+        ).status_code
+        == 403
+    )
+
+
+def test_space_membership_rejects_another_tenants_token(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    token = _issue_agent_token(client, "Tenant Boundary Token")
+
+    async def corrupt_token_ownership() -> None:
+        # VaultGate intentionally allows only one administrator. Simulate a
+        # corrupt/cross-tenant row to verify the API still filters by owner.
+        async with client.app.state.runtime.engine.connect() as connection:
+            await connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+            await connection.execute(
+                text("UPDATE agent_tokens SET user_id = :user_id WHERE id = :token_id"),
+                {"user_id": "foreign-user", "token_id": token["id"]},
+            )
+            await connection.commit()
+            await connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+
+    asyncio.run(corrupt_token_ownership())
+    space = client.post("/api/admin/spaces", json={"name": "Tenant Boundary"}).json()
+    response = client.put(
+        f"/api/admin/spaces/{space['id']}/memberships",
+        json={"members": [{"token_id": token["id"], "role": "reader"}]},
+    )
+    assert response.status_code == 404

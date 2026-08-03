@@ -159,6 +159,10 @@ export interface PageQuery {
   offset?: number;
 }
 
+export type AgentTokenOptionQuery = PageQuery & {
+  search?: string;
+};
+
 export type SecretQuery = PageQuery & {
   search?: string;
   type?: SecretType;
@@ -259,7 +263,7 @@ export const listAgents = (query: PageQuery & { status?: Agent['status'] } = {})
 export const getAgent = (id: string) => requestJson<Agent>(`/api/admin/agents/${id}`);
 export const listAgentTokens = (agentId: string, query: PageQuery = {}) =>
   requestJson<PageResponse<AgentToken>>(buildApiPath(`/api/admin/agents/${agentId}/tokens`, query));
-export const listAllAgentTokens = (query: PageQuery = {}) =>
+export const listAllAgentTokens = (query: AgentTokenOptionQuery = {}) =>
   requestJson<PageResponse<AgentTokenOption>>(buildApiPath('/api/admin/tokens', query));
 export const createAgent = (input: { name: string; description?: string }) =>
   requestJson<Agent>('/api/admin/agents', { method: 'POST', body: JSON.stringify(input) });

@@ -6,13 +6,28 @@ VENV_DIR="${ROOT_DIR}/.venv"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 PLAYWRIGHT_BIN="${ROOT_DIR}/apps/control-plane-v3/node_modules/.bin/playwright"
 DEV_DATABASE_URL="${DEV_DATABASE_URL:-sqlite:///./vaultgate.db}"
+REQUIRED_PYTHON_MINOR="3.12"
+
+selected_python_minor="$("${PYTHON_BIN}" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+if [ "${selected_python_minor}" != "${REQUIRED_PYTHON_MINOR}" ]; then
+  printf 'VaultGate development locks and CI require Python %s; %s provides %s.\n' \
+    "${REQUIRED_PYTHON_MINOR}" "${PYTHON_BIN}" "${selected_python_minor}" >&2
+  exit 1
+fi
 
 if [ ! -d "${VENV_DIR}" ]; then
   "${PYTHON_BIN}" -m venv "${VENV_DIR}"
+else
+  venv_python_minor="$("${VENV_DIR}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+  if [ "${venv_python_minor}" != "${REQUIRED_PYTHON_MINOR}" ]; then
+    printf 'Existing %s uses Python %s; move it aside and rerun with Python %s.\n' \
+      "${VENV_DIR}" "${venv_python_minor}" "${REQUIRED_PYTHON_MINOR}" >&2
+    exit 1
+  fi
 fi
 
 "${VENV_DIR}/bin/python" -m pip install --upgrade pip
-"${VENV_DIR}/bin/pip" install -r "${ROOT_DIR}/apps/api/requirements-dev.lock"
+"${VENV_DIR}/bin/pip" install --require-hashes -r "${ROOT_DIR}/apps/api/requirements-dev.lock"
 "${VENV_DIR}/bin/pip" install --no-deps -e "${ROOT_DIR}/apps/api"
 "${VENV_DIR}/bin/pip" check
 

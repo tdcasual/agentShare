@@ -1,6 +1,7 @@
 """Tests for Bearer token authentication on the runtime API."""
-from fastapi.testclient import TestClient
 from test_admin_api import bootstrap_and_login
+
+from tests.asgi_client import TestClient
 
 
 def test_runtime_request_requires_bearer_token(client):

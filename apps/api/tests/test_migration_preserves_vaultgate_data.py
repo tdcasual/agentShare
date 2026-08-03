@@ -137,6 +137,60 @@ def test_migrated_schema_matches_orm_metadata(tmp_path, monkeypatch) -> None:
     command.check(config)
 
 
+def test_spaces_migration_downgrade_drops_unrepresentable_agent_idempotency_records(
+    tmp_path, monkeypatch
+) -> None:
+    database_url = f"sqlite:///{tmp_path / 'spaces-round-trip.db'}"
+    monkeypatch.setenv("DATABASE_URL", database_url)
+    config = _alembic_config(database_url)
+    command.upgrade(config, "20260720_01")
+
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO users (id, email, password_hash) "
+                "VALUES ('admin-id', 'admin@example.com', 'password-hash')"
+            )
+        )
+
+    command.upgrade(config, "20260730_01")
+    with engine.begin() as connection:
+        for record_id, principal_type, principal_id, key in (
+            ("admin-record", "admin", "admin-id", "admin-key"),
+            ("agent-record-a", "agent_token", "token-a", "shared-key"),
+            ("agent-record-b", "agent_token", "token-b", "shared-key"),
+        ):
+            connection.execute(
+                text(
+                    "INSERT INTO idempotency_records "
+                    "(id, user_id, key, request_hash, status_code, response_encrypted, "
+                    "principal_type, principal_id) VALUES "
+                    "(:id, 'admin-id', :key, :request_hash, 201, 'ciphertext', "
+                    ":principal_type, :principal_id)"
+                ),
+                {
+                    "id": record_id,
+                    "key": key,
+                    "request_hash": record_id.ljust(64, "0"),
+                    "principal_type": principal_type,
+                    "principal_id": principal_id,
+                },
+            )
+
+    command.downgrade(config, "20260720_01")
+
+    columns = {column["name"] for column in inspect(engine).get_columns("idempotency_records")}
+    assert "principal_type" not in columns
+    assert "principal_id" not in columns
+    with engine.connect() as connection:
+        records = connection.execute(
+            text("SELECT id, key FROM idempotency_records ORDER BY id")
+        ).all()
+    assert records == [("admin-record", "admin-key")]
+    engine.dispose()
+
+
 def test_upgrade_dedupes_names_before_adding_unique_indexes(tmp_path, monkeypatch) -> None:
     database_url = f"sqlite:///{tmp_path / 'dedupe.db'}"
     monkeypatch.setenv("DATABASE_URL", database_url)

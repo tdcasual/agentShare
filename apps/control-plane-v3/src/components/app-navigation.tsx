@@ -55,6 +55,7 @@ export function AppNavigation() {
               <ShieldCheck className="h-4 w-4" />
             </span>
             <span className="hidden min-[360px]:inline">VaultGate</span>
+            <span className="sr-only min-[360px]:hidden">VaultGate</span>
           </Link>
 
           <nav

@@ -2,7 +2,6 @@ import asyncio
 
 from alembic.config import Config
 from fastapi import Depends
-from fastapi.testclient import TestClient
 from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
@@ -11,6 +10,7 @@ from app.config import Settings
 from app.db import POSTGRES_MIGRATION_LOCK_ID, _build_alembic_config, get_async_db, migrate_db
 from app.factory import create_app
 from app.runtime import _async_database_url, build_runtime
+from tests.asgi_client import TestClient
 
 
 def test_postgres_async_url_preserves_encoded_password() -> None:

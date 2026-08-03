@@ -78,6 +78,7 @@ jobs:
           envs: DEPLOY_ENV_FILE,GHCR_TOKEN,GHCR_USERNAME,DEPLOY_PATH
           script: |
             set -euo pipefail
+            umask 077
             mkdir -p "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
             mkdir -p ops/caddy ops/compose ops/monitoring scripts/ops .vaultgate-secrets
@@ -89,14 +90,25 @@ jobs:
             fi
 
             printf '%s\n' "$DEPLOY_ENV_FILE" > .env.production
-            # Export the production environment for the ops scripts below:
-            # smoke-test.sh requires PUBLIC_HOST, and check-postgres-durability.sh
-            # honors POSTGRES_USER/POSTGRES_DB/REQUIRE_POSTGRES_REPLICA.
-            # Sourcing is safe for the strict KEY=value format used by
-            # ops/compose/prod.env.example (verified: no example value contains
-            # unquoted spaces); keep DEPLOY_ENV_FILE values free of unquoted
-            # spaces and shell expansions such as $ or backticks.
-            set -a; . ./.env.production; set +a
+            chmod 600 .env.production
+
+            # Export only the values required by the ops scripts. Values are
+            # read as data, so spaces, dollar signs, and backticks are never
+            # evaluated by the shell.
+            read_env_value() {
+              key="$1"
+              value="$(awk -v target="${key}=" 'index($0, target) == 1 { value = substr($0, length(target) + 1) } END { print value }' .env.production)"
+              case "$value" in
+                \"*\") value="${value#\"}"; value="${value%\"}" ;;
+                \'*\') value="${value#\'}"; value="${value%\'}" ;;
+              esac
+              printf '%s' "$value"
+            }
+            export PUBLIC_HOST="$(read_env_value PUBLIC_HOST)"
+            export APP_BASE_URL="$(read_env_value APP_BASE_URL)"
+            export POSTGRES_USER="$(read_env_value POSTGRES_USER)"
+            export POSTGRES_DB="$(read_env_value POSTGRES_DB)"
+            export REQUIRE_POSTGRES_REPLICA="$(read_env_value REQUIRE_POSTGRES_REPLICA)"
 
             printf '%s\n' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 

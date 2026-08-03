@@ -9,6 +9,7 @@ describe('nonce content security policy', () => {
     expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(policy).not.toContain("'unsafe-eval'");
     expect(policy).toContain("style-src 'self' 'nonce-testnonce'");
+    expect(policy).toContain("style-src-attr 'unsafe-inline'");
     expect(policy).toContain("'sha256-CIxDM5jnsGiKqXs2v7NKCY5MzdR9gu6TtiMJrDw29AY='");
     expect(policy).toContain("object-src 'none'");
     expect(policy).toContain('upgrade-insecure-requests');

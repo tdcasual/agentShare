@@ -2263,6 +2263,7 @@ export interface operations {
       query?: {
         limit?: number;
         offset?: number;
+        search?: string | null;
       };
       header?: never;
       path?: never;

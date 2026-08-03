@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
 
-from fastapi.testclient import TestClient
-
+from tests.asgi_client import TestClient
 from tests.test_admin_api import bootstrap_and_login
 
 

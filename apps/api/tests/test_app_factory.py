@@ -3,11 +3,11 @@ import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.config import Settings
 from app.factory import create_app
+from tests.asgi_client import TestClient
 
 
 def _collect_route_paths(app) -> set[str]:
@@ -91,7 +91,7 @@ def test_lifespan_disposes_the_attached_async_engine(tmp_path):
             route_registrar=None,
         )
 
-        with TestClient(app):
+        with TestClient(app, use_lifespan=True):
             pass
 
         dispose.assert_awaited_once_with()

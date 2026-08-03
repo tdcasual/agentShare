@@ -1,5 +1,216 @@
 # Error Log
 
+## [ERR-20260803-007] sandbox-git-index-read-only
+
+**Logged**: 2026-08-03T15:40:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+The first commit attempt could not create `.git/index.lock` because Git metadata is read-only in the default sandbox.
+
+### Error
+
+```text
+fatal: Unable to create '.git/index.lock': Read-only file system
+```
+
+### Resolution
+The exact staged paths were committed after the managed permission review approved Git index access.
+
+### Metadata
+- Reproducible: yes in the default sandbox
+- Related Files: `.git/index`
+
+---
+
+## [ERR-20260803-006] npm-audit-sandbox-network
+
+**Logged**: 2026-08-03T15:25:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: dependencies
+
+### Summary
+The dependency audit script received no JSON from `npm audit` in the restricted sandbox.
+
+### Error
+
+```text
+Error: npm audit returned no JSON output
+```
+
+### Context
+- The local run was network restricted and returned an empty audit response.
+- The same command succeeded after the approved network retry.
+
+### Resolution
+Production dependencies are clean; the only temporary allowance is GHSA-mh99-v99m-4gvg through 2026-09-30.
+
+### Metadata
+- Reproducible: yes in restricted sandbox
+- Related Files: `apps/control-plane-v3/scripts/audit-dependencies.mjs`
+
+---
+
+## [ERR-20260803-005] sandbox-aiosqlite-thread-wakeup
+
+**Logged**: 2026-08-03T15:20:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: tests
+
+### Summary
+`aiosqlite.connect()` completed on its worker thread but the sandbox event loop did not wake to deliver the result.
+
+### Error
+
+```text
+Minimal aiosqlite 0.22.1 and 0.21.0 connects time out after the worker logs completion.
+```
+
+### Context
+- Reproduced independently on Python 3.12 and 3.14 in this managed execution environment.
+- Downgrading from 0.22.1 to 0.21.0 did not change the behavior, ruling out the suspected dependency regression.
+- A periodic event-loop timer makes the queued result run, indicating a sandbox/runtime wakeup issue rather than a SQLite lock.
+
+### Suggested Fix
+Run the authoritative suite in CI or a normal container runtime; use a test-only event-loop heartbeat locally if this environment must execute aiosqlite tests.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/api/tests/asgi_client.py`
+
+---
+
+## [ERR-20260803-001] axe-playwright-explicit-context
+
+**Logged**: 2026-08-03T13:35:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A standalone axe audit failed because the Playwright page was created with `browser.newPage()` instead of an explicit browser context.
+
+### Error
+
+```text
+Error: Please use browser.newContext()
+```
+
+### Context
+- Attempted a read-only desktop/mobile axe and layout audit of the new `/spaces` page.
+- `@axe-core/playwright` requires a page created from `browser.newContext()` so its context lifecycle is explicit.
+
+### Suggested Fix
+Create a context with `browser.newContext({ viewport })`, then create the page from that context and close the context after analysis.
+
+### Resolution
+The audit command was corrected to use an explicit browser context before retrying.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/test/e2e/accessibility.spec.ts`
+
+---
+
+## [ERR-20260803-002] coolify-status-argument-list
+
+**Logged**: 2026-08-03T13:57:48Z
+**Priority**: medium
+**Status**: pending
+**Area**: infra
+
+### Summary
+The Coolify wrapper's unified status query failed while serializing a large application response through jq.
+
+### Error
+
+```text
+/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh: line 832: /usr/bin/jq: Argument list too long
+```
+
+### Context
+- Command: `coolify.sh status --query tr01vb13cz2sj4wrm4y009cr`
+- Coolify 4.1.2 was healthy and exact resource resolution succeeded immediately beforehand.
+- The failure was local to the wrapper; it did not mutate the application or deployment.
+
+### Suggested Fix
+Stream large API responses into jq instead of passing them through an environment variable or command argument. Until then, use narrow resource, deployment, domain, and HTTP queries.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: `/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh`
+- See Also: ERR-20260728-001
+
+---
+
+## [ERR-20260803-003] coolify-latest-response-shape
+
+**Logged**: 2026-08-03T14:02:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: infra
+
+### Summary
+The Coolify wrapper's latest-deployment query could not parse the response returned for VaultGate.
+
+### Error
+
+```text
+jq: error: Cannot index number with string "created_at"
+json.decoder.JSONDecodeError: Expecting value
+```
+
+### Context
+- Command: `coolify.sh deployments latest --query tr01vb13cz2sj4wrm4y009cr`
+- Exact resource resolution and Coolify health checks succeeded.
+- The failed read did not mutate the application.
+
+### Suggested Fix
+Make `deployments latest` tolerate the deployment response shape returned by Coolify 4.1.2 and fail with one structured JSON error.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: `/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh`
+- See Also: ERR-20260803-002
+
+---
+
+## [ERR-20260803-004] uv-read-only-default-cache
+
+**Logged**: 2026-08-03T14:13:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+uv could not create a temporary Python 3.12 environment because its default user cache is read-only.
+
+### Error
+
+```text
+Could not acquire lock: Read-only file system at /home/tdcasual/.cache/uv/.tmp2akf3Z
+```
+
+### Context
+- Command: `uv venv /tmp/vaultgate-py312 --python 3.12`
+- The requested environment target was already under writable `/tmp`.
+
+### Suggested Fix
+Set a task-scoped `UV_CACHE_DIR` under `/tmp` for uv environment and install commands.
+
+### Resolution
+Retried with `UV_CACHE_DIR=/tmp/vaultgate-uv-cache`.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `scripts/ops/bootstrap-dev-runtime.sh`
+
+---
+
 ## [ERR-20260713-001] backend-quality-gates
 
 **Logged**: 2026-07-13T13:12:31Z
@@ -91,6 +302,7 @@ pytest remained in the first TestClient fixture without a failure for more than 
 - The exact first node-id later passed in 0.96 seconds through `pytest.main()`.
 - Full-file, `-k`, and all-suite selection stalled in the first TestClient fixture under both Python 3.14 and a temporary Python 3.11 environment.
 - mypy, Ruff, migration policy, 96 ops tests, frontend tests, and deployed API behavior are independent of this runner limitation.
+- On 2026-08-03, the combined API/ops selection timed out after 300 seconds and both exact `test_space_collaboration.py` node-ids timed out after 90 seconds with no pytest output; the 96 ops-only tests still passed in 0.11 seconds.
 
 ### Suggested Fix
 Reproduce in the CI Python 3.12 non-PTY environment and inspect AnyIO/TestClient portal teardown and the managed executor's process wrapping.
@@ -98,6 +310,8 @@ Reproduce in the CI Python 3.12 non-PTY environment and inspect AnyIO/TestClient
 ### Metadata
 - Reproducible: yes
 - Related Files: `apps/api/tests/conftest.py`, `scripts/ops/verify-control-plane.sh`
+- Recurrence-Count: 2
+- Last-Seen: 2026-08-03
 
 ---
 

@@ -105,6 +105,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    # The previous schema scopes idempotency keys to the administrator only.
+    # Agent records cannot be represented there and can legitimately collide.
+    op.execute("DELETE FROM idempotency_records WHERE principal_type = 'agent_token'")
     with op.batch_alter_table("idempotency_records") as batch_op:
         batch_op.drop_constraint("uq_idempotency_records_principal_key", type_="unique")
         batch_op.drop_column("principal_id")

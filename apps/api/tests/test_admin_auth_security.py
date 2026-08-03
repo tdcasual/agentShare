@@ -1,7 +1,8 @@
 import bcrypt
 import pytest
-from fastapi.testclient import TestClient
 from test_admin_api import ADMIN_EMAIL, ADMIN_PASSWORD, bootstrap_and_login
+
+from tests.asgi_client import TestClient
 
 
 def test_login_rate_limit_is_scoped_by_ip_and_email(client: TestClient) -> None:

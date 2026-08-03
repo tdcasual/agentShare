@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from tests.asgi_client import TestClient
 
 
 def test_only_new_admin_and_vault_routes_are_exposed(client: TestClient) -> None:

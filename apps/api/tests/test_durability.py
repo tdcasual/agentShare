@@ -119,6 +119,8 @@ def test_database_keyring_audit_and_integrity_export(tmp_path, monkeypatch) -> N
                     IdempotencyRecord(
                         id="idempotency-1",
                         user_id=user.id,
+                        principal_type="admin",
+                        principal_id=user.id,
                         key="request-1",
                         request_hash="a" * 64,
                         status_code=201,

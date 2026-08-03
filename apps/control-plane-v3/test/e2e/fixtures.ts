@@ -66,6 +66,21 @@ export async function mockSession(page: Page) {
       '/api/admin/agents': { items: [vaultgateAgent], total: 1 },
       '/api/admin/agents/agent-1': vaultgateAgent,
       '/api/admin/agents/agent-1/tokens': { items: [vaultgateToken], total: 1 },
+      '/api/admin/tokens': {
+        items: [{ ...vaultgateToken, agent_name: vaultgateAgent.name }],
+        total: 1,
+      },
+      '/api/admin/spaces': {
+        items: [
+          {
+            id: 'space-1',
+            name: 'Production',
+            description: 'Shared credentials',
+            status: 'active',
+          },
+        ],
+      },
+      '/api/admin/spaces/space-1/memberships': { members: [] },
       '/api/admin/tokens/token-1/grants': { secret_ids: ['secret-1'] },
       '/api/admin/audit-logs': { items: [vaultgateAuditLog], total: 1 },
       '/api/admin/audit-stats': { total: 1, granted: 1, denied: 0, value_reads: 1 },

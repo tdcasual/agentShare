@@ -1,13 +1,14 @@
 """Tests for security middleware: CSP/HSTS headers and CSRF Origin validation."""
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.factory import (
+    add_cors_middleware,
     add_csrf_middleware,
     add_request_size_middleware,
     add_security_headers_middleware,
 )
+from tests.asgi_client import TestClient
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -60,6 +61,27 @@ def _client_with_request_limit(max_bytes: int) -> TestClient:
     app = _make_test_app(settings)
     add_request_size_middleware(app, settings)
     return TestClient(app)
+
+
+def test_cors_preflight_allows_agent_write_headers():
+    settings = Settings(cors_allowed_origins="https://console.example.com")
+    app = _make_test_app(settings)
+    add_cors_middleware(app, settings)
+    client = TestClient(app)
+
+    response = client.options(
+        "/api/data",
+        headers={
+            "origin": "https://console.example.com",
+            "access-control-request-method": "PATCH",
+            "access-control-request-headers": "Idempotency-Key, If-Match",
+        },
+    )
+
+    assert response.status_code == 200
+    allowed_headers = response.headers["access-control-allow-headers"].lower()
+    assert "idempotency-key" in allowed_headers
+    assert "if-match" in allowed_headers
 
 
 # Use the default cookie name from Settings for test cookies

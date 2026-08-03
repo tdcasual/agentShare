@@ -65,7 +65,7 @@ The first browser visit redirects to setup. Create the administrator, then creat
 ## Development
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/pip install -e 'apps/api[dev]'
 cd apps/control-plane-v3 && npm install
 ```

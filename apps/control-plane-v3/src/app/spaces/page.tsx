@@ -1,7 +1,8 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Archive, Boxes, Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Archive, Boxes, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import {
   createSpace,
   removeSpace,
@@ -28,6 +29,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import {
   Select,
   SelectContent,
@@ -36,11 +38,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 type SpaceRole = SpaceMembership['role'];
+type PendingChange =
+  | { kind: 'space'; spaceId: string }
+  | { kind: 'navigate'; href: string }
+  | { kind: 'history' };
+
+const TOKEN_PAGE_SIZE = 50;
 
 export default function SpacesPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const { spaces, isLoading, error, refresh } = useSpaces();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedSpace = spaces.find((space) => space.id === selectedId) ?? null;
@@ -49,14 +59,23 @@ export default function SpacesPage() {
     isLoading: membersLoading,
     error: membersError,
   } = useSpaceMemberships(selectedId);
+  const [tokenOffset, setTokenOffset] = useState(0);
+  const [tokenSearch, setTokenSearch] = useState('');
+  const deferredTokenSearch = useDebouncedValue(tokenSearch.trim());
   const {
     tokens,
     total: tokenTotal,
     isLoading: tokensLoading,
     error: tokensError,
-  } = useAllAgentTokens();
+    data: tokensData,
+  } = useAllAgentTokens({
+    limit: TOKEN_PAGE_SIZE,
+    offset: tokenOffset,
+    search: deferredTokenSearch || undefined,
+  });
   const [draft, setDraft] = useState<SpaceMembership[]>([]);
   const [dirty, setDirty] = useState(false);
+  const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -64,6 +83,7 @@ export default function SpacesPage() {
   const [description, setDescription] = useState('');
   const [creating, setCreating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const historyBypassRef = useRef(false);
   const draftByToken = useMemo(
     () => new Map(draft.map((membership) => [membership.token_id, membership])),
     [draft]
@@ -82,6 +102,96 @@ export default function SpacesPage() {
       setDraft(members);
     }
   }, [dirty, members]);
+
+  useEffect(() => {
+    if (tokensData !== undefined && tokens.length === 0 && tokenOffset > 0) {
+      setTokenOffset((current) => Math.max(0, current - TOKEN_PAGE_SIZE));
+    }
+  }, [tokenOffset, tokens, tokensData]);
+
+  useEffect(() => {
+    if (!dirty) {
+      return;
+    }
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    const interceptNavigation = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      const anchor =
+        event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
+      if (
+        !anchor ||
+        (anchor.target && anchor.target !== '_self') ||
+        anchor.hasAttribute('download')
+      ) {
+        return;
+      }
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin) {
+        return;
+      }
+      if (url.pathname === window.location.pathname && url.search === window.location.search) {
+        return;
+      }
+      event.preventDefault();
+      setPendingChange({
+        kind: 'navigate',
+        href: `${url.pathname}${url.search}${url.hash}`,
+      });
+    };
+    window.history.pushState({ __vgSpacesGuard: true }, '');
+    const handlePopState = () => {
+      if (historyBypassRef.current) {
+        return;
+      }
+      window.history.pushState({ __vgSpacesGuard: true }, '');
+      setPendingChange({ kind: 'history' });
+    };
+    document.addEventListener('click', interceptNavigation, true);
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      document.removeEventListener('click', interceptNavigation, true);
+      window.removeEventListener('beforeunload', warnBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [dirty]);
+
+  function requestSpaceSelection(spaceId: string) {
+    if (spaceId === selectedId) {
+      return;
+    }
+    if (dirty) {
+      setPendingChange({ kind: 'space', spaceId });
+      return;
+    }
+    setSelectedId(spaceId);
+    setActionError(null);
+  }
+
+  function applyPendingChange(change: PendingChange) {
+    setDirty(false);
+    if (change.kind === 'space') {
+      setSelectedId(change.spaceId);
+      setActionError(null);
+    } else if (change.kind === 'history') {
+      historyBypassRef.current = true;
+      window.history.go(-2);
+    } else {
+      router.replace(change.href);
+    }
+  }
 
   function toggleToken(tokenId: string, checked: boolean) {
     setDirty(true);
@@ -130,7 +240,7 @@ export default function SpacesPage() {
       setName('');
       setDescription('');
       setShowCreate(false);
-      setSelectedId(created.id);
+      requestSpaceSelection(created.id);
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : t('spaces.createFailed'));
     } finally {
@@ -211,11 +321,7 @@ export default function SpacesPage() {
                 key={space.id}
                 type="button"
                 aria-current={space.id === selectedId ? 'page' : undefined}
-                onClick={() => {
-                  setSelectedId(space.id);
-                  setDirty(false);
-                  setActionError(null);
-                }}
+                onClick={() => requestSpaceSelection(space.id)}
                 className={`flex min-h-14 w-full items-center gap-3 border-b px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${space.id === selectedId ? 'bg-accent' : 'hover:bg-accent/50'}`}
               >
                 <span className="min-w-0 flex-1">
@@ -267,11 +373,38 @@ export default function SpacesPage() {
 
               {membersError && <InlineAlert className="mt-4">{membersError.message}</InlineAlert>}
               {tokensError && <InlineAlert className="mt-4">{tokensError.message}</InlineAlert>}
-              {tokenTotal > 200 && (
-                <p role="status" className="mt-3 text-sm text-status-warning-subtle-foreground">
-                  {t('spaces.tokenLimit', { count: tokenTotal })}
-                </p>
-              )}
+
+              <div className="relative mt-4 max-w-xl">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  value={tokenSearch}
+                  onChange={(event) => {
+                    setTokenSearch(event.target.value);
+                    setTokenOffset(0);
+                  }}
+                  placeholder={t('spaces.searchTokens')}
+                  aria-label={t('spaces.searchTokens')}
+                  className="pl-9 pr-10"
+                />
+                {tokenSearch && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label={t('spaces.clearTokenSearch')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2"
+                    onClick={() => {
+                      setTokenSearch('');
+                      setTokenOffset(0);
+                    }}
+                  >
+                    <X />
+                  </Button>
+                )}
+              </div>
 
               {membersLoading || tokensLoading ? (
                 <div className="mt-4 space-y-2">
@@ -280,7 +413,10 @@ export default function SpacesPage() {
                   ))}
                 </div>
               ) : tokens.length === 0 ? (
-                <EmptyState title={t('spaces.noTokens')} className="mt-4 border-y" />
+                <EmptyState
+                  title={deferredTokenSearch ? t('spaces.noMatchingTokens') : t('spaces.noTokens')}
+                  className="mt-4 border-y"
+                />
               ) : (
                 <div className="mt-4 divide-y border-y">
                   {tokens.map((token) => {
@@ -332,6 +468,13 @@ export default function SpacesPage() {
                   })}
                 </div>
               )}
+
+              <PaginationControls
+                offset={tokenOffset}
+                limit={TOKEN_PAGE_SIZE}
+                total={tokenTotal}
+                onOffsetChange={setTokenOffset}
+              />
 
               <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
                 {dirty && (
@@ -397,6 +540,21 @@ export default function SpacesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        isOpen={pendingChange !== null}
+        onClose={() => setPendingChange(null)}
+        onConfirm={() => {
+          if (pendingChange) {
+            applyPendingChange(pendingChange);
+          }
+          setPendingChange(null);
+        }}
+        title={t('spaces.discardTitle')}
+        message={t('spaces.discardMessage')}
+        confirmText={t('spaces.discard')}
+        variant="danger"
+      />
 
       <ConfirmDialog
         isOpen={confirmDelete}

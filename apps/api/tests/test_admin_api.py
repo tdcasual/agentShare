@@ -3,11 +3,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
-from fastapi.testclient import TestClient
-
 from app.config import Settings
 from app.factory import create_app
 from app.runtime import build_runtime
+from tests.asgi_client import TestClient
 
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "Str0ng!Admin#2026"

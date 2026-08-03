@@ -225,6 +225,8 @@ def test_dev_runtime_bootstrap_script_is_present() -> None:
 def test_dev_runtime_bootstrap_uses_the_development_lock() -> None:
     script = (ROOT / "scripts/ops/bootstrap-dev-runtime.sh").read_text()
     assert "requirements-dev.lock" in script
+    assert 'REQUIRED_PYTHON_MINOR="3.12"' in script
+    assert "--require-hashes" in script
     assert "install --no-deps -e" in script
     assert 'bin/pip" check' in script
 
@@ -241,6 +243,15 @@ def test_development_lock_is_a_complete_hashed_graph() -> None:
 def test_repo_verification_script_is_present() -> None:
     script_path = ROOT / "scripts/ops/verify-control-plane.sh"
     assert script_path.exists()
+
+
+def test_repo_verification_uses_the_non_blocking_pytest_entrypoint() -> None:
+    script = (ROOT / "scripts/ops/verify-control-plane.sh").read_text()
+    runner = (ROOT / "scripts/ops/run-pytest.py").read_text()
+
+    assert "scripts/ops/run-pytest.py" in script
+    assert 'VERIFY_PYTHON="${VERIFY_PYTHON:-' in script
+    assert "pytest.main(sys.argv[1:])" in runner
 
 
 def test_repo_verification_runs_browser_flows() -> None:
@@ -268,11 +279,17 @@ def test_browser_matrix_and_accessibility_gate_are_configured() -> None:
 def test_synthetic_flow_enforces_a_small_load_budget() -> None:
     script = (ROOT / "scripts/ops/run-synthetic-flow.sh").read_text()
     load_smoke = (ROOT / "scripts/ops/load-smoke.mjs").read_text()
+    spec = (
+        ROOT / "apps/control-plane-v3/test/integration/vaultgate.synthetic.spec.ts"
+    ).read_text()
 
     assert "load-smoke.mjs" in script
     assert "LOAD_CONCURRENCY" in load_smoke
+    assert "LOAD_DURATION_SECONDS" in load_smoke
     assert "LOAD_P95_BUDGET_MS" in load_smoke
-    assert "['/healthz', '/readyz']" in load_smoke
+    assert "/api/admin/bootstrap/status" in load_smoke
+    assert "synthetic-load-" in spec
+    assert "writeP95" in spec
 
 
 def test_synthetic_flow_uses_a_fresh_compose_stack() -> None:

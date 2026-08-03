@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 set -eu
+umask 077
 
 : "${BACKUP_DIR:=./backups/postgres}"
 : "${COMPOSE_FILE:=docker-compose.prod.yml}"
@@ -17,13 +18,17 @@ fi
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "${BACKUP_DIR}"
+chmod 700 "${BACKUP_DIR}"
 backup_file="${BACKUP_DIR}/postgres-${timestamp}.dump"
+trap 'rm -f "${backup_file}"' HUP INT TERM
 
 # Intentional word splitting: release_env_file_args is empty or two words.
 docker compose --env-file "${COMPOSE_ENV_FILE}" ${release_env_file_args} \
   -f "${COMPOSE_FILE}" exec -T "${POSTGRES_SERVICE}" \
   sh -c 'exec pg_dump --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --format=custom' \
   > "${backup_file}"
+chmod 600 "${backup_file}"
+trap - HUP INT TERM
 
 echo "Postgres backup written to ${backup_file}"
 

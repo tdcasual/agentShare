@@ -116,7 +116,10 @@
     "memberCount": "{count} Token members",
     "empty": "No shared spaces yet",
     "noTokens": "Issue an Agent Token first",
+    "noMatchingTokens": "No matching Agent Tokens",
     "listLabel": "Shared space list",
+    "searchTokens": "Search Agent Tokens",
+    "clearTokenSearch": "Clear Token search",
     "roleFor": "Space role for {name}",
     "saveMembers": "Save members",
     "unsaved": "Member settings are not saved",
@@ -128,7 +131,9 @@
     "updateFailed": "Unable to update shared space",
     "deleteFailed": "Unable to delete shared space",
     "saveFailed": "Unable to save space members",
-    "tokenLimit": "There are {count} Tokens; only the first 200 are shown.",
+    "discardTitle": "Discard unsaved member settings?",
+    "discardMessage": "Changing spaces or leaving this page will discard member settings you have not saved.",
+    "discard": "Discard changes",
     "status": {
       "active": "Active",
       "archived": "Archived"

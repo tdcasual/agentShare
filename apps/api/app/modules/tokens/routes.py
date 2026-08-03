@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +22,7 @@ from app.modules.audit.service import add_admin_audit
 from app.modules.tokens.schemas import AgentTokenCreate, GrantReplace
 from app.modules.tokens.service import owned_token, serialize_token
 from app.orm import Agent, AgentStatus, AgentToken, AgentTokenStatus, Secret, TokenSecretGrant
+from app.query_utils import contains_pattern
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Tokens"])
 
@@ -30,16 +31,31 @@ router = APIRouter(prefix="/api/admin", tags=["Admin Tokens"])
 async def list_all_tokens(
     limit: int = Query(default=100, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    search: str | None = Query(default=None, min_length=1, max_length=255),
     principal: AdminPrincipal = Depends(get_admin_principal),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
+    filters = [AgentToken.user_id == principal.user.id]
+    if search is not None:
+        normalized_search = search.strip()
+        if normalized_search:
+            pattern = contains_pattern(normalized_search)
+            filters.append(
+                or_(
+                    Agent.name.ilike(pattern, escape="\\"),
+                    AgentToken.name.ilike(pattern, escape="\\"),
+                    AgentToken.key_prefix.ilike(pattern, escape="\\"),
+                )
+            )
     total = await db.scalar(
-        select(func.count(AgentToken.id)).where(AgentToken.user_id == principal.user.id)
+        select(func.count(AgentToken.id))
+        .join(Agent, Agent.id == AgentToken.agent_id)
+        .where(*filters)
     )
     rows = await db.execute(
         select(AgentToken, Agent.name)
         .join(Agent, Agent.id == AgentToken.agent_id)
-        .where(AgentToken.user_id == principal.user.id)
+        .where(*filters)
         .order_by(Agent.name, AgentToken.name, AgentToken.id)
         .limit(limit)
         .offset(offset)

@@ -68,6 +68,13 @@ def test_next_proxy_owns_nonce_content_security_policy() -> None:
     assert "script-src" in proxy
     assert "script-src 'self' 'unsafe-inline'" not in proxy
     assert "Content-Security-Policy" not in next_config
+    frontend_source = ROOT / "apps/control-plane-v3/src"
+    inline_styles = [
+        path
+        for path in frontend_source.rglob("*.tsx")
+        if "style={" in path.read_text()
+    ]
+    assert inline_styles == []
 
 
 def test_caddy_routes_frontend_docs_without_shadowing_them() -> None:

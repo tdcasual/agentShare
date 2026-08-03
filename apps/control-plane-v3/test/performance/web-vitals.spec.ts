@@ -95,3 +95,54 @@ test('login shell stays within the web performance budget', async ({ page }, tes
   expect(metrics.inp).toBeLessThan(200);
   expect(metrics.ttfb).toBeLessThan(800);
 });
+
+test('large Spaces token inventory stays responsive', async ({ page }, testInfo) => {
+  test.skip(
+    Boolean(process.env.VAULTGATE_PERFORMANCE_BASE_URL),
+    'The production performance probe does not use administrator credentials.'
+  );
+  const tokens = Array.from({ length: 50 }, (_, index) => ({
+    id: `token-${index}`,
+    agent_id: `agent-${index}`,
+    agent_name: `Agent ${String(index).padStart(3, '0')}`,
+    name: `Runtime ${String(index).padStart(3, '0')}`,
+    description: null,
+    status: 'active',
+    key_prefix: `vg_${String(index).padStart(4, '0')}`,
+    expires_at: null,
+    last_used_at: null,
+    created_at: '2026-01-01T00:00:00Z',
+  }));
+  await page.route('**/api/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const responses: Record<string, unknown> = {
+      '/api/admin/bootstrap/status': { setup_required: false },
+      '/api/admin/session': { id: 'admin', email: 'admin@example.com', auth_type: 'session' },
+      '/api/admin/spaces': {
+        items: [{ id: 'space-1', name: 'Production', description: null, status: 'active' }],
+      },
+      '/api/admin/spaces/space-1/memberships': { members: [] },
+      '/api/admin/tokens': { items: tokens, total: 10_000, limit: 50, offset: 0 },
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(responses[path] ?? { items: [] }),
+    });
+  });
+
+  const startedAt = Date.now();
+  await page.goto('/spaces');
+  await expect(page.getByText('Agent 049')).toBeVisible();
+  const renderMs = Date.now() - startedAt;
+  const hasHorizontalOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+  );
+
+  console.warn(
+    `SPACES_PERFORMANCE ${testInfo.project.name} ${JSON.stringify({ render_ms: renderMs })}`
+  );
+  expect(renderMs).toBeLessThan(2_500);
+  expect(hasHorizontalOverflow).toBe(false);
+  await expect(page.getByRole('navigation', { name: /分页导航|Pagination/ })).toBeVisible();
+});

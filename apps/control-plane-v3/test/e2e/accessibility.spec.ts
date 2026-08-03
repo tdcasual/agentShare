@@ -6,6 +6,7 @@ const routes = [
   '/',
   '/agents',
   '/secrets',
+  '/spaces',
   '/audit',
   '/settings/security',
   '/settings/management-tokens',
@@ -26,4 +27,16 @@ test.describe('WCAG A and AA', () => {
       expect(results.violations).toEqual([]);
     });
   }
+
+  test('320px navigation retains an accessible brand name', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 720 });
+    await page.goto('/spaces');
+    await expect(page.locator('#main-content')).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+
+    expect(results.violations).toEqual([]);
+  });
 });

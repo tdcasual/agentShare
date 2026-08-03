@@ -11,7 +11,7 @@ Key disciplines:
 Local development:
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/pip install -e 'apps/api[dev]'
 .venv/bin/uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
 ```
