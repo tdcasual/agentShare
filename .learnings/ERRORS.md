@@ -1,5 +1,30 @@
 # Error Log
 
+## [ERR-20260803-008] production-performance-transport-variance
+
+**Logged**: 2026-08-03T15:55:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: tests
+
+### Summary
+The production performance probe applied a local navigation TTFB budget to public requests, conflating application latency with variable DNS/TCP/TLS setup.
+
+### Error
+
+```text
+Expected navigation.responseStart < 800ms; observed 836-1939ms while TLS alone varied 542-1801ms.
+```
+
+### Resolution
+Local probes retain strict end-to-end budgets. Public probes now keep broad end-to-end ceilings and separately enforce server TTFB plus post-response FCP/LCP budgets.
+
+### Metadata
+- Reproducible: yes
+- Related Files: `apps/control-plane-v3/test/performance/web-vitals.spec.ts`
+
+---
+
 ## [ERR-20260803-007] sandbox-git-index-read-only
 
 **Logged**: 2026-08-03T15:40:00Z
@@ -134,6 +159,7 @@ The Coolify wrapper's unified status query failed while serializing a large appl
 
 ### Context
 - Command: `coolify.sh status --query tr01vb13cz2sj4wrm4y009cr`
+- Also reproduced in `deployments find` and after `deploy --wait` had submitted the deployment.
 - Coolify 4.1.2 was healthy and exact resource resolution succeeded immediately beforehand.
 - The failure was local to the wrapper; it did not mutate the application or deployment.
 
@@ -141,7 +167,8 @@ The Coolify wrapper's unified status query failed while serializing a large appl
 Stream large API responses into jq instead of passing them through an environment variable or command argument. Until then, use narrow resource, deployment, domain, and HTTP queries.
 
 ### Metadata
-- Reproducible: unknown
+- Reproducible: yes
+- Recurrence-Count: 3
 - Related Files: `/home/tdcasual/.agents/skills/coolify/scripts/coolify.sh`
 - See Also: ERR-20260728-001
 

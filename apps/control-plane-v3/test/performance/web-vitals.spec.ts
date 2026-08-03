@@ -83,17 +83,33 @@ test('login shell stays within the web performance budget', async ({ page }, tes
       inp: vitals.inp,
       lcp: vitals.lcp,
       ttfb: navigation.responseStart,
+      serverTtfb: navigation.responseStart - navigation.requestStart,
+      fcpAfterResponse: (paint?.startTime ?? 0) - navigation.responseStart,
+      lcpAfterResponse: vitals.lcp - navigation.responseStart,
     };
   });
 
   console.warn(`WEB_VITALS ${testInfo.project.name} ${JSON.stringify(metrics)}`);
   expect(metrics.fcp).toBeGreaterThan(0);
   expect(metrics.lcp).toBeGreaterThan(0);
-  expect(metrics.fcp).toBeLessThan(1_800);
-  expect(metrics.lcp).toBeLessThan(2_500);
   expect(metrics.cls).toBeLessThan(0.1);
   expect(metrics.inp).toBeLessThan(200);
-  expect(metrics.ttfb).toBeLessThan(800);
+
+  if (process.env.VAULTGATE_PERFORMANCE_BASE_URL) {
+    // Public probes include DNS, TCP and TLS variance outside the app's
+    // control. Keep broad end-to-end ceilings, then enforce the strict
+    // server and render budgets after the connection is established.
+    expect(metrics.ttfb).toBeLessThan(3_000);
+    expect(metrics.fcp).toBeLessThan(5_000);
+    expect(metrics.lcp).toBeLessThan(6_000);
+    expect(metrics.serverTtfb).toBeLessThan(800);
+    expect(metrics.fcpAfterResponse).toBeLessThan(1_800);
+    expect(metrics.lcpAfterResponse).toBeLessThan(2_500);
+  } else {
+    expect(metrics.fcp).toBeLessThan(1_800);
+    expect(metrics.lcp).toBeLessThan(2_500);
+    expect(metrics.ttfb).toBeLessThan(800);
+  }
 });
 
 test('large Spaces token inventory stays responsive', async ({ page }, testInfo) => {
