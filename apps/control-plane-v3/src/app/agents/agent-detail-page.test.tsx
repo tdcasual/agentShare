@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Agent, AgentToken } from '@/lib/vaultgate-api';
 import AgentDetailPage from './[agentId]/page';
@@ -244,9 +244,9 @@ describe('AgentDetailPage', () => {
     });
     expect(await screen.findByText('agents.discardGrantsTitle')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'agents.discardGrants' }));
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    expect(window.location.pathname).toBe('/previous');
+    // history.go(-2) settles across multiple popstate ticks; poll for the
+    // final location instead of a single-tick wait, which flakes under
+    // parallel test load.
+    await waitFor(() => expect(window.location.pathname).toBe('/previous'));
   });
 });
