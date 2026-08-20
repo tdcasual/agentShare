@@ -11,6 +11,11 @@ export default defineConfig({
   fullyParallel: true,
   workers: 2,
   reporter: [['list']],
+  expect: {
+    // Pixel-level threshold 0.2 absorbs anti-aliasing noise; the ratio cap
+    // still fails any real layout change. Tune together with the baselines.
+    toHaveScreenshot: { maxDiffPixelRatio: 0.01, threshold: 0.2 },
+  },
   use: {
     baseURL: externalBaseUrl ?? 'http://127.0.0.1:3100',
     trace: 'retain-on-failure',

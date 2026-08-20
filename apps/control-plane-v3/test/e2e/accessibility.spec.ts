@@ -1,21 +1,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { mockSession } from './fixtures';
-
-const routes = [
-  '/',
-  '/agents',
-  '/secrets',
-  '/spaces',
-  '/audit',
-  '/settings/security',
-  '/settings/management-tokens',
-] as const;
+import { appRoutes, mockSession } from './fixtures';
 
 test.describe('WCAG A and AA', () => {
   test.beforeEach(async ({ page }) => mockSession(page));
 
-  for (const route of routes) {
+  for (const route of appRoutes) {
     test(`${route} has no automated A/AA violations`, async ({ page }) => {
       await page.goto(route);
       await expect(page.locator('#main-content')).toBeVisible();

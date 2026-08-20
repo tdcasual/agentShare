@@ -1,4 +1,25 @@
-import { type Page, type Route } from '@playwright/test';
+import { expect, type Page, type Route } from '@playwright/test';
+
+// Shared route registry: accessibility.spec.ts and visual.spec.ts both walk
+// this list, so a new page gets a11y + visual coverage by editing one place.
+export const appRoutes = [
+  '/',
+  '/agents',
+  '/secrets',
+  '/spaces',
+  '/audit',
+  '/settings/security',
+  '/settings/management-tokens',
+] as const;
+
+// Mobile/layout regression guard: every new or reworked page's e2e spec must
+// include at least one viewport-sensitive assertion such as this one.
+export async function assertNoHorizontalOverflow(page: Page) {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow, 'page must not overflow horizontally').toBeLessThanOrEqual(0);
+}
 
 export const sessionSummary = { id: 'admin', email: 'admin@example.com', auth_type: 'session' };
 export const vaultgateSecret = {
