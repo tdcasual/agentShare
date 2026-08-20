@@ -25,7 +25,7 @@ VaultGate 是自托管的凭据网关：单管理员 + N 个 agent。管理员�
 | 路径 | 内容 |
 |---|---|
 | `apps/api/app/modules/{admin_auth,agents,audit,access,secrets,spaces,tokens,vault}` | 后端业务模块（路由 + 服务） |
-| `apps/api/app/orm.py`、`apps/api/app/api_schemas.py` | ORM 模型 / API 响应模型 |
+| `apps/api/app/orm/`、`apps/api/app/api_schemas.py` | ORM 模型包 / API 响应模型 |
 | `apps/api/alembic/` | 数据库迁移 |
 | `apps/api/tests/`、`tests/ops/` | 后端功能测试 / 部署契约测试 |
 | `apps/control-plane-v3/src/app/` | 页面路由（agents, audit, login, secrets, settings, spaces, docs, setup…） |
@@ -121,11 +121,11 @@ cd apps/control-plane-v3 && npm ci
 
 `docs/decisions/` 记录"看似可疑但实为设计"的决策。遇到与直觉相悖的行为，先查 ADR 再动手"修复"：
 
-- ADR-001 Secret 名称全局唯一（含存在性旁路权衡）
-- ADR-002 改密不连带吊销管理/agent 令牌（应急补位：一键吊销端点）
-- ADR-003 Coolify 部署保留宽 `TRUSTED_PROXY_CIDRS` 默认值（收窄用 `scripts/ops/inspect-trusted-proxies.sh`）
-- ADR-004 控制面 UI 为过渡版，重建在 `ui/shadcn-rebuild` 分支
-- ADR-005 截图基线策略（矩阵、CI 生成、重建后统一重录）
+- [ADR-001](docs/decisions/ADR-001-secret-name-global-uniqueness.md) Secret 名称全局唯一（含存在性旁路权衡）
+- [ADR-002](docs/decisions/ADR-002-password-change-does-not-revoke-tokens.md) 改密不连带吊销管理/agent 令牌（应急补位：一键吊销端点）
+- [ADR-003](docs/decisions/ADR-003-coolify-trusted-proxy-cidrs.md) Coolify 部署保留宽 `TRUSTED_PROXY_CIDRS` 默认值（收窄用 `scripts/ops/inspect-trusted-proxies.sh`）
+- [ADR-004](docs/decisions/ADR-004-control-plane-ui-stopgap.md) 控制面 UI 为过渡版，重建在 `ui/shadcn-rebuild` 分支
+- [ADR-005](docs/decisions/ADR-005-visual-baseline-strategy.md) 截图基线策略（矩阵、CI 生成、重建后统一重录）
 
 ## 8. 当前状态
 
