@@ -9,6 +9,7 @@ def serialize_secret(secret: Secret) -> dict:
         "name": secret.name,
         "type": secret.type,
         "url": secret.url,
+        "documentation_url": secret.documentation_url,
         "username": secret.username,
         "description": secret.description,
         "tags": secret.tags,

@@ -27,6 +27,7 @@ export const vaultgateSecret = {
   name: 'Database credentials',
   type: 'password',
   url: 'https://db.example.com',
+  documentation_url: null,
   username: null,
   description: null,
   tags: ['production'],
@@ -87,6 +88,7 @@ export async function mockSession(page: Page) {
       '/api/admin/agents': { items: [vaultgateAgent], total: 1 },
       '/api/admin/agents/agent-1': vaultgateAgent,
       '/api/admin/agents/agent-1/tokens': { items: [vaultgateToken], total: 1 },
+      '/api/admin/agent-join-requests': [],
       '/api/admin/tokens': {
         items: [{ ...vaultgateToken, agent_name: vaultgateAgent.name }],
         total: 1,

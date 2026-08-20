@@ -127,6 +127,7 @@ export interface SecretCreateInput {
   type: SecretType;
   value: string;
   url?: string;
+  documentation_url?: string;
   username?: string;
   description?: string;
   tags?: string[];
@@ -138,6 +139,7 @@ export interface SecretUpdateInput {
   type?: SecretType;
   value?: string;
   url?: string | null;
+  documentation_url?: string | null;
   username?: string | null;
   description?: string | null;
   tags?: string[];
@@ -153,6 +155,28 @@ export type IssuedManagementToken = ApiSchemas['ManagementTokenIssued'];
 export type AuditLog = ApiSchemas['AuditLogResponse'];
 export type VaultSpace = ApiSchemas['VaultSpaceResponse'];
 export type SpaceMembership = ApiSchemas['SpaceMembershipResponse'];
+
+export interface AgentInvite {
+  id: string;
+  label: string;
+  code?: string;
+  default_space_id: string | null;
+  default_role: 'reader' | 'contributor' | 'maintainer';
+  status: 'active' | 'consumed' | 'revoked' | 'expired';
+  expires_at: string;
+  created_at: string;
+}
+export interface AgentJoinRequest {
+  id: string;
+  invite_id: string;
+  proposed_name: string;
+  description: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'expired';
+  agent_id: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
 
 export interface PageQuery {
   limit?: number;
@@ -300,6 +324,36 @@ export const replaceTokenGrants = (tokenId: string, secretIds: string[]) =>
   requestJson<{ secret_ids: string[] }>(`/api/admin/tokens/${tokenId}/grants`, {
     method: 'PUT',
     body: JSON.stringify({ secret_ids: secretIds }),
+  });
+
+export const createAgentInvite = (input: {
+  label: string;
+  space_id?: string;
+  role: 'reader' | 'contributor' | 'maintainer';
+  ttl_seconds?: number;
+}) =>
+  requestJson<AgentInvite & { code: string }>('/api/admin/agent-invites', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    headers: { 'Idempotency-Key': crypto.randomUUID(), 'cache-control': 'no-store' },
+  });
+export const listAgentInvites = () => requestJson<AgentInvite[]>('/api/admin/agent-invites');
+export const revokeAgentInvite = (id: string) =>
+  requestJson<void>(`/api/admin/agent-invites/${id}/revoke`, { method: 'POST' });
+export const listAgentJoinRequests = () =>
+  requestJson<AgentJoinRequest[]>('/api/admin/agent-join-requests');
+export const approveAgentJoinRequest = (
+  id: string,
+  input: { token_name?: string; space_id?: string; role?: 'reader' | 'contributor' | 'maintainer' }
+) =>
+  requestJson<AgentJoinRequest>(`/api/admin/agent-join-requests/${id}/approve`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+export const rejectAgentJoinRequest = (id: string, reason?: string) =>
+  requestJson<AgentJoinRequest>(`/api/admin/agent-join-requests/${id}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
   });
 
 export type AuditQuery = PageQuery & {

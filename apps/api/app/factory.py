@@ -29,7 +29,9 @@ request_logger = logging.getLogger("app.request")
 startup_logger = logging.getLogger("app.startup")
 AppConfigurer = Callable[[FastAPI, Settings], None]
 RouteRegistrar = Callable[[FastAPI], None]
-SENSITIVE_VALIDATION_FIELDS = frozenset({"password", "secret", "token"})
+SENSITIVE_VALIDATION_FIELDS = frozenset(
+    {"password", "secret", "token", "invite_code", "request_secret", "credential"}
+)
 
 
 class RequestBodyTooLarge(Exception):
@@ -396,6 +398,8 @@ def create_app(
             {"name": "Admin Tokens", "description": "Agent Token 与逐 Secret 授权。"},
             {"name": "Admin Spaces", "description": "共享空间与 Token 成员角色。"},
             {"name": "Admin Audit", "description": "结构化审计查询与统计。"},
+            {"name": "Admin Agent Onboarding", "description": "管理员邀请与审批 Agent。"},
+            {"name": "Agent Onboarding", "description": "Agent 加入申请与一次性凭据领取。"},
             {"name": "Vault", "description": "仅供 vg_ Agent Token 使用的运行时 API。"},
         ],
         lifespan=lifespan,

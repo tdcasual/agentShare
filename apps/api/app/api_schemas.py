@@ -58,6 +58,7 @@ class SecretResponse(BaseModel):
     name: str
     type: SecretType
     url: str | None
+    documentation_url: str | None
     username: str | None
     description: str | None
     tags: list[str]

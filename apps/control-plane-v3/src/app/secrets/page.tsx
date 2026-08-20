@@ -269,9 +269,19 @@ function SecretRow({
             </span>
           ))}
         </div>
-        {(secret.url || secret.username || secret.description) && (
+        {(secret.url || secret.documentation_url || secret.username || secret.description) && (
           <p className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
             {secret.url && <span className="max-w-[32ch] truncate">{secret.url}</span>}
+            {secret.documentation_url && (
+              <a
+                href={secret.documentation_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="max-w-[32ch] truncate underline underline-offset-2"
+              >
+                {t('secrets.documentationLink')}
+              </a>
+            )}
             {secret.username && <span className="max-w-[24ch] truncate">{secret.username}</span>}
             {secret.description && (
               <span className="min-w-0 flex-1 truncate">{secret.description}</span>

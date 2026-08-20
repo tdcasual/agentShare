@@ -24,8 +24,10 @@ Important groups:
 | First-time setup | `/api/admin/bootstrap/*` |
 | Administrator Session | `/api/admin/session/*` |
 | Management Tokens | `/api/admin/management-tokens` |
+| Emergency credential revocation | `/api/admin/security/revoke-all-tokens` |
 | Secrets | `/api/admin/secrets` |
 | Agents | `/api/admin/agents` |
+| Agent onboarding | `/api/admin/agent-invites`, `/api/admin/agent-join-requests`, `/api/onboarding/v1/requests` |
 | Agent Tokens and grants | `/api/admin/agents/{id}/tokens`, `/api/admin/tokens/*` |
 | Shared Spaces | `/api/admin/spaces`, `/api/admin/spaces/{id}/memberships` |
 | Audit | `/api/admin/audit-logs`, `/api/admin/audit-stats` |
@@ -121,3 +123,4 @@ See:
 - `docs/guides/monitoring.md`
 - `docs/guides/troubleshooting.md`
 - `docs/guides/agent-quickstart.md`
+- `docs/guides/agent-onboarding-protocol.md`

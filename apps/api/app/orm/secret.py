@@ -84,6 +84,7 @@ class Secret(Base):
     type: so.Mapped[str] = so.mapped_column(sa.String(50), nullable=False)
     name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
     url: so.Mapped[str | None] = so.mapped_column(sa.Text, nullable=True)
+    documentation_url: so.Mapped[str | None] = so.mapped_column(sa.Text, nullable=True)
     username: so.Mapped[str | None] = so.mapped_column(sa.String(255), nullable=True)
     description: so.Mapped[str | None] = so.mapped_column(sa.Text, nullable=True)
     value_encrypted: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)

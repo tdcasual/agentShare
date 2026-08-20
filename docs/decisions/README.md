@@ -15,3 +15,4 @@
 | [ADR-003](./ADR-003-coolify-trusted-proxy-cidrs.md) | Coolify 保留宽 TRUSTED_PROXY_CIDRS 默认值 | 已采纳 |
 | [ADR-004](./ADR-004-control-plane-ui-stopgap.md) | 控制面 UI 为过渡版，重建中 | 已采纳 |
 | [ADR-005](./ADR-005-visual-baseline-strategy.md) | 截图基线策略 | 已采纳 |
+| [ADR-006](./ADR-006-agent-onboarding-credentials.md) | Agent onboarding 凭据与 Space 范围 | 已采纳 |

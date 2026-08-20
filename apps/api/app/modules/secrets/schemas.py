@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from typing import Annotated, Any, Self
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -31,11 +32,21 @@ def _validate_metadata(value: dict[str, Any]) -> dict[str, Any]:
     return value
 
 
+def _validate_documentation_url(value: str | None) -> str | None:
+    if value is None:
+        return None
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("documentation_url must be an http(s) URL")
+    return value
+
+
 class SecretCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     type: SecretType
     value: str = Field(min_length=1, max_length=1_000_000)
     url: str | None = Field(default=None, max_length=2048)
+    documentation_url: str | None = Field(default=None, max_length=2048)
     username: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None, max_length=5000)
     tags: list[SecretTag] = Field(default_factory=list, max_length=100)
@@ -55,12 +66,18 @@ class SecretCreate(BaseModel):
     def validate_metadata(cls, value: dict[str, Any]) -> dict[str, Any]:
         return _validate_metadata(value)
 
+    @field_validator("documentation_url")
+    @classmethod
+    def validate_documentation_url(cls, value: str | None) -> str | None:
+        return _validate_documentation_url(value)
+
 
 class SecretUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     type: SecretType | None = None
     value: str | None = Field(default=None, min_length=1, max_length=1_000_000)
     url: str | None = Field(default=None, max_length=2048)
+    documentation_url: str | None = Field(default=None, max_length=2048)
     username: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None, max_length=5000)
     tags: list[SecretTag] | None = Field(default=None, max_length=100)
@@ -78,6 +95,11 @@ class SecretUpdate(BaseModel):
     @classmethod
     def validate_optional_metadata(cls, value: dict[str, Any] | None) -> dict[str, Any] | None:
         return _validate_metadata(value) if value is not None else value
+
+    @field_validator("documentation_url")
+    @classmethod
+    def validate_documentation_url(cls, value: str | None) -> str | None:
+        return _validate_documentation_url(value)
 
     @model_validator(mode="after")
     def reject_null_required_fields(self) -> Self:

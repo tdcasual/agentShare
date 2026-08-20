@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { fulfillJson } from './fixtures';
+import { assertNoHorizontalOverflow, fulfillJson } from './fixtures';
 
 const email = 'admin@example.com';
 const currentPassword = 'Curr3nt!Password2026';
@@ -109,5 +109,41 @@ test.describe('Security settings', () => {
     );
     await settingsNavigation.getByRole('link', { name: '管理 Token' }).click();
     await expect(page).toHaveURL(/\/settings\/management-tokens$/);
+  });
+
+  test('revokes all credentials only after explicit confirmation', async ({ page }) => {
+    let revokeRequests = 0;
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.route('**/api/admin/**', async (route) => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      if (path === '/api/admin/bootstrap/status') {
+        await fulfillJson(route, 200, { setup_required: false });
+      } else if (path === '/api/admin/session' && request.method() === 'GET') {
+        await fulfillJson(route, 200, { id: 'admin', email, auth_type: 'session' });
+      } else if (path === '/api/admin/security/revoke-all-tokens' && request.method() === 'POST') {
+        revokeRequests += 1;
+        await fulfillJson(route, 200, {
+          management_tokens_revoked: 2,
+          agent_tokens_revoked: 3,
+        });
+      } else if (path === '/api/admin/audit-stats') {
+        await fulfillJson(route, 200, { total: 0, granted: 0, denied: 0, value_reads: 0 });
+      } else {
+        await fulfillJson(route, 200, { items: [], total: 0 });
+      }
+    });
+
+    await page.goto('/settings/security');
+    await expect(page.getByRole('heading', { name: '安全' })).toBeVisible();
+    await page.getByRole('button', { name: '吊销全部凭据' }).click();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    expect(revokeRequests).toBe(0);
+
+    await page.getByRole('alertdialog').getByRole('button', { name: '吊销全部凭据' }).click();
+    await expect(page.getByText('已吊销 2 个管理 Token 和 3 个 Agent Token。')).toBeVisible();
+    expect(revokeRequests).toBe(1);
+    await assertNoHorizontalOverflow(page);
   });
 });

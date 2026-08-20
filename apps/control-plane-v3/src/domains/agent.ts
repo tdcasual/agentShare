@@ -13,6 +13,11 @@ import {
   revokeAgentToken,
   rotateAgentToken,
   updateAgent,
+  createAgentInvite as apiCreateAgentInvite,
+  listAgentJoinRequests,
+  approveAgentJoinRequest,
+  rejectAgentJoinRequest,
+  type AgentJoinRequest,
   type Agent,
   type PageQuery,
 } from '@/lib/vaultgate-api';
@@ -57,6 +62,35 @@ export async function createAgent(input: { name: string; description?: string })
   const agent = await apiCreateAgent(input);
   await mutate((key) => typeof key === 'string' && key.startsWith(AGENTS_KEY));
   return agent;
+}
+
+export function useAgentJoinRequests() {
+  const state = useSWR('/api/admin/agent-join-requests', listAgentJoinRequests);
+  return { requests: state.data ?? [], ...state, refresh: state.mutate };
+}
+
+export async function createAgentInvite(input: {
+  label: string;
+  space_id?: string;
+  role: 'reader' | 'contributor' | 'maintainer';
+}) {
+  return apiCreateAgentInvite(input);
+}
+
+export async function approveJoinRequest(
+  request: AgentJoinRequest,
+  input: { token_name?: string; space_id?: string; role?: 'reader' | 'contributor' | 'maintainer' }
+) {
+  const result = await approveAgentJoinRequest(request.id, input);
+  await mutate('/api/admin/agents');
+  await mutate('/api/admin/agent-join-requests');
+  return result;
+}
+
+export async function rejectJoinRequest(request: AgentJoinRequest, reason?: string) {
+  const result = await rejectAgentJoinRequest(request.id, reason);
+  await mutate('/api/admin/agent-join-requests');
+  return result;
 }
 
 export async function setAgentStatus(id: string, status: 'active' | 'disabled') {

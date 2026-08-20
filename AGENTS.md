@@ -17,6 +17,7 @@ VaultGate 是自托管的凭据网关：单管理员 + N 个 agent。管理员�
 | `vgs_` | 管理员会话 | 浏览器 Cookie，部分敏感端点仅限会话（如改密、一键吊销） |
 | `vgm_` | 管理令牌 | `/api/admin/*` 的 API 管理操作 |
 | `vg_` | agent 令牌 | 仅 `/api/vault/*` |
+| `vgi_` | onboarding 凭据 | 仅 `/api/onboarding/v1/*`，短期且一次性 |
 
 跨边界凭据一律拒绝；无授权的凭据默认读不到任何 Secret。
 
@@ -126,6 +127,7 @@ cd apps/control-plane-v3 && npm ci
 - [ADR-003](docs/decisions/ADR-003-coolify-trusted-proxy-cidrs.md) Coolify 部署保留宽 `TRUSTED_PROXY_CIDRS` 默认值（收窄用 `scripts/ops/inspect-trusted-proxies.sh`）
 - [ADR-004](docs/decisions/ADR-004-control-plane-ui-stopgap.md) 控制面 UI 为过渡版，重建在 `ui/shadcn-rebuild` 分支
 - [ADR-005](docs/decisions/ADR-005-visual-baseline-strategy.md) 截图基线策略（矩阵、CI 生成、重建后统一重录）
+- [ADR-006](docs/decisions/ADR-006-agent-onboarding-credentials.md) Agent onboarding 凭据与 Space 范围
 
 ## 8. 当前状态
 

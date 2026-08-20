@@ -17,6 +17,7 @@ const secret: Secret = {
   name: 'Production database',
   type: 'password',
   url: null,
+  documentation_url: null,
   username: 'deploy',
   description: 'Primary database account',
   tags: ['production'],

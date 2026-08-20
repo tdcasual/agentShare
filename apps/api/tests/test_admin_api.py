@@ -276,7 +276,13 @@ def test_secret_agent_tokens_and_independent_grants(client: TestClient) -> None:
     for name, value in (("github", "gh-secret"), ("database", "db-secret")):
         response = client.post(
             "/api/admin/secrets",
-            json={"name": name, "type": "api_key", "value": value, "tags": ["prod"]},
+            json={
+                "name": name,
+                "type": "api_key",
+                "value": value,
+                "tags": ["prod"],
+                "documentation_url": "https://docs.example.com/github" if name == "github" else None,
+            },
         )
         assert response.status_code == 201
         assert "value" not in response.json()
@@ -291,6 +297,9 @@ def test_secret_agent_tokens_and_independent_grants(client: TestClient) -> None:
     assert filtered.status_code == 200
     assert filtered.json()["total"] == 1
     assert filtered.json()["items"][0]["name"] == "github"
+    docs_filtered = client.get("/api/admin/secrets?search=docs.example.com")
+    assert docs_filtered.status_code == 200
+    assert docs_filtered.json()["items"][0]["documentation_url"] == "https://docs.example.com/github"
 
     revealed = client.get(
         f"/api/admin/secrets/{secret_ids[0]}/value",
@@ -384,6 +393,16 @@ def test_admin_mutations_reject_invalid_types_and_null_required_fields(
         json={"name": "invalid", "type": "not-a-secret-type", "value": "secret"},
     )
     assert invalid_secret.status_code == 422
+    invalid_documentation_url = client.post(
+        "/api/admin/secrets",
+        json={
+            "name": "invalid-doc-url",
+            "type": "api_key",
+            "value": "secret",
+            "documentation_url": "javascript:alert(1)",
+        },
+    )
+    assert invalid_documentation_url.status_code == 422
     assert (
         client.post(
             "/api/admin/secrets",

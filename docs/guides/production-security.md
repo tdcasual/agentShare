@@ -6,7 +6,7 @@
 - API, web, and PostgreSQL remain private services.
 - Browser Sessions are random opaque credentials stored as SHA-256 hashes in the database.
 - Logout and expiry are enforced server-side.
-- `vgm_` management Tokens and `vg_` Agent Tokens are distinct credentials and API boundaries.
+- `vgm_` management Tokens, `vg_` Agent Tokens, and short-lived `vgi_` onboarding credentials are distinct credentials and API boundaries. `vgi_` is accepted only by `/api/onboarding/v1/*`.
 
 ## Required configuration
 
@@ -29,6 +29,7 @@ are mutually exclusive, and key recovery can be verified without exposing key ma
 - `HttpOnly`, `Secure`, `SameSite=Lax` Session cookies.
 - Origin/Referer validation for browser writes.
 - Login limiting keyed by client IP and administrator email; forwarded addresses are trusted only from configured proxies.
+- Agent onboarding submissions are limited to 20 attempts per client IP in five minutes using persisted audit events.
 - Token and Session plaintext is returned only once and never persisted.
 - Secret value responses use `Cache-Control: no-store`.
 - Structured audit snapshots remain understandable after resources are removed.

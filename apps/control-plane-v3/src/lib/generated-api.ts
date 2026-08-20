@@ -4,6 +4,109 @@
  */
 
 export interface paths {
+  '/api/admin/agent-invites': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Invites */
+    get: operations['list_invites_api_admin_agent_invites_get'];
+    put?: never;
+    /** Create Invite */
+    post: operations['create_invite_api_admin_agent_invites_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/admin/agent-invites/{invite_id}/revoke': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Revoke Invite */
+    post: operations['revoke_invite_api_admin_agent_invites__invite_id__revoke_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/admin/agent-join-requests': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Join Requests */
+    get: operations['list_join_requests_api_admin_agent_join_requests_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/admin/agent-join-requests/{request_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Join Request */
+    get: operations['get_join_request_api_admin_agent_join_requests__request_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/admin/agent-join-requests/{request_id}/approve': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Approve Join Request */
+    post: operations['approve_join_request_api_admin_agent_join_requests__request_id__approve_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/admin/agent-join-requests/{request_id}/reject': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reject Join Request */
+    post: operations['reject_join_request_api_admin_agent_join_requests__request_id__reject_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/admin/agents': {
     parameters: {
       query?: never;
@@ -465,6 +568,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/onboarding/v1/requests': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Submit Join Request */
+    post: operations['submit_join_request_api_onboarding_v1_requests_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/onboarding/v1/requests/{request_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Join Status */
+    get: operations['get_join_status_api_onboarding_v1_requests__request_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/onboarding/v1/requests/{request_id}/credential': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Claim Credential */
+    post: operations['claim_credential_api_onboarding_v1_requests__request_id__credential_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/vault/me': {
     parameters: {
       query?: never;
@@ -632,6 +786,113 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AdminInviteCreate */
+    AdminInviteCreate: {
+      /** Label */
+      label: string;
+      /**
+       * Role
+       * @default reader
+       * @enum {string}
+       */
+      role: 'reader' | 'contributor' | 'maintainer';
+      /** Space Id */
+      space_id?: string | null;
+      /**
+       * Ttl Seconds
+       * @default 86400
+       */
+      ttl_seconds: number;
+    };
+    /** AdminInviteResponse */
+    AdminInviteResponse: {
+      /** Code */
+      code: string;
+      /** Created At */
+      created_at: string;
+      /**
+       * Default Role
+       * @enum {string}
+       */
+      default_role: 'reader' | 'contributor' | 'maintainer';
+      /** Default Space Id */
+      default_space_id: string | null;
+      /** Expires At */
+      expires_at: string;
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'active' | 'consumed' | 'revoked' | 'expired';
+    };
+    /** AdminInviteSummary */
+    AdminInviteSummary: {
+      /** Created At */
+      created_at: string;
+      /**
+       * Default Role
+       * @enum {string}
+       */
+      default_role: 'reader' | 'contributor' | 'maintainer';
+      /** Default Space Id */
+      default_space_id: string | null;
+      /** Expires At */
+      expires_at: string;
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'active' | 'consumed' | 'revoked' | 'expired';
+    };
+    /** AdminJoinRequestApprove */
+    AdminJoinRequestApprove: {
+      /** Role */
+      role?: ('reader' | 'contributor' | 'maintainer') | null;
+      /** Space Id */
+      space_id?: string | null;
+      /**
+       * Token Name
+       * @default initial
+       */
+      token_name: string;
+    };
+    /** AdminJoinRequestReject */
+    AdminJoinRequestReject: {
+      /** Reason */
+      reason?: string | null;
+    };
+    /** AdminJoinRequestSummary */
+    AdminJoinRequestSummary: {
+      /** Agent Id */
+      agent_id: string | null;
+      /** Created At */
+      created_at: string;
+      /** Description */
+      description: string | null;
+      /** Id */
+      id: string;
+      /** Invite Id */
+      invite_id: string;
+      /** Proposed Name */
+      proposed_name: string;
+      /** Rejection Reason */
+      rejection_reason: string | null;
+      /** Reviewed At */
+      reviewed_at: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'pending' | 'approved' | 'rejected' | 'expired';
+    };
     /** AdminSessionResponse */
     AdminSessionResponse: {
       /**
@@ -657,6 +918,53 @@ export interface components {
       description?: string | null;
       /** Name */
       name: string;
+    };
+    /** AgentCredentialResponse */
+    AgentCredentialResponse: {
+      /** Agent Id */
+      agent_id: string;
+      /**
+       * Status
+       * @constant
+       */
+      status: 'approved';
+      /** Token */
+      token: string;
+    };
+    /** AgentJoinRequestCreate */
+    AgentJoinRequestCreate: {
+      /** Agent Name */
+      agent_name: string;
+      /** Description */
+      description?: string | null;
+      /** Invite Code */
+      invite_code: string;
+    };
+    /** AgentJoinRequestResponse */
+    AgentJoinRequestResponse: {
+      /** Expires At */
+      expires_at: string;
+      /** Request Id */
+      request_id: string;
+      /** Request Secret */
+      request_secret: string;
+      /**
+       * Status
+       * @constant
+       */
+      status: 'pending';
+    };
+    /** AgentJoinStatusResponse */
+    AgentJoinStatusResponse: {
+      /** Agent Id */
+      agent_id?: string | null;
+      /** Reason */
+      reason?: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'pending' | 'approved' | 'rejected' | 'expired';
     };
     /** AgentPageResponse */
     AgentPageResponse: {
@@ -694,6 +1002,8 @@ export interface components {
     AgentSecretCreate: {
       /** Description */
       description?: string | null;
+      /** Documentation Url */
+      documentation_url?: string | null;
       /** Metadata */
       metadata?: {
         [key: string]: unknown;
@@ -716,6 +1026,8 @@ export interface components {
     AgentSecretUpdate: {
       /** Description */
       description?: string | null;
+      /** Documentation Url */
+      documentation_url?: string | null;
       /** Metadata */
       metadata?: {
         [key: string]: unknown;
@@ -1048,6 +1360,8 @@ export interface components {
     SecretCreate: {
       /** Description */
       description?: string | null;
+      /** Documentation Url */
+      documentation_url?: string | null;
       /** Metadata */
       metadata?: {
         [key: string]: unknown;
@@ -1085,6 +1399,8 @@ export interface components {
       created_by_agent_id: string | null;
       /** Description */
       description: string | null;
+      /** Documentation Url */
+      documentation_url: string | null;
       /** Id */
       id: string;
       /** Metadata */
@@ -1127,6 +1443,8 @@ export interface components {
     SecretUpdate: {
       /** Description */
       description?: string | null;
+      /** Documentation Url */
+      documentation_url?: string | null;
       /** Metadata */
       metadata?: {
         [key: string]: unknown;
@@ -1257,6 +1575,8 @@ export interface components {
       created_by_agent_id: string | null;
       /** Description */
       description: string | null;
+      /** Documentation Url */
+      documentation_url: string | null;
       /** Id */
       id: string;
       /** Metadata */
@@ -1318,6 +1638,209 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  list_invites_api_admin_agent_invites_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminInviteSummary'][];
+        };
+      };
+    };
+  };
+  create_invite_api_admin_agent_invites_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AdminInviteCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminInviteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  revoke_invite_api_admin_agent_invites__invite_id__revoke_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        invite_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_join_requests_api_admin_agent_join_requests_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminJoinRequestSummary'][];
+        };
+      };
+    };
+  };
+  get_join_request_api_admin_agent_join_requests__request_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        request_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminJoinRequestSummary'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  approve_join_request_api_admin_agent_join_requests__request_id__approve_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        request_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AdminJoinRequestApprove'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminJoinRequestSummary'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reject_join_request_api_admin_agent_join_requests__request_id__reject_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        request_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AdminJoinRequestReject'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminJoinRequestSummary'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_agents_api_admin_agents_get: {
     parameters: {
       query?: {
@@ -2455,6 +2978,101 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['IssuedAgentTokenResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  submit_join_request_api_onboarding_v1_requests_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AgentJoinRequestCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentJoinRequestResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_join_status_api_onboarding_v1_requests__request_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        request_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentJoinStatusResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  claim_credential_api_onboarding_v1_requests__request_id__credential_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        request_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AgentCredentialResponse'];
         };
       };
       /** @description Validation Error */

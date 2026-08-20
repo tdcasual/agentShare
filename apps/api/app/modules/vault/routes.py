@@ -173,6 +173,7 @@ async def create_secret(
         name=body.name,
         type=body.type,
         url=body.url,
+        documentation_url=body.documentation_url,
         username=body.username,
         description=body.description,
         value_encrypted=get_encryption_service().encrypt(body.value),

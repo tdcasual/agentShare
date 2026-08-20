@@ -19,6 +19,7 @@ const secret = {
   name: 'Production database',
   type: 'password',
   url: null,
+  documentation_url: null,
   username: null,
   description: null,
   tags: [],

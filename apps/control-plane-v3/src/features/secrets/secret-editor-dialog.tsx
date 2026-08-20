@@ -31,6 +31,7 @@ type SecretForm = {
   type: SecretType;
   value: string;
   url: string;
+  documentationUrl: string;
   username: string;
   description: string;
   tags: string;
@@ -41,6 +42,7 @@ const EMPTY_FORM: SecretForm = {
   type: 'password',
   value: '',
   url: '',
+  documentationUrl: '',
   username: '',
   description: '',
   tags: '',
@@ -55,6 +57,7 @@ function formFromSecret(secret?: Secret): SecretForm {
     type: secret.type,
     value: '',
     url: secret.url ?? '',
+    documentationUrl: secret.documentation_url ?? '',
     username: secret.username ?? '',
     description: secret.description ?? '',
     tags: secret.tags.join(', '),
@@ -98,6 +101,7 @@ export function SecretEditorDialog({
         await updateSecret(secret.id, {
           ...common,
           url: form.url.trim() || null,
+          documentation_url: form.documentationUrl.trim() || null,
           username: form.username.trim() || null,
           description: form.description.trim() || null,
           ...(form.value ? { value: form.value } : {}),
@@ -107,6 +111,7 @@ export function SecretEditorDialog({
           ...common,
           value: form.value,
           url: form.url.trim() || undefined,
+          documentation_url: form.documentationUrl.trim() || undefined,
           username: form.username.trim() || undefined,
           description: form.description.trim() || undefined,
         });
@@ -165,6 +170,21 @@ export function SecretEditorDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="secret-documentation-url">
+              {t('secrets.createForm.documentationUrl')}
+            </Label>
+            <Input
+              id="secret-documentation-url"
+              type="url"
+              value={form.documentationUrl}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, documentationUrl: event.target.value }))
+              }
+              placeholder="https://docs.example.com/"
+            />
           </div>
 
           <div className="space-y-2">

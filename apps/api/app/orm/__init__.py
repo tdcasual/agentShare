@@ -6,6 +6,7 @@ The old Agent Control Plane models have been removed.
 
 from app.orm.admin_session import AdminSession
 from app.orm.agent import Agent, AgentStatus
+from app.orm.agent_invite import AgentInvite, AgentInviteStatus, AgentJoinRequest, AgentJoinRequestStatus
 from app.orm.agent_token import AgentToken, AgentTokenStatus
 from app.orm.audit_log import AuditLog
 from app.orm.base import Base
@@ -24,6 +25,10 @@ __all__ = [
     "ManagementToken",
     "Agent",
     "AgentStatus",
+    "AgentInvite",
+    "AgentInviteStatus",
+    "AgentJoinRequest",
+    "AgentJoinRequestStatus",
     "Secret",
     "VaultSpace",
     "VaultSpaceStatus",

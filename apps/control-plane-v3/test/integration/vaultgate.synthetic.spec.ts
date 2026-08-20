@@ -212,6 +212,122 @@ test('completes the real VaultGate credential lifecycle', async () => {
   expect(revealed.ok()).toBeTruthy();
   expect((await revealed.json()).value).toBe('value-a');
 
+  const documented = await api.post('/api/admin/secrets', {
+    headers: { 'Idempotency-Key': 'synthetic-onboarding-doc' },
+    data: {
+      name: 'Synthetic Onboarding Documentation',
+      type: 'api_key',
+      value: 'documented-value',
+      documentation_url: 'https://docs.example.com/onboarding',
+      space_id: sharedSpaceId,
+    },
+  });
+  expect(documented.status()).toBe(201);
+  const documentedSecretId = (await documented.json()).id as string;
+  const docsSearch = await api.get('/api/admin/secrets?search=docs.example.com');
+  expect(docsSearch.ok()).toBeTruthy();
+  expect((await docsSearch.json()).items).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        id: documentedSecretId,
+        documentation_url: 'https://docs.example.com/onboarding',
+      }),
+    ])
+  );
+
+  const invite = await api.post('/api/admin/agent-invites', {
+    headers: { 'Idempotency-Key': 'synthetic-agent-invite' },
+    data: {
+      label: 'Synthetic onboarding invite',
+      space_id: sharedSpaceId,
+      role: 'reader',
+      ttl_seconds: 3600,
+    },
+  });
+  expect(invite.status()).toBe(201);
+  const inviteCode = (await invite.json()).code as string;
+  expect(inviteCode.startsWith('vgi_')).toBeTruthy();
+
+  const onboardingBoundary = await api.get('/api/admin/agents', {
+    headers: { Authorization: `Bearer ${inviteCode}` },
+  });
+  expect(onboardingBoundary.status()).toBe(401);
+  const join = await api.post('/api/onboarding/v1/requests', {
+    headers: { 'Idempotency-Key': 'synthetic-join-request' },
+    data: { invite_code: inviteCode, agent_name: 'Synthetic Onboarded Agent' },
+  });
+  expect(join.status(), await join.text()).toBe(201);
+  const joinPayload = await join.json();
+  const requestId = joinPayload.request_id as string;
+  const requestSecret = joinPayload.request_secret as string;
+  expect(requestSecret.startsWith('vgi_')).toBeTruthy();
+  const joinReplay = await api.post('/api/onboarding/v1/requests', {
+    headers: { 'Idempotency-Key': 'synthetic-join-request' },
+    data: { invite_code: inviteCode, agent_name: 'Synthetic Onboarded Agent' },
+  });
+  expect(joinReplay.status()).toBe(201);
+  expect(await joinReplay.json()).toEqual(joinPayload);
+
+  const onboardingClient = await playwrightRequest.newContext({
+    baseURL: origin,
+    extraHTTPHeaders: { Authorization: `Bearer ${requestSecret}` },
+  });
+  const pendingStatus = await onboardingClient.get(`/api/onboarding/v1/requests/${requestId}`);
+  expect(await pendingStatus.json()).toMatchObject({ status: 'pending' });
+  const approved = await api.post(`/api/admin/agent-join-requests/${requestId}/approve`, {
+    data: { token_name: 'synthetic-onboarding', role: 'reader' },
+  });
+  expect(approved.status()).toBe(200);
+  const approvedPayload = await approved.json();
+  expect(approvedPayload.status).toBe('approved');
+  const approvedStatus = await onboardingClient.get(`/api/onboarding/v1/requests/${requestId}`);
+  expect(await approvedStatus.json()).toMatchObject({ status: 'approved' });
+  const claim = await onboardingClient.post(`/api/onboarding/v1/requests/${requestId}/credential`, {
+    headers: { 'Idempotency-Key': 'synthetic-credential-claim' },
+  });
+  expect(claim.status()).toBe(200);
+  const claimPayload = await claim.json();
+  expect(claimPayload.token.startsWith('vg_')).toBeTruthy();
+  const claimReplay = await onboardingClient.post(
+    `/api/onboarding/v1/requests/${requestId}/credential`,
+    {
+      headers: { 'Idempotency-Key': 'synthetic-credential-claim' },
+    }
+  );
+  expect(claimReplay.status()).toBe(200);
+  expect(await claimReplay.json()).toEqual(claimPayload);
+  const secondClaim = await onboardingClient.post(
+    `/api/onboarding/v1/requests/${requestId}/credential`,
+    {
+      headers: { 'Idempotency-Key': 'synthetic-credential-claim-2' },
+    }
+  );
+  expect(secondClaim.status()).toBe(409);
+  const onboardedRuntime = await playwrightRequest.newContext({
+    baseURL: origin,
+    extraHTTPHeaders: { Authorization: `Bearer ${claimPayload.token}` },
+  });
+  const onboardedIdentity = await onboardedRuntime.get('/api/vault/me');
+  expect(await onboardedIdentity.json()).toMatchObject({ agent_id: approvedPayload.agent_id });
+  const onboardedSecrets = await onboardedRuntime.get(
+    `/api/vault/secrets?space_id=${sharedSpaceId}`
+  );
+  expect(onboardedSecrets.ok()).toBeTruthy();
+  expect((await onboardedSecrets.json()).items).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        id: documentedSecretId,
+        documentation_url: 'https://docs.example.com/onboarding',
+      }),
+    ])
+  );
+  const onboardingVaultBoundary = await onboardedRuntime.get('/api/vault/me', {
+    headers: { Authorization: `Bearer ${requestSecret}` },
+  });
+  expect(onboardingVaultBoundary.status()).toBe(401);
+  await onboardedRuntime.dispose();
+  await onboardingClient.dispose();
+
   const audit = await api.get('/api/admin/audit-logs?limit=200');
   expect(audit.ok()).toBeTruthy();
   expect(
