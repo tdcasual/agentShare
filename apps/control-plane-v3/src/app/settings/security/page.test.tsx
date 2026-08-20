@@ -15,6 +15,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/vaultgate-api', () => ({
   changePassword: vi.fn(),
+  revokeAllTokens: vi.fn(),
   ApiError: class ApiError extends Error {
     constructor(
       public status: number,
@@ -25,9 +26,10 @@ vi.mock('@/lib/vaultgate-api', () => ({
   },
 }));
 
-import { ApiError, changePassword } from '@/lib/vaultgate-api';
+import { ApiError, changePassword, revokeAllTokens } from '@/lib/vaultgate-api';
 
 const mockedChangePassword = vi.mocked(changePassword);
+const mockedRevokeAllTokens = vi.mocked(revokeAllTokens);
 const currentPassword = 'Curr3nt!Password2026';
 const newPassword = 'N3w!Password#2026';
 
@@ -157,5 +159,37 @@ describe('SecuritySettingsPage', () => {
     expect(input).toHaveAttribute('type', 'password');
     await user.click(screen.getAllByRole('button', { name: 'settings.security.showPassword' })[0]);
     expect(input).toHaveAttribute('type', 'text');
+  });
+
+  async function confirmRevokeAll() {
+    const user = userEvent.setup();
+    render(<SecuritySettingsPage />);
+    await user.click(screen.getByRole('button', { name: 'settings.security.revokeAllAction' }));
+    const buttons = screen.getAllByRole('button', { name: 'settings.security.revokeAllAction' });
+    await user.click(buttons[buttons.length - 1]);
+    return user;
+  }
+
+  it('revokes all credentials only after confirmation', async () => {
+    mockedRevokeAllTokens.mockResolvedValueOnce({
+      management_tokens_revoked: 2,
+      agent_tokens_revoked: 3,
+    });
+    const user = userEvent.setup();
+    render(<SecuritySettingsPage />);
+
+    await user.click(screen.getByRole('button', { name: 'settings.security.revokeAllAction' }));
+    expect(mockedRevokeAllTokens).not.toHaveBeenCalled();
+
+    const buttons = screen.getAllByRole('button', { name: 'settings.security.revokeAllAction' });
+    await user.click(buttons[buttons.length - 1]);
+    await waitFor(() => expect(mockedRevokeAllTokens).toHaveBeenCalledTimes(1));
+  });
+
+  it('shows an alert when emergency revocation fails', async () => {
+    mockedRevokeAllTokens.mockRejectedValueOnce(new ApiError(500, 'boom'));
+    await confirmRevokeAll();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('common.serverError');
   });
 });

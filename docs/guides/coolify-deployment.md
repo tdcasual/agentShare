@@ -54,10 +54,12 @@ Client IP attribution builds on top of that:
   peers on networks that can route to `api` at all: its own deployment network and `internal`
   (and, off Coolify, just `web`). Other same-host deployments cannot reach `api`, so they
   cannot present a spoofed header that would be trusted.
-- To narrow further, find the deployment network subnet with
-  `docker network inspect <resource-uuid-network>` on the host and set `TRUSTED_PROXY_CIDRS`
-  to that subnet. Note that Coolify may recreate networks on redeploy, which can change the
-  subnet — keep the default unless you are prepared to re-check after redeploys.
+- To narrow further, run `scripts/ops/inspect-trusted-proxies.sh` on the host: it prints a
+  ready-to-set `TRUSTED_PROXY_CIDRS=<web IPs>/32,...` covering exactly the IPs `web` holds on
+  networks shared with `api`, and nothing wider. (Manually: `docker network inspect` the shared
+  networks.) Note that Coolify may recreate networks and container IPs on redeploy — re-run the
+  script and update the variable after each redeploy, or keep the default if you prefer zero
+  maintenance.
 
 ## Prerequisites
 
@@ -91,7 +93,7 @@ Client IP attribution builds on top of that:
 | `BOOTSTRAP_TOKEN` | production | One-time credential of at least 32 characters for first-time setup; API startup fails without it. Rotate or destroy it once the administrator is initialized | `openssl rand -hex 32` output |
 | `CORS_ALLOWED_ORIGINS` | yes | Exact browser origin. The CSRF Origin check on session mutations compares against this value, so it must match the public URL exactly | `https://vaultgate.example.com` |
 | `SESSION_SECURE` | production | Must be `true` behind HTTPS (compose default `true`) | `true` |
-| `TRUSTED_PROXY_CIDRS` | no | Peers trusted for `X-Forwarded-For`. Default `172.16.0.0/12` covers Docker's bridge networks; acceptable because `api` is isolated to `internal` plus Coolify's per-deployment network (see the trust boundary section). Narrow to the deployment subnet when you know it | `172.16.0.0/12` |
+| `TRUSTED_PROXY_CIDRS` | no | Peers trusted for `X-Forwarded-For`. Default `172.16.0.0/12` covers Docker's bridge networks; acceptable because `api` is isolated to `internal` plus Coolify's per-deployment network (see the trust boundary section). To narrow, run `scripts/ops/inspect-trusted-proxies.sh` on the host and set the printed value; re-run after redeploys | `172.16.0.0/12` |
 | `DATABASE_URL` | no | Leave empty to use the bundled `postgres` service via the structured `POSTGRES_*` settings. Set explicitly (URL-encoded) only for an external database | `postgresql://...` |
 | `VAULTGATE_API_URL` | no | Internal API origin used by the web same-origin proxy (default `http://api:8000`) | `http://api:8000` |
 | `VAULTGATE_API_TIMEOUT_MS` | no | Web proxy upstream timeout in milliseconds (default `30000`) | `30000` |

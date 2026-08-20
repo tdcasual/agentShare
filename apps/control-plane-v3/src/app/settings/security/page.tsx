@@ -2,16 +2,18 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, ShieldAlert } from 'lucide-react';
+import { toast } from 'sonner';
 import { useI18n } from '@/components/i18n-provider';
 import { SettingsNavigation } from '@/components/settings-navigation';
 import { Button } from '@/components/ui/button';
 import { Callout } from '@/components/ui/callout';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { InlineAlert } from '@/components/ui/inline-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { checkPasswordPolicy } from '@/lib/password-policy';
-import { ApiError, changePassword } from '@/lib/vaultgate-api';
+import { ApiError, changePassword, revokeAllTokens } from '@/lib/vaultgate-api';
 
 const PASSWORD_CHANGED_NOTICE_KEY = 'vaultgate-password-changed';
 
@@ -29,6 +31,9 @@ export default function SecuritySettingsPage() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<PasswordField, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmRevokeAll, setConfirmRevokeAll] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [revokeError, setRevokeError] = useState<string | null>(null);
 
   function setValue(field: PasswordField, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -100,6 +105,30 @@ export default function SecuritySettingsPage() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleRevokeAll() {
+    setRevoking(true);
+    setRevokeError(null);
+    try {
+      const result = await revokeAllTokens();
+      setConfirmRevokeAll(false);
+      toast.success(
+        t('settings.security.revokeAllSuccess', {
+          management: result.management_tokens_revoked,
+          agents: result.agent_tokens_revoked,
+        })
+      );
+    } catch (error) {
+      setConfirmRevokeAll(false);
+      setRevokeError(
+        error instanceof ApiError && error.status === 0
+          ? t('common.networkError')
+          : t('common.serverError')
+      );
+    } finally {
+      setRevoking(false);
     }
   }
 
@@ -178,6 +207,40 @@ export default function SecuritySettingsPage() {
           </Button>
         </form>
       </section>
+
+      <section className="max-w-xl space-y-4" aria-labelledby="emergency-revoke-heading">
+        <div>
+          <h2 id="emergency-revoke-heading" className="text-base font-semibold text-foreground">
+            {t('settings.security.revokeAllTitle')}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('settings.security.revokeAllDescription')}
+          </p>
+        </div>
+
+        {revokeError && <InlineAlert>{revokeError}</InlineAlert>}
+
+        <Button
+          type="button"
+          variant="outline"
+          leftIcon={<ShieldAlert />}
+          onClick={() => setConfirmRevokeAll(true)}
+          className="text-destructive hover:text-destructive"
+        >
+          {t('settings.security.revokeAllAction')}
+        </Button>
+      </section>
+
+      <ConfirmDialog
+        isOpen={confirmRevokeAll}
+        onClose={() => setConfirmRevokeAll(false)}
+        onConfirm={() => void handleRevokeAll()}
+        isLoading={revoking}
+        variant="danger"
+        title={t('settings.security.revokeAllConfirmTitle')}
+        message={t('settings.security.revokeAllConfirmMessage')}
+        confirmText={t('settings.security.revokeAllAction')}
+      />
     </main>
   );
 }

@@ -408,7 +408,13 @@
       "passwordTooLong": "Password must not exceed 72 UTF-8 bytes.",
       "currentPasswordIncorrect": "Current password is incorrect.",
       "passwordReuse": "New password must be different from the current password.",
-      "passwordRejected": "The new password does not meet the password policy."
+      "passwordRejected": "The new password does not meet the password policy.",
+      "revokeAllTitle": "Emergency credential revocation",
+      "revokeAllDescription": "If you suspect credential exposure, revoke every management token and agent token at once. Sessions are not affected; changing your password revokes sessions separately.",
+      "revokeAllAction": "Revoke all credentials",
+      "revokeAllConfirmTitle": "Revoke all credentials?",
+      "revokeAllConfirmMessage": "Every management token and agent token stops working immediately. Automations and agents relying on them lose access right away. This cannot be undone; you must issue new tokens afterwards.",
+      "revokeAllSuccess": "Revoked {management} management token(s) and {agents} agent token(s)."
     },
     "theme": {
       "switchToDark": "Switch to dark mode",

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+from unittest.mock import patch
 
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.asgi_client import TestClient
 from tests.test_admin_api import bootstrap_and_login
@@ -273,3 +276,21 @@ def test_space_membership_rejects_another_tenants_token(client: TestClient) -> N
         json={"members": [{"token_id": token["id"], "role": "reader"}]},
     )
     assert response.status_code == 404
+
+
+def test_concurrent_membership_replace_conflict_returns_409(client: TestClient) -> None:
+    """A losing concurrent replace (unique violation at commit) must yield 409,
+    not an unhandled 500, and must not persist partial state."""
+    bootstrap_and_login(client)
+    token = _issue_agent_token(client, "Membership Conflict")
+    space = client.post("/api/admin/spaces", json={"name": "Conflict Space"}).json()
+
+    conflict = IntegrityError("statement", {}, Exception("unique constraint violation"))
+    with patch.object(AsyncSession, "commit", side_effect=conflict):
+        response = client.put(
+            f"/api/admin/spaces/{space['id']}/memberships",
+            json={"members": [{"token_id": token["id"], "role": "reader"}]},
+        )
+    assert response.status_code == 409
+
+    assert client.get(f"/api/admin/spaces/{space['id']}/memberships").json() == {"members": []}

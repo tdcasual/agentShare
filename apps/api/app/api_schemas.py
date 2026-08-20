@@ -48,6 +48,11 @@ class ManagementTokenIssued(BaseModel):
     revoked_at: str | None = None
 
 
+class RevokeAllTokensResponse(BaseModel):
+    management_tokens_revoked: int
+    agent_tokens_revoked: int
+
+
 class SecretResponse(BaseModel):
     id: str
     name: str

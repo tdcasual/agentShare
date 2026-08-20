@@ -208,5 +208,12 @@ async def replace_memberships(
         resource_label=space.name,
         metadata={"member_count": len(memberships)},
     )
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Space memberships were modified concurrently; retry the operation",
+        ) from exc
     return {"members": [serialize_membership(row) for row in memberships]}

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from sqlalchemy import func, select, update
+from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +17,7 @@ from app.api_schemas import (
     LoginResponse,
     ManagementTokenIssued,
     ManagementTokenPageResponse,
+    RevokeAllTokensResponse,
 )
 from app.client_ip import get_client_ip
 from app.db import get_async_db
@@ -35,7 +37,7 @@ from app.modules.admin_auth.service import (
     renew_expiration,
 )
 from app.modules.audit.service import add_admin_audit, write_auth_failure_audit
-from app.orm import AdminSession, ManagementToken, User
+from app.orm import AdminSession, AgentToken, AgentTokenStatus, ManagementToken, User
 from app.rate_limit import RateLimitConfig, check_persistent_login_rate_limit
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -247,6 +249,62 @@ async def change_password(
     )
     await db.commit()
     response.delete_cookie(request.app.state.settings.session_cookie_name, path="/")
+
+
+@router.post("/security/revoke-all-tokens", response_model=RevokeAllTokensResponse)
+async def revoke_all_tokens(
+    request: Request,
+    principal: AdminPrincipal = Depends(get_admin_principal),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict[str, int]:
+    """Emergency kill switch: revoke every management and agent token at once.
+
+    Session-only on purpose — a leaked automation token must not be able to
+    wipe every other credential. Sessions are covered by the password change
+    flow instead, which revokes all sessions after verifying the password.
+    """
+    if principal.auth_type != "session":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session authentication required")
+    now = datetime.now(UTC)
+    management_result = cast(
+        "CursorResult[Any]",
+        await db.execute(
+            update(ManagementToken)
+            .where(
+                ManagementToken.user_id == principal.user.id,
+                ManagementToken.revoked_at.is_(None),
+            )
+            .values(revoked_at=now)
+        ),
+    )
+    agent_result = cast(
+        "CursorResult[Any]",
+        await db.execute(
+            update(AgentToken)
+            .where(AgentToken.user_id == principal.user.id, AgentToken.revoked_at.is_(None))
+            .values(status=AgentTokenStatus.REVOKED, revoked_at=now)
+        ),
+    )
+    management_count = management_result.rowcount or 0
+    agent_count = agent_result.rowcount or 0
+    add_admin_audit(
+        db,
+        request,
+        principal,
+        action="admin.credentials.revoke_all",
+        resource_type="admin_user",
+        resource_id=principal.user.id,
+        resource_label=principal.user.email,
+        metadata={
+            "management_tokens_revoked": management_count,
+            "agent_tokens_revoked": agent_count,
+        },
+    )
+    await db.commit()
+    return {
+        "management_tokens_revoked": management_count,
+        "agent_tokens_revoked": agent_count,
+    }
 
 
 @router.get("/management-tokens", response_model=ManagementTokenPageResponse)

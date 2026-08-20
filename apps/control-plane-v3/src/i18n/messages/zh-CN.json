@@ -408,7 +408,13 @@
       "passwordTooLong": "密码不能超过 72 个 UTF-8 字节。",
       "currentPasswordIncorrect": "当前密码不正确。",
       "passwordReuse": "新密码不能与当前密码相同。",
-      "passwordRejected": "新密码不符合密码策略。"
+      "passwordRejected": "新密码不符合密码策略。",
+      "revokeAllTitle": "应急吊销全部凭据",
+      "revokeAllDescription": "怀疑凭据泄漏时，一键吊销所有管理 Token 和 Agent Token。会话不受影响；修改密码会另行撤销所有会话。",
+      "revokeAllAction": "吊销全部凭据",
+      "revokeAllConfirmTitle": "吊销全部凭据？",
+      "revokeAllConfirmMessage": "所有管理 Token 和 Agent Token 将立即失效，依赖它们的自动化和 Agent 会立刻失去访问权限。此操作不可撤销，之后需要重新签发 Token。",
+      "revokeAllSuccess": "已吊销 {management} 个管理 Token 和 {agents} 个 Agent Token。"
     },
     "theme": {
       "switchToDark": "切换到深色模式",

@@ -115,7 +115,11 @@ condition as `missing-key` failures.
 1. Check `/healthz` and `/readyz`.
 2. Correlate logs with `x-request-id`.
 3. Review `/audit` or `/api/admin/audit-logs`.
-4. Revoke or rotate affected Agent/management Tokens.
+4. Revoke or rotate affected Agent/management Tokens. When the blast radius is unclear, use the
+   emergency kill switch instead: **Settings → Security → Revoke all credentials** in the control
+   plane, or `POST /api/admin/security/revoke-all-tokens` with a session cookie. It revokes every
+   management and Agent Token in one audited action (`admin.credentials.revoke_all`); sessions are
+   covered separately by changing the password. Re-issue tokens afterwards as needed.
 5. If stored ciphertext may be exposed, rotate `ENCRYPTION_KEY` through a planned keyring migration and redeploy.
 6. Rotate the PostgreSQL password when database credentials may be compromised.
 

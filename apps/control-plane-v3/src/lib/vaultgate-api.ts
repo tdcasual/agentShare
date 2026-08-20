@@ -203,6 +203,16 @@ export const changePassword = (input: PasswordChangeInput) =>
     body: JSON.stringify(input),
   });
 
+export interface RevokeAllTokensResult {
+  management_tokens_revoked: number;
+  agent_tokens_revoked: number;
+}
+
+export const revokeAllTokens = () =>
+  requestJson<RevokeAllTokensResult>('/api/admin/security/revoke-all-tokens', {
+    method: 'POST',
+  });
+
 export const listManagementTokens = (query: PageQuery = {}) =>
   requestJson<PageResponse<ManagementToken>>(buildApiPath('/api/admin/management-tokens', query));
 export const createManagementToken = (input: {

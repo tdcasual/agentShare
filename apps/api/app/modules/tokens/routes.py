@@ -237,5 +237,12 @@ async def replace_grants(
         resource_label=token.name,
         metadata={"secret_count": len(requested_ids)},
     )
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Token grants were modified concurrently; retry the operation",
+        ) from exc
     return {"secret_ids": requested_ids}

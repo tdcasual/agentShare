@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.config import Settings
 from app.factory import create_app
 from app.runtime import build_runtime
@@ -685,3 +688,93 @@ def test_disabled_agent_tokens_cannot_be_rotated(client: TestClient) -> None:
     rotated = client.post(f"/api/admin/tokens/{token['id']}/rotate")
     assert rotated.status_code == 409
     assert rotated.json()["detail"] == "Agent is disabled"
+
+
+def test_revoke_all_tokens_revokes_management_and_agent_credentials(
+    client: TestClient,
+) -> None:
+    bootstrap_and_login(client)
+    management = client.post("/api/admin/management-tokens", json={"name": "automation"})
+    assert management.status_code == 201
+    agent = client.post("/api/admin/agents", json={"name": "deploy"})
+    assert agent.status_code == 201
+    issued = client.post(
+        f"/api/admin/agents/{agent.json()['id']}/tokens", json={"name": "primary"}
+    )
+    assert issued.status_code == 201
+
+    machine = TestClient(
+        client.app, headers={"Authorization": f"Bearer {management.json()['token']}"}
+    )
+    agent_client = TestClient(
+        client.app, headers={"Authorization": f"Bearer {issued.json()['token']}"}
+    )
+    assert machine.get("/api/admin/secrets").status_code == 200
+    assert agent_client.get("/api/vault/me").status_code == 200
+
+    revoked = client.post("/api/admin/security/revoke-all-tokens")
+    assert revoked.status_code == 200
+    assert revoked.json() == {"management_tokens_revoked": 1, "agent_tokens_revoked": 1}
+
+    assert machine.get("/api/admin/secrets").status_code == 401
+    assert agent_client.get("/api/vault/me").status_code == 401
+    assert client.get("/api/admin/management-tokens").json()["items"][0]["revoked_at"] is not None
+    agent_tokens = client.get(f"/api/admin/agents/{agent.json()['id']}/tokens")
+    assert agent_tokens.json()["items"][0]["status"] == "revoked"
+
+    audit = client.get(
+        "/api/admin/audit-logs", params={"action": "admin.credentials.revoke_all"}
+    )
+    assert audit.json()["total"] == 1
+
+    # A second emergency revocation is idempotent and reports nothing left.
+    again = client.post("/api/admin/security/revoke-all-tokens")
+    assert again.status_code == 200
+    assert again.json() == {"management_tokens_revoked": 0, "agent_tokens_revoked": 0}
+
+
+def test_revoke_all_tokens_requires_session_authentication(client: TestClient) -> None:
+    """A leaked automation token must not be able to wipe every credential."""
+    bootstrap_and_login(client)
+    management = client.post("/api/admin/management-tokens", json={"name": "automation"})
+    assert management.status_code == 201
+    machine = TestClient(
+        client.app, headers={"Authorization": f"Bearer {management.json()['token']}"}
+    )
+
+    rejected = machine.post("/api/admin/security/revoke-all-tokens")
+    assert rejected.status_code == 400
+    assert client.get("/api/admin/management-tokens").json()["items"][0]["revoked_at"] is None
+
+
+def test_revoke_all_tokens_requires_valid_csrf_origin(client: TestClient) -> None:
+    bootstrap_and_login(client)
+    del client.headers["Origin"]
+
+    response = client.post("/api/admin/security/revoke-all-tokens")
+    assert response.status_code == 403
+
+
+def test_concurrent_grant_replace_conflict_returns_409(client: TestClient) -> None:
+    """A losing concurrent replace (unique violation at commit) must yield 409,
+    not an unhandled 500, and must not persist partial state."""
+    bootstrap_and_login(client)
+    secret = client.post(
+        "/api/admin/secrets", json={"name": "github", "type": "api_key", "value": "gh-secret"}
+    )
+    assert secret.status_code == 201
+    agent = client.post("/api/admin/agents", json={"name": "deploy"})
+    issued = client.post(
+        f"/api/admin/agents/{agent.json()['id']}/tokens", json={"name": "primary"}
+    )
+    token_id = issued.json()["id"]
+
+    conflict = IntegrityError("statement", {}, Exception("unique constraint violation"))
+    with patch.object(AsyncSession, "commit", side_effect=conflict):
+        response = client.put(
+            f"/api/admin/tokens/{token_id}/grants",
+            json={"secret_ids": [secret.json()["id"]]},
+        )
+    assert response.status_code == 409
+
+    assert client.get(f"/api/admin/tokens/{token_id}/grants").json() == {"secret_ids": []}

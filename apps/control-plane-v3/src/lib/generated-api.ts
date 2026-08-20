@@ -283,6 +283,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/admin/security/revoke-all-tokens': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Revoke All Tokens
+     * @description Emergency kill switch: revoke every management and agent token at once.
+     *
+     *     Session-only on purpose — a leaked automation token must not be able to
+     *     wipe every other credential. Sessions are covered by the password change
+     *     flow instead, which revokes all sessions after verifying the password.
+     */
+    post: operations['revoke_all_tokens_api_admin_security_revoke_all_tokens_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/admin/session': {
     parameters: {
       query?: never;
@@ -1012,6 +1036,13 @@ export interface components {
     ReencryptResponse: {
       /** Updated */
       updated: number;
+    };
+    /** RevokeAllTokensResponse */
+    RevokeAllTokensResponse: {
+      /** Agent Tokens Revoked */
+      agent_tokens_revoked: number;
+      /** Management Tokens Revoked */
+      management_tokens_revoked: number;
     };
     /** SecretCreate */
     SecretCreate: {
@@ -2000,6 +2031,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  revoke_all_tokens_api_admin_security_revoke_all_tokens_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RevokeAllTokensResponse'];
         };
       };
     };

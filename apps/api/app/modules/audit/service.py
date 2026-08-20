@@ -30,6 +30,7 @@ AUDIT_ACTIONS = (
     "admin.login.failed",
     "admin.logout",
     "admin.password.change",
+    "admin.credentials.revoke_all",
     "agent_auth.failed",
     "space.create",
     "space.update",
