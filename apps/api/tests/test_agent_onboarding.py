@@ -37,7 +37,7 @@ def test_agent_onboarding_invite_approval_and_one_time_credential(client: TestCl
         f"/api/onboarding/v1/requests/{request_id}",
         headers={"Authorization": f"Bearer {request_secret}"},
     )
-    assert status.json() == {"status": "pending"}
+    assert status.json() == {"status": "pending", "agent_id": None, "reason": None}
 
     approved = client.post(
         f"/api/admin/agent-join-requests/{request_id}/approve",
@@ -48,7 +48,7 @@ def test_agent_onboarding_invite_approval_and_one_time_credential(client: TestCl
 
     credential = client.post(
         f"/api/onboarding/v1/requests/{request_id}/credential",
-        headers={"Authorization": f"Bearer {request_secret}", "Idempotency-Key": "claim-1"},
+        headers={"Authorization": f"Bearer {request_secret}", "Idempotency-Key": "claim-001"},
     )
     assert credential.status_code == 200
     token = credential.json()["token"]
@@ -57,14 +57,14 @@ def test_agent_onboarding_invite_approval_and_one_time_credential(client: TestCl
 
     claim_replay = client.post(
         f"/api/onboarding/v1/requests/{request_id}/credential",
-        headers={"Authorization": f"Bearer {request_secret}", "Idempotency-Key": "claim-1"},
+        headers={"Authorization": f"Bearer {request_secret}", "Idempotency-Key": "claim-001"},
     )
     assert claim_replay.status_code == 200
     assert claim_replay.json() == credential.json()
 
     second_claim = client.post(
         f"/api/onboarding/v1/requests/{request_id}/credential",
-        headers={"Authorization": f"Bearer {request_secret}", "Idempotency-Key": "claim-2"},
+        headers={"Authorization": f"Bearer {request_secret}", "Idempotency-Key": "claim-002"},
     )
     assert second_claim.status_code == 409
 
